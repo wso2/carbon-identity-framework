@@ -18,7 +18,7 @@
   ],
   "identity_mgt.events.schemes.accountConfirmationValidation.module_index": "3",
   "identity_mgt.events.schemes.accountConfirmationValidation.subscriptions": [
-    "PRE_AUTHENTICATION"
+    "POST_AUTHENTICATION"
   ],
   "identity_mgt.events.schemes.passwordHistory.module_index": "4",
   "identity_mgt.events.schemes.passwordHistory.subscriptions": [
@@ -36,6 +36,7 @@
   "identity_mgt.events.schemes.'account.disable.handler'.module_index": "5",
   "identity_mgt.events.schemes.'account.disable.handler'.subscriptions": [
     "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
   ],
@@ -125,7 +126,63 @@
   "identity_mgt.events.schemes.'default.notification.sender'.subscriptions": [
     "TRIGGER_SMS_NOTIFICATION"
   ],
+  "identity_mgt.events.schemes.tenantRegistrationVerificationHandler.module_index": "21",
+  "identity_mgt.events.schemes.tenantRegistrationVerificationHandler.subscriptions": [
+    "PRE_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.challengeAnswerValidation.module_index": "22",
+  "identity_mgt.events.schemes.challengeAnswerValidation.subscriptions": [
+    "PRE_SET_CHALLENGE_QUESTION_ANSWERS",
+    "POST_SET_CHALLENGE_QUESTION_ANSWERS"
+  ],
+  "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.module_index": "23",
+  "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.subscriptions": "$ref{authentication.analytics.publish_authentication_event_types}",
+  "identity_mgt.events.schemes.analyticsLoginDataPublisherV110.properties.enable": false,
+  "identity_mgt.events.schemes.TokenBindingExpiryEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.TokenBindingExpiryEventHandler.module_index": "24",
+  "identity_mgt.events.schemes.TokenBindingExpiryEventHandler.subscriptions": [
+    "SESSION_TERMINATE",
+    "SESSION_EXPIRE"
+  ],
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.stream'":"id_gov_sms_notify_stream:1.0.0",
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.claim.mobile'":"http://wso2.org/claims/mobile",
-  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.userMobileVerification.module_index": "25",
+  "identity_mgt.events.schemes.userMobileVerification.subscriptions": [
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.liteUserRegistration.properties.enable": false,
+  "identity_mgt.events.schemes.liteUserRegistration.module_index": "26",
+  "identity_mgt.events.schemes.liteUserRegistration.subscriptions": [
+    "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.identityUserMetadataMgtHandler.module_index": "27",
+  "identity_mgt.events.schemes.identityUserMetadataMgtHandler.properties.enable": false,
+  "identity_mgt.events.schemes.identityUserMetadataMgtHandler.subscriptions": [
+    "POST_AUTHENTICATION",
+    "POST_UPDATE_CREDENTIAL",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN"
+  ],
+  "identity_mgt.events.schemes.identityOauthEventHandler.module_index": "28",
+  "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [
+    "POST_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIM"
+  ],
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.subscriptions": [
+    "POST_ADD_USER",
+    "POST_DELETE_USER",
+    "POST_UPDATE_CREDENTIAL",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.module_index": "30",
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.subscriptions": [
+    "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ]
 }

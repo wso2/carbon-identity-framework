@@ -73,6 +73,8 @@ public class ApplicationBean {
     public static final String LOCAL_IDP = "wso2carbon-local-idp";
     public static final String DUMB = "dumb";
 
+    private static final String LOGOUT_RETURN_URL = "logoutReturnUrl";
+
     private ServiceProvider serviceProvider;
     private IdentityProvider[] federatedIdentityProviders;
     private Map<String, IdentityProvider> federatedIdentityProvidersMap = new HashMap<>();
@@ -98,6 +100,7 @@ public class ApplicationBean {
     private List<String> standardInboundAuthTypes;
     private ApplicationPurposes applicationPurposes;
     private Purpose[] sharedPurposes;
+    private Map<String, InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
 
     private static final Log log = LogFactory.getLog(ApplicationBean.class);
 
@@ -958,28 +961,32 @@ public class ApplicationBean {
     }
 
     /**
-     * Get all custom authenticators
+     * Get all custom authenticators.
      *
      * @return Custom authenticators
      */
     public List<InboundAuthenticationRequestConfig> getInboundAuthenticators() {
 
-        if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
-            return inboundAuthenticationRequestConfigs;
-        }
+        if (CollectionUtils.isNotEmpty(Collections.singleton(customInboundAuthenticatorConfigs))) {
+            if (CollectionUtils.isNotEmpty(inboundAuthenticationRequestConfigs)) {
+                return inboundAuthenticationRequestConfigs;
+            }
+            InboundAuthenticationRequestConfig[] authRequests = serviceProvider
+                    .getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs();
 
-        inboundAuthenticationRequestConfigs = new ArrayList<InboundAuthenticationRequestConfig>();
-
-        InboundAuthenticationRequestConfig[] authRequests = serviceProvider
-                .getInboundAuthenticationConfig()
-                .getInboundAuthenticationRequestConfigs();
-
-        if (authRequests != null) {
-            for (InboundAuthenticationRequestConfig request : authRequests) {
-                if (isCustomInboundAuthType(request.getInboundAuthType())) {
-                    inboundAuthenticationRequestConfigs.add(request);
+            inboundAuthenticationRequestConfigs = new ArrayList<>();
+            if (authRequests != null) {
+                for (InboundAuthenticationRequestConfig request : authRequests) {
+                    if (isCustomInboundAuthType(request.getInboundAuthType()) && customInboundAuthenticatorConfigs
+                            .containsKey(request.getInboundAuthType() + ":" + request.getInboundConfigType())) {
+                        customInboundAuthenticatorConfigs.remove(
+                                request.getInboundAuthType() + ":" + request.getInboundConfigType());
+                        inboundAuthenticationRequestConfigs.add(request);
+                    }
                 }
             }
+            inboundAuthenticationRequestConfigs.addAll(customInboundAuthenticatorConfigs.values());
         }
         return inboundAuthenticationRequestConfigs;
     }
@@ -1151,6 +1158,27 @@ public class ApplicationBean {
         String imageUrl = request.getParameter("imageURL");
         serviceProvider.setImageUrl(imageUrl);
 
+        String logoutReturnUrl = request.getParameter(LOGOUT_RETURN_URL);
+        if (StringUtils.isNotBlank(logoutReturnUrl)) {
+            boolean logoutReturnUrlDefined = false;
+            if (serviceProvider.getSpProperties() != null) {
+                for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+                    if (property.getName() != null && LOGOUT_RETURN_URL.equals(property.getName())) {
+                        property.setValue(logoutReturnUrl);
+                        logoutReturnUrlDefined = true;
+                        break;
+                    }
+                }
+            }
+            if (!logoutReturnUrlDefined) {
+                ServiceProviderProperty property = new ServiceProviderProperty();
+                property.setName(LOGOUT_RETURN_URL);
+                property.setDisplayName("Logout Return URL");
+                property.setValue(logoutReturnUrl);
+                serviceProvider.addSpProperties(property);
+            }
+        }
+
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
             serviceProvider
@@ -1294,7 +1322,7 @@ public class ApplicationBean {
         String passiveSTSRealm = request.getParameter("passiveSTSRealm");
         String passiveSTSWReply = request.getParameter("passiveSTSWReply");
 
-        if (passiveSTSRealm != null) {
+        if (StringUtils.isNotBlank(passiveSTSRealm)) {
             InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
             opicAuthenticationRequest.setInboundAuthKey(passiveSTSRealm);
             opicAuthenticationRequest.setInboundAuthType("passivests");
@@ -1310,7 +1338,7 @@ public class ApplicationBean {
 
         String openidRealm = request.getParameter("openidRealm");
 
-        if (openidRealm != null) {
+        if (StringUtils.isNotBlank(openidRealm)) {
             InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
             opicAuthenticationRequest.setInboundAuthKey(openidRealm);
             opicAuthenticationRequest.setInboundAuthType("openid");
@@ -1527,6 +1555,24 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                         && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+    }
+
+    /**
+     * Set the server configured custom inbound authenticator configs as map.
+     *
+     * @param customInboundAuthenticatorConfigs Custom inbound authenticators enabled for the server.
+     */
+    public void setCustomInboundAuthenticatorConfigs(
+            InboundAuthenticationRequestConfig[] customInboundAuthenticatorConfigs) {
+
+        Map<String, InboundAuthenticationRequestConfig> customInboundAuthConfigs = new HashMap<>();
+        if (customInboundAuthenticatorConfigs != null && customInboundAuthenticatorConfigs.length > 0) {
+            for (InboundAuthenticationRequestConfig config : customInboundAuthenticatorConfigs) {
+                customInboundAuthConfigs.put(
+                        config.getInboundAuthType() + ":" + config.getInboundConfigType(), config);
+            }
+        }
+        this.customInboundAuthenticatorConfigs = customInboundAuthConfigs;
     }
 
     /**

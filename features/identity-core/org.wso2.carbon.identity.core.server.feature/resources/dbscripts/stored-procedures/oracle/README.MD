@@ -19,3 +19,8 @@ Then execute the compiled store procedure by using the exec function in the Orac
 ```
 sqlplus> exec WSO2_TOKEN_CLEANUP_SP();
 ```
+
+! Starting from IS 5.7.0 following index should be inplace to avoid deadlock situation cause by the foreign keys
+```
+CREATE INDEX IDX_OROR_TID ON IDN_OIDC_REQ_OBJECT_REFERENCE(TOKEN_ID);
+```

@@ -307,7 +307,7 @@
             var passwordMethod = document.getElementById('defineHere');
             if (passwordMethod.checked) {
                 skipPasswordValidation = false;
-                jQuery('#emailRow').hide();
+                jQuery('#emailRow').remove();
                 jQuery('#passwordRow').show();
                 jQuery('#retypeRow').show();
             }
@@ -443,11 +443,12 @@
                                 %>
                                 <tr id="passwordRow">
                                     <td><fmt:message key="password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="password" id="password" style="width:150px" autocomplete="off"/></td>
+                                    <td><input type="password" name="password" id="password" style="width:150px"
+                                               autocomplete="new-password"/></td>
                                 </tr>
                                 <tr id="retypeRow">
                                     <td><fmt:message key="password.repeat"/><font color="red">*</font></td>
-                                    <td><input type="password" id="password-repeat" autocomplete="off" name="retype" style="width:150px"/></td>
+                                    <td><input type="password" id="password-repeat" autocomplete="new-password" name="retype" style="width:150px"/></td>
                                 </tr>
                             </table>
                         </td>

@@ -101,6 +101,8 @@ public class EntitlementUtil {
 
     private static Log log = LogFactory.getLog(EntitlementUtil.class);
 
+    private static final String ENHANCED_XACML_LOADING_SYSTEM_PROPERTY = "enableEnhancedXACMLLoading";
+
     /**
      * Return an instance of a named cache that is common to all tenants.
      *
@@ -246,7 +248,7 @@ public class EntitlementUtil {
                 log.error("Invalid Namespace in policy");
             }
         } catch (SAXException e) {
-            log.error("XACML policy is not valid according to the schema :" + e.getMessage());
+            log.error("XACML policy is not valid according to the schema :" + e.getMessage(), e);
         } catch (IOException e) {
             //ignore
         } catch (ParserConfigurationException e) {
@@ -458,20 +460,23 @@ public class EntitlementUtil {
             PAPPolicyStoreReader reader = new PAPPolicyStoreReader(policyStore);
             policyDTO = reader.readPolicyDTO(policyDTO.getPolicyId());
 
-            PolicyStoreDTO policyStoreDTO = new PolicyStoreDTO();
-            policyStoreDTO.setPolicyId(policyDTO.getPolicyId());
-            policyStoreDTO.setPolicy(policyDTO.getPolicy());
-            policyStoreDTO.setPolicyOrder(policyDTO.getPolicyOrder());
-            policyStoreDTO.setAttributeDTOs(policyDTO.getAttributeDTOs());
-            policyStoreDTO.setActive(policyDTO.isActive());
-            policyStoreDTO.setSetActive(policyDTO.isActive());
+            if (Boolean.parseBoolean(System.getProperty(ENHANCED_XACML_LOADING_SYSTEM_PROPERTY)) && promote) {
+                EntitlementAdminEngine adminEngine = EntitlementAdminEngine.getInstance();
+                adminEngine.getPolicyStoreManager().addPolicy(policyDTO);
+            } else {
+                PolicyStoreDTO policyStoreDTO = new PolicyStoreDTO();
+                policyStoreDTO.setPolicyId(policyDTO.getPolicyId());
+                policyStoreDTO.setPolicy(policyDTO.getPolicy());
+                policyStoreDTO.setPolicyOrder(policyDTO.getPolicyOrder());
+                policyStoreDTO.setAttributeDTOs(policyDTO.getAttributeDTOs());
+                policyStoreDTO.setActive(policyDTO.isActive());
+                policyStoreDTO.setSetActive(policyDTO.isActive());
 
-            if (promote) {
-                addPolicyToPDP(policyStoreDTO);
+                if (promote) {
+                    addPolicyToPDP(policyStoreDTO);
+                }
+                policyAdmin.addOrUpdatePolicy(policyDTO);
             }
-
-            policyAdmin.addOrUpdatePolicy(policyDTO);
-
             return true;
         } else {
             throw new EntitlementException("Invalid Entitlement Policy");

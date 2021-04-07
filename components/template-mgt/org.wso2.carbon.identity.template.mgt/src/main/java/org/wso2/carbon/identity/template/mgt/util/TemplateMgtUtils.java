@@ -51,6 +51,25 @@ public class TemplateMgtUtils {
     }
 
     /**
+     * This method can be used to generate a TemplateManagementServerException from
+     * IdentityTemplateMgtConstants.ErrorMessages object when no exception is thrown.
+     *
+     * @param error IdentityTemplateMgtConstants.ErrorMessages.
+     * @param data  data to replace if the message needs to be replaced.
+     * @return TemplateManagementServerException.
+     */
+    public static TemplateManagementServerException handleServerException(TemplateMgtConstants.ErrorMessages error,
+                                                                          Throwable e, String... data) {
+
+        String message = populateMessageWithData(error, data);
+
+        if (e == null) {
+            return new TemplateManagementServerException(message, error.getCode());
+        } else {
+            return new TemplateManagementServerException(message, error.getCode(), e);
+        }
+    }
+    /**
      * This method can be used to generate a TemplateManagementClientException from TemplateMgtConstants.ErrorMessages
      * object when no exception is thrown.
      *
@@ -69,6 +88,22 @@ public class TemplateMgtUtils {
         }
 
         return new TemplateManagementClientException(message, error.getCode());
+    }
+
+    /**
+     * This method can be used to generate a TemplateManagementClientException from
+     * IdentityTemplateMgtConstants.ErrorMessages object when no exception is thrown.
+     *
+     * @param error IdentityTemplateMgtConstants.ErrorMessages.
+     * @param data  data to replace if the message needs to be replaced.
+     * @return TemplateManagementClientException.
+     */
+    public static TemplateManagementClientException handleClientException(TemplateMgtConstants.ErrorMessages error,
+                                                                          Throwable e, String... data) {
+
+        String message = populateMessageWithData(error, data);
+
+        return new TemplateManagementClientException(message, error.getCode(), e);
     }
 
     /**
@@ -102,6 +137,24 @@ public class TemplateMgtUtils {
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
+    /**
+     * Get the Tenant Domain from carbon context.
+     *
+     * @return Tenant Id.
+     */
+    public static String getTenantDomainFromCarbonContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+    }
+
+    private static String populateMessageWithData(TemplateMgtConstants.ErrorMessages error, String... data) {
+
+        String message;
+        if (data.length != 0) {
+            message = String.format(error.getMessage(), (Object[]) data);
+        } else {
+            message = error.getMessage();
+        }
+        return message;
+    }
 }
-
-

@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -65,6 +66,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -102,6 +104,25 @@ public class ApplicationMgtUtil {
         return permissionSet;
     }
 
+    /**
+     * Check whether validate roles is enabled via ApplicationMgt.EnableRoleValidation configuration in the
+     * identity.xml.
+     *
+     * @return True if the config is set to true or if the config is not specified in the identity.xml.
+     */
+    public static boolean validateRoles() {
+
+        String allowRoleValidationProperty = IdentityUtil.getProperty(ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY);
+        if (StringUtils.isBlank(allowRoleValidationProperty)) {
+            /*
+            This means the configuration does not exist in the identity.xml. In that case, true needs to be
+            returned to preserve backward compatibility.
+             */
+            return true;
+        }
+        return Boolean.parseBoolean(allowRoleValidationProperty);
+    }
+
     public static boolean isUserAuthorized(String applicationName, String username, int applicationID)
             throws IdentityApplicationManagementException {
 
@@ -125,6 +146,14 @@ public class ApplicationMgtUtil {
     public static boolean isUserAuthorized(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Validating user with application roles is disabled. Therefore, " +
+                        "user: %s will be authorized for application: %s", username, applicationName));
+            }
+            return true;
+        }
         String applicationRoleName = getAppRoleName(applicationName);
         try {
             if (log.isDebugEnabled()) {
@@ -160,6 +189,14 @@ public class ApplicationMgtUtil {
     public static void createAppRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating user with application roles is disabled. Therefore, the application " +
+                        "role will not be created for application: " + applicationName);
+            }
+            return;
+        }
         String roleName = getAppRoleName(applicationName);
         String[] usernames = {username};
         UserStoreManager userStoreManager = null;
@@ -685,14 +722,22 @@ public class ApplicationMgtUtil {
                 }
                 boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
                 if (!isUserExist) {
-                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
-                            "application: " +
-                            serviceProvider.getApplicationName() + " as user is not existing.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Owner does not exist for application: " + serviceProvider.getApplicationName() +
+                                ". Hence making the tenant admin the owner of the application.");
+                    }
+                    // Since the SP owner does not exist, set the tenant admin user as the owner.
+                    User owner = new User();
+                    owner.setUserName(realm.getRealmConfiguration().getAdminUserName());
+                    owner.setUserStoreDomain(realm.getRealmConfiguration().
+                            getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    owner.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    serviceProvider.setOwner(owner);
                 }
             } else {
                 return false;
             }
-        } catch (UserStoreException | IdentityApplicationManagementException e) {
+        } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
                     "application: " +
                     serviceProvider.getApplicationName(), e);

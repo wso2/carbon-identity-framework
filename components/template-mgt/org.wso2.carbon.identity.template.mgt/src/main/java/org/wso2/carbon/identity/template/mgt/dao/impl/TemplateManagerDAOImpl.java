@@ -37,7 +37,7 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_TEMPLATE;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_LIST_TEMPLATES;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATED_LIST_TEMPLATES;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_SELECT_TEMPLATE_BY_NAME;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_TEMPLATE;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.SqlQueries.DELETE_TEMPLATE;
@@ -177,9 +177,9 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
                         preparedStatement.setInt(3, finalOffset);
                     });
         } catch (DataAccessException e) {
-            throw new TemplateManagementServerException(String.format(ERROR_CODE_LIST_TEMPLATES.getMessage(),
+            throw new TemplateManagementServerException(String.format(ERROR_CODE_PAGINATED_LIST_TEMPLATES.getMessage(),
                     tenantId, limit, offset),
-                    ERROR_CODE_LIST_TEMPLATES.getCode(), e);
+                    ERROR_CODE_PAGINATED_LIST_TEMPLATES.getCode(), e);
         }
         return templates;
     }

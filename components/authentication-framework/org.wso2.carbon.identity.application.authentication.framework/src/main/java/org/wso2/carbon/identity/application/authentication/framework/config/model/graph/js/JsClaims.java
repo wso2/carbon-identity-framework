@@ -22,7 +22,6 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -61,7 +60,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
-    private transient AuthenticatedUser authenticatedUser;
+    protected transient AuthenticatedUser authenticatedUser;
 
     /**
      * Constructor to get the user authenticated in step 'n'
@@ -300,7 +299,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @return <code>true</code> if the IdP is federated and it has a claim for user with given URI.
      * <code>false</code> otherwise
      */
-    private boolean hasFederatedClaim(String claimUri) {
+    protected boolean hasFederatedClaim(String claimUri) {
 
         if (isFederatedIdP()) {
             Map<ClaimMapping, String> attributesMap = authenticatedUser.getUserAttributes();
@@ -317,7 +316,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri The local claim URI
      * @return Claim value of the user authenticated by the indicated IdP
      */
-    private boolean hasLocalClaim(String claimUri) {
+    protected boolean hasLocalClaim(String claimUri) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -345,7 +344,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @return Claim value if the Idp is a federated Idp, and has a claim by given url for the user.
      * <code>null</code> otherwise.
      */
-    private String getFederatedClaim(String claimUri) {
+    protected String getFederatedClaim(String claimUri) {
 
         // If the idp is local, return null
         if (isFederatedIdP()) {
@@ -363,7 +362,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri Local claim URI
      * @return Local user's claim value if the Idp is local, Mapped remote claim if the Idp is federated.
      */
-    private String getLocalClaim(String claimUri) {
+    protected String getLocalClaim(String claimUri) {
 
         if (isFederatedIdP()) {
             return getLocalMappedClaim(claimUri);
@@ -379,7 +378,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      *
      * @return true if the idp is federated
      */
-    private boolean isFederatedIdP() {
+    protected boolean isFederatedIdP() {
 
         return StringUtils.isNotBlank(idp) && !FrameworkConstants.LOCAL.equals(idp);
     }

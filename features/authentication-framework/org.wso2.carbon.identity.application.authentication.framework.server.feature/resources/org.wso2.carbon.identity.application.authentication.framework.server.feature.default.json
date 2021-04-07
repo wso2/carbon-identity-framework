@@ -13,6 +13,8 @@
   "identity.auth_framework.endpoint.tls_protocol" : "TLSv1.2",
   "identity.auth_framework.endpoint.app_name": "dashboard",
   "identity.auth_framework.endpoint.app_password": "dashboard",
+  "identity.auth_framework.endpoint.username": "admin",
+  "identity.auth_framework.endpoint.password": "admin",
   "identity.auth_framework.identity_server_origin": "${carbon.protocol}://${carbon.host}:${carbon.management.port}",
   "identity.auth_framework.endpoint.securevault_secret_handler": "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler",
 
@@ -108,7 +110,7 @@
   "authentication.authenticator.yahoo.enable": true,
   "authentication.authenticator.yahoo.parameters.YahooTokenEndpoint": "https://api.login.yahoo.com/oauth2/get_token",
   "authentication.authenticator.yahoo.parameters.YahooOAuthzEndpoint": "https://api.login.yahoo.com/oauth2/request_auth",
-  "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://social.yahooapis.com/v1/user/",
+  "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://api.login.yahoo.com/openid/v1/userinfo",
 
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
@@ -123,6 +125,10 @@
 
   "authentication.authenticator.email_otp.name": "EmailOTP",
   "authentication.authenticator.email_otp.enable": true,
+  "authentication.authenticator.email_otp.parameters.EMAILOTPAuthenticationEndpointURL": "authenticationendpoint/email_otp.do",
+  "authentication.authenticator.email_otp.parameters.EmailOTPAuthenticationEndpointErrorPage": "authenticationendpoint/email_otp_error.do",
+  "authentication.authenticator.email_otp.parameters.EmailAddressRequestPage": "authenticationendpoint/email_capture.do",
+  "authentication.authenticator.email_otp.parameters.useEventHandlerBasedEmailSender": true,
   "authentication.authenticator.email_otp.parameters.GmailClientId": "gmailClientIdValue",
   "authentication.authenticator.email_otp.parameters.GmailClientSecret": "gmailClientSecretValue",
   "authentication.authenticator.email_otp.parameters.SendgridAPIKey": "sendgridAPIKeyValue",
@@ -162,13 +168,18 @@
   "authentication.authenticator.totp.parameters.enrolUserInAuthenticationFlow": true,
   "authentication.authenticator.totp.parameters.usecase": "local",
   "authentication.authenticator.totp.parameters.secondaryUserstore": "primary",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL": "totpauthenticationendpoint/totp.jsp",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "totpauthenticationendpoint/totpError.jsp",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "totpauthenticationendpoint/enableTOTP.jsp",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL": "authenticationendpoint/totp.do",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "authenticationendpoint/totp_error.do",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "authenticationendpoint/totp_enroll.do",
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
+  "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,
   "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
-  "authentication.authenticator.x509_certificate.parameters.username": "CN"
+  "authentication.authenticator.x509_certificate.parameters.username": "CN",
+
+  "account_recovery.endpoint.auth.name":"dashboard",
+  "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"
 }

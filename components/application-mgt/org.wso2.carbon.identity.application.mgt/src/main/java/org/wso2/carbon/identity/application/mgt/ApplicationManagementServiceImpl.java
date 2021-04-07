@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,6 +50,8 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -60,10 +64,15 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
@@ -73,6 +82,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -85,8 +96,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -111,6 +126,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
@@ -123,7 +140,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
-    private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
+    private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -177,7 +194,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
-
+        setDisplayNamesOfLocalAuthenticators(serviceProvider, tenantDomain);
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
@@ -185,7 +202,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + serviceProvider.getApplicationName() + " of tenantDomain: " + tenantDomain);
                 break;
@@ -585,7 +602,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (isOwnerUpdatedInRequest(serviceProvider)) {
                 //It is not required to validate the user here, as the user is validating inside the updateApplication
                 // method above. Hence assign application role to the app owner.
-                assignApplicationRole(serviceProvider.getApplicationName(), serviceProvider.getOwner().getUserName());
+                assignApplicationRole(serviceProvider.getApplicationName(),
+                        MultitenantUtils.getTenantAwareUsername(serviceProvider.getOwner().toFullQualifiedUsername()));
             }
 
             updateApplicationPermissions(serviceProvider, applicationName, storedAppName);
@@ -712,6 +730,38 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    /**
+     * Delete Applications by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
+     */
+    @Override
+    public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        ApplicationBasicInfo[] applicationBasicInfos = getAllApplicationBasicInfo(
+                tenantDomain, CarbonContext.getThreadLocalCarbonContext().getUsername());
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        appDAO.deleteApplications(tenantId);
+
+        // Clear cache entries of each deleted SP.
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
+        }
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+                IdentityServiceProviderCache.getInstance().clearCacheEntry(
+                        new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName(), tenantDomain));
+            }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+    }
+
     @Override
     public IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)
             throws IdentityApplicationManagementException {
@@ -795,12 +845,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
-            ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
-                    .getAllClaimMappings(claimDialect);
+
             List<String> claimUris = new ArrayList<>();
-            for (ClaimMapping claimMap : claimMappings) {
-                claimUris.add(claimMap.getClaim().getClaimUri());
+            if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(claimDialect)) {
+                // Local claims are retrieved via ClaimMetadataManagement service for consistency.
+                List<LocalClaim> localClaims = ApplicationManagementServiceComponentHolder.getInstance()
+                        .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+                claimUris = getLocalClaimURIs(localClaims);
+            } else {
+                ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                        .getClaimManager().getAllClaimMappings(claimDialect);
+                for (ClaimMapping claimMap : claimMappings) {
+                    claimUris.add(claimMap.getClaim().getClaimUri());
+                }
             }
+
             String[] allLocalClaimUris = (claimUris.toArray(new String[claimUris.size()]));
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
@@ -1291,7 +1350,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -1324,7 +1383,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 validateSPTemplateExists(spTemplate, tenantDomain);
 
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
-                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                applicationValidatorManager.validateSPConfigurations(updatedSP, tenantDomain,
                         CarbonContext.getThreadLocalCarbonContext().getUsername());
                 Collection<ApplicationMgtListener> listeners =
                         getApplicationMgtListeners();
@@ -1393,7 +1452,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
 
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -1869,6 +1928,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private void assignApplicationRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating user with application roles is disabled. Therefore, the application " +
+                        "role will not be assigned to user: " + username);
+            }
+            return;
+        }
         String roleName = getAppRoleName(applicationName);
         String[] newRoles = {roleName};
 
@@ -2147,7 +2214,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
 
         updatedApp.setApplicationResourceId(resourceId);
-
+        setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
         for (ApplicationResourceManagementListener listener : listeners) {
@@ -2201,6 +2268,40 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    @Override
+    public Set<String> getSystemApplications() {
+
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemApplicationsConfig = configParser.getConfigElement(SYSTEM_APPLICATIONS_CONFIG_ELEMENT);
+        if (systemApplicationsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + SYSTEM_APPLICATIONS_CONFIG_ELEMENT + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator applicationIdentifierIterator = systemApplicationsConfig
+                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
+        if (applicationIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> systemApplications = new HashSet<>();
+
+        while (applicationIdentifierIterator.hasNext()) {
+            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
+            String applicationName = applicationIdentifierConfig.getText();
+            if (StringUtils.isNotBlank(applicationName)) {
+                systemApplications.add(applicationName.trim());
+            }
+        }
+
+        return systemApplications;
+    }
+
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
                                    String username) throws IdentityApplicationManagementException {
 
@@ -2249,7 +2350,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                    String username) throws IdentityApplicationManagementException {
 
         try {
-            applicationMgtValidator.validateSPConfigurations(application, tenantDomain, username);
+            applicationValidatorManager.validateSPConfigurations(application, tenantDomain, username);
         } catch (IdentityApplicationManagementValidationException e) {
             String message = "Invalid application configuration for application: '" +
                     application.getApplicationName() + "' of tenantDomain: " + tenantDomain + ".";
@@ -2431,6 +2532,53 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private Collection<ApplicationMgtListener> getApplicationMgtListeners() {
 
         return ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+    }
+
+    /**
+     * Set displayName of configured localAuthenticators in the service provider, if displayName is null.
+     *
+     * @param serviceProvider Service provider.
+     * @param tenantDomain    Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occur while retrieving local authenticator configs.
+     */
+    private void setDisplayNamesOfLocalAuthenticators(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Set displayName of local authenticators if displayNames are null.
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = getAllLocalAuthenticators(tenantDomain);
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null || localAuthenticatorConfigs == null) {
+            return;
+        }
+        AuthenticationStep[] authSteps =
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+        if (CollectionUtils.isEmpty(Arrays.asList(authSteps))) {
+            return;
+        }
+        for (AuthenticationStep authStep : authSteps) {
+            if (CollectionUtils.isEmpty(Arrays.asList(authStep.getLocalAuthenticatorConfigs()))) {
+                return;
+            }
+            for (LocalAuthenticatorConfig localAuthenticator : authStep.getLocalAuthenticatorConfigs()) {
+                if (localAuthenticator.getDisplayName() == null) {
+                    Arrays.stream(localAuthenticatorConfigs).forEach(config -> {
+                        if (StringUtils.equals(localAuthenticator.getName(), config.getName())) {
+                            localAuthenticator.setDisplayName(config.getDisplayName());
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private ArrayList<String> getLocalClaimURIs(List<LocalClaim> localClaims) {
+
+        // Using Java 8 streams to do the mapping will result in breaking at the axis level thus using the following
+        // approach.
+        ArrayList<String> localClaimsArray = new ArrayList<String>();
+        for (LocalClaim localClaim : localClaims) {
+            localClaimsArray.add(localClaim.getClaimURI());
+        }
+        return localClaimsArray;
     }
 }
 

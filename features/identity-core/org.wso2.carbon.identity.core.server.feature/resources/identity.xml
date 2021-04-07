@@ -62,6 +62,12 @@
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
         <RememberMeTimeout>20160</RememberMeTimeout>
+        <!--
+        Setting ExtendRememberMeSessionTimeoutOnAuth to TRUE will change the expiry time of the commonAuth cookie
+        during the authentication. The default value will be TRUE and the expiry time of the commonAuth cookie
+        will change.
+        -->
+        <ExtendRememberMeSessionTimeoutOnAuth>true</ExtendRememberMeSessionTimeoutOnAuth>
     </TimeConfig>
 
     <!-- Security configurations -->
@@ -72,6 +78,9 @@
         <TrustManagerType>SunX509</TrustManagerType>
         <UserStorePasswordEncryption>InternalKeyStore</UserStorePasswordEncryption>
     </Security>
+
+    <!-- This configuration is to resolve the internal service URL for internal API calls. -->
+    <ServerHostName>localhost</ServerHostName>
 
     <Identity>
         <IssuerPolicy>SelfAndManaged</IssuerPolicy>
@@ -216,6 +225,8 @@
         <TimestampSkew>0</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable Extend renews refresh token expiry time -->
+        <ExtendRenewedRefreshTokenExpiryTime>true</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         <!-- This should be true if the oauth keys (consumer secret, access token, refresh token and authorization code) need to be hashed,
@@ -245,9 +256,26 @@
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             <SupportedResponseType>
-                <ResponseTypeName>device</ResponseTypeName>
-                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>
-                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>
+                <ResponseTypeName>code token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+<!--            <SupportedResponseType>-->
+<!--                <ResponseTypeName>device</ResponseTypeName>-->
+<!--                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>-->
+<!--                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>-->
+<!--            </SupportedResponseType>-->
+            <SupportedResponseType>
+                <ResponseTypeName>none</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
         </SupportedResponseTypes>
         <!-- Supported Grant Types -->
@@ -282,6 +310,7 @@
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:jwt-bearer</GrantTypeName>
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
+                <IsRefreshTokenAllowed>true</IsRefreshTokenAllowed>
             </SupportedGrantType>
             <!-- Supported versions: IS 5.7.0 onwards.-->
             <SupportedGrantType>
@@ -295,12 +324,12 @@
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator</GrantTypeValidatorImplClass>
             </SupportedGrantType>
-            <SupportedGrantType>
-                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
-                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>
-                <IdTokenAllowed>true</IdTokenAllowed>
-            </SupportedGrantType>
+<!--            <SupportedGrantType>-->
+<!--                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>-->
+<!--                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant</GrantTypeHandlerImplClass>-->
+<!--                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>-->
+<!--                <IdTokenAllowed>true</IdTokenAllowed>-->
+<!--            </SupportedGrantType>-->
         </SupportedGrantTypes>
 
         <!--
@@ -535,6 +564,45 @@
             <EnableDataProviders>false</EnableDataProviders>
         </Introspection-->
 
+        <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
+
+        <!--
+        By enabling this property, application role permission will require to view the OAuth app in DCRM.
+
+        Default value : true
+        -->
+        <DCRM>
+            <ApplicationRolePermissionRequiredToView>true</ApplicationRolePermissionRequiredToView>
+        </DCRM>
+
+        <!--
+        By enabling this config, additional parameters will be append to OAuth2 error url.
+        Currently it appends SP and tenant domain as the additional parameters.
+        Default value : false
+        -->
+        <!--<AllowAdditionalParamsFromErrorUrl>false</AllowAdditionalParamsFromErrorUrl>-->
+
+        <!--
+        By enabling this feature, server will identify a JWT token at the introspection endpoint by attempting a JWT
+        token parsing. If identified, introspection is performed by treating the token as a JWT access token.
+
+        Important: Enabling this feature will validate the token using the available JWT token validator. Ex: In the
+                   default pack, this will be Default JWT token validator. However, if the server issue custom JWT
+                   tokens, which fails the available JWT token validator, the existing flow can break. For an example,
+                   the default JWT token validator mandate to have the jti claim in the token. If a custom token issuer
+                   does not include this claim, introspection breaks once this feature is enabled. In such scenarios,
+                   a compatible JWT token validator should be deployed in the system prior to enabling this feature.
+
+        Default value: true
+        -->
+        <EnableJWTTokenValidationDuringIntrospection>true</EnableJWTTokenValidationDuringIntrospection>
+
+        <!--
+        By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
+        passed in a OAuth based authz request will be dropped.
+        Default value : false
+        -->
+        <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
     </OAuth>
 
     <MultifactorAuthentication>
@@ -592,11 +660,14 @@
         <SAML2AuthenticationRequestValidityPeriod>5</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>false</SAMLSPCertificateExpiryValidationEnabled>
         <SAML2AuthnRequestsSigningEnabled>false</SAML2AuthnRequestsSigningEnabled>
+        <SAMLAssertionEncyptWithAppCert>true</SAMLAssertionEncyptWithAppCert>
     </SSOService>
 
     <Consent>
         <!--Specify whether consent management should be enable during SSO.-->
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
+        <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
+        <PromptSubjectClaimRequestedConsent>true</PromptSubjectClaimRequestedConsent>
     </Consent>
 
     <SecurityTokenService>
@@ -673,6 +744,7 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+        <!--<NotifyUserstoreStatus>true</NotifyUserstoreStatus>-->
 
         <!--
             If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
@@ -715,6 +787,14 @@
             Supported versions : IS 5.9.0 onwards
         -->
         <!--<ReturnUpdatedGroupInPatchResponse>true</ReturnUpdatedGroupInPatchResponse>-->
+
+        <!--
+            If you set the property value to true, the response of the users endpoint would not contain duplicate user entries.
+
+            Default value : false
+            Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<RemoveDuplicateUsersInUsersResponse>{{scim2.remove_duplicate_users_in_users_response}}</RemoveDuplicateUsersInUsersResponse>-->
     </SCIM2>
 
     <!--Recovery>
@@ -729,6 +809,9 @@
         <Notification>
             <Password>
                 <Enable>false</Enable>
+                <smsOtp>
+                    <Regex>[a-zA-Z0-9]{6}</Regex>
+                </smsOtp>
             </Password>
             <Username>
                 <Enable>false</Enable>
@@ -745,7 +828,23 @@
                     <Enable>true</Enable>
                     <MaxFailedAttempts>2</MaxFailedAttempts>
                 </ReCaptcha>
+                <Forced>
+                    <Enable>false</Enable>
+                </Forced>
+                <SkipOnInsufficientAnswers>true</SkipOnInsufficientAnswers>
             </Password>
+            <Answer>
+                <Regex>.*</Regex>
+                <Uniqueness>false</Uniqueness>
+            </Answer>-->
+            <!--
+                The purpose of this property is to configure minimum number of challenge questions to be answered
+                by the user.
+                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                If this property is configured to a positive integer, user must answer more or equal to that number of
+                questions.
+            -->
+            <!--<MinQuestionsToAnswer></MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
@@ -753,8 +852,12 @@
             <Offline>false</Offline>
             <OTP>false</OTP>
             <RecoveryLink>false</RecoveryLink>
+            <AccountLockNotification>false</AccountLockNotification>
+            <AccountUnlockNotification>false</AccountUnlockNotification>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
+        <NotifyUserExistence>false</NotifyUserExistence>
+        <NotifyUserAccountStatus>true</NotifyUserAccountStatus>
     </Recovery>
 
     <EmailVerification>
@@ -773,15 +876,28 @@
     <SelfRegistration>
         <Enable>false</Enable>
         <LockOnCreation>true</LockOnCreation>
+        <NotifyAccountConfirmation>false</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
         <ReCaptcha>true</ReCaptcha>
+        <ResendConfirmationReCaptcha>false</ResendConfirmationReCaptcha>
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
 	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
+
+    <TenantRegistrationVerification>
+        <AskPassword>
+            <ExpiryTime>1440</ExpiryTime>
+        </AskPassword>
+    </TenantRegistrationVerification>
+
+    <!--<LoginIdentifiers>
+        <Enable>false</Enable>
+        <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>
+    </LoginIdentifiers>-->
 
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
@@ -812,10 +928,25 @@
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Enabling this configuration will enable validating the application role for the user who initiates the
+        application operations. Enabling this configuration will create application role for newly created SPs and
+        the application role will be assigned to the app owner.
+        The default value of the configuration is false.
+        -->
+        <EnableRoleValidation>false</EnableRoleValidation>
+    </ApplicationMgt>
+
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
     </JITProvisioning>
+
+    <OutboundProvisioning>
+        <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
+    </OutboundProvisioning>
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -847,6 +978,17 @@
                        orderId="12" enable="false">
             <Property name="Log.Token">false</Property>
         </EventListener>
+        <EventListener id="mutual_tls_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.MutualTLSClientAuthenticator"
+                       orderId="158"
+                       enable="true">
+        </EventListener>
+
+        <!-- Basic client authenticator -->
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
+                       orderId="100" enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -959,8 +1101,13 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
@@ -1010,6 +1157,23 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
+
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
 
@@ -1050,7 +1214,8 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/.well-known(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
+        <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
             <Scopes>internal_application_mgt_create</Scopes>
@@ -1082,6 +1247,18 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
             <Scopes>internal_manage_pep</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
@@ -1128,6 +1305,26 @@
             <Scopes>internal_role_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
             <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
@@ -1181,7 +1378,6 @@
         <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/authenticate(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
             <Scopes>internal_user_mgt_update</Scopes>
@@ -1205,6 +1401,14 @@
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
 
+        <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
             <Scopes>internal_humantask_view</Scopes>
@@ -1331,7 +1535,11 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
@@ -1376,16 +1584,13 @@
             <Permissions>/permission/admin/manage/identity/authentication/session/delete</Permissions>
             <Scopes>internal_session_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+        <Resource context="(.*)/api/users/v1/me/applications(.*)" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
+        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
@@ -1435,21 +1640,83 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
+        </Resource>
+        <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
+        </Resource>
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
+        </Resource>
+        <Resource context="/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/media/create</Permissions>
+            <Scopes>internal_media_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/media/view</Permissions>
+            <Scopes>internal_media_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
+            <Scopes>internal_media_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
+            <Scopes>internal_cors_origins_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
+            <Scopes>internal_cors_origins_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/(.*)" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
             <Scopes>internal_identity_mgt_update</Scopes>
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
-            <Permissions>none</Permissions>
-            <Scopes>internal_login</Scopes>
+        <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
-        <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1477,7 +1744,8 @@
         <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false" http-method="GET, POST, HEAD"/>
+        <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
@@ -1510,6 +1778,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET, DELETE, POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET, DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1534,14 +1803,22 @@
             <Context>/api/identity/oauth2/v1.0/</Context>
             <Context>/api/identity/config-mgt/v1.0/</Context>
             <Context>/api/users/v2/me/webauthn</Context>
+            <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
+            <Context>/console/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
+            <Context>/console/</Context>
+            <IgnorePath>/libs/</IgnorePath>
+            <IgnorePath>/resources/</IgnorePath>
+            <IgnorePath>/static/</IgnorePath>
+            <IgnorePath>/deployment.config.json</IgnorePath>
+            <IgnorePath>/rpIFrame.html</IgnorePath>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
@@ -1626,6 +1903,7 @@
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
+        <AllowCrossTenantSearch>false</AllowCrossTenantSearch>
     </ConfigurationStore>
 
     <FIDO>
@@ -1643,5 +1921,19 @@
     <UserFiltering>
         <ShowDisplayName>false</ShowDisplayName>
     </UserFiltering>
+
+    <!-- Allowed User Stores -->
+    <AllowedUserstores>
+        <AllowedUserstore>org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager</AllowedUserstore>
+    </AllowedUserstores>
+
+    <!-- System Applications -->
+    <SystemApplications>
+        <ApplicationName>Console</ApplicationName>
+        <ApplicationName>My Account</ApplicationName>
+    </SystemApplications>
 
 </Server>

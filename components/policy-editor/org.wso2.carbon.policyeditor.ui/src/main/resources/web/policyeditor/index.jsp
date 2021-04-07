@@ -136,8 +136,7 @@
 
     <!-- This div will contain the hidden form, which will do the POST back when saving a Policy -->
     <div id="post-back-content" style="display: none;">
-        <form name="postbackForm" id="post-back-form" action="" method="post">
-
+        <form name="postbackForm" id="post-back-form" action="../entitlement/update-policy-submit.jsp" method="post">
         </form>
     </div>
 </div>
@@ -146,14 +145,14 @@
     String policyURL = request.getParameter("url");
 
     String policyText = "";
-    String callbackURL = "";
+    String policyId = "";
 
     if (policyURL == null) {
         if (request.getParameter("policy") != null) {
             policyText = request.getParameter("policy").replaceAll("\r\n", "")
                     .replaceAll("\n", "");
             policyText=policyText.replace("'", "\"");
-            callbackURL = request.getParameter("callbackURL");
+            policyId = request.getParameter("policyid");
         }
     }
 %>
@@ -173,7 +172,7 @@
 
     // If the policy is posted to the editor with additional meta-data
     var policyText = '<%=Encode.forJavaScriptBlock(policyText)%>';
-    var callbackURL = '<%=Encode.forJavaScriptBlock(callbackURL)%>';
+    var policyId = '<%=Encode.forJavaScriptBlock(policyId)%>';
 
     // Create design and source view tabs
     var tabView = new YAHOO.widget.TabView('editor-canvas');

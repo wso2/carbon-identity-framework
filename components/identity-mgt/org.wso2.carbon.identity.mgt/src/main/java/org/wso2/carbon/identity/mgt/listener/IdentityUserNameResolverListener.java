@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.mgt.listener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -41,8 +44,10 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -587,6 +592,30 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     }
 
     @Override
+    public boolean doPreUpdateUserListOfInternalRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        String[] deletedUserNames = getUserNamesFromUserIDs(deletedUserIDs,
+                (AbstractUserStoreManager) userStoreManager);
+        String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
+
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!listener.doPreUpdateUserListOfInternalRole(roleName, deletedUserNames, newUserNames,
+                        userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean doPreUpdateUserListOfRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -624,6 +653,30 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!listener.doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateInternalRoleListOfUserWithID(String userID, String[] deletedRoles, String[] newRoles,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
+        if (userName == null) {
+            return handleUserNameResolveFailure(userID, userStoreManager);
+        }
+
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!listener.doPreUpdateInternalRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
                     return false;
                 }
             }
@@ -788,12 +841,44 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
+        Set<String> returnInitialUserNamesList = new HashSet<>(returnUserNamesList);
+        Set<String> tempUserNamesList = new HashSet<>();
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!listener.doPreGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
                     return false;
                 }
+            }
+        }
+
+        // Reflect newly removed users by listeners in returnUsersList
+        if (CollectionUtils.isNotEmpty(returnUserNamesList)) {
+            tempUserNamesList.addAll(returnInitialUserNamesList);
+            tempUserNamesList.removeAll(returnUserNamesList);
+            for (User user : returnUsersList) {
+                if (tempUserNamesList.contains(user.getUsername())) {
+                    returnUsersList.remove(user);
+                }
+            }
+            tempUserNamesList.clear();
+        }
+
+        // Reflect newly add users by listeners in returnUsersList
+        if (CollectionUtils.isNotEmpty(returnUserNamesList)) {
+            tempUserNamesList.addAll(returnUserNamesList);
+            tempUserNamesList.removeAll(returnInitialUserNamesList);
+            for (String username : tempUserNamesList) {
+                User newUser = new User();
+                newUser.setUsername(username);
+                try {
+                    newUser.setUserID(FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username));
+                } catch (UserSessionException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error occurred while resolving Id for the user: " + username, e);
+                    }
+                }
+                returnUsersList.add(newUser);
             }
         }
 

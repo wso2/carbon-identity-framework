@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStore
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
@@ -53,10 +54,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
@@ -188,6 +191,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 triggerListnersOnUserStorePreDelete(domainName);
                 // Delete persisted domain name
                 deletePersitedDomain(tenantId, domainName);
+            } catch (UserStoreClientException e) {
+                throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be deleted.", e);
             } catch (UserStoreException e) {
                 String errorMessage = "Error while deleting user store : " + domainName;
                 log.error(errorMessage, e);
@@ -282,6 +287,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
+            // Run pre user-store add listeners.
+            triggerListenersOnUserStorePreAdd(domainName);
             boolean validDomain = isValidDomainToAdd(domainName);
             validateForFederatedDomain(domainName);
             if (validDomain) {
@@ -370,6 +377,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             // Update persisted domain name
             updatePersistedDomainName(previousDomainName, domainName, tenantId);
 
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be updated.", e);
         } catch (UserStoreException e) {
             String errorMessage = "Error while updating user store domain : " + domainName;
             log.error(errorMessage, e);
@@ -522,7 +531,9 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private boolean isDomainNameExists(String domainName) throws IdentityUserStoreMgtException {
 
         if (StringUtils.isEmpty(domainName)) {
-            throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
+            throw new IdentityUserStoreClientException(
+                    UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_EMPTY_USERSTORE_DOMAIN_NAME.getCode(),
+                    UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_EMPTY_USERSTORE_DOMAIN_NAME.getMessage());
         }
 
         if (!getDomainNames().contains(domainName)) {

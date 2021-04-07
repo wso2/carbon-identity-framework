@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -70,7 +71,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest(FrameworkUtils.class)
+@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class})
 @WithCarbonHome
 public class DefaultAuthenticationRequestHandlerTest {
 
@@ -168,6 +169,10 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         DefaultAuthenticationRequestHandler authenticationRequestHandler =
                 spy(new DefaultAuthenticationRequestHandler());
+
+        //mock session nonce cookie validation
+        mockStatic(SessionNonceCookieUtil.class);
+        when(SessionNonceCookieUtil.validateNonceCookie(any(), any())).thenReturn(true);
 
         // Mock conclude flow and post authentication flows to isolate remember me option
         doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
@@ -374,6 +379,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         addPostAuthnHandler();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        context.initializeAnalyticsData();
         return context;
     }
 

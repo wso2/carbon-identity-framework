@@ -124,6 +124,13 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
+            case FrameworkConstants.JSAttributes.JS_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new JsRuntimeClaims(getContext(), step, idp);
+                } else {
+                    // Represent step independent user
+                    return new JsRuntimeClaims(getContext(), getWrapped());
+                }
             default:
                 return super.getMember(name);
         }
@@ -138,9 +145,6 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 break;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
                 getWrapped().setUserStoreDomain((String) value);
-                break;
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                getWrapped().setTenantDomain((String) value);
                 break;
             default:
                 super.setMember(name, value);

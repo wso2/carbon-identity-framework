@@ -159,12 +159,13 @@ public class DefaultClaimHandler implements ClaimHandler {
             idPStandardDialect = authenticator.getClaimDialectURI();
         }
 
-        // set unfiltered remote claims as a property
-        context.setProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES, remoteClaims);
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        remoteClaims.putAll(context.getRuntimeClaims());
 
         Map<String, String> localUnfilteredClaims = new HashMap<>();
         Map<String, String> spUnfilteredClaims = new HashMap<>();
         Map<String, String> spFilteredClaims = new HashMap<>();
+        Map<String, String> localUnfilteredClaimsForNullValues = new HashMap<>();
 
 
         // claim mapping from local IDP to remote IDP : local-claim-uri / idp-claim-uri
@@ -187,10 +188,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         // Loop remote claims and map to local claims
-        mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims);
-
-        // set all locally mapped unfiltered remote claims as a property
-        context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, localUnfilteredClaims);
+        mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims,
+                localUnfilteredClaimsForNullValues);
 
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
@@ -201,18 +200,34 @@ public class DefaultClaimHandler implements ClaimHandler {
         filterSPClaims(spRequestedClaimMappings, localUnfilteredClaims, spUnfilteredClaims, spFilteredClaims,
                        localToSPClaimMappings);
 
-        // set all service provider mapped unfiltered remote claims as a property
-        context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, spUnfilteredClaims);
+        if (stepConfig.isSubjectAttributeStep()) {
+            if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
+            /*
+             Set all locally mapped unfiltered null remote claims as a property.
+             This property will used to retrieve unfiltered null value claims.
+             */
+                context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES, localUnfilteredClaimsForNullValues);
+            }
+
+            // set unfiltered remote claims as a property
+            context.setProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES, remoteClaims);
+            // set all locally mapped unfiltered remote claims as a property
+            context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, localUnfilteredClaims);
+            // set all service provider mapped unfiltered remote claims as a property
+            context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, spUnfilteredClaims);
+        }
 
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
             spFilteredClaims = spUnfilteredClaims;
         }
 
         // set the subject claim URI as a property
-        if (spStandardDialect != null) {
-            setSubjectClaimForFederatedClaims(localUnfilteredClaims, spStandardDialect, context);
-        } else {
-            setSubjectClaimForFederatedClaims(spUnfilteredClaims, null, context);
+        if (stepConfig.isSubjectIdentifierStep()) {
+            if (spStandardDialect != null) {
+                setSubjectClaimForFederatedClaims(localUnfilteredClaims, spStandardDialect, context);
+            } else {
+                setSubjectClaimForFederatedClaims(spUnfilteredClaims, null, context);
+            }
         }
 
 
@@ -323,7 +338,8 @@ public class DefaultClaimHandler implements ClaimHandler {
     private void mapRemoteClaimsToLocalClaims(Map<String, String> remoteClaims,
                                               Map<String, String> localUnfilteredClaims,
                                               Map<String, String> localToIdPClaimMap,
-                                              Map<String, String> defaultValuesForClaims) {
+                                              Map<String, String> defaultValuesForClaims,
+                                              Map<String, String> localUnfilteredClaimsForNullValues) {
         for (Entry<String, String> entry : localToIdPClaimMap.entrySet()) {
             String localClaimURI = entry.getKey();
             String claimValue = remoteClaims.get(localToIdPClaimMap.get(localClaimURI));
@@ -332,6 +348,11 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
             if (!StringUtils.isEmpty(claimValue)) {
                 localUnfilteredClaims.put(localClaimURI, claimValue);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Claim " + localClaimURI + " has null value or blank.");
+                }
+                localUnfilteredClaimsForNullValues.put(localClaimURI, claimValue);
             }
         }
     }
@@ -453,8 +474,10 @@ public class DefaultClaimHandler implements ClaimHandler {
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
                 (org.wso2.carbon.user.core.UserStoreManager) userStore);
 
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        allLocalClaims.putAll(context.getRuntimeClaims());
+
         handleRoleClaim(context, allLocalClaims);
-        context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
 
         // if standard dialect get all claim mappings from standard dialect to carbon dialect
         spToLocalClaimMappings = getStandardDialectToCarbonMapping(spStandardDialect, context, spToLocalClaimMappings,
@@ -470,15 +493,17 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
                                             allSPMappedClaims, spRequestedClaims);
+        if (stepConfig == null || stepConfig.isSubjectAttributeStep()) {
+            context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
+            context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
+        }
 
-        context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
-
-        if (spStandardDialect != null) {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allLocalClaims, spStandardDialect, context);
-        } else {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allSPMappedClaims, null, context);
+        if (stepConfig == null || stepConfig.isSubjectIdentifierStep()) {
+            if (spStandardDialect != null) {
+                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allLocalClaims, spStandardDialect, context);
+            } else {
+                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allSPMappedClaims, null, context);
+            }
         }
 
 

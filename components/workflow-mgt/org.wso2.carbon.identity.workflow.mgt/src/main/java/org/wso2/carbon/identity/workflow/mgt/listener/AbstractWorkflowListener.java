@@ -102,6 +102,17 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     }
 
     /**
+     * Trigger after deleting workflows by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPostDeleteWorkflows(int tenantId) throws WorkflowException {
+
+    }
+
+    /**
      * Trigger before listing workflow Impls
      *
      * @param templateId Template ID to trigger workflow Impls

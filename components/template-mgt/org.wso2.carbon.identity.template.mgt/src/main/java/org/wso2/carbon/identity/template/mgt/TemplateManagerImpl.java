@@ -19,25 +19,38 @@
 package org.wso2.carbon.identity.template.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.CacheBackedConfigStoreBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
+import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_ALREADY_EXIST;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_INVALID;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_NAME_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleServerException;
 
 /**
  * Template manager service implementation.
@@ -46,6 +59,10 @@ public class TemplateManagerImpl implements TemplateManager {
 
     private static final Log log = LogFactory.getLog(TemplateManagerImpl.class);
     private static final Integer DEFAULT_SEARCH_LIMIT = 100;
+    private static CacheBackedConfigStoreBasedTemplateHandler configStoreBasedTemplateHandler =
+            new CacheBackedConfigStoreBasedTemplateHandler(
+                    (ConfigStoreBasedTemplateHandler) TemplateManagerDataHolder.getInstance()
+                            .getReadWriteTemplateHandler());
 
     /**
      * This method is used to add a new template.
@@ -55,18 +72,10 @@ public class TemplateManagerImpl implements TemplateManager {
      * @throws TemplateManagementException Template Management Exception.
      */
     @Override
-    public Template addTemplate(Template template) throws TemplateManagementException {
+    public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        if (isTemplateExists(template.getTemplateName())) {
-            if (log.isDebugEnabled()) {
-                log.debug("A template already exists with the name: " + template.getTemplateName());
-            }
-            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
-        }
-
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        return templateManagerDAO.addTemplate(template);
+        return configStoreBasedTemplateHandler.addTemplate(template);
     }
 
     /**
@@ -218,10 +227,6 @@ public class TemplateManagerImpl implements TemplateManager {
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED, null);
         }
-
-        if (template.getTenantId() == null) {
-            template.setTenantId(getTenantIdFromCarbonContext());
-        }
     }
 
     /**
@@ -238,4 +243,88 @@ public class TemplateManagerImpl implements TemplateManager {
         }
     }
 
+    @Override
+    public Template getTemplateById(String templateId) throws TemplateManagementException {
+
+        List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
+                TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
+        for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
+            Template template = readOnlyTemplateHandler.getTemplateById(templateId);
+            if (template != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("A template exists with the id: " + templateId);
+                }
+                return template;
+            }
+        }
+        return configStoreBasedTemplateHandler.getTemplateById(templateId);
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
+            TemplateManagementException {
+
+        return listTemplates(templateType, limit, offset, null);
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition searchCondition)
+            throws TemplateManagementException {
+
+        if (!isValidTemplateType(templateType)) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
+                    templateType);
+        }
+        if (limit != null || offset != null) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATION_NOT_SUPPORTED, null);
+        }
+
+        List<Template> templates = new ArrayList<>();
+        List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
+                TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
+        for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
+            templates.addAll(readOnlyTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
+        }
+
+        templates.addAll(configStoreBasedTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
+        return templates;
+    }
+
+    @Override
+    public void deleteTemplateById(String templateId) throws TemplateManagementException {
+
+        configStoreBasedTemplateHandler.deleteTemplateById(templateId);
+    }
+
+    private boolean isValidTemplateType(String templateType) {
+
+        return EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType);
+    }
+
+    @Override
+    public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
+
+        if (StringUtils.isBlank(templateId)) {
+            throw TemplateMgtUtils.handleClientException(TemplateMgtConstants.ErrorMessages
+                    .ERROR_CODE_INVALID_TEMPLATE_ID, templateId);
+        }
+        template.setTemplateId(templateId);
+        validateInputParameters(template);
+        configStoreBasedTemplateHandler.updateTemplateById(templateId, template);
+    }
+
+    @Override
+    public Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException {
+
+        validateInputParameters(template);
+        if (isTemplateExists(template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
+        }
+
+        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        return templateManagerDAO.addTemplate(template);
+    }
 }

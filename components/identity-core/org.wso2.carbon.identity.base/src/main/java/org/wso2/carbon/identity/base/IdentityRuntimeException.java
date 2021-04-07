@@ -18,14 +18,6 @@
 
 package org.wso2.carbon.identity.base;
 
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Used for creating checked exceptions that can be handled.
  */
@@ -81,7 +73,7 @@ public class IdentityRuntimeException extends RuntimeException {
         try {
             exception = exceptionClass.getConstructor(String.class).newInstance(message);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
@@ -91,7 +83,7 @@ public class IdentityRuntimeException extends RuntimeException {
         try {
             exception = exceptionClass.getConstructor(String.class, String.class).newInstance(errorCode, message);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
@@ -101,7 +93,7 @@ public class IdentityRuntimeException extends RuntimeException {
         try {
             exception = exceptionClass.getConstructor(String.class, Throwable.class).newInstance(message, cause);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
@@ -113,7 +105,7 @@ public class IdentityRuntimeException extends RuntimeException {
             exception = exceptionClass.getConstructor(String.class, String.class, Throwable.class).
                     newInstance(errorCode, message, cause);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }

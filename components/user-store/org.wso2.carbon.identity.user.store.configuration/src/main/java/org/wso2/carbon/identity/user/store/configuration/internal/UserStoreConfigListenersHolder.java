@@ -20,11 +20,13 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service holder for required OSGi services.
@@ -35,6 +37,8 @@ public class UserStoreConfigListenersHolder {
     private List<UserStoreConfigListener> listeners = new ArrayList<>();
     private Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactory = new HashMap<>();
     private UserStoreConfigService userStoreConfigService;
+    private Set<String> allowedUserstores = null;
+    private ConfigurationContextService configurationContextService;
 
 
     private UserStoreConfigListenersHolder() {
@@ -67,6 +71,26 @@ public class UserStoreConfigListenersHolder {
 
     public UserStoreConfigService getUserStoreConfigService() {
         return userStoreConfigService;
+    }
+
+    public Set<String> getAllowedUserstores() {
+
+        return allowedUserstores;
+    }
+
+    public void setAllowedUserstores(Set<String> allowedUserstores) {
+
+        this.allowedUserstores = allowedUserstores;
+    }
+
+    public ConfigurationContextService getConfigurationContextService() {
+
+        return configurationContextService;
+    }
+
+    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        this.configurationContextService = configurationContextService;
     }
 
 }

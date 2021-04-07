@@ -30,12 +30,14 @@ public class ConfigurationConstants {
     public static final String RESOURCE_PATH = "/resource";
     public static final String RESOURCE_TYPE_PATH = "/resource-type";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_TENANT_ID = "tenantId";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN = "tenantDomain";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_ID = "resourceTypeId";
@@ -122,7 +124,11 @@ public class ConfigurationConstants {
         ERROR_CODE_FILE_DOES_NOT_EXISTS("CONFIGM_00043", "File with the id: %s does not exists."),
         ERROR_CODE_FILES_DOES_NOT_EXISTS("CONFIGM_00044", "Resource: %s does not contain any files."),
         ERROR_CODE_FILE_IDENTIFIERS_REQUIRED("CONFIGM_00045", "File identifier validation failed for " +
-                "one or more file identifiers in: %s.");
+                "one or more file identifiers in: %s."),
+        ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS("CONFIGM_00046", "Resource with the id: %s does not exists."),
+        ERROR_CODE_INVALID_RESOURCE_ID("CONFIGM_00047", "Invalid resource id: %s."),
+        ERROR_CODE_DELETE_RESOURCE("CONFIGM_00048", "Error while deleting the resource: %s."),
+        ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata.");
 
         private final String code;
         private final String message;

@@ -27,17 +27,20 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +51,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
     private static Log log = LogFactory.getLog(ApplicationManagementAdminService.class);
     private ApplicationManagementService applicationMgtService;
+    private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
 
     /**
      * Creates a service provider with basic information.First we need to create
@@ -315,9 +319,24 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     @SuppressWarnings("ValidExternallyBoundObject")
     public int getCountOfAllApplications() throws IdentityApplicationManagementException {
 
-        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+        int applicationCount;
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Allowing the application access based on the role is disabled. " +
+                        "Therefore sending count of all applications.");
+            }
+            applicationCount = ApplicationManagementService.getInstance().getCountOfAllApplications(getTenantDomain(),
+                    getUsername());
+        } else {
+            /* Application role validation is enabled. Checking the
+             number of applications the user has access to, based
+             on the application role. */
+            List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+            applicationCount = applicationRoles.size();
+        }
 
-        return applicationRoles.size();
+        return applicationCount;
     }
 
     /**
@@ -328,18 +347,33 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
-        String sanitizedFilter = getSanitizedFilter(filter);
-        Pattern pattern = Pattern.compile(sanitizedFilter, Pattern.CASE_INSENSITIVE);
-        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
-        List<String> filteredApplicationRoles = new ArrayList<>();
-        for (String applicationRole : applicationRoles) {
-            Matcher matcher = pattern.matcher(applicationRole);
-            if (matcher.matches()) {
-                filteredApplicationRoles.add(applicationRole);
+        int applicationCount;
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Allowing the application access based on the role is disabled. " +
+                        "Therefore sending count of all matching applications.");
             }
+            applicationCount = ApplicationManagementService.getInstance().getCountOfApplications(getTenantDomain(),
+                    getUsername(), filter);
+        } else {
+            /* Application role validation is enabled. Checking the
+             number of matching applications the user has access to,
+             based on the application role. */
+            String sanitizedFilter = getSanitizedFilter(filter);
+            Pattern pattern = Pattern.compile(sanitizedFilter, Pattern.CASE_INSENSITIVE);
+            List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+            List<String> filteredApplicationRoles = new ArrayList<>();
+            for (String applicationRole : applicationRoles) {
+                Matcher matcher = pattern.matcher(applicationRole);
+                if (matcher.matches()) {
+                    filteredApplicationRoles.add(applicationRole);
+                }
+            }
+            applicationCount = filteredApplicationRoles.size();
         }
 
-        return filteredApplicationRoles.size();
+        return applicationCount;
     }
 
     /**
@@ -693,6 +727,43 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     getTenantDomain()), e);
             throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
+    }
+
+    /**
+     * Return a list of custom inbound authenticators.
+     *
+     * @return Map<String, InboundAuthenticationRequestConfig>
+     */
+    public List<InboundAuthenticationRequestConfig> getCustomInboundAuthenticatorConfigs() {
+
+        if (customInboundAuthenticatorConfigs != null) {
+            return customInboundAuthenticatorConfigs;
+        }
+        generateCustomInboundAuthenticatorConfigs();
+        return customInboundAuthenticatorConfigs;
+    }
+
+    private void generateCustomInboundAuthenticatorConfigs() {
+
+        List<InboundAuthenticationRequestConfig> customAuthenticatorConfigs = new ArrayList<>();
+        Map<String, AbstractInboundAuthenticatorConfig> customInboundAuthenticators =
+                ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig();
+        if (customInboundAuthenticators != null && customInboundAuthenticators.size() > 0) {
+            for (Map.Entry<String, AbstractInboundAuthenticatorConfig> entry :
+                    customInboundAuthenticators.entrySet()) {
+                AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
+                InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig =
+                        new InboundAuthenticationRequestConfig();
+                inboundAuthenticationRequestConfig.setInboundAuthType(inboundAuthenticatorConfig.getName());
+                inboundAuthenticationRequestConfig.setInboundConfigType(inboundAuthenticatorConfig.getConfigName());
+                inboundAuthenticationRequestConfig.setFriendlyName(inboundAuthenticatorConfig.getFriendlyName());
+                inboundAuthenticationRequestConfig.setProperties(inboundAuthenticatorConfig
+                        .getConfigurationProperties());
+
+                customAuthenticatorConfigs.add(inboundAuthenticationRequestConfig);
+            }
+        }
+        this.customInboundAuthenticatorConfigs = customAuthenticatorConfigs;
     }
 
     private ArrayList<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(

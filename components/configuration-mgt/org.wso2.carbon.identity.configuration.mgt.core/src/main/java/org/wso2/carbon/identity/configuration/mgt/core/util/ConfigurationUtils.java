@@ -25,6 +25,9 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.net.URI;
@@ -42,6 +45,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
  * Utility methods for configuration management.
  */
 public class ConfigurationUtils {
+
+    private static final Log log = LogFactory.getLog(ConfigurationUtils.class);
 
     /**
      * This method can be used to generate a ConfigurationManagementClientException from
@@ -149,7 +154,7 @@ public class ConfigurationUtils {
     private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String... data) {
 
         String message;
-        if (data.length != 0) {
+        if (data != null && data.length != 0) {
             message = String.format(error.getMessage(), data);
         } else {
             message = error.getMessage();
@@ -184,6 +189,18 @@ public class ConfigurationUtils {
      * @return Fully qualified URI.
      */
     public static String buildURIForBody(String endpoint) {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                String url = ServiceURLBuilder.create().addPath(SERVER_API_PATH_COMPONENT + endpoint).build()
+                        .getRelativePublicURL();
+                return URI.create(url).toString();
+            } catch (URLBuilderException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while building URI.", e);
+                }
+            }
+        }
 
         String tenantQualifiedRelativePath =
                 String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;

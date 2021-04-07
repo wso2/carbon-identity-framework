@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.NotImplementedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
         .SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -60,10 +61,30 @@ public interface SSOConsentService {
      * @param authenticatedUser         Authenticated user providing consent.
      * @param consentClaimsData         Claims which the consent requested for.
      * @throws SSOConsentServiceException If error occurs while processing user consent.
+     * @deprecated use {@link #processConsent(List, ServiceProvider, AuthenticatedUser, ConsentClaimsData, boolean)}.
      */
-    void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
+    @Deprecated
+    default void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
                                       AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
-            throws SSOConsentServiceException;
+            throws SSOConsentServiceException {
+        processConsent(consentApprovedClaimIds, serviceProvider, authenticatedUser, consentClaimsData, false);
+    }
+
+    /**
+     * Process consent provided by the user and creates a consent receipt.
+     * @param consentApprovedClaimIds   Consent approved claims by the user.
+     * @param serviceProvider           Service provider receiving consent.
+     * @param authenticatedUser         Authenticated user providing consent.
+     * @param consentClaimsData         Claims which the consent requested for.
+     * @param overrideExistingConsent   If true, new consent overrides the existing consent of the user.
+     * @throws SSOConsentServiceException If error occurs while processing user consent.
+     */
+    default void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
+                                AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData,
+                                boolean overrideExistingConsent)
+            throws SSOConsentServiceException {
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * Retrieves claims which a user has provided consent for a given service provider.

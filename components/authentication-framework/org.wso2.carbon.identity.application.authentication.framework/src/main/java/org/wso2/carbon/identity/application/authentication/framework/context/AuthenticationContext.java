@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -88,6 +90,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private List<String> requestedAcr;
     private AcrRule acrRule = AcrRule.EXACT;
     private String selectedAcr;
+    private Map<String,  AuthenticatedIdPData> authenticatedIdPsOfApp = new HashMap<>();
 
     /** The user/subject known at the latest authentication step */
     private AuthenticatedUser lastAuthenticatedUser;
@@ -102,6 +105,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * AuthenticatorStateInfoDTO and set all the required state info in it.
      */
     private AuthenticatorStateInfo stateInfo;
+
+    private String userTenantDomainHint;
+
+    private String loginTenantDomain;
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
@@ -333,6 +340,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         this.previousAuthenticatedIdPs = previousAuthenticatedIdPs;
     }
 
+    public void setAuthenticatedIdPsOfApp(Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
+
+        this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
+    }
+
+    public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp() {
+
+        return authenticatedIdPsOfApp;
+    }
+
     public boolean isRetrying() {
         return retrying;
     }
@@ -547,9 +564,165 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * This flag is used to mark when this authentication context is used by an active thread. This is to prevent same
      * context is used by two different threads at the same time.
+     *
      * @param activeInAThread True when this context started to being used by a thread.
      */
     public void setActiveInAThread(boolean activeInAThread) {
+
         this.activeInAThread = activeInAThread;
+    }
+
+    /**
+     * Initialize the authentication time related parameter maps so that in later we don't need to
+     * check whether it is initialized.
+     *
+     * @return the map consists of authentication related parameters.
+     */
+    public void initializeAnalyticsData() {
+
+        Map<String, Serializable> analyticsData = new HashMap<>();
+        this.addParameter(FrameworkConstants.AnalyticsData.DATA_MAP, analyticsData);
+        this.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME,
+                System.currentTimeMillis());
+    }
+
+    /**
+     * Set analytics related params for Authentication.
+     *
+     * @param value the authentication related param.
+     */
+    public void setAnalyticsData(String key, Serializable value) {
+
+        Map<String, Serializable> analyticsData = (HashMap<String, Serializable>)
+                this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+        analyticsData.put(key, value);
+    }
+
+    /**
+     * Get analytics related params for Authentication.
+     *
+     * @return the analytics related params.
+     */
+    public Serializable getAnalyticsData(String key) {
+
+        if (this.getParameters().containsKey(FrameworkConstants.AnalyticsData.DATA_MAP)) {
+            Map<String, Serializable> analyticsData =
+                    (HashMap<String, Serializable>) this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+            return analyticsData.get(key);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * The Runtime claims in the the context.
+     *
+     * @param claimUri  Claim URI
+     * @return Claim value
+     */
+    public String getRuntimeClaim(String claimUri) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            return tempClaims.get(claimUri);
+        }
+        return null;
+    }
+
+    /**
+     * Set Runtime claims to the context.  In the the claim handler the priority will be given to these values.
+     *
+     * @param claimUri  Claim URI
+     * @param claimValue    Claim value
+     */
+    public void addRuntimeClaim(String claimUri, String claimValue) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            tempClaims.put(claimUri, claimValue);
+        } else {
+            Map<String, String> tempClaims = new HashMap<>();
+            tempClaims.put(claimUri, claimValue);
+            setProperty(FrameworkConstants.RUNTIME_CLAIMS, tempClaims);
+        }
+    }
+
+    /**
+     * Get the Runtime claims map.
+     *
+     * @return Map of Claim URI and value
+     */
+    public Map<String, String> getRuntimeClaims() {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            return (Map<String, String>) parameter;
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the potential tenant domain of the user who is going to login. This will return the first non-empty
+     * value of userTenantDomainHint, loginTenantDomain or tenant domain in the respective order.
+     *
+     * This will be used to populate the FQN of the user (if user/client didn't provide explicitly) when logging in.
+     * This should ideally be the tenant domain user is going to log into (the one where the session will be created)
+     * , but may be overridden for any special call applications with the domain hint.
+     *
+     * @return The most possible tenant domain of the user who will be logging in
+     */
+    public String getUserTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(userTenantDomainHint)) {
+            return userTenantDomainHint;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Set the user's tenant domain hint. Should only be used if different from the tenant domain where the session
+     * would be created
+     *
+     * @param userTenantDomainHint The possible tenant domain of the user
+     */
+    public void setUserTenantDomainHint(String userTenantDomainHint) {
+
+        this.userTenantDomainHint = userTenantDomainHint;
+    }
+
+    /**
+     * Gets the tenant domain to which the user should get logged into and the session should get created. For a
+     * non-saas application this should be the user's and application's tenant domain. For a saas application, this
+     * will be the user's tenant domain for most cases.
+     *
+     * @return the tenant domain the user's session should be created
+     */
+    public String getLoginTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the tenant domain where the user's session should be created
+     *
+     * @param loginTenantDomain the tenant domain where the user's session is created
+     */
+    public void setLoginTenantDomain(String loginTenantDomain) {
+
+        this.loginTenantDomain = loginTenantDomain;
     }
 }

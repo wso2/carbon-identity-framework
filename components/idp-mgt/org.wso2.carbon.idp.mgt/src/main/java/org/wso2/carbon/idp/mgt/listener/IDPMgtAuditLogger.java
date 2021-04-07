@@ -44,7 +44,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         String displayName = "Undefined";
         String idpName = "Undefined";
         if (identityProvider != null) {
-            if(StringUtils.isNotEmpty(identityProvider.getDisplayName())){
+            if (StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
                 displayName = identityProvider.getDisplayName();
             }
             idpName = identityProvider.getIdentityProviderName();
@@ -67,13 +67,35 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         return true;
     }
 
+    /**
+     * Post delete of IDP.
+     *
+     * @param idPName Name of the IDP
+     * @param tenantDomain Tenant Domain
+     * @return
+     * @throws IdentityProviderManagementException
+     */
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
-        if(StringUtils.isEmpty(idPName)){
+        if (StringUtils.isEmpty(idPName)) {
             idPName = "Undefined";
         }
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete", UserCoreUtil.addTenantDomainToEntry
                 (idPName, tenantDomain), null, SUCCESS));
+        return true;
+    }
+
+    /**
+     * Additional actions after deleting IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete all IdPs", tenantDomain, null, SUCCESS));
         return true;
     }
 

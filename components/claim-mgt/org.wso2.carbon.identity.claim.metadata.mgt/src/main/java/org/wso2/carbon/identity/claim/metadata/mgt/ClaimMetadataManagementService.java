@@ -151,4 +151,29 @@ public interface ClaimMetadataManagementService {
     default void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
     }
+
+    /**
+     * Remove all claims of a given tenant.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws ClaimMetadataException throws when an error occurs in removing claims.
+     */
+    default void removeAllClaims(int tenantId) throws ClaimMetadataException {
+
+    }
+
+    /**
+     * Get masking regex pattern configured for specified local claim and tenant.
+     *
+     * @param localClaimURI Local claim URI
+     * @param tenantDomain  Tenant domain
+     * @return Masking regex pattern.
+     * @throws ClaimMetadataException If an error occurred while retrieving local claims.
+     */
+    default String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        return null;
+    }
+
 }

@@ -22,8 +22,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -33,13 +32,19 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,7 +58,9 @@ import java.nio.charset.StandardCharsets;
 public class SelfRegistrationMgtClient {
 
     private static final String CLIENT = "Client ";
-    private static final Log log = LogFactory.getLog(SelfRegistrationMgtClient.class);
+    public static final String CODE = "code";
+    public static final String STATUS_CODE = "statusCode";
+    private static final Logger log = Logger.getLogger(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";
@@ -126,36 +133,28 @@ public class SelfRegistrationMgtClient {
         throw new SelfRegistrationMgtClientException("Couldn't find default purpose for tenant: " + tenantDomain);
     }
 
-    private String getPurposesEndpoint(String tenantDomain) {
+    private String getPurposesEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint;
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
-        } else {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
-                    PURPOSES_ENDPOINT_RELATIVE_PATH);
-        }
-        return purposesEndpoint;
+        return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getPurposeCategoriesEndpoint(String tenantDomain) {
+    private String getPurposeCategoriesEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint;
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
-        } else {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
-                    PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
-        }
-        return purposesEndpoint;
+        return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getUserAPIEndpoint() {
+    private String getUserAPIEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
-        return purposesEndpoint;
+        return getEndpoint(tenantDomain, USERNAME_VALIDATE_API_RELATIVE_PATH);
+    }
+
+    private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
+
+        try {
+            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+        } catch (ApiException e) {
+            throw new SelfRegistrationMgtClientException("Error while building url for context: " + context);
+        }
     }
 
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
@@ -210,18 +209,58 @@ public class SelfRegistrationMgtClient {
      *                        tenant.
      * @return An integer with status code.
      * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     * @deprecated Use {@link #checkUsernameValidity(User user, boolean skipSignUpCheck)}
      */
+    @Deprecated
     public Integer checkUsernameValidity(String username, boolean skipSignUpCheck) throws
             SelfRegistrationMgtClientException {
 
+        User user = new User();
+        user.setUsername(username);
+        return checkUsernameValidity(user, skipSignUpCheck);
+    }
+
+    /**
+     * Validates user attributes.
+     *
+     * @param user User object to validate.
+     * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
+     *                        tenant.
+     * @return An integer with status code.
+     * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     */
+    public Integer checkUsernameValidity(User user, boolean skipSignUpCheck) throws
+            SelfRegistrationMgtClientException {
+
+        return checkUserNameValidityInternal(user, skipSignUpCheck).getInt(CODE);
+    }
+
+    /**
+     * Checks whether a given username is valid or not and return a JSON object with API response.
+     *
+     * @param user            User.
+     * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
+     *                        tenant.
+     * @return A JSON object with API response data.
+     * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     */
+    public JSONObject checkUsernameValidityStatus(User user, boolean skipSignUpCheck)
+            throws SelfRegistrationMgtClientException {
+
+        return checkUserNameValidityInternal(user, skipSignUpCheck);
+    }
+
+    private JSONObject checkUserNameValidityInternal(User user, boolean skipSignUpCheck) throws
+            SelfRegistrationMgtClientException {
+
         if (log.isDebugEnabled()) {
-            log.debug("Checking username validating for username: " + username + ". SkipSignUpCheck flag is set to "
-                    + skipSignUpCheck + ".");
+            log.debug("Checking username validating for username: {}. SkipSignUpCheck flag is set to {}.",
+                    user.getUsername(), skipSignUpCheck);
         }
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            JSONObject user = new JSONObject();
-            user.put(USERNAME, username);
+            JSONObject userObject = new JSONObject();
+            userObject.put(USERNAME, user.getUsername());
 
             JSONArray properties = new JSONArray();
             JSONObject property = new JSONObject();
@@ -229,37 +268,73 @@ public class SelfRegistrationMgtClient {
                     IdentityManagementEndpointConstants.KEY, IdentityManagementEndpointConstants.SKIP_SIGN_UP_ENABLE_CHECK);
             property.put(IdentityManagementEndpointConstants.VALUE, skipSignUpCheck);
             properties.put(property);
-            user.put(PROPERTIES, properties);
 
-            HttpPost post = new HttpPost(getUserAPIEndpoint());
+            if (StringUtils.isNotBlank(user.getTenantDomain())) {
+                JSONObject tenantProperty = new JSONObject();
+                tenantProperty.put(IdentityManagementEndpointConstants.KEY,
+                        IdentityManagementEndpointConstants.TENANT_DOMAIN);
+                tenantProperty.put(IdentityManagementEndpointConstants.VALUE, user.getTenantDomain());
+                properties.put(tenantProperty);
+            }
+
+            userObject.put(PROPERTIES, properties);
+            // Get tenant qualified endpoint.
+            HttpPost post = new HttpPost(getUserAPIEndpoint(user.getTenantDomain()));
             setAuthorizationHeader(post);
 
-            post.setEntity(new StringEntity(user.toString(), ContentType.create(HTTPConstants
+            post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
             try (CloseableHttpResponse response = httpclient.execute(post)) {
 
                 if (log.isDebugEnabled()) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " when validating username: "
-                            + username);
+                    log.debug("HTTP status {} when validating username: {}.",
+                            response.getStatusLine().getStatusCode(), user.getUsername());
                 }
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
+                        response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     if (log.isDebugEnabled()) {
-                        log.debug("Username validation response: " + jsonResponse.toString(2) + " for username: "
-                                + username);
+                        log.debug("Username validation response: {} for username: {}.",
+                                jsonResponse.toString(2), user.getUsername());
                     }
-                    return jsonResponse.getInt("statusCode");
+                    // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
+                        if (jsonResponse.has(CODE)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Trying to add code attribute in a success instance but the attribute " +
+                                        "already exists with the value: " + jsonResponse.get(CODE));
+                            }
+                        } else {
+                            jsonResponse.put(CODE, jsonResponse.get(STATUS_CODE));
+                        }
+                    }
+                    return jsonResponse;
                 } else {
+                    // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                        JSONObject jsonResponse = new JSONObject(
+                                new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                        String content = null;
+                        if (jsonResponse.get("message") != null) {
+                            content = (String) jsonResponse.get("message");
+                        } else if (jsonResponse.get("description") != null) {
+                            content = (String) jsonResponse.get("description");
+                        }
+                        if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
+                            jsonResponse.put(CODE, SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                            return jsonResponse;
+                        }
+                    }
                     // Logging and throwing since this is a client
                     if (log.isDebugEnabled()) {
-                        log.debug("Unexpected response code found: " + response.getStatusLine().getStatusCode()
-                                + " when validating username: " + username);
+                        log.debug("Unexpected response code found: {} when validating username: {}.",
+                                response.getStatusLine().getStatusCode(), user.getUsername());
                     }
                     throw new SelfRegistrationMgtClientException("Error while checking username validity for user : "
-                            + username);
+                            + user.getUsername());
                 }
 
             } finally {
@@ -267,7 +342,7 @@ public class SelfRegistrationMgtClient {
             }
         } catch (IOException e) {
             // Logging and throwing since this is a client.
-            String msg = "Error while check username validity for user : " + username;
+            String msg = "Error while check username validity for user : " + user.getUsername();
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
@@ -295,16 +370,12 @@ public class SelfRegistrationMgtClient {
             IOException {
 
         String purposeResponse = executeGet(getPurposesEndpoint(tenantDomain) + "/" + purposeId);
-        JSONObject purpose = new JSONObject(purposeResponse);
-        return purpose;
+        return new JSONObject(purposeResponse);
     }
 
     private boolean isDefaultPurpose(JSONObject purpose) {
 
-        if (DEFAULT.equalsIgnoreCase(purpose.getString(PURPOSE))) {
-            return true;
-        }
-        return false;
+        return DEFAULT.equalsIgnoreCase(purpose.getString(PURPOSE));
     }
 
     private boolean hasPIICategories(JSONObject purpose) {

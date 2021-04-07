@@ -26,9 +26,11 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
@@ -270,7 +272,7 @@ function idpMgtCancel(){
             CARBON.showWarningDialog("Resident IdP Entity ID cannot be empty");
             return false;
         }
-        var isSessionTimeoutValidated = doValidateInput(document.getElementById('sessionIdleTimeout'), "Resident IdP Idle Session Timeout must be numeric value greater than 0");
+        var isSessionTimeoutValidated = doValidateInput(document.getElementById('sessionIdleTimeout'), "Resident IdP Idle Session Timeout must be numeric value greater than 0 and cannot be empty");
         if (!isSessionTimeoutValidated) {
             return false;
         }
@@ -654,14 +656,24 @@ function removeDefaultAuthSeq() {
                     <table class="carbonFormTable">
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:</td>
-                            <td>
-                                <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
-                                       value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
+                            <%
+                                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                            %>
+                                    <td><%=Encode.forHtmlContent(tokenUrl)%></td>
+                            <%
+                                } else {
+                            %>
+                                    <td>
+                                        <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
+                                               value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
 
-                                <div class="sectionHelp">
-                                    <fmt:message key='idp.entity.id.help'/>
-                                </div>
-                            </td>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='idp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                            <%
+                                }
+                            %>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>
@@ -743,6 +755,7 @@ function removeDefaultAuthSeq() {
                     </table>
                     </div>
 
+                        <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                         <h2 id="stsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
                             <a href="#"><fmt:message key='sts.local.config'/></a>
                         </h2>
@@ -767,6 +780,7 @@ function removeDefaultAuthSeq() {
                                 </tr>
                             </table>
                         </div>
+                        <%} %>
                 </div>
                     <h2 id="inboundprovisioningconfighead"  class="sectionSeperator trigger active">
                 		<a href="#">Inbound Provisioning Configuration</a>

@@ -57,7 +57,7 @@ public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
         // Add status as completed.
         LongWaitResultCacheKey cacheKey = new LongWaitResultCacheKey(waitKey);
         LongWaitStatus status = new LongWaitStatus();
-        status.setStatus(LongWaitStatus.Status.COMPLETED);
+        status.setStatus(LongWaitStatus.Status.UNKNOWN);
         LongWaitResultCacheEntry cacheEntry = new LongWaitResultCacheEntry(status);
         LongWaitResultCache.getInstance().addToCache(cacheKey, cacheEntry);
     }

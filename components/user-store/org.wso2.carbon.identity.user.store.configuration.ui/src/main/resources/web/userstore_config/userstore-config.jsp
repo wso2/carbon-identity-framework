@@ -113,7 +113,7 @@
 
 
     if (selectedClassApplied == null || selectedClassApplied.trim().length() == 0) {
-        selectedClassApplied = UserStoreUIConstants.RWLDAP_USERSTORE_MANAGER;
+        selectedClassApplied = UserStoreUIConstants.URWLDAP_USERSTORE_MANAGER;
     } else {
 
     }
@@ -472,9 +472,7 @@
             <%
                 if (description != null && description.trim().length() > 0) {
             %>
-            <td><textarea name="description" id="description" class="text-box-big">
-                <%=Encode.forHtmlContent(description)%>
-            </textarea>
+            <td><textarea name="description" id="description" class="text-box-big"><%=Encode.forHtmlContent(description)%></textarea>
             </td>
             <%
             } else {

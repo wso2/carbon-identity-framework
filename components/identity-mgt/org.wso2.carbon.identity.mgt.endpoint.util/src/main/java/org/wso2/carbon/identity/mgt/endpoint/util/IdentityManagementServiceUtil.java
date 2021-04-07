@@ -56,8 +56,12 @@ public class IdentityManagementServiceUtil {
     private String accessUsername;
     private String accessPassword;
     private String serviceContextURL;
+    private String contextURL;
     private String appName;
     private char[] appPassword;
+
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
 
     private static final Log log = LogFactory.getLog(IdentityManagementServiceUtil.class);
 
@@ -97,9 +101,7 @@ public class IdentityManagementServiceUtil {
 
                 inputStream = new FileInputStream(configFile);
                 properties.load(inputStream);
-                if (isSecuredPropertyAvailable(properties)) {
-                    resolveSecrets(properties);
-                }
+                resolveSecrets(properties);
 
             } else {
                 if (log.isDebugEnabled()) {
@@ -123,6 +125,7 @@ public class IdentityManagementServiceUtil {
                     .APP_PASSWORD).toCharArray();
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
+            contextURL = serviceContextURL;
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? IdentityUtil.getServerURL(
                     IdentityUtil.getServicePath(), true, true) : serviceContextURL;
 
@@ -147,6 +150,17 @@ public class IdentityManagementServiceUtil {
      */
     public String getServiceContextURL() {
         return serviceContextURL;
+    }
+
+    /**
+     * Returns the context URL configured as identity.server.service.contextURL of RecoveryEndpointConfig.properties
+     * file.
+     *
+     * @return context URL.
+     */
+    public String getContextURLFromFile() {
+
+        return contextURL;
     }
 
     /**
@@ -187,6 +201,10 @@ public class IdentityManagementServiceUtil {
 
     private static void resolveSecrets(Properties properties) {
 
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = entry.getKey().toString();
@@ -219,6 +237,31 @@ public class IdentityManagementServiceUtil {
         user.setRealm(userStoreDomain);
         user.setTenantDomain(tenantDomain);
 
+        return user;
+    }
+
+    /**
+     * Build a user object from tenant domain and username.
+     *
+     * @param username username provided by user
+     * @param tenantDomain tenant domain of the application
+     * @return User
+     */
+    public User resolveUser(String username, String tenantDomain, boolean isSaaSEnabled) {
+
+        if (username == null) {
+            return null;
+        }
+        String userStoreDomain = extractDomainFromName(username);
+        User user = new User();
+        user.setUsername(MultitenantUtils
+                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(username)));
+        if (isSaaSEnabled) {
+            user.setTenantDomain(MultitenantUtils.getTenantDomain(username));
+        } else {
+            user.setTenantDomain(tenantDomain);
+        }
+        user.setRealm(userStoreDomain);
         return user;
     }
 

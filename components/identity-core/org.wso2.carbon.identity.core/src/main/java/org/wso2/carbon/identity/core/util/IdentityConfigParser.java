@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
+import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -42,6 +44,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Stack;
@@ -54,6 +57,9 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
+    private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
+    private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
+    private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
@@ -104,6 +110,25 @@ public class IdentityConfigParser {
         return identityCookieConfigurationHolder;
     }
 
+    public static Map<String, ReverseProxyConfig> getReverseProxyConfigurationHolder() {
+
+        return reverseProxyConfigurationHolder;
+    }
+
+    public List<String> getCookiesToInvalidateConfigurationHolder() {
+
+        return cookiesToInvalidateConfigurationHolder;
+    }
+
+    /**
+     * Get the legacy feature config Map.
+     *
+     * @return Legacy feature config Map
+     */
+    public static Map<String, LegacyFeatureConfig> getLegacyFeatureConfigurationHolder() {
+
+        return legacyFeatureConfigurationHolder;
+    }
 
     /**
      * @return
@@ -170,6 +195,9 @@ public class IdentityConfigParser {
             buildEventListenerData();
             buildCacheConfig();
             buildCookieConfig();
+            buildLegacyFeatureConfig();
+            buildReverseProxyConfig();
+            buildCookiesToInvalidateConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -180,6 +208,28 @@ public class IdentityConfigParser {
                 }
             } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
+            }
+        }
+    }
+
+    private void buildCookiesToInvalidateConfig() {
+
+        OMElement cookiesToInvalidate = this.getConfigElement(IdentityConstants.COOKIES_TO_INVALIDATE_CONFIG);
+        Iterator<OMElement> cookies = null;
+        if (cookiesToInvalidate != null) {
+            cookies = cookiesToInvalidate.getChildrenWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.COOKIE));
+        }
+        if (cookies != null) {
+            while (cookies.hasNext()) {
+                OMElement cookie = cookies.next();
+                String cookieName = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_NAME));
+
+                if (StringUtils.isBlank(cookieName)) {
+                    throw IdentityRuntimeException.error("Invalid configuration. Cookie name is not defined correctly.");
+                }
+
+                cookiesToInvalidateConfigurationHolder.add(cookieName);
             }
         }
     }
@@ -371,6 +421,107 @@ public class IdentityConfigParser {
                 }
             }
 
+        }
+    }
+
+    /**
+     * Build legacy feature config by adding the configs to legacyFeatureConfigurationHolder Map.
+     */
+    public void buildLegacyFeatureConfig() {
+
+        LegacyFeatureConfig legacyFeatureConfig;
+        OMElement legacyFeaturesConfigElement =
+                this.getConfigElement(IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_CONFIG);
+        if (legacyFeaturesConfigElement != null) {
+
+            int legacyFeaturesConfigElementIndex = 0;
+            Iterator<OMElement> legacyFeatures = legacyFeaturesConfigElement.
+                    getChildrenWithName(getQNameWithIdentityNS(IdentityConstants.
+                            LegacyFeatureConfigElements.LEGACY_FEATURE));
+            if (legacyFeatures != null) {
+                while (legacyFeatures.hasNext()) {
+                    legacyFeaturesConfigElementIndex += 1;
+                    OMElement legacyFeature = legacyFeatures.next();
+
+                    OMElement legacyFeatureIdElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_ID));
+                    OMElement legacyFeatureVersionElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_VERSION));
+                    OMElement legacyFeatureEnableElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_ENABLE));
+
+                    String legacyFeatureId;
+                    String legacyFeatureVersion;
+                    boolean isLegacyFeatureEnable = false;
+                    if (legacyFeatureIdElement != null && legacyFeatureVersionElement != null
+                            && legacyFeatureEnableElement != null) {
+                        legacyFeatureId = legacyFeatureIdElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureId)) {
+                            legacyFeatureId = legacyFeatureId.trim();
+                        }
+                        legacyFeatureVersion = legacyFeatureVersionElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureVersion)) {
+                            legacyFeatureVersion = legacyFeatureVersion.trim();
+                        }
+                        String legacyFeatureEnable = legacyFeatureEnableElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureEnable)) {
+                            isLegacyFeatureEnable = Boolean.parseBoolean(legacyFeatureEnable.trim());
+                        }
+
+                        String legacyFeatureConfigKey = legacyFeatureId + legacyFeatureVersion;
+                        legacyFeatureConfig = new LegacyFeatureConfig(legacyFeatureId, legacyFeatureVersion,
+                                isLegacyFeatureEnable);
+                        legacyFeatureConfigurationHolder.put(legacyFeatureConfigKey, legacyFeatureConfig);
+                    } else {
+                        log.warn("Configured <LegacyFeature> element at index: " + legacyFeaturesConfigElementIndex +
+                                " contains invalid entry.");
+                    }
+                }
+            }
+        }
+    }
+
+    private void buildReverseProxyConfig() {
+
+        ReverseProxyConfig reverseProxyConfig;
+        OMElement reverseProxyConfigElement =
+                this.getConfigElement(IdentityConstants.ReverseProxyConfigElements.REVERSE_PROXY_CONFIG);
+        if (reverseProxyConfigElement != null) {
+
+            int reverseProxyConfigElementIndex = 0;
+            Iterator<OMElement> reverseProxies = reverseProxyConfigElement.getChildrenWithName(
+                    getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.REVERSE_PROXY));
+
+            if (reverseProxies != null) {
+                while (reverseProxies.hasNext()) {
+                    reverseProxyConfigElementIndex += 1;
+                    OMElement reverseProxy = reverseProxies.next();
+
+                    OMElement defaultContextElement = reverseProxy.getFirstChildWithName(
+                            getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.DEFAULT_CONTEXT));
+                    OMElement proxyContextElement = reverseProxy.getFirstChildWithName(
+                            getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.PROXY_CONTEXT));
+
+                    String defaultContext;
+                    String proxyContext;
+                    if (defaultContextElement != null && proxyContextElement != null) {
+                        defaultContext = defaultContextElement.getText();
+                        if (StringUtils.isNotBlank(defaultContext)) {
+                            defaultContext = defaultContext.trim();
+                        }
+                        proxyContext = proxyContextElement.getText();
+                        if (StringUtils.isNotBlank(proxyContext)) {
+                            proxyContext = proxyContext.trim();
+                        }
+
+                        reverseProxyConfig = new ReverseProxyConfig(defaultContext, proxyContext);
+                        reverseProxyConfigurationHolder.put(defaultContext, reverseProxyConfig);
+                    } else {
+                        log.warn("Configured <ReverseProxy> element at index: " + reverseProxyConfigElementIndex +
+                                " contains invalid entry.");
+                    }
+                }
+            }
         }
     }
 

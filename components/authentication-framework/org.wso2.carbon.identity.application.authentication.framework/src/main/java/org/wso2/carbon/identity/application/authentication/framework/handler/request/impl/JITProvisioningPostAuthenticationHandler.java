@@ -54,7 +54,10 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -80,6 +83,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
@@ -503,17 +507,17 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             HttpServletRequest request) throws PostAuthenticationFailedException {
 
         try {
-            URIBuilder uriBuilder;
+            ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
             if (externalIdPConfig.isModifyUserNameAllowed()) {
                 context.setProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED, true);
-                uriBuilder = new URIBuilder(FrameworkUtils.getUserNameProvisioningUIUrl());
+                uriBuilder = uriBuilder.addPath(FrameworkUtils.getUserNameProvisioningUIUrl());
                 uriBuilder.addParameter(FrameworkConstants.ALLOW_CHANGE_USER_NAME, String.valueOf(true));
                 if (log.isDebugEnabled()) {
                     log.debug(externalIdPConfig.getName() + " allow to change the username, redirecting to "
                             + "registration endpoint to provision the user: " + username);
                 }
             } else {
-                uriBuilder = new URIBuilder(FrameworkUtils.getPasswordProvisioningUIUrl());
+                    uriBuilder = uriBuilder.addPath(FrameworkUtils.getPasswordProvisioningUIUrl());
                 if (log.isDebugEnabled()) {
                     if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                         log.debug(externalIdPConfig.getName() + " supports password provisioning, redirecting to "
@@ -524,7 +528,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                 uriBuilder.addParameter(FrameworkConstants.PASSWORD_PROVISION_ENABLED, String.valueOf(true));
             }
-            uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+            }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
             uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
@@ -532,8 +538,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
             addMissingClaims(uriBuilder, context);
             localClaimValues.forEach(uriBuilder::addParameter);
-            response.sendRedirect(uriBuilder.build().toString());
-        } catch (URISyntaxException | IOException e) {
+            response.sendRedirect(uriBuilder.build().getRelativePublicURL());
+        } catch (IOException | URLBuilderException e) {
             handleExceptions(String.format(
                     ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
                     username, externalIdPConfig.getName()),
@@ -547,7 +553,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param uriBuilder Relevant URI builder.
      * @param context    Authentication context.
      */
-    private void addMissingClaims(URIBuilder uriBuilder, AuthenticationContext context) {
+    private void addMissingClaims(ServiceURLBuilder uriBuilder, AuthenticationContext context) {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
         if (StringUtils.isNotEmpty(missingClaims[1])) {
@@ -651,6 +657,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
         Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
         Map<String, String> claimMapping = null;
+        boolean excludeUnmappedRoles = false;
         if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
             try {
                 claimMapping = ClaimMetadataHandler.getInstance()
@@ -673,9 +680,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
          returned list.
          */
+        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+            excludeUnmappedRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
         List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
                 .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
-                        idpRoleClaimUri, true);
+                        idpRoleClaimUri, excludeUnmappedRoles);
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
