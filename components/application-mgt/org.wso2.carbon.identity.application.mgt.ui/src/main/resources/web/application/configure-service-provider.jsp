@@ -240,8 +240,9 @@
     String wsTrustObsoleteEndpoint = request.getParameter("obsoleteServiceName");
 
     if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "update".equals(action)) {
-        if (wsTrustObsoleteEndpoint != null && !wsTrustObsoleteEndpoint.isEmpty())
+        if (wsTrustObsoleteEndpoint != null && !wsTrustObsoleteEndpoint.isEmpty()) {
             appBean.removeWstrustEp(wsTrustObsoleteEndpoint);
+        }
         appBean.addWstrustEp(wsTrustEndpoint);
         isNeedToUpdate = true;
     }

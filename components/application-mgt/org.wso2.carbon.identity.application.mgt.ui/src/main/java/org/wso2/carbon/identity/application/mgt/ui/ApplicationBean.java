@@ -819,20 +819,24 @@ public class ApplicationBean {
      */
     public String getWstrustSP() {
         List<String> wsTrustEps = getAllWsTrustSPs();
-        if (CollectionUtils.isNotEmpty(wsTrustEps))
+        if (CollectionUtils.isNotEmpty(wsTrustEps)) {
             return getAllWsTrustSPs().get(0);
-        else
+        }
+        else {
             return null;
+        }
     }
 
     /**
      * @return
      */
     public List<String> getAllWsTrustSPs() {
-        if (CollectionUtils.isNotEmpty(wstrustEp))
+        if (CollectionUtils.isNotEmpty(wstrustEp)) {
             return wstrustEp;
-        else
+        }
+        else {
             wstrustEp = new ArrayList<>(0);
+        }
 
         InboundAuthenticationRequestConfig[] authRequests = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
@@ -1583,7 +1587,7 @@ public class ApplicationBean {
      */
     public void addWstrustEp(String wstrustEp) {
         if (wstrustEp != null && !wstrustEp.isEmpty()) {
-            if (this.wstrustEp == null){
+            if (this.wstrustEp == null) {
                 this.wstrustEp = new ArrayList<String>(0);
             }
             this.wstrustEp.add(wstrustEp);
