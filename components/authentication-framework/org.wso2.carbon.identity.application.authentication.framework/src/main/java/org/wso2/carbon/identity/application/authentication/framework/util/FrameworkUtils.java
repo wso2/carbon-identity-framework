@@ -168,6 +168,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 public class FrameworkUtils {
 
@@ -2086,7 +2087,7 @@ public class FrameworkUtils {
             ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
             if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
                 for (ClaimMapping mapping : idpToLocalClaimMapping) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
+                    if (getLocalGroupsClaimURI().equals(mapping.getLocalClaim().getClaimUri())
                             && mapping.getRemoteClaim() != null) {
                         return mapping.getRemoteClaim().getClaimUri();
                     }
@@ -2149,8 +2150,8 @@ public class FrameworkUtils {
 
     /**
      * Returns the local claim uri that is mapped for the IdP role claim uri configured.
-     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
-     *
+     * If no role claim uri is configured for the IdP returns the local claim by calling 'IdentityUtils
+     * .#getLocalGroupsClaimURI()'.
      * @param externalIdPConfig IdP configurations
      * @return local claim uri mapped for the IdP role claim uri.
      */
@@ -2170,7 +2171,7 @@ public class FrameworkUtils {
                 }
             }
         }
-        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+        return getLocalGroupsClaimURI();
     }
 
     /**

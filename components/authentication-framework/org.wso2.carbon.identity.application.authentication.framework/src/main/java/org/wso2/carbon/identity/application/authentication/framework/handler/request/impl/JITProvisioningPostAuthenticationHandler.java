@@ -671,7 +671,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         if (claimMapping != null) {
             //Ex. Standard dialects like OIDC.
-            idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
             idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);

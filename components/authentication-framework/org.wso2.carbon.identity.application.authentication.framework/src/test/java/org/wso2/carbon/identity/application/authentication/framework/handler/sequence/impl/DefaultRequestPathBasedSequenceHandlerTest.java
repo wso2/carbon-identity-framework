@@ -70,6 +70,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class})
 public class DefaultRequestPathBasedSequenceHandlerTest {
@@ -267,7 +268,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                         }},
                         new HashMap<Object, Object>() {
                             {
-                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                                put(getLocalGroupsClaimURI(), "localRole1,localRole2");
                             }
                         },
                         SUBJECT_CLAIM_URI,
@@ -281,7 +282,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                         }},
                         new HashMap<Object, Object>() {
                             {
-                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                                put(getLocalGroupsClaimURI(), "localRole1,localRole2");
                                 put(SUBJECT_CLAIM_URI, "mapped_attribute_claim_subject");
                             }
                         }, SUBJECT_CLAIM_URI,
@@ -292,7 +293,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                         null,
                         new HashMap<Object, Object>() {
                             {
-                                put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "localRole1,localRole2");
+                                put(getLocalGroupsClaimURI(), "localRole1,localRole2");
                                 put(SUBJECT_CLAIM_URI, "mapped_attribute_claim_subject");
                             }
                         }, SUBJECT_CLAIM_URI,
@@ -379,7 +380,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     private Object[][] getSpRoleClaimUriData() {
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
-                {null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI}
+                {null, getLocalGroupsClaimURI()}
         };
     }
 
@@ -400,7 +401,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         return new Object[][]{
                 {       // SP mapped role claim
                         new HashMap<String, String>() {{
-                            put("SP_ROLE_CLAIM", FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+                            put("SP_ROLE_CLAIM", getLocalGroupsClaimURI());
                         }},
                         "SP_ROLE_CLAIM"
                 },
@@ -408,13 +409,13 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                         new HashMap<String, String>() {{
                             put("SP_CLAIM", "LOCAL_CLAIM");
                         }},
-                        FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        getLocalGroupsClaimURI()
                 },
                 {      // No SP mapped claims
-                        new HashMap<>(), FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        new HashMap<>(), getLocalGroupsClaimURI()
                 },
                 {
-                        null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        null, getLocalGroupsClaimURI()
                 }
         };
     }

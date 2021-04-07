@@ -48,10 +48,12 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,6 +61,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
 /**
  * Validator class to be used to validate the consistency of the Application/Service Provider, before it is persisted.
@@ -80,6 +87,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String SP_CLAIM_NOT_AVAILABLE = "Application Claim URI '%s' is not defined " +
             "for application:%s.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
+    private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
+            "prohibited for role mapping. Use roles instead.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
     @Override
@@ -442,6 +451,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
                     .getUserStoreManager();
             for (RoleMapping roleMapping : permissionsAndRoleConfig.getRoleMappings()) {
+                if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+                    if (isGroup(roleMapping.getLocalRole().getLocalRoleName())) {
+                        validationMsg.add(String.format(GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING, roleMapping
+                                .getLocalRole().getLocalRoleName()));
+                        break;
+                    }
+                }
                 if (!userStoreManager.isExistingRole(roleMapping.getLocalRole().getLocalRoleName())) {
                     validationMsg.add(String.format(ROLE_NOT_AVAILABLE, roleMapping.getLocalRole().getLocalRoleName()));
                     break;
@@ -451,5 +467,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             validationMsg.add(String.format("Error when checking the existence of local roles in %s.", tenantDomain));
         }
     }
-}
 
+    private boolean isGroup(String localRoleName) {
+
+        return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
+                .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
+    }
+}
