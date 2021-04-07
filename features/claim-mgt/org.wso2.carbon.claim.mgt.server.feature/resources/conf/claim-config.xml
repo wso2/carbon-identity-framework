@@ -117,9 +117,10 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/role</ClaimURI>
-				<DisplayName>Roles and groups</DisplayName>
+				<DisplayName>Role</DisplayName>
 				<AttributeID>role</AttributeID>
-				<Description>Include both userstore groups and internal roles</Description>
+				<Description>Role</Description>
+				<SupportedByDefault/>
 				<ReadOnly />
 			</Claim>
 			<Claim>
@@ -411,8 +412,6 @@
 				<DisplayName>Groups</DisplayName>
 				<AttributeID>groups</AttributeID>
 				<Description>Groups</Description>
-				<SupportedByDefault />
-				<ReadOnly />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
@@ -1627,7 +1626,7 @@
 				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>roles</ClaimURI>
@@ -2193,7 +2192,7 @@
 				<Description>Roles</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</ClaimURI>
