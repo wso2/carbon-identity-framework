@@ -824,8 +824,7 @@ public class ApplicationBean {
         List<String> wsTrustEps = getAllWsTrustSPs();
         if (CollectionUtils.isNotEmpty(wsTrustEps)) {
             return getAllWsTrustSPs().get(0);
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -836,8 +835,7 @@ public class ApplicationBean {
     public List<String> getAllWsTrustSPs() {
         if (CollectionUtils.isNotEmpty(wstrustEp)) {
             return wstrustEp;
-        }
-        else {
+        } else {
             wstrustEp = new ArrayList<>(0);
         }
 
