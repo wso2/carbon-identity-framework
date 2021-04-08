@@ -1591,7 +1591,7 @@ public class ApplicationBean {
      * @param wstrustEp
      */
     public void setWstrustEp(String wstrustEp) {
-        if (CollectionUtils.isEmpty(this.wsTrustEp) {
+        if (CollectionUtils.isEmpty(this.wsTrustEp)) {
             this.wsTrustEp = new ArrayList<String>(0);
         }
 
