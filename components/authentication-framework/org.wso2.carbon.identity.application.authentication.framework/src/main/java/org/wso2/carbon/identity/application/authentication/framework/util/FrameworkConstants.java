@@ -417,6 +417,7 @@ public abstract class FrameworkConstants {
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
         public static final String JS_AUTH_FAILURE = "fail";
+        public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
