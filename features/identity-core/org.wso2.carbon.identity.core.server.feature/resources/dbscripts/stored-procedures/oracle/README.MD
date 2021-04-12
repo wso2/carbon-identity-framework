@@ -20,7 +20,7 @@ Then execute the compiled store procedure by using the exec function in the Orac
 sqlplus> exec WSO2_TOKEN_CLEANUP_SP();
 ```
 
-! Starting from IS 5.7.0 following indexs should be inplace to avoid deadlock situation cause by the foreign keys
+! Starting from IS 5.7.0 following indexes should be inplace to avoid deadlock situation cause by the foreign keys
 ```
 CREATE INDEX IDX_OROR_TID ON IDN_OIDC_REQ_OBJECT_REFERENCE(TOKEN_ID);
 CREATE INDEX IDX_OROR_CID ON IDN_OIDC_REQ_OBJECT_REFERENCE(CODE_ID);
