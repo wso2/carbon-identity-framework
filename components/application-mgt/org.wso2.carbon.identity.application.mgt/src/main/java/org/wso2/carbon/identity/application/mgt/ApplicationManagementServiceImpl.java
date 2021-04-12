@@ -1984,7 +1984,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
         }
         try {
-            //Creating secure parser by disabling XXE
+            // Creating secure parser by disabling XXE.
             SAXParserFactory spf = SAXParserFactory.newInstance();
             spf.setNamespaceAware(true);
             spf.setXIncludeAware(false);
@@ -1998,10 +1998,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
                         + " or secure-processing.");
             }
-            //Creating source object using the secure parser
+            // Creating source object using the secure parser.
             Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
                     new InputSource(new StringReader(spFileContent.getContent())));
-            //Performing unmarshall operation by passing the generated source object to the unmarshaller
+            // Performing unmarshall operation by passing the generated source object to the unmarshaller.
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
