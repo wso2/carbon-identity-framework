@@ -270,6 +270,8 @@
   "identity_mgt.recovery.notify_user_account_status": true,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
+  "identity_mgt.user_self_registration.auto_login.enable": false,
+  "identity_mgt.user_self_registration.auto_login.alias_name": "wso2carbon",
   "identity_mgt.default_mail_validity_period": "1d",
   "identity_mgt.endpoint.enable_recovery_endpoint": true,
   "identity_mgt.endpoint.enable_self_signup_endpoint": true,
