@@ -160,9 +160,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 logDebug(message);
             }
 
-            if (isNotEmpty(consentClaimsData.getClaimsWithConsent())) {
-                removeClaimsWithoutConsent(context, consentClaimsData);
-            }
+            removeClaimsWithoutConsent(context, consentClaimsData);
 
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 

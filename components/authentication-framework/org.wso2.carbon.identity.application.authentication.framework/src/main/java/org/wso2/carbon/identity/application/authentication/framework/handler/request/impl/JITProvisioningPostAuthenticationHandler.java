@@ -430,6 +430,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             JSONObject piiCategory = (JSONObject) piiCategories.get(categoryIndex);
             PIICategoryValidity piiCategoryValidity = new PIICategoryValidity(piiCategory.getInt("piiCategoryId"),
                     FrameworkConstants.Consent.INFINITE_TERMINATION);
+            piiCategoryValidity.setConsented(true);
             piiCategoryValidities.add(piiCategoryValidity);
         }
         receiptPurposeInput.setPiiCategory(piiCategoryValidities);
