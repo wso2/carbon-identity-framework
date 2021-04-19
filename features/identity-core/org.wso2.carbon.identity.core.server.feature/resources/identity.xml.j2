@@ -1431,6 +1431,11 @@
                        enable="{{event.default_listener.user_claim_audit_logger.enable}}">
             <Property name="LogUpdatedClaimsOnly">{{event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly}}</Property>
         </EventListener>
+        <EventListener id="client_certificate_authentication_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
+                       name="org.wso2.carbon.identity.auth.service.handler.impl.ClientCertificateBasedAuthenticationHandler"
+                       orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
+                       enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
