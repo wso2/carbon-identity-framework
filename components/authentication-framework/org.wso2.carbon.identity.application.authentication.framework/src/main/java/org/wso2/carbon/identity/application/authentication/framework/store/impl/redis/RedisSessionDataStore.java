@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.store.impl.redis;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -27,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -40,9 +42,16 @@ import java.util.concurrent.TimeUnit;
 public class RedisSessionDataStore extends SessionDataStore {
 
     private static final Log log = LogFactory.getLog(SessionDataStore.class);
+    public static final String REDIS_SESSION_DATA_STORE = "RedisSessionDataStore";
 
     private static int maxSessionDataPoolSize;
     private static JedisPool pool;
+    private static String PASSWORD = "Password";
+    private static String HOST = "Host";
+    private static String PORT = "Port";
+    private static String password;
+    private static String host;
+    private static Integer port;
     private int maxTotal;
     private int maxIdle;
     private int minIdle;
@@ -64,7 +73,9 @@ public class RedisSessionDataStore extends SessionDataStore {
                     RedisConstants.DEFAULT_MIN_IDLE);
             maxWaitMillis = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_REDIS_POOL_MAX_WAIT,
                     RedisConstants.DEFAULT_MAX_WAIT_MILLIS);
-
+            port = Integer.valueOf(getAuthConfig(PORT));
+            host = getAuthConfig(HOST);
+            password = getAuthConfig(PASSWORD);
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Exception ignored : ", e);
@@ -108,8 +119,7 @@ public class RedisSessionDataStore extends SessionDataStore {
             if (pool == null) {
                 synchronized (RedisSessionDataStore.class) {
                     if (pool == null) {
-                        pool = new JedisPool(getPoolConfig(), RedisConstants.HOST,
-                                RedisConstants.PORT);
+                        pool = new JedisPool(getPoolConfig(), host, port);
                     }
                 }
             }
@@ -127,9 +137,6 @@ public class RedisSessionDataStore extends SessionDataStore {
         jedisPoolConfig.setMaxIdle(maxIdle);
         jedisPoolConfig.setMinIdle(minIdle);
         jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
-        jedisPoolConfig.setBlockWhenExhausted(RedisConstants.BLOCK_WHEN_EXHAUSTED);
-        jedisPoolConfig.setTestOnBorrow(RedisConstants.TEST_ON_BORROW);
-        jedisPoolConfig.setTestOnReturn(RedisConstants.TEST_ON_RETURN);
 
         return jedisPoolConfig;
     }
@@ -169,6 +176,9 @@ public class RedisSessionDataStore extends SessionDataStore {
 
         try {
             jedis = getJedisInstance().getResource();
+            if (!(password == null)) {
+                jedis.auth(password);
+            }
             if (jedis.exists(redisKey)) {
                 jedis.del(redisKey);
             }
@@ -211,6 +221,9 @@ public class RedisSessionDataStore extends SessionDataStore {
         }
         try {
             jedis = getJedisInstance().getResource();
+            if (!(password == null)) {
+                jedis.auth(password);
+            }
             if (jedis.exists(redisKey)) {
                 long nanoTime = Long.parseLong(jedis.hget(redisKey, RedisConstants.NANO_TIME));
                 String objectKey = redisKey + RedisConstants.DIVIDER +
@@ -224,6 +237,12 @@ public class RedisSessionDataStore extends SessionDataStore {
             log.error("Error while retrieving session data.", e);
         }
         return null;
+    }
+
+    @Override
+    public String getStoreName() {
+
+        return REDIS_SESSION_DATA_STORE;
     }
 
     @Override
@@ -254,6 +273,9 @@ public class RedisSessionDataStore extends SessionDataStore {
         try {
             Jedis jedis;
             jedis = getJedisInstance().getResource();
+            if (!(password == null)) {
+                jedis.auth(password);
+            }
             addRedisHash(jedis, redisKey, RedisConstants.NANO_TIME, String.valueOf(nanoTime));
             addRedisHash(jedis, redisKey, RedisConstants.EXPIRY_TIME,
                     String.valueOf(nanoTime + validityPeriodNano));
@@ -284,6 +306,19 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     private void addRedisHash(Jedis jedis, String key, String field, String value) {
 
+        if (!(password == null)) {
+            jedis.auth(password);
+        }
         jedis.hset(key, field, value);
+    }
+
+    private String getAuthConfig(String config) {
+
+        String stringVal;
+        stringVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.RedisAuthConfig." + config);
+        if (StringUtils.isNotBlank(stringVal)) {
+            return stringVal;
+        }
+        return stringVal;
     }
 }

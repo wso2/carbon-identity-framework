@@ -175,5 +175,13 @@
   "authentication.authenticator.x509_certificate.parameters.username": "CN",
 
   "account_recovery.endpoint.auth.name":"dashboard",
-  "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"
+  "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
+
+  "session_data.persistence.session_store_impl_type": "RdbmsMultiEntrySessionDataStore",
+  "session_data.persistence.redis_auth_config.host": "127.0.0.1",
+  "session_data.persistence.redis_auth_config.port": "6379",
+  "session_data.persistence.redis_pool_config.maxtotal": "50000",
+  "session_data.persistence.redis_pool_config.maxidle": "50000",
+  "session_data.persistence.redis_pool_config.minidle": "10",
+  "session_data.persistence.redis_pool_config.maxwaitmillis": "10000"
 }
