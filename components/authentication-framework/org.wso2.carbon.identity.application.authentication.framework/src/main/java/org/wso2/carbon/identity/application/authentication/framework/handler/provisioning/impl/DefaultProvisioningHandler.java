@@ -234,7 +234,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
 
                 if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
-                    boolean excludeUnmappedRoles = true;
+                    boolean excludeUnmappedRoles = false;
                     boolean includeManuallyAddedLocalRoles = false;
                     if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
                         excludeUnmappedRoles = Boolean
