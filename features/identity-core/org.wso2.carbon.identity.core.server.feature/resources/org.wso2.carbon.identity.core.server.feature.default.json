@@ -412,7 +412,7 @@
   "event.default_listener.user_claim_audit_logger.enable": false,
   "event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly": false,
   "event.default_listener.client_certificate_authentication_handler.priority": "10",
-  "event.default_listener.client_certificate_authentication_handler.enable": false,
+  "event.default_listener.client_certificate_authentication_handler.enable": true,
   "event.default_listener.username_resolver.priority": "14",
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
