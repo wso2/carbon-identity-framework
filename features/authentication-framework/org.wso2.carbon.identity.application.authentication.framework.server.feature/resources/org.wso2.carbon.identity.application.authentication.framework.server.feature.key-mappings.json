@@ -30,5 +30,7 @@
   "authentication.authenticator.totp.parameters.enable_html_template_based_emails_for_totp" : "authentication.authenticator.totp.parameters.useEventHandlerBasedEmailSender",
   "authentication.authenticator.totp.parameters.totp_authentication_endpointURL":   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL",
   "authentication.authenticator.totp.parameters.totp_authentication_endpoint_error_page":   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage",
-  "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage"
+  "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage",
+
+  "session_data_persistence.session_store_impl_type":"session_data.persistence.session_store_impl_type",
 }

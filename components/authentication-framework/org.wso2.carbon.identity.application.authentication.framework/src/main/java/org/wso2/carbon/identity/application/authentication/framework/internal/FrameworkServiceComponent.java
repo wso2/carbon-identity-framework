@@ -42,11 +42,10 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
-import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -70,6 +69,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
@@ -77,6 +77,8 @@ import org.wso2.carbon.identity.application.authentication.framework.servlet.Log
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmsmultientry.RdbmsMultiEntrySessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry.RdbmsSingleEntrySessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -261,6 +263,9 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
         dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+
+        ctxt.getBundleContext().registerService(SessionDataStore.class.getName(), new RdbmsSingleEntrySessionDataStore(), null);
+        ctxt.getBundleContext().registerService(SessionDataStore.class.getName(), new RdbmsMultiEntrySessionDataStore(), null);
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
@@ -756,5 +761,32 @@ public class FrameworkServiceComponent {
             authConfig.setParameterMap(new HashMap<String, String>());
         }
         return authConfig;
+    }
+
+    @Reference(
+            name = "SessionStore",
+            service = SessionDataStore.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionStore"
+    )
+    protected void setSessionStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionDataStores().put(sessionDataStore.getStoreName(), sessionDataStore);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added sessionDataStore : " + sessionDataStore.getStoreName());
+        }
+
+    }
+
+    protected void unsetSessionStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionDataStores().remove(sessionDataStore.getStoreName());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed sessionDataStore : " + sessionDataStore.getStoreName());
+        }
+
     }
 }

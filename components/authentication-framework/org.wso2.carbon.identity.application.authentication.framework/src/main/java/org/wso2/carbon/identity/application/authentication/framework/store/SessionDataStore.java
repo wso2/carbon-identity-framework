@@ -22,8 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry.RdbmsSingleEntrySessionDataStore;
-import org.wso2.carbon.identity.application.authentication.framework.store.impl.redis.RedisSessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -39,13 +39,12 @@ public abstract class SessionDataStore {
     public static final BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private static final Log log = LogFactory.getLog(SessionDataStore.class);
-    public static boolean redisEnabled = false;
     private static int maxSessionDataPoolSize = 100;
     private static boolean enablePersist;
     private static volatile SessionDataStore instance;
+    private static String DEFAULT_SESSION_DATA_STORE = "RDBMSMultiEntrySessionDataStore";
 
-
-    static {
+    {
         try {
             String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
             if (StringUtils.isNotBlank(maxPoolSizeValue)) {
@@ -54,6 +53,8 @@ public abstract class SessionDataStore {
                 }
                 maxSessionDataPoolSize = Integer.parseInt(maxPoolSizeValue);
             }
+            enablePersist = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_ENABLE_PERSIST);
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while parsing the configurations : ", e);
@@ -65,34 +66,36 @@ public abstract class SessionDataStore {
     /**
      * Returning instance of one of the implementation of SessionDataStore.
      *
-     * @return {@link RdbmsSingleEntrySessionDataStore} or {@link RedisSessionDataStore}
+     * @return {{@link SessionDataStore}
      */
     public static SessionDataStore getInstance() {
 
-        String enablePersistVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
-        enablePersist = true;
-        if (enablePersistVal != null) {
-            enablePersist = Boolean.parseBoolean(enablePersistVal);
-        }
-
-        String redisEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.RedisEnable");
-        if (StringUtils.isNotBlank(redisEnabledVal)) {
-            redisEnabled = Boolean.parseBoolean(redisEnabledVal);
-        }
         if (instance == null) {
             synchronized (SessionDataStore.class) {
                 if (instance == null) {
-                    if (redisEnabled == true) {
-                        instance = new RedisSessionDataStore();
-                    } else {
-                        instance = new RdbmsSingleEntrySessionDataStore();
-                    }
-
+                    instance = FrameworkServiceDataHolder.getInstance().getSessionDataStores().get(getSessionDataStoreName());
                 }
             }
         }
         return instance;
     }
+
+    private static String getSessionDataStoreName() {
+
+        String sessionDataStoreName = DEFAULT_SESSION_DATA_STORE;
+        String sessionStoreImplType = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionStoreImplType");
+        if (StringUtils.isNotBlank(sessionStoreImplType)) {
+            sessionDataStoreName = sessionStoreImplType;
+        }
+        return sessionDataStoreName;
+    }
+
+    /**
+     * Abstract method for returning the name of the Implementation
+     *
+     * @return name
+     */
+    public abstract String getStoreName();
 
     /**
      * Abstract method for saving or updating session data abstract method.
@@ -247,7 +250,6 @@ public abstract class SessionDataStore {
         return this.sessionContextQueue;
     }
 
-
     protected int getIntegerPropertyFromIdentityUtil(String propertyAccessLocation, Integer defaultValue) {
 
         String stringVal = IdentityUtil.getProperty(propertyAccessLocation);
@@ -266,9 +268,10 @@ public abstract class SessionDataStore {
         return defaultValue;
     }
 
-    protected void getInternalProperty(String string,Object value){
+    protected void getInternalProperty(String string, Object value) {
+
         if (log.isDebugEnabled()) {
-            log.debug(string  + value);
+            log.debug(string + value);
         }
     }
 
