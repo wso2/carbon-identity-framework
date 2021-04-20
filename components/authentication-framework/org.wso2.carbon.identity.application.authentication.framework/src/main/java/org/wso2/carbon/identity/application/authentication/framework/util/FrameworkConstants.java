@@ -166,6 +166,8 @@ public abstract class FrameworkConstants {
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
         public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
                 + ".ReturnOnlyMappedLocalRoles";
+        public static final String SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnManuallyAddedLocalRoles";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant

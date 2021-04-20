@@ -57,7 +57,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
@@ -83,7 +86,16 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
-                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+            String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+
+        handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain, null);
+
+    }
+
+    @Override
+    public void handle(List<String> roles, String subject, Map<String, String> attributes,
+            String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
+            throws FrameworkException {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
@@ -220,6 +232,30 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 // Update user with roles
                 List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
                 Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+
+                if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
+                    boolean excludeUnmappedRoles = false;
+                    boolean includeManuallyAddedLocalRoles = false;
+                    if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+                        excludeUnmappedRoles = Boolean
+                                .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+                    }
+
+                    if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP))) {
+                        includeManuallyAddedLocalRoles = Boolean
+                                .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
+                    }
+
+
+                    /* Get the intersection of current deletingList with idpRoleMappings,deletingRoles will be equal to
+                    mapped idp roles.Here we assume only the mapped idp roles with federated idp.
+                    */
+                    if (excludeUnmappedRoles && includeManuallyAddedLocalRoles) {
+                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                                .collect(Collectors.toSet());
+                    }
+                }
+
                 rolesToAdd.removeAll(currentRolesList);
                 List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
                 for (String role : rolesToAdd) {
