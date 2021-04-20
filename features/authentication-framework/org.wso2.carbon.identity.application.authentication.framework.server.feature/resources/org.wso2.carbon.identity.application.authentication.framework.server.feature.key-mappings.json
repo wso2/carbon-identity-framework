@@ -33,12 +33,4 @@
   "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage",
 
   "session_data_persistence.session_store_impl_type":"session_data.persistence.session_store_impl_type",
-  "redis_auth_config.host":"session_data_persistence.redis_auth_config.host",
-  "redis_auth_config.port":"session_data.persistence.redis_auth_config.port",
-  "redis_auth_config.password":"session_data.persistence.redis_auth_config.password",
-  "redis_pool_config.maxtotal":"session_data.persistence.redis_pool_config.maxtotal",
-  "redis_pool_config.maxidle":"session_data.persistence.redis_pool_config.maxidle",
-  "redis_pool_config.minidle":"session_data.persistence.redis_pool_config.minidle",
-  "redis_pool_config.maxwaitmillis":"session_data.persistence.redis_pool_config.maxwaitmillis"
-
 }

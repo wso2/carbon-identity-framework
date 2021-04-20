@@ -79,7 +79,6 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmsmultientry.RdbmsMultiEntrySessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry.RdbmsSingleEntrySessionDataStore;
-import org.wso2.carbon.identity.application.authentication.framework.store.impl.redis.RedisSessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -267,7 +266,6 @@ public class FrameworkServiceComponent {
 
         ctxt.getBundleContext().registerService(SessionDataStore.class.getName(), new RdbmsSingleEntrySessionDataStore(), null);
         ctxt.getBundleContext().registerService(SessionDataStore.class.getName(), new RdbmsMultiEntrySessionDataStore(), null);
-        ctxt.getBundleContext().registerService(SessionDataStore.class.getName(), new RedisSessionDataStore(), null);
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);

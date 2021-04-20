@@ -42,7 +42,7 @@ public abstract class SessionDataStore {
     private static int maxSessionDataPoolSize = 100;
     private static boolean enablePersist;
     private static volatile SessionDataStore instance;
-    private static  String DEFAULT_SESSION_DATA_STORE = "RDBMSMultiEntrySessionDataStore";
+    private static String DEFAULT_SESSION_DATA_STORE = "RDBMSMultiEntrySessionDataStore";
 
     {
         try {
