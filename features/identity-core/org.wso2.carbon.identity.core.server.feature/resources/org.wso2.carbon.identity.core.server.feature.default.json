@@ -342,6 +342,7 @@
   "identity_mgt_account_suspension.use_identity_claims": true,
 
   "sp_role_management.return_only_mapped_local_roles": false,
+  "idp_role_management.return_manually_added_local_roles": false,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
 
   "authentication_policy.check_account_exist": true,
