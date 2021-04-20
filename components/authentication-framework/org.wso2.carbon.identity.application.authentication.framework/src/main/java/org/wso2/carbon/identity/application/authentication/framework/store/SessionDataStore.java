@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmsmultientry.RdbmsMultiEntrySessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -43,7 +42,7 @@ public abstract class SessionDataStore {
     private static int maxSessionDataPoolSize = 100;
     private static boolean enablePersist;
     private static volatile SessionDataStore instance;
-    private static  SessionDataStore DEFAULT_SESSION_DATA_STORE = new RdbmsMultiEntrySessionDataStore();
+    private static  String DEFAULT_SESSION_DATA_STORE = "RDBMSMultiEntrySessionDataStore";
 
     {
         try {
@@ -74,25 +73,21 @@ public abstract class SessionDataStore {
         if (instance == null) {
             synchronized (SessionDataStore.class) {
                 if (instance == null) {
-                    instance = DEFAULT_SESSION_DATA_STORE;
-                    if (FrameworkServiceDataHolder.getInstance().getSessionDataStores().containsKey(getImplType())) {
-                        instance = FrameworkServiceDataHolder.getInstance().getSessionDataStores().get(getImplType());
-                    }
+                    instance = FrameworkServiceDataHolder.getInstance().getSessionDataStores().get(getSessionDataStoreName());
                 }
             }
         }
         return instance;
     }
 
-    private static String getImplType() {
+    private static String getSessionDataStoreName() {
 
-        String sessionStoreType = null;
-
-        String stringVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionStoreImplType");
-        if (StringUtils.isNotBlank(stringVal)) {
-            sessionStoreType = stringVal;
+        String sessionDataStoreName = DEFAULT_SESSION_DATA_STORE;
+        String sessionStoreImplType = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionStoreImplType");
+        if (StringUtils.isNotBlank(sessionStoreImplType)) {
+            sessionDataStoreName = sessionStoreImplType;
         }
-        return sessionStoreType;
+        return sessionDataStoreName;
     }
 
     /**
