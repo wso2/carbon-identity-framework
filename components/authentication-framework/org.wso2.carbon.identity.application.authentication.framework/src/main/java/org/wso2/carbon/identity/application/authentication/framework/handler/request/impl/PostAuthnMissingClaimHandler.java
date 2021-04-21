@@ -48,6 +48,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
@@ -300,14 +301,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Updating user profile of user : " + user.getUserName());
+                    log.debug("Updating user profile of user : " + user.getUserId());
                 }
 
                 UserRealm realm = getUserRealm(user.getTenantDomain());
-                UserStoreManager userStoreManager =
-                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
+                AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
-                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
+                userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());

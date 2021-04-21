@@ -125,6 +125,11 @@ public class UserSessionStore {
         }
     }
 
+    public void storeUserData(String userId, String userName, int tenantId, int idPId)
+            throws UserSessionException {
+        storeUserData(userId, userName, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
     /**
      * Method to get the unique Id of a user from the database.
      *
@@ -175,6 +180,7 @@ public class UserSessionStore {
      * @return the user id of the user
      * @throws UserSessionException if an error occurs when retrieving the user id of the user from the database
      */
+    //TODO: Should be deprecated. User Id should be mapped with the IDP id.
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
@@ -209,6 +215,7 @@ public class UserSessionStore {
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
+    //TODO why do we need this?
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
@@ -275,6 +282,7 @@ public class UserSessionStore {
      * @return          IDP ID.
      * @throws UserSessionException
      */
+    //TODO why this is here?
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
         int idPId = -1;
@@ -719,11 +727,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving session IDs of user: " +
-                        user.getUserName() + ".", ex);
+                        user.getUserId() + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session IDs of user: " +
-                    user.getUserName() + ".", e);
+                    user.getUserId() + ".", e);
         }
         return sessionIdList;
     }
@@ -738,7 +746,7 @@ public class UserSessionStore {
      */
     public boolean isExistingMapping(User user, int idpId, String sessionId) throws UserSessionException {
 
-        Boolean isExisting = false;
+        boolean isExisting = false;
 
         int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -757,11 +765,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                        .getUserName() + " and session Id: " + sessionId + ".", ex);
+                        .getUserId() + " and session Id: " + sessionId + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                    .getUserName() + " and session Id: " + sessionId + ".", e);
+                    .getUserId() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
     }

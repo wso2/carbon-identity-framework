@@ -19,16 +19,24 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * AuthenticatedUser is the class that represents the authenticated subject.
@@ -44,6 +52,8 @@ import java.util.Map;
 public class AuthenticatedUser extends User {
 
     private static final long serialVersionUID = -6919627053686253276L;
+
+    private static final Log log = LogFactory.getLog(AuthenticatedUser.class);
 
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
@@ -66,6 +76,7 @@ public class AuthenticatedUser extends User {
 
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
         this.tenantDomain = authenticatedUser.getTenantDomain();
+        this.userId = authenticatedUser.getUserId();
         this.userName = authenticatedUser.getUserName();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
         if (authenticatedUser.getUserAttributes() != null) {
@@ -76,6 +87,31 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+    }
+
+    public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
+        this.userId = user.getUserID();
+        // TODO is this the correct attribute?
+        this.userName = user.getPreferredUsername();
+        this.tenantDomain = user.getTenantDomain();
+        this.userStoreDomain = user.getUserStoreDomain();
+        this.isFederatedUser = false;
+        if (user.getAttributes() != null) {
+            for (Map.Entry<String, String> entry : user.getAttributes().entrySet()) {
+                userAttributes.put(ClaimMapping.build(entry.getKey(), entry.getKey(), null, true), entry.getValue());
+            }
+        }
+
+        //TODO is this correct?
+        this.authenticatedSubjectIdentifier = this.toFullQualifiedUsername();
+    }
+
+    public AuthenticatedUser(User user) {
+
+        this.userName = user.getUserName();
+        this.tenantDomain = user.getTenantDomain();
+        this.userStoreDomain = user.getUserStoreDomain();
+        this.userId = user.getUserId();
     }
 
     /**
@@ -118,6 +154,16 @@ public class AuthenticatedUser extends User {
         authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
 
+        //TODO generate the ID from here for backward compatibility.
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
+            String userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
+                    authenticatedUser.getUserStoreDomain(), authenticatedUser.getUserName());
+            authenticatedUser.setUserId(userId);
+        } catch (UserSessionException e) {
+            log.error("Error while resolving the user id from username");
+        }
+
         return authenticatedUser;
     }
 
@@ -141,6 +187,57 @@ public class AuthenticatedUser extends User {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
         authenticatedUser.setFederatedUser(true);
+
+        return authenticatedUser;
+    }
+
+    /**
+     * Returns an AuthenticatedUser instance populated from the given subject identifier string.
+     * It is assumed that this user is authenticated from a federated authenticator.
+     *
+     * @param authenticatedSubjectIdentifier a string that represents authenticated subject
+     *                                       identifier
+     * @return populated AuthenticatedUser instance
+     */
+    public static AuthenticatedUser createFederateAuthenticatedUserFromSubjectIdentifier(
+            String authenticatedSubjectIdentifier, String tenantDomain, String federatedIdPName) throws UserSessionException {
+
+        if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Failed to create Federated Authenticated User from the given subject " +
+                            "identifier. Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
+        }
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
+        authenticatedUser.setFederatedUser(true);
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        int idpId = UserSessionStore.getInstance().getIdPId(federatedIdPName, tenantId);
+        String userId = UserSessionStore.getInstance().getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
+        try {
+            if (userId == null) {
+                userId = UUID.randomUUID().toString();
+                UserSessionStore.getInstance().storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
+            }
+        } catch (DuplicatedAuthUserException e) {
+            // When the authenticated user is already persisted the respective user to session mapping will
+            // be persisted from the same node handling the request.
+            // Thus, persisting the user to session mapping can be gracefully ignored here.
+
+            String msg = "User authenticated is already persisted. Username: " + authenticatedSubjectIdentifier
+                    + " Tenant " + "Domain:" + tenantDomain + " IdP: " + federatedIdPName;
+            log.warn(msg);
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+        }
+        authenticatedUser.setFederatedIdPName(federatedIdPName);
+        authenticatedUser.setTenantDomain(tenantDomain);
+        authenticatedUser.setUserId(userId);
+        //TODO set username for backward compatibility.
+        authenticatedUser.setUserName(authenticatedSubjectIdentifier);
 
         return authenticatedUser;
     }

@@ -37,17 +37,21 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -60,6 +64,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -569,6 +575,7 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
+
                 if (context.getSubject().getUserName() == null) {
                     // Set subject identifier as the default username for federated users
                     String authenticatedSubjectIdentifier = context.getSubject().getAuthenticatedSubjectIdentifier();
@@ -584,6 +591,38 @@ public class DefaultStepHandler implements StepHandler {
                     // Setting service provider's tenant domain as the default tenant for federated users
                     String tenantDomain = context.getTenantDomain();
                     context.getSubject().setTenantDomain(tenantDomain);
+                }
+
+                if (context.getSubject().getUserId() == null) {
+                    String tenantDomain = context.getSubject().getTenantDomain();
+                    int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                    String authenticatedSubjectIdentifier = context.getSubject().getAuthenticatedSubjectIdentifier();
+                    String federatedIdPName = context.getSubject().getFederatedIdPName();
+
+                    try {
+                        int idpId = UserSessionStore.getInstance().getIdPId(federatedIdPName, tenantId);
+                        String userId = UserSessionStore.getInstance().getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
+                        try {
+                            if (userId == null) {
+                                userId = UUID.randomUUID().toString();
+                                UserSessionStore.getInstance().storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
+                            }
+                        } catch (DuplicatedAuthUserException e) {
+                            // When the authenticated user is already persisted the respective user to session mapping will
+                            // be persisted from the same node handling the request.
+                            // Thus, persisting the user to session mapping can be gracefully ignored here.
+
+                            String msg = "User authenticated is already persisted. Username: " + authenticatedSubjectIdentifier
+                                    + " Tenant " + "Domain:" + tenantDomain + " IdP: " + federatedIdPName;
+                            log.warn(msg);
+                            if (log.isDebugEnabled()) {
+                                log.debug(msg, e);
+                            }
+                        }
+                        context.getSubject().setUserId(userId);
+                    } catch (UserSessionException e) {
+                        log.error("Error while resolving the user id for federated user.", e);
+                    }
                 }
             }
 

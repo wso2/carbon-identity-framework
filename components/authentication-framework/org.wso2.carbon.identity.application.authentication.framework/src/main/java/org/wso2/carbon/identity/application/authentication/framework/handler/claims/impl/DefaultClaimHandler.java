@@ -48,8 +48,9 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -234,9 +235,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
         UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm, null);
-        addMultiAttributeSperatorToRequestedClaims(null, (org.wso2.carbon.user.core.UserStoreManager)
-                userStore, spFilteredClaims);
+        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
+        addMultiAttributeSperatorToRequestedClaims(null, userStore, spFilteredClaims);
 
         return spFilteredClaims;
 
@@ -446,7 +446,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
 
         String tenantDomain = authenticatedUser.getTenantDomain();
-        String tenantAwareUserName = authenticatedUser.getUserName();
+        String userId = authenticatedUser.getUserId();
 
         UserRealm realm = getUserRealm(tenantDomain);
 
@@ -457,7 +457,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         ClaimManager claimManager = getClaimManager(tenantDomain, realm);
 
-        UserStoreManager userStore = getUserStoreManager(tenantDomain, realm, authenticatedUser.getUserStoreDomain());
+        AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
 
         // key:value -> carbon_dialect:claim_value
         Map<String, String> allLocalClaims;
@@ -472,8 +472,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         Map<String, String> spRequestedClaims = new HashMap<>();
 
         // Retrieve all non-null user claim values against local claim uris.
-        allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
-                (org.wso2.carbon.user.core.UserStoreManager) userStore);
+        allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
 
         // Insert the runtime claims from the context. The priority is for runtime claims.
         allLocalClaims.putAll(context.getRuntimeClaims());
@@ -501,9 +500,9 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         if (stepConfig == null || stepConfig.isSubjectIdentifierStep()) {
             if (spStandardDialect != null) {
-                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allLocalClaims, spStandardDialect, context);
+                setSubjectClaimForLocalClaims(userId, userStore, allLocalClaims, spStandardDialect, context);
             } else {
-                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allSPMappedClaims, null, context);
+                setSubjectClaimForLocalClaims(userId, userStore, allSPMappedClaims, null, context);
             }
         }
 
@@ -613,10 +612,9 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     private Map<String, String> retrieveAllNunNullUserClaimValues(AuthenticatedUser authenticatedUser,
             ClaimManager claimManager, ApplicationConfig appConfig,
-            org.wso2.carbon.user.core.UserStoreManager userStore) throws FrameworkException {
+            AbstractUserStoreManager userStore) throws FrameworkException {
 
         String tenantDomain = authenticatedUser.getTenantDomain();
-        String tenantAwareUserName = authenticatedUser.getUserName();
 
         Map<String, String> allLocalClaims = new HashMap<>();
         try {
@@ -628,8 +626,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                 String claimURI = mapping.getClaim().getClaimUri();
                 localClaimURIs.add(claimURI);
             }
-            allLocalClaims = userStore.getUserClaimValues(tenantAwareUserName,
-                    localClaimURIs.toArray(new String[localClaimURIs.size()]), null);
+            allLocalClaims = userStore.getUserClaimValuesWithID(authenticatedUser.getUserId(),
+                    localClaimURIs.toArray(new String[0]), null);
 
             if (allLocalClaims == null) {
                 return new HashMap<>();
@@ -637,7 +635,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         } catch (UserStoreException e) {
             if (e.getMessage().contains("UserNotFound")) {
                 if (log.isDebugEnabled()) {
-                    log.debug("User " + tenantAwareUserName + " not found in user store");
+                    log.debug("User " + authenticatedUser.getUserId() + " not found in user store");
                 }
             } else {
                 throw new FrameworkException("Error occurred while getting all user claims for " +
@@ -647,20 +645,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         return allLocalClaims;
     }
 
-    private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain) throws
+    private AbstractUserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm) throws
             FrameworkException {
-        UserStoreManager userStore = null;
+        AbstractUserStoreManager userStore;
         try {
-            userStore = realm.getUserStoreManager();
-            if (StringUtils.isNotBlank(userDomain)) {
-                userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
-            }
-
-            if (userStore == null) {
-                // To avoid NPEs
-                throw new FrameworkException("Invalid user store domain name : " + userDomain + " in tenant : "
-                        + tenantDomain);
-            }
+            userStore = (AbstractUserStoreManager)realm.getUserStoreManager();
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving the UserStoreManager " +
                                          "from Realm for " + tenantDomain + " to handle local claims", e);
@@ -739,8 +728,8 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Set federated subject's SP Subject Claim URI as a property
      */
-    private void setSubjectClaimForLocalClaims(String tenantAwareUserId,
-                                               UserStoreManager userStore,
+    private void setSubjectClaimForLocalClaims(String userId,
+                                               AbstractUserStoreManager userStore,
                                                Map<String, String> attributesMap,
                                                String spStandardDialect,
                                                AuthenticationContext context) {
@@ -748,12 +737,12 @@ public class DefaultClaimHandler implements ClaimHandler {
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
             if (spStandardDialect != null) {
-                setSubjectClaim(tenantAwareUserId, userStore, attributesMap, spStandardDialect, context);
+                setSubjectClaim(userId, userStore, attributesMap, spStandardDialect, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst unfiltered local claims");
                 }
             } else {
-                setSubjectClaim(tenantAwareUserId, userStore, attributesMap, null, context);
+                setSubjectClaim(userId, userStore, attributesMap, null, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst service provider mapped " +
                              "unfiltered local claims");
@@ -765,7 +754,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Set authenticated user's SP Subject Claim URI as a property
      */
-    private void setSubjectClaim(String tenantAwareUserId, UserStoreManager userStore,
+    private void setSubjectClaim(String userId, AbstractUserStoreManager userStore,
                                  Map<String, String> attributesMap, String spStandardDialect,
                                  AuthenticationContext context) {
 
@@ -794,22 +783,22 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
 
             // if federated case return
-            if (tenantAwareUserId == null || userStore == null) {
-                log.debug("Tenant aware username or user store \'NULL\'. Possibly federated case");
+            if (userId == null || userStore == null) {
+                log.debug("User id or user store \'NULL\'. Possibly federated case");
                 return;
             }
 
             // standard dialect
             if (spStandardDialect != null) {
-                setSubjectClaimForStandardDialect(tenantAwareUserId, userStore, context, subjectURI);
+                setSubjectClaimForStandardDialect(userId, userStore, context, subjectURI);
             }
         }
     }
 
-    private void setSubjectClaimForStandardDialect(String tenantAwareUserId, UserStoreManager userStore,
+    private void setSubjectClaimForStandardDialect(String userId, AbstractUserStoreManager userStore,
                                                    AuthenticationContext context, String subjectURI) {
         try {
-            String value = userStore.getUserClaimValue(tenantAwareUserId, subjectURI, null);
+            String value = userStore.getUserClaimValueWithID(userId, subjectURI, null);
             if (value != null) {
                 context.setProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE, value);
                 if (log.isDebugEnabled()) {
@@ -818,12 +807,11 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Subject claim for " + tenantAwareUserId + " not found in user store");
+                    log.debug("Subject claim for " + userId + " not found in user store");
                 }
             }
         } catch (UserStoreException e) {
-            log.error("Error occurred while retrieving " + subjectURI + " claim value for user " + tenantAwareUserId,
-                    e);
+            log.error("Error occurred while retrieving " + subjectURI + " claim value for user " + userId, e);
         }
     }
 

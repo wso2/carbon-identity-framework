@@ -29,8 +29,11 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.List;
 
 /**
  * Javascript wrapper for Java level AuthenticatedUser.
@@ -179,10 +182,10 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             int usersTenantId = IdentityTenantUtil.getTenantId(getWrapped().getTenantDomain());
 
             try {
-                String usernameWithDomain = UserCoreUtil.addDomainToName(getWrapped().getUserName(), getWrapped()
-                    .getUserStoreDomain());
                 UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-                return userRealm.getUserStoreManager().getRoleListOfUser(usernameWithDomain);
+                List<String> roleListOfUser =
+                        ((AbstractUserStoreManager) userRealm.getUserStoreManager()).getRoleListOfUserWithID(getWrapped().getUserId());
+                return roleListOfUser.toArray(new String[0]);
             } catch (UserStoreException e) {
                 LOG.error("Error when getting role list of user: " + getWrapped(), e);
             }

@@ -949,6 +949,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         user.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(domainAwareUserName));
         user.setUserName(MultitenantUtils.getTenantAwareUsername(UserCoreUtil.removeDomainFromName(domainAwareUserName)));
+        //TODO set user id
         return user;
     }
 

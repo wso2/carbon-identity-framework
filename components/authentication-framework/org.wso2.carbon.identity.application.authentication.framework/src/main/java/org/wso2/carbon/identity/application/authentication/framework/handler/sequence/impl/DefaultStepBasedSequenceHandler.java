@@ -372,7 +372,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
+                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserId());
                         log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                                 .getTenantDomain());
                     }
