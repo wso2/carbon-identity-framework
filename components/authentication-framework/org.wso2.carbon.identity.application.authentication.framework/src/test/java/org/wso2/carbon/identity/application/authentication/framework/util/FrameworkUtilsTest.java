@@ -20,23 +20,37 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import java.io.UnsupportedEncodingException;
+
+import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
-@PrepareForTest({ConfigurationFacade.class})
-public class FrameworkUtilsTest {
+@WithCarbonHome
+@PrepareForTest({ConfigurationFacade.class, FrameworkServiceComponent.class})
+public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
     @Mock
     ConfigurationFacade mockedConfigurationFacade;
 
+
     private PostAuthnMissingClaimHandler testPostAuthenticationHandler;
+
+    private List<ApplicationAuthenticator> authenticators;
 
     @BeforeTest
     public void setUp() {
@@ -46,6 +60,37 @@ public class FrameworkUtilsTest {
     private void setMockedConfigurationFacade() {
         mockStatic(ConfigurationFacade.class);
         when(ConfigurationFacade.getInstance()).thenReturn(mockedConfigurationFacade);
+    }
+
+    private void mockFrameworkServiceComponent() {
+        mockStatic(FrameworkServiceComponent.class);
+        when(FrameworkServiceComponent.getAuthenticators()).thenReturn(authenticators);
+    }
+
+    private ApplicationAuthenticator initAuthenticators(String name) {
+        ApplicationAuthenticator applicationAuthenticator = mock(ApplicationAuthenticator.class);
+        when(applicationAuthenticator.getName()).thenReturn(name);
+
+        return applicationAuthenticator;
+    }
+
+    @Test
+    public void testGetAppAuthenticatorByNameValidAuthenticator(){
+        authenticators = new ArrayList<>();
+        String name = "Authenticator1";
+        ApplicationAuthenticator authenticator1 = initAuthenticators(name);
+        authenticators.add(authenticator1);
+
+        mockFrameworkServiceComponent();
+
+        ApplicationAuthenticator out = FrameworkUtils.getAppAuthenticatorByName(name);
+        assertEquals(out, authenticator1);
+    }
+
+    @Test
+    public void testGetAppAuthenticatorByNameNonExistAuthenticator(){
+        ApplicationAuthenticator out = FrameworkUtils.getAppAuthenticatorByName("nonExistingAuthenticator");
+        assertNull(out);
     }
 
     @DataProvider(name = "providePostAuthenticationData")
@@ -68,6 +113,38 @@ public class FrameworkUtilsTest {
             throws Exception {
 
         String out = FrameworkUtils.appendQueryParamsToUrl(url, queryParamMap);
+        assertEquals(out, expectedOutput);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            dataProvider = "provideQueryParamData")
+    public void testAppendQueryParamsToUrlEmptyUrl(Map<String, String> queryParamMap)
+            throws Exception {
+        FrameworkUtils.appendQueryParamsToUrl(null,queryParamMap );
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            dataProvider = "provideQueryParamData")
+    public void testBuildURLWithQueryParamsEmptyUrl(Map<String, String> queryParamMap)
+            throws Exception {
+        FrameworkUtils.appendQueryParamsToUrl(null,queryParamMap);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAppendQueryParamsToUrlEmptyQueryParams() throws Exception {
+        FrameworkUtils.appendQueryParamsToUrl("https://www.example.com", null);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testBuildURLWithQueryParamsEmptyQueryParams() throws Exception {
+        FrameworkUtils.appendQueryParamsToUrl("https://www.example.com", null);
+    }
+
+    @Test(dataProvider = "provideURLParamData")
+    public void testBuildURLWithQueryParams(String url, Map<String, String> queryParamMap, String expectedOutput)
+            throws UnsupportedEncodingException {
+
+        String out = FrameworkUtils.buildURLWithQueryParams(url, queryParamMap);
         assertEquals(out, expectedOutput);
     }
 
@@ -99,5 +176,16 @@ public class FrameworkUtilsTest {
                 {url2, queryParamMap3, url2}
         };
     }
-}
 
+    @DataProvider(name = "provideQueryParamData")
+    public Object[][] provideQueryParamData() {
+
+        Map<String, String> queryParamMap1 = new HashMap<>();
+        queryParamMap1.put("a", "wer");
+        queryParamMap1.put("b", "dfg");
+
+        return new Object[][]{
+                {queryParamMap1}
+        };
+    }
+}
