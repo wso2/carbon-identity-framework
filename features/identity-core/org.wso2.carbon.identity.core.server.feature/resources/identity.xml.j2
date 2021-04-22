@@ -750,16 +750,6 @@
         -->
         <HandleAlreadyLoggedOutSessionsGracefully>{{oauth.handle_logout_gracefully}}</HandleAlreadyLoggedOutSessionsGracefully>
 
-        <!--
-        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
-
-        Default value : false
-        Supported versions : IS 5.8.0 onwards
-        -->
-        <Introspection>
-            <EnableDataProviders>{{oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection}}</EnableDataProviders>
-        </Introspection>
-
         {% if oauth.redirect_to_idp_error_page_on_error is sameas true %}
         <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
         {% endif %}
@@ -1439,6 +1429,19 @@
                        name="org.wso2.carbon.identity.auth.service.handler.impl.ClientCertificateBasedAuthenticationHandler"
                        orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
                        enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
+
+        <!-- Introspection Data Providers -->
+        <EventListener id="uma_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
+                orderId="{{event.default_listener.uma_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.uma_introspection_data_provider.enable}}">
+        </EventListener>
+        <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
+                orderId="{{event.default_listener.is_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.is_introspection_data_provider.enable}}">
+        </EventListener>
+
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"

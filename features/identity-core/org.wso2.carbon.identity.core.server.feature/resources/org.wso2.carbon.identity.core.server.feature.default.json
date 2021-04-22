@@ -132,7 +132,6 @@
   "oauth.grant_type.uma_ticket.enable": true,
   "oauth.grant_type.uma_ticket.grant_handler": "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler",
   "oauth.grant_type.uma_ticket.grant_validator": "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator",
-  "oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection": false,
   "oauth.grant_type.kerberos.enable": false,
   "oauth.grant_type.kerberos.grant_handler": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrant",
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
@@ -417,6 +416,10 @@
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
   "event.default_listener.userid_resolver.enable": true,
+  "event.default_listener.uma_introspection_data_provider.priority": "161",
+  "event.default_listener.uma_introspection_data_provider.enable": false,
+  "event.default_listener.is_introspection_data_provider.priority": "162",
+  "event.default_listener.is_introspection_data_provider.enable": false,
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
