@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -51,6 +52,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -69,6 +71,10 @@ public class DefaultStepHandler implements StepHandler {
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
     private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
+    Log audit = CarbonConstants.AUDIT_LOG;
+    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
+    private static final String SUCCESS = "Success";
+    private static final String FAILURE = "Failure";
 
     public static DefaultStepHandler getInstance() {
 
@@ -621,10 +627,28 @@ public class DefaultStepHandler implements StepHandler {
             authHistory.setSuccess(true);
             context.addAuthenticationStepHistory(authHistory);
 
+            String initiator = null;
+            if (stepConfig.getAuthenticatedUser() != null) {
+                initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+            }
+            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
+                    ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
+            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                    data, SUCCESS));
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {
                 log.debug("A login attempt was failed due to invalid credentials", e);
             }
+            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
+                    authenticatorConfig.getName();
+            String initiator = null;
+            if (e.getUser() != null) {
+                initiator = e.getUser().toFullQualifiedUsername();
+            } else if (context.getSubject() != null) {
+                initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator,
+                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -643,6 +667,16 @@ public class DefaultStepHandler implements StepHandler {
                 }
                 log.error("Authentication failed exception! " + e.getMessage());
             }
+            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
+                    authenticatorConfig.getName();
+            String initiator = null;
+            if (e.getUser() != null) {
+                initiator = e.getUser().toFullQualifiedUsername();
+            } else if (context.getSubject() != null) {
+                initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator,
+                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);

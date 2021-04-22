@@ -49,7 +49,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         // Append tenant domain to username.
         String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        audit.info(String.format(AUDIT_MESSAGE, initiator, "create", appId, name, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "Add-Application", appId, name, SUCCESS));
         return true;
     }
 
@@ -63,7 +63,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         int appId = getAppId(serviceProvider);
         String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        audit.info(String.format(AUDIT_MESSAGE, initiator, "update", appId, name, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-Application", appId, name, SUCCESS));
         return true;
     }
 
@@ -75,7 +75,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         int appId = getAppId(serviceProvider);
         String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        audit.info(String.format(AUDIT_MESSAGE, initiator, "delete", appId, applicationName, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-Application", appId, applicationName, SUCCESS));
         return true;
     }
 
