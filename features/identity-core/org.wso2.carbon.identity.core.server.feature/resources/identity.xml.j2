@@ -2568,6 +2568,12 @@
                 <Origin>{{origin}}</Origin>
             {% endfor %}
         </FIDO2TrustedOrigins>
+
+        <!--
+            Time allocated for the users to authenticate.
+            Time configurations are in milliseconds.
+        -->
+        <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
