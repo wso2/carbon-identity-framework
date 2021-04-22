@@ -132,7 +132,6 @@
   "oauth.grant_type.uma_ticket.enable": true,
   "oauth.grant_type.uma_ticket.grant_handler": "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler",
   "oauth.grant_type.uma_ticket.grant_validator": "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator",
-  "oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection": false,
   "oauth.grant_type.kerberos.enable": false,
   "oauth.grant_type.kerberos.grant_handler": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrant",
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
