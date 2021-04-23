@@ -49,7 +49,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             }
             idpName = identityProvider.getIdentityProviderName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "add", UserCoreUtil.addTenantDomainToEntry(displayName,
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add-IDP", UserCoreUtil.addTenantDomainToEntry(displayName,
                 tenantDomain), idpName, SUCCESS));
 
         return true;
@@ -62,7 +62,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
             displayName = identityProvider.getDisplayName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "update", oldIdPName, UserCoreUtil
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update-IDP", oldIdPName, UserCoreUtil
                 .addTenantDomainToEntry(displayName, tenantDomain), SUCCESS));
         return true;
     }
@@ -80,7 +80,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         if (StringUtils.isEmpty(idPName)) {
             idPName = "Undefined";
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete", UserCoreUtil.addTenantDomainToEntry
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-IDP", UserCoreUtil.addTenantDomainToEntry
                 (idPName, tenantDomain), null, SUCCESS));
         return true;
     }
