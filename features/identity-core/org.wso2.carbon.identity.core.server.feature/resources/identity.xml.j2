@@ -2517,6 +2517,15 @@
     </SystemApplications>
     {% endif %}
 
+    <!-- System Roles -->
+    {% if system_roles.read_only_roles is defined %}
+    <SystemRoles>
+        {% for role in system_roles.read_only_roles %}
+        <RoleName>{{role}}</RoleName>
+        {% endfor %}
+    </SystemRoles>
+    {% endif %}
+
     <MutualTLS>
         <ClientCertificateHeader>{{oauth.mutualtls.client_certificate_header}}</ClientCertificateHeader>
     </MutualTLS>

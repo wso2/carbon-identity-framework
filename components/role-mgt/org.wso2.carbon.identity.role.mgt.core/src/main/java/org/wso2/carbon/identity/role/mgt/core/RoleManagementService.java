@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.role.mgt.core;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * OSGi service interface which use to manage roles.
@@ -191,5 +192,15 @@ public interface RoleManagementService {
             NotImplementedException {
 
         throw new NotImplementedException("isExistingRoleName method is not implemented");
+    }
+
+    /**
+     * Get the list of system roles.
+     *
+     * @return A set of system roles.
+     */
+    default Set<String> getSystemRoles() throws NotImplementedException {
+
+        throw new NotImplementedException("getSystemRoles method is not implemented");
     }
 }

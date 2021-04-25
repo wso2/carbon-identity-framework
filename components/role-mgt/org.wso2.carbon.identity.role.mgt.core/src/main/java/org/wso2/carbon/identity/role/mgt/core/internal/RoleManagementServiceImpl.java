@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.role.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 
@@ -147,5 +148,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             NotImplementedException {
 
         return roleDAO.isExistingRoleName(roleName, tenantDomain);
+    }
+
+    @Override
+    public Set<String> getSystemRoles() {
+
+        return roleDAO.getSystemRoles();
     }
 }
