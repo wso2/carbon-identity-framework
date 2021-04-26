@@ -287,7 +287,7 @@ public class CacheBackedIdPMgtDAO {
                 log.debug("Cache entry found for Identity Provider with resource ID:" + resourceId);
             }
             IdentityProvider identityProvider = entry.getIdentityProvider();
-            IdPManagementUtil.removeRandomPasswords(identityProvider, false);
+        
             return identityProvider.getIdentityProviderName();
         }
         if (log.isDebugEnabled()) {
