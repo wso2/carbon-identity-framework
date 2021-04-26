@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.mgt.core.dao;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -26,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -62,9 +64,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.DB2;
@@ -83,6 +88,8 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.POSTGRE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ROLE_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.SYSTEM_ROLES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_SQL;
@@ -124,6 +131,7 @@ public class RoleDAOImpl implements RoleDAO {
     private Log log = LogFactory.getLog(RoleDAOImpl.class);
     private GroupIDResolver groupIDResolver = new GroupIDResolver();
     private UserIDResolver userIDResolver = new UserIDResolver();
+    private Set<String> systemRoles = getSystemRoles();
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -185,7 +193,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleID = addRoleID(roleName, tenantDomain);
                     // Add role permissions.
                     if (CollectionUtils.isNotEmpty(permissions)) {
-                        setPermissionsForRole(roleID, permissions, tenantDomain);
+                        setPermissions(roleID, permissions, tenantDomain, roleName);
                     }
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
@@ -680,6 +688,10 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be renamed since it's a read only system role.");
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (!isExistingRoleID(roleID, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
@@ -776,6 +788,10 @@ public class RoleDAOImpl implements RoleDAO {
     public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be deleted since it's a read only system role.");
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         UserRealm userRealm;
         try {
@@ -1087,7 +1103,19 @@ public class RoleDAOImpl implements RoleDAO {
     public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Permissions cannot be modified in the role: " + roleName
+                            + " since it's a read only system role.");
+        }
+        return setPermissions(roleID, permissions, tenantDomain, roleName);
+    }
+
+    private RoleBasicInfo setPermissions(String roleID, List<String> permissions, String tenantDomain, String roleName)
+            throws IdentityRoleManagementServerException {
+
+        roleName = appendInternalDomain(roleName);
         /*
         Permission list can be empty in case we want to remove the permissions.
         Therefore validating for NULL will be sufficient.
@@ -1332,6 +1360,37 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
         }
         return removeInternalDomain(roleName);
+    }
+
+    @Override
+    public Set<String> getSystemRoles() {
+
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemApplicationsConfig = configParser.getConfigElement(SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemApplicationsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator roleIdentifierIterator = systemApplicationsConfig.getChildrenWithLocalName(ROLE_NAME_CONFIG_ELEMENT);
+        if (roleIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + ROLE_NAME_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> systemRoles = new HashSet<>();
+        while (roleIdentifierIterator.hasNext()) {
+            OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+            String roleName = roleIdentifierConfig.getText();
+            if (StringUtils.isNotBlank(roleName)) {
+                systemRoles.add(roleName.trim());
+            }
+        }
+        return systemRoles;
     }
 
     /**
