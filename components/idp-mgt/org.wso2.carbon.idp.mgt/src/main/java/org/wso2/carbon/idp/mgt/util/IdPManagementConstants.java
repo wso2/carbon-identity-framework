@@ -161,6 +161,8 @@ public class IdPManagementConstants {
                 "UUID FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) " +
                 "AND UUID = ?";
 
+        public static final String GET_IDP_NAME_BY_RESOURCE_ID_SQL = "SELECT NAME FROM IDP WHERE UUID = ?";
+
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 

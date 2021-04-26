@@ -87,8 +87,10 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             throws FederatedAssociationManagerException {
 
         // Resolve idp name from idp uuid.
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        String idpName = getIdentityProviderNameByResourceId(tenantDomain, idpId);
+        String idpName = getIdentityProviderNameByResourceId(idpId);
+        if (StringUtils.isEmpty(idpName)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
+        }
         createFederatedAssociation(user, idpName, federatedUserId);
     }
 
@@ -479,7 +481,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         }
     }
 
-    private String getIdentityProviderNameByResourceId(String tenantDomain, String idpResourceId)
+    private String getIdentityProviderNameByResourceId(String idpResourceId)
             throws FederatedAssociationManagerException {
 
         try {
@@ -491,17 +493,12 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                 String msg = "Error while retrieving identity provider for the federated association";
                 throw new FederatedAssociationManagerException(msg);
             }
-            IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpResourceId, tenantDomain, false);
-            if (identityProvider == null) {
-                throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
-            }
-            return identityProvider.getIdentityProviderName();
+            return idpManager.getIdPNameByResourceId(idpResourceId);
         } catch (IdentityProviderManagementException e) {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Could not resolve the identity provider for the id: %s, in the tenant " +
-                        "domain: ", idpResourceId, tenantDomain));
+                log.debug(String.format("Could not resolve the identity provider name for the id: %s:", idpResourceId));
             }
-            String msg = "Error while resolving identity provider";
+            String msg = "Error while resolving identity provider name";
             throw new FederatedAssociationManagerException(msg);
         }
     }
