@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.FEDERATED_ASSOCIATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.FEDERATED_ASSOCIATION_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_FEDERATED_ASSOCIATION;
+import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_IDP_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_DOMAIN_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
 
@@ -79,6 +80,18 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER
                     , e, false);
         }
+    }
+
+    @Override
+    public void createFederatedAssociationWithIdpResourceId(User user, String idpId, String federatedUserId)
+            throws FederatedAssociationManagerException {
+
+        // Resolve idp name from idp uuid.
+        String idpName = getIdentityProviderNameByResourceId(idpId);
+        if (StringUtils.isEmpty(idpName)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
+        }
+        createFederatedAssociation(user, idpName, federatedUserId);
     }
 
     @Override
@@ -465,6 +478,28 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS,
                     null, true);
+        }
+    }
+
+    private String getIdentityProviderNameByResourceId(String idpResourceId)
+            throws FederatedAssociationManagerException {
+
+        try {
+            IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
+            if (idpManager == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("The IdpManager service is not available in the runtime");
+                }
+                String msg = "Error while retrieving identity provider for the federated association";
+                throw new FederatedAssociationManagerException(msg);
+            }
+            return idpManager.getIdPNameByResourceId(idpResourceId);
+        } catch (IdentityProviderManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Could not resolve the identity provider name for the id: %s:", idpResourceId));
+            }
+            String msg = "Error while resolving identity provider name";
+            throw new FederatedAssociationManagerException(msg);
         }
     }
 }

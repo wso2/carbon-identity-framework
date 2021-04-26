@@ -277,6 +277,26 @@ public class CacheBackedIdPMgtDAO {
         return identityProvider;
     }
 
+    public String getIdPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        IdPResourceIdCacheKey cacheKey = new IdPResourceIdCacheKey(resourceId);
+        IdPCacheEntry entry = idPCacheByResourceId.getValueFromCache(cacheKey);
+
+        if (entry != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry found for Identity Provider with resource ID:" + resourceId);
+            }
+            IdentityProvider identityProvider = entry.getIdentityProvider();
+        
+            return identityProvider.getIdentityProviderName();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Cache entry not found for Identity Provider with resource ID: " + resourceId
+                    + ". Fetching the name from DB");
+        }
+        return idPMgtDAO.getIDPNameByResourceId(resourceId);
+    }
+
     /**
      * @param dbConnection
      * @param property

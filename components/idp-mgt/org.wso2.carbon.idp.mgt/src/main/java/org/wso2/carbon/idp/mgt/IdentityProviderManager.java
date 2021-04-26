@@ -1404,6 +1404,13 @@ public class IdentityProviderManager implements IdpManager {
         return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
     }
 
+    @Override
+    public String getIdPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        validateGetIdPInputValues(resourceId);
+        return dao.getIdPNameByResourceId(resourceId);
+    }
+
     /**
      * @param idPName
      * @param tenantDomain

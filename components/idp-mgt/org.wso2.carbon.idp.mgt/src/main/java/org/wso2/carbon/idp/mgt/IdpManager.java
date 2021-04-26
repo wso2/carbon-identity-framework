@@ -183,6 +183,18 @@ public interface IdpManager {
     }
 
     /**
+     * Returns IDP name by with resource ID.
+     *
+     * @param resourceId Resource ID of the IDP.
+     * @return Name of IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    default String getIdPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
      * @param idPName
      * @param tenantDomain
      * @param ignoreFileBasedIdps
