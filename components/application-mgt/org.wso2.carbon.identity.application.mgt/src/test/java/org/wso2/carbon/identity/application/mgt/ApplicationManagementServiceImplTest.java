@@ -196,8 +196,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
         when(mockApplicationDAO.getApplication(anyString(), anyString())).thenReturn(mockServiceProvider);
 
-        Assert.assertEquals(mockServiceProvider, applicationManagementService.getApplicationExcludingFileBasedSPs
-                (APPLICATION_NAME, TENANT_DOMAIN));
+        Assert.assertEquals(applicationManagementService.getApplicationExcludingFileBasedSPs(APPLICATION_NAME,
+                TENANT_DOMAIN), mockServiceProvider);
     }
 
     @Test
@@ -316,7 +316,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
         when(mockPaginatedAppDAO.getCountOfAllApplications()).thenReturn(10);
 
-        Assert.assertEquals(10, applicationManagementService.getCountOfAllApplications(TENANT_DOMAIN, USERNAME));
+        Assert.assertEquals(applicationManagementService.getCountOfAllApplications(TENANT_DOMAIN, USERNAME),
+                10);
     }
 
     @Test
@@ -325,8 +326,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
         when(mockPaginatedAppDAO.getCountOfApplications(anyString())).thenReturn(10);
 
-        Assert.assertEquals(10, applicationManagementService.getCountOfApplications(TENANT_DOMAIN, USERNAME,
-                "*"));
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(TENANT_DOMAIN, USERNAME, "*"),
+                10);
     }
 
     @Test
@@ -334,16 +335,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
         when(mockIdentityProviderDAO.getIdentityProvider(anyString())).thenReturn(mockIdentityProvider);
-        Assert.assertEquals(mockIdentityProvider, applicationManagementService.getIdentityProvider(FEDERATED_IDP_NAME,
-                TENANT_DOMAIN));
+        Assert.assertEquals(applicationManagementService.getIdentityProvider(FEDERATED_IDP_NAME, TENANT_DOMAIN),
+                mockIdentityProvider);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
                 getIdentityProvider(anyString());
         try {
             applicationManagementService.getIdentityProvider(FEDERATED_IDP_NAME, TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals("Error occurred while retrieving Identity Provider: " + FEDERATED_IDP_NAME + ". ",
-                    e.getMessage());
+            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving Identity Provider: " +
+                    FEDERATED_IDP_NAME + ". ");
         }
     }
 
@@ -353,15 +354,15 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
         List<IdentityProvider> fedIdpList = Collections.singletonList(mockIdentityProvider);
         when(mockIdentityProviderDAO.getAllIdentityProviders()).thenReturn(fedIdpList);
-        Assert.assertEquals(mockIdentityProvider, applicationManagementService.getAllIdentityProviders
-                (TENANT_DOMAIN)[0]);
+        Assert.assertEquals(applicationManagementService.getAllIdentityProviders(TENANT_DOMAIN)[0],
+                mockIdentityProvider);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).getAllIdentityProviders();
         try {
             applicationManagementService.getAllIdentityProviders(TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals("Error occurred while retrieving all Identity Providers" + ". ",
-                    e.getMessage());
+            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Identity Providers"
+                    + ". ");
         }
     }
 
@@ -371,16 +372,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
         List<LocalAuthenticatorConfig> localAuthenticators = Collections.singletonList(mockLocalAuthenticatorConfig);
         when(mockIdentityProviderDAO.getAllLocalAuthenticators()).thenReturn(localAuthenticators);
-        Assert.assertEquals(mockLocalAuthenticatorConfig, applicationManagementService.getAllLocalAuthenticators
-                (TENANT_DOMAIN)[0]);
+        Assert.assertEquals(applicationManagementService.getAllLocalAuthenticators(TENANT_DOMAIN)[0],
+                mockLocalAuthenticatorConfig);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
                 getAllLocalAuthenticators();
         try {
             applicationManagementService.getAllLocalAuthenticators(TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals("Error occurred while retrieving all Local Authenticators" + ". ",
-                    e.getMessage());
+            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Local Authenticators"
+                    + ". ");
         }
     }
 
@@ -391,16 +392,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         List<RequestPathAuthenticatorConfig> reqPathAuthenticators = Collections.singletonList
                 (mockReqPathAuthenticatorConfig);
         when(mockIdentityProviderDAO.getAllRequestPathAuthenticators()).thenReturn(reqPathAuthenticators);
-        Assert.assertEquals(mockReqPathAuthenticatorConfig, applicationManagementService.getAllRequestPathAuthenticators
-                (TENANT_DOMAIN)[0]);
+        Assert.assertEquals(applicationManagementService.getAllRequestPathAuthenticators(TENANT_DOMAIN)[0],
+                mockReqPathAuthenticatorConfig);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
                 getAllRequestPathAuthenticators();
         try {
             applicationManagementService.getAllRequestPathAuthenticators(TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals("Error occurred while retrieving all Request Path Authenticators" + ". ",
-                    e.getMessage());
+            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Request Path Authenticators"
+                    + ". ");
         }
     }
 
@@ -416,8 +417,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
         when(mockApplicationDAO.getServiceProviderNameByClientId(anyString(), anyString(), anyString())).
                 thenReturn(APPLICATION_NAME);
-        Assert.assertEquals(APPLICATION_NAME, applicationManagementService.
-                getServiceProviderNameByClientIdExcludingFileBasedSPs("clientId", "type", TENANT_DOMAIN));
+        Assert.assertEquals(applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs(
+                "clientId", "type", TENANT_DOMAIN), APPLICATION_NAME);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockApplicationDAO).
                 getServiceProviderNameByClientId(anyString(), anyString(), anyString());
@@ -425,8 +426,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
             applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs("clientId",
                     "type", TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals("Error occurred while retrieving the service provider for client id :  " +
-                            "clientId. ", e.getMessage());
+            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving the service provider for " +
+                    "client id :  " + "clientId. ");
         }
     }
 
@@ -467,16 +468,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(IdentityConfigParser.getInstance()).thenReturn(mockConfigParser);
 
         when(mockConfigParser.getConfigElement(anyString())).thenReturn(null);
-        Assert.assertEquals(Collections.emptySet(), applicationManagementService.getSystemApplications());
+        Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
 
         when(mockConfigParser.getConfigElement(anyString())).thenReturn(mockSystemApplicationsConfig);
-        Assert.assertEquals(Collections.emptySet(), applicationManagementService.getSystemApplications());
+        Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
 
         List<OMElement> applicationIdentifierConfigs = Collections.singletonList(mockChildApplicationConfig);
         Iterator<OMElement> applicationIdentifierIterator = applicationIdentifierConfigs.iterator();
         when(mockSystemApplicationsConfig.getChildrenWithLocalName(anyString())).
                 thenReturn(applicationIdentifierIterator);
         when(mockChildApplicationConfig.getText()).thenReturn(APPLICATION_NAME);
-        Assert.assertEquals(APPLICATION_NAME, applicationManagementService.getSystemApplications().toArray()[0]);
+        Assert.assertEquals(applicationManagementService.getSystemApplications().toArray()[0], APPLICATION_NAME);
     }
 }
