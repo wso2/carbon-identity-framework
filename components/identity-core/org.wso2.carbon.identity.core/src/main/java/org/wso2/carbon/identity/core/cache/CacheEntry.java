@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,17 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.cache;
+package org.wso2.carbon.identity.core.cache;
 
 import java.io.Serializable;
 
 /**
  * Represents a cache entry. Any value that needs to be included in the
  * cache must be encapsulated with a class deriving from this class.
- *
- * Deprecated use {@link org.wso2.carbon.identity.core.cache.CacheEntry}.
- **/
-@Deprecated
+ */
 public abstract class CacheEntry implements Serializable {
 
     private static final long serialVersionUID = -7349132415139486164L;

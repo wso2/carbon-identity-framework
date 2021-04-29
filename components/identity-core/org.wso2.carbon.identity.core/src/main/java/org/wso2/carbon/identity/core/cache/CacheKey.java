@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.cache;
+package org.wso2.carbon.identity.core.cache;
 
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -25,10 +25,7 @@ import java.io.Serializable;
 /**
  * Cache key class. Any value that acts as a cache key must encapsulated with a class overriding
  * from this class.
- *
- * Deprecated use {@link org.wso2.carbon.identity.core.cache.CacheKey}.
- **/
-@Deprecated
+ */
 public abstract class CacheKey implements Serializable {
 
     private static final long serialVersionUID = 659646764466611338L;

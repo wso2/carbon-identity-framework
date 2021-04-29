@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for lookup Application (aka. Service Provieder) from the cache.

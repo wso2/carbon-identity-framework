@@ -15,7 +15,7 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * Cache to maintain the application resource id - service provider.
