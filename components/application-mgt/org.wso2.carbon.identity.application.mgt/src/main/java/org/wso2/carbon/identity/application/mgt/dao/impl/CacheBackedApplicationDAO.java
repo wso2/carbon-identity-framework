@@ -99,7 +99,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public ServiceProvider getApplication(int appId) throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = getApplicationFromCache(appId,
-                CarbonContext.getThreadLocalCarbonContext().getApplicationName());
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         if (serviceProvider == null) {
             serviceProvider = appDAO.getApplication(appId);
             if (serviceProvider == null) {
@@ -114,7 +114,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public String getApplicationName(int applicationID) throws IdentityApplicationManagementException {
 
         ServiceProvider applicationFromCache = getApplicationFromCache(applicationID,
-                CarbonContext.getThreadLocalCarbonContext().getApplicationName());
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         if (applicationFromCache != null) {
             return applicationFromCache.getApplicationName();
         }
