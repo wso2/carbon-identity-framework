@@ -33,10 +33,14 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.Sub
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -109,6 +113,17 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
         IdentityTenantUtil.setRealmService(mockRealmService);
+        UserRealm mockUserRealm = mock(UserRealm.class);
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.getUserIDFromUserName(anyString())).thenReturn("59d2c583-eafc-412a-a32e-bc409f3bd4e6");
+
+        UserStoreManager mockSecUserStoreManager = mock(UserStoreManager.class);
+        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
+        when(mockSecUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockSecUserStoreManager);
+        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME)).thenReturn("false");
 
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);

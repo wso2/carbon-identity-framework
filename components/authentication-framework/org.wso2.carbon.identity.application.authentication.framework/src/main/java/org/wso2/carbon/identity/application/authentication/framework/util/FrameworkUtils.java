@@ -2684,26 +2684,9 @@ public class FrameworkUtils {
             UserSessionException {
 
         try {
-            if (userStoreDomain == null) {
-                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
-            }
-            UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
+            AbstractUserStoreManager userStoreManager = getUserStoreManager(tenantId);
             try {
-                if (userStoreManager instanceof AbstractUserStoreManager) {
-                    String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
-
-                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                    // userstore is read-only, we cannot add the id and empty user id will returned.
-                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                        userId = addUserId(username, userStoreManager);
-                    }
-                    return userId;
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
-                }
-                throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+                return userStoreManager.getUserIDFromUserName(username);
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
@@ -2842,22 +2825,13 @@ public class FrameworkUtils {
         return userId;
     }
 
-    private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
+    private static AbstractUserStoreManager getUserStoreManager(int tenantId)
             throws UserStoreException {
 
-        UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService().getTenantUserRealm(tenantId)
-                .getUserStoreManager();
-        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
-            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
-                    userStoreDomain);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
-                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
-                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
-                    "manager: " + userStoreManager.getClass() + ", from the realm.");
-        }
-        return userStoreManager;
+        UserStoreManager userStoreManager = FrameworkServiceDataHolder.getInstance()
+                .getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
+
+        return (AbstractUserStoreManager) userStoreManager;
     }
 
     /**
