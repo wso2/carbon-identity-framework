@@ -696,6 +696,7 @@
   },
   "console.attribute_dialects.enabled": true,
   "console.ui.is_default_dialect_editing_enabled": false,
+  "console.ui.is_header_avatar_label_allowed": true,
   "console.attribute_dialects.scopes": {
     "create": [
       "internal_claim_meta_create"
@@ -888,6 +889,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
   "myaccount.product_version.configs": {
