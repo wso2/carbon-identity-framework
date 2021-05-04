@@ -44,9 +44,9 @@ import javax.cache.Caching;
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
-public class BaseCache<K extends Serializable, V extends Serializable> {
+public abstract class BaseCache<K extends Serializable, V extends Serializable> {
 
-    private static Log log = LogFactory.getLog(BaseCache.class);
+    private static final Log log = LogFactory.getLog(BaseCache.class);
     private static final String CACHE_MANAGER_NAME = "IdentityCacheManager";
     private CacheBuilder<K, V> cacheBuilder;
     private final List<AbstractCacheListener<K, V>> cacheListeners;

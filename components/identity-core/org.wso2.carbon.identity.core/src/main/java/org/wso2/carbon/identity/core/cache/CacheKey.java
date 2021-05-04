@@ -39,4 +39,10 @@ public abstract class CacheKey implements Serializable {
         }
         return true;
     }
+
+    @Override
+    public int hashCode() {
+
+        return 0;
+    }
 }
