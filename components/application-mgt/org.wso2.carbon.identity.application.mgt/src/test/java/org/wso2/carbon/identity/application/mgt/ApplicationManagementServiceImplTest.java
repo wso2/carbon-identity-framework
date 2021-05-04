@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -65,8 +64,8 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -89,19 +88,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Mock
     private Map<String, ServiceProvider> mockFileBasedSPs;
     @Mock
-    private ApplicationValidatorManager mockApplicationValidatorManager;
-    @Mock
     private IdentityProviderDAO mockIdentityProviderDAO;
     @Mock
-    private List<LocalAuthenticatorConfig> mockLocalAuthenticatorConfigs;
-    @Mock
-    private SpTemplate mockSpTemplate;
-    @Mock
-    private ServiceProviderTemplateCache mockSPTemplateCache;
-    @Mock
     private ServiceProvider mockServiceProvider;
-    @Mock
-    private AbstractApplicationDAOImpl mockAbstractAppDAOImpl;
     @Mock
     private PaginatableFilterableApplicationDAO mockPaginatedAppDAO;
     @Mock
@@ -109,26 +98,17 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Mock
     private IdentityProvider mockIdentityProvider;
     @Mock
-    private Map<String, String> mockClaimMap;
-    @Mock
     private LocalAuthenticatorConfig mockLocalAuthenticatorConfig;
     @Mock
-    private RequestPathAuthenticatorConfig mockReqPathAuthenticatorConfig;
+    private Map<String, String> mockClaimMap;
     @Mock
-    private IdentityConfigParser mockConfigParser;
-    @Mock
-    private OMElement mockSystemApplicationsConfig;
-    @Mock
-    private OMElement mockChildApplicationConfig;
-    @Mock
-    private RealmService mockRealmService;
-    @Mock
-    private org.wso2.carbon.user.core.tenant.TenantManager mockTenantManager;
+    private List<LocalAuthenticatorConfig> mockLocalAuthenticatorConfigs;
 
     private static final String USERNAME = "user";
-    private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String TENANT_DOMAIN = "tenantDomain";
     private static final String APPLICATION_NAME = "applicationName";
     private static final int APPLICATION_ID = 123;
+    private static final String CLIENT_ID = "clientId";
     private static final String FEDERATED_IDP_NAME = "fedIdpName";
     private ApplicationManagementServiceImpl applicationManagementService;
     private ApplicationBasicInfo[] applicationBasicInfo;
@@ -155,6 +135,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         mockStatic(ApplicationManagementServiceComponentHolder.class);
+        RealmService mockRealmService = mock(RealmService.class);
+        org.wso2.carbon.user.core.tenant.TenantManager mockTenantManager =
+                mock(org.wso2.carbon.user.core.tenant.TenantManager.class);
         ApplicationManagementServiceComponentHolder appMgtServiceComHolder = Mockito.
                 mock(ApplicationManagementServiceComponentHolder.class);
         when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(appMgtServiceComHolder);
@@ -212,10 +195,6 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
         when(mockApplicationDAO.createApplication(mockedSP, TENANT_DOMAIN)).thenReturn(APPLICATION_ID);
 
-        mockFileBasedSPs();
-        doNothing().when(mockApplicationValidatorManager).validateSPConfigurations(anyObject(),
-                anyString(), anyString());
-
         mockStatic(ApplicationMgtUtil.class);
         doCallRealMethod().when(ApplicationMgtUtil.class, "isRegexValidated", APPLICATION_NAME);
         doCallRealMethod().when(ApplicationMgtUtil.class, "getSPValidatorRegex");
@@ -224,6 +203,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockIdentityProviderDAO.getAllLocalAuthenticators()).thenReturn(mockLocalAuthenticatorConfigs);
 
         mockStatic(ServiceProviderTemplateCache.class);
+        SpTemplate mockSpTemplate = mock(SpTemplate.class);
+        ServiceProviderTemplateCache mockSPTemplateCache = mock(ServiceProviderTemplateCache.class);
         when(ServiceProviderTemplateCache.getInstance()).thenReturn(mockSPTemplateCache);
         when(mockSPTemplateCache.getValueFromCache(anyObject())).thenReturn(mockSpTemplate);
 
@@ -238,6 +219,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public void testGetApplicationBasicInfo() throws IdentityApplicationManagementException {
 
         mockApplicationMgtListeners();
+        AbstractApplicationDAOImpl mockAbstractAppDAOImpl = mock(AbstractApplicationDAOImpl.class);
         when(mockAppMgtListener.doPreGetApplicationBasicInfo(anyString(), anyString(), anyString())).thenReturn(TRUE);
         when(mockAppMgtListener.doPostGetApplicationBasicInfo(anyObject(), anyString(), anyString(), anyString())).
                 thenReturn(TRUE);
@@ -388,6 +370,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetAllRequestPathAuthenticators() throws IdentityApplicationManagementException {
 
+        RequestPathAuthenticatorConfig mockReqPathAuthenticatorConfig = mock(RequestPathAuthenticatorConfig.class);
         when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
         List<RequestPathAuthenticatorConfig> reqPathAuthenticators = Collections.singletonList
                 (mockReqPathAuthenticatorConfig);
@@ -418,16 +401,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockApplicationDAO.getServiceProviderNameByClientId(anyString(), anyString(), anyString())).
                 thenReturn(APPLICATION_NAME);
         Assert.assertEquals(applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs(
-                "clientId", "type", TENANT_DOMAIN), APPLICATION_NAME);
+                CLIENT_ID, "type", TENANT_DOMAIN), APPLICATION_NAME);
 
         doThrow(new IdentityApplicationManagementException("")).when(mockApplicationDAO).
                 getServiceProviderNameByClientId(anyString(), anyString(), anyString());
         try {
-            applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs("clientId",
+            applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs(CLIENT_ID,
                     "type", TENANT_DOMAIN);
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getMessage(), "Error occurred while retrieving the service provider for " +
-                    "client id :  " + "clientId. ");
+                    "client id :  " + CLIENT_ID + ". ");
         }
     }
 
@@ -465,11 +448,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public void testGetSystemApplications() {
 
         mockStatic(IdentityConfigParser.class);
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
         when(IdentityConfigParser.getInstance()).thenReturn(mockConfigParser);
 
         when(mockConfigParser.getConfigElement(anyString())).thenReturn(null);
         Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
 
+        OMElement mockSystemApplicationsConfig = mock(OMElement.class);
+        OMElement mockChildApplicationConfig = mock(OMElement.class);
         when(mockConfigParser.getConfigElement(anyString())).thenReturn(mockSystemApplicationsConfig);
         Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
 
@@ -478,6 +464,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         when(mockSystemApplicationsConfig.getChildrenWithLocalName(anyString())).
                 thenReturn(applicationIdentifierIterator);
         when(mockChildApplicationConfig.getText()).thenReturn(APPLICATION_NAME);
+
         Assert.assertEquals(applicationManagementService.getSystemApplications().toArray()[0], APPLICATION_NAME);
     }
 }
