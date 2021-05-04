@@ -81,7 +81,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     private CarbonContext mockCarbonContext;
     private UserStoreManager mockUserStoreManager;
     private UserRealm mockUserRealm;
-    private RealmConfiguration realmConfiguration;
+    private RealmConfiguration mockRealmConfiguration;
     private Registry mockTenantRegistry;
     private Collection mockAppRootNode;
     private ApplicationPermission applicationPermission;
@@ -105,7 +105,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public void setup() {
 
         mockAppRootNode = mock(Collection.class);
-        realmConfiguration = mock(RealmConfiguration.class);
+        mockRealmConfiguration = mock(RealmConfiguration.class);
 
         applicationPermission = new ApplicationPermission();
         applicationPermission.setValue(USERNAME);
@@ -195,11 +195,14 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         String[] userRoles1 = {ROLE_NAME, ""};
         String[] userRoles2 = {APPLICATION_NAME, ""};
+        String[] userRoles3 = {};
 
         return new Object[][]{
                 {APPLICATION_NAME, USERNAME, TRUE_VALUE, userRoles1, 1, TRUE},
                 {APPLICATION_NAME, USERNAME, "", userRoles2, 2, FALSE},
-                {APPLICATION_NAME, USERNAME, FALSE_VALUE, userRoles1, 1, TRUE}
+                {APPLICATION_NAME, USERNAME, FALSE_VALUE, userRoles1, 1, TRUE},
+                {APPLICATION_NAME, USERNAME, TRUE_VALUE, userRoles3, 1, FALSE},
+                {APPLICATION_NAME, USERNAME, "FALSE_VALUE", userRoles3, 1, TRUE}
         };
     }
 
@@ -381,8 +384,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockCarbonContext.getUserRealm()).thenReturn(userRealm);
         when(userRealm.getAuthorizationManager()).thenReturn(mockAuthorizationManager);
         when(mockAuthorizationManager.isUserAuthorized(anyString(), anyString(), anyString())).thenReturn(FALSE);
-        when(userRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-        when(realmConfiguration.getAdminUserName()).thenReturn("admin");
+        when(userRealm.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockRealmConfiguration.getAdminUserName()).thenReturn("admin");
     }
 
     private void loadPermissions() throws RegistryException, UserStoreException {
@@ -454,9 +457,9 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockUserStoreManager();
         when(mockUserStoreManager.isExistingUser(anyString())).thenReturn(FALSE);
-        when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
-        when(realmConfiguration.getAdminUserName()).thenReturn("admin");
-        when(realmConfiguration.getUserStoreProperty(anyString())).thenReturn("property");
+        when(mockUserRealm.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockRealmConfiguration.getAdminUserName()).thenReturn("admin");
+        when(mockRealmConfiguration.getUserStoreProperty(anyString())).thenReturn("property");
         when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
 
         assertEquals(ApplicationMgtUtil.isValidApplicationOwner(serviceProvider), expected);
