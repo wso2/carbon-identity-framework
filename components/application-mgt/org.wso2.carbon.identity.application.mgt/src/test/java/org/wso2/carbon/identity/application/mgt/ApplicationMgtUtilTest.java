@@ -486,24 +486,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         assertEquals(ApplicationMgtUtil.getItemsPerPage(), itemsPerPage);
     }
 
-    @Test
-    public void testStartTenantFlow() throws UserStoreException, IdentityApplicationManagementException {
-
-        mockStatic(ApplicationManagementServiceComponentHolder.class);
-        ApplicationManagementServiceComponentHolder appMgtServiceComHolder =
-                mock(ApplicationManagementServiceComponentHolder.class);
-        RealmService mockRealmService = mock(RealmService.class);
-        org.wso2.carbon.user.core.tenant.TenantManager mockTenantManager =
-                mock(org.wso2.carbon.user.core.tenant.TenantManager.class);
-
-        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(appMgtServiceComHolder);
-        when(appMgtServiceComHolder.getRealmService()).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(mockTenantManager.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
-        initPrivilegedCarbonContext();
-        ApplicationMgtUtil.startTenantFlow(TENANT_DOMAIN, USERNAME);
-    }
-
     private void mockTenantRegistry() {
 
         mockCarbonContext();
