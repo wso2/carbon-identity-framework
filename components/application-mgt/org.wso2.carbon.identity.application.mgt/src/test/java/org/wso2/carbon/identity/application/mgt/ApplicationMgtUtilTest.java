@@ -47,7 +47,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
 
@@ -198,9 +197,9 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         String[] userRoles2 = {APPLICATION_NAME, ""};
 
         return new Object[][]{
-                {APPLICATION_NAME, USERNAME, TRUE_VALUE, userRoles1, 1, TRUE },
-                {APPLICATION_NAME, USERNAME, "", userRoles2, 2, FALSE },
-                {APPLICATION_NAME, USERNAME, FALSE_VALUE, userRoles1, 1, TRUE }
+                {APPLICATION_NAME, USERNAME, TRUE_VALUE, userRoles1, 1, TRUE},
+                {APPLICATION_NAME, USERNAME, "", userRoles2, 2, FALSE},
+                {APPLICATION_NAME, USERNAME, FALSE_VALUE, userRoles1, 1, TRUE}
         };
     }
 
@@ -319,7 +318,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         verify(mockTenantRegistry, times(1)).delete(applicationNode);
         verify(mockTenantRegistry, times(1)).put(newApplicationNode, permissionNode);
         verify(mockTenantRegistry, times(1)).put(newApplicationPermissionPath, permissionNode);
-
     }
 
     @Test
@@ -380,7 +378,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         org.wso2.carbon.user.core.UserRealm userRealm = mock(org.wso2.carbon.user.core.UserRealm.class);
         AuthorizationManager mockAuthorizationManager = mock(AuthorizationManager.class);
 
-
         when(mockCarbonContext.getUserRealm()).thenReturn(userRealm);
         when(userRealm.getAuthorizationManager()).thenReturn(mockAuthorizationManager);
         when(mockAuthorizationManager.isUserAuthorized(anyString(), anyString(), anyString())).thenReturn(FALSE);
@@ -439,7 +436,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
                 {TRUE, USERNAME, SUPER_TENANT_DOMAIN_NAME, TRUE},
                 {TRUE, null, null, FALSE},
                 {TRUE, "", null, FALSE},
-                { FALSE, "", "", FALSE},
+                {FALSE, "", "", FALSE},
         };
     }
 
