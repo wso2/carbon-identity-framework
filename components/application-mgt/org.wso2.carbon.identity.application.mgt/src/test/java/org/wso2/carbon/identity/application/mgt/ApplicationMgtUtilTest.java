@@ -167,6 +167,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         String[] permissions = new String[]{"permission"};
         org.wso2.carbon.user.api.Permission[] permissionSet = ApplicationMgtUtil.buildPermissions(APPLICATION_NAME,
                 permissions);
+
         assertEquals(permissionSet[0].getResourceId(), APPLICATION_NAME + "\\permission");
     }
 
@@ -183,11 +184,15 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "validateRolesDataProvider")
     public void testValidateRoles(String allowRoleValidationProperty, Boolean expected) {
 
+        validateRole(allowRoleValidationProperty);
+        assertEquals(ApplicationMgtUtil.validateRoles(), expected);
+    }
+
+    private void validateRole(String allowRoleValidationProperty) {
+
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty(ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY)).
                 thenReturn(allowRoleValidationProperty);
-
-        assertEquals(ApplicationMgtUtil.validateRoles(), expected);
     }
 
     @DataProvider(name = "userAuthorizeDataProvider")
@@ -211,19 +216,18 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
                                      String[] userRoles, int applicationId, Boolean expected) throws
             UserStoreException, IdentityApplicationManagementException {
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY)).thenReturn
-                (allowRoleValidationProperty);
+        validateRole(allowRoleValidationProperty);
 
         mockStatic(ApplicationMgtSystemConfig.class);
         ApplicationDAO mockApplicationDAO = mock(ApplicationDAO.class);
         ApplicationMgtSystemConfig mockAppMgtSystemConfig = mock(ApplicationMgtSystemConfig.class);
         when(ApplicationMgtSystemConfig.getInstance()).thenReturn(mockAppMgtSystemConfig);
         when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.getApplicationName(1)).thenReturn(APPLICATION_NAME);
+        when(mockApplicationDAO.getApplicationName(anyInt())).thenReturn(APPLICATION_NAME);
 
         mockUserStoreManager();
         when(mockUserStoreManager.getRoleListOfUser(userName)).thenReturn(userRoles);
+
         assertEquals(ApplicationMgtUtil.isUserAuthorized(applicationName, userName), expected);
         assertEquals(ApplicationMgtUtil.isUserAuthorized(applicationName, userName, applicationId), expected);
     }
@@ -357,8 +361,9 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
                {new String[]{}, 0}
        };
     }
+
     @Test(dataProvider = "updatePermissionDataProvider")
-    public void testUpdatePermissionNoExistingPermission(String[] childPermissions, int childCount) throws
+    public void testUpdatePermission(String[] childPermissions, int childCount) throws
             IdentityApplicationManagementException, UserStoreException, RegistryException {
 
         loadPermissions();
@@ -417,6 +422,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockTenantRegistry();
         doThrow(new RegistryException("")).when(mockTenantRegistry).resourceExists(anyString());
+
         try {
             ApplicationMgtUtil.deletePermissions(APPLICATION_NAME);
         } catch (IdentityApplicationManagementException e) {
