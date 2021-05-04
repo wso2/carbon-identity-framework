@@ -352,12 +352,12 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public Object[][] updatePermissionDataProvider() {
 
        return new Object[][]{
-               {new String[]{PERMISSION, ""}},
-               {new String[]{}}
+               {new String[]{PERMISSION, ""}, 1},
+               {new String[]{}, 0}
        };
     }
     @Test(dataProvider = "updatePermissionDataProvider")
-    public void testUpdatePermissionNoExistingPermission(String[] childPermissions) throws
+    public void testUpdatePermissionNoExistingPermission(String[] childPermissions, int childCount) throws
             IdentityApplicationManagementException, UserStoreException, RegistryException {
 
         loadPermissions();
@@ -367,6 +367,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         Collection mockAppCollection = mock(Collection.class);
         when(mockTenantRegistry.get(applicationNode)).thenReturn(mockAppCollection);
         when(mockAppCollection.getChildren()).thenReturn(childPermissions);
+        when(mockAppCollection.getChildCount()).thenReturn(childCount);
 
         ApplicationMgtUtil.updatePermissions(APPLICATION_NAME, applicationPermissions);
         verify(mockTenantRegistry, times(1)).put(applicationNode, mockAppRootNode);
