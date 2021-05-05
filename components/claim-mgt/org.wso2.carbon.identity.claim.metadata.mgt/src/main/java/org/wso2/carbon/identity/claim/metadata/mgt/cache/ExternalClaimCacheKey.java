@@ -25,11 +25,9 @@ public class ExternalClaimCacheKey implements Serializable {
 
     private static final long serialVersionUID = 1504522344376716137L;
     private String externalDialectURI;
-    private Integer tenantId;
 
-    public ExternalClaimCacheKey(String externalDialectURI, int tenantId) {
+    public ExternalClaimCacheKey(String externalDialectURI) {
         this.externalDialectURI = externalDialectURI;
-        this.tenantId = tenantId;
     }
 
     public String getExternalDialectURI() {
@@ -38,14 +36,6 @@ public class ExternalClaimCacheKey implements Serializable {
 
     public void setExternalDialectURI(String externalDialectURI) {
         this.externalDialectURI = externalDialectURI;
-    }
-
-    public int getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(int tenantId) {
-        this.tenantId = tenantId;
     }
 
     @Override
@@ -59,22 +49,13 @@ public class ExternalClaimCacheKey implements Serializable {
 
         ExternalClaimCacheKey that = (ExternalClaimCacheKey) o;
 
-        if (!externalDialectURI.equals(that.externalDialectURI)) {
-            return false;
-        }
-
-        if (!tenantId.equals(that.tenantId)) {
-            return false;
-        }
-
-        return true;
+        return externalDialectURI.equals(that.externalDialectURI);
     }
 
     @Override
     public int hashCode() {
         int result = 17;
         result = 31 * result + externalDialectURI.hashCode();
-        result = 31 * result + tenantId.hashCode();
         return result;
     }
 }
