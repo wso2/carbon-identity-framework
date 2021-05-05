@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
@@ -36,6 +37,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @Test
+@WithRealmService
 public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test(dataProvider = "noJsDataProvider")

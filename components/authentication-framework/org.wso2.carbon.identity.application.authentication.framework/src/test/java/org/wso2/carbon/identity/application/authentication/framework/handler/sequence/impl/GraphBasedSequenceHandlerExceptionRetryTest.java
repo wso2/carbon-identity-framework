@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
@@ -49,6 +50,7 @@ import static org.mockito.Mockito.mock;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2CarbonDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
+@WithRealmService
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
