@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * Cache for CORS configurations.

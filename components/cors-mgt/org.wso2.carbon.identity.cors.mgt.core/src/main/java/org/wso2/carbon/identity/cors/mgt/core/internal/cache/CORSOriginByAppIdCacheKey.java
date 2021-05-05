@@ -28,22 +28,10 @@ public class CORSOriginByAppIdCacheKey implements Serializable {
     private static final long serialVersionUID = 6298593317563873934L;
 
     private final int applicationId;
-    private final int tenantId;
 
-    public CORSOriginByAppIdCacheKey(int applicationId, int tenantId) {
+    public CORSOriginByAppIdCacheKey(int applicationId) {
 
         this.applicationId = applicationId;
-        this.tenantId = tenantId;
-    }
-
-    public int getApplicationId() {
-
-        return applicationId;
-    }
-
-    public int getTenantId() {
-
-        return tenantId;
     }
 
     @Override
@@ -58,12 +46,12 @@ public class CORSOriginByAppIdCacheKey implements Serializable {
         }
 
         CORSOriginByAppIdCacheKey that = (CORSOriginByAppIdCacheKey) o;
-        return tenantId == that.tenantId && applicationId == that.applicationId;
+        return applicationId == that.applicationId;
     }
 
     @Override
     public int hashCode() {
 
-        return 31 * applicationId + tenantId;
+        return 31 * applicationId;
     }
 }
