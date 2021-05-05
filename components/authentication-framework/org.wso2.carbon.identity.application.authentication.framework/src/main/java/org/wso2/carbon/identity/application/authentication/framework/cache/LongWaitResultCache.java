@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 public class LongWaitResultCache extends BaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
 
