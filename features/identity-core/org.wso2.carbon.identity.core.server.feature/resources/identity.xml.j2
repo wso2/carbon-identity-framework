@@ -2610,10 +2610,18 @@
     {% endif %}
 
     <!-- System Roles -->
-    {% if system_roles.read_only_roles is defined %}
+    {% if system_roles is defined %}
     <SystemRoles>
+        <Enabled>{{system_roles.enable}}</Enabled>
         {% for role in system_roles.read_only_roles %}
-        <RoleName>{{role}}</RoleName>
+        <Role>
+            <Name>{{role.name}}</Name>
+            <MandatoryScopes>
+                {% for scope in role.scopes %}
+                <Scope>{{scope}}</Scope>
+                {% endfor %}
+            </MandatoryScopes>
+        </Role>
         {% endfor %}
     </SystemRoles>
     {% endif %}

@@ -51,9 +51,6 @@ public class RoleConstants {
     // Group related constants.
     public static final String ID_URI = "urn:ietf:params:scim:schemas:core:2.0:id";
 
-    // System roles config element.
-    public static final String SYSTEM_ROLES_CONFIG_ELEMENT = "SystemRoles";
-    public static final String ROLE_NAME_CONFIG_ELEMENT = "RoleName";
     /**
      * Grouping of constants related to database table names.
      */

@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.core.util;
 
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
@@ -45,8 +46,8 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
-import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
@@ -59,6 +60,15 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import sun.security.provider.X509Factory;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -75,24 +85,16 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Base64;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
@@ -1454,4 +1456,71 @@ public class IdentityUtil {
         return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ?
                 UserCoreConstants.INTERNAL_ROLES_CLAIM : UserCoreConstants.ROLE_CLAIM;
     }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopes() {
+
+        Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser
+                .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemRolesConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptyMap();
+        }
+
+        Iterator roleIdentifierIterator = systemRolesConfig
+                .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
+        if (roleIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptyMap();
+        }
+
+        while (roleIdentifierIterator.hasNext()) {
+            OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+            String roleName = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+            OMElement mandatoryScopesIdentifierIterator = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT));
+            Iterator scopeIdentifierIterator = mandatoryScopesIdentifierIterator
+                    .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_SCOPE_CONFIG_ELEMENT);
+
+            Set<String> scopes = new HashSet<>();
+            while (scopeIdentifierIterator.hasNext()) {
+                OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
+                String scopeName = scopeIdentifierConfig.getText();
+                if (StringUtils.isNotBlank(scopeName)) {
+                    scopes.add(scopeName.trim().toLowerCase());
+                }
+            }
+            if (StringUtils.isNotBlank(roleName)) {
+                systemRolesWithScopes.put(roleName.trim(), scopes);
+            }
+        }
+        return systemRolesWithScopes;
+    }
+
+    /**
+     * Check whether the system roles are enabled in the environment.
+     *
+     * @return {@code true} if the the system roles are enabled.
+     */
+    public static boolean isSystemRolesEnabled() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(IdentityConstants.SystemRoles.SYSTEM_ROLES_ENABLED_CONFIG_ELEMENT));
+    }
+
 }

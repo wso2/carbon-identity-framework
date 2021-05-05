@@ -543,4 +543,18 @@ public class IdentityConstants {
         public final static String PROXY_CONTEXT = "ProxyContext";
         public final static String DEFAULT_CONTEXT = "DefaultContext";
     }
+
+    /**
+     * Contains the constants related to System roles configs elements.
+     */
+    public static class SystemRoles {
+
+        // System roles config element.
+        public static final String SYSTEM_ROLES_CONFIG_ELEMENT = "SystemRoles";
+        public static final String SYSTEM_ROLES_ENABLED_CONFIG_ELEMENT = "SystemRoles.Enabled";
+        public static final String ROLE_CONFIG_ELEMENT = "Role";
+        public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
+        public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
+        public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
+    }
 }

@@ -27,7 +27,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -72,6 +74,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.namespace.QName;
+
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_OFFSET;
@@ -88,8 +92,6 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.POSTGRE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ROLE_NAME_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.SYSTEM_ROLES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_SQL;
@@ -1365,27 +1367,37 @@ public class RoleDAOImpl implements RoleDAO {
     @Override
     public Set<String> getSystemRoles() {
 
+        // If the system roles are not enabled in the system no need to continue.
+        if (!IdentityUtil.isSystemRolesEnabled()) {
+            return Collections.emptySet();
+        }
+        Set<String> systemRoles = new HashSet<>();
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        OMElement systemApplicationsConfig = configParser.getConfigElement(SYSTEM_ROLES_CONFIG_ELEMENT);
-        if (systemApplicationsConfig == null) {
+        OMElement systemRolesConfig = configParser
+                .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemRolesConfig == null) {
             if (log.isDebugEnabled()) {
-                log.debug("'" + SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
+                log.debug(
+                        "'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
             }
             return Collections.emptySet();
         }
 
-        Iterator roleIdentifierIterator = systemApplicationsConfig.getChildrenWithLocalName(ROLE_NAME_CONFIG_ELEMENT);
+        Iterator roleIdentifierIterator = systemRolesConfig
+                .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
         if (roleIdentifierIterator == null) {
             if (log.isDebugEnabled()) {
-                log.debug("'" + ROLE_NAME_CONFIG_ELEMENT + "' config cannot be found.");
+                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
             }
             return Collections.emptySet();
         }
 
-        Set<String> systemRoles = new HashSet<>();
         while (roleIdentifierIterator.hasNext()) {
             OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
-            String roleName = roleIdentifierConfig.getText();
+            String roleName = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
             if (StringUtils.isNotBlank(roleName)) {
                 systemRoles.add(roleName.trim());
             }
