@@ -15,8 +15,8 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
  * Cache entry for Service provider as a resource, which is read as resource ID.

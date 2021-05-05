@@ -15,8 +15,8 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
  * Cache entry for basic information for the application.

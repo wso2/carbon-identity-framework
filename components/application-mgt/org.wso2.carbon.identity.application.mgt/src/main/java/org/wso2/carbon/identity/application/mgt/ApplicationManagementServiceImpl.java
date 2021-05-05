@@ -82,7 +82,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -754,14 +753,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
         }
 
-        try {
-            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-                IdentityServiceProviderCache.getInstance().clearCacheEntry(
-                        new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName(), tenantDomain));
-            }
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            IdentityServiceProviderCache.getInstance().clearCacheEntry(
+                    new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName()), tenantDomain);
         }
     }
 
@@ -1508,9 +1502,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         applicationTemplateDAO.createApplicationTemplate(spTemplate, tenantDomain);
 
         // Add application template to cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName(),
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName());
+        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
     }
 
     /**
@@ -1525,9 +1518,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // Get SP template from cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey, tenantDomain);
 
         if (spTemplate == null) {
             // Get SP template from database
@@ -1552,9 +1544,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         applicationTemplateDAO.deleteApplicationTemplate(templateName, tenantDomain);
 
         // Delete SP template from cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey, tenantDomain);
     }
 
     /**
@@ -1575,13 +1566,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Update the template in cache
         if (!templateName.equals(spTemplate.getName())) {
-            ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                    tenantDomain);
-            ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey);
+            ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+            ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey, tenantDomain);
         }
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName(),
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName());
+        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
     }
 
     /**
@@ -1596,9 +1585,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // Check existence in cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey, tenantDomain);
 
         if (spTemplate == null) {
             // Check existence in database
@@ -1688,19 +1676,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.debug(String.format("Template with name: %s is taken from database for tenant: %s ",
                         templateName, tenantDomain));
             }
-            ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+            ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
             return spTemplate;
         }
         return null;
     }
 
-    private SpTemplate getSpTemplateFromCache(ServiceProviderTemplateCacheKey templateCacheKey) {
+    private SpTemplate getSpTemplateFromCache(ServiceProviderTemplateCacheKey templateCacheKey, String tenantDomain) {
 
-        SpTemplate spTemplate = ServiceProviderTemplateCache.getInstance().getValueFromCache(templateCacheKey);
+        SpTemplate spTemplate = ServiceProviderTemplateCache.getInstance()
+                .getValueFromCache(templateCacheKey, tenantDomain);
         if (spTemplate != null) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Template with name: %s is taken from cache of tenant: %s ",
-                        templateCacheKey.getTemplateName(), templateCacheKey.getTenantDomain()));
+                        templateCacheKey.getTemplateName(), tenantDomain));
             }
             return spTemplate;
         }

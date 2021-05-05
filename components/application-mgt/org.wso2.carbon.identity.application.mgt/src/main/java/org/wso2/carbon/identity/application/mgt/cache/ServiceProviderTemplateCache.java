@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * This class is used to cache the service provider template info.
