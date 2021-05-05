@@ -179,7 +179,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
     @Test(dataProvider = "testGetIdPsSearchData")
     public void testGetIdPsSearch(int tenantId,  String tenantDomain, String filter, int resultCount) throws Exception {
-
+        /*
+            Unit Testing for 'getIdPsSearch' method with following parameters
+            getIdPsSearch(Connection dbConnection, int tenantId, String tenantDomain, String filter)
+        */
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -241,6 +244,11 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     public void testGetIdPsSearch1(int tenantId, List<ExpressionNode> expressionNodes,  int limit, int offset,
                                    String sortOrder, String sortBy, int count, String firstIdp) throws Exception {
 
+        /*
+            Unit Testing for 'getIdPsSearch' method with following parameters
+            getIdPsSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset, String sortOrder,
+            String sortBy)
+        */
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -251,11 +259,11 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            List<IdentityProvider> idps1 = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
                     sortOrder, sortBy);
-            assertEquals(idps1.size(), count);
+            assertEquals(idps.size(), count);
             if (count > 0) {
-                assertEquals(idps1.get(0).getIdentityProviderName(), firstIdp);
+                assertEquals(idps.get(0).getIdentityProviderName(), firstIdp);
             }
         }
     }
@@ -283,6 +291,11 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     public void testGetIdPsSearch2(int tenantId, List<ExpressionNode> expressionNodes, int limit, int offset,
                                    String order, String sortBy, List<String> attributes, int count) throws Exception {
 
+        /*
+            Unit Testing for 'getIdPsSearch' method with following parameters
+            getIdPsSearch (int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
+                                         String sortOrder, String sortBy, List<String> requiredAttributes)
+        */
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -293,13 +306,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            List<IdentityProvider> idps1 = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
                     order, sortBy, attributes);
-            assertEquals(idps1.size(), count);
+            assertEquals(idps.size(), count);
         }
 
         try {
-            List<IdentityProvider> idps1 = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
+            List<IdentityProvider> idps = idPManagementDAO.getIdPsSearch(tenantId, expressionNodes, limit, offset,
                     order, sortBy, attributes);
         } catch (IdentityProviderManagementServerException e) {
             assertEquals(e.getErrorCode(), "IDP-65006");
@@ -363,13 +376,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idp1.setFederationHub(true);
         idp1.setCertificate("");
 
-        RoleMapping rm1 = new RoleMapping();
-        rm1.setRemoteRole("Role1");
-        rm1.setLocalRole(new LocalRole("1", "LocalRole1"));
-        RoleMapping rm2 = new RoleMapping();
-        rm2.setRemoteRole("Role2");
-        rm2.setLocalRole(new LocalRole("2", "LocalRole2"));
-
+        RoleMapping rm1 = new RoleMapping (new LocalRole ("1", "LocalRole1"), "Role1");
+        RoleMapping rm2 = new RoleMapping (new LocalRole ("2", "LocalRole2"), "Role2");
         PermissionsAndRoleConfig prc = new PermissionsAndRoleConfig();
         prc.setIdpRoles(new String[]{"Role1", "Role2"});
         prc.setRoleMappings(new RoleMapping[]{rm1, rm2});
@@ -404,16 +412,11 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfig.setLocalClaimDialect(false);
         claimConfig.setRoleClaimURI("Country");
         claimConfig.setUserClaimURI("Country");
-        ClaimMapping cm = new ClaimMapping();
-        Claim localClaim = new Claim();
-        localClaim.setClaimId(0);
-        localClaim.setClaimUri("http://wso2.org/claims/country");
+        ClaimMapping cm = ClaimMapping.build("http://wso2.org/claims/country", "Country", "", true);
+        claimConfig.setClaimMappings(new ClaimMapping[]{cm});
         Claim remoteClaim = new Claim();
         remoteClaim.setClaimId(0);
         remoteClaim.setClaimUri("Country");
-        cm.setLocalClaim(localClaim);
-        cm.setRemoteClaim(remoteClaim);
-        claimConfig.setClaimMappings(new ClaimMapping[]{cm});
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
@@ -544,18 +547,17 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testgetIdPByData()  {
+    public Object[][] testGetIdPByNameData()  {
 
         return new Object[][]{
-                {"testIdP1", 1, SAMPLE_TENANT_ID, true},
-                {"testIdP2", 2, SAMPLE_TENANT_ID, true},
-                {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
-                {"notExist", 4, SAMPLE_TENANT_ID2, false},
+                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP3", SAMPLE_TENANT_ID2, true},
+                {"notExist", SAMPLE_TENANT_ID, false},
         };
     }
 
-    @Test(dataProvider = "testgetIdPByData")
-    public void testgetIdPBy(String idpName, int idpId,  int tenantId, boolean isExist) throws Exception {
+    @Test(dataProvider = "testGetIdPByNameData")
+    public void testGetIdPByName(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
@@ -568,54 +570,125 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             addTestIdps(idPManagementDAO);
 
             //getIdPByName
-            IdentityProvider idpResult1 = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
+            IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             if (isExist) {
-                assertEquals(idpResult1.getIdentityProviderName(), idpName, "'getIdPByName' method fails");
+                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIdPByName' method fails");
             } else {
-                assertNull(idpResult1, "'getIdPByName' method fails");
-            }
-
-            //getIDPbyId
-            IdentityProvider idpResult2 = idPManagementDAO.getIDPbyId(connection, idpId, tenantId, TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult2.getIdentityProviderName(), idpName, "'getIDPbyId' method fails");
-            } else {
-                assertNull(idpResult2, "'getIDPbyId' method fails");
-            }
-
-            //getIDPbyResourceId
-            String uuid = "";
-            if (isExist) {
-                uuid = idpResult1.getResourceId();
-            }
-            IdentityProvider idpResult3 = idPManagementDAO.getIDPbyResourceId(connection, uuid, tenantId,
-                    TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult3.getIdentityProviderName(), idpName, "'getIDPbyResourceId' method fails");
-            } else {
-                assertNull(idpResult3, "'getIDPbyResourceId' method fails");
-            }
-
-            //getIDPbyRealmId
-            String realmId;
-            if (isExist) {
-                realmId = idpResult1.getHomeRealmId();
-            } else {
-                realmId = "";
-            }
-            IdentityProvider idpResult4 = idPManagementDAO.getIdPByRealmId(realmId,  tenantId, TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult4.getIdentityProviderName(), idpName, "'getIDPbyRealmId' method fails");
-            } else {
-                assertNull(idpResult4, "'getIDPbyRealmId' method fails");
+                assertNull(idpResult, "'getIdPByName' method fails");
             }
         }
     }
 
 
+    @DataProvider
+    public Object[][] testGetIdPByIdData()  {
 
-    @Test(dataProvider = "testgetIdPByData")
-    public void testIDPNameByResourceId(String idpName, int idpId, int tenantId, boolean isExist) throws Exception {
+        return new Object[][]{
+                {"testIdP1", 1, SAMPLE_TENANT_ID, true},
+                {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
+                {"notExist", 4, SAMPLE_TENANT_ID, false},
+        };
+    }
+
+    @Test(dataProvider = "testGetIdPByIdData")
+    public void testGetIdPById(String idpName, int idpId,  int tenantId, boolean isExist) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            addTestIdps(idPManagementDAO);
+
+            //getIDPbyId
+            IdentityProvider idpResult = idPManagementDAO.getIDPbyId(connection, idpId, tenantId, TENANT_DOMAIN);
+            if (isExist) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyId' method fails");
+            } else {
+                assertNull(idpResult, "'getIDPbyId' method fails");
+            }
+        }
+    }
+
+
+    @DataProvider
+    public Object[][] testGetIDPbyResourceIdData()  {
+
+        return new Object[][]{
+                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP3", SAMPLE_TENANT_ID2, true},
+                {"notExist", SAMPLE_TENANT_ID, false},
+        };
+    }
+
+    @Test(dataProvider = "testGetIDPbyResourceIdData")
+    public void testGetIDPbyResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            addTestIdps(idPManagementDAO);
+
+            //getIDPbyResourceId
+            String uuid = "";
+            if (isExist) {
+                IdentityProvider result = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
+                uuid = result.getResourceId();
+            }
+            IdentityProvider idpResult = idPManagementDAO.getIDPbyResourceId(connection, uuid, tenantId,
+                    TENANT_DOMAIN);
+            if (isExist) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyResourceId' method fails");
+            } else {
+                assertNull(idpResult, "'getIDPbyResourceId' method fails");
+            }
+        }
+    }
+
+
+    @DataProvider
+    public Object[][] testGetIdPByRealmIdData()  {
+
+        return new Object[][]{
+                {"testIdP1", "1", SAMPLE_TENANT_ID, true},
+                {"testIdP2", "2", SAMPLE_TENANT_ID, true},
+                {"notExist", "4", SAMPLE_TENANT_ID2, false},
+        };
+    }
+
+    @Test(dataProvider = "testGetIdPByRealmIdData")
+    public void testGetIdPByRealmId(String idpName, String realmId,  int tenantId, boolean isExist) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            addTestIdps(idPManagementDAO);
+
+            IdentityProvider idpResult = idPManagementDAO.getIdPByRealmId(realmId,  tenantId, TENANT_DOMAIN);
+            if (isExist) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyRealmId' method fails");
+            } else {
+                assertNull(idpResult, "'getIDPbyRealmId' method fails");
+            }
+        }
+    }
+
+
+    @Test(dataProvider = "testGetIdPByNameData")
+    public void testGetIDPNameByResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
@@ -676,17 +749,24 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testgetIdPByAuthConfData()  {
+    public Object[][] testGetIdPByAuthenticatorPropertyValueData()  {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", "Name" },
-                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", "Name" },
+                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", "Name", true },
+                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", "Name", true },
+                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", "Null", false },
         };
     }
 
-    @Test(dataProvider = "testgetIdPByAuthConfData")
-    public void testgetIdPByAuthConf(int tenantId, String idpName,  String property, String value, String authenticator)
-            throws Exception {
+    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData")
+    public void testGetIdPByAuthenticatorPropertyValue(int tenantId, String idpName,  String property, String value,
+                                                       String authenticator, boolean isExist) throws Exception {
+
+        /*
+            Unit Testing for 'getIdPByAuthenticatorPropertyValue' method with following parameters
+            getIdPByAuthenticatorPropertyValue(Connection dbConnection, String property, String value,
+             String authenticator, int tenantId, String tenantDomain)
+        */
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
@@ -698,14 +778,56 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            IdentityProvider idpResult1 = idPManagementDAO.getIdPByAuthenticatorPropertyValue (connection, property,
-                    value, authenticator, tenantId, TENANT_DOMAIN);
-            assertEquals(idpResult1.getIdentityProviderName(), idpName);
+            IdentityProvider idpResult = idPManagementDAO.getIdPByAuthenticatorPropertyValue(connection, property,
+                        value, authenticator, tenantId, TENANT_DOMAIN);
+            if (isExist) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName);
+            } else {
+                assertNull(idpResult);
+            }
 
-            IdentityProvider idpResult2 = idPManagementDAO.getIdPByAuthenticatorPropertyValue (connection, property,
+        }
+    }
+
+
+    @DataProvider
+    public Object[][] testGetIdPByAuthenticatorPropertyValueData1() {
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", true },
+                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", true },
+                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", false },
+        };
+    }
+
+    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData1")
+    public void testGetIdPByAuthenticatorPropertyValue1 (int tenantId, String idpName,  String property, String value,
+                                                         boolean isExist) throws Exception {
+
+        /*
+            Unit Testing for 'getIdPByAuthenticatorPropertyValue' method with following parameters
+            getIdPByAuthenticatorPropertyValue(Connection dbConnection, String property, String value,
+            int tenantId, String tenantDomain)
+        */
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            addTestIdps(idPManagementDAO);
+
+            IdentityProvider idpResult = idPManagementDAO.getIdPByAuthenticatorPropertyValue (connection, property,
                     value, tenantId, TENANT_DOMAIN);
-            assertEquals(idpResult2.getIdentityProviderName(), idpName);
 
+            if (isExist) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName);
+            } else {
+                assertNull(idpResult);
+            }
         }
     }
 
@@ -798,15 +920,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfigNew.setLocalClaimDialect(false);
         claimConfigNew.setRoleClaimURI("Country");
         claimConfigNew.setUserClaimURI("Country");
-        ClaimMapping cm = new ClaimMapping();
-        Claim localClaim = new Claim();
-        localClaim.setClaimId(0);
-        localClaim.setClaimUri("http://wso2.org/claims/country");
+        ClaimMapping cm = ClaimMapping.build("http://wso2.org/claims/country", "Country", "", true);
         Claim remoteClaim = new Claim();
         remoteClaim.setClaimId(0);
         remoteClaim.setClaimUri("Country");
-        cm.setLocalClaim(localClaim);
-        cm.setRemoteClaim(remoteClaim);
         claimConfigNew.setClaimMappings(new ClaimMapping[]{cm});
         claimConfigNew.setIdpClaims(new Claim[]{remoteClaim});
         idp1New.setClaimConfig(claimConfigNew);
@@ -840,18 +957,29 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
             when(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
+
             addTestIdps(idPManagementDAO);
             idPManagementDAO.updateIdP((IdentityProvider) newIdp, ((IdentityProvider) oldIdp), tenantId);
 
-            IdentityProvider idpResult1 = idPManagementDAO.getIdPByName(connection,
-                    ((IdentityProvider) newIdp).getIdentityProviderName(), tenantId, TENANT_DOMAIN);
-            assertEquals(idpResult1.getIdentityProviderName(), ((IdentityProvider) newIdp).getIdentityProviderName());
+            String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
+            IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, newIdpName, tenantId, TENANT_DOMAIN);
+            assertEquals(idpResult.getIdentityProviderName(), newIdpName);
         }
     }
 
 
-    @Test(dataProvider = "testAddIdPData")
-    public void testDeleteIdP(Object identityProvider, int tenantId) throws Exception {
+    @DataProvider
+    public Object[][] testDeleteIdPData() {
+
+        return new Object[][]{
+                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP3", SAMPLE_TENANT_ID2, true},
+                {"notExist", SAMPLE_TENANT_ID, false},
+        };
+    }
+
+    @Test(dataProvider = "testDeleteIdPData")
+    public void testDeleteIdP(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
@@ -861,46 +989,59 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            addTestIdps(idPManagementDAO);
 
-            //delete IdP
-            idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId);
-            String idpName = ((IdentityProvider) identityProvider).getIdentityProviderName();
-            idPManagementDAO.deleteIdP(idpName, tenantId, TENANT_DOMAIN);
-
-            int resultSize = getIdPCount(connection, idpName, tenantId);
-            assertEquals(resultSize, 0, "'deleteIdP' method fails");
-
-            try {
+            if (isExist) {
                 idPManagementDAO.deleteIdP(idpName, tenantId, TENANT_DOMAIN);
-            } catch (IdentityProviderManagementException e) {
-                assertEquals(e.getMessage(), String.format("Trying to delete non-existent Identity Provider: %s in " +
-                        "tenantDomain: %s", idpName, TENANT_DOMAIN), "'deleteIdP' method fails");
+                int resultSize = getIdPCount(connection, idpName, tenantId);
+                assertEquals(resultSize, 0, "'deleteIdP' method fails");
+            } else {
+                try {
+                    idPManagementDAO.deleteIdP(idpName, tenantId, TENANT_DOMAIN);
+                } catch (IdentityProviderManagementException e) {
+                    assertEquals(e.getMessage(), String.format("Trying to delete non-existent Identity Provider: %s " +
+                            "in tenantDomain: %s", idpName, TENANT_DOMAIN), "'deleteIdP' method fails");
+                }
             }
+        }
+    }
 
+
+    @Test(dataProvider = "testDeleteIdPData")
+    public void testDeleteIdPByResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            addTestIdps(idPManagementDAO);
 
             //delete IdPByResourceID
-            idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId);
-            idpName = ((IdentityProvider) identityProvider).getIdentityProviderName();
-            String uuid = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN).getResourceId();
-            idPManagementDAO.deleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
-
-            resultSize = getIdPCount(connection, idpName, tenantId);
-            assertEquals(resultSize, 0, "'deleteIdPByResourceId' method fails");
-
-            try {
+            String uuid = "";
+            if (isExist) {
+                uuid = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN).getResourceId();
                 idPManagementDAO.deleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
-            } catch (IdentityProviderManagementException e) {
-                assertEquals(e.getMessage(), String.format("Trying to delete non-existent Identity Provider with " +
-                        "resource ID: %s in tenantDomain: %s", uuid, TENANT_DOMAIN),
-                        "'deleteIdPByResourceId' method fails");
+                int resultSize = getIdPCount(connection, idpName, tenantId);
+                assertEquals(resultSize, 0, "'deleteIdPByResourceId' method fails");
+            } else {
+                try {
+                    idPManagementDAO.deleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
+                } catch (IdentityProviderManagementException e) {
+                    assertEquals(e.getMessage(), String.format("Trying to delete non-existent Identity Provider with " +
+                                    "resource ID: %s in tenantDomain: %s", uuid, TENANT_DOMAIN),
+                            "'deleteIdPByResourceId' method fails");
+                }
             }
-
         }
     }
 
 
-    @Test(dataProvider = "testAddIdPData")
-    public void testForceDeleteIdP(Object identityProvider, int tenantId) throws Exception {
+    @Test(dataProvider = "testDeleteIdPData")
+    public void testForceDeleteIdP(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityTenantUtil.class);
@@ -910,41 +1051,55 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-
+            addTestIdps(idPManagementDAO);
 
             //forceDeleteIdP
-            idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId);
-            String idpName = ((IdentityProvider) identityProvider).getIdentityProviderName();
-            idPManagementDAO.forceDeleteIdP(idpName , tenantId, TENANT_DOMAIN);
-
-            int resultSize = getIdPCount(connection, idpName, tenantId);
-            assertEquals(resultSize, 0, "'forceDeleteIdP' method fails");
-
-            try {
-                idPManagementDAO.forceDeleteIdP(idpName , tenantId, TENANT_DOMAIN);
-            } catch (IdentityProviderManagementException e) {
-                assertEquals(e.getMessage(), String.format("Trying to force delete non-existent Identity Provider: " +
-                        "%s in tenantDomain: %s", idpName, TENANT_DOMAIN), "'forceDeleteIdP' method fails");
+            if (isExist) {
+                idPManagementDAO.forceDeleteIdP(idpName, tenantId, TENANT_DOMAIN);
+                int resultSize = getIdPCount(connection, idpName, tenantId);
+                assertEquals(resultSize, 0, "'forceDeleteIdP' method fails");
+            } else {
+                try {
+                    idPManagementDAO.forceDeleteIdP(idpName, tenantId, TENANT_DOMAIN);
+                } catch (IdentityProviderManagementException e) {
+                    assertEquals(e.getMessage(), String.format("Trying to force delete non-existent Identity " +
+                            "Provider: %s in tenantDomain: %s", idpName, TENANT_DOMAIN),
+                            "'forceDeleteIdP' method fails");
+                }
             }
+        }
+    }
 
+
+    @Test(dataProvider = "testDeleteIdPData")
+    public void testForceDeleteIdPByResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+        IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+            addTestIdps(idPManagementDAO);
 
             //forceDeleteIdPByResourceId
-            idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId);
-            idpName = ((IdentityProvider) identityProvider).getIdentityProviderName();
-            String uuid = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN).getResourceId();
-            idPManagementDAO.forceDeleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
-
-            resultSize = getIdPCount(connection, idpName, tenantId);
-            assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
-
-            try {
+            String uuid = "";
+            if (isExist) {
+                uuid = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN).getResourceId();
                 idPManagementDAO.forceDeleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
-            } catch (IdentityProviderManagementException e) {
-                assertEquals(e.getMessage(), String.format("Trying to force delete non-existent Identity Provider " +
-                        "with resource ID: %s in tenantDomain: %s", uuid, TENANT_DOMAIN),
-                        "'forceDeleteIdPByResourceId' method fails");
+                int resultSize = getIdPCount(connection, idpName, tenantId);
+                assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
+            } else {
+                try {
+                    idPManagementDAO.forceDeleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
+                } catch (IdentityProviderManagementException e) {
+                    assertEquals(e.getMessage(), String.format("Trying to force delete non-existent Identity " +
+                                    "Provider with resource ID: %s in tenantDomain: %s", uuid, TENANT_DOMAIN),
+                            "'forceDeleteIdPByResourceId' method fails");
+                }
             }
-
         }
     }
 
@@ -1284,15 +1439,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfig.setLocalClaimDialect(false);
         claimConfig.setRoleClaimURI("Country");
         claimConfig.setUserClaimURI("Country");
-        ClaimMapping cm = new ClaimMapping();
-        Claim localClaim = new Claim();
-        localClaim.setClaimId(0);
-        localClaim.setClaimUri("http://wso2.org/claims/country");
+        ClaimMapping cm = ClaimMapping.build("http://wso2.org/claims/country", "Country", "", true);
         Claim remoteClaim = new Claim();
         remoteClaim.setClaimId(0);
         remoteClaim.setClaimUri("Country");
-        cm.setLocalClaim(localClaim);
-        cm.setRemoteClaim(remoteClaim);
         claimConfig.setClaimMappings(new ClaimMapping[]{cm});
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
@@ -1320,7 +1470,6 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         IdentityProvider idp3 = new IdentityProvider();
         idp3.setIdentityProviderName("testIdP3");
         idp3.setHomeRealmId("3");
-        idp3.setEnable(false);
 
         idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID);
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
