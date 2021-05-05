@@ -25,13 +25,13 @@ import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
 import javax.cache.CacheConfiguration;
@@ -182,6 +182,19 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     }
 
     /**
+     * Add a cache entry. If TenantQualifiedUrls enabled, add to the cache of tenant from Context
+     * else add to the cache of tenant from LocalCarbonContext.
+     *
+     * @param key   Key which cache entry is indexed.
+     * @param entry Actual object where cache entry is placed.
+     */
+    public void addToCache(K key, V entry) {
+
+        addToCache(key, entry, getTenantDomainFromContext());
+    }
+
+
+    /**
      * Retrieves a cache entry.
      *
      * @param key CacheKey
@@ -240,6 +253,18 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     }
 
     /**
+     * Retrieves a cache entry. If TenantQualifiedUrls enabled, retrieve from the cache of tenant from Context
+     * else retrieve from the cache of tenant from LocalCarbonContext.
+     *
+     * @param key CacheKey
+     * @return Cached entry.
+     */
+    public V getValueFromCache(K key) {
+
+        return getValueFromCache(key, getTenantDomainFromContext());
+    }
+
+    /**
      * Clears a cache entry.
      *
      * @param key Key to clear cache.
@@ -283,6 +308,17 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    /**
+     * Clears a cache entry. If TenantQualifiedUrls enabled, clears from the cache of tenant from Context
+     * else clear from the cache of tenant from LocalCarbonContext.
+     *
+     * @param key CacheKey
+     */
+    public void clearCacheEntry(K key) {
+
+        clearCacheEntry(key, getTenantDomainFromContext());
     }
 
     /**
@@ -370,5 +406,14 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
 
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
+    }
+
+    private static String getTenantDomainFromContext() {
+
+        // We use the tenant domain set in context only in tenant qualified URL mode.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return IdentityTenantUtil.getTenantDomainFromContext();
+        }
+        return CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 }
