@@ -18,13 +18,12 @@
 
 package org.wso2.carbon.identity.provisioning.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 
 public class ProvisioningEntityCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -1414485745666304223L;
-
     private String identityProviderName;
     private String connectorType;
     private ProvisioningEntity provisioningEntity;
@@ -35,11 +34,10 @@ public class ProvisioningEntityCacheKey extends CacheKey {
      * @param provisioningEntity
      */
     public ProvisioningEntityCacheKey(String identityProviderName, String connectorType,
-                                      ProvisioningEntity provisioningEntity, String tenantDomain) {
+                                      ProvisioningEntity provisioningEntity) {
         this.identityProviderName = identityProviderName;
         this.connectorType = connectorType;
         this.provisioningEntity = provisioningEntity;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**
