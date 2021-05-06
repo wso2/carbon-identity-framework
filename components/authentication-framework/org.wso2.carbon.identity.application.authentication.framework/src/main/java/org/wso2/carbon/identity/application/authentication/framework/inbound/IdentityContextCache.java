@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationBaseCache;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-public class IdentityContextCache extends BaseCache<String, IdentityMessageContext> {
+public class IdentityContextCache extends AuthenticationBaseCache<String, IdentityMessageContext> {
 
     private static final String INBOUND_CONTEXT_CACHE_NAME = "InboundContextCache";
     private static volatile IdentityContextCache instance;

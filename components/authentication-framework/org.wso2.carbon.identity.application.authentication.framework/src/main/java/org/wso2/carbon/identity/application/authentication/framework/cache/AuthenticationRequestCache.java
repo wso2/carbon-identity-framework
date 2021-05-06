@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -30,7 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  * authentication framework
  */
 public class AuthenticationRequestCache extends
-        BaseCache<AuthenticationRequestCacheKey, AuthenticationRequestCacheEntry> {
+        AuthenticationBaseCache<AuthenticationRequestCacheKey, AuthenticationRequestCacheEntry> {
 
     private static Log log = LogFactory.getLog(AuthenticationRequestCache.class);
     private static final String AUTHENTICATION_REQUEST_CACHE_NAME = "AuthenticationRequestCache";

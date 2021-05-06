@@ -20,11 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.cache.BaseCache;
 
-import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-
-public class LongWaitResultCache extends BaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
+public class LongWaitResultCache extends AuthenticationBaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
 
     private static final String LONG_WAIT_RESULT_CACHE_NAME = "LongWaitResultCache";
     private static final Log log = LogFactory.getLog(LongWaitResultCache.class);
@@ -44,18 +41,18 @@ public class LongWaitResultCache extends BaseCache<LongWaitResultCacheKey, LongW
     @Override
     public void addToCache(LongWaitResultCacheKey key, LongWaitResultCacheEntry entry) {
 
-        super.addToCache(key, entry, SUPER_TENANT_DOMAIN_NAME);
+        super.addToCache(key, entry);
     }
 
     @Override
     public LongWaitResultCacheEntry getValueFromCache(LongWaitResultCacheKey key) {
 
-        return super.getValueFromCache(key, SUPER_TENANT_DOMAIN_NAME);
+        return super.getValueFromCache(key);
     }
 
     @Override
     public void clearCacheEntry(LongWaitResultCacheKey key) {
 
-        super.clearCacheEntry(key, SUPER_TENANT_DOMAIN_NAME);
+        super.clearCacheEntry(key);
     }
 }

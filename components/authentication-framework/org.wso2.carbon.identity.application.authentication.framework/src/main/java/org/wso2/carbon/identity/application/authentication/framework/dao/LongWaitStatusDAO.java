@@ -31,5 +31,4 @@ public interface LongWaitStatusDAO {
     void removeWaitStatus(String waitKey) throws FrameworkException;
 
     LongWaitStatus getWaitStatus(String waitKey) throws FrameworkException;
-
 }

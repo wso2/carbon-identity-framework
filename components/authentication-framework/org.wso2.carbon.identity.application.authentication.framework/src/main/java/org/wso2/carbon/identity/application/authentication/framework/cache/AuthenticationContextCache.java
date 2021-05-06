@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -28,7 +27,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  * authentication request sent from a servlet.
  */
 public class AuthenticationContextCache extends
-        BaseCache<AuthenticationContextCacheKey, AuthenticationContextCacheEntry> {
+        AuthenticationBaseCache<AuthenticationContextCacheKey, AuthenticationContextCacheEntry> {
 
     private static final String AUTHENTICATION_CONTEXT_CACHE_NAME = "AuthenticationContextCache";
     private static final Log log = LogFactory.getLog(AuthenticationContextCache.class);
