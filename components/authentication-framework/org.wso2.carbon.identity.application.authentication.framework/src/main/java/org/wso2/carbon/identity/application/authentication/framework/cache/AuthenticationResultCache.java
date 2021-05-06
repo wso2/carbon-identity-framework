@@ -20,10 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.core.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -75,16 +72,16 @@ public class AuthenticationResultCache extends
      */
     public void addToCache(AuthenticationResultCacheKey key, AuthenticationResultCacheEntry entry) {
         super.addToCache(key, entry);
-        if (isTemporarySessionDataPersistEnabled) {
-            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            if (entry.getResult() != null && entry.getResult().getSubject() != null) {
-                String tenantDomain = entry.getResult().getSubject().getTenantDomain();
-                if (tenantDomain != null) {
-                    tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-                }
-            }
-            SessionDataStore.getInstance().storeSessionData(key.getResultId(), CACHE_NAME, entry, tenantId);
-        }
+//        if (isTemporarySessionDataPersistEnabled) {
+//            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+//            if (entry.getResult() != null && entry.getResult().getSubject() != null) {
+//                String tenantDomain = entry.getResult().getSubject().getTenantDomain();
+//                if (tenantDomain != null) {
+//                    tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+//                }
+//            }
+//            SessionDataStore.getInstance().storeSessionData(key.getResultId(), CACHE_NAME, entry, tenantId);
+//        }
     }
 
     /**
@@ -95,10 +92,10 @@ public class AuthenticationResultCache extends
      */
     public AuthenticationResultCacheEntry getValueFromCache(AuthenticationResultCacheKey key) {
         AuthenticationResultCacheEntry entry = super.getValueFromCache(key);
-        if (entry == null && isTemporarySessionDataPersistEnabled) {
-            entry = (AuthenticationResultCacheEntry) SessionDataStore.getInstance().
-                    getSessionData(key.getResultId(), CACHE_NAME);
-        }
+//        if (entry == null && isTemporarySessionDataPersistEnabled) {
+//            entry = (AuthenticationResultCacheEntry) SessionDataStore.getInstance().
+//                    getSessionData(key.getResultId(), CACHE_NAME);
+//        }
         return entry;
     }
 
@@ -109,8 +106,8 @@ public class AuthenticationResultCache extends
      */
     public void clearCacheEntry(AuthenticationResultCacheKey key) {
         super.clearCacheEntry(key);
-        if (isTemporarySessionDataPersistEnabled) {
-            SessionDataStore.getInstance().clearSessionData(key.getResultId(), CACHE_NAME);
-        }
+//        if (isTemporarySessionDataPersistEnabled) {
+//            SessionDataStore.getInstance().clearSessionData(key.getResultId(), CACHE_NAME);
+//        }
     }
 }

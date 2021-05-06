@@ -41,7 +41,7 @@ public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
 
         if (waitKey != null) {
             // Add to database.
-            waitStatusDAO.addWaitStatus(tenantId, waitKey, status, createdTime, expireTime);
+//            waitStatusDAO.addWaitStatus(tenantId, waitKey, status, createdTime, expireTime);
 
             // Add to cache.
             LongWaitResultCacheKey cacheKey = new LongWaitResultCacheKey(waitKey);
@@ -52,7 +52,7 @@ public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
 
     public void removeWaitStatus(String waitKey) throws FrameworkException {
 
-        waitStatusDAO.removeWaitStatus(waitKey);
+//        waitStatusDAO.removeWaitStatus(waitKey);
 
         // Add status as completed.
         LongWaitResultCacheKey cacheKey = new LongWaitResultCacheKey(waitKey);
@@ -72,7 +72,7 @@ public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
             status = valueFromCache.getWaitStatus();
         }
         if (status == null) {
-            status = waitStatusDAO.getWaitStatus(waitKey);
+//            status = waitStatusDAO.getWaitStatus(waitKey);
 
             LongWaitResultCacheKey cacheKey = new LongWaitResultCacheKey(waitKey);
             LongWaitResultCacheEntry cacheEntry = new LongWaitResultCacheEntry(status);

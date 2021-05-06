@@ -21,12 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
-import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
@@ -61,15 +57,15 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
         entry.setAccessedTime();
         super.addToCache(key, entry);
-        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authUser != null && authUser instanceof AuthenticatedUser) {
-            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            SessionDataStore.getInstance()
-                    .storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
-        } else {
-            SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
-        }
+//        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+//        if (authUser != null && authUser instanceof AuthenticatedUser) {
+//            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
+//            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+//            SessionDataStore.getInstance()
+//                    .storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
+//        } else {
+//            SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
+//        }
     }
 
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
@@ -112,14 +108,14 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
      */
     private SessionContextCacheEntry getSessionFromDB(SessionContextCacheKey key) {
 
-        SessionContextCacheEntry cacheEntry = null;
-        SessionContextDO sessionContextDO = SessionDataStore.getInstance().
-                getSessionContextData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
+//        SessionContextCacheEntry cacheEntry = null;
+//        SessionContextDO sessionContextDO = SessionDataStore.getInstance().
+//                getSessionContextData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
 
-        if (sessionContextDO != null) {
-            cacheEntry = new SessionContextCacheEntry(sessionContextDO);
-        }
-        return cacheEntry;
+//        if (sessionContextDO != null) {
+//            cacheEntry = new SessionContextCacheEntry(sessionContextDO);
+//        }
+        return null;
     }
 
     /**
@@ -179,7 +175,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             log.debug("Clear session context corresponding to the key : " + key.getContextId());
         }
         super.clearCacheEntry(key);
-        SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
+//        SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
     public void clearCacheEntry(String sessionContextKey) {
@@ -189,8 +185,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
         SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
         super.clearCacheEntry(sessionContextCacheKey);
-        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
-                SESSION_CONTEXT_CACHE_NAME);
+//        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
+//                SESSION_CONTEXT_CACHE_NAME);
 
     }
 
