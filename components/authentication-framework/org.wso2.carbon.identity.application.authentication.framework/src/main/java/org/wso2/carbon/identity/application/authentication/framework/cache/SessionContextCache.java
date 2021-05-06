@@ -25,13 +25,12 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
-public class SessionContextCache extends BaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
+public class SessionContextCache extends AuthenticationBaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";
     private static final Log log = LogFactory.getLog(SessionContextCache.class);
