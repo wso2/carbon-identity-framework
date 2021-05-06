@@ -149,7 +149,7 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
             log.debug("Adding CORS origins to Cache with Key: " + tenantId);
         }
 
-        CORSOriginCache.getInstance().addToCache(cacheKey, cacheEntry);
+        CORSOriginCache.getInstance().addToCache(cacheKey, cacheEntry, tenantId);
     }
 
     /**
@@ -161,14 +161,14 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
      */
     private void addCORSOriginsToCache(CORSOrigin[] corsOrigins, int applicationId, int tenantId) {
 
-        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId, tenantId);
+        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId);
         CORSOriginByAppIdCacheEntry cacheEntry = new CORSOriginByAppIdCacheEntry(corsOrigins);
         if (log.isDebugEnabled()) {
             log.debug("Adding CORS origins to Cache for application id: " + applicationId +
                     ", tenant id: " + tenantId);
         }
 
-        CORSOriginByAppIdCache.getInstance().addToCache(cacheKey, cacheEntry);
+        CORSOriginByAppIdCache.getInstance().addToCache(cacheKey, cacheEntry, tenantId);
     }
 
     /**
@@ -182,7 +182,7 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
 
         CORSOriginCacheKey cacheKey = new CORSOriginCacheKey(tenantId);
         CORSOriginCache cache = CORSOriginCache.getInstance();
-        CORSOriginCacheEntry cacheEntry = cache.getValueFromCache(cacheKey);
+        CORSOriginCacheEntry cacheEntry = cache.getValueFromCache(cacheKey, tenantId);
 
         if (cacheEntry != null && cacheEntry.getValidatedOrigins() != null) {
             return cacheEntry.getValidatedOrigins();
@@ -204,9 +204,9 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
      */
     private CORSOrigin[] getCORSOriginsFromCache(int applicationId, int tenantId) {
 
-        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId, tenantId);
+        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId);
         CORSOriginByAppIdCache cache = CORSOriginByAppIdCache.getInstance();
-        CORSOriginByAppIdCacheEntry cacheEntry = cache.getValueFromCache(cacheKey);
+        CORSOriginByAppIdCacheEntry cacheEntry = cache.getValueFromCache(cacheKey, tenantId);
 
         if (cacheEntry != null && cacheEntry.getValidatedOrigins() != null) {
             return cacheEntry.getValidatedOrigins();
@@ -227,8 +227,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     private void clearCaches(int applicationId, int tenantId) {
 
         // Remove cache entry for the application.
-        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId, tenantId);
-        CORSOriginByAppIdCache.getInstance().clearCacheEntry(cacheKey);
+        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId);
+        CORSOriginByAppIdCache.getInstance().clearCacheEntry(cacheKey, tenantId);
 
         // Remove cache entry for the tenant.
         clearCaches(tenantId);
@@ -242,6 +242,6 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     private void clearCaches(int tenantId) {
 
         CORSOriginCacheKey cacheKey = new CORSOriginCacheKey(tenantId);
-        CORSOriginCache.getInstance().clearCacheEntry(cacheKey);
+        CORSOriginCache.getInstance().clearCacheEntry(cacheKey, tenantId);
     }
 }
