@@ -17,19 +17,17 @@
  */
 package org.wso2.carbon.idp.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 public class IdPAuthPropertyCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 5800275605577468290L;
-
     private String name;
     private String value;
 
-    public IdPAuthPropertyCacheKey(String name, String value, String tenantDomain) {
+    public IdPAuthPropertyCacheKey(String name, String value) {
         this.name = name;
         this.value = value;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     public String getName() {
@@ -57,14 +55,7 @@ public class IdPAuthPropertyCacheKey extends CacheKey {
         if (!name.equals(that.name)) {
             return false;
         }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
-        if (!value.equals(that.value)) {
-            return false;
-        }
-
-        return true;
+        return value.equals(that.value);
     }
 
     @Override
@@ -72,7 +63,6 @@ public class IdPAuthPropertyCacheKey extends CacheKey {
         int result = super.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + value.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }
