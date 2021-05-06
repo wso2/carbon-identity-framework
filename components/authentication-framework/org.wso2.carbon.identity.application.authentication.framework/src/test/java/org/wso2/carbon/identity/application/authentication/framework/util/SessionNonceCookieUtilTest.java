@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import com.google.gson.JsonObject;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -33,11 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
