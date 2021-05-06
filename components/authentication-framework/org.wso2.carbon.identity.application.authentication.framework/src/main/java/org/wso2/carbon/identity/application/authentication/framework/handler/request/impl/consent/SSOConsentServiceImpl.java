@@ -837,17 +837,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private String buildSubjectWithUserStoreDomain(AuthenticatedUser authenticatedUser) {
 
         String userStoreDomain;
-        String subject;
-        //TODO check the usage of this.
         if (authenticatedUser.isFederatedUser()) {
             userStoreDomain = getFederatedUserDomain(authenticatedUser.getFederatedIdPName());
-            subject = authenticatedUser.getAuthenticatedSubjectIdentifier();
         } else {
             userStoreDomain = authenticatedUser.getUserStoreDomain();
-            subject = authenticatedUser.getUserName();
         }
 
-        return UserCoreUtil.addDomainToName(subject, userStoreDomain);
+        return UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), userStoreDomain);
     }
 
     private String getFederatedUserDomain(String authenticatedIDP) {

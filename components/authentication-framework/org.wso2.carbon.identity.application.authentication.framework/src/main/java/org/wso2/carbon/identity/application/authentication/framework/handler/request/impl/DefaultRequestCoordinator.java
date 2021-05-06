@@ -911,7 +911,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     getTenantUserRealm(tenantId);
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)userRealm.getUserStoreManager();
 
-            //TODO Do we need this check?
             if (userStoreManager.isExistingUserWithID(user.getUserId())) {
                 return !(isUserDisabled(userStoreManager, user) ||
                         isUserLocked(userStoreManager, user));

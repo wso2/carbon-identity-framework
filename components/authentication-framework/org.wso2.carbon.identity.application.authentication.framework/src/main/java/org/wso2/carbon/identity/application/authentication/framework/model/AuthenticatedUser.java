@@ -91,8 +91,7 @@ public class AuthenticatedUser extends User {
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
         this.userId = user.getUserID();
-        // TODO is this the correct attribute?
-        this.userName = user.getPreferredUsername();
+        this.userName = user.getUsername();
         this.tenantDomain = user.getTenantDomain();
         this.userStoreDomain = user.getUserStoreDomain();
         this.isFederatedUser = false;
@@ -102,7 +101,6 @@ public class AuthenticatedUser extends User {
             }
         }
 
-        //TODO is this correct?
         this.authenticatedSubjectIdentifier = this.toFullQualifiedUsername();
     }
 
@@ -154,17 +152,23 @@ public class AuthenticatedUser extends User {
         authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
 
-        //TODO generate the ID from here for backward compatibility.
+        String userId = resolveUserId(authenticatedUser);
+        authenticatedUser.setUserId(userId);
+
+        return authenticatedUser;
+    }
+
+    private static String resolveUserId(AuthenticatedUser authenticatedUser) {
+
+        String userId = null;
         try {
             int tenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
-            String userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
+            userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                     authenticatedUser.getUserStoreDomain(), authenticatedUser.getUserName());
-            authenticatedUser.setUserId(userId);
         } catch (UserSessionException e) {
             log.error("Error while resolving the user id from username");
         }
-
-        return authenticatedUser;
+        return userId;
     }
 
     /**
@@ -192,57 +196,6 @@ public class AuthenticatedUser extends User {
     }
 
     /**
-     * Returns an AuthenticatedUser instance populated from the given subject identifier string.
-     * It is assumed that this user is authenticated from a federated authenticator.
-     *
-     * @param authenticatedSubjectIdentifier a string that represents authenticated subject
-     *                                       identifier
-     * @return populated AuthenticatedUser instance
-     */
-    public static AuthenticatedUser createFederateAuthenticatedUserFromSubjectIdentifier(
-            String authenticatedSubjectIdentifier, String tenantDomain, String federatedIdPName) throws UserSessionException {
-
-        if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Failed to create Federated Authenticated User from the given subject " +
-                            "identifier. Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
-        }
-
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
-        authenticatedUser.setFederatedUser(true);
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-
-        int idpId = UserSessionStore.getInstance().getIdPId(federatedIdPName, tenantId);
-        String userId = UserSessionStore.getInstance().getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
-        try {
-            if (userId == null) {
-                userId = UUID.randomUUID().toString();
-                UserSessionStore.getInstance().storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
-            }
-        } catch (DuplicatedAuthUserException e) {
-            // When the authenticated user is already persisted the respective user to session mapping will
-            // be persisted from the same node handling the request.
-            // Thus, persisting the user to session mapping can be gracefully ignored here.
-
-            String msg = "User authenticated is already persisted. Username: " + authenticatedSubjectIdentifier
-                    + " Tenant " + "Domain:" + tenantDomain + " IdP: " + federatedIdPName;
-            log.warn(msg);
-            if (log.isDebugEnabled()) {
-                log.debug(msg, e);
-            }
-        }
-        authenticatedUser.setFederatedIdPName(federatedIdPName);
-        authenticatedUser.setTenantDomain(tenantDomain);
-        authenticatedUser.setUserId(userId);
-        //TODO set username for backward compatibility.
-        authenticatedUser.setUserName(authenticatedSubjectIdentifier);
-
-        return authenticatedUser;
-    }
-
-    /**
      * Returns the authenticated subject identifier.
      * For a locally authenticated user, subject
      * identifier is as below.
@@ -261,6 +214,29 @@ public class AuthenticatedUser extends User {
      */
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier) {
         this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+    }
+
+    @Override
+    public String getUserId() {
+
+        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        if (userId == null) {
+            if (!isFederatedUser()) {
+                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                        ". Since the user is local, trying to resolve it.");
+                if (userName != null && userStoreDomain != null && tenantDomain != null) {
+                    String userId = resolveUserId(this);
+                    setUserId(userId);
+                } else {
+                    log.debug("User id could not be retrieved for user with username: " + userName + " userstore " +
+                            "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
+                }
+            } else {
+                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                        ". Since the user is federated, trying not to resolve it.");
+            }
+        }
+        return super.getUserId();
     }
 
     /**

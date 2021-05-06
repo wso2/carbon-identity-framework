@@ -125,8 +125,16 @@ public class UserSessionStore {
         }
     }
 
-    public void storeUserData(String userId, String userName, int tenantId, int idPId)
-            throws UserSessionException {
+    /**
+     * Method to store user and session mapping for federated users.
+     *
+     * @param userName Name of the authenticated user
+     * @param tenantId Id of the tenant domain
+     * @param idPId    Identity Provider id
+     * @throws UserSessionException if an error occurs when storing the authenticated user details to the database
+     */
+    public void storeUserData(String userId, String userName, int tenantId, int idPId) throws UserSessionException {
+
         storeUserData(userId, userName, tenantId, FEDERATED_USER_DOMAIN, idPId);
     }
 
@@ -173,6 +181,7 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Id of a user from the database.
+     * @deprecated use {@link #getFederatedUserId(String, int, int)} instead.
      *
      * @param userName   Name of the authenticated user
      * @param tenantId   Id of the tenant domain
@@ -180,7 +189,7 @@ public class UserSessionStore {
      * @return the user id of the user
      * @throws UserSessionException if an error occurs when retrieving the user id of the user from the database
      */
-    //TODO: Should be deprecated. User Id should be mapped with the IDP id.
+    @Deprecated
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
@@ -215,7 +224,7 @@ public class UserSessionStore {
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
-    //TODO why do we need this?
+    @Deprecated
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
@@ -282,7 +291,6 @@ public class UserSessionStore {
      * @return          IDP ID.
      * @throws UserSessionException
      */
-    //TODO why this is here?
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
         int idPId = -1;

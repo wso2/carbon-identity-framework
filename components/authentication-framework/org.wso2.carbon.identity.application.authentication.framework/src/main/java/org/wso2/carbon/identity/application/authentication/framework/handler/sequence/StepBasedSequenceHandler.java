@@ -37,6 +37,4 @@ public interface StepBasedSequenceHandler extends SequenceHandler {
      */
     default void callJitProvisioning(String subjectIdentifier, AuthenticationContext context, List<String> mappedRoles,
             Map<String, String> extAttributesValueMap) throws FrameworkException { }
-
-    //TODO do we need to have a method with user object?
 }
