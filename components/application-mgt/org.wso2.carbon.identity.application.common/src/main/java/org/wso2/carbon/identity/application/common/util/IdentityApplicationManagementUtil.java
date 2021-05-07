@@ -83,6 +83,7 @@ public class IdentityApplicationManagementUtil {
     }
 
     private static final Log log = LogFactory.getLog(IdentityApplicationManagementUtil.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider =
             new ThreadLocal<>();
     
@@ -288,16 +289,20 @@ public class IdentityApplicationManagementUtil {
      */
     public static boolean validateURI(String uriString) {
 
+        diagnosticLog.info("Validating URI: " + uriString);
         if (uriString != null) {
             try {
                 URL url = new URL(uriString);
             } catch (MalformedURLException e) {
                 log.debug(e.getMessage(), e);
+                diagnosticLog.error("URI validation failed for: " + uriString + ". Error message: "
+                        + e.getMessage());
                 return false;
             }
         } else {
             String errorMsg = "Invalid URL: \'NULL\'";
             log.debug(errorMsg);
+            diagnosticLog.info(errorMsg);
             return false;
         }
         return true;
@@ -405,6 +410,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static String generateThumbPrint(String encodedCert) throws NoSuchAlgorithmException {
 
+        diagnosticLog.info("Generating thumbprint for the certificate.");
         if (encodedCert != null) {
             MessageDigest digestValue = null;
             digestValue = MessageDigest.getInstance("SHA-1");
@@ -416,6 +422,7 @@ public class IdentityApplicationManagementUtil {
         } else {
             String errorMsg = "Invalid encoded certificate: \'NULL\'";
             log.debug(errorMsg);
+            diagnosticLog.error(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }
     }

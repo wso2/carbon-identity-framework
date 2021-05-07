@@ -68,6 +68,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
@@ -88,6 +89,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
 
+        diagnosticLog.info("In JIT provisioning flow");
         handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain, null);
 
     }
@@ -118,6 +120,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
                             + tenantDomain + ", hence provisioning user to "
                             + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    diagnosticLog.error("User store domain " + userStoreDomainFromSubject + " does not exist for " +
+                            "the tenant " + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
                     userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
                     userStoreManager = getUserStoreManager(realm, userStoreDomain);
                 }
@@ -130,6 +135,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
             }
+            diagnosticLog.info("User: " + username + " with roles : " + roles + " is going to be provisioned");
 
             // If internal roles exists convert internal role domain names to pre defined camel case domain names.
             List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
@@ -140,6 +146,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
+                diagnosticLog.info("User with username: '" + username + "' already exists in userstore: '"
+                        + userStoreDomain + "'");
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
@@ -160,6 +168,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                             " has null value But user has not null claim value for Claim " +
                                             claim.getClaimUri() + ". Hence user claim value will be deleted.");
                                 }
+                                diagnosticLog.info("Claim from external attributes " + claim.getClaimUri() +
+                                        " has null value But user has not null claim value for Claim " +
+                                        claim.getClaimUri() + ". Hence user claim value will be deleted.");
                                 userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
                                         claim.getClaimUri(), null);
                             }
@@ -170,9 +181,16 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
                 if (StringUtils.isEmpty(associatedUserName)) {
                     // Associate User
+                    diagnosticLog.info("Associating JIT provisioned user with username: '" + username + "' to" +
+                            " federated user with username: '" + subjectVal + "' in IDP: '" + idp + "'");
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                } else {
+                    diagnosticLog.info("Federated association already exists for the user : '" + username + "'. " +
+                            "Associated username: '" + associatedUserName + "'");
                 }
             } else {
+                diagnosticLog.info("User with username: '" + username + "' does not exist in userstore: '"
+                        + userStoreDomain + "'");
                 String password = generatePassword();
                 String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
                 if (StringUtils.isNotEmpty(passwordFromUser)) {
@@ -203,7 +221,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                             log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
                                     " and there is a workflow already defined for the same user");
                         }
+                        diagnosticLog.error("Failed to add the user while JIT provisioning since user workflows " +
+                                "are engaged and there is a workflow already defined for the same user." +
+                                " Error message: " + e.getMessage());
                     } else {
+                        diagnosticLog.error("Error occurred during JIT provisioning. Error message: " +
+                                e.getMessage());
                         throw e;
                     }
                 } finally {
@@ -217,6 +240,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                 "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
                                 " the user account association and role and permission update are skipped.");
                     }
+                    diagnosticLog.info("User is not found in the userstore. Most probably the local user creation " +
+                            "is not complete while JIT provisioning due to user operation workflow engagement. " +
+                            "Therefore the user account association and role and permission update are skipped.");
                     return;
                 }
 
@@ -226,6 +252,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user: " + username + " is provisioned by authentication framework.");
                 }
+                diagnosticLog.info("Federated user: " + username + " is provisioned by authentication framework.");
             }
 
             if (roles != null) {
@@ -276,6 +303,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException |
                 FederatedAssociationManagerException e) {
+            diagnosticLog.error("Error while provisioning user: "  + subject + ". Error message: " + e.getMessage());
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
@@ -309,6 +337,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             if (isUserAlreadyAssociated(e)) {
                 log.info("An association already exists for user: " + subject + ". Skip association while JIT " +
                         "provisioning");
+                diagnosticLog.info("An association already exists for user: " + subject + ". Skip association " +
+                        "while JIT provisioning");
             } else {
                 throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
                         " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
@@ -347,6 +377,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             log.debug("Federated user: " + username + " is updated by authentication framework with roles : "
                     + rolesToAdd);
         }
+        diagnosticLog.info("Federated user: " + username + " is updated by authentication framework with roles : "
+                + rolesToAdd);
     }
 
     private void handleFederatedUserNameEqualsToSuperAdminUserName(UserRealm realm, String username,
@@ -358,6 +390,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Federated user's username is equal to super admin's username of local IdP.");
             }
+            diagnosticLog.info("Federated user's username is equal to super admin's username of local IdP.");
 
             // Whether superadmin login without superadmin role is permitted
             if (deletingRoles
@@ -366,6 +399,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     log.debug("Federated user doesn't have super admin role. Unable to sync roles, since" +
                             " super admin role cannot be unassigned from super admin user");
                 }
+                diagnosticLog.error("Federated user doesn't have super admin role. Unable to sync roles, since" +
+                        " super admin role cannot be unassigned from super admin user");
                 throw new FrameworkException(
                         "Federated user which having same username to super admin username of local IdP," +
                                 " trying login without having super admin role assigned");
@@ -419,6 +454,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
 
         if (userStoreManager == null) {
+            diagnosticLog.info("Unable to find a valid userstore for the userstore domain name: " + userStoreDomain);
             throw new FrameworkException("Specified user store is invalid");
         }
         return userStoreManager;
@@ -436,6 +472,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         // If the any of above value is invalid, keep it empty to use primary userstore
         if (userStoreDomain != null
                 && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+            diagnosticLog.error("Specified user store domain " + userStoreDomain
+                    + " is not valid.");
             throw new FrameworkException("Specified user store domain " + userStoreDomain
                     + " is not valid.");
         }
