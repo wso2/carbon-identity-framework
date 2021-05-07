@@ -53,7 +53,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             IdentityProviderManagementException {
 
         try {
-            IdentityServiceProviderCache.getInstance().clear();
+            IdentityServiceProviderCache.getInstance().clear(tenantDomain);
 
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
@@ -162,7 +162,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         }
 
         // Clear the SP cache since deleted IDP might have contained association with SPs.
-        IdentityServiceProviderCache.getInstance().clear();
+        IdentityServiceProviderCache.getInstance().clear(tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug("IdentityServiceProvider Cache is cleared on post delete event of idp: " + idPName + " of " +
                     "tenantDomain: " + tenantDomain);
