@@ -31,6 +31,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import java.io.File;
 import java.net.URL;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;

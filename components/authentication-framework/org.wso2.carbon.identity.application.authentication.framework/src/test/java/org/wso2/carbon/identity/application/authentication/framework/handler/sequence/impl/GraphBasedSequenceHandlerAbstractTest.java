@@ -59,9 +59,9 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.*",
         "javax.naming.*", "javax.sql.*"})
@@ -101,6 +101,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("foo.com");
+
         RealmService mockRealmService = mock(RealmService.class);
         FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
 
