@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 import java.util.concurrent.TimeUnit;
 

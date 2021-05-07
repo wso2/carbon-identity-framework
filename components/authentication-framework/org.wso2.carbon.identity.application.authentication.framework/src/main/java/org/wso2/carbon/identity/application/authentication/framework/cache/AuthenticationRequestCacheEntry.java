@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
  * keeps an instance of AuthenticationRequest which has all data
