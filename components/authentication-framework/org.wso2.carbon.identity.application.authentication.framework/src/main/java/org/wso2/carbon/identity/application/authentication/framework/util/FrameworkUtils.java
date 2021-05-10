@@ -2801,7 +2801,7 @@ public class FrameworkUtils {
         ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
         if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
             resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
-                    resolveUser(MultitenantUtils.getTenantAwareUsername(loginIdentifier), tenantDomain);
+                    resolveUser(loginIdentifier, tenantDomain);
         }
         return resolvedUserResult;
     }
