@@ -361,12 +361,12 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @DataProvider(name = "provideQueryParamData")
     public Object[][] provideQueryParamData() {
 
-        Map<String, String> queryParamMap1 = new HashMap<>();
-        queryParamMap1.put("a", "wer");
-        queryParamMap1.put("b", "dfg");
+        Map<String, String> queryParamMap = new HashMap<>();
+        queryParamMap.put("a", "wer");
+        queryParamMap.put("b", "dfg");
 
         return new Object[][]{
-                {queryParamMap1}
+                {queryParamMap}
         };
     }
 
@@ -418,7 +418,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void getAddAuthenticationResultToCache() {
 
         setMockedAuthenticationResultCache();
-
         FrameworkUtils.addAuthenticationResultToCache(DUMMY_CACHE_KEY, authenticationResult);
 
         ArgumentCaptor<AuthenticationResultCacheKey> captorKey = ArgumentCaptor.forClass(AuthenticationResultCacheKey.class);
@@ -472,7 +471,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         when(request.getAttribute(TENANT_DOMAIN)).thenReturn(tenantDomain);
 
         String out = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
-
         assertEquals(out, expectedOut);
     }
 
@@ -496,12 +494,11 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testRemoveAuthCookie() {
 
         mockCookieTest();
-
         FrameworkUtils.removeAuthCookie(request, response);
+
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie removedOldSessionNonce = capturedCookies.get(0);
-
         assertEquals(removedOldSessionNonce.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
     }
 
@@ -510,9 +507,9 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         mockCookieTest();
         FrameworkUtils.removeAuthCookie(request, response, DUMMY_TENANT_DOMAIN);
+
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
-
         Cookie removedCookie = capturedCookies.get(0);
         assertEquals(removedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(removedCookie.getPath(), FrameworkConstants.TENANT_CONTEXT_PREFIX + DUMMY_TENANT_DOMAIN + "/");
@@ -527,7 +524,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie removedCookie = capturedCookies.get(0);
-
         assertEquals(removedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(removedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(removedCookie.getMaxAge(), 0);
@@ -546,7 +542,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie removedCookie = capturedCookies.get(0);
-
         assertEquals(removedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(removedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(removedCookie.getMaxAge(), 0);
@@ -557,7 +552,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testRemoveCookieNonExistCookie() {
 
         mockCookieTest();
-
         FrameworkUtils.removeCookie(request, response, "NonExistingCookie",
                 SameSiteCookie.STRICT, ROOT_DOMAIN);
 
@@ -575,7 +569,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie storedCookie = capturedCookies.get(0);
-
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(storedCookie.getMaxAge(), age);
@@ -594,7 +587,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie storedCookie = capturedCookies.get(0);
-
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(storedCookie.getMaxAge(), age);
@@ -606,12 +598,12 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         mockCookieTest();
         int age = 3600;
 
-        FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age, SameSiteCookie.STRICT, "Dummy-Path");
+        FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age,
+                SameSiteCookie.STRICT, "Dummy-Path");
 
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie storedCookie = capturedCookies.get(0);
-
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), "Dummy-Path");
         assertEquals(storedCookie.getMaxAge(), age);
@@ -631,7 +623,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
         Cookie storedCookie = capturedCookies.get(0);
-
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), "Dummy-Path");
         assertEquals(storedCookie.getMaxAge(), age);
@@ -644,7 +635,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         when(request.getCookies()).thenReturn(cookies);
 
         Cookie out = FrameworkUtils.getCookie(request, cookies[0].getName());
-
         assertEquals(out, cookies[0]);
     }
 
@@ -659,9 +649,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetHashOfCookie() {
 
         Cookie cookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue");
-
         String out = FrameworkUtils.getHashOfCookie(cookie);
-
         assertEquals(out, DigestUtils.sha256Hex("commonAuthIdValue"));
     }
 
@@ -708,9 +696,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetSessionContextFromCacheNullCacheEntry() {
 
         setMockedSessionContextCache();
-
         SessionContext out = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
-        System.out.println(out);
         assertNull(out);
     }
 
@@ -733,9 +719,9 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         when(mockedSessionContextCache.getValueFromCache(cacheKey)).thenReturn(cacheEntry);
         when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class), any(SessionContextCacheEntry.class))).thenReturn(true);
         IdentityEventService identityEventService = new IdentityEventServiceImpl(Collections.EMPTY_LIST, 1);
+
         FrameworkServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
         AuthenticationContext authenticationContext = new AuthenticationContext();
-
         SessionContext out = FrameworkUtils.getSessionContextFromCache(request, authenticationContext, DUMMY_CACHE_KEY);
         assertNull(out);
     }
