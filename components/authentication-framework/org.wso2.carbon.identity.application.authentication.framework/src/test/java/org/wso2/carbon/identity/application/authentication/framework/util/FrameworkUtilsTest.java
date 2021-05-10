@@ -139,16 +139,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testGetAppAuthenticatorByNameExistingAuthenticator() {
 
-        ApplicationAuthenticator out = FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator");
-        assert out != null;
-        assertEquals(out.getName(), "BasicAuthenticator");
+        ApplicationAuthenticator applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator");
+        assert applicationAuthenticator != null;
+        assertEquals(applicationAuthenticator.getName(), "BasicAuthenticator");
     }
 
     @Test
     public void testGetAppAuthenticatorByNameNonExistingAuthenticator() {
 
-        ApplicationAuthenticator out = FrameworkUtils.getAppAuthenticatorByName("NonExistingAuthenticator");
-        assertNull(out);
+        ApplicationAuthenticator applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("NonExistingAuthenticator");
+        assertNull(applicationAuthenticator);
     }
 
     @Test
@@ -156,16 +156,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultRequestCoordinator testRequestCoordinator= new DefaultRequestCoordinator();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR, testRequestCoordinator);
-        Object out = FrameworkUtils.getRequestCoordinator();
-        assertEquals(out, testRequestCoordinator);
+        Object requestCoordinator = FrameworkUtils.getRequestCoordinator();
+        assertEquals(requestCoordinator, testRequestCoordinator);
     }
 
     @Test
     public void testGetRequestCoordinatorNonExistingReqCoordinator() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR);
-        Object out = FrameworkUtils.getRequestCoordinator();
-        assertEquals(out.getClass(), DefaultRequestCoordinator.class);
+        Object requestCoordinator = FrameworkUtils.getRequestCoordinator();
+        assertEquals(requestCoordinator.getClass(), DefaultRequestCoordinator.class);
     }
 
     @Test
@@ -173,16 +173,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultAuthenticationRequestHandler testAuthenticationRequestHandler = new DefaultAuthenticationRequestHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER, testAuthenticationRequestHandler);
-        Object out = FrameworkUtils.getAuthenticationRequestHandler();
-        assertEquals(out, testAuthenticationRequestHandler);
+        Object authenticationRequestHandler = FrameworkUtils.getAuthenticationRequestHandler();
+        assertEquals(authenticationRequestHandler, testAuthenticationRequestHandler);
     }
 
     @Test
     public void testGetAuthenticationRequestHandlerNonExistingReqCoordinator() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER);
-        Object out = FrameworkUtils.getAuthenticationRequestHandler();
-        assertEquals(out.getClass(), DefaultAuthenticationRequestHandler.class);
+        Object authenticationRequestHandler = FrameworkUtils.getAuthenticationRequestHandler();
+        assertEquals(authenticationRequestHandler.getClass(), DefaultAuthenticationRequestHandler.class);
     }
 
     @Test
@@ -190,16 +190,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultLogoutRequestHandler testLogoutRequestHandler = new DefaultLogoutRequestHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_LOGOUT_REQ_HANDLER, testLogoutRequestHandler);
-        Object out = FrameworkUtils.getLogoutRequestHandler();
-        assertEquals(out, testLogoutRequestHandler);
+        Object logoutRequestHandler = FrameworkUtils.getLogoutRequestHandler();
+        assertEquals(logoutRequestHandler, testLogoutRequestHandler);
     }
 
     @Test
     public void testGetLogoutRequestHandlerNonExistingReqCoordinator() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_LOGOUT_REQ_HANDLER);
-        Object out = FrameworkUtils.getLogoutRequestHandler();
-        assertEquals(out.getClass(), DefaultLogoutRequestHandler.class);
+        Object logoutRequestHandler = FrameworkUtils.getLogoutRequestHandler();
+        assertEquals(logoutRequestHandler.getClass(), DefaultLogoutRequestHandler.class);
     }
 
     @Test
@@ -207,16 +207,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultStepBasedSequenceHandler testStepBasedSequenceHandler = new DefaultStepBasedSequenceHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER, testStepBasedSequenceHandler);
-        Object out = FrameworkUtils.getStepBasedSequenceHandler();
-        assertEquals(out, testStepBasedSequenceHandler);
+        Object stepBasedSequenceHandler = FrameworkUtils.getStepBasedSequenceHandler();
+        assertEquals(stepBasedSequenceHandler, testStepBasedSequenceHandler);
     }
 
     @Test
     public void testGetStepBasedSequenceHandlerNonExistingReqCoordinator() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
-        Object out = FrameworkUtils.getStepBasedSequenceHandler();
-        assertEquals(out.getClass(), GraphBasedSequenceHandler.class);
+        Object stepBasedSequenceHandler = FrameworkUtils.getStepBasedSequenceHandler();
+        assertEquals(stepBasedSequenceHandler.getClass(), GraphBasedSequenceHandler.class);
     }
 
     @Test
@@ -224,16 +224,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultRequestPathBasedSequenceHandler testRequestPathBasedSequenceHandler = new DefaultRequestPathBasedSequenceHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER, testRequestPathBasedSequenceHandler);
-        RequestPathBasedSequenceHandler out = FrameworkUtils.getRequestPathBasedSequenceHandler();
-        assertEquals(out, testRequestPathBasedSequenceHandler);
+        RequestPathBasedSequenceHandler requestPathBasedSequenceHandler = FrameworkUtils.getRequestPathBasedSequenceHandler();
+        assertEquals(requestPathBasedSequenceHandler, testRequestPathBasedSequenceHandler);
     }
 
     @Test
     public void testGetRequestPathBasedSequenceHandlerNonExistingHandler() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER);
-        Object out = FrameworkUtils.getRequestPathBasedSequenceHandler();
-        assertEquals(out.getClass(), DefaultRequestPathBasedSequenceHandler.class);
+        Object requestPathBasedSequenceHandler = FrameworkUtils.getRequestPathBasedSequenceHandler();
+        assertEquals(requestPathBasedSequenceHandler.getClass(), DefaultRequestPathBasedSequenceHandler.class);
     }
 
     @Test
@@ -241,8 +241,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultStepHandler testStepHandler = new DefaultStepHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER, testStepHandler);
-        StepHandler out = FrameworkUtils.getStepHandler();
-        assertEquals(out, testStepHandler);
+        StepHandler stepHandler = FrameworkUtils.getStepHandler();
+        assertEquals(stepHandler, testStepHandler);
     }
 
     @Test
@@ -256,18 +256,18 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testGetHomeRealmDiscovererExistingDiscoverer() {
 
-        DefaultHomeRealmDiscoverer textHomeRealmDiscoverer = new DefaultHomeRealmDiscoverer();
-        ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_HRD, textHomeRealmDiscoverer);
-        HomeRealmDiscoverer out = FrameworkUtils.getHomeRealmDiscoverer();
-        assertEquals(out, textHomeRealmDiscoverer);
+        DefaultHomeRealmDiscoverer testHomeRealmDiscoverer = new DefaultHomeRealmDiscoverer();
+        ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_HRD, testHomeRealmDiscoverer);
+        HomeRealmDiscoverer homeRealmDiscoverer = FrameworkUtils.getHomeRealmDiscoverer();
+        assertEquals(homeRealmDiscoverer, testHomeRealmDiscoverer);
     }
 
     @Test
     public void testGetHomeRealmDiscovererNonExistDiscoverer() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_HRD);
-        Object out = FrameworkUtils.getHomeRealmDiscoverer();
-        assertEquals(out.getClass(), DefaultHomeRealmDiscoverer.class);
+        Object realmDiscoverer = FrameworkUtils.getHomeRealmDiscoverer();
+        assertEquals(realmDiscoverer.getClass(), DefaultHomeRealmDiscoverer.class);
     }
 
     @Test
@@ -275,16 +275,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultClaimHandler testClaimHandler = new DefaultClaimHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_CLAIM_HANDLER, testClaimHandler);
-        ClaimHandler out = FrameworkUtils.getClaimHandler();
-        assertEquals(out, testClaimHandler);
+        ClaimHandler claimHandler = FrameworkUtils.getClaimHandler();
+        assertEquals(claimHandler, testClaimHandler);
     }
 
     @Test
     public void testGetClaimHandlerNonExistHandler() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_CLAIM_HANDLER);
-        Object out = FrameworkUtils.getClaimHandler();
-        assertEquals(out.getClass(), DefaultClaimHandler.class);
+        Object claimHandler = FrameworkUtils.getClaimHandler();
+        assertEquals(claimHandler.getClass(), DefaultClaimHandler.class);
     }
 
     @Test
@@ -292,16 +292,16 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         DefaultProvisioningHandler testProvisioningHandler = new DefaultProvisioningHandler();
         ConfigurationFacade.getInstance().getExtensions().put(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER, testProvisioningHandler);
-        ProvisioningHandler out = FrameworkUtils.getProvisioningHandler();
-        assertEquals(out, testProvisioningHandler);
+        ProvisioningHandler provisioningHandler = FrameworkUtils.getProvisioningHandler();
+        assertEquals(provisioningHandler, testProvisioningHandler);
     }
 
     @Test
     public void testGetProvisioningHandlerNonExistHandler() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER);
-        Object out = FrameworkUtils.getProvisioningHandler();
-        assertEquals(out.getClass(), DefaultProvisioningHandler.class);
+        Object provisioningHandler = FrameworkUtils.getProvisioningHandler();
+        assertEquals(provisioningHandler.getClass(), DefaultProvisioningHandler.class);
     }
 
     @Test
@@ -354,8 +354,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testAppendQueryParamsToUrl(String url, Map<String, String> queryParamMap, String expectedOutput)
             throws Exception {
 
-        String out = FrameworkUtils.appendQueryParamsToUrl(url, queryParamMap);
-        assertEquals(out, expectedOutput);
+        String modifiedUrl = FrameworkUtils.appendQueryParamsToUrl(url, queryParamMap);
+        assertEquals(modifiedUrl, expectedOutput);
     }
 
     @DataProvider(name = "provideQueryParamData")
@@ -374,8 +374,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testBuildURLWithQueryParams(String url, Map<String, String> queryParamMap, String expectedOutput)
             throws UnsupportedEncodingException {
 
-        String out = FrameworkUtils.buildURLWithQueryParams(url, queryParamMap);
-        assertEquals(out, expectedOutput);
+        String modifiedUrl = FrameworkUtils.buildURLWithQueryParams(url, queryParamMap);
+        assertEquals(modifiedUrl, expectedOutput);
     }
 
 
@@ -432,8 +432,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetAuthenticationResultFromCache() {
 
         setMockedAuthenticationResultCache();
-        AuthenticationResultCacheEntry out = FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
-        assertEquals(out, authenticationCacheEntry);
+        AuthenticationResultCacheEntry cacheEntry = FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
+        assertEquals(cacheEntry, authenticationCacheEntry);
     }
 
     @Test
@@ -470,8 +470,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         when(request.getAttribute(REQUEST_PARAM_SP)).thenReturn(spName);
         when(request.getAttribute(TENANT_DOMAIN)).thenReturn(tenantDomain);
 
-        String out = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
-        assertEquals(out, expectedOut);
+        String redirectURL = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
+        assertEquals(redirectURL, expectedOut);
     }
 
     private Cookie[] getAuthenticationCookies() {
@@ -634,30 +634,30 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         Cookie[] cookies = getAuthenticationCookies();
         when(request.getCookies()).thenReturn(cookies);
 
-        Cookie out = FrameworkUtils.getCookie(request, cookies[0].getName());
-        assertEquals(out, cookies[0]);
+        Cookie cookie = FrameworkUtils.getCookie(request, cookies[0].getName());
+        assertEquals(cookie, cookies[0]);
     }
 
     @Test
     public void testGetCookieNonExistingCookie() {
 
-        Cookie out = FrameworkUtils.getCookie(request, "nonExistingCookie");
-        assertNull(out);
+        Cookie cookie = FrameworkUtils.getCookie(request, "nonExistingCookie");
+        assertNull(cookie);
     }
 
     @Test
     public void testGetHashOfCookie() {
 
         Cookie cookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue");
-        String out = FrameworkUtils.getHashOfCookie(cookie);
-        assertEquals(out, DigestUtils.sha256Hex("commonAuthIdValue"));
+        String getHashOfCookie = FrameworkUtils.getHashOfCookie(cookie);
+        assertEquals(getHashOfCookie, DigestUtils.sha256Hex("commonAuthIdValue"));
     }
 
     @Test
     public void testGetPasswordProvisioningUIUrlEmptyURL() {
 
-        String out = FrameworkUtils.getPasswordProvisioningUIUrl();
-        assertEquals(out, FrameworkConstants.SIGN_UP_ENDPOINT);
+        String passwordProvisioningUIUrl = FrameworkUtils.getPasswordProvisioningUIUrl();
+        assertEquals(passwordProvisioningUIUrl, FrameworkConstants.SIGN_UP_ENDPOINT);
     }
 
     @Test
@@ -665,15 +665,15 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         String dummyURL = "Dummy_Provisioning_URL";
         IdentityConfigParser.getInstance().getConfiguration().put("JITProvisioning.PasswordProvisioningUI", dummyURL);
-        String out = FrameworkUtils.getPasswordProvisioningUIUrl();
-        assertEquals(out, "/accountrecoveryendpoint/signup.do");
+        String passwordProvisioningUIUrl = FrameworkUtils.getPasswordProvisioningUIUrl();
+        assertEquals(passwordProvisioningUIUrl, "/accountrecoveryendpoint/signup.do");
     }
 
     @Test
     public void testGetUserNameProvisioningUIUrlEmptyURL() {
 
-        String out = FrameworkUtils.getUserNameProvisioningUIUrl();
-        assertEquals(out, FrameworkConstants.REGISTRATION_ENDPOINT);
+        String userNameProvisioningUIUrl = FrameworkUtils.getUserNameProvisioningUIUrl();
+        assertEquals(userNameProvisioningUIUrl, FrameworkConstants.REGISTRATION_ENDPOINT);
     }
 
     @Test
@@ -682,8 +682,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         String dummyURL = "Dummy_Provisioning_URL";
         IdentityConfigParser.getInstance().getConfiguration().put("JITProvisioning.UserNameProvisioningUI", dummyURL);
 
-        String out = FrameworkUtils.getUserNameProvisioningUIUrl();
-        assertEquals(out, "/accountrecoveryendpoint/register.do");
+        String userNameProvisioningUIUrl = FrameworkUtils.getUserNameProvisioningUIUrl();
+        assertEquals(userNameProvisioningUIUrl, "/accountrecoveryendpoint/register.do");
     }
 
     private void setMockedSessionContextCache() {
@@ -696,8 +696,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetSessionContextFromCacheNullCacheEntry() {
 
         setMockedSessionContextCache();
-        SessionContext out = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
-        assertNull(out);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
+        assertNull(sessionContext);
     }
 
     @Test
@@ -707,8 +707,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         setMockedSessionContextCache();
         when(mockedSessionContextCache.getValueFromCache(cacheKey)).thenReturn(cacheEntry);
 
-        SessionContext out = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
-        assertEquals(out, context);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
+        assertEquals(sessionContext, context);
     }
 
     @Test
@@ -722,8 +722,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         FrameworkServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
         AuthenticationContext authenticationContext = new AuthenticationContext();
-        SessionContext out = FrameworkUtils.getSessionContextFromCache(request, authenticationContext, DUMMY_CACHE_KEY);
-        assertNull(out);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request, authenticationContext, DUMMY_CACHE_KEY);
+        assertNull(sessionContext);
     }
 
     @Test
@@ -734,8 +734,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         when(mockedSessionContextCache.getSessionContextCacheEntry(cacheKey)).thenReturn(cacheEntry);
         when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class), any(SessionContextCacheEntry.class))).thenReturn(false);
 
-        SessionContext out = FrameworkUtils.getSessionContextFromCache(request, authenticationContext, DUMMY_CACHE_KEY);
-        assertEquals(out, context);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request, authenticationContext, DUMMY_CACHE_KEY);
+        assertEquals(sessionContext, context);
 
     }
 }
