@@ -18,453 +18,527 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import org.apache.axiom.om.OMElement;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.context.internal.OSGiDataHolder;
+import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.SpTemplate;
-import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
-import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
-import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
-import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
+import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+import org.wso2.carbon.registry.core.Collection;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
 /*
   Unit tests for ApplicationManagementServiceImpl.
  */
-@PrepareForTest({ApplicationManagementServiceComponent.class, ApplicationMgtSystemConfig.class,
-        ServiceProviderTemplateCache.class, ApplicationManagementServiceComponentHolder.class,
-        ApplicationMgtListenerServiceComponent.class, IdentityConfigParser.class, PrivilegedCarbonContext.class,
-        ApplicationMgtUtil.class})
+@Test
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
-    @Mock
-    private ApplicationDAO mockApplicationDAO;
-    @Mock
-    private ApplicationMgtSystemConfig mockAppMgtSystemConfig;
-    @Mock
-    private Map<String, ServiceProvider> mockFileBasedSPs;
-    @Mock
-    private IdentityProviderDAO mockIdentityProviderDAO;
-    @Mock
-    private ServiceProvider mockServiceProvider;
-    @Mock
-    private PaginatableFilterableApplicationDAO mockPaginatedAppDAO;
-    @Mock
-    private AbstractApplicationMgtListener mockAppMgtListener;
-    @Mock
-    private IdentityProvider mockIdentityProvider;
-    @Mock
-    private LocalAuthenticatorConfig mockLocalAuthenticatorConfig;
-    @Mock
-    private Map<String, String> mockClaimMap;
-    @Mock
-    private List<LocalAuthenticatorConfig> mockLocalAuthenticatorConfigs;
+    private final String sampleTenantDomain = "tenant domain";
+    private final String applicationName1 = "Test application 1";
+    private final String applicationName2 = "Test application 2";
+    private final String idpName1 = "Test IdP 1";
+    private final String idpName2 = "Test IdP 2";
+    private final String username1 = "user 1";
+    private final String username2 = "user 2";
 
-    private static final String USERNAME = "user";
-    private static final String TENANT_DOMAIN = "tenantDomain";
-    private static final String APPLICATION_NAME = "applicationName";
-    private static final int APPLICATION_ID = 123;
-    private static final String CLIENT_ID = "clientId";
-    private static final String FEDERATED_IDP_NAME = "fedIdpName";
     private ApplicationManagementServiceImpl applicationManagementService;
-    private ApplicationBasicInfo[] applicationBasicInfo;
+    private IdPManagementDAO idPManagementDAO;
 
-    @BeforeTest
-    public void setup() {
-
-        applicationBasicInfo = new ApplicationBasicInfo[]{};
+    @BeforeClass
+    public void setup() throws RegistryException, UserStoreException {
+        setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
     }
 
-    @BeforeMethod
-    public void init() throws Exception {
+    @DataProvider(name = "addApplicationDataProvider")
+    public Object[][] addApplicationDataProvider() {
 
-        startTenantFlow();
-        mockStatic(ApplicationMgtSystemConfig.class);
-        when(ApplicationMgtSystemConfig.getInstance()).thenReturn(mockAppMgtSystemConfig);
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(applicationName1);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(applicationName2);
+
+        return new Object[][]{
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
+                {serviceProvider2, sampleTenantDomain, username2}
+        };
     }
 
-    private void startTenantFlow() throws UserStoreException {
+    @Test(dataProvider = "addApplicationDataProvider")
+    public void testAddApplication(Object serviceProvider, String tenantDomain, String username)
+            throws Exception {
 
-        String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
-        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
-        System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
+        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
 
-        mockStatic(ApplicationManagementServiceComponentHolder.class);
-        RealmService mockRealmService = mock(RealmService.class);
-        org.wso2.carbon.user.core.tenant.TenantManager mockTenantManager =
-                mock(org.wso2.carbon.user.core.tenant.TenantManager.class);
-        ApplicationManagementServiceComponentHolder appMgtServiceComHolder = Mockito.
-                mock(ApplicationManagementServiceComponentHolder.class);
-        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(appMgtServiceComHolder);
-        when(appMgtServiceComHolder.getRealmService()).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(mockTenantManager.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
+                username);
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+        Assert.assertEquals(addedSP.getApplicationName(), inputSP.getApplicationName());
+        Assert.assertEquals(addedSP.getOwner().getUserName(), inputSP.getOwner().getUserName());
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), tenantDomain);
+
+        Assert.assertEquals(retrievedSP.getApplicationID(), inputSP.getApplicationID());
+        Assert.assertEquals(retrievedSP.getOwner().getUserName(), inputSP.getOwner().getUserName());
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
     }
 
-    private void mockFileBasedSPs() {
+    @DataProvider(name = "addApplicationNullAppNameDataProvider")
+    public Object[][] addApplicationNullAppNameDataProvider() {
 
-        mockStatic(ApplicationManagementServiceComponent.class);
-        when(ApplicationManagementServiceComponent.getFileBasedSPs()).thenReturn(mockFileBasedSPs);
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName("");
+
+        ServiceProvider serviceProvider3 = new ServiceProvider();
+        serviceProvider3.setApplicationName(null);
+
+        return new Object[][]{
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
+                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1},
+                {serviceProvider3, SUPER_TENANT_DOMAIN_NAME, username1}
+        };
     }
 
-    private void mockApplicationMgtListeners() {
+    @Test(dataProvider = "addApplicationNullAppNameDataProvider")
+    public void testAddApplicationWithNullAppName(Object serviceProvider, String tenantDomain, String username) {
 
-        Collection<ApplicationMgtListener> mockMgtListeners = new ArrayList<>();
-        mockMgtListeners.add(mockAppMgtListener);
-        mockStatic(ApplicationMgtListenerServiceComponent.class);
-        when(ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()).thenReturn(mockMgtListeners);
-        when(mockAppMgtListener.isEnable()).thenReturn(FALSE);
+        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+                addApplication((ServiceProvider) serviceProvider, tenantDomain, username));
+    }
+
+    @DataProvider(name = "addApplicationInvalidAppNameDataProvider")
+    public Object[][] addApplicationInvalidAppNameDataProvider() {
+
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName("@#!app");
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName("1234@");
+
+        return new Object[][]{
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
+                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1}
+        };
+    }
+
+    @Test(dataProvider = "addApplicationInvalidAppNameDataProvider")
+    public void testAddApplicationWithInvalidAppName(Object serviceProvider, String tenantDomain, String username) {
+
+        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+                addApplication((ServiceProvider) serviceProvider, tenantDomain, username));
+    }
+
+    @DataProvider(name = "addApplicationWithExistingAppNameDataProvider")
+    public Object[][] addApplicationWithExistingAppNameDataProvider() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(applicationName1);
+
+        ServiceProvider newServiceProvider = new ServiceProvider();
+        newServiceProvider.setApplicationName(applicationName1);
+
+        return new Object[][]{
+                {serviceProvider, newServiceProvider, SUPER_TENANT_DOMAIN_NAME, username1}
+        };
+    }
+
+    @Test(dataProvider = "addApplicationWithExistingAppNameDataProvider")
+    public void testAddApplicationWithExistingAppName(Object serviceProvider, Object newServiceProvider,
+                                                      String tenantDomain, String username) throws
+            IdentityApplicationManagementException {
+
+        applicationManagementService.addApplication((ServiceProvider) serviceProvider, tenantDomain, username);
+
+        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+                addApplication((ServiceProvider) newServiceProvider, tenantDomain, username));
+    }
+
+    @DataProvider(name = "getApplicationDataProvider")
+    public Object[][] getApplicationDataProvider() {
+
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(applicationName1);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(applicationName2);
+
+        return new Object[][]{
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
+                {serviceProvider2, sampleTenantDomain, username2}
+        };
+    }
+
+    @Test(dataProvider = "getApplicationDataProvider")
+    public void testGetApplicationBasicInfo(Object serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
+                username);
+
+        // Retrieving added application info.
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (tenantDomain, username, inputSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
+    }
+
+    @Test(dataProvider = "getApplicationDataProvider")
+    public void testGetPaginatedApplicationBasicInfo(Object serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
+                username);
+
+        // Retrieving added application info.
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getPaginatedApplicationBasicInfo
+                (tenantDomain, username, 1, inputSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
+    }
+
+    private void addApplications() throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(applicationName1);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(applicationName2);
+
+        applicationManagementService.addApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1);
+        applicationManagementService.addApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1);
     }
 
     @Test
-    public void testGetApplicationExcludingFileBasedSPs() throws IdentityApplicationManagementException {
+    public void testGetAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreGetApplicationExcludingFileBasedSPs(anyString(), anyString())).
-                thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetApplicationExcludingFileBasedSPs(anyObject(), anyString(),
-                anyString())).thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.getApplication(anyString(), anyString())).thenReturn(mockServiceProvider);
+        addApplications();
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1);
 
-        Assert.assertEquals(applicationManagementService.getApplicationExcludingFileBasedSPs(APPLICATION_NAME,
-                TENANT_DOMAIN), mockServiceProvider);
-    }
+        Assert.assertEquals(applicationBasicInfo.length, 2);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), applicationName2);
+        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), applicationName1);
 
-    @Test
-    public void testCreateApplicationWithTemplate() throws Exception {
-
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreCreateApplication(anyObject(), anyString(), anyString())).thenReturn(TRUE);
-        when(mockAppMgtListener.doPostCreateApplication(anyObject(), anyString(), anyString())).thenReturn(TRUE);
-
-        ServiceProvider mockedSP = spy(new ServiceProvider());
-        when(mockedSP.getApplicationName()).thenReturn(APPLICATION_NAME);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.createApplication(mockedSP, TENANT_DOMAIN)).thenReturn(APPLICATION_ID);
-
-        mockStatic(ApplicationMgtUtil.class);
-        doCallRealMethod().when(ApplicationMgtUtil.class, "isRegexValidated", APPLICATION_NAME);
-        doCallRealMethod().when(ApplicationMgtUtil.class, "getSPValidatorRegex");
-
-        when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
-        when(mockIdentityProviderDAO.getAllLocalAuthenticators()).thenReturn(mockLocalAuthenticatorConfigs);
-
-        mockStatic(ServiceProviderTemplateCache.class);
-        SpTemplate mockSpTemplate = mock(SpTemplate.class);
-        ServiceProviderTemplateCache mockSPTemplateCache = mock(ServiceProviderTemplateCache.class);
-        when(ServiceProviderTemplateCache.getInstance()).thenReturn(mockSPTemplateCache);
-        when(mockSPTemplateCache.getValueFromCache(anyObject())).thenReturn(mockSpTemplate);
-
-        ServiceProvider serviceProvider = applicationManagementService.createApplicationWithTemplate(mockedSP,
-                TENANT_DOMAIN, USERNAME, "");
-        Assert.assertNotNull(serviceProvider);
-        Assert.assertEquals(serviceProvider.getApplicationID(), APPLICATION_ID);
-        Assert.assertNotNull(applicationManagementService.addApplication(mockedSP, TENANT_DOMAIN, USERNAME));
-    }
-
-    @Test
-    public void testGetApplicationBasicInfo() throws IdentityApplicationManagementException {
-
-        mockApplicationMgtListeners();
-        AbstractApplicationDAOImpl mockAbstractAppDAOImpl = mock(AbstractApplicationDAOImpl.class);
-        when(mockAppMgtListener.doPreGetApplicationBasicInfo(anyString(), anyString(), anyString())).thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetApplicationBasicInfo(anyObject(), anyString(), anyString(), anyString())).
-                thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockAbstractAppDAOImpl);
-        when(mockAbstractAppDAOImpl.getApplicationBasicInfo(anyString())).thenReturn(applicationBasicInfo);
-
-        Assert.assertNotNull(applicationManagementService.getApplicationBasicInfo(TENANT_DOMAIN, USERNAME, "*"));
-        Assert.assertNotNull(applicationManagementService.getAllApplicationBasicInfo(TENANT_DOMAIN, USERNAME));
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     @Test
     public void testGetAllPaginatedApplicationBasicInfo() throws IdentityApplicationManagementException {
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreGetPaginatedApplicationBasicInfo(anyString(), anyString(), anyInt())).
-                thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetPaginatedApplicationBasicInfo(anyString(), anyString(), anyInt(),
-                anyObject())).thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getAllPaginatedApplicationBasicInfo(anyInt())).thenReturn(applicationBasicInfo);
+        addApplications();
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllPaginatedApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1, 1);
 
-        Assert.assertNotNull(applicationManagementService.getAllPaginatedApplicationBasicInfo(TENANT_DOMAIN, USERNAME,
-                123));
+        Assert.assertEquals(applicationBasicInfo.length, 2);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), applicationName2);
+        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), applicationName1);
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     @Test
-    public void testGetApplicationBasicInfoBasedOffsetLimit() throws IdentityApplicationManagementException {
+    public void testGetApplicationBasicInfoOffsetLimit() throws IdentityApplicationManagementException {
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreGetApplicationBasicInfo(anyString(), anyString(), anyInt(), anyInt())).
-                thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetApplicationBasicInfo(anyString(), anyString(), anyInt(), anyInt(),
-                anyObject())).thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getApplicationBasicInfo(anyInt(), anyInt())).thenReturn(applicationBasicInfo);
+        addApplications();
 
-        Assert.assertNotNull(applicationManagementService.getApplicationBasicInfo(TENANT_DOMAIN, USERNAME,
-                0, 0));
+        ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1, 0, 1);
+        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), applicationName2);
+
+        ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1, 1, 1);
+        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), applicationName1);
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     @Test
-    public void testGetPaginatedApplicationBasicInfoBasedFilter() throws IdentityApplicationManagementException {
+    public void testGetApplicationBasicInfoFilterOffsetLimit() throws IdentityApplicationManagementException {
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreGetPaginatedApplicationBasicInfo(anyString(), anyString(), anyInt(), anyString())).
-                thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetPaginatedApplicationBasicInfo(anyString(), anyString(), anyInt(), anyString(),
-                anyObject())).thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getPaginatedApplicationBasicInfo(anyInt(), anyString())).
-                thenReturn(applicationBasicInfo);
+        addApplications();
 
-        Assert.assertNotNull(applicationManagementService.getPaginatedApplicationBasicInfo(TENANT_DOMAIN, USERNAME,
-                123, "*"));
-    }
+        ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1, applicationName2, 0, 1);
+        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), applicationName2);
 
-    @Test
-    public void testGetApplicationBasicInfoBasedFilterOffsetLimit() throws IdentityApplicationManagementException {
+        ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, username1, applicationName1, 0, 1);
+        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), applicationName1);
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getApplicationBasicInfo(anyString(), anyInt(), anyInt())).
-                thenReturn(applicationBasicInfo);
-        when(mockAppMgtListener.doPreGetApplicationBasicInfo(anyString(), anyString(), anyString(), anyInt(),
-                anyInt())).thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetApplicationBasicInfo(anyString(), anyString(), anyString(), anyInt(), anyInt(),
-                anyObject())).thenReturn(TRUE);
-
-        Assert.assertNotNull(applicationManagementService.getApplicationBasicInfo(TENANT_DOMAIN, USERNAME, "*",
-                123, 1));
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     @Test
     public void testGetCountOfAllApplications() throws IdentityApplicationManagementException {
 
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getCountOfAllApplications()).thenReturn(10);
+        addApplications();
+        Assert.assertEquals(applicationManagementService.getCountOfAllApplications(SUPER_TENANT_DOMAIN_NAME,
+                username1), 2);
 
-        Assert.assertEquals(applicationManagementService.getCountOfAllApplications(TENANT_DOMAIN, USERNAME),
-                10);
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     @Test
-    public void testGetCountOfApplications() throws IdentityApplicationManagementException {
+    public void testGetCountOfApplicationsFilter() throws IdentityApplicationManagementException {
 
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockPaginatedAppDAO);
-        when(mockPaginatedAppDAO.getCountOfApplications(anyString())).thenReturn(10);
+        addApplications();
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                username1, applicationName1), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                username1, applicationName2), 1);
 
-        Assert.assertEquals(applicationManagementService.getCountOfApplications(TENANT_DOMAIN, USERNAME, "*"),
-                10);
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
-    @Test
-    public void testGetIdentityProvider() throws IdentityApplicationManagementException {
+    @DataProvider(name = "getIdentityProviderDataProvider")
+    public Object[][] getIdentityProviderDataProvider() {
 
-        when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
-        when(mockIdentityProviderDAO.getIdentityProvider(anyString())).thenReturn(mockIdentityProvider);
-        Assert.assertEquals(applicationManagementService.getIdentityProvider(FEDERATED_IDP_NAME, TENANT_DOMAIN),
-                mockIdentityProvider);
+        IdentityProvider idp1 = new IdentityProvider();
+        idp1.setIdentityProviderName(idpName1);
 
-        doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
-                getIdentityProvider(anyString());
-        try {
-            applicationManagementService.getIdentityProvider(FEDERATED_IDP_NAME, TENANT_DOMAIN);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving Identity Provider: " +
-                    FEDERATED_IDP_NAME + ". ");
-        }
+        IdentityProvider idp2 = new IdentityProvider();
+        idp2.setIdentityProviderName(idpName2);
+
+        return new Object[][]{
+                {idp1, SUPER_TENANT_DOMAIN_NAME, SUPER_TENANT_ID},
+                {idp2, SUPER_TENANT_DOMAIN_NAME, SUPER_TENANT_ID}
+        };
     }
 
-    @Test
-    public void testGetAllIdentityProviders() throws IdentityApplicationManagementException {
+    @Test(dataProvider = "getIdentityProviderDataProvider")
+    public void testGetIdentityProvider(Object idp, String tenantDomain, int tenantId) throws
+            IdentityApplicationManagementException,
+            IdentityProviderManagementException {
 
-        when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
-        List<IdentityProvider> fedIdpList = Collections.singletonList(mockIdentityProvider);
-        when(mockIdentityProviderDAO.getAllIdentityProviders()).thenReturn(fedIdpList);
-        Assert.assertEquals(applicationManagementService.getAllIdentityProviders(TENANT_DOMAIN)[0],
-                mockIdentityProvider);
+        idPManagementDAO = new IdPManagementDAO();
+        idPManagementDAO.addIdP((IdentityProvider) idp, tenantId);
 
-        doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).getAllIdentityProviders();
-        try {
-            applicationManagementService.getAllIdentityProviders(TENANT_DOMAIN);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Identity Providers"
-                    + ". ");
-        }
+        IdentityProvider identityProvider = applicationManagementService.getIdentityProvider
+                (((IdentityProvider) idp).getIdentityProviderName(), tenantDomain);
+        Assert.assertEquals(identityProvider.getIdentityProviderName(), ((IdentityProvider) idp).
+                getIdentityProviderName());
+
+        // Deleting added identity provider.
+        idPManagementDAO.deleteIdP(identityProvider.getIdentityProviderName(), tenantId, tenantDomain);
+    }
+
+    private void addIdentityProviders() throws IdentityProviderManagementException {
+
+        idPManagementDAO = new IdPManagementDAO();
+
+        IdentityProvider idp1 = new IdentityProvider();
+        idp1.setIdentityProviderName(idpName1);
+
+        IdentityProvider idp2 = new IdentityProvider();
+        idp2.setIdentityProviderName(idpName2);
+
+        idPManagementDAO.addIdP(idp1, SUPER_TENANT_ID);
+        idPManagementDAO.addIdP(idp2, SUPER_TENANT_ID);
+    }
+
+    public void testGetAllIdentityProviders() throws IdentityApplicationManagementException,
+            IdentityProviderManagementException {
+
+        addIdentityProviders();
+
+        IdentityProvider[] identityProviders = applicationManagementService.
+                getAllIdentityProviders(SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(identityProviders[0].getIdentityProviderName(), idpName1);
+        Assert.assertEquals(identityProviders[1].getIdentityProviderName(), idpName2);
+
+        // Deleting added all identity providers.
+        idPManagementDAO.deleteIdPs(SUPER_TENANT_ID);
     }
 
     @Test
     public void testGetAllLocalAuthenticators() throws IdentityApplicationManagementException {
 
-        when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
-        List<LocalAuthenticatorConfig> localAuthenticators = Collections.singletonList(mockLocalAuthenticatorConfig);
-        when(mockIdentityProviderDAO.getAllLocalAuthenticators()).thenReturn(localAuthenticators);
-        Assert.assertEquals(applicationManagementService.getAllLocalAuthenticators(TENANT_DOMAIN)[0],
-                mockLocalAuthenticatorConfig);
+        ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
+        LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+        appAuthenticatorService.addLocalAuthenticator(localAuthenticatorConfig);
 
-        doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
-                getAllLocalAuthenticators();
-        try {
-            applicationManagementService.getAllLocalAuthenticators(TENANT_DOMAIN);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Local Authenticators"
-                    + ". ");
-        }
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = applicationManagementService.getAllLocalAuthenticators
+                (SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(localAuthenticatorConfigs[0], localAuthenticatorConfig);
     }
 
     @Test
     public void testGetAllRequestPathAuthenticators() throws IdentityApplicationManagementException {
 
-        RequestPathAuthenticatorConfig mockReqPathAuthenticatorConfig = mock(RequestPathAuthenticatorConfig.class);
-        when(mockAppMgtSystemConfig.getIdentityProviderDAO()).thenReturn(mockIdentityProviderDAO);
-        List<RequestPathAuthenticatorConfig> reqPathAuthenticators = Collections.singletonList
-                (mockReqPathAuthenticatorConfig);
-        when(mockIdentityProviderDAO.getAllRequestPathAuthenticators()).thenReturn(reqPathAuthenticators);
-        Assert.assertEquals(applicationManagementService.getAllRequestPathAuthenticators(TENANT_DOMAIN)[0],
-                mockReqPathAuthenticatorConfig);
+        ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
+        RequestPathAuthenticatorConfig requestPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
+        appAuthenticatorService.addRequestPathAuthenticator(requestPathAuthenticatorConfig);
 
-        doThrow(new IdentityApplicationManagementException("")).when(mockIdentityProviderDAO).
-                getAllRequestPathAuthenticators();
-        try {
-            applicationManagementService.getAllRequestPathAuthenticators(TENANT_DOMAIN);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving all Request Path Authenticators"
-                    + ". ");
-        }
+        RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs = applicationManagementService.
+                getAllRequestPathAuthenticators(SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(requestPathAuthenticatorConfigs[0], requestPathAuthenticatorConfig);
     }
 
-    @Test
-    public void testGetServiceProviderNameByClientIdExcludingFileBasedSPs() throws
+    @Test(dataProvider = "addApplicationDataProvider")
+    public void testCreateApplication(Object serviceProvider, String tenantDomain, String username) throws
             IdentityApplicationManagementException {
 
-        mockApplicationMgtListeners();
-        when(mockAppMgtListener.doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(anyString(), anyString(),
-                anyString(), anyString())).thenReturn(TRUE);
-        when(mockAppMgtListener.doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(anyString(), anyString(),
-                anyString(), anyString())).thenReturn(TRUE);
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.getServiceProviderNameByClientId(anyString(), anyString(), anyString())).
-                thenReturn(APPLICATION_NAME);
-        Assert.assertEquals(applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs(
-                CLIENT_ID, "type", TENANT_DOMAIN), APPLICATION_NAME);
+        // Adding application.
+        String resourceId = applicationManagementService.createApplication((ServiceProvider) serviceProvider,
+                tenantDomain, username);
 
-        doThrow(new IdentityApplicationManagementException("")).when(mockApplicationDAO).
-                getServiceProviderNameByClientId(anyString(), anyString(), anyString());
-        try {
-            applicationManagementService.getServiceProviderNameByClientIdExcludingFileBasedSPs(CLIENT_ID,
-                    "type", TENANT_DOMAIN);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while retrieving the service provider for " +
-                    "client id :  " + CLIENT_ID + ". ");
+        // Retrieving application by ResourceId
+        ServiceProvider expectedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                tenantDomain);
+        Assert.assertEquals(resourceId, expectedSP.getApplicationResourceId());
+
+        ApplicationBasicInfo applicationBasicInfo = applicationManagementService.getApplicationBasicInfoByResourceId
+                (resourceId, tenantDomain);
+        Assert.assertEquals(applicationBasicInfo.getApplicationName(), ((ServiceProvider) serviceProvider).
+                getApplicationName());
+
+        // Deleting added application
+        applicationManagementService.deleteApplicationByResourceId(resourceId, tenantDomain, username);
+    }
+
+    private void setupConfiguration() throws UserStoreException, RegistryException {
+
+        String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
+                toString();
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
+        System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
+
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(SUPER_TENANT_ID);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext();
+
+        // Configure RealmService.
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(SUPER_TENANT_ID);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+        InMemoryRealmService testSessionRealmService = new InMemoryRealmService(SUPER_TENANT_ID);
+        UserStoreManager userStoreManager = testSessionRealmService.getTenantUserRealm(SUPER_TENANT_ID)
+                .getUserStoreManager();
+        ((MockUserStoreManager) userStoreManager)
+                .addSecondaryUserStoreManager("PRIMARY", (MockUserStoreManager) userStoreManager);
+        IdentityTenantUtil.setRealmService(testSessionRealmService);
+        RegistryDataHolder.getInstance().setRealmService(testSessionRealmService);
+        OSGiDataHolder.getInstance().setUserRealmService(testSessionRealmService);
+        ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.getInstance();
+        setInstanceValue(testSessionRealmService, RealmService.class, ApplicationManagementServiceComponentHolder.class,
+                holder);
+
+       // Configure Registry Service.
+        RegistryService registryService = mock(RegistryService.class);
+        UserRegistry registry = mock(UserRegistry.class);
+        when(registryService.getGovernanceUserRegistry(anyString(), anyInt())).thenReturn(registry);
+        OSGiDataHolder.getInstance().setRegistryService(registryService);
+        CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setRegistry(RegistryType.USER_GOVERNANCE, registryService.getRegistry());
+        when(registry.resourceExists(anyString())).thenReturn(FALSE);
+        Collection permissionNode = mock(Collection.class);
+        when(registry.newCollection()).thenReturn(permissionNode);
+        when(registry.get(anyString())).thenReturn(permissionNode);
+    }
+
+    private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {
+
+        for (Field field1 : clazz.getDeclaredFields()) {
+            if (field1.getType().isAssignableFrom(valueType)) {
+                field1.setAccessible(true);
+
+                if (java.lang.reflect.Modifier.isStatic(field1.getModifiers())) {
+                    setInternalState(clazz, field1.getName(), value);
+                } else if (instance != null) {
+                    setInternalState(instance, field1.getName(), value);
+                }
+            }
         }
     }
 
-    @Test
-    public void testGetServiceProviderToLocalIdPClaimMapping() throws IdentityApplicationManagementException {
+    private static void setInternalState(Object target, String field, Object value) {
 
-        mockFileBasedSPs();
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.getServiceProviderToLocalIdPClaimMapping(APPLICATION_NAME, TENANT_DOMAIN)).
-                thenReturn(mockClaimMap);
-        when(mockClaimMap.isEmpty()).thenReturn(TRUE);
-        when(mockFileBasedSPs.containsKey(APPLICATION_NAME)).thenReturn(TRUE);
-        when(mockFileBasedSPs.get(APPLICATION_NAME)).thenReturn(mockServiceProvider);
+        Class c = target.getClass();
 
-        Assert.assertNotNull(applicationManagementService.getServiceProviderToLocalIdPClaimMapping(APPLICATION_NAME,
-                TENANT_DOMAIN));
+        try {
+            Field f = c.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to set internal state on a private field.", e);
+        }
     }
 
-    @Test
-    public void testGetLocalIdPToServiceProviderClaimMapping() throws IdentityApplicationManagementException {
+    private static void setInternalState(Class c, String field, Object value) {
 
-        mockFileBasedSPs();
-        when(mockAppMgtSystemConfig.getApplicationDAO()).thenReturn(mockApplicationDAO);
-        when(mockApplicationDAO.getLocalIdPToServiceProviderClaimMapping(APPLICATION_NAME, TENANT_DOMAIN)).
-                thenReturn(mockClaimMap);
-        when(mockClaimMap.isEmpty()).thenReturn(TRUE);
-        when(mockFileBasedSPs.containsKey(APPLICATION_NAME)).thenReturn(TRUE);
-        when(mockFileBasedSPs.get(APPLICATION_NAME)).thenReturn(mockServiceProvider);
-
-        Assert.assertNotNull(applicationManagementService.getLocalIdPToServiceProviderClaimMapping(APPLICATION_NAME,
-                TENANT_DOMAIN));
-    }
-
-    @Test
-    public void testGetSystemApplications() {
-
-        mockStatic(IdentityConfigParser.class);
-        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
-        when(IdentityConfigParser.getInstance()).thenReturn(mockConfigParser);
-
-        when(mockConfigParser.getConfigElement(anyString())).thenReturn(null);
-        Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
-
-        OMElement mockSystemApplicationsConfig = mock(OMElement.class);
-        OMElement mockChildApplicationConfig = mock(OMElement.class);
-        when(mockConfigParser.getConfigElement(anyString())).thenReturn(mockSystemApplicationsConfig);
-        Assert.assertEquals(applicationManagementService.getSystemApplications(), Collections.emptySet());
-
-        List<OMElement> applicationIdentifierConfigs = Collections.singletonList(mockChildApplicationConfig);
-        Iterator<OMElement> applicationIdentifierIterator = applicationIdentifierConfigs.iterator();
-        when(mockSystemApplicationsConfig.getChildrenWithLocalName(anyString())).
-                thenReturn(applicationIdentifierIterator);
-        when(mockChildApplicationConfig.getText()).thenReturn(APPLICATION_NAME);
-
-        Assert.assertEquals(applicationManagementService.getSystemApplications().toArray()[0], APPLICATION_NAME);
+        try {
+            Field f = c.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(null, value);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to set internal state on a private field.", e);
+        }
     }
 }
