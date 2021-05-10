@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -36,8 +37,11 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -57,6 +61,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
+@WithCarbonHome
 @WithRealmService
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
@@ -79,6 +85,10 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     }
 
     public void testHandleDynamicBoolean() throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
 
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
