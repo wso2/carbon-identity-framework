@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.wso2.carbon.identity.core.cache.AbstractCacheListener;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.Serializable;
+import java.util.List;
 
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -48,6 +50,16 @@ public class AuthenticationBaseCache<K extends Serializable, V extends Serializa
     public AuthenticationBaseCache(String cacheName, boolean isTemp) {
 
         super(cacheName, isTemp);
+    }
+
+    public AuthenticationBaseCache(String cacheName, List<AbstractCacheListener<K, V>> cacheListeners) {
+
+        super(cacheName, cacheListeners);
+    }
+
+    public AuthenticationBaseCache(String cacheName, boolean isTemp, List<AbstractCacheListener<K, V>> cacheListeners) {
+
+        super(cacheName, isTemp, cacheListeners);
     }
 
     /**

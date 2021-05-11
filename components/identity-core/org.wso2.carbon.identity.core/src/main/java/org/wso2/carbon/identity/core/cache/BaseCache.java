@@ -25,13 +25,13 @@ import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
 import javax.cache.CacheConfiguration;
@@ -363,12 +363,16 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     private void startTenantFlow(String tenantDomain) {
 
         PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     private void startTenantFlow(int tenantId) {
 
         PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
     }
 }
