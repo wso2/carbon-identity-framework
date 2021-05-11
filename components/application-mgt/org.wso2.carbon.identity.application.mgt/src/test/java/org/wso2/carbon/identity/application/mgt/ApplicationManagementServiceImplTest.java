@@ -70,13 +70,13 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
-    private final String sampleTenantDomain = "tenant domain";
-    private final String applicationName1 = "Test application 1";
-    private final String applicationName2 = "Test application 2";
-    private final String idpName1 = "Test IdP 1";
-    private final String idpName2 = "Test IdP 2";
-    private final String username1 = "user 1";
-    private final String username2 = "user 2";
+    private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
+    private static final String APPLICATION_NAME_1 = "Test application 1";
+    private static final String APPLICATION_NAME_2 = "Test application 2";
+    private static final String IDP_NAME_1 = "Test IdP 1";
+    private static final String IDP_NAME_2 = "Test IdP 2";
+    private static final String USERNAME_1 = "user 1";
+    private static final String USERNAME_2 = "user 2";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -92,14 +92,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public Object[][] addApplicationDataProvider() {
 
         ServiceProvider serviceProvider1 = new ServiceProvider();
-        serviceProvider1.setApplicationName(applicationName1);
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
 
         ServiceProvider serviceProvider2 = new ServiceProvider();
-        serviceProvider2.setApplicationName(applicationName2);
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
 
         return new Object[][]{
-                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
-                {serviceProvider2, sampleTenantDomain, username2}
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
+                {serviceProvider2, SAMPLE_TENANT_DOMAIN, USERNAME_2}
         };
     }
 
@@ -139,9 +139,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         serviceProvider3.setApplicationName(null);
 
         return new Object[][]{
-                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
-                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1},
-                {serviceProvider3, SUPER_TENANT_DOMAIN_NAME, username1}
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
+                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
+                {serviceProvider3, SUPER_TENANT_DOMAIN_NAME, USERNAME_1}
         };
     }
 
@@ -162,8 +162,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         serviceProvider2.setApplicationName("1234@");
 
         return new Object[][]{
-                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
-                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1}
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
+                {serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1}
         };
     }
 
@@ -178,13 +178,13 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public Object[][] addApplicationWithExistingAppNameDataProvider() {
 
         ServiceProvider serviceProvider = new ServiceProvider();
-        serviceProvider.setApplicationName(applicationName1);
+        serviceProvider.setApplicationName(APPLICATION_NAME_1);
 
         ServiceProvider newServiceProvider = new ServiceProvider();
-        newServiceProvider.setApplicationName(applicationName1);
+        newServiceProvider.setApplicationName(APPLICATION_NAME_1);
 
         return new Object[][]{
-                {serviceProvider, newServiceProvider, SUPER_TENANT_DOMAIN_NAME, username1}
+                {serviceProvider, newServiceProvider, SUPER_TENANT_DOMAIN_NAME, USERNAME_1}
         };
     }
 
@@ -203,14 +203,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public Object[][] getApplicationDataProvider() {
 
         ServiceProvider serviceProvider1 = new ServiceProvider();
-        serviceProvider1.setApplicationName(applicationName1);
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
 
         ServiceProvider serviceProvider2 = new ServiceProvider();
-        serviceProvider2.setApplicationName(applicationName2);
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
 
         return new Object[][]{
-                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1},
-                {serviceProvider2, sampleTenantDomain, username2}
+                {serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
+                {serviceProvider2, SAMPLE_TENANT_DOMAIN, USERNAME_2}
         };
     }
 
@@ -257,13 +257,13 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private void addApplications() throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider1 = new ServiceProvider();
-        serviceProvider1.setApplicationName(applicationName1);
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
 
         ServiceProvider serviceProvider2 = new ServiceProvider();
-        serviceProvider2.setApplicationName(applicationName2);
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
 
-        applicationManagementService.addApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, username1);
-        applicationManagementService.addApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, username1);
+        applicationManagementService.addApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.addApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
     @Test
@@ -271,11 +271,11 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         addApplications();
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
         Assert.assertEquals(applicationBasicInfo.length, 2);
-        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), applicationName2);
-        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), applicationName1);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), APPLICATION_NAME_1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -286,11 +286,11 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         addApplications();
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllPaginatedApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1, 1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 1);
 
         Assert.assertEquals(applicationBasicInfo.length, 2);
-        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), applicationName2);
-        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), applicationName1);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+        Assert.assertEquals(applicationBasicInfo[1].getApplicationName(), APPLICATION_NAME_1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -302,12 +302,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         addApplications();
 
         ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1, 0, 1);
-        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), applicationName2);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 0, 1);
+        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_2);
 
         ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1, 1, 1);
-        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), applicationName1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 1, 1);
+        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -319,12 +319,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         addApplications();
 
         ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1, applicationName2, 0, 1);
-        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), applicationName2);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2, 0, 1);
+        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_2);
 
         ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, username1, applicationName1, 0, 1);
-        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), applicationName1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1, 0, 1);
+        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -335,7 +335,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         addApplications();
         Assert.assertEquals(applicationManagementService.getCountOfAllApplications(SUPER_TENANT_DOMAIN_NAME,
-                username1), 2);
+                USERNAME_1), 2);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -346,9 +346,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         addApplications();
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                username1, applicationName1), 1);
+                USERNAME_1, APPLICATION_NAME_1), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                username1, applicationName2), 1);
+                USERNAME_1, APPLICATION_NAME_2), 1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -358,10 +358,10 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public Object[][] getIdentityProviderDataProvider() {
 
         IdentityProvider idp1 = new IdentityProvider();
-        idp1.setIdentityProviderName(idpName1);
+        idp1.setIdentityProviderName(IDP_NAME_1);
 
         IdentityProvider idp2 = new IdentityProvider();
-        idp2.setIdentityProviderName(idpName2);
+        idp2.setIdentityProviderName(IDP_NAME_2);
 
         return new Object[][]{
                 {idp1, SUPER_TENANT_DOMAIN_NAME, SUPER_TENANT_ID},
@@ -391,10 +391,10 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         idPManagementDAO = new IdPManagementDAO();
 
         IdentityProvider idp1 = new IdentityProvider();
-        idp1.setIdentityProviderName(idpName1);
+        idp1.setIdentityProviderName(IDP_NAME_1);
 
         IdentityProvider idp2 = new IdentityProvider();
-        idp2.setIdentityProviderName(idpName2);
+        idp2.setIdentityProviderName(IDP_NAME_2);
 
         idPManagementDAO.addIdP(idp1, SUPER_TENANT_ID);
         idPManagementDAO.addIdP(idp2, SUPER_TENANT_ID);
@@ -408,8 +408,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         IdentityProvider[] identityProviders = applicationManagementService.
                 getAllIdentityProviders(SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertEquals(identityProviders[0].getIdentityProviderName(), idpName1);
-        Assert.assertEquals(identityProviders[1].getIdentityProviderName(), idpName2);
+        Assert.assertEquals(identityProviders[0].getIdentityProviderName(), IDP_NAME_1);
+        Assert.assertEquals(identityProviders[1].getIdentityProviderName(), IDP_NAME_2);
 
         // Deleting added all identity providers.
         idPManagementDAO.deleteIdPs(SUPER_TENANT_ID);
