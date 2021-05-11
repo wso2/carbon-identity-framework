@@ -78,11 +78,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private final String username1 = "user 1";
     private final String username2 = "user 2";
 
-    private ApplicationManagementServiceImpl applicationManagementService;
     private IdPManagementDAO idPManagementDAO;
+    private ApplicationManagementServiceImpl applicationManagementService;
 
     @BeforeClass
     public void setup() throws RegistryException, UserStoreException {
+
         setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
     }
@@ -399,6 +400,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         idPManagementDAO.addIdP(idp2, SUPER_TENANT_ID);
     }
 
+    @Test
     public void testGetAllIdentityProviders() throws IdentityApplicationManagementException,
             IdentityProviderManagementException {
 
