@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
- Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -300,7 +300,7 @@
 
             e.g.
             1. /home/repository/axis2.xml - An absolute path
-            2. repository.conf/axis2.xml - In this case, the path is relative to CARBON_HOME
+            2. conf/axis2.xml - In this case, the path is relative to CARBON_HOME
             3. file:///home/carbon/repository/axis2.xml
             4. http://repository/conf/axis2.xml
         -->
@@ -422,7 +422,7 @@
 
          If this is set to 'UserManager', the realm will pick users & roles from the system's
          WSO2 User Manager. If it is set to 'memory', the realm will pick users & roles from
-         CARBON_HOME/repository/repository.conf/tomcat/tomcat-users.xml
+         CARBON_HOME/repository/conf/tomcat/tomcat-users.xml
         -->
         <TomcatRealm>UserManager</TomcatRealm>
 

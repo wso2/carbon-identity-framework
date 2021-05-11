@@ -186,6 +186,11 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 {SAMPLE_TENANT_ID, TENANT_DOMAIN, "testIdP1", 1},
                 {SAMPLE_TENANT_ID2, TENANT_DOMAIN, "testIdP3", 1},
                 {SAMPLE_TENANT_ID, TENANT_DOMAIN, "", 2},
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "test*", 2},
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "????IdP*", 2},
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "tes_I*", 2},
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "*1", 1},
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "Notexist", 0},
         };
     }
 
@@ -233,7 +238,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testGetIdPsSearch1Data() {
+    public Object[][] testGetIdPsSearchWithExpressionNodesData() {
         ExpressionNode en1 = new ExpressionNode();
         en1.setAttributeValue("name");
         en1.setOperation("co");
@@ -264,9 +269,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearch1Data")
-    public void testGetIdPsSearch1(int tenantId, List<ExpressionNode> expressionNodes,  int limit, int offset,
-                                   String sortOrder, String sortBy, int count, String firstIdp) throws Exception {
+    @Test(dataProvider = "testGetIdPsSearchWithExpressionNodesData")
+    public void testGetIdPsSearchWithExpressionNodes(int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                     int offset, String sortOrder, String sortBy, int count,
+                                                     String firstIdp) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
@@ -292,7 +298,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testGetIdPsSearch1DataException() {
+    public Object[][] testGetIdPsSearchWithExpressionNodesExceptionData() {
         ExpressionNode en1 = new ExpressionNode();
         List<ExpressionNode> expressionNodes1 = new ArrayList<>();
         expressionNodes1.add(en1);
@@ -319,9 +325,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearch1DataException")
-    public void testGetIdPsSearch1Exception (int tenantId, List<ExpressionNode> expressionNodes,  int limit, int offset,
-                                   String sortOrder, String sortBy, String exceptionType) throws Exception {
+    @Test(dataProvider = "testGetIdPsSearchWithExpressionNodesExceptionData")
+    public void testGetIdPsSearchWithExpressionNodesException (int tenantId, List<ExpressionNode> expressionNodes,
+                                                               int limit, int offset, String sortOrder, String sortBy,
+                                                               String exceptionType) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
@@ -348,7 +355,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testGetIdPsSearch2Data() {
+    public Object[][] testGetIdPsSearchWithAttributesData() {
 
         ExpressionNode en = new ExpressionNode();
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -366,9 +373,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     }
 
 
-    @Test(dataProvider = "testGetIdPsSearch2Data")
-    public void testGetIdPsSearch2(int tenantId, List<ExpressionNode> expressionNodes, int limit, int offset,
-                                   String order, String sortBy, List<String> attributes, int count) throws Exception {
+    @Test(dataProvider = "testGetIdPsSearchWithAttributesData")
+    public void testGetIdPsSearchWithAttributes (int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                 int offset, String order, String sortBy, List<String> attributes,
+                                                 int count) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
@@ -390,7 +398,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetIdPsSearch2DataException() {
+    public Object[][] testGetIdPsSearchWithAttributesExceptionData() {
 
         ExpressionNode en = new ExpressionNode();
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -402,9 +410,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearch2DataException")
-    public void testGetIdPsSearch2Exception(int tenantId, List<ExpressionNode> expressionNodes, int limit, int offset,
-                                   String order, String sortBy, List<String> attributes) throws Exception {
+    @Test(dataProvider = "testGetIdPsSearchWithAttributesExceptionData")
+    public void testGetIdPsSearchWithAttributesException (int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                          int offset, String order, String sortBy,
+                                                          List<String> attributes) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
@@ -869,8 +878,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData")
-    public void testGetIdPByAuthenticatorPropertyValue(int tenantId, String idpName,  String property, String value,
-                                                       String authenticator, boolean isExist) throws Exception {
+    public void testGetIdPByAuthenticatorPropertyValue (int tenantId, String idpName,  String property, String value,
+                                                        String authenticator, boolean isExist) throws Exception {
 
         /*
             Unit Testing for 'getIdPByAuthenticatorPropertyValue' method with following parameters
@@ -899,7 +908,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData")
-    public void testGetIdPByAuthenticatorPropertyValueException (int tenantId, String idpName,  String property,
+    public void testGetIdPByAuthenticatorPropertyValueException (int tenantId, String idpName, String property,
                                                                  String value, String authenticator, boolean isExist)
             throws Exception {
 
@@ -923,7 +932,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
 
     @DataProvider
-    public Object[][] testGetIdPByAuthenticatorPropertyValueData1() {
+    public Object[][] testGetIdPByAuthenticatorPropertyValueWithoutAuthenticatorData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", true },
@@ -932,9 +941,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData1")
-    public void testGetIdPByAuthenticatorPropertyValue1 (int tenantId, String idpName,  String property, String value,
-                                                         boolean isExist) throws Exception {
+    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueWithoutAuthenticatorData")
+    public void testGetIdPByAuthenticatorPropertyWithoutAuthenticatorData(int tenantId, String idpName, String property,
+                                                                          String value, boolean isExist)
+            throws Exception {
 
         /*
             Unit Testing for 'getIdPByAuthenticatorPropertyValue' method with following parameters

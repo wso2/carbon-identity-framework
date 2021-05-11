@@ -64,10 +64,10 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
+
 /**
  * Unit test cases for IdentityProviderManagementService.
  */
-
 @Test
 @WithCarbonHome
 @WithRegistry
@@ -252,7 +252,6 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         addTestIdps(identityProviderManagementService);
         assertNull(identityProviderManagementService.getIdPByName(idpName));
     }
-
 
 
     @DataProvider
