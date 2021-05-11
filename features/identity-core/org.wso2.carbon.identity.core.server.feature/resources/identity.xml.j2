@@ -2434,10 +2434,10 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            {% for webapp in tenant_context.rewrite.webapps %}
+            {% for webapp in tenant_context.rewrite.custom_webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
-            {% for webapp in tenant_context.rewrite.custom_webapps %}
+            {% for webapp in tenant_context.rewrite.webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
         </WebApp>
