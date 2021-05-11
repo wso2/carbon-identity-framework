@@ -215,7 +215,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getApplicationDataProvider")
-    public void testGetApplicationBasicInfo(Object serviceProvider, String tenantDomain, String username)
+    public void testGetApplicationBasicInfoWithFilter(Object serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
