@@ -218,6 +218,9 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Ids of the users in a given user store from the database.
+     * @deprecated
+     * User ids of local users are no longer stored in IDN_AUTH_USER table and user ids of all the users in a domain
+     * should not be retrieved at once.
      *
      * @param userDomain name of the user Store domain
      * @param tenantId   id of the tenant domain
