@@ -68,31 +68,17 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
-
 /**
- * Unit test cases for IdPManagementDAO.
+ * Unit tests for IdPManagementDAO.
  */
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class})
 public class IdPManagementDAOTest extends PowerMockTestCase {
 
-    private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String DB_NAME = "test";
     private static final Integer SAMPLE_TENANT_ID = -1234;
     private static final Integer SAMPLE_TENANT_ID2 = 1;
     private static final String TENANT_DOMAIN = "carbon.super";
-
-    private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
-
-        BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUsername("username");
-        dataSource.setPassword("password");
-        dataSource.setUrl("jdbc:h2:mem:test" + databaseName);
-        try (Connection connection = dataSource.getConnection()) {
-            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
-        }
-        dataSourceMap.put(databaseName, dataSource);
-    }
+    private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     public static void closeH2Database() throws Exception {
 
@@ -119,9 +105,22 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         throw new RuntimeException("No datasource initiated for database: " + database);
     }
 
+    private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
+
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUsername("username");
+        dataSource.setPassword("password");
+        dataSource.setUrl("jdbc:h2:mem:test" + databaseName);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
+        }
+        dataSourceMap.put(databaseName, dataSource);
+    }
 
     @BeforeMethod
-    public void setup () throws Exception {
+    public void setup() throws Exception {
+
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
@@ -129,23 +128,22 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         closeH2Database();
     }
 
-
-
     @DataProvider
-    public Object[][] testGetIdPsData() {
+    public Object[][] getIdPsData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, 2} ,
+                {SAMPLE_TENANT_ID, TENANT_DOMAIN, 2},
                 {SAMPLE_TENANT_ID2, TENANT_DOMAIN, 1},
                 {4, TENANT_DOMAIN, 0},
         };
     }
 
-    @Test(dataProvider = "testGetIdPsData")
-    public void testGetIdPs(int tenantId,  String tenantDomain, int resultCount) throws Exception {
+    @Test(dataProvider = "getIdPsData")
+    public void testGetIdPs(int tenantId, String tenantDomain, int resultCount) throws Exception {
 
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
         mockStatic(IdentityDatabaseUtil.class);
@@ -161,9 +159,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testGetIdPsData")
-    public void testGetIdPsException (int tenantId,  String tenantDomain, int resultCount) throws Exception {
+    @Test(dataProvider = "getIdPsData")
+    public void testGetIdPsException(int tenantId, String tenantDomain, int resultCount) throws Exception {
 
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
         mockStatic(IdentityDatabaseUtil.class);
@@ -178,9 +175,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPsSearchData() {
+    public Object[][] getIdPsSearchData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, TENANT_DOMAIN, "testIdP1", 1},
@@ -194,8 +190,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearchData")
-    public void testGetIdPsSearch(int tenantId,  String tenantDomain, String filter, int resultCount) throws Exception {
+    @Test(dataProvider = "getIdPsSearchData")
+    public void testGetIdPsSearch(int tenantId, String tenantDomain, String filter, int resultCount) throws Exception {
+
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
             getIdPsSearch(Connection dbConnection, int tenantId, String tenantDomain, String filter)
@@ -215,10 +212,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testGetIdPsSearchData")
-    public void testGetIdPsSearchException(int tenantId,  String tenantDomain, String filter, int resultCount)
+    @Test(dataProvider = "getIdPsSearchData")
+    public void testGetIdPsSearchException(int tenantId, String tenantDomain, String filter, int resultCount)
             throws Exception {
+
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
             getIdPsSearch(Connection dbConnection, int tenantId, String tenantDomain, String filter)
@@ -236,9 +233,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.getIdPsSearch(null, tenantId, tenantDomain, filter));
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPsSearchWithExpressionNodesData() {
+    public Object[][] getIdPsSearchWithExpressionNodesData() {
+
         ExpressionNode en1 = new ExpressionNode();
         en1.setAttributeValue("name");
         en1.setOperation("co");
@@ -263,13 +260,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         return new Object[][]{
                 {SAMPLE_TENANT_ID, expressionNodes1, 2, 0, "ASC", "NAME", 2, "testIdP1"},
                 {SAMPLE_TENANT_ID, expressionNodes1, 2, 0, "DESC", "NAME", 2, "testIdP2"},
-                {SAMPLE_TENANT_ID2, expressionNodes1, 1, 1, "ASC", "NAME", 0, "" },
+                {SAMPLE_TENANT_ID2, expressionNodes1, 1, 1, "ASC", "NAME", 0, ""},
                 {SAMPLE_TENANT_ID, expressionNodes2, 1, 0, "ASC", "NAME", 1, "testIdP1"},
                 {SAMPLE_TENANT_ID, expressionNodes3, 1, 0, "ASC", "NAME", 1, "testIdP2"},
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearchWithExpressionNodesData")
+    @Test(dataProvider = "getIdPsSearchWithExpressionNodesData")
     public void testGetIdPsSearchWithExpressionNodes(int tenantId, List<ExpressionNode> expressionNodes, int limit,
                                                      int offset, String sortOrder, String sortBy, int count,
                                                      String firstIdp) throws Exception {
@@ -296,9 +293,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPsSearchWithExpressionNodesExceptionData() {
+    public Object[][] getIdPsSearchWithExpressionNodesExceptionData() {
+
         ExpressionNode en1 = new ExpressionNode();
         List<ExpressionNode> expressionNodes1 = new ArrayList<>();
         expressionNodes1.add(en1);
@@ -325,15 +322,15 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearchWithExpressionNodesExceptionData")
-    public void testGetIdPsSearchWithExpressionNodesException (int tenantId, List<ExpressionNode> expressionNodes,
-                                                               int limit, int offset, String sortOrder, String sortBy,
-                                                               String exceptionType) throws Exception {
+    @Test(dataProvider = "getIdPsSearchWithExpressionNodesExceptionData")
+    public void testGetIdPsSearchWithExpressionNodesException(int tenantId, List<ExpressionNode> expressionNodes,
+                                                              int limit, int offset, String sortOrder, String sortBy,
+                                                              String exceptionType) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
             getIdPsSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset, String sortOrder,
-            String sortBy)
+                           String sortBy)
         */
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -343,19 +340,18 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            if (exceptionType == "ServerException") {
+            if (exceptionType.equals("ServerException")) {
                 assertThrows(IdentityProviderManagementServerException.class, () -> idPManagementDAO.getIdPsSearch
                         (tenantId, expressionNodes, limit, offset, sortOrder, sortBy));
-            } else if (exceptionType == "ClientException") {
+            } else if (exceptionType.equals("ClientException")) {
                 assertThrows(IdentityProviderManagementClientException.class, () -> idPManagementDAO.getIdPsSearch
                         (tenantId, expressionNodes, limit, offset, sortOrder, sortBy));
             }
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPsSearchWithAttributesData() {
+    public Object[][] getIdPsSearchWithAttributesData() {
 
         ExpressionNode en = new ExpressionNode();
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -372,11 +368,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-
-    @Test(dataProvider = "testGetIdPsSearchWithAttributesData")
-    public void testGetIdPsSearchWithAttributes (int tenantId, List<ExpressionNode> expressionNodes, int limit,
-                                                 int offset, String order, String sortBy, List<String> attributes,
-                                                 int count) throws Exception {
+    @Test(dataProvider = "getIdPsSearchWithAttributesData")
+    public void testGetIdPsSearchWithAttributes(int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                int offset, String order, String sortBy, List<String> attributes,
+                                                int count) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
@@ -398,7 +393,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetIdPsSearchWithAttributesExceptionData() {
+    public Object[][] getIdPsSearchWithAttributesExceptionData() {
 
         ExpressionNode en = new ExpressionNode();
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -410,15 +405,15 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPsSearchWithAttributesExceptionData")
-    public void testGetIdPsSearchWithAttributesException (int tenantId, List<ExpressionNode> expressionNodes, int limit,
-                                                          int offset, String order, String sortBy,
-                                                          List<String> attributes) throws Exception {
+    @Test(dataProvider = "getIdPsSearchWithAttributesExceptionData")
+    public void testGetIdPsSearchWithAttributesException(int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                         int offset, String order, String sortBy,
+                                                         List<String> attributes) throws Exception {
 
         /*
             Unit Testing for 'getIdPsSearch' method with following parameters
             getIdPsSearch (int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
-                                         String sortOrder, String sortBy, List<String> requiredAttributes)
+                           String sortOrder, String sortBy, List<String> requiredAttributes)
         */
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -433,9 +428,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetCountOfFilteredIdPsData() {
+    public Object[][] getCountOfFilteredIdPsData() {
+
         ExpressionNode en1 = new ExpressionNode();
         List<ExpressionNode> expressionNodes1 = new ArrayList<>();
         expressionNodes1.add(en1);
@@ -453,7 +448,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetCountOfFilteredIdPsData")
+    @Test(dataProvider = "getCountOfFilteredIdPsData")
     public void testGetCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expNodes, int count) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -475,8 +470,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testGetCountOfFilteredIdPsData")
-    public void testGetCountOfFilteredIdPsException (int tenantId, List<ExpressionNode> expNodes, int count)
+    @Test(dataProvider = "getCountOfFilteredIdPsData")
+    public void testGetCountOfFilteredIdPsException(int tenantId, List<ExpressionNode> expNodes, int count)
             throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -492,9 +487,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.getCountOfFilteredIdPs(tenantId, expNodes));
     }
 
-
     @DataProvider
-    public Object[][] testAddIdPData() {
+    public Object[][] addIdPData() {
 
         //Initialize Test Identity Provider 1
         IdentityProvider idp1 = new IdentityProvider();
@@ -504,8 +498,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idp1.setFederationHub(true);
         idp1.setCertificate("");
 
-        RoleMapping rm1 = new RoleMapping (new LocalRole ("1", "LocalRole1"), "Role1");
-        RoleMapping rm2 = new RoleMapping (new LocalRole ("2", "LocalRole2"), "Role2");
+        RoleMapping rm1 = new RoleMapping(new LocalRole("1", "LocalRole1"), "Role1");
+        RoleMapping rm2 = new RoleMapping(new LocalRole("2", "LocalRole2"), "Role2");
         PermissionsAndRoleConfig prc = new PermissionsAndRoleConfig();
         prc.setIdpRoles(new String[]{"Role1", "Role2"});
         prc.setRoleMappings(new RoleMapping[]{rm1, rm2});
@@ -523,18 +517,18 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         property2.setName("Property2");
         property2.setValue("value2");
         property2.setConfidential(true);
-        fac.setProperties(new Property[] {property1, property2});
-        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {fac});
+        fac.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{fac});
 
         ProvisioningConnectorConfig pcc1 = new ProvisioningConnectorConfig();
         pcc1.setName("ProvisiningConfig1");
-        pcc1.setProvisioningProperties(new Property[] {property1});
+        pcc1.setProvisioningProperties(new Property[]{property1});
         ProvisioningConnectorConfig pcc2 = new ProvisioningConnectorConfig();
         pcc2.setName("ProvisiningConfig2");
-        pcc2.setProvisioningProperties(new Property[] {property2});
+        pcc2.setProvisioningProperties(new Property[]{property2});
         pcc2.setEnabled(true);
         pcc2.setBlocking(true);
-        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1, pcc2});
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1, pcc2});
 
         ClaimConfig claimConfig = new ClaimConfig();
         claimConfig.setLocalClaimDialect(false);
@@ -547,7 +541,6 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         remoteClaim.setClaimUri("Country");
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
-
 
         //Initialize Test Identity Provider 2
         IdentityProvider idp2 = new IdentityProvider();
@@ -570,13 +563,20 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idp3.setIdentityProviderName("testIdP3");
 
         return new Object[][]{
+
+                /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs,
+                ClaimConfigs */
                 {idp1, SAMPLE_TENANT_ID},
+
+                /* IDP with Local Cliam Dialect ClaimConfigs */
                 {idp2, SAMPLE_TENANT_ID},
+
+                /* IDP with Only name */
                 {idp3, SAMPLE_TENANT_ID2},
         };
     }
 
-    @Test(dataProvider = "testAddIdPData")
+    @Test(dataProvider = "addIdPData")
     public void testAddIdP(Object identityProvider, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -597,13 +597,14 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 resultID = resultSet.getInt("TENANT_ID");
                 resultName = resultSet.getString("NAME");
             }
+            statement.close();
             assertEquals(resultID, tenantId);
             assertEquals(resultName, ((IdentityProvider) identityProvider).getIdentityProviderName());
         }
     }
 
-    @Test(dataProvider = "testAddIdPData")
-    public void testAddIdPException (Object identityProvider, int tenantId) throws Exception {
+    @Test(dataProvider = "addIdPData")
+    public void testAddIdPException(Object identityProvider, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -617,10 +618,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-
     @DataProvider
-    public Object[][] testGetPermissionsAndRoleConfigurationData()  {
+    public Object[][] getPermissionsAndRoleConfigurationData() {
 
         return new Object[][]{
                 {"testIdP1", 1, SAMPLE_TENANT_ID, 2},
@@ -628,8 +627,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-
-    @Test(dataProvider = "testGetPermissionsAndRoleConfigurationData")
+    @Test(dataProvider = "getPermissionsAndRoleConfigurationData")
     public void testGetPermissionsAndRoleConfiguration(String idpName, int idpId, int tenantId, int resultCount)
             throws Exception {
 
@@ -647,9 +645,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetProvisioningConnectorConfigsData()  {
+    public Object[][] getProvisioningConnectorConfigsData() {
 
         return new Object[][]{
                 {"testIdP1", 1, SAMPLE_TENANT_ID, 2},
@@ -657,9 +654,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-
-    @Test(dataProvider = "testGetProvisioningConnectorConfigsData")
-    public void testGetProvisioningConnectorConfigs (String idpName, int idpId, int tenantId, int resultCount)
+    @Test(dataProvider = "getProvisioningConnectorConfigsData")
+    public void testGetProvisioningConnectorConfigs(String idpName, int idpId, int tenantId, int resultCount)
             throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -676,9 +672,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByNameData()  {
+    public Object[][] getIdPByNameData() {
 
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID, true},
@@ -687,7 +682,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByNameData")
+    @Test(dataProvider = "getIdPByNameData")
     public void testGetIdPByName(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -708,9 +703,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByIdData()  {
+    public Object[][] getIdPByIdData() {
 
         return new Object[][]{
                 {"testIdP1", 1, SAMPLE_TENANT_ID, true},
@@ -719,8 +713,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByIdData")
-    public void testGetIdPById(String idpName, int idpId,  int tenantId, boolean isExist) throws Exception {
+    @Test(dataProvider = "getIdPByIdData")
+    public void testGetIdPById(String idpName, int idpId, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -740,9 +734,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIDPbyResourceIdData()  {
+    public Object[][] getIDPbyResourceIdData() {
 
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID, true},
@@ -751,7 +744,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIDPbyResourceIdData")
+    @Test(dataProvider = "getIDPbyResourceIdData")
     public void testGetIDPbyResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -778,9 +771,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByRealmIdData()  {
+    public Object[][] getIdPByRealmIdData() {
 
         return new Object[][]{
                 {"testIdP1", "1", SAMPLE_TENANT_ID, true},
@@ -789,8 +781,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByRealmIdData")
-    public void testGetIdPByRealmId(String idpName, String realmId,  int tenantId, boolean isExist) throws Exception {
+    @Test(dataProvider = "getIdPByRealmIdData")
+    public void testGetIdPByRealmId(String idpName, String realmId, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -800,7 +792,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            IdentityProvider idpResult = idPManagementDAO.getIdPByRealmId(realmId,  tenantId, TENANT_DOMAIN);
+            IdentityProvider idpResult = idPManagementDAO.getIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyRealmId' method fails");
             } else {
@@ -809,8 +801,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testGetIdPByNameData")
+    @Test(dataProvider = "getIdPByNameData")
     public void testGetIDPNameByResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -837,9 +828,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPNameByMetadataPropertyData()  {
+    public Object[][] getIdPNameByMetadataPropertyData() {
 
         return new Object[][]{
                 {"testIdP1", "idpPropertyName", "idpPropertyValue", SAMPLE_TENANT_ID},
@@ -847,7 +837,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPNameByMetadataPropertyData")
+    @Test(dataProvider = "getIdPNameByMetadataPropertyData")
     public void testGetIdPNameByMetadataProperty(String idpName, String property, String value, int tenantId)
             throws Exception {
 
@@ -866,20 +856,19 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByAuthenticatorPropertyValueData()  {
+    public Object[][] getIdPByAuthenticatorPropertyValueData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", "Name", true },
-                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", "Name", true },
-                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", "Null", false },
+                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", "Name", true},
+                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", "Name", true},
+                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", "Null", false},
         };
     }
 
-    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData")
-    public void testGetIdPByAuthenticatorPropertyValue (int tenantId, String idpName,  String property, String value,
-                                                        String authenticator, boolean isExist) throws Exception {
+    @Test(dataProvider = "getIdPByAuthenticatorPropertyValueData")
+    public void testGetIdPByAuthenticatorPropertyValue(int tenantId, String idpName, String property, String value,
+                                                       String authenticator, boolean isExist) throws Exception {
 
         /*
             Unit Testing for 'getIdPByAuthenticatorPropertyValue' method with following parameters
@@ -896,7 +885,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             addTestIdps(idPManagementDAO);
 
             IdentityProvider idpResult = idPManagementDAO.getIdPByAuthenticatorPropertyValue(connection, property,
-                        value, authenticator, tenantId, TENANT_DOMAIN);
+                    value, authenticator, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName);
             } else {
@@ -906,10 +895,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueData")
-    public void testGetIdPByAuthenticatorPropertyValueException (int tenantId, String idpName, String property,
-                                                                 String value, String authenticator, boolean isExist)
+    @Test(dataProvider = "getIdPByAuthenticatorPropertyValueData")
+    public void testGetIdPByAuthenticatorPropertyValueException(int tenantId, String idpName, String property,
+                                                                String value, String authenticator, boolean isExist)
             throws Exception {
 
         /*
@@ -927,21 +915,20 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
         assertThrows(IdentityProviderManagementException.class, () ->
                 idPManagementDAO.getIdPByAuthenticatorPropertyValue(null, property, value, authenticator,
-                            tenantId, TENANT_DOMAIN));
+                        tenantId, TENANT_DOMAIN));
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByAuthenticatorPropertyValueWithoutAuthenticatorData() {
+    public Object[][] getIdPByAuthenticatorPropertyValueWithoutAuthenticatorData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", true },
-                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", true },
-                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", false },
+                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", true},
+                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", true},
+                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", false},
         };
     }
 
-    @Test(dataProvider = "testGetIdPByAuthenticatorPropertyValueWithoutAuthenticatorData")
+    @Test(dataProvider = "getIdPByAuthenticatorPropertyValueWithoutAuthenticatorData")
     public void testGetIdPByAuthenticatorPropertyWithoutAuthenticatorData(int tenantId, String idpName, String property,
                                                                           String value, boolean isExist)
             throws Exception {
@@ -960,7 +947,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             addTestIdps(idPManagementDAO);
 
-            IdentityProvider idpResult = idPManagementDAO.getIdPByAuthenticatorPropertyValue (connection, property,
+            IdentityProvider idpResult = idPManagementDAO.getIdPByAuthenticatorPropertyValue(connection, property,
                     value, tenantId, TENANT_DOMAIN);
 
             if (isExist) {
@@ -971,9 +958,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testUpdateIdPData()  {
+    public Object[][] updateIdPData() {
 
         //Initialize Test Identity Provider 1
         IdentityProvider idp1 = new IdentityProvider();
@@ -992,14 +978,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         property1.setName("Property1");
         property1.setValue("value1");
         property1.setConfidential(true);
-        fac.setProperties(new Property[] {property1});
-        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {fac});
+        fac.setProperties(new Property[]{property1});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{fac});
 
         ProvisioningConnectorConfig pcc1 = new ProvisioningConnectorConfig();
         pcc1.setName("ProvisiningConfig1");
-        pcc1.setProvisioningProperties(new Property[] {property1});
-        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] { pcc1 });
-
+        pcc1.setProvisioningProperties(new Property[]{property1});
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1});
 
         //Initialize Test Identity Provider 2
         IdentityProvider idp2 = new IdentityProvider();
@@ -1027,8 +1012,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         rm2New.setLocalRole(new LocalRole("2", "LocalRole2"));
 
         PermissionsAndRoleConfig prcNew = new PermissionsAndRoleConfig();
-        prcNew.setIdpRoles(new String[] {"Role1New", "Role2New"});
-        prcNew.setRoleMappings(new RoleMapping[] {rm1New, rm2New});
+        prcNew.setIdpRoles(new String[]{"Role1New", "Role2New"});
+        prcNew.setRoleMappings(new RoleMapping[]{rm1New, rm2New});
         idp1New.setPermissionAndRoleConfig(prcNew);
 
         FederatedAuthenticatorConfig facNew = new FederatedAuthenticatorConfig();
@@ -1043,18 +1028,18 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         property2New.setName("Property2New");
         property2New.setValue("value2New");
         property2New.setConfidential(false);
-        facNew.setProperties(new Property[] {property1New, property2New});
-        idp1New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {facNew});
+        facNew.setProperties(new Property[]{property1New, property2New});
+        idp1New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         ProvisioningConnectorConfig pcc1New = new ProvisioningConnectorConfig();
         pcc1New.setName("ProvisiningConfig1");
-        pcc1New.setProvisioningProperties(new Property[] {property1New});
+        pcc1New.setProvisioningProperties(new Property[]{property1New});
         ProvisioningConnectorConfig pcc2New = new ProvisioningConnectorConfig();
         pcc2New.setName("ProvisiningConfig2");
-        pcc2New.setProvisioningProperties(new Property[] {property2New});
+        pcc2New.setProvisioningProperties(new Property[]{property2New});
         pcc2New.setEnabled(true);
         pcc2New.setBlocking(true);
-        idp1New.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1New, pcc2New});
+        idp1New.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1New, pcc2New});
 
         ClaimConfig claimConfigNew = new ClaimConfig();
         claimConfigNew.setLocalClaimDialect(false);
@@ -1083,7 +1068,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testUpdateIdPData")
+    @Test(dataProvider = "updateIdPData")
     public void testUpdateIdP(Object oldIdp, Object newIdp, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1104,8 +1089,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testUpdateIdPData")
-    public void testUpdateIdPException (Object oldIdp, Object newIdp, int tenantId) throws Exception {
+    @Test(dataProvider = "updateIdPData")
+    public void testUpdateIdPException(Object oldIdp, Object newIdp, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(IdentityUtil.class);
@@ -1121,17 +1106,16 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testDeleteIdPData() {
+    public Object[][] deleteIdPData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID },
-                {"testIdP3", SAMPLE_TENANT_ID2 },
+                {"testIdP1", SAMPLE_TENANT_ID},
+                {"testIdP3", SAMPLE_TENANT_ID2},
         };
     }
 
-    @Test(dataProvider = "testDeleteIdPData")
+    @Test(dataProvider = "deleteIdPData")
     public void testDeleteIdP(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1148,17 +1132,16 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testDeleteIdPDataException() {
+    public Object[][] deleteIdPExceptionData() {
 
         return new Object[][]{
                 {"notExist", SAMPLE_TENANT_ID},
         };
     }
 
-    @Test(dataProvider = "testDeleteIdPDataException")
-    public void testDeleteIdPException (String idpName, int tenantId) throws Exception {
+    @Test(dataProvider = "deleteIdPExceptionData")
+    public void testDeleteIdPException(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1173,8 +1156,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testDeleteIdPData")
+    @Test(dataProvider = "deleteIdPData")
     public void testDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1193,8 +1175,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testDeleteIdPDataException")
-    public void testDeleteIdPByResourceIdException (String uuid, int tenantId) throws Exception {
+    @Test(dataProvider = "deleteIdPExceptionData")
+    public void testDeleteIdPByResourceIdException(String uuid, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1209,8 +1191,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testDeleteIdPData")
+    @Test(dataProvider = "deleteIdPData")
     public void testForceDeleteIdP(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1228,8 +1209,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testDeleteIdPDataException")
-    public void testForceDeleteIdPException (String idpName, int tenantId) throws Exception {
+    @Test(dataProvider = "deleteIdPExceptionData")
+    public void testForceDeleteIdPException(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1245,8 +1226,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testDeleteIdPData")
+    @Test(dataProvider = "deleteIdPData")
     public void testForceDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1265,8 +1245,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testDeleteIdPDataException")
-    public void testForceDeleteIdPByResourceIdException (String uuid, int tenantId) throws Exception {
+    @Test(dataProvider = "deleteIdPExceptionData")
+    public void testForceDeleteIdPByResourceIdException(String uuid, int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1282,9 +1262,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
     @DataProvider
-    public Object[][] testDeleteIdPsData()  {
+    public Object[][] deleteIdPsData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID},
@@ -1292,7 +1271,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testDeleteIdPsData")
+    @Test(dataProvider = "deleteIdPsData")
     public void testDeleteIdPs(int tenantId) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1315,13 +1294,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             if (resultSet.next()) {
                 resultSize = resultSet.getRow();
             }
+            statement.close();
             assertEquals(resultSize, 0);
         }
     }
 
-
     @DataProvider
-    public Object[][] testDeleteTenantRoleData()  {
+    public Object[][] deleteTenantRoleData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, "Role1"},
@@ -1329,7 +1308,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testDeleteTenantRoleData")
+    @Test(dataProvider = "deleteTenantRoleData")
     public void testDeleteTenantRole(int tenantId, String role) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1353,13 +1332,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             if (resultSet.next()) {
                 resultSize = resultSet.getRow();
             }
+            statement.close();
             assertEquals(resultSize, 0);
         }
     }
 
-
-    @Test(dataProvider = "testDeleteTenantRoleData")
-    public void testDeleteTenantRoleException (int tenantId, String role) throws Exception {
+    @Test(dataProvider = "deleteTenantRoleData")
+    public void testDeleteTenantRoleException(int tenantId, String role) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1373,10 +1352,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.deleteTenantRole(tenantId, role, TENANT_DOMAIN));
     }
 
-
-
     @DataProvider
-    public Object[][] testRenameTenantRoleData()  {
+    public Object[][] renameTenantRoleData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, "NewLocalRole1", "LocalRole1", 1},
@@ -1385,7 +1362,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testRenameTenantRoleData")
+    @Test(dataProvider = "renameTenantRoleData")
     public void testRenameTenantRole(int tenantId, String newRole, String oldRole, int count) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1407,13 +1384,14 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             if (resultSet.next()) {
                 resultSize = resultSet.getRow();
             }
+            statement.close();
             assertEquals(resultSize, count);
         }
     }
 
-
-    @Test(dataProvider = "testRenameTenantRoleData")
-    public void testRenameTenantRoleException(int tenantId, String newRole, String oldRole, int count)throws Exception {
+    @Test(dataProvider = "renameTenantRoleData")
+    public void testRenameTenantRoleException(int tenantId, String newRole, String oldRole, int count)
+            throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1429,9 +1407,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.renameTenantRole(newRole, oldRole, tenantId, TENANT_DOMAIN));
     }
 
-
     @DataProvider
-    public Object[][] testRenameClaimURIData()  {
+    public Object[][] renameClaimURIData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, "newClaimURI", "http://wso2.org/claims/country", 1},
@@ -1439,9 +1416,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testRenameClaimURIData")
+    @Test(dataProvider = "renameClaimURIData")
     public void testRenameClaimURI(int tenantId, String newClaimURI, String oldClaimURI, int count) throws Exception {
-
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1462,15 +1438,14 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             if (resultSet.next()) {
                 resultSize = resultSet.getRow();
             }
+            statement.close();
             assertEquals(resultSize, count);
         }
     }
 
-
-    @Test(dataProvider = "testRenameClaimURIData")
-    public void testRenameClaimURIException (int tenantId, String newClaimURI, String oldClaimURI, int count)
+    @Test(dataProvider = "renameClaimURIData")
+    public void testRenameClaimURIException(int tenantId, String newClaimURI, String oldClaimURI, int count)
             throws Exception {
-
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1485,9 +1460,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.renameClaimURI(newClaimURI, oldClaimURI, tenantId, TENANT_DOMAIN));
     }
 
-
     @DataProvider
-    public Object[][] testIsIdPAvailableForAuthenticatorPropertyData()  {
+    public Object[][] isIdPAvailableForAuthenticatorPropertyData() {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, "Name", "Property1", "value1", true},
@@ -1495,9 +1469,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testIsIdPAvailableForAuthenticatorPropertyData")
-    public void testIsIdPAvailableForAuthenticatorProperty (int tenantId, String authenticator, String property,
-                                                            String value, boolean isAvailable) throws Exception {
+    @Test(dataProvider = "isIdPAvailableForAuthenticatorPropertyData")
+    public void testIsIdPAvailableForAuthenticatorProperty(int tenantId, String authenticator, String property,
+                                                           String value, boolean isAvailable) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1513,9 +1487,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "testIsIdPAvailableForAuthenticatorPropertyData")
+    @Test(dataProvider = "isIdPAvailableForAuthenticatorPropertyData")
     public void testIsIdPAvailableForAuthenticatorPropertyException(int tenantId, String authenticator, String property,
-                                                            String value, boolean isAvailable) throws Exception {
+                                                                    String value, boolean isAvailable)
+            throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1529,9 +1504,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.isIdPAvailableForAuthenticatorProperty(authenticator, property, value, tenantId));
     }
 
-
     @DataProvider
-    public Object[][] testIsIdpReferredBySPData()  {
+    public Object[][] isIdpReferredBySPData() {
 
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID, false},
@@ -1539,8 +1513,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testIsIdpReferredBySPData")
-    public void testIsIdpReferredBySP (String idPName, int tenantId, boolean isAvailable) throws Exception {
+    @Test(dataProvider = "isIdpReferredBySPData")
+    public void testIsIdpReferredBySP(String idPName, int tenantId, boolean isAvailable) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1555,9 +1529,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         }
     }
 
-
-    @Test(dataProvider = "testIsIdpReferredBySPData")
-    public void testIsIdpReferredBySPException (String idPName, int tenantId, boolean isAvailable) throws Exception {
+    @Test(dataProvider = "isIdpReferredBySPData")
+    public void testIsIdpReferredBySPException(String idPName, int tenantId, boolean isAvailable) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
@@ -1571,18 +1544,17 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 idPManagementDAO.isIdpReferredBySP(idPName, tenantId));
     }
 
-
     @DataProvider
-    public Object[][] testGetConnectedApplicationsData()  {
+    public Object[][] getConnectedApplicationsData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, 2, 2, 0 },
-                {"testIdP2", SAMPLE_TENANT_ID, 1, 1, 0 },
+                {"testIdP1", SAMPLE_TENANT_ID, 2, 2, 0},
+                {"testIdP2", SAMPLE_TENANT_ID, 1, 1, 0},
         };
     }
 
-    @Test(dataProvider = "testGetConnectedApplicationsData")
-    public void testGetConnectedApplications (String idPName, int tenantId, int limit, int offset, int count)
+    @Test(dataProvider = "getConnectedApplicationsData")
+    public void testGetConnectedApplications(String idPName, int tenantId, int limit, int offset, int count)
             throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1600,8 +1572,6 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             assertEquals(result.getTotalAppCount(), count);
         }
     }
-
-
 
     private void addTestIdps(IdPManagementDAO idPManagementDAO) throws IdentityProviderManagementException {
 
@@ -1638,18 +1608,18 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         property2.setName("Property2");
         property2.setValue("value2");
         property2.setConfidential(false);
-        fac.setProperties(new Property[] {property1, property2});
-        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {fac});
+        fac.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{fac});
 
         ProvisioningConnectorConfig pcc1 = new ProvisioningConnectorConfig();
         pcc1.setName("ProvisiningConfig1");
-        pcc1.setProvisioningProperties(new Property[] {property1});
+        pcc1.setProvisioningProperties(new Property[]{property1});
         ProvisioningConnectorConfig pcc2 = new ProvisioningConnectorConfig();
         pcc2.setName("ProvisiningConfig2");
-        pcc2.setProvisioningProperties(new Property[] {property2});
+        pcc2.setProvisioningProperties(new Property[]{property2});
         pcc2.setEnabled(true);
         pcc2.setBlocking(true);
-        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1, pcc2});
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1, pcc2});
 
         IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
         identityProviderProperty.setDisplayName("idpDisplayName");
@@ -1669,7 +1639,6 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
-
         //Initialize Test Identity Provider 2
         IdentityProvider idp2 = new IdentityProvider();
         idp2.setIdentityProviderName("testIdP2");
@@ -1687,19 +1656,23 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfig2.setClaimMappings(new ClaimMapping[]{cm2});
         idp2.setClaimConfig(claimConfig2);
 
-
         //Initialize Test Identity Provider 3
         IdentityProvider idp3 = new IdentityProvider();
         idp3.setIdentityProviderName("testIdP3");
         idp3.setHomeRealmId("3");
 
+        /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs,ClaimConfigs */
         idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID);
+
+        /* IDP with Local Cliam Dialect ClaimConfigs */
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
+
+        /* IDP with Only name */
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
     }
 
-
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {
+
         String query = "SELECT * FROM IDP WHERE NAME=? AND TENANT_ID=?";
         PreparedStatement statement = connection.prepareStatement(query);
         statement.setString(1, (idpName));
@@ -1710,6 +1683,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             resultSize = resultSet.getRow();
         }
         statement.clearParameters();
+        statement.close();
         return resultSize;
     }
 }

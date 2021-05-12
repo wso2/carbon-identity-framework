@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
-
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -49,12 +48,11 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 
-
 /**
- * Unit test cases for IdPManagementUtil.
+ * Unit tests for IdPManagementUtil.
  */
 @WithCarbonHome
-@PrepareForTest({IdentityUtil.class , IdentityApplicationConstants.class, IdentityProviderManager.class,
+@PrepareForTest({IdentityUtil.class, IdentityApplicationConstants.class, IdentityProviderManager.class,
         IdentityApplicationManagementUtil.class, IdPManagementServiceComponent.class})
 public class IdPManagementUtilTest extends PowerMockTestCase {
 
@@ -69,9 +67,9 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     @Mock
     private RealmService mockedRealmService;
 
-
     @DataProvider
     public Object[][] getTenantIdOfDomainData() {
+
         return new Object[][]{
                 {"tenantDomain", 2, "success"},
                 {null, 1, "fail"},
@@ -79,7 +77,7 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getTenantIdOfDomainData")
-    public void testGetTenantIdOfDomain(String tenantDomain , int tenantId, String expectedResult) throws Exception {
+    public void testGetTenantIdOfDomain(String tenantDomain, int tenantId, String expectedResult) throws Exception {
 
         mockStatic(IdentityUtil.class);
         mockStatic(IdPManagementServiceComponent.class);
@@ -98,9 +96,9 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         assertEquals(result, expectedResult);
     }
 
-
     @DataProvider
     public Object[][] getResidentIdPEntityIdData() {
+
         final String customRegEx = "^[a-zA-Z0-9]+";
         return new Object[][]{
                 {null, "localhost"},
@@ -111,16 +109,16 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getResidentIdPEntityIdData")
-    public void testGetResidentIdPEntityId(String localEntityId , String expectedEntityId)  {
+    public void testGetResidentIdPEntityId(String localEntityId, String expectedEntityId) {
 
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty("SSOService.EntityId")).thenReturn(localEntityId);
         assertEquals(IdPManagementUtil.getResidentIdPEntityId(), expectedEntityId);
     }
 
-
     @DataProvider
     public Object[][] getIdleSessionTimeOutData() {
+
         final int timeout = Integer.parseInt(SESSION_IDLE_TIME_OUT_DEFAULT) * 60;
         return new Object[][]{
                 {"carbon.super", true, "10", 10 * 60},
@@ -129,7 +127,7 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         };
     }
 
-    @Test (dataProvider = "getIdleSessionTimeOutData")
+    @Test(dataProvider = "getIdleSessionTimeOutData")
     public void testGetIdleSessionTimeOut(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
 
@@ -151,14 +149,14 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
                     SESSION_IDLE_TIME_OUT)).thenReturn(null);
         }
 
-        when (mockedIdentityProviderProperty.getValue()).thenReturn(value);
+        when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
         assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
 
     }
 
-
     @DataProvider
     public Object[][] getRememberMeTimeoutData() {
+
         final int timeout = Integer.parseInt(REMEMBER_ME_TIME_OUT_DEFAULT) * 60;
         return new Object[][]{
                 {"carbon.super", true, "10", 10 * 60},
@@ -167,9 +165,10 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         };
     }
 
-    @Test (dataProvider = "getRememberMeTimeoutData")
-    public void testGetRememberMeTimeout (String tenetDomain, boolean validity, String value, int timeOut)
+    @Test(dataProvider = "getRememberMeTimeoutData")
+    public void testGetRememberMeTimeout(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
+
         mockStatic(IdentityProviderManager.class);
         mockStatic(IdentityUtil.class);
         mockStatic(IdentityApplicationManagementUtil.class);
@@ -192,26 +191,26 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         assertEquals(IdPManagementUtil.getRememberMeTimeout(tenetDomain), timeOut);
     }
 
-
     @DataProvider
     public Object[][] setTenantSpecifiersData() {
+
         return new Object[][]{
-                {"carbon.super" , "", ""},
+                {"carbon.super", "", ""},
                 {"test", "t/test/", "?tenantDomain=test"},
         };
     }
 
     @Test(dataProvider = "setTenantSpecifiersData")
-    public void testSetTenantSpecifiers(String tenantDomain , String tenantContext, String tenantParameter) {
+    public void testSetTenantSpecifiers(String tenantDomain, String tenantContext, String tenantParameter) {
 
         IdPManagementUtil.setTenantSpecifiers(tenantDomain);
         assertEquals(IdPManagementUtil.getTenantContext(), tenantContext);
         assertEquals(IdPManagementUtil.getTenantParameter(), tenantParameter);
     }
 
-
     @Test
     public void testHandleClientException() {
+
         IdentityProviderManagementClientException exception1 =
                 IdPManagementUtil.handleClientException(ErrorMessage.ERROR_CODE_ADD_IDP, "");
         assertEquals(exception1.getErrorCode(), "IDP-65002");
@@ -219,16 +218,16 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
 
         Throwable t = new Throwable();
         IdentityProviderManagementClientException exception2 =
-                IdPManagementUtil.handleClientException(ErrorMessage.ERROR_CODE_ADD_IDP , "test2", t);
+                IdPManagementUtil.handleClientException(ErrorMessage.ERROR_CODE_ADD_IDP, "test2", t);
         assertEquals(exception2.getErrorCode(), "IDP-65002");
         assertEquals(exception2.getMessage(), "Error while adding the Identity Provider: test2.");
     }
 
-
     @Test
     public void testHandleServerException() {
+
         IdentityProviderManagementServerException exception1 =
-                IdPManagementUtil.handleServerException(ErrorMessage.ERROR_CODE_ADD_IDP , "test1");
+                IdPManagementUtil.handleServerException(ErrorMessage.ERROR_CODE_ADD_IDP, "test1");
         assertEquals(exception1.getErrorCode(), "IDP-65002");
         assertEquals(exception1.getMessage(), "Error while adding the Identity Provider: test1.");
 
@@ -238,4 +237,4 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         assertEquals(exception2.getErrorCode(), "IDP-65002");
         assertEquals(exception2.getMessage(), "Error while adding the Identity Provider: test2.");
     }
- }
+}
