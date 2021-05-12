@@ -62,6 +62,7 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
@@ -239,12 +240,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         doThrow(new UserStoreException("")).when(mockUserStoreManager).getRoleListOfUser(
                 anyString());
 
-        try {
-            ApplicationMgtUtil.isUserAuthorized(APPLICATION_NAME, USERNAME);
-        } catch (IdentityApplicationManagementException e) {
-            assertEquals(e.getMessage(), "Error while checking authorization for user: " + USERNAME +
-                    " for application: " + APPLICATION_NAME);
-        }
+        assertThrows(IdentityApplicationManagementException.class, () -> ApplicationMgtUtil.isUserAuthorized
+                (APPLICATION_NAME, USERNAME));
     }
 
     @Test
@@ -292,11 +289,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         mockUserStoreManager();
         doThrow(new UserStoreException("")).when(mockUserStoreManager).deleteRole(ROLE_NAME);
 
-        try {
-            ApplicationMgtUtil.deleteAppRole(APPLICATION_NAME);
-        } catch (IdentityApplicationManagementException e) {
-            assertEquals(e.getMessage(), "Error while creating application");
-        }
+        assertThrows(IdentityApplicationManagementException.class, () -> ApplicationMgtUtil.deleteAppRole
+                (APPLICATION_NAME));
     }
 
     @Test
@@ -423,11 +417,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         mockTenantRegistry();
         doThrow(new RegistryException("")).when(mockTenantRegistry).resourceExists(anyString());
 
-        try {
-            ApplicationMgtUtil.deletePermissions(APPLICATION_NAME);
-        } catch (IdentityApplicationManagementException e) {
-            assertEquals(e.getMessage(), "Error while storing permissions");
-        }
+        assertThrows(IdentityApplicationManagementException.class, () -> ApplicationMgtUtil.deletePermissions
+                (APPLICATION_NAME));
     }
 
     @Test
@@ -441,16 +432,17 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     @DataProvider(name = "validApplicationOwnerDataProvider")
     public Object[][] validApplicationOwnerDataProvider() {
 
+
         return new Object[][]{
-                {TRUE, USERNAME, SUPER_TENANT_DOMAIN_NAME, TRUE},
-                {TRUE, null, null, FALSE},
-                {TRUE, "", null, FALSE},
-                {FALSE, "", "", FALSE},
+                {USERNAME, SUPER_TENANT_DOMAIN_NAME, TRUE, TRUE},
+                {null, null, TRUE, FALSE},
+                {"", null, TRUE,  FALSE},
+                {"", "", FALSE, FALSE},
         };
     }
 
     @Test(dataProvider = "validApplicationOwnerDataProvider")
-    public void testIsValidApplicationOwner(Boolean hasOwner, String username, String tenantDomain, Boolean expected)
+    public void testIsValidApplicationOwner(String username, String tenantDomain, Boolean hasOwner,  Boolean expected)
             throws IdentityApplicationManagementException, UserStoreException {
 
         ServiceProvider serviceProvider = new ServiceProvider();
