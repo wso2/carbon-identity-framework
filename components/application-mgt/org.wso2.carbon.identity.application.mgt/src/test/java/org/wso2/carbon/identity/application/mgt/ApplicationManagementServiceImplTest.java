@@ -32,9 +32,23 @@ import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorServi
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.LocalRole;
+import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
+import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -56,6 +70,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Paths;
 
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -108,6 +123,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
             throws Exception {
 
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+        addApplicationConfigurations(inputSP);
 
         // Adding new application.
         ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
@@ -446,6 +462,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
             IdentityApplicationManagementException {
 
         // Adding application.
+        addApplicationConfigurations((ServiceProvider) serviceProvider);
         String resourceId = applicationManagementService.createApplication((ServiceProvider) serviceProvider,
                 tenantDomain, username);
 
@@ -461,6 +478,104 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         // Deleting added application
         applicationManagementService.deleteApplicationByResourceId(resourceId, tenantDomain, username);
+    }
+
+    @Test
+    public void testGetServiceProviderByClientId() throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Retrieving application by ResourceId.
+        ServiceProvider actual = applicationManagementService.getServiceProviderByClientId("auth key",
+                "oauth2", SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
+        Assert.assertEquals(actual.getOwner().getUserName(), USERNAME_1);
+        Assert.assertEquals(actual.getDescription(), inputSP.getDescription());
+
+        // Deleting added application.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    private void addApplicationConfigurations(ServiceProvider serviceProvider) {
+
+        serviceProvider.setDescription("Created for testing");
+        serviceProvider.setSaasApp(TRUE);
+
+        // Inbound Authentication Configurations.
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        InboundAuthenticationRequestConfig authRequestConfig = new InboundAuthenticationRequestConfig();
+        authRequestConfig.setInboundAuthKey("auth key");
+        authRequestConfig.setInboundAuthType("oauth2");
+        InboundAuthenticationRequestConfig[] authRequests = new InboundAuthenticationRequestConfig[]
+                {authRequestConfig};
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequests);
+        serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+
+        // Inbound Provisioning Configurations.
+        InboundProvisioningConfig provisioningConfig = new InboundProvisioningConfig();
+        provisioningConfig.setProvisioningUserStore("UserStore");
+        serviceProvider.setInboundProvisioningConfig(provisioningConfig);
+
+        // OutBound Provisioning Configurations.
+        IdentityProvider provisioningIdP = new IdentityProvider();
+        provisioningIdP.setIdentityProviderName("Provisioning IdP");
+        OutboundProvisioningConfig outboundProvisioningConfig = new OutboundProvisioningConfig();
+        outboundProvisioningConfig.setProvisioningIdentityProviders(new IdentityProvider[]{provisioningIdP});
+        ProvisioningConnectorConfig provisioningConnectorConfig = new ProvisioningConnectorConfig();
+        provisioningConnectorConfig.setName("Provisioning connector");
+        provisioningIdP.setDefaultProvisioningConnectorConfig(provisioningConnectorConfig);
+        serviceProvider.setOutboundProvisioningConfig(outboundProvisioningConfig);
+
+        // Local And OutBound Authentication Configuration.
+        LocalAndOutboundAuthenticationConfig authenticationConfig = new LocalAndOutboundAuthenticationConfig();
+        AuthenticationStep authenticationStep = new AuthenticationStep();
+        IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setIdentityProviderName(IDP_NAME_1);
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setName("Federated authenticator");
+        identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
+                {federatedAuthenticatorConfig});
+        authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
+        LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+        localAuthenticatorConfig.setName("Local authenticator");
+        authenticationStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticatorConfig});
+        authenticationConfig.setAuthenticationSteps(new AuthenticationStep[]{authenticationStep});
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(authenticationConfig);
+
+        // Request Path Authenticator Configuration.
+        RequestPathAuthenticatorConfig requestPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
+        requestPathAuthenticatorConfig.setName("Request path authenticator");
+        serviceProvider.setRequestPathAuthenticatorConfigs(new RequestPathAuthenticatorConfig[]{
+                requestPathAuthenticatorConfig});
+
+        // Claim Configurations.
+        ClaimConfig claimConfig = new ClaimConfig();
+        claimConfig.setRoleClaimURI("Role claim uri");
+        claimConfig.setSpClaimDialects(new String[]{"SP claim dialect"});
+        ClaimMapping claimMapping = new ClaimMapping();
+        Claim localClaim = new Claim();
+        localClaim.setClaimUri("Local claim uri");
+        Claim remoteClaim = new Claim();
+        remoteClaim.setClaimUri("Remote claim uri");
+        claimMapping.setLocalClaim(localClaim);
+        claimMapping.setRemoteClaim(remoteClaim);
+        claimConfig.setClaimMappings(new ClaimMapping[]{claimMapping});
+        serviceProvider.setClaimConfig(claimConfig);
+
+        // Permission Role Configurations.
+        PermissionsAndRoleConfig permissionsAndRoleConfig = new PermissionsAndRoleConfig();
+        RoleMapping roleMapping = new RoleMapping();
+        LocalRole localRole = new LocalRole("Local role");
+        roleMapping.setLocalRole(localRole);
+        roleMapping.setRemoteRole("Remote role");
+        RoleMapping[] roleMappings = new RoleMapping[]{roleMapping};
+        permissionsAndRoleConfig.setRoleMappings(roleMappings);
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {
@@ -492,17 +607,17 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 holder);
 
        // Configure Registry Service.
-        RegistryService registryService = mock(RegistryService.class);
-        UserRegistry registry = mock(UserRegistry.class);
-        when(registryService.getGovernanceUserRegistry(anyString(), anyInt())).thenReturn(registry);
-        OSGiDataHolder.getInstance().setRegistryService(registryService);
-        CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
+        RegistryService mockRegistryService = mock(RegistryService.class);
+        UserRegistry mockRegistry = mock(UserRegistry.class);
+        when(mockRegistryService.getGovernanceUserRegistry(anyString(), anyInt())).thenReturn(mockRegistry);
+        OSGiDataHolder.getInstance().setRegistryService(mockRegistryService);
+        CarbonCoreDataHolder.getInstance().setRegistryService(mockRegistryService);
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setRegistry(RegistryType.USER_GOVERNANCE, registryService.getRegistry());
-        when(registry.resourceExists(anyString())).thenReturn(FALSE);
-        Collection permissionNode = mock(Collection.class);
-        when(registry.newCollection()).thenReturn(permissionNode);
-        when(registry.get(anyString())).thenReturn(permissionNode);
+                .setRegistry(RegistryType.USER_GOVERNANCE, mockRegistryService.getRegistry());
+        when(mockRegistry.resourceExists(anyString())).thenReturn(FALSE);
+        Collection mockPermissionNode = mock(Collection.class);
+        when(mockRegistry.newCollection()).thenReturn(mockPermissionNode);
+        when(mockRegistry.get(anyString())).thenReturn(mockPermissionNode);
     }
 
     private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {
@@ -522,12 +637,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static void setInternalState(Object target, String field, Object value) {
 
-        Class c = target.getClass();
+        Class targetClass = target.getClass();
 
         try {
-            Field f = c.getDeclaredField(field);
-            f.setAccessible(true);
-            f.set(target, value);
+            Field declaredField = targetClass.getDeclaredField(field);
+            declaredField.setAccessible(true);
+            declaredField.set(target, value);
         } catch (Exception e) {
             throw new RuntimeException("Unable to set internal state on a private field.", e);
         }
@@ -536,9 +651,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private static void setInternalState(Class c, String field, Object value) {
 
         try {
-            Field f = c.getDeclaredField(field);
-            f.setAccessible(true);
-            f.set(null, value);
+            Field declaredField = c.getDeclaredField(field);
+            declaredField.setAccessible(true);
+            declaredField.set(null, value);
         } catch (Exception e) {
             throw new RuntimeException("Unable to set internal state on a private field.", e);
         }
