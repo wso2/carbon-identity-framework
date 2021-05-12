@@ -99,7 +99,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testAddIdPData() {
+    public Object[][] addIdPData() {
 
         //Initialize Test Identity Provider 1
         IdentityProvider idp1 = new IdentityProvider();
@@ -174,13 +174,19 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp3.setIdentityProviderName("testIdP3");
 
         return new Object[][]{
+
+                /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs,ProvisioningConnectorConfigs,Claims*/
                 {idp1},
+
+                /* IDP with Local Cliam Dialect ClaimConfigs */
                 {idp2},
+
+                /* IDP with only the name */
                 {idp3},
         };
     }
 
-    @Test(dataProvider = "testAddIdPData")
+    @Test(dataProvider = "addIdPData")
     public void testAddIdP(Object identityProvider) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -192,7 +198,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testAddIdPExceptionData() {
+    public Object[][] addIdPExceptionData() {
 
         IdentityProvider idp1 = new IdentityProvider();
         idp1.setIdentityProviderName("testIdP1");
@@ -203,13 +209,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider idp3 = new IdentityProvider();
 
         return new Object[][]{
-                {idp1},
-                {idp2},
-                {idp3},
+                {idp1},         //Already existing IDP
+                {idp2},         //IDP name with "SHARED_" prefix
+                {idp3},         //IDP without a name
         };
     }
 
-    @Test(dataProvider = "testAddIdPExceptionData")
+    @Test(dataProvider = "addIdPExceptionData")
     public void testAddIdPException(Object identityProvider) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -220,7 +226,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetIdPByNameData() {
+    public Object[][] getIdPByNameData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -229,7 +235,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByNameData")
+    @Test(dataProvider = "getIdPByNameData")
     public void testGetIdPByName(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -240,14 +246,14 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetIdPByNameNullReturnData() {
+    public Object[][] getIdPByNameNullReturnData() {
 
         return new Object[][]{
                 {"NonExistingIdP"},
         };
     }
 
-    @Test(dataProvider = "testGetIdPByNameNullReturnData")
+    @Test(dataProvider = "getIdPByNameNullReturnData")
     public void testGetIdPByNameNullReturn(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -256,7 +262,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetIdPByNameIllegalArgumentExceptionData() {
+    public Object[][] getIdPByNameIllegalArgumentExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -264,7 +270,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetIdPByNameIllegalArgumentExceptionData")
+    @Test(dataProvider = "getIdPByNameIllegalArgumentExceptionData")
     public void testGetIdPByNameIllegalArgumentException(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -310,7 +316,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetAllPaginatedIdpInfoData() {
+    public Object[][] getAllPaginatedIdpInfoData() {
 
         return new Object[][]{
                 {1, 3},
@@ -318,7 +324,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetAllPaginatedIdpInfoData")
+    @Test(dataProvider = "getAllPaginatedIdpInfoData")
     public void testGetAllPaginatedIdpInfo(int pageNumber, int idpCount) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -329,7 +335,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetAllPaginatedIdpInfoExceptionData() {
+    public Object[][] getAllPaginatedIdpInfoExceptionData() {
 
         return new Object[][]{
                 {0},
@@ -337,7 +343,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetAllPaginatedIdpInfoExceptionData")
+    @Test(dataProvider = "getAllPaginatedIdpInfoExceptionData")
     public void testGetAllPaginatedIdpInfoException(int pageNumber) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -348,7 +354,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetPaginatedIdpInfoData() {
+    public Object[][] getPaginatedIdpInfoData() {
 
         return new Object[][]{
                 {1, "", 3},
@@ -361,7 +367,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetPaginatedIdpInfoData")
+    @Test(dataProvider = "getPaginatedIdpInfoData")
     public void testGetPaginatedIdpInfo(int pageNumber, String filter, int idpCount) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -372,7 +378,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetPaginatedIdpInfoExceptionData() {
+    public Object[][] getPaginatedIdpInfoExceptionData() {
 
         return new Object[][]{
                 {1, "Wrong_Filter"},
@@ -382,7 +388,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetPaginatedIdpInfoExceptionData")
+    @Test(dataProvider = "getPaginatedIdpInfoExceptionData")
     public void testGetPaginatedIdpInfoException(int pageNumber, String filter) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -393,7 +399,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetFilteredIdpCountData() {
+    public Object[][] getFilteredIdpCountData() {
 
         return new Object[][]{
                 {"", 3},
@@ -403,7 +409,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetFilteredIdpCountData")
+    @Test(dataProvider = "getFilteredIdpCountData")
     public void testGetFilteredIdpCount(String filter, int idpCount) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -414,7 +420,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testGetAllIdPsSearchData() {
+    public Object[][] getAllIdPsSearchData() {
 
         return new Object[][]{
                 {"", 3},
@@ -427,7 +433,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testGetAllIdPsSearchData")
+    @Test(dataProvider = "getAllIdPsSearchData")
     public void testGetAllIdPsSearch(String filter, int idpCount) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -452,7 +458,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testDeleteIdPData() {
+    public Object[][] deleteIdPData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -461,7 +467,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testDeleteIdPData")
+    @Test(dataProvider = "deleteIdPData")
     public void testDeleteIdP(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -473,7 +479,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testDeleteIdPExceptionData() {
+    public Object[][] deleteIdPExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -481,7 +487,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testDeleteIdPExceptionData")
+    @Test(dataProvider = "deleteIdPExceptionData")
     public void testDeleteIdPException(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -492,7 +498,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testForceDeleteIdPData() {
+    public Object[][] forceDeleteIdPData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -501,7 +507,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testForceDeleteIdPData")
+    @Test(dataProvider = "forceDeleteIdPData")
     public void testForceDeleteIdP(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -513,7 +519,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testForceDeleteIdPExceptionData() {
+    public Object[][] forceDeleteIdPExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -521,7 +527,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testForceDeleteIdPExceptionData")
+    @Test(dataProvider = "forceDeleteIdPExceptionData")
     public void testForceDeleteIdPException(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -532,7 +538,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testUpdateIdPData() {
+    public Object[][] updateIdPData() {
 
         //Initialize New Test Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -606,7 +612,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testUpdateIdPData")
+    @Test(dataProvider = "updateIdPData")
     public void testUpdateIdP(String oldIdpName, Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -620,7 +626,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testUpdateIdPExceptionData() {
+    public Object[][] updateIdPExceptionData() {
 
         //Initialize New Test Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -635,7 +641,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testUpdateIdPExceptionData")
+    @Test(dataProvider = "updateIdPExceptionData")
     public void testUpdateIdPException(String oldIdpName, Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -661,7 +667,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
         String[] allLocalClaimUris = identityProviderManagementService.getAllLocalClaimUris();
         Assert.assertEquals(allLocalClaimUris.length, 1);
-        Assert.assertEquals(allLocalClaimUris[0] , "http://wso2.org/claims/test1");
+        Assert.assertEquals(allLocalClaimUris[0], "http://wso2.org/claims/test1");
     }
 
     @Test
@@ -753,7 +759,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
 
         Assert.assertNotNull(idpFromDb);
-        Assert.assertEquals (idpFromDb.getIdentityProviderName(), "LOCAL");
+        Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
     }
 
     @Test()
@@ -765,7 +771,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testUpdateResidentIdPData() {
+    public Object[][] updateResidentIdPData() {
 
         //Initialize New Resident Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -801,13 +807,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp3New.setIdentityProviderName("LOCAL");
 
         return new Object[][]{
-                {idp1New},
-                {idp2New},
-                {idp3New},
+                {idp1New},          //new Resident IDP with new IDP Properties
+                {idp2New},          //new Resident IDP with new FederatedAuthenticatorConfigs
+                {idp3New},          //new Resident IDP with no object properties (only contains the name)
         };
     }
 
-    @Test(dataProvider = "testUpdateResidentIdPData")
+    @Test(dataProvider = "updateResidentIdPData")
     public void testUpdateResidentIdP(Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -818,7 +824,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     }
 
     @DataProvider
-    public Object[][] testUpdateResidentIdPExceptionData() {
+    public Object[][] updateResidentIdPExceptionData() {
 
         //Initialize New Test Resident Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -853,15 +859,14 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp4New.setIdpProperties(new IdentityProviderProperty[]{idpProperty4});
 
         return new Object[][]{
-                {idp1New},
-                {idp2New},
-                {idp3New},
-                {idp4New},
+                {idp1New},          //new Resident IDP with Invalid value to the 'SESSION_IDLE_TIME_OUT' idp property
+                {idp2New},          //new Resident IDP with Invalid value to the 'REMEMBER_ME_TIME_OUT' idp property
+                {idp3New},          //new Resident IDP with Invalid 'SAML_METADATA_VALIDITY_PERIOD' idp property value
+                {idp4New},          //new Resident IDP with Invalid 'SAML_METADATA_SIGNING_ENABLED' idp property value
         };
     }
 
-
-    @Test(dataProvider = "testUpdateResidentIdPExceptionData")
+    @Test(dataProvider = "updateResidentIdPExceptionData")
     public void testUpdateResidentIdPException(Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -1008,9 +1013,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp3.setIdentityProviderName("testIdP3");
         idp3.setHomeRealmId("3");
 
-        //Adding test idps to database
+        /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs,ClaimConfigs */
         identityProviderManagementService.addIdP(idp1);
+
+        /* IDP with Local Cliam Dialect ClaimConfigs */
         identityProviderManagementService.addIdP(idp2);
+
+        /* IDP with Only name */
         identityProviderManagementService.addIdP(idp3);
     }
 
@@ -1022,7 +1031,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProviderProperty idpProperty1 = new IdentityProviderProperty();
         idpProperty1.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
         idpProperty1.setValue("20");
-        residentIdp.setIdpProperties(new IdentityProviderProperty[] {idpProperty1});
+        residentIdp.setIdpProperties(new IdentityProviderProperty[]{idpProperty1});
 
         identityProviderManagementService.addIdP(residentIdp);
     }
@@ -1038,6 +1047,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.execute();
+            statement.close();
         }
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String query = "SELECT * FROM IDP WHERE NAME='SHARED_IDP'";
@@ -1047,7 +1057,8 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
             if (resultSet.next()) {
                 result = +1;
             }
-            Assert.assertEquals(result , 1);
+            Assert.assertEquals(result, 1);
+            statement2.close();
         }
     }
 
@@ -1057,10 +1068,10 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider[] idpsFromDb = identityProviderManagementService.getAllIdPs();
 
         for (IdentityProvider idp : idpsFromDb) {
-            identityProviderManagementService.deleteIdP(idp.getIdentityProviderName());
+            identityProviderManagementService.deleteIdP(idp.getIdentityProviderName());         //remove current idps
         }
-        identityProviderManagementService.deleteIdP("LOCAL"); //remove resident idp
-        identityProviderManagementService.deleteIdP("SHARED_IDP"); //remove shared idp
+        identityProviderManagementService.deleteIdP("LOCAL");                           //remove resident idp
+        identityProviderManagementService.deleteIdP("SHARED_IDP");                      //remove shared idp
     }
 
 }
