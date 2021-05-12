@@ -222,18 +222,24 @@ public class AuthenticatedUser extends User {
         // User id can be null sometimes in some flows. Hence trying to resolve it here.
         if (userId == null) {
             if (!isFederatedUser()) {
-                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                        ". Since the user is local, trying to resolve it.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                            ". Since the user is local, trying to resolve it.");
+                }
                 if (userName != null && userStoreDomain != null && tenantDomain != null) {
                     String userId = resolveUserId(this);
                     setUserId(userId);
                 } else {
-                    log.debug("User id could not be retrieved for user with username: " + userName + " userstore " +
-                            "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id could not be retrieved for user with username: " + userName + " userstore " +
+                                "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
+                    }
                 }
             } else {
-                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                        ". Since the user is federated, trying not to resolve it.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                            ". Since the user is federated, trying not to resolve it.");
+                }
             }
         }
         return super.getUserId();

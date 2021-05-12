@@ -636,7 +636,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
-            String userName = authenticatedIdPData.getUser().getUserName();
+            String userId = authenticatedIdPData.getUser().getUserId();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
             if (tenantDomain == null) {
                 tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
@@ -651,13 +651,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("A unique user id is not set for the user," + userName + "of userstore domain, " +
+                        log.debug("A unique user id is not set for the user," + userId + "of userstore domain, " +
                                 userStoreDomain + "in tenant, " + tenantDomain + ". Hence the session " +
                                 "information of the user is not stored.");
                     }
                 }
             } catch (UserSessionException e) {
-                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                throw new UserSessionException("Error while storing session data for user: " + userId + " of " +
                         "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain, e);
             }
         }

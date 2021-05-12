@@ -57,7 +57,6 @@ public class SessionManagementService extends AbstractAdmin {
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
         // Check whether the session belongs to the logged in user.
         CarbonContext carbonContext = CarbonContext.getThreadLocalCarbonContext();
-        //TOdo do we need to introduce a user id/user object for carbon context?
         String username = carbonContext.getUsername();
         // Extract the user store domain if there is any or set to 'PRIMARY'.
         String userStoreDomain = "PRIMARY";
