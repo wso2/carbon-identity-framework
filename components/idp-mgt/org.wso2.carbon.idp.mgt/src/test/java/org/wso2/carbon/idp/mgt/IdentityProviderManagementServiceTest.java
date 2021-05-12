@@ -38,11 +38,14 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -57,41 +60,43 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
-
+import static java.lang.Boolean.TRUE;
 
 /**
- * Unit test cases for IdentityProviderManagementService.
+ * Unit tests for IdentityProviderManagementService.
  */
 @Test
+@WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
-@WithRealmService (injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
-@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = { "dbscripts/h2.sql" })
-
-public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
+@WithRealmService(injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/h2.sql"})
+@WithKeyStore
+public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
     @Mock
     MetadataConverter mockMetadataConverter;
 
     @BeforeMethod
-    public void init() throws Exception {
-        List<MetadataConverter> list = Arrays.asList(mockMetadataConverter);
-        IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(list);
+    public void setUp() throws Exception {
+
+        List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
+        IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
-        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
-        //Clear Database after every test
-        removeTestIdps(identityProviderManagementService);
-    }
 
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        removeTestIdps(identityProviderManagementService);                  //Clear Database after every test
+    }
 
     @DataProvider
     public Object[][] testAddIdPData() {
@@ -104,8 +109,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         idp1.setFederationHub(true);
         idp1.setCertificate("");
 
-        RoleMapping rm1 = new RoleMapping (new LocalRole("1", "LocalRole1"), "Role1");
-        RoleMapping rm2 = new RoleMapping (new LocalRole ("2", "LocalRole2"), "Role2");
+        RoleMapping rm1 = new RoleMapping(new LocalRole("1", "LocalRole1"), "Role1");
+        RoleMapping rm2 = new RoleMapping(new LocalRole("2", "LocalRole2"), "Role2");
         PermissionsAndRoleConfig prc = new PermissionsAndRoleConfig();
         prc.setIdpRoles(new String[]{"Role1", "Role2"});
         prc.setRoleMappings(new RoleMapping[]{rm1, rm2});
@@ -123,18 +128,18 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         property2.setName("Property2");
         property2.setValue("value2");
         property2.setConfidential(true);
-        fac.setProperties(new Property[] {property1, property2});
-        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {fac});
+        fac.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{fac});
 
         ProvisioningConnectorConfig pcc1 = new ProvisioningConnectorConfig();
         pcc1.setName("ProvisiningConfig1");
-        pcc1.setProvisioningProperties(new Property[] {property1});
+        pcc1.setProvisioningProperties(new Property[]{property1});
         ProvisioningConnectorConfig pcc2 = new ProvisioningConnectorConfig();
         pcc2.setName("ProvisiningConfig2");
-        pcc2.setProvisioningProperties(new Property[] {property2});
+        pcc2.setProvisioningProperties(new Property[]{property2});
         pcc2.setEnabled(true);
         pcc2.setBlocking(true);
-        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1, pcc2});
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1, pcc2});
 
         ClaimConfig claimConfig = new ClaimConfig();
         claimConfig.setLocalClaimDialect(false);
@@ -186,9 +191,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
-
     @DataProvider
-    public Object[][] testAddIdPDataException () {
+    public Object[][] testAddIdPExceptionData() {
 
         IdentityProvider idp1 = new IdentityProvider();
         idp1.setIdentityProviderName("testIdP1");
@@ -205,8 +209,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "testAddIdPDataException")
-    public void testAddIdPException (Object identityProvider) throws Exception {
+    @Test(dataProvider = "testAddIdPExceptionData")
+    public void testAddIdPException(Object identityProvider) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
@@ -215,9 +219,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.addIdP((IdentityProvider) identityProvider));
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByNameData () {
+    public Object[][] testGetIdPByNameData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -236,9 +239,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByNameNullReturnData () {
+    public Object[][] testGetIdPByNameNullReturnData() {
 
         return new Object[][]{
                 {"NonExistingIdP"},
@@ -253,9 +255,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         assertNull(identityProviderManagementService.getIdPByName(idpName));
     }
 
-
     @DataProvider
-    public Object[][] testGetIdPByNameIllegalArgumentExceptionData () {
+    public Object[][] testGetIdPByNameIllegalArgumentExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -273,22 +274,20 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.getIdPByName(idpName));
     }
 
-
     @Test()
     public void testGetAllIdpCount() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
         //Without idp data in database
-        int idpCount =  identityProviderManagementService.getAllIdpCount();
+        int idpCount = identityProviderManagementService.getAllIdpCount();
         Assert.assertEquals(idpCount, 0);
 
         //With 3 idps  in database
         addTestIdps(identityProviderManagementService);
-        idpCount =  identityProviderManagementService.getAllIdpCount();
+        idpCount = identityProviderManagementService.getAllIdpCount();
         Assert.assertEquals(idpCount, 3);
     }
-
 
     @Test()
     public void testGetAllIdps() throws Exception {
@@ -296,23 +295,22 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
         //Without idp data in database
-        IdentityProvider[] idpsList =  identityProviderManagementService.getAllIdPs ();
+        IdentityProvider[] idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 0);
 
         //With 3 idps  in database
         addTestIdps(identityProviderManagementService);
-        idpsList =  identityProviderManagementService.getAllIdPs ();
+        idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 3);
 
         //With 3 idps and Shared idp  in database
         addSharedIdp();
-        idpsList =  identityProviderManagementService.getAllIdPs ();
+        idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 3);
     }
 
-
     @DataProvider
-    public Object[][] testGetAllPaginatedIdpInfoData () {
+    public Object[][] testGetAllPaginatedIdpInfoData() {
 
         return new Object[][]{
                 {1, 3},
@@ -326,13 +324,12 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
 
-        IdentityProvider [] idpList = identityProviderManagementService.getAllPaginatedIdpInfo(pageNumber);
+        IdentityProvider[] idpList = identityProviderManagementService.getAllPaginatedIdpInfo(pageNumber);
         Assert.assertEquals(idpList.length, idpCount);
     }
 
-
     @DataProvider
-    public Object[][] testGetAllPaginatedIdpInfoExceptionData () {
+    public Object[][] testGetAllPaginatedIdpInfoExceptionData() {
 
         return new Object[][]{
                 {0},
@@ -350,9 +347,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.getAllPaginatedIdpInfo(pageNumber));
     }
 
-
     @DataProvider
-    public Object[][] testGetPaginatedIdpInfoData () {
+    public Object[][] testGetPaginatedIdpInfoData() {
 
         return new Object[][]{
                 {1, "", 3},
@@ -371,13 +367,12 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
 
-        IdentityProvider [] idpList = identityProviderManagementService.getPaginatedIdpInfo(filter, pageNumber);
+        IdentityProvider[] idpList = identityProviderManagementService.getPaginatedIdpInfo(filter, pageNumber);
         Assert.assertEquals(idpList.length, idpCount);
     }
 
-
     @DataProvider
-    public Object[][] testGetPaginatedIdpInfoExceptionData () {
+    public Object[][] testGetPaginatedIdpInfoExceptionData() {
 
         return new Object[][]{
                 {1, "Wrong_Filter"},
@@ -397,9 +392,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.getPaginatedIdpInfo(filter, pageNumber));
     }
 
-
     @DataProvider
-    public Object[][] testGetFilteredIdpCountData () {
+    public Object[][] testGetFilteredIdpCountData() {
 
         return new Object[][]{
                 {"", 3},
@@ -419,9 +413,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(idpCountFromDb, idpCount);
     }
 
-
     @DataProvider
-    public Object[][] testGetAllIdPsSearchData () {
+    public Object[][] testGetAllIdPsSearchData() {
 
         return new Object[][]{
                 {"", 3},
@@ -448,7 +441,6 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(idpsList.length, idpCount);
     }
 
-
     @Test()
     public void testGetEnabledAllIdPs() throws Exception {
 
@@ -459,9 +451,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(idpsList.length, 3);
     }
 
-
     @DataProvider
-    public Object[][] testDeleteIdPData () {
+    public Object[][] testDeleteIdPData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -481,9 +472,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertNull(identityProviderManagementService.getIdPByName(idpName));
     }
 
-
     @DataProvider
-    public Object[][] testDeleteIdPExceptionData () {
+    public Object[][] testDeleteIdPExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -492,7 +482,7 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "testDeleteIdPExceptionData")
-    public void testDeleteIdPException (String idpName) throws Exception {
+    public void testDeleteIdPException(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
@@ -501,9 +491,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.deleteIdP(idpName));
     }
 
-
     @DataProvider
-    public Object[][] testForceDeleteIdPData () {
+    public Object[][] testForceDeleteIdPData() {
 
         return new Object[][]{
                 {"testIdP1"},
@@ -523,9 +512,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertNull(identityProviderManagementService.getIdPByName(idpName));
     }
 
-
     @DataProvider
-    public Object[][] testForceDeleteIdPExceptionData () {
+    public Object[][] testForceDeleteIdPExceptionData() {
 
         return new Object[][]{
                 {""},
@@ -534,7 +522,7 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "testForceDeleteIdPExceptionData")
-    public void testForceDeleteIdPException (String idpName) throws Exception {
+    public void testForceDeleteIdPException(String idpName) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
@@ -543,9 +531,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
                 identityProviderManagementService.forceDeleteIdP(idpName));
     }
 
-
     @DataProvider
-    public Object[][] testUpdateIdPData()  {
+    public Object[][] testUpdateIdPData() {
 
         //Initialize New Test Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -563,8 +550,8 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         rm2New.setLocalRole(new LocalRole("2", "LocalRole2"));
 
         PermissionsAndRoleConfig prcNew = new PermissionsAndRoleConfig();
-        prcNew.setIdpRoles(new String[] {"Role1New", "Role2New"});
-        prcNew.setRoleMappings(new RoleMapping[] {rm1New, rm2New});
+        prcNew.setIdpRoles(new String[]{"Role1New", "Role2New"});
+        prcNew.setRoleMappings(new RoleMapping[]{rm1New, rm2New});
         idp1New.setPermissionAndRoleConfig(prcNew);
 
         FederatedAuthenticatorConfig facNew = new FederatedAuthenticatorConfig();
@@ -579,18 +566,18 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         property2New.setName("Property2New");
         property2New.setValue("value2New");
         property2New.setConfidential(false);
-        facNew.setProperties(new Property[] {property1New, property2New});
-        idp1New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {facNew});
+        facNew.setProperties(new Property[]{property1New, property2New});
+        idp1New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         ProvisioningConnectorConfig pcc1New = new ProvisioningConnectorConfig();
         pcc1New.setName("ProvisiningConfig1");
-        pcc1New.setProvisioningProperties(new Property[] {property1New});
+        pcc1New.setProvisioningProperties(new Property[]{property1New});
         ProvisioningConnectorConfig pcc2New = new ProvisioningConnectorConfig();
         pcc2New.setName("ProvisiningConfig2");
-        pcc2New.setProvisioningProperties(new Property[] {property2New});
+        pcc2New.setProvisioningProperties(new Property[]{property2New});
         pcc2New.setEnabled(true);
         pcc2New.setBlocking(true);
-        idp1New.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1New, pcc2New});
+        idp1New.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1New, pcc2New});
 
         ClaimConfig claimConfigNew = new ClaimConfig();
         claimConfigNew.setLocalClaimDialect(false);
@@ -613,29 +600,27 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         idp3New.setIdentityProviderName("testIdP3New");
 
         return new Object[][]{
-                {"testIdP1", idp1New },
-                {"testIdP2", idp2New },
-                {"testIdP3", idp3New },
+                {"testIdP1", idp1New},
+                {"testIdP2", idp2New},
+                {"testIdP3", idp3New},
         };
     }
 
-
     @Test(dataProvider = "testUpdateIdPData")
-    public void testUpdateIdP (String oldIdpName, Object newIdp) throws Exception {
+    public void testUpdateIdP(String oldIdpName, Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
         addTestIdps(identityProviderManagementService);
-        identityProviderManagementService.updateIdP (oldIdpName, (IdentityProvider) newIdp);
+        identityProviderManagementService.updateIdP(oldIdpName, (IdentityProvider) newIdp);
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
         Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
     }
 
-
     @DataProvider
-    public Object[][] testUpdateIdPExceptionData()  {
+    public Object[][] testUpdateIdPExceptionData() {
 
         //Initialize New Test Identity Provider 1
         IdentityProvider idp1New = new IdentityProvider();
@@ -645,26 +630,23 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         IdentityProvider idp2New = new IdentityProvider();
 
         return new Object[][]{
-                {"NonExist", idp1New },
-                {"testIdP2", idp2New },
+                {"NonExist", idp1New},
+                {"testIdP2", idp2New},
         };
     }
 
-
     @Test(dataProvider = "testUpdateIdPExceptionData")
-    public void testUpdateIdPException (String oldIdpName, Object newIdp) throws Exception {
+    public void testUpdateIdPException(String oldIdpName, Object newIdp) throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
         addTestIdps(identityProviderManagementService);
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.updateIdP(oldIdpName, (IdentityProvider) newIdp));
-
     }
 
-
     @Test
-    public void testGetAllLocalClaimUris () throws Exception {
+    public void testGetAllLocalClaimUris() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
@@ -682,113 +664,259 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         Assert.assertEquals(allLocalClaimUris[0] , "http://wso2.org/claims/test1");
     }
 
-
     @Test
-    public void testGetAllLocalClaimUrisException () throws Exception {
+    public void testGetAllLocalClaimUrisException() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
         ClaimMetadataManagementServiceImpl claimMetadataManagementService =
                 mock(ClaimMetadataManagementServiceImpl.class);
         IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
-        when(claimMetadataManagementService.getLocalClaims(anyString())).thenThrow (ClaimMetadataException.class);
+        when(claimMetadataManagementService.getLocalClaims(anyString())).thenThrow(ClaimMetadataException.class);
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.getAllLocalClaimUris());
     }
 
-
     @Test
-    public void testGetAllFederatedAuthenticators () throws Exception {
+    public void testGetAllFederatedAuthenticators() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfig =
+        FederatedAuthenticatorConfig[] allFederatedAuthenticators =
                 identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(federatedAuthenticatorConfig.length, 0);
+        Assert.assertEquals(allFederatedAuthenticators.length, 0);
 
-        FederatedAuthenticatorConfig fac1 = mock (FederatedAuthenticatorConfig.class);
+        FederatedAuthenticatorConfig fac1 = mock(FederatedAuthenticatorConfig.class);
         fac1.setDisplayName("DisplayName1");
         fac1.setName("Name1");
         fac1.setEnabled(true);
-        FederatedAuthenticatorConfig fac2 = mock (FederatedAuthenticatorConfig.class);
+        FederatedAuthenticatorConfig fac2 = mock(FederatedAuthenticatorConfig.class);
         fac2.setDisplayName("DisplayName2");
         fac2.setName("Name2");
         fac2.setEnabled(true);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(fac1);
-        federatedAuthenticatorConfig = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(federatedAuthenticatorConfig.length, 1);
+        allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
+        Assert.assertEquals(allFederatedAuthenticators.length, 1);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(fac2);
-        federatedAuthenticatorConfig = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(federatedAuthenticatorConfig.length, 2);
+        allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
+        Assert.assertEquals(allFederatedAuthenticators.length, 2);
 
         //clear after the test
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(fac1);
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(fac2);
 
-        federatedAuthenticatorConfig = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(federatedAuthenticatorConfig.length, 0);
+        allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
+        Assert.assertEquals(allFederatedAuthenticators.length, 0);
     }
 
-
     @Test
-    public void testGetAllProvisioningConnectors () throws Exception {
+    public void testGetAllProvisioningConnectors() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
-        ProvisioningConnectorConfig [] provisioningConnectorConfig =
+        ProvisioningConnectorConfig[] allProvisioningConnectors =
                 identityProviderManagementService.getAllProvisioningConnectors();
-        Assert.assertNull(provisioningConnectorConfig);
+        Assert.assertNull(allProvisioningConnectors);
 
-        ProvisioningConnectorConfig pcc1 = mock (ProvisioningConnectorConfig.class);
+        ProvisioningConnectorConfig pcc1 = mock(ProvisioningConnectorConfig.class);
         pcc1.setName("ProvisiningConfig1");
-        ProvisioningConnectorConfig pcc2 = mock (ProvisioningConnectorConfig.class);
+        ProvisioningConnectorConfig pcc2 = mock(ProvisioningConnectorConfig.class);
         pcc2.setName("ProvisiningConfig2");
         pcc2.setEnabled(true);
         pcc2.setBlocking(true);
 
-        ProvisioningConnectorService.getInstance().addProvisioningConnectorConfigs (pcc1);
-        provisioningConnectorConfig = identityProviderManagementService.getAllProvisioningConnectors();
-        Assert.assertEquals(provisioningConnectorConfig.length, 1);
+        ProvisioningConnectorService.getInstance().addProvisioningConnectorConfigs(pcc1);
+        allProvisioningConnectors = identityProviderManagementService.getAllProvisioningConnectors();
+        Assert.assertEquals(allProvisioningConnectors.length, 1);
 
-        ProvisioningConnectorService.getInstance().addProvisioningConnectorConfigs (pcc2);
-        provisioningConnectorConfig = identityProviderManagementService.getAllProvisioningConnectors();
-        Assert.assertEquals(provisioningConnectorConfig.length, 2);
+        ProvisioningConnectorService.getInstance().addProvisioningConnectorConfigs(pcc2);
+        allProvisioningConnectors = identityProviderManagementService.getAllProvisioningConnectors();
+        Assert.assertEquals(allProvisioningConnectors.length, 2);
 
         //clear after the test
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(pcc1);
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(pcc2);
 
-        provisioningConnectorConfig = identityProviderManagementService.getAllProvisioningConnectors();
-        Assert.assertNull(provisioningConnectorConfig);
+        allProvisioningConnectors = identityProviderManagementService.getAllProvisioningConnectors();
+        Assert.assertNull(allProvisioningConnectors);
+    }
+
+    @Test()
+    public void testGetResidentIdP() throws Exception {
+
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+
+        addResidentIdp(identityProviderManagementService);
+        IdentityProvider idpFromDb = identityProviderManagementService.getResidentIdP();
+
+        Assert.assertNotNull(idpFromDb);
+        Assert.assertEquals (idpFromDb.getIdentityProviderName(), "LOCAL");
+    }
+
+    @Test()
+    public void testGetResidentIdPException() throws Exception {
+
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.getResidentIdP());
+    }
+
+    @DataProvider
+    public Object[][] testUpdateResidentIdPData() {
+
+        //Initialize New Resident Identity Provider 1
+        IdentityProvider idp1New = new IdentityProvider();
+        idp1New.setIdentityProviderName("LOCAL");
+
+        IdentityProviderProperty idpProperty1 = new IdentityProviderProperty();
+        idpProperty1.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        idpProperty1.setValue("100");
+        IdentityProviderProperty idpProperty2 = new IdentityProviderProperty();
+        idpProperty2.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+        idpProperty2.setValue("10000");
+        IdentityProviderProperty idpProperty3 = new IdentityProviderProperty();
+        idpProperty3.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD);
+        idpProperty3.setValue("10000");
+        IdentityProviderProperty idpProperty4 = new IdentityProviderProperty();
+        idpProperty4.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED);
+        idpProperty4.setValue("true");
+        idp1New.setIdpProperties(new IdentityProviderProperty[]{idpProperty1, idpProperty2, idpProperty3,
+                idpProperty4});
+
+        //Initialize New Resident Identity Provider 2
+        IdentityProvider idp2New = new IdentityProvider();
+        idp2New.setIdentityProviderName("LOCAL");
+
+        FederatedAuthenticatorConfig facNew = new FederatedAuthenticatorConfig();
+        facNew.setDisplayName("DisplayName1New");
+        facNew.setName("Name");
+        facNew.setEnabled(true);
+        idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
+
+        //Initialize New Resident Identity Provider 3
+        IdentityProvider idp3New = new IdentityProvider();
+        idp3New.setIdentityProviderName("LOCAL");
+
+        return new Object[][]{
+                {idp1New},
+                {idp2New},
+                {idp3New},
+        };
+    }
+
+    @Test(dataProvider = "testUpdateResidentIdPData")
+    public void testUpdateResidentIdP(Object newIdp) throws Exception {
+
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        addResidentIdp(identityProviderManagementService);
+
+        identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
+        Assert.assertNotNull(identityProviderManagementService.getResidentIdP());
+    }
+
+    @DataProvider
+    public Object[][] testUpdateResidentIdPExceptionData() {
+
+        //Initialize New Test Resident Identity Provider 1
+        IdentityProvider idp1New = new IdentityProvider();
+        idp1New.setIdentityProviderName("LOCAL");
+        IdentityProviderProperty idpProperty1 = new IdentityProviderProperty();
+        idpProperty1.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        idpProperty1.setValue("-1");
+        idp1New.setIdpProperties(new IdentityProviderProperty[]{idpProperty1});
+
+        //Initialize New Test Resident Identity Provider 2
+        IdentityProvider idp2New = new IdentityProvider();
+        idp2New.setIdentityProviderName("LOCAL");
+        IdentityProviderProperty idpProperty2 = new IdentityProviderProperty();
+        idpProperty2.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+        idpProperty2.setValue("Invalid");
+        idp2New.setIdpProperties(new IdentityProviderProperty[]{idpProperty2});
+
+        //Initialize New Test Resident Identity Provider 3
+        IdentityProvider idp3New = new IdentityProvider();
+        idp3New.setIdentityProviderName("LOCAL");
+        IdentityProviderProperty idpProperty3 = new IdentityProviderProperty();
+        idpProperty3.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD);
+        idpProperty3.setValue("");
+        idp3New.setIdpProperties(new IdentityProviderProperty[]{idpProperty3});
+
+        //Initialize New Test Resident Identity Provider 4
+        IdentityProvider idp4New = new IdentityProvider();
+        idp4New.setIdentityProviderName("LOCAL");
+        IdentityProviderProperty idpProperty4 = new IdentityProviderProperty();
+        idpProperty4.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED);
+        idpProperty4.setValue("");
+        idp4New.setIdpProperties(new IdentityProviderProperty[]{idpProperty4});
+
+        return new Object[][]{
+                {idp1New},
+                {idp2New},
+                {idp3New},
+                {idp4New},
+        };
     }
 
 
-    private void addSharedIdp() throws SQLException {
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+    @Test(dataProvider = "testUpdateResidentIdPExceptionData")
+    public void testUpdateResidentIdPException(Object newIdp) throws Exception {
 
-            String sql = "INSERT INTO IDP (TENANT_ID, NAME, UUID, IS_PRIMARY, IS_FEDERATION_HUB, " +
-                    "IS_LOCAL_CLAIM_DIALECT, IS_ENABLED) VALUES " +
-                    "( '" + SUPER_TENANT_ID + "' , '" + "SHARED_IDP" + "' , '" + "0000" + "' , '" + 1 + "' , '" + 1 +
-                    "' , '" + 1 + "' , '" + 1 + "');";
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        addResidentIdp(identityProviderManagementService);
 
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.execute();
-        }
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            String query = "SELECT * FROM IDP WHERE NAME='SHARED_IDP'";
-            PreparedStatement statement2 = connection.prepareStatement(query);
-            ResultSet resultSet = statement2.executeQuery();
-            int result = 0;
-            if (resultSet.next()) {
-                result = +1;
-            }
-            Assert.assertEquals(result , 1);
-        }
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp));
     }
 
+    @Test
+    public void testGetResidentIDPMetadata() throws Exception {
+
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        addResidentIdp(identityProviderManagementService);
+        Assert.assertNull(identityProviderManagementService.getResidentIDPMetadata());
+
+        when(mockMetadataConverter.canHandle((FederatedAuthenticatorConfig) anyObject())).thenReturn(TRUE);
+        when(mockMetadataConverter.getMetadataString((FederatedAuthenticatorConfig) anyObject())).
+                thenReturn("saml2sso");
+
+        IdentityProvider newIdp = new IdentityProvider();
+        newIdp.setIdentityProviderName("LOCAL");
+        FederatedAuthenticatorConfig facNew = new FederatedAuthenticatorConfig();
+        facNew.setDisplayName("SAML2SSO");
+        facNew.setName("saml2sso");
+        facNew.setEnabled(true);
+        newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
+        identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
+
+        Assert.assertNotNull(identityProviderManagementService.getResidentIDPMetadata());
+        Assert.assertEquals(identityProviderManagementService.getResidentIDPMetadata(), "saml2sso");
+    }
+
+    @Test
+    public void testGetResidentIDPMetadataException() throws Exception {
+
+        IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
+        addResidentIdp(identityProviderManagementService);
+
+        when(mockMetadataConverter.canHandle((FederatedAuthenticatorConfig) anyObject())).thenReturn(TRUE);
+        when(mockMetadataConverter.getMetadataString((FederatedAuthenticatorConfig) anyObject())).thenThrow
+                (IdentityProviderSAMLException.class);
+
+        IdentityProvider newIdp = new IdentityProvider();
+        newIdp.setIdentityProviderName("LOCAL");
+        FederatedAuthenticatorConfig facNew = new FederatedAuthenticatorConfig();
+        facNew.setDisplayName("SAML2SSO");
+        facNew.setName("saml2sso");
+        facNew.setEnabled(true);
+        newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
+        identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.getResidentIDPMetadata());
+    }
 
     private void addTestIdps(IdentityProviderManagementService identityProviderManagementService) throws
             IdentityProviderManagementException {
@@ -827,18 +955,18 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         property2.setName("Property2");
         property2.setValue("value2");
         property2.setConfidential(false);
-        fac.setProperties(new Property[] {property1, property2});
-        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {fac});
+        fac.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{fac});
 
         ProvisioningConnectorConfig pcc1 = new ProvisioningConnectorConfig();
         pcc1.setName("ProvisiningConfig1");
-        pcc1.setProvisioningProperties(new Property[] {property1});
+        pcc1.setProvisioningProperties(new Property[]{property1});
         ProvisioningConnectorConfig pcc2 = new ProvisioningConnectorConfig();
         pcc2.setName("ProvisiningConfig2");
-        pcc2.setProvisioningProperties(new Property[] {property2});
+        pcc2.setProvisioningProperties(new Property[]{property2});
         pcc2.setEnabled(true);
         pcc2.setBlocking(true);
-        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[] {pcc1, pcc2});
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{pcc1, pcc2});
 
         IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
         identityProviderProperty.setDisplayName("idpDisplayName");
@@ -858,7 +986,6 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
-
         //Initialize Test Identity Provider 2
         IdentityProvider idp2 = new IdentityProvider();
         idp2.setIdentityProviderName("testIdP2");
@@ -876,7 +1003,6 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         claimConfig2.setClaimMappings(new ClaimMapping[]{cm2});
         idp2.setClaimConfig(claimConfig2);
 
-
         //Initialize Test Identity Provider 3
         IdentityProvider idp3 = new IdentityProvider();
         idp3.setIdentityProviderName("testIdP3");
@@ -888,6 +1014,42 @@ public class IdentityProviderManagementServiceTest  extends PowerMockTestCase {
         identityProviderManagementService.addIdP(idp3);
     }
 
+    private void addResidentIdp(IdentityProviderManagementService identityProviderManagementService) throws
+            IdentityProviderManagementException {
+
+        IdentityProvider residentIdp = new IdentityProvider();
+        residentIdp.setIdentityProviderName("LOCAL");
+        IdentityProviderProperty idpProperty1 = new IdentityProviderProperty();
+        idpProperty1.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        idpProperty1.setValue("20");
+        residentIdp.setIdpProperties(new IdentityProviderProperty[] {idpProperty1});
+
+        identityProviderManagementService.addIdP(residentIdp);
+    }
+
+    private void addSharedIdp() throws SQLException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            String sql = "INSERT INTO IDP (TENANT_ID, NAME, UUID, IS_PRIMARY, IS_FEDERATION_HUB, " +
+                    "IS_LOCAL_CLAIM_DIALECT, IS_ENABLED) VALUES " +
+                    "( '" + SUPER_TENANT_ID + "' , '" + "SHARED_IDP" + "' , '" + "0000" + "' , '" + 1 + "' , '" + 1 +
+                    "' , '" + 1 + "' , '" + 1 + "');";
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.execute();
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String query = "SELECT * FROM IDP WHERE NAME='SHARED_IDP'";
+            PreparedStatement statement2 = connection.prepareStatement(query);
+            ResultSet resultSet = statement2.executeQuery();
+            int result = 0;
+            if (resultSet.next()) {
+                result = +1;
+            }
+            Assert.assertEquals(result , 1);
+        }
+    }
 
     private void removeTestIdps(IdentityProviderManagementService identityProviderManagementService) throws
             IdentityProviderManagementException {
