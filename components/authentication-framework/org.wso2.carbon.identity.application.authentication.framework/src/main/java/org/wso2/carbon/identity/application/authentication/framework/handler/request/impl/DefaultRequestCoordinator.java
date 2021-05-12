@@ -281,7 +281,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
-                if (!context.isLogoutRequest()) { //diag
+                if (!context.isLogoutRequest()) {
                     diagnosticLog.info("Handling authentication flow for " + context.getContextIdentifier());
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                 } else {

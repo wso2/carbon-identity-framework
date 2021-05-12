@@ -121,6 +121,7 @@ public class IdentityUtil {
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
             HashMap<>();
@@ -286,6 +287,8 @@ public class IdentityUtil {
                     log.debug("Returning the proxy context: " + reverseProxyConfig.getProxyContext() +
                             " for the default context " + defaultContext);
                 }
+                diagnosticLog.info("Returning the proxy context: " + reverseProxyConfig.getProxyContext() +
+                        " for the default context " + defaultContext);
                 return reverseProxyConfig.getProxyContext();
             }
 
@@ -293,6 +296,8 @@ public class IdentityUtil {
                 log.debug("Proxy context is not configured or the configured proxy context is empty. " +
                         "Hence returning the default context: " + defaultContext);
             }
+            diagnosticLog.info("Proxy context is not configured or the configured proxy context is empty. " +
+                    "Hence returning the default context: " + defaultContext);
         }
         return defaultContext;
     }
@@ -1074,9 +1079,11 @@ public class IdentityUtil {
         for (String header : IdentityConstants.HEADERS_WITH_IP) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !IdentityConstants.UNKNOWN.equalsIgnoreCase(ip)) {
+                diagnosticLog.info("Retrieving client IP address from HTTP request: " + getFirstIP(ip));
                 return getFirstIP(ip);
             }
         }
+        diagnosticLog.info("Retrieving client IP address from HTTP request: " + request.getRemoteAddr());
         return request.getRemoteAddr();
     }
 
@@ -1418,6 +1425,9 @@ public class IdentityUtil {
                 log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
                 return Boolean.FALSE;
             }
+            diagnosticLog.info("'GroupAndRoleSeparationEnabled' property is set to: " +
+                    UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(AdminServicesUtil.getUserRealm()
+                    .getRealmConfiguration()));
             return UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(AdminServicesUtil.getUserRealm()
                     .getRealmConfiguration());
         } catch (org.wso2.carbon.user.core.UserStoreException | CarbonException e) {

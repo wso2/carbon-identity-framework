@@ -52,6 +52,7 @@ public class IdentityTenantUtil {
     private static RealmService realmService;
     private static RegistryService registryService;
     private static Log log = LogFactory.getLog(IdentityTenantUtil.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
     protected static ConcurrentHashMap<Integer,Boolean> tenantIdMap = new ConcurrentHashMap<Integer,Boolean>();
@@ -262,10 +263,13 @@ public class IdentityTenantUtil {
             // level once more without adding any valuable contextual information. Because we don't have exception
             // enrichment properly implemented, we are appending the error message from the UserStoreException to the
             // new message
+            diagnosticLog.error("Error occurred while retrieving tenantId for tenantDomain: " +
+                    tenantDomain + ". Error message: " + e.getMessage());
             throw IdentityRuntimeException.error("Error occurred while retrieving tenantId for tenantDomain: " +
                     tenantDomain + e.getMessage(), e);
         }
         if(tenantId == MultitenantConstants.INVALID_TENANT_ID){
+            diagnosticLog.error("Invalid tenant domain" + tenantDomain);
             throw IdentityRuntimeException.error("Invalid tenant domain " + tenantDomain);
         } else {
             return tenantId;
@@ -283,10 +287,13 @@ public class IdentityTenantUtil {
             // level once more without adding any valuable contextual information. Because we don't have exception
             // enrichment properly implemented, we are appending the error message from the UserStoreException to the
             // new message
+            diagnosticLog.error("Error occurred while retrieving tenantDomain for tenantId: " +
+                    tenantId + ".Error message: " + e.getMessage());
             throw IdentityRuntimeException.error("Error occurred while retrieving tenantDomain for tenantId: " +
                     tenantId + e.getMessage(), e);
         }
         if (tenantDomain == null) {
+            diagnosticLog.error("Can not find the tenant domain for the tenant id " + tenantId);
             throw IdentityRuntimeException.error("Can not find the tenant domain for the tenant id " + tenantId);
         } else {
             return tenantDomain;
@@ -311,10 +318,12 @@ public class IdentityTenantUtil {
                 tenantId = tenantManager.getTenantId(domainName);
             } catch (UserStoreException e) {
                 String errorMsg = "Error when getting the tenant id from the tenant domain : " + domainName;
+                diagnosticLog.error(errorMsg);
                 throw IdentityRuntimeException.error(errorMsg, e);
             }
         }
         if(tenantId == MultitenantConstants.INVALID_TENANT_ID){
+            diagnosticLog.error("Invalid tenant domain of user " + username);
             throw IdentityRuntimeException.error("Invalid tenant domain of user " + username);
         } else {
             return tenantId;

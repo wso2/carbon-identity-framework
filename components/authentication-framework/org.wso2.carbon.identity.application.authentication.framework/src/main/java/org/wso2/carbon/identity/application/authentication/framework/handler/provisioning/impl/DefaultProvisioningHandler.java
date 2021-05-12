@@ -252,7 +252,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user: " + username + " is provisioned by authentication framework.");
                 }
-                diagnosticLog.info("Federated user: " + username + " is provisioned by authentication framework.");
+                diagnosticLog.info("Federated user: " + username + " is provisioned locally.");
             }
 
             if (roles != null) {

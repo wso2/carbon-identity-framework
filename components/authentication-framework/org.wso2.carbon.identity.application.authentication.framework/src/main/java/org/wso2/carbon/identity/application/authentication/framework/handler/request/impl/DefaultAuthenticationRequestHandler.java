@@ -152,7 +152,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             // if SP has request path authenticators configured and this is start of
             // the flow
-            if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) { //diag
+            if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
                 // call request path sequence handler
                 diagnosticLog.info("Invoking request path authenticators configured for the service provider: " +
                         context.getServiceProviderName());
