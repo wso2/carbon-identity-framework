@@ -90,6 +90,7 @@ public class AuthenticatedUser extends User {
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
+
         this.userId = user.getUserID();
         this.userName = user.getUsername();
         this.tenantDomain = user.getTenantDomain();
