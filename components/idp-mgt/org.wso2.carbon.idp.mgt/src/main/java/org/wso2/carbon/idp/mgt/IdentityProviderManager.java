@@ -2492,7 +2492,8 @@ public class IdentityProviderManager implements IdpManager {
     public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
 
         if (IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().isEmpty()) {
-            throw new IdentityProviderManagementException("Error receiving Metadata object");
+            throw new IdentityProviderManagementException(
+                    "Error receiving Metadata object for tenant: " + tenantDomain);
         }
 
         IdentityProvider residentIdentityProvider = this.getResidentIdP(tenantDomain);
@@ -2519,12 +2520,12 @@ public class IdentityProviderManager implements IdpManager {
                     }
                 }
             } catch (IdentityProviderSAMLException e) {
-                throw new IdentityProviderManagementException(e.getMessage());
+                throw new IdentityProviderManagementException(
+                        "Error in retrieving metadata string for tenant:" + tenantDomain, e.getMessage());
             }
         }
 
         return null;
-
     }
 
     @Override
