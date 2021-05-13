@@ -300,7 +300,7 @@ public class UserSessionStore {
     }
 
     /**
-     * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_STORE.
+     * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_MAPPING.
      *
      * @param userId    Id of the user
      * @param sessionId Id of the authenticated session
@@ -315,6 +315,9 @@ public class UserSessionStore {
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.executeUpdate();
                 IdentityDatabaseUtil.commitTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Stored user session data for user " + userId + " with session id: " + sessionId);
+                }
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while storing mapping between user Id: " + userId +
@@ -662,6 +665,9 @@ public class UserSessionStore {
                     preparedStatement.addBatch();
                 }
             }), sessionId);
+            if (log.isDebugEnabled()) {
+                log.debug("Inserted metadata for session id: " + sessionId);
+            }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing metadata of session:" + sessionId +
                     " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
