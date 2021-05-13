@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.cache.AbstractCacheListener;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -41,6 +45,8 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * @param <V> cache value type.
  */
 public class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
+
+    private static final Log log = LogFactory.getLog(AuthenticationBaseCache.class);
 
     public AuthenticationBaseCache(String cacheName) {
 
@@ -101,7 +107,16 @@ public class AuthenticationBaseCache<K extends Serializable, V extends Serializa
 
         // We use the tenant domain set in context only in tenant qualified URL mode.
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            return IdentityTenantUtil.getTenantDomainFromContext();
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantQualifiedUrlsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
         }
         return SUPER_TENANT_DOMAIN_NAME;
     }
