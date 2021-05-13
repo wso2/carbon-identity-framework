@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -109,11 +110,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EXISTING_CLAIM_DIALECT.getMessage(), claimDialect.getClaimDialectURI()));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreAddClaimDialect(tenantId, claimDialect);
 
         this.claimDialectDAO.addClaimDialect(claimDialect, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddClaimDialect(tenantId, claimDialect);
 
     }
 
@@ -131,11 +132,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateClaimDialect(tenantId, oldClaimDialect, newClaimDialect);
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
         externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
-        // Add listener
+
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateClaimDialect(tenantId, oldClaimDialect, newClaimDialect);
 
     }
 
@@ -152,13 +154,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteClaimDialect(tenantId, claimDialect);
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
         // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
         // ON DELETE CASCADE. Here we are removing the relevant cache entry.
         externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteClaimDialect(tenantId, claimDialect);
 
     }
 
@@ -197,11 +199,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
         this.localClaimDAO.addLocalClaim(localClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddLocalClaim(tenantId, localClaim);
     }
 
     @Override
@@ -220,11 +222,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
         this.localClaimDAO.updateLocalClaim(localClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
     }
 
     @Override
@@ -246,11 +248,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM.getMessage(), localClaimURI));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteLocalClaim(tenantId, localClaimURI);
 
         this.localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteLocalClaim(tenantId, localClaimURI);
     }
 
     @Override
@@ -308,7 +310,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         this.externalClaimDAO.addExternalClaim(externalClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddExternalClaim(tenantId, externalClaim);
     }
 
     @Override
@@ -336,11 +338,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateExternalClaim(tenantId, externalClaim);
 
         this.externalClaimDAO.updateExternalClaim(externalClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateExternalClaim(tenantId, externalClaim);
     }
 
     @Override
@@ -366,11 +368,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteExternalClaim(tenantId,
+                externalClaimDialectURI, externalClaimURI);
 
         this.externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteExternalClaim(tenantId,
+                externalClaimDialectURI, externalClaimURI);
     }
 
     @Override

@@ -185,5 +185,15 @@
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.module_index": "31",
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT"
   ]
 }
