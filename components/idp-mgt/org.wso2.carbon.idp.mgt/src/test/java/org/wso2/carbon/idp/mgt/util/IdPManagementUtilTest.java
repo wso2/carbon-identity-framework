@@ -151,7 +151,6 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
 
         when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
         assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
-
     }
 
     @DataProvider

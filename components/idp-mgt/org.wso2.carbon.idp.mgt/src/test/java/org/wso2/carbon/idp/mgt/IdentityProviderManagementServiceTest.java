@@ -50,11 +50,12 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 
+import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +73,6 @@ import static java.lang.Boolean.TRUE;
 /**
  * Unit tests for IdentityProviderManagementService.
  */
-@Test
 @WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
@@ -95,13 +95,14 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     public void tearDown() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
-        removeTestIdps(identityProviderManagementService);                  //Clear Database after every test
+        // Clear Database after every test.
+        removeTestIdps(identityProviderManagementService);
     }
 
     @DataProvider
     public Object[][] addIdPData() {
 
-        //Initialize Test Identity Provider 1
+        // Initialize Test Identity Provider 1.
         IdentityProvider idp1 = new IdentityProvider();
         idp1.setIdentityProviderName("testIdP1");
         idp1.setEnable(true);
@@ -153,7 +154,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
-        //Initialize Test Identity Provider 2
+        // Initialize Test Identity Provider 2.
         IdentityProvider idp2 = new IdentityProvider();
         idp2.setIdentityProviderName("testIdP2");
 
@@ -169,19 +170,16 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         claimConfig2.setClaimMappings(new ClaimMapping[]{cm2});
         idp2.setClaimConfig(claimConfig2);
 
-        //Initialize Test Identity Provider 3
+        // Initialize Test Identity Provider 3.
         IdentityProvider idp3 = new IdentityProvider();
         idp3.setIdentityProviderName("testIdP3");
 
         return new Object[][]{
-
-                /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs,ProvisioningConnectorConfigs,Claims*/
+                // IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs,ProvisioningConnectorConfigs,Claims.
                 {idp1},
-
-                /* IDP with Local Cliam Dialect ClaimConfigs */
+                // IDP with Local Cliam Dialect ClaimConfigs.
                 {idp2},
-
-                /* IDP with only the name */
+                // IDP with only the name.
                 {idp3},
         };
     }
@@ -209,9 +207,12 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider idp3 = new IdentityProvider();
 
         return new Object[][]{
-                {idp1},         //Already existing IDP
-                {idp2},         //IDP name with "SHARED_" prefix
-                {idp3},         //IDP without a name
+                // Already existing IDP.
+                {idp1},
+                // IDP name with "SHARED_" prefix.
+                {idp2},
+                // IDP without a name.
+                {idp3},
         };
     }
 
@@ -280,37 +281,37 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
                 identityProviderManagementService.getIdPByName(idpName));
     }
 
-    @Test()
+    @Test
     public void testGetAllIdpCount() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
-        //Without idp data in database
+        // Without idp data in database.
         int idpCount = identityProviderManagementService.getAllIdpCount();
         Assert.assertEquals(idpCount, 0);
 
-        //With 3 idps  in database
+        // With 3 idps  in database.
         addTestIdps(identityProviderManagementService);
         idpCount = identityProviderManagementService.getAllIdpCount();
         Assert.assertEquals(idpCount, 3);
     }
 
-    @Test()
+    @Test
     public void testGetAllIdps() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
 
-        //Without idp data in database
+        // Without idp data in database.
         IdentityProvider[] idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 0);
 
-        //With 3 idps  in database
+        // With 3 idps  in database.
         addTestIdps(identityProviderManagementService);
         idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 3);
 
-        //With 3 idps and Shared idp  in database
-        addSharedIdp();
+        // With 3 idps and Shared idp  in database.
+        addSharedIdp(identityProviderManagementService);
         idpsList = identityProviderManagementService.getAllIdPs();
         Assert.assertEquals(idpsList.length, 3);
     }
@@ -441,13 +442,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider[] idpsList = identityProviderManagementService.getAllIdPsSearch(filter);
         Assert.assertEquals(idpsList.length, idpCount);
 
-        //with shared_idp
-        addSharedIdp();
+        // with a shared_idp.
+        addSharedIdp(identityProviderManagementService);
         idpsList = identityProviderManagementService.getAllIdPsSearch(filter);
         Assert.assertEquals(idpsList.length, idpCount);
     }
 
-    @Test()
+    @Test
     public void testGetEnabledAllIdPs() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -540,7 +541,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] updateIdPData() {
 
-        //Initialize New Test Identity Provider 1
+        // Initialize New Test Identity Provider 1.
         IdentityProvider idp1New = new IdentityProvider();
         idp1New.setIdentityProviderName("testIdP1New");
         idp1New.setEnable(true);
@@ -597,11 +598,11 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         claimConfigNew.setIdpClaims(new Claim[]{remoteClaim});
         idp1New.setClaimConfig(claimConfigNew);
 
-        //Initialize New Test Identity Provider 2
+        // Initialize New Test Identity Provider 2.
         IdentityProvider idp2New = new IdentityProvider();
         idp2New.setIdentityProviderName("testIdP2New");
 
-        //Initialize New Test Identity Provider 3
+        // Initialize New Test Identity Provider 3.
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
@@ -628,11 +629,11 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] updateIdPExceptionData() {
 
-        //Initialize New Test Identity Provider 1
+        // Initialize New Test Identity Provider 1.
         IdentityProvider idp1New = new IdentityProvider();
         idp1New.setIdentityProviderName("testIdP1New");
 
-        //Initialize New Test Identity Provider 2
+        // Initialize New Test Identity Provider 2.
         IdentityProvider idp2New = new IdentityProvider();
 
         return new Object[][]{
@@ -710,7 +711,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
         Assert.assertEquals(allFederatedAuthenticators.length, 2);
 
-        //clear after the test
+        // clear after the test.
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(fac1);
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(fac2);
 
@@ -742,7 +743,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         allProvisioningConnectors = identityProviderManagementService.getAllProvisioningConnectors();
         Assert.assertEquals(allProvisioningConnectors.length, 2);
 
-        //clear after the test
+        // clear after the test.
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(pcc1);
         ProvisioningConnectorService.getInstance().removeProvisioningConnectorConfigs(pcc2);
 
@@ -750,7 +751,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         Assert.assertNull(allProvisioningConnectors);
     }
 
-    @Test()
+    @Test
     public void testGetResidentIdP() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -762,7 +763,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), "LOCAL");
     }
 
-    @Test()
+    @Test
     public void testGetResidentIdPException() throws Exception {
 
         IdentityProviderManagementService identityProviderManagementService = new IdentityProviderManagementService();
@@ -773,7 +774,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] updateResidentIdPData() {
 
-        //Initialize New Resident Identity Provider 1
+        // Initialize New Resident Identity Provider 1.
         IdentityProvider idp1New = new IdentityProvider();
         idp1New.setIdentityProviderName("LOCAL");
 
@@ -792,7 +793,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp1New.setIdpProperties(new IdentityProviderProperty[]{idpProperty1, idpProperty2, idpProperty3,
                 idpProperty4});
 
-        //Initialize New Resident Identity Provider 2
+        // Initialize New Resident Identity Provider 2.
         IdentityProvider idp2New = new IdentityProvider();
         idp2New.setIdentityProviderName("LOCAL");
 
@@ -802,14 +803,17 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         facNew.setEnabled(true);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
-        //Initialize New Resident Identity Provider 3
+        // Initialize New Resident Identity Provider 3.
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("LOCAL");
 
         return new Object[][]{
-                {idp1New},          //new Resident IDP with new IDP Properties
-                {idp2New},          //new Resident IDP with new FederatedAuthenticatorConfigs
-                {idp3New},          //new Resident IDP with no object properties (only contains the name)
+                // new Resident IDP with new IDP Properties.
+                {idp1New},
+                // new Resident IDP with new FederatedAuthenticatorConfigs.
+                {idp2New},
+                // new Resident IDP with no object properties (only contains the name).
+                {idp3New},
         };
     }
 
@@ -826,7 +830,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] updateResidentIdPExceptionData() {
 
-        //Initialize New Test Resident Identity Provider 1
+        // Initialize New Test Resident Identity Provider 1.
         IdentityProvider idp1New = new IdentityProvider();
         idp1New.setIdentityProviderName("LOCAL");
         IdentityProviderProperty idpProperty1 = new IdentityProviderProperty();
@@ -834,7 +838,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idpProperty1.setValue("-1");
         idp1New.setIdpProperties(new IdentityProviderProperty[]{idpProperty1});
 
-        //Initialize New Test Resident Identity Provider 2
+        // Initialize New Test Resident Identity Provider 2.
         IdentityProvider idp2New = new IdentityProvider();
         idp2New.setIdentityProviderName("LOCAL");
         IdentityProviderProperty idpProperty2 = new IdentityProviderProperty();
@@ -842,7 +846,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idpProperty2.setValue("Invalid");
         idp2New.setIdpProperties(new IdentityProviderProperty[]{idpProperty2});
 
-        //Initialize New Test Resident Identity Provider 3
+        // Initialize New Test Resident Identity Provider 3.
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("LOCAL");
         IdentityProviderProperty idpProperty3 = new IdentityProviderProperty();
@@ -850,7 +854,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idpProperty3.setValue("");
         idp3New.setIdpProperties(new IdentityProviderProperty[]{idpProperty3});
 
-        //Initialize New Test Resident Identity Provider 4
+        // Initialize New Test Resident Identity Provider 4.
         IdentityProvider idp4New = new IdentityProvider();
         idp4New.setIdentityProviderName("LOCAL");
         IdentityProviderProperty idpProperty4 = new IdentityProviderProperty();
@@ -859,10 +863,14 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         idp4New.setIdpProperties(new IdentityProviderProperty[]{idpProperty4});
 
         return new Object[][]{
-                {idp1New},          //new Resident IDP with Invalid value to the 'SESSION_IDLE_TIME_OUT' idp property
-                {idp2New},          //new Resident IDP with Invalid value to the 'REMEMBER_ME_TIME_OUT' idp property
-                {idp3New},          //new Resident IDP with Invalid 'SAML_METADATA_VALIDITY_PERIOD' idp property value
-                {idp4New},          //new Resident IDP with Invalid 'SAML_METADATA_SIGNING_ENABLED' idp property value
+                // new Resident IDP with Invalid value to the 'SESSION_IDLE_TIME_OUT' idp property.
+                {idp1New},
+                // new Resident IDP with Invalid value to the 'REMEMBER_ME_TIME_OUT' idp property.
+                {idp2New},
+                // new Resident IDP with Invalid 'SAML_METADATA_VALIDITY_PERIOD' idp property value.
+                {idp3New},
+                // new Resident IDP with Invalid 'SAML_METADATA_SIGNING_ENABLED' idp property value.
+                {idp4New},
         };
     }
 
@@ -926,7 +934,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
     private void addTestIdps(IdentityProviderManagementService identityProviderManagementService) throws
             IdentityProviderManagementException {
 
-        //Initialize Test Identity Provider 1
+        // Initialize Test Identity Provider 1.
         IdentityProvider idp1 = new IdentityProvider();
         idp1.setIdentityProviderName("testIdP1");
         idp1.setIdentityProviderDescription("Test Idp 1");
@@ -991,7 +999,7 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
-        //Initialize Test Identity Provider 2
+        // Initialize Test Identity Provider 2.
         IdentityProvider idp2 = new IdentityProvider();
         idp2.setIdentityProviderName("testIdP2");
         idp2.setHomeRealmId("2");
@@ -1008,18 +1016,18 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         claimConfig2.setClaimMappings(new ClaimMapping[]{cm2});
         idp2.setClaimConfig(claimConfig2);
 
-        //Initialize Test Identity Provider 3
+        // Initialize Test Identity Provider 3.
         IdentityProvider idp3 = new IdentityProvider();
         idp3.setIdentityProviderName("testIdP3");
         idp3.setHomeRealmId("3");
 
-        /* IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs,ClaimConfigs */
+        // IDP with PermissionsAndRoleConfig, FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs, ClaimConfigs.
         identityProviderManagementService.addIdP(idp1);
 
-        /* IDP with Local Cliam Dialect ClaimConfigs */
+        // IDP with Local Cliam Dialect ClaimConfigs.
         identityProviderManagementService.addIdP(idp2);
 
-        /* IDP with Only name */
+        // IDP with Only name.
         identityProviderManagementService.addIdP(idp3);
     }
 
@@ -1036,30 +1044,39 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         identityProviderManagementService.addIdP(residentIdp);
     }
 
-    private void addSharedIdp() throws SQLException {
+    private void addSharedIdp(IdentityProviderManagementService identityProviderManagementService) throws SQLException,
+            IdentityProviderManagementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_SQL;
+            PreparedStatement prepStmt = connection.prepareStatement(sqlStmt);
 
-            String sql = "INSERT INTO IDP (TENANT_ID, NAME, UUID, IS_PRIMARY, IS_FEDERATION_HUB, " +
-                    "IS_LOCAL_CLAIM_DIALECT, IS_ENABLED) VALUES " +
-                    "( '" + SUPER_TENANT_ID + "' , '" + "SHARED_IDP" + "' , '" + "0000" + "' , '" + 1 + "' , '" + 1 +
-                    "' , '" + 1 + "' , '" + 1 + "');";
+            prepStmt.setInt(1, SUPER_TENANT_ID);
+            prepStmt.setString(2, "SHARED_IDP");
+            prepStmt.setString(3, IdPManagementConstants.IS_TRUE_VALUE);
+            prepStmt.setString(4, "");
+            prepStmt.setBinaryStream(5, new ByteArrayInputStream(new byte[0]), 0);
+            prepStmt.setString(6, "");
+            prepStmt.setString(7, IdPManagementConstants.IS_FALSE_VALUE);
+            prepStmt.setString(8, null);
+            prepStmt.setString(9, null);
+            prepStmt.setString(10, null);
+            prepStmt.setString(11, null);
+            prepStmt.setString(12, null);
+            prepStmt.setString(13, "SHARED_IDP");
+            prepStmt.setString(14, IdPManagementConstants.IS_FALSE_VALUE);
+            prepStmt.setString(15, IdPManagementConstants.IS_FALSE_VALUE);
+            prepStmt.setString(16, "Role");
+            prepStmt.setString(17, IdPManagementConstants.IS_TRUE_VALUE);
+            prepStmt.setString(18, "");
+            prepStmt.setString(19, "");
+            prepStmt.setString(20, "0000");
 
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.execute();
-            statement.close();
+            prepStmt.executeUpdate();
+            prepStmt.clearParameters();
         }
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            String query = "SELECT * FROM IDP WHERE NAME='SHARED_IDP'";
-            PreparedStatement statement2 = connection.prepareStatement(query);
-            ResultSet resultSet = statement2.executeQuery();
-            int result = 0;
-            if (resultSet.next()) {
-                result = +1;
-            }
-            Assert.assertEquals(result, 1);
-            statement2.close();
-        }
+        IdentityProvider sharedIdp = identityProviderManagementService.getIdPByName("SHARED_IDP");
+        Assert.assertNotNull(sharedIdp);
     }
 
     private void removeTestIdps(IdentityProviderManagementService identityProviderManagementService) throws
@@ -1068,10 +1085,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdentityProvider[] idpsFromDb = identityProviderManagementService.getAllIdPs();
 
         for (IdentityProvider idp : idpsFromDb) {
-            identityProviderManagementService.deleteIdP(idp.getIdentityProviderName());         //remove current idps
+            // remove current idps.
+            identityProviderManagementService.deleteIdP(idp.getIdentityProviderName());
         }
-        identityProviderManagementService.deleteIdP("LOCAL");                           //remove resident idp
-        identityProviderManagementService.deleteIdP("SHARED_IDP");                      //remove shared idp
+        // remove resident idp.
+        identityProviderManagementService.deleteIdP("LOCAL");
+        // remove shared idp.
+        identityProviderManagementService.deleteIdP("SHARED_IDP");
     }
 
 }
