@@ -171,7 +171,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (duplicateClaim.size() == 0) {
             return;
         } else if (duplicateClaim.size() == 1) {
-            errorMessage = "The value defined for " + duplicateClaim.get(0) + "is already in use by different user!";
+            errorMessage = "The value defined for " + duplicateClaim.get(0) + " is already in use by different user!";
         } else {
             String claimList = String.join(", ", duplicateClaim);
             errorMessage = "The values defined for " + claimList + " are already in use by a different users!";
@@ -182,10 +182,11 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,
                                       UserStoreManager userStoreMgr) throws UserStoreException {
 
-        String[] userList = userStoreMgr.getUserList(claimUri, claimValue, profile);
+        String domainName = userStoreMgr.getRealmConfiguration().getUserStoreProperty(
+                UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
+        String[] userList = userStoreMgr.getUserList(claimUri, claimValueWithDomain, profile);
         if (userList.length == 1) {
-            String domainName = userStoreMgr.getRealmConfiguration().getUserStoreProperty(
-                    UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
             String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
             if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
                 return false;
