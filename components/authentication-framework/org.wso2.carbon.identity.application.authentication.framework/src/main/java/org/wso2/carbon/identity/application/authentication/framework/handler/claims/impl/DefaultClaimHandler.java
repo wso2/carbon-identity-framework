@@ -236,7 +236,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
         UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
-        addMultiAttributeSperatorToRequestedClaims(null, userStore, spFilteredClaims);
+        addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
 
         return spFilteredClaims;
 
@@ -524,8 +524,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         *
         * TODO: Should use Map<String, List<String>> in future for claim mapping
         * */
-        addMultiAttributeSperatorToRequestedClaims(authenticatedUser, (org.wso2.carbon.user.core.UserStoreManager)
-                userStore, spRequestedClaims);
+        addMultiAttributeSeparatorToRequestedClaims(authenticatedUser, userStore, spRequestedClaims, realm);
 
         return spRequestedClaims;
     }
@@ -544,10 +543,20 @@ public class DefaultClaimHandler implements ClaimHandler {
                 .collect(Collectors.toMap(carbonToStandardClaimMapping::get, Function.identity()));
     }
 
-    private void addMultiAttributeSperatorToRequestedClaims(AuthenticatedUser authenticatedUser,
-                                                            org.wso2.carbon.user.core.UserStoreManager userStore,
-                                                            Map<String, String> spRequestedClaims) {
+    private void addMultiAttributeSeparatorToRequestedClaims(AuthenticatedUser authenticatedUser,
+                                                             org.wso2.carbon.user.core.UserStoreManager userStore,
+                                                             Map<String, String> spRequestedClaims, UserRealm realm)
+            throws FrameworkException {
+
         if (!spRequestedClaims.isEmpty()) {
+            if (StringUtils.isNotBlank(authenticatedUser.getUserStoreDomain())) {
+                try {
+                    userStore = realm.getUserStoreManager()
+                            .getSecondaryUserStoreManager(authenticatedUser.getUserStoreDomain());
+                } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                    throw new FrameworkException("Error while retrieving the user store manager", e);
+                }
+            }
             RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
 
             String claimSeparator = realmConfiguration.getUserStoreProperty(IdentityCoreConstants

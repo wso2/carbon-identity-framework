@@ -182,6 +182,9 @@ public class UserSessionStore {
     /**
      * Method to return the user Id of a user from the database.
      * @deprecated use {@link #getFederatedUserId(String, int, int)} instead.
+     * Initially when the user store did not support user id, it was created and stored in here. Now the user store
+     * support user ids for local users, this is not required for local users anymore. However similar capability is
+     * still required for federated users.
      *
      * @param userName   Name of the authenticated user
      * @param tenantId   Id of the tenant domain
