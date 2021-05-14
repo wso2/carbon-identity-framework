@@ -65,6 +65,9 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
     @Mock
     private Enumeration<String> mockedList;
 
+    @Mock
+    UUID uuid;
+
     private SessionExtenderRequestFactory sessionExtenderRequestFactory;
 
     @BeforeMethod
@@ -144,7 +147,7 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
         when(exception.getErrorCode()).thenReturn(EXCEPTION_ERROR_CODE);
         when(exception.getErrorMessage()).thenReturn(EXCEPTION_MESSAGE);
         when(exception.getDescription()).thenReturn(EXCEPTION_DESCRIPTION);
-        when(UUID.randomUUID().toString()).thenReturn(TRACE_ID);
+        when(uuid.randomUUID().toString()).thenReturn(TRACE_ID);
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderRequestFactory.handleException(exception, mockedHttpRequest, mockedHttpResponse);

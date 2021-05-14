@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -47,8 +48,8 @@ import static org.testng.Assert.*;
 
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class})
 @PowerMockIgnore("jdk.internal.reflect.*")
-@WithH2Database(files = {"dbscripts/h2.sql"})
-public class UserSessionDAOImplTest {
+@WithH2Database(files = {"dbScripts/h2.sql"})
+public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
 
     UserSessionDAOImpl userSessionDAO;
 
@@ -82,7 +83,7 @@ public class UserSessionDAOImplTest {
     private static String getFilePath(String fileName) {
 
         if (StringUtils.isNotBlank(fileName)) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", fileName)
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbScripts", fileName)
                     .toString();
         }
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
