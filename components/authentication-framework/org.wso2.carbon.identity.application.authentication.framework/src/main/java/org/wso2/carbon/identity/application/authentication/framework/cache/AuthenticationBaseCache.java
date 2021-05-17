@@ -44,7 +44,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
-public class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
+public abstract class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
 
     private static final Log log = LogFactory.getLog(AuthenticationBaseCache.class);
 
