@@ -105,7 +105,6 @@ public class AuthenticationBaseCache<K extends Serializable, V extends Serializa
 
     private static String getTenantDomainFromContext() {
 
-        // Due to the SaaS application use cases, we are reverting this.
         // We use the tenant domain set in context only in tenant qualified URL mode.
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();

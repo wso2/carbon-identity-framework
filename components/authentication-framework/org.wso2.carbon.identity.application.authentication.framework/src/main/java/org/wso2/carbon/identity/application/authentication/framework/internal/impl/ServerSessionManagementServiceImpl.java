@@ -67,6 +67,17 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
             FrameworkUtils.publishSessionEvent(sessionId, null, null, sessionContext, authenticatedUser,
                     FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE);
         }
-        SessionContextCache.getInstance().clearCacheEntry(sessionId);
+        if (sessionContext == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("The session context is not available for " + sessionId);
+            }
+            return;
+        }
+        Object tenantDomainObj = sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN);
+        if (tenantDomainObj != null) {
+            SessionContextCache.getInstance().clearCacheEntry(sessionId, (String) tenantDomainObj);
+        } else {
+            SessionContextCache.getInstance().clearCacheEntry(sessionId);
+        }
     }
 }
