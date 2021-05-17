@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,5 +97,10 @@ public class Util {
         doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
                 any(Map.class), anyBoolean());
         return claimHandler;
+    }
+
+    public static void mockIdentityUtil(){
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getLocalGroupsClaimURI()).thenReturn(UserCoreConstants.ROLE_CLAIM);
     }
 }

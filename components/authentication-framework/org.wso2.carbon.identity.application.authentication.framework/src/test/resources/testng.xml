@@ -29,6 +29,8 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAbstractTest"/>
@@ -56,6 +58,7 @@
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactoryTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderErrorResponseTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImplTest"/>

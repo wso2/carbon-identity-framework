@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -72,7 +73,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
-@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class})
+@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
 
@@ -244,6 +245,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     public Object[][] getPostAuthenticationData() {
 
         final String SUBJECT_CLAIM_URI = "subjectClaimUri";
+        Util.mockIdentityUtil();
 
         return new Object[][]{
                 // unfiltered local claims | mapped attributes | subjectClaimUri
@@ -309,6 +311,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                                              String subjectClaimUri,
                                              String expectedSubjectIdentifier) throws Exception {
 
+        Util.mockIdentityUtil();
         requestPathBasedSequenceHandler = spy(new DefaultRequestPathBasedSequenceHandler());
         doReturn(mappedAttributes)
                 .when(requestPathBasedSequenceHandler)
@@ -378,6 +381,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @DataProvider(name = "spRoleClaimUriProvider")
     private Object[][] getSpRoleClaimUriData() {
+        Util.mockIdentityUtil();
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
                 {null, getLocalGroupsClaimURI()}
@@ -390,7 +394,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @Test(dataProvider = "spRoleClaimUriProvider")
     public void testGetSpRoleClaimUri(String spRoleClaimUri,
                                       String expectedRoleClaimUri) throws Exception {
-
+        Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
         assertEquals(requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
@@ -398,6 +402,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @DataProvider(name = "spClaimMappingProvider")
     public Object[][] getSpClaimMappingProvider() {
+        Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
                         new HashMap<String, String>() {{
@@ -426,6 +431,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @Test(dataProvider = "spClaimMappingProvider")
     public void testGetSpRoleClaimUriSpMappedClaim(Map<String, String> claimMappings,
                                                    String expectedRoleClaim) throws Exception {
+        Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
         String roleClaim = requestPathBasedSequenceHandler.getSpRoleClaimUri(appConfig);
