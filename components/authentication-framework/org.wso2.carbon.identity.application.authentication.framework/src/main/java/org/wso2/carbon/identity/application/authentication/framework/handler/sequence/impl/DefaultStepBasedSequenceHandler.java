@@ -349,11 +349,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             }
                         }
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-                        if (isSPStandardClaimDialect(context.getRequestType(), appConfig) &&
-                                authenticatedUserAttributes.isEmpty() &&
-                                sequenceConfig.getAuthenticatedUser() != null) {
-                            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-                        }
                     }
 
                 }
@@ -395,7 +390,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
-        if (!authenticatedUserAttributes.isEmpty() &&  sequenceConfig.getAuthenticatedUser() != null) {
+        if (sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
