@@ -340,7 +340,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                !isSPStandardClaimDialect(context.getRequestType(), appConfig)) {
+                                !isSPStandardClaimDialect(context.getRequestType())) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
@@ -349,10 +349,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             }
                         }
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-                        if (isSPStandardClaimDialect(context.getRequestType(), appConfig) &&
-                                authenticatedUserAttributes.isEmpty()) {
-                            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-                        }
                     }
 
                 }
@@ -394,7 +390,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
-        if (!authenticatedUserAttributes.isEmpty() &&  sequenceConfig.getAuthenticatedUser() != null) {
+        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()
+                && sequenceConfig.getAuthenticatedUser() != null) {
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+        }
+        if (!authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
@@ -410,7 +410,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
     }
 
-    private boolean isSPStandardClaimDialect(String clientType, ApplicationConfig appConfig) {
+    private boolean isSPStandardClaimDialect(String clientType) {
 
         return (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType) ||
                 FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType) ||
