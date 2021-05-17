@@ -130,6 +130,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
         initMocks(this);
         stepBasedSequenceHandler = spy(new DefaultStepBasedSequenceHandler());
         context = spy(new AuthenticationContext());
@@ -141,6 +142,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
+
         CommonTestUtils.testSingleton(
                 DefaultStepBasedSequenceHandler.getInstance(),
                 DefaultStepBasedSequenceHandler.getInstance()
@@ -157,6 +159,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                                                       List<String> localUserRoles,
                                                       String multiAttributeSeparator,
                                                       String expectedRoles) throws Exception {
+
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         mockStatic(ApplicationMgtSystemConfig.class);
         mockStatic(IdentityTenantUtil.class);
@@ -171,6 +174,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "spRoleClaimUriProvider")
     private Object[][] getSpRoleClaimUriData() {
+
         Util.mockIdentityUtil();
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
@@ -185,6 +189,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "spRoleClaimUriProvider")
     public void testGetSpRoleClaimUri(String spRoleClaimUri,
                                       String expectedRoleClaimUri) throws Exception {
+
         Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
@@ -193,6 +198,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "spClaimMappingProvider")
     public Object[][] getSpClaimMappingProvider() {
+
         Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
@@ -222,6 +228,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "spClaimMappingProvider")
     public void testGetSpRoleClaimUriSpMappedClaim(Map<String, String> claimMappings,
                                                    String expectedRoleClaim) throws Exception {
+
         Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
@@ -231,6 +238,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "idpRoleClaimUriProvider")
     public Object[][] getIdpRoleClaimUriData() {
+
         return new Object[][]{
                 {"IDP_ROLE_CLAIM", "IDP_ROLE_CLAIM"},
                 {"", ""},
@@ -252,6 +260,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "idpClaimMappingProvider")
     public Object[][] getIdpClaimMappingsProvider() {
+
         Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
@@ -284,6 +293,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "idpClaimMappingProvider")
     public void testGetIdpRoleClaimUriFromClaimMappings(Object claimMappings,
                                                         String expectedRoleClaimUri) throws Exception {
+
         Util.mockIdentityUtil();
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
@@ -295,6 +305,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testHandleClaimMappings() throws Exception {
+
         ClaimHandler claimHandler = Util.mockClaimHandler();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
@@ -479,6 +490,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private void assertResetContext(AuthenticationContext context) {
+
         assertNull(context.getSubject());
         assertNull(context.getStateInfo());
         assertNull(context.getExternalIdP());
@@ -616,6 +628,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private void returnMockProvisioningHandler(ProvisioningHandler mockProvisioningHandler) throws FrameworkException {
+        
         // Mock framework util to returned mocked provisioning handler
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getProvisioningHandler()).thenReturn(mockProvisioningHandler);
@@ -626,6 +639,7 @@ public class DefaultStepBasedSequenceHandlerTest {
      */
     @Test
     public void testHandleSingleStep() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = getMockedStepHandlerForIncompleteStep(true);
 
@@ -644,6 +658,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testHandleSingleStepFinish() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
@@ -664,6 +679,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private StepHandler getMockedStepHandlerForSuccessfulRequestAuthentication() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = mock(StepHandler.class);
         doAnswer(new Answer<Void>() {
@@ -682,6 +698,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private StepHandler getMockedStepHandlerForIncompleteStep(final boolean isRequestAuthenticated) throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = mock(StepHandler.class);
         doAnswer(new Answer<Void>() {
@@ -700,6 +717,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "stepData")
     public Object[][] provideStepData() {
+
         return new Object[][]{
                 {
                         // Intermediate step is authenticated
@@ -715,6 +733,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "stepData")
     public void testHandleLastStep(boolean isRequestAuthenticated,
                                    boolean isOverallAuthenticationSucceeded) throws Exception {
+
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepHandler()).thenReturn(stepHandler);

@@ -70,11 +70,13 @@ public class Util {
     }
 
     public static void mockMultiAttributeSeparator(String multiAttributeSeparator) {
+
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
     }
 
     public static SequenceConfig mockSequenceConfig(Map<String, String> spRoleMappings) {
+
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
@@ -90,6 +92,7 @@ public class Util {
     }
 
     public static ClaimHandler mockClaimHandler() throws FrameworkException {
+
         ClaimHandler claimHandler = mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
@@ -100,6 +103,7 @@ public class Util {
     }
 
     public static void mockIdentityUtil(){
+
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getLocalGroupsClaimURI()).thenReturn(UserCoreConstants.ROLE_CLAIM);
     }

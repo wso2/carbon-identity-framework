@@ -139,6 +139,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
+
         CommonTestUtils.testSingleton(
                 DefaultRequestPathBasedSequenceHandler.getInstance(),
                 DefaultRequestPathBasedSequenceHandler.getInstance()
@@ -150,6 +151,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
      */
     @Test
     public void testHandleNoneCanHandle() throws Exception {
+
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(false);
         requestPathBasedSequenceHandler.handle(request, response, context);
@@ -161,6 +163,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
      */
     @Test
     public void testHandleInvalidCredentialException() throws Exception {
+
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
         doThrow(new InvalidCredentialsException("Invalid Credentials."))
@@ -367,6 +370,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                                                       List<String> localUserRoles,
                                                       String multiAttributeSeparator,
                                                       String expectedRoles) throws Exception {
+
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         mockStatic(ApplicationMgtSystemConfig.class);
@@ -381,6 +385,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @DataProvider(name = "spRoleClaimUriProvider")
     private Object[][] getSpRoleClaimUriData() {
+
         Util.mockIdentityUtil();
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
@@ -394,6 +399,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @Test(dataProvider = "spRoleClaimUriProvider")
     public void testGetSpRoleClaimUri(String spRoleClaimUri,
                                       String expectedRoleClaimUri) throws Exception {
+
         Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
@@ -402,6 +408,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @DataProvider(name = "spClaimMappingProvider")
     public Object[][] getSpClaimMappingProvider() {
+
         Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
@@ -431,6 +438,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @Test(dataProvider = "spClaimMappingProvider")
     public void testGetSpRoleClaimUriSpMappedClaim(Map<String, String> claimMappings,
                                                    String expectedRoleClaim) throws Exception {
+
         Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
