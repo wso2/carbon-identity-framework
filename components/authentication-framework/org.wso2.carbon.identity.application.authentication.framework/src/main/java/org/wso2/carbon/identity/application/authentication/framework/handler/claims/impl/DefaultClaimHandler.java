@@ -549,7 +549,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             throws FrameworkException {
 
         if (!spRequestedClaims.isEmpty()) {
-            if (StringUtils.isNotBlank(authenticatedUser.getUserStoreDomain())) {
+            if (authenticatedUser != null && StringUtils.isNotBlank(authenticatedUser.getUserStoreDomain())) {
                 try {
                     userStore = realm.getUserStoreManager()
                             .getSecondaryUserStoreManager(authenticatedUser.getUserStoreDomain());
