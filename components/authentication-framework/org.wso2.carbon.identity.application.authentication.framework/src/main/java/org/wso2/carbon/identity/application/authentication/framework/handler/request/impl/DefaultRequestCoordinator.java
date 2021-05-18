@@ -58,6 +58,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
@@ -908,20 +909,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         try {
             UserRealm userRealm = (UserRealm) FrameworkServiceComponent.getRealmService().
                     getTenantUserRealm(tenantId);
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager().
-                    getSecondaryUserStoreManager(user.getUserStoreDomain());
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)userRealm.getUserStoreManager();
 
-            if (userStoreManager.isExistingUser(user.getUserName())) {
+            if (userStoreManager.isExistingUserWithID(user.getUserId())) {
                 return !(isUserDisabled(userStoreManager, user) ||
                         isUserLocked(userStoreManager, user));
 
             } else {
-                log.error("Trying to authenticate non existing user: " + user.getUserName());
+                log.error("Trying to authenticate non existing user: " + user.getUserId());
             }
         } catch (UserStoreException e) {
-            log.error("Error while checking existence of user: " + user.getUserName(), e);
+            log.error("Error while checking existence of user: " + user.getUserId(), e);
         } catch (FrameworkException e) {
-            log.error("Error while validating user: " + user.getUserName(), e);
+            log.error("Error while validating user: " + user.getUserId(), e);
         }
         return false;
     }
@@ -934,19 +934,20 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return boolean
      * @throws FrameworkException
      */
-    private boolean isUserLocked(UserStoreManager userStoreManager, AuthenticatedUser user) throws FrameworkException {
+    private boolean isUserLocked(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
+            throws FrameworkException {
 
         if (!isAccountLockingEnabled(user.getTenantDomain())) {
             return false;
         }
 
-        String accountLockedClaimValue = getClaimValue(user.getUserName(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
+        String accountLockedClaimValue = getClaimValue(user.getUserId(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
         boolean accountLocked = Boolean.parseBoolean(accountLockedClaimValue);
 
         if (accountLocked) {
             long unlockTime = 0;
             String accountUnlockTimeClaimValue = getClaimValue(
-                    user.getUserName(), userStoreManager, ACCOUNT_UNLOCK_TIME_CLAIM);
+                    user.getUserId(), userStoreManager, ACCOUNT_UNLOCK_TIME_CLAIM);
 
             if (NumberUtils.isNumber(accountUnlockTimeClaimValue)) {
                 unlockTime = Long.parseLong(accountUnlockTimeClaimValue);
@@ -966,7 +967,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return boolean
      * @throws FrameworkException
      */
-    private boolean isUserDisabled(UserStoreManager userStoreManager, AuthenticatedUser user)
+    private boolean isUserDisabled(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
             throws FrameworkException {
 
         if (!isAccountDisablingEnabled(user.getTenantDomain())) {
@@ -974,9 +975,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
 
         String accountDisabledClaimValue = getClaimValue(
-                user.getUserName(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
+                user.getUserId(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
         return Boolean.parseBoolean(accountDisabledClaimValue);
-
     }
 
     private boolean isAccountLockingEnabled(String tenantDomain) throws FrameworkException {
@@ -998,21 +998,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     /**
      * This method retrieves requested claim value from the user store
      *
-     * @param username
+     * @param userId
      * @param userStoreManager
      * @param claimURI
      * @return claim value as a String
      * @throws FrameworkException
      */
-    private String getClaimValue(String username, UserStoreManager userStoreManager, String claimURI) throws
+    private String getClaimValue(String userId, AbstractUserStoreManager userStoreManager, String claimURI) throws
             FrameworkException {
 
         try {
-            Map<String, String> values = userStoreManager.getUserClaimValues(username, new String[]{claimURI},
+            Map<String, String> values = userStoreManager.getUserClaimValuesWithID(userId, new String[]{claimURI},
                     UserCoreConstants.DEFAULT_PROFILE);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%s claim value of user %s is set to: " + values.get(claimURI),
-                        claimURI, username));
+                        claimURI, userId));
             }
             return values.get(claimURI);
 

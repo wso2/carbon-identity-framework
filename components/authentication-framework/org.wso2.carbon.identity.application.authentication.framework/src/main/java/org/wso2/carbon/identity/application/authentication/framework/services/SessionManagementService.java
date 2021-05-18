@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 public class SessionManagementService extends AbstractAdmin {
 
@@ -59,11 +60,7 @@ public class SessionManagementService extends AbstractAdmin {
         String username = carbonContext.getUsername();
         // Extract the user store domain if there is any or set to 'PRIMARY'.
         String userStoreDomain = "PRIMARY";
-        String[] usernameTokens = username.split("/");
-        if (usernameTokens.length > 1) {
-            userStoreDomain = usernameTokens[0];
-            username = usernameTokens[1];
-        }
+        username = UserCoreUtil.removeDomainFromName(username);
 
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) sessionContext
                 .getProperty(FrameworkConstants.AUTHENTICATED_USER);

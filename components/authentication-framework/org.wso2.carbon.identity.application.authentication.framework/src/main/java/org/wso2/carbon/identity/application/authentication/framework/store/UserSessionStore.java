@@ -126,6 +126,19 @@ public class UserSessionStore {
     }
 
     /**
+     * Method to store user and session mapping for federated users.
+     *
+     * @param userName Name of the authenticated user
+     * @param tenantId Id of the tenant domain
+     * @param idPId    Identity Provider id
+     * @throws UserSessionException if an error occurs when storing the authenticated user details to the database
+     */
+    public void storeUserData(String userId, String userName, int tenantId, int idPId) throws UserSessionException {
+
+        storeUserData(userId, userName, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
+    /**
      * Method to get the unique Id of a user from the database.
      *
      * @param userName   Name of the authenticated user
@@ -168,6 +181,10 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Id of a user from the database.
+     * @deprecated use {@link #getFederatedUserId(String, int, int)} instead.
+     * Initially when the user store did not support user id, it was created and stored in here. Now the user store
+     * support user ids for local users, this is not required for local users anymore. However similar capability is
+     * still required for federated users.
      *
      * @param userName   Name of the authenticated user
      * @param tenantId   Id of the tenant domain
@@ -175,6 +192,7 @@ public class UserSessionStore {
      * @return the user id of the user
      * @throws UserSessionException if an error occurs when retrieving the user id of the user from the database
      */
+    @Deprecated
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
@@ -203,12 +221,16 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Ids of the users in a given user store from the database.
+     * @deprecated
+     * User ids of local users are no longer stored in IDN_AUTH_USER table and user ids of all the users in a domain
+     * should not be retrieved at once.
      *
      * @param userDomain name of the user Store domain
      * @param tenantId   id of the tenant domain
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
+    @Deprecated
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
@@ -725,11 +747,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving session IDs of user: " +
-                        user.getUserName() + ".", ex);
+                        user.getUserId() + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session IDs of user: " +
-                    user.getUserName() + ".", e);
+                    user.getUserId() + ".", e);
         }
         return sessionIdList;
     }
@@ -744,7 +766,7 @@ public class UserSessionStore {
      */
     public boolean isExistingMapping(User user, int idpId, String sessionId) throws UserSessionException {
 
-        Boolean isExisting = false;
+        boolean isExisting = false;
 
         int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -763,11 +785,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                        .getUserName() + " and session Id: " + sessionId + ".", ex);
+                        .getUserId() + " and session Id: " + sessionId + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                    .getUserName() + " and session Id: " + sessionId + ".", e);
+                    .getUserId() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
     }

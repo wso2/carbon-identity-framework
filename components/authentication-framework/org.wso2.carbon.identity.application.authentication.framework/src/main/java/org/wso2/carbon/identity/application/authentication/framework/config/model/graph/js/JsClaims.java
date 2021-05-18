@@ -43,6 +43,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -234,13 +235,12 @@ public class JsClaims extends AbstractJSContextMemberObject {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
-        String usernameWithDomain = UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser
-            .getUserStoreDomain());
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
             Map<String, String> claimUriMap = new HashMap<>();
             claimUriMap.put(claimUri, String.valueOf(claimValue));
-            userRealm.getUserStoreManager().setUserClaimValues(usernameWithDomain, claimUriMap, null);
+            ((AbstractUserStoreManager)userRealm.getUserStoreManager())
+                    .setUserClaimValuesWithID(authenticatedUser.getUserId(), claimUriMap, null);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
                     authenticatedUser, String.valueOf(claimValue)), e);
@@ -425,13 +425,12 @@ public class JsClaims extends AbstractJSContextMemberObject {
     private String getLocalUserClaim(String claimUri) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
-        String usernameWithDomain = UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser
-            .getUserStoreDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-            Map<String, String> claimValues = userRealm.getUserStoreManager().getUserClaimValues(usernameWithDomain, new
-                String[]{claimUri}, null);
+            Map<String, String> claimValues =
+                    ((AbstractUserStoreManager)userRealm.getUserStoreManager())
+                            .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[]{claimUri}, null);
             return claimValues.get(claimUri);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);

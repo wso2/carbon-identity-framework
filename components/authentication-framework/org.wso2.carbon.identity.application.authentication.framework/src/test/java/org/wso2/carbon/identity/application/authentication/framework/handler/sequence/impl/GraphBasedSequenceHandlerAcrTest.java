@@ -35,6 +35,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -65,8 +66,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
             }
         }
 
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        SequenceConfig sequenceConfig = configurationLoader.getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = mock(HttpServletRequest.class);

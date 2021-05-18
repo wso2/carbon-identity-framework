@@ -636,60 +636,28 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
-            String userName = authenticatedIdPData.getUser().getUserName();
+            String userId = authenticatedIdPData.getUser().getUserId();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
             if (tenantDomain == null) {
                 tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
             }
-            int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
-                    .getTenantId(tenantDomain);
             String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
-            String idpName = authenticatedIdPData.getIdpName();
-            boolean persistUserToSessionMapping = true;
-            String userId;
-            try {
-                int idpId = UserSessionStore.getInstance().getIdPId(idpName, appTenantId);
 
-                // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
-                // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (isFederatedUser(authenticatedIdPData.getUser())) {
-                    userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
-                    try {
-                        if (userId == null) {
-                            userId = UUID.randomUUID().toString();
-                            UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain,
-                                    idpId);
-                        }
-                    } catch (DuplicatedAuthUserException e) {
-                        // When the authenticated user is already persisted the respective user to session mapping will
-                        // be persisted from the same node handling the request.
-                        // Thus, persisting the user to session mapping can be gracefully ignored here.
-                        persistUserToSessionMapping = false;
-                        String msg = "User authenticated is already persisted. Username: " + userName + " Tenant " +
-                                "Domain:" + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: "
-                                + idpName;
-                        log.warn(msg);
-                        if (log.isDebugEnabled()) {
-                            log.debug(msg, e);
-                        }
-                    }
-                } else {
-                    userId = FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName);
-                }
-                if (StringUtils.isNotEmpty(userId)) {
-                    if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
-                            sessionContextKey)) {
-                        UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+            try {
+                AuthenticatedUser user = authenticatedIdPData.getUser();
+                if (StringUtils.isNotEmpty(user.getUserId())) {
+                    if (!UserSessionStore.getInstance().isExistingMapping(user.getUserId(), sessionContextKey)) {
+                        UserSessionStore.getInstance().storeUserSessionData(user.getUserId(), sessionContextKey);
                     }
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("A unique user id is not set for the user," + userName + "of userstore domain, " +
+                        log.debug("A unique user id is not set for the user," + userId + "of userstore domain, " +
                                 userStoreDomain + "in tenant, " + tenantDomain + ". Hence the session " +
                                 "information of the user is not stored.");
                     }
                 }
             } catch (UserSessionException e) {
-                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                throw new UserSessionException("Error while storing session data for user: " + userId + " of " +
                         "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain, e);
             }
         }

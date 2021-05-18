@@ -250,7 +250,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
+            log.debug("Retrieving all the active sessions of user: " + user.getUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         return getActiveSessionList(getSessionIdListByUser(user, idpId));
@@ -265,7 +265,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
+            log.debug("Terminating all the active sessions of user: " + user.getUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         terminateSessionsOfUser(sessionIdList);
@@ -291,7 +291,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (isUserSessionMappingExist(user, idpId, sessionId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
-                        user.getUserName() + " of user store domain: " + user.getUserStoreDomain() + ".");
+                        user.getUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
@@ -335,7 +335,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug("Retrieving the list of sessions owned by the user: " + user.getUserName() + " of user " +
+                log.debug("Retrieving the list of sessions owned by the user: " + user.getUserId() + " of user " +
                         "store domain: " + user.getUserStoreDomain() + ".");
             }
             return UserSessionStore.getInstance().getSessionId(user, idpId);
