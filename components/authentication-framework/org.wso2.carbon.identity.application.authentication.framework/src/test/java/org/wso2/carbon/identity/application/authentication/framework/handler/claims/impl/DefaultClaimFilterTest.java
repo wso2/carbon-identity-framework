@@ -58,7 +58,7 @@ public class DefaultClaimFilterTest {
         DefaultClaimFilter defaultClaimFilter = new DefaultClaimFilter();
         List<ClaimMapping> filteredClaims = defaultClaimFilter.filterRequestedClaims(null,
                 requestedClaimsInRequest);
-        assertEquals(filteredClaims.size(), 1, "Error in filtering requested claims in request.");
+        assertEquals(filteredClaims.size(), requestedClaimsInRequest.size(), "Error in filtering requested claims in request.");
         assertEquals(filteredClaims.get(0).getLocalClaim().getClaimUri(), personIDLocalClaimUri,
                 "Error in filtering requested claims in request.");
         assertEquals(filteredClaims.get(0).getRemoteClaim().getClaimUri(), personIDRemoteClaimUri,
@@ -71,7 +71,7 @@ public class DefaultClaimFilterTest {
         DefaultClaimFilter defaultClaimFilter = new DefaultClaimFilter();
         List<ClaimMapping> filteredClaims = defaultClaimFilter.filterRequestedClaims(spClaimMappings,
                 null);
-        assertEquals(filteredClaims.size(), 1, "Error in filtering requested claims in sp config.");
+        assertEquals(filteredClaims.size(), spClaimMappings.size(), "Error in filtering requested claims in sp config.");
         assertEquals(filteredClaims.get(0).getLocalClaim().getClaimUri(), legalPersonIdLocalClaimUri,
                 "Error in filtering requested claims in sp config.");
         assertEquals(filteredClaims.get(0).getRemoteClaim().getClaimUri(), legalPersonIdRemoteClaimUri,
