@@ -86,6 +86,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
 
@@ -153,6 +154,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // the flow
             if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
                 // call request path sequence handler
+                diagnosticLog.info("Invoking request path authenticators configured for the service provider: " +
+                        context.getServiceProviderName());
                 FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
             }
 
@@ -164,11 +167,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // Add or Validate session nonce cookie.
                 if (isNonceCookieEnabled()) {
+                    diagnosticLog.info("Session nonce cookie validation is enabled.");
                     String nonceCookieName = getNonceCookieName(context);
                     if (context.isReturning()) {
                         if (validateNonceCookie(request, context)) {
                             addOrUpdateNonceCookie = true;
                         } else {
+                            diagnosticLog.error("Session nonce cookie value is not matching for session with " +
+                                    "sessionDataKey: " + request.getParameter("sessionDataKey"));
                             throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
                                     "matching " +
                                     "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
@@ -182,6 +188,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
             }
         } catch (FrameworkException e) {
+            diagnosticLog.error("Server error occurred in authentication framework. Error message: " +
+                    e.getMessage());
             // Remove nonce cookie after authentication failure.
             removeNonceCookie(request, response, context);
             throw e;
@@ -221,20 +229,26 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Handling post authentication");
         }
+        diagnosticLog.info("In post authentication flow.");
         PostAuthenticationMgtService postAuthenticationMgtService =
                 FrameworkServiceDataHolder.getInstance().getPostAuthenticationMgtService();
 
         if (context.getSequenceConfig().isCompleted()) {
             if (postAuthenticationMgtService != null) {
+                diagnosticLog.info("Found post authentication service. Hence evaluating post authentication");
                 postAuthenticationMgtService.handlePostAuthentication(request, response, context);
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("No post authentication service found. Hence not evaluating post authentication.");
                 }
+                diagnosticLog.info("No post authentication service found. Hence not evaluating post authentication");
                 LoginContextManagementUtil.markPostAuthenticationCompleted(context);
             }
         } else {
-            log.debug("Sequence is not completed yet. Hence skipping post authentication");
+            if (log.isDebugEnabled()) {
+                log.debug("Sequence is not completed yet. Hence skipping post authentication");
+            }
+            diagnosticLog.info("Sequence is not completed yet. Hence skipping post authentication");
         }
     }
 
@@ -244,6 +258,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("User has pressed Deny or Cancel in the login page. Terminating the authentication flow");
         }
+        diagnosticLog.info("User has pressed Deny or Cancel in the login page. Terminating the authentication flow");
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
@@ -261,8 +276,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (FrameworkConstants.REMEMBER_ME_OPT_ON.equalsIgnoreCase(rememberMe)) {
+            diagnosticLog.info("Remember Me option has been set to true.");
             context.setRememberMe(true);
         } else {
+            diagnosticLog.info("Remember Me option is set to false.");
             context.setRememberMe(false);
         }
     }
@@ -285,6 +302,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Starting the sequence");
         }
+        diagnosticLog.info("Initiating the authentication sequence for the service provider: " +
+                context.getServiceProviderName());
 
         // "forceAuthenticate" - go in the full authentication flow even if user
         // is already logged in.
@@ -296,6 +315,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Force Authenticate : " + forceAuthenticate);
         }
+        diagnosticLog.info("forceAuthenticate param is set to " + forceAuthenticate);
 
         // "reAuthenticate" - authenticate again with the same IdPs as before.
         boolean reAuthenticate = request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ?
@@ -304,6 +324,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Re-Authenticate : " + reAuthenticate);
         }
+        diagnosticLog.info("reAuthenticate param is set to " + reAuthenticate);
 
         context.setReAuthenticate(reAuthenticate);
 
@@ -315,6 +336,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Passive Authenticate : " + passiveAuthenticate);
         }
+        diagnosticLog.info("passiveAuthenticate param is set to " + passiveAuthenticate);
 
         context.setPassiveAuthenticate(passiveAuthenticate);
 

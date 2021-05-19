@@ -67,6 +67,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     public static final String ENABLE_RETRY_FROM_AUTHENTICATOR = "enableRetryFromAuthenticator";
 
     @Override
@@ -76,6 +77,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
         // if an authentication flow
         if (!context.isLogoutRequest()) {
+            diagnosticLog.info("In authentication flow of authenticator: " + this.getName());
             if (!canHandle(request)
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
                 if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
@@ -90,9 +92,14 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator) {
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+                            diagnosticLog.info("Application : '" +
+                                    context.getSequenceConfig().getApplicationConfig().getApplicationName() + "'" +
+                                    " is a SaaS application.");
                             String userDomain = context.getSubject().getTenantDomain();
                             String tenantDomain = context.getTenantDomain();
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
+                                diagnosticLog.error("User tenant domain: '" + userDomain + "' does not match with " +
+                                        "the application tenant domain: " + tenantDomain + "'");
                                 context.setProperty("UserTenantDomainMismatch", true);
                                 throw new AuthenticationFailedException(
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),
@@ -109,6 +116,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
+                    diagnosticLog.error("Authentication failed. Error message: " +  e.getMessage());
                     publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode());
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
@@ -117,6 +125,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     context.setRetrying(retryAuthenticationEnabled());
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         // The Authenticator will re-initiate the authentication and retry.
+                        diagnosticLog.info("Retry authentication is enabled hence retrying the authenticator.");
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
                         return AuthenticatorFlowStatus.INCOMPLETE;
@@ -130,6 +139,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
             // if a logout flow
         } else {
+            diagnosticLog.info("In logout flow of authenticator: " + this.getName());
             try {
                 if (!canHandle(request)) {
                     context.setCurrentAuthenticator(getName());
@@ -320,6 +330,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (log.isDebugEnabled()) {
                 log.debug("redirectToMultiOptionOnFailure has been set as : " + isRedirectToMultiOptionPageOnFailure);
             }
+            diagnosticLog.info("redirectToMultiOptionOnFailure has been set as : " +
+                    isRedirectToMultiOptionPageOnFailure + " for the authenticator: " + getName());
         }
         return isRedirectToMultiOptionPageOnFailure;
     }
@@ -371,6 +383,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         if (StringUtils.isEmpty(authMechanism)) {
             authMechanism = getName();
         }
+        diagnosticLog.info("AuthMechanism is set to : " + authMechanism + " for the authenticator: " + getName());
         return authMechanism;
     }
 }

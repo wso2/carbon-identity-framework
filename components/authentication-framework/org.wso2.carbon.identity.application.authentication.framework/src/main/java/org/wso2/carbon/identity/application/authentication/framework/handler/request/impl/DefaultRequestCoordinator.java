@@ -100,6 +100,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
@@ -172,6 +173,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             }
 
                         } else {
+                            diagnosticLog.error("Invalid authentication request with sessionDataKey: "
+                                    + sessionDataKey);
                             throw new FrameworkException("Invalid authentication request with sessionDataKey: "
                                     + sessionDataKey);
                         }
@@ -182,6 +185,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     if (log.isDebugEnabled()) {
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
+                    diagnosticLog.info("Session data key is null in the request and not a logout request." +
+                            " Sending to retry page..");
 
                     FrameworkUtils.sendToRetryPage(request, response, context);
                 }
@@ -217,6 +222,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         }
                     } else {
                         log.error("Same context is currently in used by a different thread. Possible double submit.");
+                        diagnosticLog.error("Same context is currently in used by a different thread. " +
+                                "Possible double submit. Sending to retry page..");
                         if (log.isDebugEnabled()) {
                             log.debug("Same context is currently in used by a different thread. Possible double submit."
                                     +  "\n" +
@@ -247,6 +254,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             log.debug("Restarting the authentication flow from step 1 for  " +
                                     context.getContextIdentifier());
                         }
+                        diagnosticLog.info("Restarting the authentication flow from step 1 for  " +
+                                context.getContextIdentifier());
                         context.setCurrentStep(1);
                         context.setProperty(BACK_TO_FIRST_STEP, true);
                         // IDF should be the first step.
@@ -259,6 +268,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         if (log.isDebugEnabled()) {
                             log.debug(msg);
                         }
+                        diagnosticLog.info(msg);
                         throw new MisconfigurationException(msg);
                     }
                 }
@@ -272,8 +282,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
                 if (!context.isLogoutRequest()) {
+                    diagnosticLog.info("Handling authentication flow for " + context.getContextIdentifier());
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                 } else {
+                    diagnosticLog.info("Handling logout flow for " + context.getContextIdentifier());
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
             } else {
@@ -293,6 +305,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
+                diagnosticLog.error("Context does not exist. Probably due to invalidated cache. " + message +
+                        ". Sending to retry page.");
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } catch (JsFailureException e) {
@@ -304,13 +318,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
+            diagnosticLog.error("Script initiated Exception occurred. Redirecting to retry/error page provided" +
+                    " by the script. Error message: " + e.getMessage());
         } catch (MisconfigurationException e) {
+            diagnosticLog.error("Misconfiguration exception occurred. Error message: " + e.getMessage());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, "misconfiguration.error",
                     "something.went.wrong.contact.admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
             }
+            diagnosticLog.error("Error occurred during post authentication. Sending to retry page." +
+                    " Error message: " + e.getMessage());
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
@@ -320,6 +339,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             e.getErrorCode());
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
+            diagnosticLog.error("Exception in Authentication Framework. Error message: " + e.getMessage());
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
