@@ -44,7 +44,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
-public class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
+public abstract class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
 
     private static final Log log = LogFactory.getLog(AuthenticationBaseCache.class);
 
@@ -105,20 +105,19 @@ public class AuthenticationBaseCache<K extends Serializable, V extends Serializa
 
     private static String getTenantDomainFromContext() {
 
-        // Due to the SaaS application use cases, we are reverting this.
         // We use the tenant domain set in context only in tenant qualified URL mode.
-//        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-//            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-//            if (StringUtils.isNotBlank(tenantDomain)) {
-//                return tenantDomain;
-//            } else {
-//                if (log.isDebugEnabled()) {
-//                    log.debug("TenantQualifiedUrlsEnabled is enabled, but the tenant domain is not set to the" +
-//                            " context. Hence using the tenant domain from the carbon context.");
-//                }
-//                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-//            }
-//        }
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantQualifiedUrlsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+        }
         return SUPER_TENANT_DOMAIN_NAME;
     }
 }

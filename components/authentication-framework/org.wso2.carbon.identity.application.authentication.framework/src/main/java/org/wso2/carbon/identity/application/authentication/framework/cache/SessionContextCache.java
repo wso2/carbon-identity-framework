@@ -193,6 +193,19 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
 
     }
 
+    public void clearCacheEntry(String sessionContextKey, String tenantDomain) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Clear session context corresponding to the key : " + sessionContextKey +
+                    " in tenant " + tenantDomain);
+        }
+        SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
+        super.clearCacheEntry(sessionContextCacheKey, tenantDomain);
+        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
+                SESSION_CONTEXT_CACHE_NAME);
+
+    }
+
     /**
      * Check whether the given session context is valid according to idle session timeout restrictions.
      *
