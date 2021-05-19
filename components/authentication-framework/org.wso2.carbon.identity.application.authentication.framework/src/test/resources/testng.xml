@@ -50,7 +50,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImplTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtService"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtServiceTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoaderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContextTest"/>
@@ -67,6 +67,7 @@
     <test name="IdentityFrameworkTestsWithDataSources" preserve-order="false" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStoreTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilterTest"/>
         </classes>
     </test>
 </suite>

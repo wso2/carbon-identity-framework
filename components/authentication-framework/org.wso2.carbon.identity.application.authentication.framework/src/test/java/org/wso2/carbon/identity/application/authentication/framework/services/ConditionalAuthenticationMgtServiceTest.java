@@ -59,8 +59,8 @@ public class ConditionalAuthenticationMgtServiceTest {
         registryWithCustomFunctions.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "func1", new Object());
 
         return new Object[][]{
-                {emptyRegistry, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info"}},
-                {registryWithCustomFunctions, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info",
+                {emptyRegistry, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require"}},
+                {registryWithCustomFunctions, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require",
                         "func1"}},
         };
     }
