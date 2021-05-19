@@ -56,12 +56,13 @@ public class ConditionalAuthenticationMgtServiceTest {
 
         JsFunctionRegistry emptyRegistry = new JsFunctionRegistryImpl();
         JsFunctionRegistry registryWithCustomFunctions = new JsFunctionRegistryImpl();
-        registryWithCustomFunctions.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "func1", new Object());
+        registryWithCustomFunctions.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
+                                             "func1", new Object());
 
         return new Object[][]{
                 {emptyRegistry, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require"}},
-                {registryWithCustomFunctions, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require",
-                        "func1"}},
+                {registryWithCustomFunctions, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info",
+                        "require", "func1"}},
         };
     }
 }
