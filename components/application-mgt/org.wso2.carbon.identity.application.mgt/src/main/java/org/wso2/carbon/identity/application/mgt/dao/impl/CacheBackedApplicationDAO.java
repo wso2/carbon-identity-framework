@@ -563,7 +563,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return serviceProvider;
     }
 
-    private void clearAllAppCache(ServiceProvider serviceProvider, String tenantDomain) {
+    public static void clearAllAppCache(ServiceProvider serviceProvider, String tenantDomain) {
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing all the Service Provider Caches for " + serviceProvider.getApplicationName() + "@" +
@@ -597,7 +597,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     }
 
-    private void clearAppCacheByInboundKey(ServiceProvider serviceProvider, String tenantDomain) {
+    private static void clearAppCacheByInboundKey(ServiceProvider serviceProvider, String tenantDomain) {
 
         if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
