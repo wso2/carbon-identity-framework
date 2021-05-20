@@ -296,8 +296,8 @@ public class DefaultStepHandler implements StepHandler {
                 // Are there multiple authenticators?
                 if (authConfigList.size() > 1) {
                     sendToPage = true;
-                    // To identify whether the multi-option is available including an authentication flow handler.
-                    // If it is available it will directly redirect to that.
+                    /* To identify whether the multi-option is available including an authentication flow handler.
+                    If it is available it will directly redirect to that. */
                     for (AuthenticatorConfig config : authConfigList) {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
                             authenticatorConfig = config;
@@ -361,14 +361,14 @@ public class DefaultStepHandler implements StepHandler {
         diagnosticLog.info("Sending to the Multi Option page");
         Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
         String showAuthFailureReason = null;
-        if (parameterMap != null) {
+        if (MapUtils.isNotEmpty(parameterMap)) {
             showAuthFailureReason = parameterMap.get(FrameworkConstants.SHOW_AUTHFAILURE_RESON_CONFIG);
             if (log.isDebugEnabled()) {
                 log.debug("showAuthFailureReason has been set as : " + showAuthFailureReason);
             }
         }
         diagnosticLog.info("showAuthFailureReason has been set as : " + showAuthFailureReason);
-        String retryParam = "";
+        String retryParam = StringUtils.EMPTY;
 
         if (stepConfig.isRetrying()) {
             context.setCurrentAuthenticator(null);
