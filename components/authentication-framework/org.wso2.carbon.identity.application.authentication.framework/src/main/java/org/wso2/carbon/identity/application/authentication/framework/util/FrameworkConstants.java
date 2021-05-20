@@ -142,6 +142,8 @@ public abstract class FrameworkConstants {
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
+    public static final String REDIRECTED_AUTHENTICATOR = "redirectedAuthenticator";
+
     private FrameworkConstants() {
 
     }

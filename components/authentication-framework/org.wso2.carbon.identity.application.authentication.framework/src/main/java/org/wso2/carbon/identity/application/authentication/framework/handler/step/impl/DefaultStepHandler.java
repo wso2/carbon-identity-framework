@@ -290,11 +290,22 @@ public class DefaultStepHandler implements StepHandler {
                 // Find if step contains only a single authenticator with a single
                 // IdP. If yes, don't send to the multi-option page. Call directly.
                 boolean sendToPage = false;
+                boolean isAuthenticationFlowHandler = false;
                 AuthenticatorConfig authenticatorConfig = null;
 
                 // Are there multiple authenticators?
                 if (authConfigList.size() > 1) {
                     sendToPage = true;
+                    // To identify whether the multi-option is available including an authentication flow handler.
+                    // If it is available it will directly redirect to that.
+                    for (AuthenticatorConfig config : authConfigList) {
+                        if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                            authenticatorConfig = config;
+                            isAuthenticationFlowHandler = true;
+                            sendToPage = false;
+                            break;
+                        }
+                    }
                 } else {
                     // Are there multiple IdPs in the single authenticator?
                     authenticatorConfig = authConfigList.get(0);
@@ -322,42 +333,56 @@ public class DefaultStepHandler implements StepHandler {
                     }
 
                     doAuthentication(request, response, context, authenticatorConfig);
+                    /* If an authentication flow handler is redirected with incomplete, it will redirect to
+                    multi option page, as multi-option is available */
+                    if (context.getParameter(FrameworkConstants.REDIRECTED_AUTHENTICATOR) ==
+                            authenticatorConfig.getApplicationAuthenticator().getName()
+                            && isAuthenticationFlowHandler) {
+                        sendToMultiOptionPage(stepConfig, request, context, response, authenticatorNames);
+                    }
                     return;
                 } else {
                     // else send to the multi option page.
-                    if (log.isDebugEnabled()) {
-                        log.debug("Sending to the Multi Option page");
-                    }
-                    diagnosticLog.info("Sending to the Multi Option page");
-                    Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
-                    String showAuthFailureReason = null;
-                    if (parameterMap != null) {
-                        showAuthFailureReason = parameterMap.get(FrameworkConstants.SHOW_AUTHFAILURE_RESON_CONFIG);
-                        if (log.isDebugEnabled()) {
-                            log.debug("showAuthFailureReason has been set as : " + showAuthFailureReason);
-                        }
-                        diagnosticLog.info("showAuthFailureReason has been set as : " + showAuthFailureReason);
-                    }
-                    String retryParam = "";
-
-                    if (stepConfig.isRetrying()) {
-                        context.setCurrentAuthenticator(null);
-                        retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
-                    }
-
-                    try {
-                        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
-                                .INCOMPLETE);
-                        response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
-                                showAuthFailureReason, retryParam, loginPage));
-                    } catch (IOException e) {
-                        diagnosticLog.error("Server error occurred. Error message: " + e.getMessage());
-                        throw new FrameworkException(e.getMessage(), e);
-                    }
-
+                    sendToMultiOptionPage(stepConfig, request, context, response, authenticatorNames);
                     return;
                 }
             }
+        }
+    }
+
+    private void sendToMultiOptionPage(StepConfig stepConfig, HttpServletRequest request, AuthenticationContext context,
+                                       HttpServletResponse response, String authenticatorNames)
+            throws FrameworkException {
+
+        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+        if (log.isDebugEnabled()) {
+            log.debug("Sending to the Multi Option page");
+        }
+        diagnosticLog.info("Sending to the Multi Option page");
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        String showAuthFailureReason = null;
+        if (parameterMap != null) {
+            showAuthFailureReason = parameterMap.get(FrameworkConstants.SHOW_AUTHFAILURE_RESON_CONFIG);
+            if (log.isDebugEnabled()) {
+                log.debug("showAuthFailureReason has been set as : " + showAuthFailureReason);
+            }
+        }
+        diagnosticLog.info("showAuthFailureReason has been set as : " + showAuthFailureReason);
+        String retryParam = "";
+
+        if (stepConfig.isRetrying()) {
+            context.setCurrentAuthenticator(null);
+            retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
+        }
+
+        try {
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                    .INCOMPLETE);
+            response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
+                    showAuthFailureReason, retryParam, loginPage));
+        } catch (IOException e) {
+            diagnosticLog.error("Server error occurred. Error message: " + e.getMessage());
+            throw new FrameworkException(e.getMessage(), e);
         }
     }
 
@@ -603,6 +628,7 @@ public class DefaultStepHandler implements StepHandler {
 
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
                 context.setCurrentAuthenticator(authenticator.getName());
+                context.setProperty(FrameworkConstants.REDIRECTED_AUTHENTICATOR, authenticator.getName());
                 if (log.isDebugEnabled()) {
                     log.debug(authenticator.getName() + " is redirecting");
                 }
