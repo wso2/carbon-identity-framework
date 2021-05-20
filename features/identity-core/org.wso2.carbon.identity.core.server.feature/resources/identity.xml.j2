@@ -2681,4 +2681,11 @@
         	<Cookie name="{{cookie}}"/>
         	{% endfor %}
     </CookiesToInvalidate>
+    <ProxyConfig>
+        <Enable>{{proxy_config.enable}}</Enable>
+        <Host>{{proxy_config.host}}</Host>
+        <Port>{{proxy_config.port}}</Port>
+        <Username>{{proxy_config.username}}</Username>
+        <Password>{{proxy_config.password}}</Password>
+    </ProxyConfig>
 </Server>
