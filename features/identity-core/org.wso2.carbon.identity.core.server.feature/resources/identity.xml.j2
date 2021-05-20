@@ -2456,6 +2456,13 @@
             <HTTPConnectionTimeout>{{oauth.jwks_endpoint.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{oauth.jwks_endpoint.read_timeout}}</HTTPReadTimeout>
             <HTTPSizeLimit>{{oauth.jwks_endpoint.size_limit_bytes}}</HTTPSizeLimit>
+            <HTTPProxy>
+                <Enable>{{http_proxy.enable}}</Enable>
+                <Host>{{http_proxy.host}}</Host>
+                <Port>{{http_proxy.port}}</Port>
+                <Username>{{http_proxy.username}}</Username>
+                <Password>{{http_proxy.password}}</Password>
+            </HTTPProxy>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
