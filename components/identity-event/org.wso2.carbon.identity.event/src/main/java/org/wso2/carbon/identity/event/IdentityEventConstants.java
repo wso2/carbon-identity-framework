@@ -170,6 +170,26 @@ public class IdentityEventConstants {
         public static final String POST_GENERATE_SMS_OTP = "POST_GENERATE_SMS_OTP";
         public static final String POST_VALIDATE_SMS_OTP = "POST_VALIDATE_SMS_OTP";
         public static final String SESSION_EXTENSION = "SESSION_EXTENSION";
+
+        // Claim metadata operation related events.
+        public static final String PRE_ADD_CLAIM_DIALECT = "PRE_ADD_CLAIM_DIALECT";
+        public static final String PRE_UPDATE_CLAIM_DIALECT = "PRE_UPDATE_CLAIM_DIALECT";
+        public static final String PRE_DELETE_CLAIM_DIALECT = "PRE_DELETE_CLAIM_DIALECT";
+        public static final String PRE_ADD_LOCAL_CLAIM = "PRE_LOCAL_CLAIM_ADD";
+        public static final String PRE_UPDATE_LOCAL_CLAIM = "PRE_UPDATE_LOCAL_CLAIM";
+        public static final String PRE_DELETE_LOCAL_CLAIM = "POST_DELETE_LOCAL_CLAIM";
+        public static final String PRE_ADD_EXTERNAL_CLAIM = "PRE_ADD_EXTERNAL_CLAIM";
+        public static final String PRE_UPDATE_EXTERNAL_CLAIM = "PRE_UPDATE_EXTERNAL_CLAIM";
+        public static final String PRE_DELETE_EXTERNAL_CLAIM = "PRE_DELETE_EXTERNAL_CLAIM";
+        public static final String POST_ADD_CLAIM_DIALECT = "POST_ADD_CLAIM_DIALECT";
+        public static final String POST_UPDATE_CLAIM_DIALECT = "POST_RENAME_CLAIM_DIALECT";
+        public static final String POST_DELETE_CLAIM_DIALECT = "POST_DELETE_CLAIM_DIALECT";
+        public static final String POST_ADD_LOCAL_CLAIM = "POST_LOCAL_CLAIM_ADD";
+        public static final String POST_UPDATE_LOCAL_CLAIM = "POST_UPDATE_LOCAL_CLAIM";
+        public static final String POST_DELETE_LOCAL_CLAIM = "POST_DELETE_LOCAL_CLAIM";
+        public static final String POST_ADD_EXTERNAL_CLAIM = "POST_ADD_EXTERNAL_CLAIM";
+        public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
+        public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
     }
 
     /**
@@ -270,6 +290,13 @@ public class IdentityEventConstants {
         public static final String OTP_STATUS = "otp-status";
         public static final String TRACE_ID = "traceId";
         public static final String SESSION_CONTEXT_ID = "sessionContextId";
+        public static final String LOCAL_CLAIM_URI = "localClaimUri";
+        public static final String LOCAL_CLAIM_PROPERTIES = "localClaimProperties";
+        public static final String EXTERNAL_CLAIM_URI = "externalClaimUri";
+        public static final String CLAIM_DIALECT_URI = "claimDialectUri";
+        public static final String OLD_CLAIM_DIALECT_URI = "oldClaimDialectUri";
+        public static final String NEW_CLAIM_DIALECT_URI = "newClaimDialectUri";
+        public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
     }
 
     public class ErrorMessage {

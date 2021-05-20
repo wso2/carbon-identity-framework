@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -37,6 +38,7 @@ public class IdentityClaimManagementServiceDataHolder {
     private BundleContext bundleContext;
     private RealmService realmService;
     private RegistryService registryService;
+    private IdentityEventService identityEventService;
     private static Map<Integer, ClaimManagerListener> claimManagerListeners = new TreeMap<Integer,
             ClaimManagerListener>();
 
@@ -96,4 +98,25 @@ public class IdentityClaimManagementServiceDataHolder {
             claimManagerListeners.remove(claimManagerListener.getExecutionOrderId());
         }
     }
+
+    /**
+     * Get {@link IdentityEventService}.
+     *
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set {@link IdentityEventService}.
+     *
+     * @param identityEventService Instance of {@link IdentityEventService}.
+     */
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
+    }
+
 }

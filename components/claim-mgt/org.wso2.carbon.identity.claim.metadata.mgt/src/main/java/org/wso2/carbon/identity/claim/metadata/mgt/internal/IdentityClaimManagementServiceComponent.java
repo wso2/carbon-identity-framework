@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -176,6 +177,29 @@ public class IdentityClaimManagementServiceComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Identity Claim Management bundle");
+        }
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setIdentityEventService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Identity Claim Management bundle");
+        }
     }
 }
 
