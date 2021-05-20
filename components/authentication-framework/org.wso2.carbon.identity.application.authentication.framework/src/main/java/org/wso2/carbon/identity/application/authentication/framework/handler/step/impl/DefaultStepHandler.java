@@ -290,7 +290,7 @@ public class DefaultStepHandler implements StepHandler {
                 // Find if step contains only a single authenticator with a single
                 // IdP. If yes, don't send to the multi-option page. Call directly.
                 boolean sendToPage = false;
-                boolean isAuthenticationFlowHandler = false;
+                boolean isAuthenticationFlowHandlerInMultiStep = false;
                 AuthenticatorConfig authenticatorConfig = null;
 
                 // Are there multiple authenticators?
@@ -301,7 +301,7 @@ public class DefaultStepHandler implements StepHandler {
                     for (AuthenticatorConfig config : authConfigList) {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
                             authenticatorConfig = config;
-                            isAuthenticationFlowHandler = true;
+                            isAuthenticationFlowHandlerInMultiStep = true;
                             sendToPage = false;
                             break;
                         }
@@ -333,11 +333,10 @@ public class DefaultStepHandler implements StepHandler {
                     }
 
                     doAuthentication(request, response, context, authenticatorConfig);
-                    /* If an authentication flow handler is redirected with incomplete, it will redirect to
-                    multi option page, as multi-option is available */
-                    if (context.getParameter(FrameworkConstants.REDIRECTED_AUTHENTICATOR) ==
-                            authenticatorConfig.getApplicationAuthenticator().getName()
-                            && isAuthenticationFlowHandler) {
+                    /* If an authentication flow handler is redirected with incomplete status,
+                    it will redirect to multi option page, as multi-option is available */
+                    if ((request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)) ==
+                            AuthenticatorFlowStatus.INCOMPLETE && isAuthenticationFlowHandlerInMultiStep) {
                         sendToMultiOptionPage(stepConfig, request, context, response, authenticatorNames);
                     }
                     return;
@@ -628,7 +627,6 @@ public class DefaultStepHandler implements StepHandler {
 
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
                 context.setCurrentAuthenticator(authenticator.getName());
-                context.setProperty(FrameworkConstants.REDIRECTED_AUTHENTICATOR, authenticator.getName());
                 if (log.isDebugEnabled()) {
                     log.debug(authenticator.getName() + " is redirecting");
                 }
