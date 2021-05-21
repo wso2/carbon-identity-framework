@@ -899,6 +899,32 @@
         <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>
     </LoginIdentifiers>-->
 
+    <UserClaimUpdate>
+        <Claim uri = "http://wso2.org/claims/emailaddress">
+            <VerificationOnUpdate>
+                <Enable>false</Enable>
+                <VerificationCode>
+                    <ExpiryTime>1440</ExpiryTime>
+                </VerificationCode>
+            </VerificationOnUpdate>
+            <NotificationOnUpdate>
+                <Enable>false</Enable>
+            </NotificationOnUpdate>
+        </Claim>
+        <Claim uri = "http://wso2.org/claims/mobile">
+            <VerificationOnUpdate>
+                <Enable>false</Enable>
+                <VerificationCode>
+                    <ExpiryTime>5</ExpiryTime>
+                </VerificationCode>
+            </VerificationOnUpdate>
+        </Claim>
+        <!-- When updating the claim value, the verification notification can be controlled by sending an additional
+        temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
+        'UseVerifyClaim' should be set to true. -->
+        <UseVerifyClaim>false</UseVerifyClaim>
+    </UserClaimUpdate>
+
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>

@@ -1185,6 +1185,9 @@
                     <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
                 </VerificationCode>
             </VerificationOnUpdate>
+            <NotificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.email.enable_notify_existing_email}}</Enable>
+             </NotificationOnUpdate>
         </Claim>
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
