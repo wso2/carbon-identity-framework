@@ -35,6 +35,10 @@
   "identity.token_validation_policy": "CertValidate",
 
   "server.internal_hostname": "localhost",
+  "authenticationendpoint.hostname": "$ref{server.hostname}",
+  "authenticationendpoint.path": "/authenticationendpoint",
+  "recoveryendpoint.hostname" : "$ref{server.hostname}",
+  "recoveryendpoint.path" : "/recoveryendpoint",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 

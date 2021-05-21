@@ -79,6 +79,20 @@
     <!-- This configuration is to resolve the internal service URL for internal API calls. -->
     <ServerHostName>{{server.internal_hostname}}</ServerHostName>
 
+    <!--
+        Following configuration adds support to change hostnames and paths of authentication and recovery portals.
+        Note : These configurations works only when tenant qualified URLs are enabled. Otherwise use configurations
+        provided in application-authentication.xml
+    -->
+    <AuthenticationEndpoint>
+        <HostName>{{authenticationendpoint.hostname}}</HostName>
+        <Path>{{authenticationendpoint.path}}</Path>
+    </AuthenticationEndpoint>
+    <RecoveryEndpoint>
+        <HostName>{{recoveryendpoint.hostname}}</HostName>
+        <Path>{{recoveryendpoint.path}}</Path>
+    </RecoveryEndpoint>
+
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
         <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>
