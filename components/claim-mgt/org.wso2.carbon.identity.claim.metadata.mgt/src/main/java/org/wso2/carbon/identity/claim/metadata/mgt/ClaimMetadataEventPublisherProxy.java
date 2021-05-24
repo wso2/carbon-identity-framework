@@ -108,6 +108,7 @@ public class ClaimMetadataEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_ADD_LOCAL_CLAIM);
         doPublishEvent(event);
@@ -118,6 +119,7 @@ public class ClaimMetadataEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_ADD_LOCAL_CLAIM);
         doPublishEvent(event);
@@ -128,6 +130,7 @@ public class ClaimMetadataEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_LOCAL_CLAIM);
         doPublishEvent(event);
@@ -138,6 +141,7 @@ public class ClaimMetadataEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_LOCAL_CLAIM);
         doPublishEvent(event);
