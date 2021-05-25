@@ -26,6 +26,10 @@ public class IdentityCoreConstants {
     public static final String IDENTITY_DEFAULT_NAMESPACE = "http://wso2.org/projects/carbon/carbon.xml";
     public static final String HOST_NAME = "HostName";
     public static final String SERVER_HOST_NAME = "ServerHostName";
+    public static final String AUTHENTICATION_ENDPOINT_HOST_NAME = "AuthenticationEndpoint.HostName";
+    public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
+    public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
+    public static final String RECOVERY_ENDPOINT_PATH = "RecoveryEndpoint.Path";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 

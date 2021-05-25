@@ -83,6 +83,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String protocol = fetchProtocol();
         String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
+        String authenticationEndpointHostName = fetchAuthenticationEndpointHostName();
+        String authenticationEndpointPath = fetchAuthenticationEndpointPath();
+        String recoveryEndpointHostName = fetchRecoveryEndpointHostName();
+        String recoveryEndpointPath = fetchRecoveryEndpointPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
@@ -90,6 +94,18 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
 
+        if (StringUtils.isNotBlank(urlPath)) {
+            if (authenticationEndpointHostName != null && authenticationEndpointPath != null &&
+                    urlPath.contains(authenticationEndpointPath)) {
+                return new ServiceURLImpl(protocol, authenticationEndpointHostName, internalHostName, proxyPort,
+                        transportPort, tenantDomain, proxyContextPath, urlPath, parameters, resolvedFragment);
+            }
+            if (recoveryEndpointHostName != null && recoveryEndpointPath != null &&
+                    urlPath.contains(recoveryEndpointPath)) {
+                return new ServiceURLImpl(protocol, recoveryEndpointHostName, internalHostName, proxyPort,
+                        transportPort, tenantDomain, proxyContextPath, urlPath, parameters, resolvedFragment);
+            }
+        }
         return new ServiceURLImpl(protocol, proxyHostName, internalHostName, proxyPort, transportPort, tenantDomain,
                 proxyContextPath, urlPath, parameters, resolvedFragment);
     }
@@ -282,6 +298,52 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
                 getServerConfigContext().getAxisConfiguration();
         return CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
+    }
+
+    private String fetchAuthenticationEndpointHostName() throws URLBuilderException {
+
+        String authenticationEndpointHostName = IdentityUtil.
+                getProperty(IdentityCoreConstants.AUTHENTICATION_ENDPOINT_HOST_NAME);
+        if (StringUtils.isNotBlank(authenticationEndpointHostName)) {
+            return resolveHostName(authenticationEndpointHostName);
+        }
+        return null;
+    }
+
+    private String fetchAuthenticationEndpointPath() {
+
+        String authenticationEndpointPath = IdentityUtil
+                .getProperty(IdentityCoreConstants.AUTHENTICATION_ENDPOINT_PATH);
+        return preprocessEndpointPath(authenticationEndpointPath);
+    }
+
+    private String fetchRecoveryEndpointHostName() throws URLBuilderException {
+
+        String recoveryEndpointHostName = IdentityUtil.
+                getProperty(IdentityCoreConstants.RECOVERY_ENDPOINT_HOST_NAME);
+        return resolveHostName(recoveryEndpointHostName);
+    }
+
+    private String fetchRecoveryEndpointPath() {
+
+        String recoveryEndpointPath = IdentityUtil
+                .getProperty(IdentityCoreConstants.RECOVERY_ENDPOINT_PATH);
+        return preprocessEndpointPath(recoveryEndpointPath);
+    }
+
+    private String preprocessEndpointPath(String endpointPath) {
+
+        if (StringUtils.isNotBlank(endpointPath)) {
+            if (!endpointPath.startsWith("/")) {
+                endpointPath = "/" + endpointPath;
+            }
+            if (endpointPath.endsWith("/")) {
+                endpointPath = endpointPath.
+                        substring(0, endpointPath.length() - 1);
+            }
+            return endpointPath;
+        }
+        return null;
     }
 
     private class ServiceURLImpl implements ServiceURL {
