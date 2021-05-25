@@ -797,6 +797,9 @@
   },
   "console.oidc_scopes.enabled": true,
   "console.oidc_scopes.scopes": {
+    "feature": [
+      "console:scopes"
+    ],
     "create": [
       "internal_application_mgt_create"
     ],
