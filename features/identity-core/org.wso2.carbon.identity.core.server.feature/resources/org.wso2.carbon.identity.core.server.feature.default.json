@@ -666,6 +666,9 @@
     "versionOverride": "BETA"
   },
   "console.applications.scopes": {
+    "feature": [
+      "console:applications"
+    ],
     "create": [
       "internal_application_mgt_create"
     ],
@@ -699,6 +702,9 @@
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
   "console.attribute_dialects.scopes": {
+    "feature": [
+      "console:attributes"
+    ],
     "create": [
       "internal_claim_meta_create"
     ],
@@ -755,6 +761,9 @@
   },
   "console.groups.enabled": true,
   "console.groups.scopes": {
+    "feature": [
+      "console:groups"
+    ],
     "create": [
       "internal_role_mgt_create"
     ],
@@ -770,6 +779,9 @@
   },
   "console.identity_providers.enabled": true,
   "console.identity_providers.scopes": {
+    "feature": [
+      "console:idps"
+    ],
     "create": [
       "internal_idp_create"
     ],
@@ -827,6 +839,9 @@
   },
   "console.roles.enabled": true,
   "console.roles.scopes": {
+    "feature": [
+      "console:roles"
+    ],
     "create": [
       "internal_role_mgt_create"
     ],
@@ -842,6 +857,9 @@
   },
   "console.users.enabled": true,
   "console.users.scopes": {
+    "feature": [
+      "console:users"
+    ],
     "create": [
       "internal_user_mgt_create"
     ],
