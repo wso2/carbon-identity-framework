@@ -165,6 +165,7 @@
   "authentication.authenticator.totp.parameters.useEventHandlerBasedEmailSender": true,
   "authentication.authenticator.totp.parameters.encodingMethod": "Base32",
   "authentication.authenticator.totp.parameters.timeStepSize": "30",
+  "authentication.authenticator.totp.parameters.reEnrollmentValidityPeriod": "300",
   "authentication.authenticator.totp.parameters.windowSize": "3",
   "authentication.authenticator.totp.parameters.authenticationMandatory": true,
   "authentication.authenticator.totp.parameters.enrolUserInAuthenticationFlow": true,
