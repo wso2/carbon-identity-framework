@@ -256,8 +256,20 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         }
                         diagnosticLog.info("Restarting the authentication flow from step 1 for  " +
                                 context.getContextIdentifier());
-                        context.setCurrentStep(1);
+                        context.setCurrentStep(0);
                         context.setProperty(BACK_TO_FIRST_STEP, true);
+                        context.setSubject(null);
+                        context.setStateInfo(null);
+                        context.setExternalIdP(null);
+                        context.setAuthenticatorProperties(new HashMap<String, String>());
+                        context.setRetryCount(0);
+                        context.setRetrying(false);
+                        context.setCurrentAuthenticator(null);
+                        Map<String, String> runtimeParams = context
+                                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+                        runtimeParams.put(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME, null);
+                        returning = false;
+
                         // IDF should be the first step.
                         context.getCurrentAuthenticatedIdPs().clear();
                     } else {
