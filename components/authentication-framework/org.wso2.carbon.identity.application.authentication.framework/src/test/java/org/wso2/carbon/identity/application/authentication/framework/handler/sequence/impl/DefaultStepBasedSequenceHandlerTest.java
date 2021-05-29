@@ -484,7 +484,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         context.setRetrying(true);
         context.setCurrentAuthenticator("OIDCAuthenticator");
 
-        stepBasedSequenceHandler.resetAuthenticationContext(context);
+        FrameworkUtils.resetAuthenticationContext(context);
 
         assertResetContext(context);
     }

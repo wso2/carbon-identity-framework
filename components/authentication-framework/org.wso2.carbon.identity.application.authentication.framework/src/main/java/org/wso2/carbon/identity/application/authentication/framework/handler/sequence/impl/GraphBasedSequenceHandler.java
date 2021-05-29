@@ -440,11 +440,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     stepConfig.setRetrying(true);
                     context.setRequestAuthenticated(true);
                 } else {
-                    resetAuthenticationContext(context);
+                    FrameworkUtils.resetAuthenticationContext(context);
                 }
             }
 
-            resetAuthenticationContext(context);
+            FrameworkUtils.resetAuthenticationContext(context);
         }
 
         // if the sequence is not completed, we have work to do.
