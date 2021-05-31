@@ -3012,4 +3012,24 @@ public class FrameworkUtils {
                     response.addCookie(cookie);
                 }));
     }
+
+    /*
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+    */
+    /**
+     * Reset authentication context.
+     *
+     * @param context Authentication Context.
+     * @throws FrameworkException
+     */
+    public static void resetAuthenticationContext(AuthenticationContext context) {
+
+        context.setSubject(null);
+        context.setStateInfo(null);
+        context.setExternalIdP(null);
+        context.setAuthenticatorProperties(new HashMap<String, String>());
+        context.setRetryCount(0);
+        context.setRetrying(false);
+        context.setCurrentAuthenticator(null);
+    }
 }

@@ -143,14 +143,17 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             for (int i = 2; i <= size; i++) {
                 context.getSequenceConfig().getStepMap().remove(i);
             }
-            AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).getParent();
-            while (parentNode != null && !isFirstStep(parentNode)) {
-                if (parentNode instanceof DynamicDecisionNode) {
-                    ((DynamicDecisionNode) parentNode).setDefaultEdge(new EndStep());
+            context.getSequenceConfig().setCompleted(false);
+            context.setProperty(PROP_CURRENT_NODE, null);
+            AuthGraphNode startNode = context.getSequenceConfig().getAuthenticationGraph().getStartNode();
+            if (startNode instanceof StepConfigGraphNode) {
+                ((StepConfigGraphNode)startNode).getStepConfig().setCompleted(false);
+                ((StepConfigGraphNode)startNode).getStepConfig().setAuthenticatedAutenticator(null);
+                ((StepConfigGraphNode)startNode).getStepConfig().setAuthenticatedUser(null);
+                if (((StepConfigGraphNode) startNode).getNext() instanceof DynamicDecisionNode) {
+                    ((DynamicDecisionNode) ((StepConfigGraphNode) startNode).getNext()).setDefaultEdge(new EndStep());
                 }
-                parentNode = parentNode.getParent();
             }
-            context.setProperty(PROP_CURRENT_NODE, parentNode);
             if (log.isDebugEnabled()) {
                 log.debug("Modified current node a parent node which can restart authentication flow" +
                         " from first step.");
@@ -437,11 +440,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     stepConfig.setRetrying(true);
                     context.setRequestAuthenticated(true);
                 } else {
-                    resetAuthenticationContext(context);
+                    FrameworkUtils.resetAuthenticationContext(context);
                 }
             }
 
-            resetAuthenticationContext(context);
+            FrameworkUtils.resetAuthenticationContext(context);
         }
 
         // if the sequence is not completed, we have work to do.
