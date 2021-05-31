@@ -258,11 +258,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                 context.getContextIdentifier());
                         context.setCurrentStep(0);
                         context.setProperty(BACK_TO_FIRST_STEP, true);
-                        Map<String, String> runtimeParams = context
-                                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
-                        for (String runtimeParam : runtimeParams.keySet()) {
-                            runtimeParams.put(runtimeParam, null);
-                        }
+                        Map<String, String> runtimeParams =
+                                context.getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+                        runtimeParams.clear();
                         FrameworkUtils.resetAuthenticationContext(context);
                         returning = false;
 
