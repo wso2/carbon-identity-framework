@@ -2692,10 +2692,13 @@ public class FrameworkUtils {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                    // userstore is read-only, we cannot add the id and empty user id will returned.
-                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                        userId = addUserId(username, userStoreManager);
+                    // If the user id is could not be resolved, probably does not exist in the user store.
+                    if (StringUtils.isBlank(userId)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User id could not be resolved for username: " + username + " in user store " +
+                                    "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
+                                    "user does not exist in the user store.");
+                        }
                     }
                     return userId;
                 }
