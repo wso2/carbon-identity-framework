@@ -137,7 +137,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     }
 
-    private boolean isPostAuthRequestTriggered(AuthenticationContext context) {
+    protected boolean isPostAuthRequestTriggered(AuthenticationContext context) {
 
         Object object = context.getProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
         boolean postAuthRequestTriggered = false;
@@ -147,7 +147,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return postAuthRequestTriggered;
     }
 
-    private PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
+    protected PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
                                                                                        HttpServletResponse response,
                                                                                        AuthenticationContext context)
             throws PostAuthenticationFailedException {
@@ -219,7 +219,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         }
     }
 
-    private void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
+    protected void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
             response, AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (log.isDebugEnabled()) {
@@ -342,7 +342,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     }
 
 
-    private UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
+    protected UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
 
         UserRealm realm;
         try {
@@ -358,7 +358,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return realm;
     }
 
-    private AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
+    protected AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
 
         AuthenticatedUser user = authenticationContext.getSequenceConfig().getAuthenticatedUser();
         return user;
