@@ -47,7 +47,7 @@ import javax.cache.Caching;
 public abstract class BaseCache<K extends Serializable, V extends Serializable> {
 
     private static final Log log = LogFactory.getLog(BaseCache.class);
-    private static final String CACHE_MANAGER_NAME = "IdentityCacheManager";
+    private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private CacheBuilder<K, V> cacheBuilder;
     private final List<AbstractCacheListener<K, V>> cacheListeners;
     private String cacheName;
