@@ -657,7 +657,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String appName = context.getServiceProviderName();
         int appTenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
         String inboundAuth = context.getCallerPath().substring(1);
-        int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
+        int appId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             String userId = authenticatedIdPData.getUser().getUserId();
