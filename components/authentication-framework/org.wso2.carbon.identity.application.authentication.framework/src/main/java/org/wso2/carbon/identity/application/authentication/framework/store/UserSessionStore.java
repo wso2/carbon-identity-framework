@@ -595,7 +595,10 @@ public class UserSessionStore {
      * @param appTenantID     app tenant id
      * @return the application id
      * @throws UserSessionException if an error occurs when retrieving app id
+     *
+     * @deprecated Since the UserSessionStore should not invoke the application management table.
      */
+    @Deprecated
     public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
 
         Integer appId;
