@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.event.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.idp.mgt.IdpManager;
 
 import java.util.concurrent.ExecutorService;
 
@@ -29,7 +28,6 @@ public class IdentityEventServiceDataHolder {
 
     private static IdentityEventServiceDataHolder instance = new IdentityEventServiceDataHolder();
     private static Log log = LogFactory.getLog(IdentityEventServiceDataHolder.class);
-    private IdpManager idpManager;
     private IdentityEventService eventMgtService;
     private ExecutorService threadPool;
 
@@ -39,14 +37,6 @@ public class IdentityEventServiceDataHolder {
 
     public void setThreadPool(ExecutorService threadPool) {
         this.threadPool = threadPool;
-    }
-
-    public IdpManager getIdpManager() {
-        return idpManager;
-    }
-
-    public void setIdpManager(IdpManager idpManager) {
-        this.idpManager = idpManager;
     }
 
     private IdentityEventServiceDataHolder() {

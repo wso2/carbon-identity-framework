@@ -33,6 +33,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,9 +51,9 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
     public void testHandleStaticSequence(String spFileName, int authHistoryCount) throws
             Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
         AuthenticationContext context = getAuthenticationContext(sp1);

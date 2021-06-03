@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -63,6 +64,7 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,7 +74,8 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class
+        , IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
@@ -95,6 +98,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         mockStatic(FrameworkUtils.class);
         mockStatic(ConfigurationFacade.class);
         mockStatic(ClaimMetadataHandler.class);
+        mockStatic(IdentityTenantUtil.class);
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
 
         PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
@@ -142,6 +146,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
         doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
                 (Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        PowerMockito.when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
 
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response,

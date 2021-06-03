@@ -57,12 +57,12 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
 
-    public void testExceptionRetry() throws
-            Exception {
+    public void testExceptionRetry() throws Exception {
 
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();

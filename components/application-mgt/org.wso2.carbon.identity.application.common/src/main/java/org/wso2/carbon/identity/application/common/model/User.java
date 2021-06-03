@@ -41,6 +41,7 @@ public class User implements Serializable {
     protected String tenantDomain;
     protected String userStoreDomain;
     protected String userName;
+    protected String userId;
     protected boolean isUsernameCaseSensitive = true;
 
     /**
@@ -73,6 +74,8 @@ public class User implements Serializable {
                 user.setUserStoreDomain(member.getText());
             } else if ("UserName".equalsIgnoreCase(member.getLocalName())) {
                 user.setUserName(member.getText());
+            } else if ("UserID".equalsIgnoreCase(member.getLocalName())) {
+                user.setUserId(member.getText());
             }
         }
         return user;
@@ -133,6 +136,16 @@ public class User implements Serializable {
      */
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getUserId() {
+
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
     }
 
     public boolean equals(Object o) {

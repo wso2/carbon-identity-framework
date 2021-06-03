@@ -50,6 +50,7 @@ import java.util.Map;
 public class ChallengeQuestionProcessor {
 
     private static final Log log = LogFactory.getLog(ChallengeQuestionProcessor.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     /**
      * @return
@@ -87,6 +88,8 @@ public class ChallengeQuestionProcessor {
 
             }
         } catch (RegistryException e) {
+            diagnosticLog.error("Error occurred while retrieving challenge questions. Error message: "
+                    + e.getMessage());
             throw IdentityException.error(e.getMessage(), e);
         }
         return questionDTOs;
@@ -127,6 +130,7 @@ public class ChallengeQuestionProcessor {
                 }
             }
         } catch (RegistryException e) {
+            diagnosticLog.error("Error while setting challenge question. Error message: " + e.getMessage());
             throw IdentityException.error("Error while setting challenge question.", e);
         }
 
@@ -148,6 +152,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving Challenge question from the user profile.");
             }
+            diagnosticLog.info("Retrieving Challenge question from the user profile for the user: " + userName);
             List<String> challengesUris = getChallengeQuestionUris(userName, tenantId);
 
             for (int i = 0; i < challengesUris.size(); i++) {
@@ -175,6 +180,7 @@ public class ChallengeQuestionProcessor {
             if(log.isDebugEnabled()){
                 log.debug(msg, e);
             }
+            diagnosticLog.error(msg + ": " + userName + ". Error message: " + e.getMessage());
         }
 
         if (!challengesDTOs.isEmpty()) {
@@ -202,6 +208,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving Challenge questions from the user profile.");
             }
+            diagnosticLog.info("Retrieving Challenge questions from the user profile for the user: " + userName);
 
             List<String> challengeQuestionUris = getChallengeQuestionUris(userName, tenantId);
 
@@ -221,6 +228,8 @@ public class ChallengeQuestionProcessor {
             }
 
         } catch (Exception e) {
+            diagnosticLog.error("No associated challenge questions found for the user: " + userName +
+                    ". Error message: " + e.getMessage());
             throw IdentityException.error("No associated challenge questions found for the user.", e);
         }
 
@@ -279,6 +288,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving Challenge question from the user profile.");
             }
+            diagnosticLog.info("Retrieving Challenge question from the user profile for the user: " + userName);
 
             String challengeValue = Utils.getClaimFromUserStoreManager(userName, tenantId,
                     challengesUri);
@@ -294,6 +304,7 @@ public class ChallengeQuestionProcessor {
 
                 }
             } else {
+                diagnosticLog.error("Challenge questions have not been answered by the user: " + userName);
                 dto = new UserChallengesDTO();
                 dto.setError("Challenge questions have not been answered by the user: " + userName);
             }
@@ -304,6 +315,7 @@ public class ChallengeQuestionProcessor {
             if(log.isDebugEnabled()){
                 log.debug(errorMsg, e);
             }
+            diagnosticLog.error(errorMsg + ". Error message: " + e.getMessage());
             dto = new UserChallengesDTO();
             dto.setError(errorMsg);
             throw new IdentityMgtServiceException(errorMsg,e);
@@ -321,6 +333,7 @@ public class ChallengeQuestionProcessor {
         if (log.isDebugEnabled()) {
             log.debug("Retrieving Challenge question ids from the user profile.");
         }
+        diagnosticLog.info("Retrieving Challenge question ids from the user profile for the user: " + userName);
         List<String> challengesUris = getChallengeQuestionUris(userName, tenantId);
 
         if (challengesUris.isEmpty()) {
@@ -328,6 +341,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug(msg);
             }
+            diagnosticLog.error(msg);
             throw new IdentityMgtServiceException(msg);
         }
 
@@ -353,6 +367,7 @@ public class ChallengeQuestionProcessor {
         if (log.isDebugEnabled()) {
             log.debug("Challenge Question from the user profile.");
         }
+        diagnosticLog.info("Challenge Question from the user profile for the user: " + userName);
 
         List<String> challenges = new ArrayList<String>();
         String claimValue = null;
@@ -362,6 +377,7 @@ public class ChallengeQuestionProcessor {
             claimValue = Utils.getClaimFromUserStoreManager(userName, tenantId,
                     "http://wso2.org/claims/challengeQuestionUris");
         } catch (IdentityException e) {
+            diagnosticLog.error("Error while getting challenge questions. Error message: " + e.getMessage());
             throw new IdentityMgtServiceException("Error while getting cliams.", e);
         }
 
@@ -405,6 +421,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Challenge Question from the user profile.");
             }
+            diagnosticLog.info("Setting challenge questions from the user profile for the user: " + userName);
             List<String> challengesUris = new ArrayList<String>();
             String challengesUrisValue = "";
             String separator = IdentityMgtConfig.getInstance().getChallengeQuestionSeparator();
@@ -429,6 +446,7 @@ public class ChallengeQuestionProcessor {
             } catch (Exception e) {
                 String msg = "Error retrieving the user store manager for the tenant";
                 log.error(msg, e);
+                diagnosticLog.error(msg + ". Error message: " + e.getMessage());
                 throw IdentityException.error(msg, e);
             }
 
@@ -476,6 +494,7 @@ public class ChallengeQuestionProcessor {
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             String msg = "No associated challenge question found for the user";
+            diagnosticLog.error(msg + ". Error message: " + e.getMessage());
             throw IdentityException.error(msg, e);
         }
     }
@@ -494,6 +513,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Challenge Question from the user profile.");
             }
+            diagnosticLog.info("Verifying challenge questions for the user: " + userName);
 
             UserChallengesDTO[] storedDto = getChallengeQuestionsOfUser(userName, tenantId, true);
 
@@ -521,6 +541,7 @@ public class ChallengeQuestionProcessor {
         } catch (Exception e) {
             String msg = "No associated challenge question found for the user";
             log.debug(msg, e);
+            diagnosticLog.error(msg + ". Error message: " + e.getMessage());
         }
 
         return verification;
@@ -534,10 +555,13 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Challenge Question from the user profile.");
             }
+            diagnosticLog.info("Verifying user challenge answer for the username: " + userName + " and challenge" +
+                    " question URI: " + challengesDTO.getQuestion());
 
             UserChallengesDTO[] storedDto = getChallengeQuestionsOfUser(userName, tenantId, true);
 
             if (challengesDTO.getAnswer() == null || challengesDTO.getAnswer().trim().length() < 1) {
+                diagnosticLog.info("Challenge answer is null or empty.");
                 return false;
             }
 
@@ -548,8 +572,10 @@ public class ChallengeQuestionProcessor {
                     String hashedAnswer = Utils.doHash(challengesDTO.getAnswer().trim()
                             .toLowerCase());
                     if (hashedAnswer.equals(dto.getAnswer())) {
+                        diagnosticLog.info("Challenge question answer successfully verified.");
                         verification = true;
                     } else {
+                        diagnosticLog.info("Challenge question answer validation failed.");
                         return false;
                     }
                 }
@@ -558,6 +584,7 @@ public class ChallengeQuestionProcessor {
         } catch (Exception e) {
             String msg = "No associated challenge question found for the user";
             log.debug(msg, e);
+            diagnosticLog.error(msg + ". Error message: " + e.getMessage());
         }
 
         return verification;
@@ -580,6 +607,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("verifying challenge question answers");
             }
+            diagnosticLog.info("Verifying challenge question answers for the username: " + userName);
 
             UserChallengesDTO[] storedUserChallengeDTOs = getChallengeQuestionsOfUser(userName, tenantId, true);
 
@@ -591,6 +619,7 @@ public class ChallengeQuestionProcessor {
                         String hashedAnswer = Utils.doHash(receivedUserChallengesDTO.getAnswer().trim().toLowerCase());
                         if (!hashedAnswer.equals(storedUserChallengesDTO.getAnswer())) {
                             verification = false;
+                            diagnosticLog.info("Challenge question answer verification failed.");
                             break;
                         }
                     }
@@ -602,6 +631,7 @@ public class ChallengeQuestionProcessor {
             }
         } catch (Exception e) {
             log.error("Error while verifying challenge question answers", e);
+            diagnosticLog.error("Error while verifying challenge question answers. Error message: " + e.getMessage());
             verification = false;
         }
 

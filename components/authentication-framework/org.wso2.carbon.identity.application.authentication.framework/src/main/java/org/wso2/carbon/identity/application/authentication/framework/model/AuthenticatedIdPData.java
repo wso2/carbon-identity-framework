@@ -166,7 +166,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
                                     "IDP : '%s'and the authenticator : '%s'.",
-                            user.getUserName(), idpName, authenticator.getName()));
+                            user.getUserId(), idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -175,7 +175,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
-                    user.getUserName(), idpName, authenticatorName));
+                    user.getUserId(), idpName, authenticatorName));
         }
 
         return false;
@@ -191,9 +191,9 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
      */
     public boolean isAlreadyAuthenticatedUsing(String authenticatorName, String authMechanism) {
 
-        String username = null;
+        String userId = null;
         if (user != null) {
-            username = user.getUserName();
+            userId = user.getUserId();
         }
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)
@@ -202,7 +202,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
                                     "IDP : '%s'and the authenticator : '%s'.",
-                            username, idpName, authenticator.getName()));
+                            userId, idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -211,7 +211,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
-                    username, idpName, authenticatorName));
+                    userId, idpName, authenticatorName));
         }
 
         return false;

@@ -2692,10 +2692,13 @@ public class FrameworkUtils {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                    // userstore is read-only, we cannot add the id and empty user id will returned.
-                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                        userId = addUserId(username, userStoreManager);
+                    // If the user id is could not be resolved, probably does not exist in the user store.
+                    if (StringUtils.isBlank(userId)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User id could not be resolved for username: " + username + " in user store " +
+                                    "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
+                                    "user does not exist in the user store.");
+                        }
                     }
                     return userId;
                 }
@@ -3011,5 +3014,25 @@ public class FrameworkUtils {
                     cookie.setPath("/");
                     response.addCookie(cookie);
                 }));
+    }
+
+    /*
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+    */
+    /**
+     * Reset authentication context.
+     *
+     * @param context Authentication Context.
+     * @throws FrameworkException
+     */
+    public static void resetAuthenticationContext(AuthenticationContext context) {
+
+        context.setSubject(null);
+        context.setStateInfo(null);
+        context.setExternalIdP(null);
+        context.setAuthenticatorProperties(new HashMap<String, String>());
+        context.setRetryCount(0);
+        context.setRetrying(false);
+        context.setCurrentAuthenticator(null);
     }
 }

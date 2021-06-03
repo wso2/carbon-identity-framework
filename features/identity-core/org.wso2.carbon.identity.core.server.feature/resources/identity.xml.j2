@@ -79,6 +79,20 @@
     <!-- This configuration is to resolve the internal service URL for internal API calls. -->
     <ServerHostName>{{server.internal_hostname}}</ServerHostName>
 
+    <!--
+        Following configuration adds support to change hostnames and paths of authentication and recovery portals.
+        Note : These configurations works only when tenant qualified URLs are enabled. Otherwise use configurations
+        provided in application-authentication.xml
+    -->
+    <AuthenticationEndpoint>
+        <HostName>{{authenticationendpoint.hostname}}</HostName>
+        <Path>{{authenticationendpoint.path}}</Path>
+    </AuthenticationEndpoint>
+    <RecoveryEndpoint>
+        <HostName>{{recoveryendpoint.hostname}}</HostName>
+        <Path>{{recoveryendpoint.path}}</Path>
+    </RecoveryEndpoint>
+
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
         <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>
@@ -1185,6 +1199,9 @@
                     <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
                 </VerificationCode>
             </VerificationOnUpdate>
+            <NotificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.email.enable_notify_existing_email}}</Enable>
+             </NotificationOnUpdate>
         </Claim>
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
@@ -2473,6 +2490,13 @@
             <HTTPConnectionTimeout>{{oauth.jwks_endpoint.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{oauth.jwks_endpoint.read_timeout}}</HTTPReadTimeout>
             <HTTPSizeLimit>{{oauth.jwks_endpoint.size_limit_bytes}}</HTTPSizeLimit>
+            <HTTPProxy>
+                <Enable>{{http_proxy.enable}}</Enable>
+                <Host>{{http_proxy.host}}</Host>
+                <Port>{{http_proxy.port}}</Port>
+                <Username>{{http_proxy.username}}</Username>
+                <Password>{{http_proxy.password}}</Password>
+            </HTTPProxy>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
