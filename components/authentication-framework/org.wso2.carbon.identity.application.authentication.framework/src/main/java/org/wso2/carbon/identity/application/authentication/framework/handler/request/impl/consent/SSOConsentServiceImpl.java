@@ -353,6 +353,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has approved consent.");
         }
         UserConsent userConsent = processUserConsent(consentApprovedClaimIds, consentClaimsData);
+        if (isEmpty(userConsent.getApprovedClaims()) && isEmpty(userConsent.getDisapprovedClaims())) {
+            if (isDebugEnabled()) {
+                logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has not provided new " +
+                        "approved/disapproved consent. Hence skipping the consent progress.");
+            }
+            return;
+        }
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
         List<ClaimMetaData> claimsWithConsent;
