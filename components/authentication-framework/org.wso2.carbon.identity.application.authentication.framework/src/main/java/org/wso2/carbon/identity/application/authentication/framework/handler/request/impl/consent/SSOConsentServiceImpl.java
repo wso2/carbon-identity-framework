@@ -358,10 +358,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<ClaimMetaData> claimsWithConsent;
         List<ClaimMetaData> claimsDeniedConsent;
         if (!overrideExistingConsent) {
+            String spName = serviceProvider.getApplicationName();
+            String spTenantDomain = getSPTenantDomain(serviceProvider);
+            Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
             claimsWithConsent =
-                    getUserRequestedClaims(serviceProvider, authenticatedUser, userConsent, true);
+                    getUserRequestedClaims(receipt, userConsent, true);
             claimsDeniedConsent =
-                    getUserRequestedClaims(serviceProvider, authenticatedUser, userConsent, false);
+                    getUserRequestedClaims(receipt, userConsent, false);
         } else {
             claimsWithConsent = userConsent.getApprovedClaims();
             claimsDeniedConsent = userConsent.getDisapprovedClaims();
@@ -733,10 +736,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return userConsent;
     }
 
-    private List<ClaimMetaData> getUserRequestedClaims(ServiceProvider serviceProvider,
-                                                       AuthenticatedUser authenticatedUser,
-                                                       UserConsent userConsent, boolean isConsented)
-            throws SSOConsentServiceException {
+    private List<ClaimMetaData> getUserRequestedClaims(Receipt receipt,
+                                                       UserConsent userConsent, boolean isConsented) {
 
         List<ClaimMetaData> requestedClaims = new ArrayList<>();
         if (isConsented) {
@@ -744,11 +745,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         } else {
             requestedClaims.addAll(userConsent.getDisapprovedClaims());
         }
-
-        String spName = serviceProvider.getApplicationName();
-        String spTenantDomain = getSPTenantDomain(serviceProvider);
-        String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
         if (receipt == null) {
             return requestedClaims;
         }
