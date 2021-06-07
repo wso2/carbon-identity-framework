@@ -1,6 +1,6 @@
 # This workflow will build the project on pull requests with tests
 # Uses:
-#   OS: ubuntu-lates
+#   OS: ubuntu-latest
 #   JDK: Adopt JDK 8
 
 name: PR Builder
@@ -38,3 +38,4 @@ jobs:
             ${{ runner.os }}-
       - name: Build with Maven
         run: mvn clean install -U -B
+
