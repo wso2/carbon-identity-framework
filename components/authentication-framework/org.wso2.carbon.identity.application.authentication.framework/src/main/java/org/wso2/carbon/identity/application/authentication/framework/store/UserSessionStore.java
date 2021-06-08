@@ -563,44 +563,35 @@ public class UserSessionStore {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
-                    preparedStatement.setString(1, sessionId);
-                    preparedStatement.setString(2, subject);
-                    preparedStatement.setInt(3, appID);
-                    preparedStatement.setString(4, inboundAuth);
-                });
-                return null;
-            });
-        } catch (TransactionException e) {
-            throw new DataAccessException("Error while storing application data for session in the database.", e);
-        }
-    }
-
-    /**
-     * Method to store app session data if the particular app session is not already exists in the database.
-     *
-     * @param sessionId   Id of the authenticated session.
-     * @param subject     Username in application.
-     * @param appID       Id of the application.
-     * @param inboundAuth Protocol used in the app.
-     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
-     */
-    public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
-            DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
-                        (resultSet, rowNumber) -> resultSet.getInt(1),
-                        preparedStatement -> {
-                            preparedStatement.setString(1, sessionId);
-                            preparedStatement.setString(2, subject);
-                            preparedStatement.setInt(3, appID);
-                            preparedStatement.setString(4, inboundAuth);
-                        });
-                if (recordCount == null) {
-                    storeAppSessionData(sessionId, subject, appID, inboundAuth);
+                String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
+                if (JdbcUtils.isOracleDB()) {
+                    query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                        preparedStatement.setString(5, sessionId);
+                        preparedStatement.setString(6, subject);
+                        preparedStatement.setInt(7, appID);
+                        preparedStatement.setString(8, inboundAuth);
+                    });
+                } else {
+                    if (JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
+                    } else if (JdbcUtils.isMySQLDB() ||  JdbcUtils.isMariaDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
+                    } else if (JdbcUtils.isPostgreSQLDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
+                    } else if (JdbcUtils.isOracleDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    }
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                    });
                 }
                 return null;
             });

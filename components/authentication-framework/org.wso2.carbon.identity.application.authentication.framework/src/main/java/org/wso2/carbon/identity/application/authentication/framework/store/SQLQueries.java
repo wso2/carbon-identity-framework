@@ -77,8 +77,37 @@ public class SQLQueries {
     // Retrieve application id given the name and the tenant id.
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
 
-    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO =
-            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?,?,?,?)";
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO KEY(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) VALUES(?, ?, ?, ?)";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
+                    "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "ON (T.SESSION_ID = S.SESSION_ID AND " +
+                    "T.SUBJECT = S.SUBJECT AND " +
+                    "T.APP_ID = S.APP_ID AND " +
+                    "T.INBOUND_AUTH_TYPE = S.INBOUND_AUTH_TYPE ) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "VALUES (S.SESSION_ID,S.SUBJECT,S.APP_ID,S.INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES " +
+                    "(?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "SESSION_ID= VALUES(SESSION_ID), SUBJECT= VALUES(SUBJECT), APP_ID = VALUES(APP_ID), " +
+                    "INBOUND_AUTH_TYPE = VALUES(INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?, ?, ?, ?) " +
+                    "ON CONFLICT(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) DO UPDATE SET " +
+                    "SESSION_ID = EXCLUDED.SESSION_ID, SUBJECT = EXCLUDED.SUBJECT, APP_ID = EXCLUDED.APP_ID, " +
+                    "INBOUND_AUTH_TYPE = EXCLUDED.INBOUND_AUTH_TYPE;";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO USING dual ON " +
+                    "(SESSION_ID = ? AND SUBJECT = ? AND APP_ID = ? AND INBOUND_AUTH_TYPE = ?) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID, SUBJECT, APP_ID, INBOUND_AUTH_TYPE) " +
+                    "VALUES (?, ?, ?, ?)";
 
     public static final String SQL_CHECK_IDN_AUTH_SESSION_APP_INFO =
             "SELECT 1 FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +

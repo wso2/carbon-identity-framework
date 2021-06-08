@@ -142,6 +142,17 @@ public abstract class FrameworkConstants {
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
+    // DB product names.
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
+
     private FrameworkConstants() {
 
     }
