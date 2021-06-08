@@ -870,6 +870,7 @@
         <AskPassword>
 	        <ExpiryTime>1440</ExpiryTime>
 	        <PasswordGenerator>org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator</PasswordGenerator>
+	        <DisableRandomValueForCredentials>false</DisableRandomValueForCredentials>
         </AskPassword>
     </EmailVerification>
 
