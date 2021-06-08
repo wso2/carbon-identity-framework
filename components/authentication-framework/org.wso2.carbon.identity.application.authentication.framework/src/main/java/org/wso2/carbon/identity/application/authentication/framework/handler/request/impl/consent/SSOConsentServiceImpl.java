@@ -171,6 +171,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
 
+        if (claimMappings == null || claimMappings.length == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("No claim mapping configured from the application. Hence skipping getting consent.");
+            }
+            return new ConsentClaimsData();
+        }
+
         List<String> requestedClaims = new ArrayList<>();
         List<String> mandatoryClaims = new ArrayList<>();
 
