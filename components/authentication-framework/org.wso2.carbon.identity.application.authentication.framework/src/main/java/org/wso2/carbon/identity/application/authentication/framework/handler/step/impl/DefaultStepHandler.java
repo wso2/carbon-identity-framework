@@ -149,7 +149,8 @@ public class DefaultStepHandler implements StepHandler {
         if (context.isPassiveAuthenticate()) {
             diagnosticLog.info("Passive authentication set to: true");
             if (authenticatedStepIdps.isEmpty()) {
-                if (authenticatedIdPs.keySet().size() > 0 && isFlowHandlerInStep(authConfigList)) {
+                AuthenticatorConfig authenticatorConfig = getFlowHandlerConfigInStep(authConfigList);
+                if (authenticatedIdPs.keySet().size() > 0 && authenticatorConfig != null) {
                     // During Passive authentication, if the authenticatedStepIdps empty and contain a flow handler in
                     // the step. Then considering as authenticated.
                     diagnosticLog.info("Authenticated Step IDPs are empty and a flow handler configured in " +
@@ -160,8 +161,7 @@ public class DefaultStepHandler implements StepHandler {
                     }
                     diagnosticLog.info("Authenticated IDP is: " + authenticatedIdP);
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
-                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
-                            stepConfig.getAuthenticatorList().get(0));
+                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatorConfig);
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                             .SUCCESS_COMPLETED);
                 } else {
@@ -349,13 +349,13 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private boolean isFlowHandlerInStep(List<AuthenticatorConfig> authConfigList) {
+    private AuthenticatorConfig getFlowHandlerConfigInStep(List<AuthenticatorConfig> authConfigList) {
 
-        if (authConfigList.size() > 1) {
-            return authConfigList.stream().anyMatch(config ->
-                    (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler));
+        if (authConfigList.size() > 0) {
+            return authConfigList.stream().filter(config -> (config.getApplicationAuthenticator()
+                    instanceof AuthenticationFlowHandler)).findFirst().orElse(null);
         }
-        return false;
+        return null;
     }
 
     private void sendToMultiOptionPage(StepConfig stepConfig, HttpServletRequest request, AuthenticationContext context,
