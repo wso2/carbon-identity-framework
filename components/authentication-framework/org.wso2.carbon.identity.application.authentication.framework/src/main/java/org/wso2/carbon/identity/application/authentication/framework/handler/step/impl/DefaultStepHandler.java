@@ -149,10 +149,11 @@ public class DefaultStepHandler implements StepHandler {
         if (context.isPassiveAuthenticate()) {
             diagnosticLog.info("Passive authentication set to: true");
             if (authenticatedStepIdps.isEmpty()) {
-                if (authenticatedIdPs.keySet().size() > 0 && isOnlyFlowHandlersInStep(stepConfig)) {
-                    // During Passive authentication, if the authenticatedStepIdps empty and contain only flow handlers.
-                    // Then considering as authenticated.
-                    diagnosticLog.info("Authenticated Step IDPs are empty and only flow handlers configured in " +
+                AuthenticatorConfig authenticatorConfig = getFlowHandlerConfigInStep(authConfigList);
+                if (authenticatedIdPs.keySet().size() > 0 && authenticatorConfig != null) {
+                    // During Passive authentication, if the authenticatedStepIdps empty and contain a flow handler in
+                    // the step. Then considering as authenticated.
+                    diagnosticLog.info("Authenticated Step IDPs are empty and a flow handler configured in " +
                             "the step. Proceeding with Authenticated IDPs.");
                     String authenticatedIdP = RESIDENT_IDP;
                     if (authenticatedIdPs.get(authenticatedIdP) == null) {
@@ -160,8 +161,7 @@ public class DefaultStepHandler implements StepHandler {
                     }
                     diagnosticLog.info("Authenticated IDP is: " + authenticatedIdP);
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
-                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
-                            stepConfig.getAuthenticatorList().get(0));
+                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatorConfig);
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                             .SUCCESS_COMPLETED);
                 } else {
@@ -349,6 +349,15 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
+    private AuthenticatorConfig getFlowHandlerConfigInStep(List<AuthenticatorConfig> authConfigList) {
+
+        if (authConfigList.size() > 0) {
+            return authConfigList.stream().filter(config -> (config.getApplicationAuthenticator()
+                    instanceof AuthenticationFlowHandler)).findFirst().orElse(null);
+        }
+        return null;
+    }
+
     private void sendToMultiOptionPage(StepConfig stepConfig, HttpServletRequest request, AuthenticationContext context,
                                        HttpServletResponse response, String authenticatorNames)
             throws FrameworkException {
@@ -383,17 +392,6 @@ public class DefaultStepHandler implements StepHandler {
             diagnosticLog.error("Server error occurred. Error message: " + e.getMessage());
             throw new FrameworkException(e.getMessage(), e);
         }
-    }
-
-    private boolean isOnlyFlowHandlersInStep(StepConfig stepConfig) {
-
-        List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
-        for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
-            if (!(authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     protected void handleHomeRealmDiscovery(HttpServletRequest request,
