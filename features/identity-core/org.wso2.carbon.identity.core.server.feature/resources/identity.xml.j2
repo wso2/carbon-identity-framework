@@ -618,6 +618,13 @@
             <!-- Default symmetric encryption algorithm that used to encrypt JWT claims set. -->
             <IDTokenEncryptionMethod>{{oauth.oidc.id_token.supported_encryption_methods[0]}}</IDTokenEncryptionMethod>
 
+            <!-- This should be set to true when id token needed to be signed before encryption -->
+            {% if oauth.oidc.id_token.sign_before_encryption is defined %}
+            <SignIDTokenBeforeEncryption>{{oauth.oidc.id_token.sign_before_encryption}}</SignIDTokenBeforeEncryption>
+            {% else %}
+            <SignIDTokenBeforeEncryption>false</SignIDTokenBeforeEncryption>
+            {% endif %}
+
             <!-- Supported versions: IS 5.5.0 onwards. -->
             <SupportedIDTokenEncryptionAlgorithms>
                 {% for algorithm in oauth.oidc.id_token.supported_encryption_algorithms %}

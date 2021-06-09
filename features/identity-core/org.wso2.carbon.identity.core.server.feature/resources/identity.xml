@@ -459,6 +459,8 @@
             <IDTokenEncryptionAlgorithm>RSA-OAEP</IDTokenEncryptionAlgorithm>
             <!-- Default symmetric encryption algorithm that used to encrypt JWT claims set. -->
             <IDTokenEncryptionMethod>A128GCM</IDTokenEncryptionMethod>
+            <!-- This should be set to true when id token needed to be signed before encryption -->
+            <SignIDTokenBeforeEncryption>true</SignIDTokenBeforeEncryption>
 
             <!-- Supported versions: IS 5.5.0 onwards. -->
             <SupportedIDTokenEncryptionAlgorithms>
