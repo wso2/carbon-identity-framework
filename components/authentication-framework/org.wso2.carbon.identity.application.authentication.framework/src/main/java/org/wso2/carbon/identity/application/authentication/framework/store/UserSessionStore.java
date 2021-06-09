@@ -602,6 +602,42 @@ public class UserSessionStore {
     }
 
     /**
+     * Method to store app session data if the particular app session is not already exists in the database.
+     *
+     * @param sessionId   Id of the authenticated session.
+     * @param subject     Username in application.
+     * @param appID       Id of the application.
+     * @param inboundAuth Protocol used in the app.
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
+     * @deprecated Please use storeAppSessionData method instead.
+     */
+    @Deprecated
+    public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
+                        (resultSet, rowNumber) -> resultSet.getInt(1),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, sessionId);
+                            preparedStatement.setString(2, subject);
+                            preparedStatement.setInt(3, appID);
+                            preparedStatement.setString(4, inboundAuth);
+                        });
+                if (recordCount == null) {
+                    storeAppSessionData(sessionId, subject, appID, inboundAuth);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new DataAccessException("Error while storing application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
+        }
+    }
+
+    /**
      * Method to get app id from SP_APP table.
      *
      * @param applicationName application Name
