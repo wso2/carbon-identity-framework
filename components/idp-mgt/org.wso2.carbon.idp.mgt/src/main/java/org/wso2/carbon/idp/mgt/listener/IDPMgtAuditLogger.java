@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.idp.mgt.listener;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -30,7 +31,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
 
     Log audit = CarbonConstants.AUDIT_LOG;
-    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
+    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State : { %s } }" +
+            " | Result : %s ";
     private final String SUCCESS = "Success";
 
     @Override
@@ -41,16 +43,13 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostAddIdP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
-        String displayName = "Undefined";
-        String idpName = "Undefined";
-        if (identityProvider != null) {
-            if (StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
-                displayName = identityProvider.getDisplayName();
-            }
-            idpName = identityProvider.getIdentityProviderName();
+
+        String resourceId = "Undefined";
+        if (identityProvider != null && StringUtils.isNotBlank(identityProvider.getResourceId())) {
+            resourceId = identityProvider.getResourceId();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add-IDP", UserCoreUtil.addTenantDomainToEntry(displayName,
-                tenantDomain), idpName, SUCCESS));
+        String data = buildData(identityProvider);
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add-IDP", resourceId, data, SUCCESS));
 
         return true;
     }
@@ -58,12 +57,14 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
-        String displayName = "Undefined";
-        if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
-            displayName = identityProvider.getDisplayName();
+
+        String resourceId = "Undefined";
+
+        if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getResourceId())) {
+            resourceId = identityProvider.getResourceId();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update-IDP", oldIdPName, UserCoreUtil
-                .addTenantDomainToEntry(displayName, tenantDomain), SUCCESS));
+        String data = buildData(identityProvider);
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update-IDP", resourceId, data, SUCCESS));
         return true;
     }
 
@@ -75,13 +76,29 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
      * @return
      * @throws IdentityProviderManagementException
      */
+    @Deprecated
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
-        if (StringUtils.isEmpty(idPName)) {
-            idPName = "Undefined";
+
+        return true;
+    }
+
+    /**
+     * Post delete of IDP by resource ID.
+     *
+     * @param resourceId Resource ID of the IDP.
+     * @param identityProvider Identity Provider.
+     * @param tenantDomain Tenant Domain.
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+
+        if (StringUtils.isBlank(resourceId)) {
+            resourceId = "Undefined";
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-IDP", UserCoreUtil.addTenantDomainToEntry
-                (idPName, tenantDomain), null, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-IDP", resourceId, null, SUCCESS));
         return true;
     }
 
@@ -95,7 +112,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete all IdPs", tenantDomain, null, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-All-IDPs", tenantDomain, null, SUCCESS));
         return true;
     }
 
@@ -107,5 +124,172 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         return user;
+    }
+
+    private String buildData(IdentityProvider identityProvider) {
+
+        if (identityProvider == null) {
+            return StringUtils.EMPTY;
+        }
+
+        StringBuilder data = new StringBuilder();
+        data.append("Name:").append(identityProvider.getIdentityProviderName()).append(", ");
+        data.append("Display Name:").append(identityProvider.getDisplayName()).append(", ");
+        data.append("Resource ID:").append(identityProvider.getResourceId()).append(", ");
+        data.append("Description:").append(identityProvider.getIdentityProviderDescription()).append(", ");
+        data.append("Alias:").append(identityProvider.getAlias()).append(", ");
+        data.append("Home Realm ID:").append(identityProvider.getHomeRealmId()).append(", ");
+        data.append("Image URL:").append(identityProvider.getImageUrl()).append(", ");
+        data.append("Provisioning Role:").append(identityProvider.getProvisioningRole());
+        if (identityProvider.getClaimConfig() != null) {
+            ClaimConfig claimConfig = identityProvider.getClaimConfig();
+            data.append(", Claim Configuration:{");
+            data.append("User Claim URI:").append(claimConfig.getUserClaimURI()).append(", ");
+            data.append("User Role URI:").append(claimConfig.getRoleClaimURI());
+            if (ArrayUtils.isNotEmpty(claimConfig.getIdpClaims())) {
+                data.append(", IDP claims:[");
+                String joiner = "";
+                for (Claim claim : claimConfig.getIdpClaims()) {
+                    if (claim != null) {
+                        data.append(joiner);
+                        joiner = ", ";
+                        data.append(claim.getClaimUri());
+                    }
+                }
+                data.append("]");
+            }
+            if (ArrayUtils.isNotEmpty(claimConfig.getClaimMappings())) {
+                data.append("Claim Mappings:[");
+                String joiner = "";
+                for (ClaimMapping mapping : claimConfig.getClaimMappings()) {
+                    data.append(joiner);
+                    joiner = ", ";
+                    data.append("{");
+                    if (mapping.getLocalClaim() != null) {
+                        data.append("Local Claim:").append(mapping.getLocalClaim().getClaimUri());
+                    }
+                    if (mapping.getRemoteClaim() != null) {
+                        data.append(", Remote Claim:").append(mapping.getRemoteClaim().getClaimUri());
+                    }
+                    if (StringUtils.isNotBlank(mapping.getDefaultValue())) {
+                        data.append(", Default Value:").append(mapping.getDefaultValue());
+                    }
+                    data.append("}");
+                }
+                data.append("]");
+            }
+            data.append("}");
+
+        }
+        if (identityProvider.getPermissionAndRoleConfig() != null) {
+            PermissionsAndRoleConfig roleConfig = identityProvider.getPermissionAndRoleConfig();
+            data.append(", Role Configuration:{");
+            if (ArrayUtils.isNotEmpty(roleConfig.getIdpRoles())) {
+                data.append("IDP roles:[");
+                String joiner = "";
+                for (String role : roleConfig.getIdpRoles()) {
+                    data.append(joiner);
+                    joiner = ", ";
+                    data.append(role);
+                }
+                data.append("]");
+            }
+            if (ArrayUtils.isNotEmpty(roleConfig.getRoleMappings())) {
+                data.append("Role Mappings:[");
+                String joiner = "";
+                for (RoleMapping mapping : roleConfig.getRoleMappings()) {
+                    data.append(joiner);
+                    joiner = ", ";
+                    data.append("{");
+                    if (mapping.getLocalRole() != null) {
+                        data.append("Local Role:").append(mapping.getLocalRole().getLocalRoleName());
+                    }
+                    if (StringUtils.isNotBlank(mapping.getRemoteRole())) {
+                        data.append(", Remote Role:").append(mapping.getRemoteRole());
+                    }
+                    data.append("}");
+                }
+                data.append("]");
+            }
+            data.append("}");
+
+        }
+        if (ArrayUtils.isNotEmpty(identityProvider.getFederatedAuthenticatorConfigs())) {
+            FederatedAuthenticatorConfig[] authConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+            data.append(", Federated Authenticator Configs:[");
+            String joiner = "";
+            for (FederatedAuthenticatorConfig authConfig : authConfigs) {
+                data.append(joiner);
+                joiner = ", ";
+                data.append("{Name:").append(authConfig.getName());
+                if (ArrayUtils.isNotEmpty(authConfig.getProperties())) {
+                    data.append(", Properties:[");
+                    joiner = "";
+                    for (Property property : authConfig.getProperties()) {
+                        data.append(joiner);
+                        joiner = ", ";
+                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                    }
+                    data.append("]");
+                }
+                data.append("}");
+            }
+            data.append("]");
+        }
+        if (identityProvider.getDefaultAuthenticatorConfig() != null) {
+            FederatedAuthenticatorConfig defaultAuthConfig = identityProvider.getDefaultAuthenticatorConfig();
+            data.append(", Default Authenticator:").append(defaultAuthConfig.getName());
+        }
+        if (ArrayUtils.isNotEmpty(identityProvider.getProvisioningConnectorConfigs())) {
+            ProvisioningConnectorConfig[] provisionConfigs = identityProvider.getProvisioningConnectorConfigs();
+            data.append(", Provisioning Connector Configs:[");
+            String joiner = "";
+            for (ProvisioningConnectorConfig provConfig : provisionConfigs) {
+                data.append(joiner);
+                joiner = ", ";
+                data.append("{Name:").append(provConfig.getName());
+                if (ArrayUtils.isNotEmpty(provConfig.getProvisioningProperties())) {
+                    data.append(", Properties:[");
+                    joiner = "";
+                    for (Property property : provConfig.getProvisioningProperties()) {
+                        data.append(joiner);
+                        joiner = ", ";
+                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                    }
+                    data.append("]");
+                }
+                data.append("}");
+            }
+            data.append("]");
+        }
+        if (identityProvider.getDefaultProvisioningConnectorConfig() != null) {
+            ProvisioningConnectorConfig defaultProvConfig = identityProvider.getDefaultProvisioningConnectorConfig();
+            data.append(", Default Provisioning Connector:").append(defaultProvConfig.getName());
+        }
+        if (identityProvider.getJustInTimeProvisioningConfig() != null) {
+            JustInTimeProvisioningConfig justInTimeConfig = identityProvider.getJustInTimeProvisioningConfig();
+            data.append(", Just In Time Provisioning Configuration:{");
+            data.append("Is Provisioning Enabled:").append(justInTimeConfig.isProvisioningEnabled()).append(", ");
+            data.append("Is Modify Username Allowed:").append(justInTimeConfig.isModifyUserNameAllowed()).append(", ");
+            data.append("Is Prompt Consent:").append(justInTimeConfig.isPromptConsent()).append(", ");
+            data.append("Is Password Provisioning Enabled:").append(justInTimeConfig.isPasswordProvisioningEnabled())
+                    .append(", ");
+            data.append("Userstore Claim URI:").append(justInTimeConfig.getUserStoreClaimUri()).append(", ");
+            data.append("Provisioning Userstore:").append(justInTimeConfig.getProvisioningUserStore()).append(", ");
+            data.append("Is Dumb Mode:").append(justInTimeConfig.isDumbMode());
+            data.append("}");
+        }
+        if (ArrayUtils.isNotEmpty(identityProvider.getIdpProperties())) {
+            IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+            data.append(", IDP Properties:[");
+            String joiner = "";
+            for (IdentityProviderProperty property : idpProperties) {
+                data.append(joiner);
+                joiner = ", ";
+                data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+            }
+            data.append("]");
+        }
+        return data.toString();
     }
 }
