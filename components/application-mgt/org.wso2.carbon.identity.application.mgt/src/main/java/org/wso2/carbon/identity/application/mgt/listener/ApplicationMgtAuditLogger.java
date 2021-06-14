@@ -43,7 +43,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State " +
-            "{ %s } } | Result : %s ";
+            ": { %s } } | Result : %s ";
     private static final String SUCCESS = "Success";
 
     @Override

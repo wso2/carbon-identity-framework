@@ -31,7 +31,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
 
     Log audit = CarbonConstants.AUDIT_LOG;
-    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State { %s } }" +
+    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State : { %s } }" +
             " | Result : %s ";
     private final String SUCCESS = "Success";
 
