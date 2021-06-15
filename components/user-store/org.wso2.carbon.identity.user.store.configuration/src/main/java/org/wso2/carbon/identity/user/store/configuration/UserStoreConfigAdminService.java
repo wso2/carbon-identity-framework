@@ -59,6 +59,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
+    private static final String H2_INIT_EXPRESSION = ";init=";
 
     /**
      * Get details of current secondary user store configurations
@@ -159,6 +160,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
+
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
         } catch (IdentityUserStoreClientException e) {
             throw buildIdentityUserStoreMgtException(e, "Error while adding the userstore.");
@@ -412,6 +414,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                                        String connectionPassword, String messageID) throws
             IdentityUserStoreMgtException {
 
+        if (connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
+            String errorMessage = "INIT expressions are not allowed in the connection URL due to security reasons.";
+            LOG.error(errorMessage);
+            throw new IdentityUserStoreMgtException(errorMessage);
+        }
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
                 driverName, connectionURL, username, connectionPassword, messageID);
     }
