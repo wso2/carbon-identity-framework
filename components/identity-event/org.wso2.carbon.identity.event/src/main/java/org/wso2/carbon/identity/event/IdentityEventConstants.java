@@ -190,6 +190,8 @@ public class IdentityEventConstants {
         public static final String POST_ADD_EXTERNAL_CLAIM = "POST_ADD_EXTERNAL_CLAIM";
         public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
         public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
+        public static final String FAILED_LOGIN_ATTEMPT = "FAILED_LOGIN_ATTEMPT";
+        public static final String SUCCESSFUL_LOGIN_ATTEMPT = "SUCCESSFUL_LOGIN_ATTEMPT";
     }
 
     /**
@@ -297,6 +299,8 @@ public class IdentityEventConstants {
         public static final String OLD_CLAIM_DIALECT_URI = "oldClaimDialectUri";
         public static final String NEW_CLAIM_DIALECT_URI = "newClaimDialectUri";
         public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
+        public static final String PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM = "PropertyFailedLoginAttemptsClaim";
+        public static final String AUTHENTICATOR_NAME = "authenticatorName";
     }
 
     public class ErrorMessage {
