@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -56,6 +57,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
+    @XmlElement(name = "Tags")
+    protected String[] tags;
+
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
      * <Properties></Properties> </LocalAuthenticatorConfig>
@@ -82,6 +86,15 @@ public class LocalAuthenticatorConfig implements Serializable {
                 if (member.getText() != null && member.getText().trim().length() > 0) {
                     localAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
                 }
+            } else if ("Tags".equals(member.getLocalName())) {
+                String tags = member.getText();
+                String[] tagList;
+                if (StringUtils.isEmpty(tags)) {
+                    tagList = new String[0];
+                } else {
+                    tagList = tags.split(",");
+                }
+                localAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(member.getLocalName())) {
 
                 Iterator<?> propertiesIter = member.getChildElements();
@@ -193,5 +206,21 @@ public class LocalAuthenticatorConfig implements Serializable {
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
+    }
+
+    /**
+     * @return tags
+     */
+    public String[] getTags() {
+
+        return tags;
+    }
+
+    /**
+     * @param tags
+     */
+    public void setTags(String[] tags) {
+
+        this.tags = tags;
     }
 }

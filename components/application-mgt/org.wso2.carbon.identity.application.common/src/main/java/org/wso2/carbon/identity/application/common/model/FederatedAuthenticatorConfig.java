@@ -58,6 +58,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
+    @XmlElement(name = "Tags")
+    protected String[] tags;
+
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
         if (federatedAuthenticatorConfigOM == null) {
@@ -78,6 +81,15 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 federatedAuthenticatorConfig.setDisplayName(element.getText());
             } else if ("IsEnabled".equals(elementName)) {
                 federatedAuthenticatorConfig.setEnabled(Boolean.parseBoolean(element.getText()));
+            } else if ("Tags".equals(elementName)) {
+                String tags = element.getText();
+                String[] tagList;
+                if (StringUtils.isEmpty(tags)) {
+                    tagList = new String[0];
+                } else {
+                    tagList = tags.split(",");
+                }
+                federatedAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(elementName)) {
                 Iterator<?> propertiesIter = element.getChildElements();
                 List<Property> propertiesArrList = new ArrayList<Property>();
@@ -201,5 +213,21 @@ public class FederatedAuthenticatorConfig implements Serializable {
      */
     public boolean isValidPropertyValue(Property property) {
         return property != null && StringUtils.isNotBlank(property.getValue());
+    }
+
+    /**
+     * @return
+     */
+    public String[] getTags() {
+
+        return tags;
+    }
+
+    /**
+     * @param tagList Tag list of the authenticator
+     */
+    public void setTags(String[] tagList) {
+
+        this.tags = tagList;
     }
 }
