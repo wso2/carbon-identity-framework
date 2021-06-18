@@ -71,6 +71,7 @@
   "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
   "authentication.authenticator.basic_request_path.enable": true,
   "authentication.authenticator.basic_request_path.parameters.AuthMechanism": "basic",
+  "authentication.authenticator.basic_request_path.parameters.Tags": "Request path",
 
   "authentication.authenticator.user_identifier.name": "IdentifierExecutor",
   "authentication.authenticator.user_identifier.enable": true,
@@ -82,6 +83,7 @@
 
   "authentication.authenticator.oauth_request_path.name": "OAuthRequestPathAuthenticator",
   "authentication.authenticator.oauth_request_path.enable": true,
+  "authentication.authenticator.oauth_request_path.parameters.Tags": "Request path",
 
   "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
   "authentication.authenticator.saml.enable": true,
@@ -98,7 +100,7 @@
   "authentication.authenticator.google.parameters.GoogleTokenEndpoint": "https://accounts.google.com/o/oauth2/token",
   "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
-  "authentication.authenticator.google.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.google.parameters.Tags": "Social Login",
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,
@@ -112,14 +114,14 @@
   "authentication.authenticator.facebook.parameters.AuthTokenEndpoint": "https://graph.facebook.com/oauth/access_token",
   "authentication.authenticator.facebook.parameters.AuthnEndpoint": "http://www.facebook.com/dialog/oauth",
   "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
-  "authentication.authenticator.facebook.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.facebook.parameters.Tags": "Social Login",
 
   "authentication.authenticator.yahoo.name": "YahooOAuth2Authenticator",
   "authentication.authenticator.yahoo.enable": true,
   "authentication.authenticator.yahoo.parameters.YahooTokenEndpoint": "https://api.login.yahoo.com/oauth2/get_token",
   "authentication.authenticator.yahoo.parameters.YahooOAuthzEndpoint": "https://api.login.yahoo.com/oauth2/request_auth",
   "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://api.login.yahoo.com/openid/v1/userinfo",
-  "authentication.authenticator.yahoo.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.yahoo.parameters.Tags": "Social Login",
 
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
@@ -132,7 +134,6 @@
   "authentication.authenticator.mobile_connect.parameters.MCAuthenticationEndpointURL": "mobileconnectauthenticationendpoint/mobileconnect.jsp",
   "authentication.authenticator.mobile_connect.parameters.MCDiscoveryAPIURL": "https://discover.mobileconnect.io/gsma/v2/discovery/",
   "authentication.authenticator.mobile_connect.parameters.redirectToMultiOptionPageOnFailure": "false",
-  "authentication.authenticator.mobile_connect.parameters.Tags": "Passwordless",
 
   "authentication.authenticator.email_otp.name": "EmailOTP",
   "authentication.authenticator.email_otp.enable": true,
@@ -193,19 +194,18 @@
   "authentication.authenticator.x509_certificate.enable": true,
   "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
   "authentication.authenticator.x509_certificate.parameters.username": "CN",
-  "authentication.authenticator.x509_certificate.parameters.Tags": "Certificate-based",
 
   "authentication.authenticator.github.name": "GithubAuthenticator",
-  "authentication.authenticator.github.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.github.parameters.Tags": "Social Login",
 
   "authentication.authenticator.twitter.name": "TwitterAuthenticator",
-  "authentication.authenticator.twitter.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.twitter.parameters.Tags": "Social Login",
 
   "authentication.authenticator.office365.name": "Office365Authenticator",
-  "authentication.authenticator.office365.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.office365.parameters.Tags": "OIDC",
 
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
-  "authentication.authenticator.iwa_kerberos.parameters.Tags": "Social Login,OIDC",
+  "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
 
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"
