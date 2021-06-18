@@ -87,13 +87,13 @@
 
   "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
   "authentication.authenticator.saml.enable": true,
-  "authentication.authenticator.saml.parameters.Tags": "SAML,Custom Login",
+  "authentication.authenticator.saml.parameters.Tags": "SAML",
 
   "authentication.authenticator.oidc.name": "OpenIDConnectAuthenticator",
   "authentication.authenticator.oidc.enable": true,
   "authentication.authenticator.oidc.parameters.enableIatValidation": true,
   "authentication.authenticator.oidc.parameters.iatValidityPeriod": "300",
-  "authentication.authenticator.oidc.parameters.Tags": "OIDC,Custom Login",
+  "authentication.authenticator.oidc.parameters.Tags": "OIDC",
 
   "authentication.authenticator.google.name": "GoogleOIDCAuthenticator",
   "authentication.authenticator.google.enable": true,
