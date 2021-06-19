@@ -51,14 +51,12 @@ public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 
     public PowerMockIdentityBaseTest() {
 
-        LogUtil.configureAndAddConsoleAppender();
     }
 
     @Parameters({"log-level"})
     @BeforeMethod
     public void setUp(@Optional String logLevel) throws Exception {
 
-        LogUtil.configureLogLevel(logLevel);
     }
 
 }

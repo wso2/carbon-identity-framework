@@ -391,11 +391,6 @@
                 <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-                <version>${commons.logging.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.wso2.orbit.xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>${xercesImpl.version}</version>
@@ -1888,7 +1883,6 @@
         <encoder.wso2.imp.pkg.version.range>[1.2.0.wso2v1, 2.0.0)</encoder.wso2.imp.pkg.version.range>
 
         <version.commons.logging>1.1.1</version.commons.logging>
-        <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
@@ -1936,8 +1930,8 @@
         <jersey-version>1.19.1</jersey-version>
 
         <!-- Pax Logging Version -->
-        <pax.logging.api.version>1.10.1</pax.logging.api.version>
-        <pax.logging.log4j2.version>1.10.1</pax.logging.log4j2.version>
+        <pax.logging.api.version>1.11.3</pax.logging.api.version>
+        <pax.logging.log4j2.version>1.11.3</pax.logging.log4j2.version>
 
         <!-- Unit test versions -->
         <testng.version>6.9.10</testng.version>

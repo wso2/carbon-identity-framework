@@ -47,12 +47,12 @@ import org.wso2.carbon.identity.testutil.log.LogUtil;
 public abstract class IdentityBaseTest {
 
 	public IdentityBaseTest() {
-		LogUtil.configureAndAddConsoleAppender();
+
 	}
 
 	@Parameters({"log-level"})
 	@BeforeMethod
 	public void setUp(@Optional String logLevel) throws Exception {
-		LogUtil.configureLogLevel(logLevel);
+
 	}
 }
