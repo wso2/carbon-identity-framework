@@ -391,12 +391,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public String[] getTags() {
 
         String tags = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.TAGS);
-        String[] tagList;
-        if (StringUtils.isEmpty(tags)) {
-            tagList = new String[0];
-        } else {
-            tagList = tags.split(",");
-        }
-        return tagList;
+        return StringUtils.split(tags, ",");
     }
 }

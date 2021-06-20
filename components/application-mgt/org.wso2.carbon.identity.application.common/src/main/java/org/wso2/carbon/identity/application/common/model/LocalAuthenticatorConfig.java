@@ -87,13 +87,7 @@ public class LocalAuthenticatorConfig implements Serializable {
                     localAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
                 }
             } else if ("Tags".equals(member.getLocalName())) {
-                String tags = member.getText();
-                String[] tagList;
-                if (StringUtils.isEmpty(tags)) {
-                    tagList = new String[0];
-                } else {
-                    tagList = tags.split(",");
-                }
+                String[] tagList = StringUtils.split(member.getText(), ",");
                 localAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(member.getLocalName())) {
 
@@ -209,7 +203,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * @return tags
+     * Get the tag list of the Local authenticator.
+     *
+     * @return String[]
      */
     public String[] getTags() {
 
@@ -217,10 +213,12 @@ public class LocalAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * @param tags
+     * Set the tag list for Local authenticator config.
+     *
+     * @param tagList tag list of the authenticator.
      */
-    public void setTags(String[] tags) {
+    public void setTags(String[] tagList) {
 
-        this.tags = tags;
+        tags = tagList;
     }
 }

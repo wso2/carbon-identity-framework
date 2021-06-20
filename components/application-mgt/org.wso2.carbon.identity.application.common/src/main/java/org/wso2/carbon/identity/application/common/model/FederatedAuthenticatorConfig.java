@@ -82,13 +82,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
             } else if ("IsEnabled".equals(elementName)) {
                 federatedAuthenticatorConfig.setEnabled(Boolean.parseBoolean(element.getText()));
             } else if ("Tags".equals(elementName)) {
-                String tags = element.getText();
-                String[] tagList;
-                if (StringUtils.isEmpty(tags)) {
-                    tagList = new String[0];
-                } else {
-                    tagList = tags.split(",");
-                }
+                String[] tagList = StringUtils.split(element.getText(), ",");
                 federatedAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(elementName)) {
                 Iterator<?> propertiesIter = element.getChildElements();
@@ -216,7 +210,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * @return
+     * Get the tag list of the federated authenticator.
+     *
+     * @return String[]
      */
     public String[] getTags() {
 
@@ -224,10 +220,12 @@ public class FederatedAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * @param tagList Tag list of the authenticator
+     * Set the tag list for federated authenticator config.
+     *
+     * @param tagList tag list of the authenticator.
      */
     public void setTags(String[] tagList) {
 
-        this.tags = tagList;
+        tags = tagList;
     }
 }

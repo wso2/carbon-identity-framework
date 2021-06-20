@@ -100,9 +100,9 @@ public interface ApplicationAuthenticator extends Serializable {
     }
 
     /**
-     * Get the tags of the authenticators.
+     * Get the tag list of the authenticators.
      *
-     * @return List of Tags
+     * @return List of tags.
      */
     default String[] getTags() {
 
