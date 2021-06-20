@@ -24,7 +24,6 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
-import org.wso2.carbon.identity.testutil.log.LogUtil;
 
 /**
  * PowerMock based TestNG test that extended from PowerMockIdentityBaseTest class can read "log-level" parameter from

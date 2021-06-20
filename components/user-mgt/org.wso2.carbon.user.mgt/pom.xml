@@ -58,6 +58,12 @@
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ops4j.pax.logging</groupId>
+                    <artifactId>pax-logging-log4j2</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -93,12 +99,14 @@
             <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.ops4j.pax.logging</groupId>
-            <artifactId>pax-logging-log4j2</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.json.wso2</groupId>
@@ -264,27 +272,27 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>log4j-plugin-processor</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <phase>process-classes</phase>
-                        <configuration>
-                            <proc>only</proc>
-                            <annotationProcessors>
-                                <annotationProcessor>
-                                    org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor
-                                </annotationProcessor>
-                            </annotationProcessors>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>log4j-plugin-processor</id>-->
+<!--                        <goals>-->
+<!--                            <goal>compile</goal>-->
+<!--                        </goals>-->
+<!--                        <phase>process-classes</phase>-->
+<!--                        <configuration>-->
+<!--                            <proc>only</proc>-->
+<!--                            <annotationProcessors>-->
+<!--                                <annotationProcessor>-->
+<!--                                    org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor-->
+<!--                                </annotationProcessor>-->
+<!--                            </annotationProcessors>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
