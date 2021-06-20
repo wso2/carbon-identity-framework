@@ -86,7 +86,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -98,7 +97,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
