@@ -386,4 +386,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         diagnosticLog.info("AuthMechanism is set to : " + authMechanism + " for the authenticator: " + getName());
         return authMechanism;
     }
+
+    @Override
+    public String[] getTags() {
+
+        String tags = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.TAGS);
+        return StringUtils.split(tags, ",");
+    }
 }

@@ -67,6 +67,7 @@
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2437:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="tags" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
@@ -175,39 +176,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllLocalClaimUris">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllLocalClaimUrisResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllPaginatedIdpInfo">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllPaginatedIdpInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateResidentIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="getIdPByName">
                 <xs:complexType>
                     <xs:sequence>
@@ -222,25 +190,15 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="addIdP">
+            <xs:element name="getAllLocalClaimUris">
                 <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
-                    </xs:sequence>
+                    <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="deleteIdP">
+            <xs:element name="getAllLocalClaimUrisResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -268,27 +226,26 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getResidentIdP">
+            <xs:element name="getResidentIDPMetadata">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getResidentIdPResponse">
+            <xs:element name="getResidentIDPMetadataResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getPaginatedIdpInfo">
+            <xs:element name="getAllPaginatedIdpInfo">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getPaginatedIdpInfoResponse">
+            <xs:element name="getAllPaginatedIdpInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
@@ -319,6 +276,54 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="deleteIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="forceDeleteIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdP">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getFilteredIdpCount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getFilteredIdpCountResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getAllIdPsSearch">
                 <xs:complexType>
                     <xs:sequence>
@@ -345,36 +350,32 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="forceDeleteIdP">
+            <xs:element name="addIdP">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getResidentIDPMetadata">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIDPMetadataResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getFilteredIdpCount">
+            <xs:element name="getPaginatedIdpInfo">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getFilteredIdpCountResponse">
+            <xs:element name="getPaginatedIdpInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateResidentIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1205,4 +1206,3 @@
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>
-
