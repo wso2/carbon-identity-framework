@@ -297,6 +297,8 @@ public class IdentityEventConstants {
         public static final String OLD_CLAIM_DIALECT_URI = "oldClaimDialectUri";
         public static final String NEW_CLAIM_DIALECT_URI = "newClaimDialectUri";
         public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
+        public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
+        public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
     }
 
     public class ErrorMessage {

@@ -109,6 +109,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_ATTRIBUTES, localClaim.getMappedAttributes());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_ADD_LOCAL_CLAIM);
         doPublishEvent(event);
@@ -121,6 +122,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_ATTRIBUTES, localClaim.getMappedAttributes());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_ADD_LOCAL_CLAIM);
         doPublishEvent(event);
     }
@@ -143,6 +145,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, localClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_PROPERTIES, localClaim.getClaimProperties());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_ATTRIBUTES, localClaim.getMappedAttributes());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_LOCAL_CLAIM);
         doPublishEvent(event);
     }
@@ -171,6 +174,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI, externalClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_LOCAL_CLAIM_URI, externalClaim.getMappedLocalClaim());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_PROPERTIES, externalClaim.getClaimProperties());
 
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_ADD_EXTERNAL_CLAIM);
@@ -183,6 +187,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI, externalClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_LOCAL_CLAIM_URI, externalClaim.getMappedLocalClaim());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_PROPERTIES, externalClaim.getClaimProperties());
 
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_ADD_EXTERNAL_CLAIM);
@@ -196,6 +201,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI, externalClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_LOCAL_CLAIM_URI, externalClaim.getMappedLocalClaim());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_PROPERTIES, externalClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_EXTERNAL_CLAIM);
         doPublishEvent(event);
@@ -207,6 +213,7 @@ public class ClaimMetadataEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI, externalClaim.getClaimURI());
+        eventProperties.put(IdentityEventConstants.EventProperty.MAPPED_LOCAL_CLAIM_URI, externalClaim.getMappedLocalClaim());
         eventProperties.put(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_PROPERTIES, externalClaim.getClaimProperties());
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_EXTERNAL_CLAIM);
         doPublishEvent(event);
