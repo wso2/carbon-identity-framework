@@ -195,5 +195,17 @@
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_UPDATE_CLAIM_DIALECT",
     "POST_DELETE_CLAIM_DIALECT"
+  ],
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.module_index": "32",
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_LOCAL_CLAIM_ADD",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_CLAIM_DIALECT"
   ]
 }

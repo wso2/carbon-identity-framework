@@ -23,11 +23,11 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>5.20.84-SNAPSHOT</version>
+        <version>5.20.89-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.api.server.configuration.mgt</artifactId>
-    <version>5.20.84-SNAPSHOT</version>
+    <version>5.20.89-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>WSO2 Carbon - Configuration Management API</name>
     <description>Identity Configuration Management API</description>
@@ -88,7 +88,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -100,7 +99,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

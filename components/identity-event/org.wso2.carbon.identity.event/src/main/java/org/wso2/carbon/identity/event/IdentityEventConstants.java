@@ -299,6 +299,8 @@ public class IdentityEventConstants {
         public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
         public static final String PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM = "PropertyFailedLoginAttemptsClaim";
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
+        public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
+        public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
     }
 
     public class ErrorMessage {
