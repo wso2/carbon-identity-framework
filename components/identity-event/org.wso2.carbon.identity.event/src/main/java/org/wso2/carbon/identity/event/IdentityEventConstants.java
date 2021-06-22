@@ -190,6 +190,14 @@ public class IdentityEventConstants {
         public static final String POST_ADD_EXTERNAL_CLAIM = "POST_ADD_EXTERNAL_CLAIM";
         public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
         public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
+        
+        // Scope management related events.
+        public static final String PRE_ADD_SCOPE = "PRE_ADD_SCOPE";
+        public static final String POST_ADD_SCOPE = "POST_ADD_SCOPE";
+        public static final String PRE_UPDATE_SCOPE = "PRE_UPDATE_SCOPE";
+        public static final String POST_UPDATE_SCOPE = "POST_UPDATE_SCOPE";
+        public static final String PRE_DELETE_SCOPE = "PRE_DELETE_SCOPE";
+        public static final String POST_DELETE_SCOPE = "POST_DELETE_SCOPE";
     }
 
     /**
@@ -299,6 +307,10 @@ public class IdentityEventConstants {
         public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
+        public static final String SCOPE_NAME = "scopeName";
+        public static final String SCOPE_DESCRIPTION = "scopeDescription";
+        public static final String SCOPE_DISPLAY_NAME = "scopeDisplayName";
+        public static final String SCOPE_CLAIMS = "scopeClaims";
     }
 
     public class ErrorMessage {
