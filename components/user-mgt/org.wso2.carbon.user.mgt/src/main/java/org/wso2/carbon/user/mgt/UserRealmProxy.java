@@ -188,6 +188,7 @@ public class UserRealmProxy {
         try {
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             String[] users = userStoreManager.listUsers(filter, maxLimit);
+            RealmConfiguration realmConfig = userStoreManager.getRealmConfiguration();
             flaggedNames = new FlaggedName[users.length + 1];
             int i = 0;
             for (String user : users) {
@@ -207,6 +208,9 @@ public class UserRealmProxy {
                         ? flaggedNames[i].getItemName().indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index1 > 0;
                 String domain = domainProvided ? flaggedNames[i].getItemName().substring(0, index1) : null;
+                if (StringUtils.isBlank(domain)) {
+                    domain = UserCoreUtil.getDomainName(realmConfig);
+                }
                 if (domain != null && !UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) &&
                         !UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
                     UserStoreManager secondaryUM =
