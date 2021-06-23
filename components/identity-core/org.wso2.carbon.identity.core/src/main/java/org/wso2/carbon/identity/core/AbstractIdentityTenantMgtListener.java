@@ -101,4 +101,9 @@ public class AbstractIdentityTenantMgtListener implements TenantMgtListener {
     public void onPreDelete(int i) throws StratosException {
         /* Method not implemented */
     }
+
+    @Override
+    public void onPreTenantCreate(TenantInfoBean tenantInfoBean) throws StratosException {
+        /* Method not implemented */
+    }
 }
