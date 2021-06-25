@@ -190,6 +190,7 @@ public class IdentityEventConstants {
         public static final String POST_ADD_EXTERNAL_CLAIM = "POST_ADD_EXTERNAL_CLAIM";
         public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
         public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
+        public static final String POST_AUTHENTICATOR_LOGIN_ATTEMPT = "POST_AUTHENTICATOR_LOGIN_ATTEMPT";
     }
 
     /**

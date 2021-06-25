@@ -5,7 +5,8 @@
     "PRE_AUTHENTICATION",
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIMS"
+    "POST_SET_USER_CLAIMS",
+    "POST_AUTHENTICATOR_LOGIN_ATTEMPT"
   ],
   "identity_mgt.events.schemes.'account.lock.handler'.properties.enable": false,
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'": "2",
