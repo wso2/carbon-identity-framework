@@ -255,35 +255,37 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 diagnosticLog.info("Federated user: " + username + " is provisioned locally.");
             }
 
-            if (roles != null) {
-                // Update user with roles
-                List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
-                Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+            boolean includeManuallyAddedLocalRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
+
+            List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
+            Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+
+            // Updating user roles.
+            if (roles != null && roles.size() > 0) {
 
                 if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
                     boolean excludeUnmappedRoles = false;
-                    boolean includeManuallyAddedLocalRoles = false;
+
                     if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
                         excludeUnmappedRoles = Boolean
                                 .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
                     }
 
-                    if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP))) {
-                        includeManuallyAddedLocalRoles = Boolean
-                                .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
-                    }
-
-
-                    /* Get the intersection of current deletingList with idpRoleMappings,deletingRoles will be equal to
-                    mapped idp roles.Here we assume only the mapped idp roles with federated idp.
-                    */
                     if (excludeUnmappedRoles && includeManuallyAddedLocalRoles) {
+                        /*
+                            Get the intersection of deletingRoles with idpRoleMappings. Here we're deleting mapped
+                            roles and keeping manually added local roles.
+                        */
                         deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
                                 .collect(Collectors.toSet());
                     }
                 }
 
+                // No need to add already existing roles again.
                 rolesToAdd.removeAll(currentRolesList);
+
+                // Cannot add roles that doesn't exists in the system.
                 List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
                 for (String role : rolesToAdd) {
                     if (!userStoreManager.isExistingRole(role)) {
@@ -293,10 +295,22 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 rolesToAdd.removeAll(nonExistingUnmappedIdpRoles);
 
                 // TODO : Does it need to check this?
-                // Check for case whether superadmin login
+                // Check for case whether super admin login
                 handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
 
                 updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, deletingRoles);
+            } else {
+                if (includeManuallyAddedLocalRoles) {
+                    // Remove only IDP mapped roles and keep manually added local roles.
+                    if (CollectionUtils.isNotEmpty(idpToLocalRoleMapping)) {
+                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                                .collect(Collectors.toSet());
+                        updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                    }
+                } else {
+                    // Remove all roles of the user.
+                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                }
             }
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
@@ -560,7 +574,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         // deletingRoles = currentRolesList - rolesToAdd
         deletingRoles.removeAll(rolesToAdd);
 
-        // Exclude Internal/everyonerole from deleting role since its cannot be deleted
+        // Exclude Internal/everyone role from deleting roles, since it cannot be deleted.
         deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
 
         return deletingRoles;
