@@ -38,6 +38,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String PROVISIONED_SOURCE_CLAIM = "http://wso2.org/claims/identity/userSource";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -103,6 +104,8 @@ public abstract class FrameworkConstants {
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
+
+    public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
 

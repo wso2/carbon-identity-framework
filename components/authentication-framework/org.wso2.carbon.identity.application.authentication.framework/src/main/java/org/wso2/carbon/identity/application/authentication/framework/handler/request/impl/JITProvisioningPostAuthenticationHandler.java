@@ -42,11 +42,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -194,7 +196,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         combinedLocalClaims
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
-                    String username = sequenceConfig.getAuthenticatedUser().getUserName();
+                    String username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                            externalIdPConfigName, context);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -318,10 +321,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
                             if (StringUtils.isEmpty(username)) {
-                                // If there is no subject claim URI configured in the IDP, get the authenticated
-                                // username.
-                                username = getTenantDomainAppendedUserName(
-                                        sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
+                                // If there is no subject claim URI configured in the IDP, get the federated user id
+                                // from the authenticated username.
+                                if (StringUtils.isBlank(associatedLocalUser)) {
+                                    username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                                            externalIdPConfigName, context);
+                                }
                             }
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
@@ -331,7 +336,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
                     }
                     if (StringUtils.isEmpty(username)) {
-                        username = sequenceConfig.getAuthenticatedUser().getUserName();
+                        username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                                externalIdPConfigName, context);
                         isUserCreated = true;
                     }
                     if (log.isDebugEnabled()) {
@@ -345,6 +351,22 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
         return SUCCESS_COMPLETED;
+    }
+    
+    private String getFederatedUsername(String username, String idpName, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        String federatedUsername = null;
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+            int idpId = UserSessionStore.getInstance().getIdPId(idpName, tenantId);
+            federatedUsername = UserSessionStore.getInstance().getFederatedUserId(username, tenantId, idpId);
+        } catch (UserSessionException e) {
+            handleExceptions(
+                    String.format(ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getMessage(), username, idpName),
+                    ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getCode(), e);
+        }
+        return federatedUsername;
     }
 
     private boolean isUserNameFoundFromUserIDClaimURI(Map<String, String> localClaimValues, String
@@ -691,6 +713,16 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
+
+        /*
+        If TOTP is enabled for federated users, the initial federated user login will be identified with the following
+        check and will set the secret key claim for the federated user who is going to be provisioned.
+         */
+        if (context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL) != null) {
+            localClaimValues.put(FrameworkConstants.SECRET_KEY_CLAIM_URL,
+                    context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL).toString());
+        }
+
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
 
