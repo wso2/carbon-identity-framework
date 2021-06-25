@@ -18,38 +18,160 @@
 
 package org.wso2.carbon.identity.common.testng.realm;
 
-import org.wso2.carbon.user.api.ClaimManager;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.claim.ClaimManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.RoleContext;
+import org.wso2.carbon.user.core.hybrid.HybridRoleManager;
 import org.wso2.carbon.user.core.tenant.Tenant;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 /**
  * Simple mocked  UserStore Manager for testing.
  */
-public class MockUserStoreManager implements UserStoreManager {
+public class MockUserStoreManager extends AbstractUserStoreManager {
 
-    private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap();
-    private RealmConfiguration inMemoryRealmConfiguration = null;
+    private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap<>();
     private Map<String, Set<String>> usersOfRole = new HashMap<>();
     private Map<String, Set<String>> userRoleMap = new HashMap<>();
 
+    public MockUserStoreManager(DataSource dataSource) {
+        try {
+            Field userUniqueIDDomainResolverField
+                    = this.getClass().getSuperclass().getDeclaredField("userUniqueIDDomainResolver");
+            userUniqueIDDomainResolverField.setAccessible(true);
+            userUniqueIDDomainResolverField.set(this, new MockUserUniqueIDDomainResolver(dataSource));
+        } catch (Exception e) {
+
+        }
+    }
+
     @Override
-    public boolean authenticate(String s, Object o) throws UserStoreException {
+    protected Map<String, String> getUserPropertyValues(String s, String[] strings, String s1) throws UserStoreException {
+
+        return null;
+    }
+
+    @Override
+    protected boolean doCheckExistingRole(String s) throws UserStoreException {
+
         return false;
     }
 
     @Override
-    public String[] listUsers(String s, int i) throws UserStoreException {
+    protected RoleContext createRoleContext(String s) throws UserStoreException {
+
+        return null;
+    }
+
+    @Override
+    protected boolean doCheckExistingUser(String s) throws UserStoreException {
+
+        return false;
+    }
+
+    @Override
+    protected String[] getUserListFromProperties(String s, String s1, String s2) throws UserStoreException {
+
+        return new String[0];
+    }
+
+    @Override
+    public boolean doAuthenticate(String s, Object o) throws UserStoreException {
+        return false;
+    }
+
+    @Override
+    protected void doAddUser(String s, Object o, String[] strings, Map<String, String> map, String s1, boolean b) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doUpdateCredential(String s, Object o, Object o1) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doUpdateCredentialByAdmin(String s, Object o) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doDeleteUser(String s) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doDeleteUserClaimValue(String s, String s1, String s2) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doDeleteUserClaimValues(String s, String[] strings, String s1) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doUpdateUserListOfRole(String s, String[] strings, String[] strings1) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doUpdateRoleListOfUser(String s, String[] strings, String[] strings1) throws UserStoreException {
+
+    }
+
+    @Override
+    protected String[] doGetExternalRoleListOfUser(String s, String s1) throws UserStoreException {
+
+        return new String[0];
+    }
+
+    @Override
+    protected String[] doGetSharedRoleListOfUser(String s, String s1, String s2) throws UserStoreException {
+
+        return new String[0];
+    }
+
+    @Override
+    protected void doAddRole(String s, String[] strings, boolean b) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doDeleteRole(String s) throws UserStoreException {
+
+    }
+
+    @Override
+    protected void doUpdateRoleName(String s, String s1) throws UserStoreException {
+
+    }
+
+    @Override
+    public String[] doListUsers(String s, int i) throws UserStoreException {
+        return new String[0];
+    }
+
+    @Override
+    protected String[] doGetDisplayNamesForInternalRole(String[] strings) throws UserStoreException {
+
         return new String[0];
     }
 
@@ -69,12 +191,13 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public String[] getRoleNames() throws UserStoreException {
-        return new String[0];
+    public boolean doCheckIsUserInRole(String s, String s1) throws UserStoreException {
+
+        return false;
     }
 
     @Override
-    public String[] getRoleNames(boolean b) throws UserStoreException {
+    public String[] doGetRoleNames(String filter, int maxItemLimit) throws UserStoreException {
         return new String[0];
     }
 
@@ -93,23 +216,8 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public String[] getUserListOfRole(String s) throws UserStoreException {
+    public String[] doGetUserListOfRole(String roleName, String filter) throws UserStoreException {
         return new String[0];
-    }
-
-    @Override
-    public String getUserClaimValue(String s, String s1, String s2) throws UserStoreException {
-        return null;
-    }
-
-    @Override
-    public Map<String, String> getUserClaimValues(String s, String[] strings, String s1) throws UserStoreException {
-        return null;
-    }
-
-    @Override
-    public Claim[] getUserClaimValues(String s, String s1) throws UserStoreException {
-        return new Claim[0];
     }
 
     @Override
@@ -129,29 +237,15 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public void addUser(String s, Object o, String[] strings, Map<String, String> map, String s1, boolean b)
-            throws UserStoreException {
-
-    }
-
-    @Override
-    public void updateCredential(String s, Object o, Object o1) throws UserStoreException {
-
-    }
-
-    @Override
-    public void updateCredentialByAdmin(String s, Object o) throws UserStoreException {
-
-    }
-
-    @Override
-    public void deleteUser(String s) throws UserStoreException {
-
-    }
-
-    @Override
     public void addRole(String role, String[] users, Permission[] permissions, boolean b)
             throws org.wso2.carbon.user.api.UserStoreException {
+        if (UserCoreConstants.INTERNAL_DOMAIN.
+                equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role))
+                || "Application".equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role)) ||
+                "Workflow".equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role))) {
+            doAddInternalRole(role, users, permissions);
+            return;
+        }
         if (users != null) {
             for (String user : users) {
                 Set<String> roles = userRoleMap.computeIfAbsent(user, k -> new HashSet<>());
@@ -167,47 +261,8 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public void deleteRole(String s) throws UserStoreException {
+    protected String[] doGetSharedRoleNames(String s, String s1, int i) throws UserStoreException {
 
-    }
-
-    @Override
-    public void updateUserListOfRole(String s, String[] strings, String[] strings1) throws UserStoreException {
-
-    }
-
-    @Override
-    public void updateRoleListOfUser(String s, String[] strings, String[] strings1) throws UserStoreException {
-
-    }
-
-    @Override
-    public void setUserClaimValue(String s, String s1, String s2, String s3) throws UserStoreException {
-
-    }
-
-    @Override
-    public void setUserClaimValues(String s, Map<String, String> map, String s1) throws UserStoreException {
-
-    }
-
-    @Override
-    public void deleteUserClaimValue(String s, String s1, String s2) throws UserStoreException {
-
-    }
-
-    @Override
-    public void deleteUserClaimValues(String s, String[] strings, String s1) throws UserStoreException {
-
-    }
-
-    @Override
-    public String[] getHybridRoles() throws UserStoreException {
-        return new String[0];
-    }
-
-    @Override
-    public String[] getAllSecondaryRoles() throws UserStoreException {
         return new String[0];
     }
 
@@ -243,11 +298,6 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public void updateRoleName(String s, String s1) throws UserStoreException {
-
-    }
-
-    @Override
     public boolean isMultipleProfilesAllowed() {
         return false;
     }
@@ -263,16 +313,6 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public ClaimManager getClaimManager() throws org.wso2.carbon.user.api.UserStoreException {
-        return null;
-    }
-
-    @Override
-    public boolean isSCIMEnabled() throws org.wso2.carbon.user.api.UserStoreException {
-        return false;
-    }
-
-    @Override
     public Properties getDefaultUserStoreProperties() {
         return null;
     }
@@ -283,40 +323,33 @@ public class MockUserStoreManager implements UserStoreManager {
     }
 
     @Override
-    public String[] getUserList(String s, String s1, String s2) throws UserStoreException {
-        return new String[0];
-    }
-
-    @Override
-    public UserStoreManager getSecondaryUserStoreManager() {
-        return null;
-    }
-
-    @Override
-    public void setSecondaryUserStoreManager(UserStoreManager userStoreManager) {
-
-    }
-
-    @Override
-    public UserStoreManager getSecondaryUserStoreManager(String userDomain) {
-        return userDomain == null ?
-                null :
-                (UserStoreManager) this.secondaryUserStoreManagerMap.get(userDomain.toUpperCase());
-    }
-
-    @Override
-    public void addSecondaryUserStoreManager(String userDomain, UserStoreManager userStoreManager) {
-        if (userDomain != null) {
-            this.secondaryUserStoreManagerMap.put(userDomain.toUpperCase(), userStoreManager);
-        }
-    }
-
-    @Override
     public RealmConfiguration getRealmConfiguration() {
-        return this.inMemoryRealmConfiguration;
+        return this.realmConfig;
     }
 
     public void setRealmConfiguration(RealmConfiguration realmConfiguration) {
-        this.inMemoryRealmConfiguration = realmConfiguration;
+        this.realmConfig = realmConfiguration;
+    }
+
+    public void setClaimManager(ClaimManager claimManager) {
+        this.claimManager = claimManager;
+    }
+
+    public void setHybridRoleManager(HybridRoleManager hybridRoleManager) {
+        this.hybridRoleManager = hybridRoleManager;
+    }
+
+    protected boolean doCheckExistingUserWithID(String userID) throws UserStoreException {
+
+        return true;
+    }
+
+    protected String doGetUserNameFromUserIDWithID(String userID) throws UserStoreException {
+        return StringUtils.EMPTY;
+    }
+
+    protected Map<String, String> doGetUserClaimValuesWithID(String userID, String[] claims, String domainName,
+                                                             String profileName) throws UserStoreException {
+        return new HashMap<>();
     }
 }
