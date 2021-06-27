@@ -120,6 +120,7 @@ public class IdentityUtil {
     private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
+    private static final String DISABLE_EMAIL_USERNAME_VALIDATION = "DisableEmailUserNameValidation";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static Map<String, Object> configuration = new HashMap<>();
@@ -1181,6 +1182,18 @@ public class IdentityUtil {
 
         String enableEmailUsernameProperty = ServerConfiguration.getInstance().getFirstProperty(ENABLE_EMAIL_USERNAME);
         return Boolean.parseBoolean(enableEmailUsernameProperty);
+    }
+
+    /**
+     * Returns whether the email based username validation is disabled or not.
+     *
+     * @return true if the email username validation is disabled. False if it is not.
+     */
+    public static boolean isEmailUsernameValidationDisabled() {
+
+        String disableEmailUsernameValidationProperty = ServerConfiguration.getInstance()
+                .getFirstProperty(DISABLE_EMAIL_USERNAME_VALIDATION);
+        return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
     }
 
      /**
