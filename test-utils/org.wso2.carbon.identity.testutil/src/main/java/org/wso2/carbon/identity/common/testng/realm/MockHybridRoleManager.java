@@ -37,14 +37,15 @@ public class MockHybridRoleManager extends HybridRoleManager {
 
     private Map<String, Set<String>> userRoleMap = new HashMap<>();
 
-    public MockHybridRoleManager(DataSource dataSource, int tenantId, RealmConfiguration realmConfig, UserRealm realm) throws UserStoreException {
+    public MockHybridRoleManager(DataSource dataSource, int tenantId, RealmConfiguration realmConfig, UserRealm realm)
+            throws UserStoreException {
 
         super(dataSource, tenantId, realmConfig, realm);
     }
 
     public void addHybridRole(String roleName, String[] userList) throws UserStoreException {
 
-        for (String user: userList) {
+        for (String user : userList) {
             userRoleMap.put(user, new HashSet<>(Arrays.asList(roleName)));
         }
     }
