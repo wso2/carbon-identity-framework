@@ -908,6 +908,13 @@
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!-- Show authenticated user name in audit logs. -->
+    <Authentication>
+        <Audit>
+            <UserNameEnableForAuditLogs>false</UserNameEnableForAuditLogs>
+        </Audit>
+    </Authentication>
+
     <!--Application management service configurations-->
     <ApplicationMgt>
         <!--

@@ -1198,6 +1198,17 @@
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!-- Show authenticated user name in audit logs. -->
+    <Authentication>
+        <Audit>
+            {% if authentication.audit.username is defined %}
+            <UserNameEnableForAuditLogs>{{authentication.audit.username.UserNameEnableForAuditLogs}}</UserNameEnableForAuditLogs>
+            {% else %}
+            <UserNameEnableForAuditLogs>false</UserNameEnableForAuditLogs>
+            {% endif %}
+        </Audit>
+    </Authentication>
+
     <!--Application management service configurations-->
     <ApplicationMgt>
         <!--
