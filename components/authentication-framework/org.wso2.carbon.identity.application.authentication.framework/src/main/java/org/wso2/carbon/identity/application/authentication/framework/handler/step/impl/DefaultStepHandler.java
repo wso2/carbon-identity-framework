@@ -658,23 +658,29 @@ public class DefaultStepHandler implements StepHandler {
 
                     try {
                         int idpId = UserSessionStore.getInstance().getIdPId(federatedIdPName, tenantId);
-                        String userId = UserSessionStore.getInstance().getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
+                        String userId = UserSessionStore.getInstance()
+                                .getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
                         try {
                             if (userId == null) {
                                 userId = UUID.randomUUID().toString();
-                                UserSessionStore.getInstance().storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
+                                UserSessionStore.getInstance()
+                                        .storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
                             }
                         } catch (DuplicatedAuthUserException e) {
                             // When the authenticated user is already persisted the respective user to session mapping will
                             // be persisted from the same node handling the request.
                             // Thus, persisting the user to session mapping can be gracefully ignored here.
 
-                            String msg = "User authenticated is already persisted. Username: " + authenticatedSubjectIdentifier
-                                    + " Tenant " + "Domain:" + tenantDomain + " IdP: " + federatedIdPName;
+                            String msg = "User authenticated is already persisted. Username: "
+                                    + authenticatedSubjectIdentifier + " Tenant Domain:" + tenantDomain
+                                    + " IdP: " + federatedIdPName;
                             log.warn(msg);
                             if (log.isDebugEnabled()) {
                                 log.debug(msg, e);
                             }
+                            // Since duplicate entry was found, let's try to get the ID again.
+                            userId = UserSessionStore.getInstance()
+                                    .getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
                         }
                         context.getSubject().setUserId(userId);
                     } catch (UserSessionException e) {

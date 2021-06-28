@@ -36,7 +36,7 @@ import java.util.Locale;
  */
 public class User implements Serializable {
 
-    private static final long serialVersionUID = 928301275168169633L;
+    private static final long serialVersionUID = -2106695146009478443L;
 
     protected String tenantDomain;
     protected String userStoreDomain;

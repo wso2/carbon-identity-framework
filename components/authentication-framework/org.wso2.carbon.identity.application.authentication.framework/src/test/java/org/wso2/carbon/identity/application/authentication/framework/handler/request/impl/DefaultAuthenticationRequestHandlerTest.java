@@ -404,6 +404,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setAuthenticatedSubjectIdentifier(userName);
+        authenticatedUser.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
         context.setProperty("user-tenant-domain", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
     }
