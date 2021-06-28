@@ -73,6 +73,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
@@ -89,7 +90,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -794,5 +794,23 @@ public class FrameworkServiceComponent {
             authConfig.setParameterMap(new HashMap<String, String>());
         }
         return authConfig;
+    }
+
+    @Reference(
+            name = "session.context.listener",
+            service = SessionContextMgtListener.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionContextListener"
+    )
+    protected void setSessionContextListener(SessionContextMgtListener sessionListener) {
+
+        FrameworkServiceDataHolder.getInstance().setSessionContextMgtListener(sessionListener.getInboundType(),
+                sessionListener);
+    }
+
+    protected void unsetSessionContextListener(SessionContextMgtListener sessionListener) {
+
+        FrameworkServiceDataHolder.getInstance().removeSessionContextMgtListener(sessionListener.getInboundType());
     }
 }
