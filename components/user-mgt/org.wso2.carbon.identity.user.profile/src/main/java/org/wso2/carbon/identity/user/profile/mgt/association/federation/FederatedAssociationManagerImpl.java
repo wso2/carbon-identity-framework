@@ -95,7 +95,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
-    public String getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
+    public User getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
             throws FederatedAssociationManagerException {
 
         // Resolve idp name from IDP UUID.
@@ -103,7 +103,15 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         if (StringUtils.isEmpty(idpName)) {
             throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
         }
-        return getUserForFederatedAssociation(tenantDomain, idpName, federatedUserId);
+        String usernameWithDomain = getUserForFederatedAssociation(tenantDomain, idpName, federatedUserId);
+        if (StringUtils.isNotBlank(usernameWithDomain)) {
+            User user = new User();
+            user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(usernameWithDomain));
+            user.setUserName(UserCoreUtil.removeDomainFromName(usernameWithDomain));
+            user.setTenantDomain(tenantDomain);
+            return user;
+        }
+        return null;
     }
 
     @Override

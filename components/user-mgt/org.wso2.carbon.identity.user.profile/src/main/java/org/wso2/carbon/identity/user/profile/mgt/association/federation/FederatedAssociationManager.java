@@ -61,7 +61,7 @@ public interface FederatedAssociationManager {
      * @return  Associated local user name.
      * @throws FederatedAssociationManagerException
      */
-    default String getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
+    default User getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
             throws FederatedAssociationManagerException {
 
         return null;
