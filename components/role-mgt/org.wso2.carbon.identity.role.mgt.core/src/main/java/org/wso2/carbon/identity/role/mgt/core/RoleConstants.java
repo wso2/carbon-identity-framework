@@ -51,6 +51,9 @@ public class RoleConstants {
     // Group related constants.
     public static final String ID_URI = "urn:ietf:params:scim:schemas:core:2.0:id";
 
+    // Administrator role name.
+    public static final String ADMINISTRATOR = "Administrator";
+
     /**
      * Grouping of constants related to database table names.
      */
