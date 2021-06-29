@@ -95,6 +95,18 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
+    public String getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
+            throws FederatedAssociationManagerException {
+
+        // Resolve idp name from IDP UUID.
+        String idpName = getIdentityProviderNameByResourceId(idpId);
+        if (StringUtils.isEmpty(idpName)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
+        }
+        return getUserForFederatedAssociation(tenantDomain, idpName, federatedUserId);
+    }
+
+    @Override
     public String getUserForFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
