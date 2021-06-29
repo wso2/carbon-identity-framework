@@ -138,7 +138,7 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
-    private static Map<Integer, Boolean> groupsVsRolesSeparationImprovementsEnabled = new HashMap<>();
+    private static Boolean groupsVsRolesSeparationImprovementsEnabled;
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -1440,40 +1440,16 @@ public class IdentityUtil {
                 log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
                 return Boolean.FALSE;
             }
-            return getGroupsVsRolesSeparationImprovementsEnabled(userRealm.getRealmConfiguration());
+            if (groupsVsRolesSeparationImprovementsEnabled == null) {
+                groupsVsRolesSeparationImprovementsEnabled = UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(
+                        userRealm.getRealmConfiguration());
+            }
+            return groupsVsRolesSeparationImprovementsEnabled;
 
-        } catch (CarbonException | UserStoreException e) {
+        } catch (UserStoreException | CarbonException e) {
             log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
-    }
-
-    /**
-     * Get the groups vs roles separation config from groupsVsRolesSeparationImprovementsEnabled variable.
-     *
-     * @param realmConfig realmConfiguration.
-     * @return Where groups vs separation enabled or not.
-     */
-    private static boolean getGroupsVsRolesSeparationImprovementsEnabled(RealmConfiguration realmConfig) {
-
-        Boolean isEnabled = groupsVsRolesSeparationImprovementsEnabled.get(realmConfig.getTenantId());
-        if (isEnabled == null) {
-            isEnabled = setGroupsVsRolesSeparationImprovementsEnabled(realmConfig);
-        }
-        return isEnabled;
-    }
-
-    /**
-     * set the groups vs roles separation config to groupsVsRolesSeparationImprovementsEnabled variable.
-     *
-     * @param realmConfig realmConfiguration.
-     * @return Where groups vs separation enabled or not.
-     */
-    private static boolean setGroupsVsRolesSeparationImprovementsEnabled(RealmConfiguration realmConfig) {
-
-        boolean isEnabled = UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(realmConfig);
-        groupsVsRolesSeparationImprovementsEnabled.put(realmConfig.getTenantId(), isEnabled);
-        return isEnabled;
     }
 
     /**
