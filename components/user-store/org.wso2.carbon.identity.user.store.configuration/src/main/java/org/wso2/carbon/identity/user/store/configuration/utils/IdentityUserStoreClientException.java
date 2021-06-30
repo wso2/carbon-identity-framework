@@ -37,4 +37,9 @@ public class IdentityUserStoreClientException extends IdentityUserStoreMgtExcept
 
         super(errorCode, message);
     }
+
+    public IdentityUserStoreClientException(String errorCode, String message, Throwable e) {
+
+        super(errorCode, message, e);
+    }
 }
