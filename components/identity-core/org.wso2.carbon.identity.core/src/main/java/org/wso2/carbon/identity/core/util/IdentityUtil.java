@@ -138,6 +138,7 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
+    private static Boolean groupsVsRolesSeparationImprovementsEnabled;
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -1434,16 +1435,18 @@ public class IdentityUtil {
     public static boolean isGroupsVsRolesSeparationImprovementsEnabled() {
 
         try {
-            if (AdminServicesUtil.getUserRealm() == null) {
+            UserRealm userRealm = AdminServicesUtil.getUserRealm();
+            if (userRealm == null) {
                 log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
                 return Boolean.FALSE;
             }
-            diagnosticLog.info("'GroupAndRoleSeparationEnabled' property is set to: " +
-                    UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(AdminServicesUtil.getUserRealm()
-                    .getRealmConfiguration()));
-            return UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(AdminServicesUtil.getUserRealm()
-                    .getRealmConfiguration());
-        } catch (org.wso2.carbon.user.core.UserStoreException | CarbonException e) {
+            if (groupsVsRolesSeparationImprovementsEnabled == null) {
+                groupsVsRolesSeparationImprovementsEnabled = UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(
+                        userRealm.getRealmConfiguration());
+            }
+            return groupsVsRolesSeparationImprovementsEnabled;
+
+        } catch (UserStoreException | CarbonException e) {
             log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
