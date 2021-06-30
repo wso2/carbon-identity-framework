@@ -534,6 +534,9 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
+        // Validate the user removal operation based on the default system roles.
+        validateUserRemovalFromRole(deletedUserNamesList, roleName, tenantDomain);
+
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
             try {
@@ -575,6 +578,45 @@ public class RoleDAOImpl implements RoleDAO {
         return new RoleBasicInfo(roleID, roleName);
     }
 
+    private void validateUserRemovalFromRole(List<String> deletedUserNamesList, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedUserNamesList.isEmpty()) {
+            return;
+        }
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                    .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+            // Only the tenant owner can remove users from Administrator role.
+            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove users from the role: %s";
+                    throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                } else {
+                    // Tenant owner cannot be removed from Administrator role.
+                    if (deletedUserNamesList.contains(adminUserName)) {
+                        String errorMessage = "Invalid operation. Tenant owner cannot be removed from the role: %s";
+                        throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                                String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating user removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+    }
+
     private void processBatchUpdateForUsers(String roleName, List<String> userNamesList, int tenantId,
                                             String primaryDomainName, Connection connection,
                                             String removeUserFromRoleSql) throws SQLException {
@@ -610,6 +652,8 @@ public class RoleDAOImpl implements RoleDAO {
                     "Role id: " + roleID + " does not exist in the system.");
         }
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        // Validate the group removal operation based on the default system roles.
+        validateGroupRemovalFromRole(deletedGroupIDList, roleName, tenantDomain);
         if (CollectionUtils.isEmpty(newGroupIDList) && CollectionUtils.isEmpty(deletedGroupIDList)) {
             if (log.isDebugEnabled()) {
                 log.debug("Group lists are empty.");
@@ -682,6 +726,39 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.addBatch();
             }
             statement.executeBatch();
+        }
+    }
+
+    private void validateGroupRemovalFromRole(List<String> deletedGroupIDList, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedGroupIDList.isEmpty()) {
+            return;
+        }
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                    .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+            // Only the tenant owner can remove groups from Administrator role.
+            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove groups from the role: "
+                            + "%s";
+                    throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating group removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
         }
     }
 
