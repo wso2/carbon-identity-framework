@@ -150,9 +150,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         + userStoreDomain + "'");
                 /*
                 Set PROVISIONED_USER thread local property to true, to identify already provisioned
-                user claim updates.
+                user claim update scenario.
                  */
-                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.PROVISIONED_USER, true);
+                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
@@ -326,7 +326,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
-            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.PROVISIONED_USER);
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
         }
     }
 
