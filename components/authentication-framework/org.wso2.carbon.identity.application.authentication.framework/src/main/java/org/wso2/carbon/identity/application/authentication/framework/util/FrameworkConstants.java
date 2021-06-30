@@ -104,6 +104,8 @@ public abstract class FrameworkConstants {
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
 
+    public static final String PROVISIONED_USER = "provisionedUser";
+
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
     public static final String AUTH_ERROR_MSG = "AuthErrorMessage";

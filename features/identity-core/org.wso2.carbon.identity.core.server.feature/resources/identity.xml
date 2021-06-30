@@ -969,6 +969,7 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <EnableSyncedAttributeEditing>true</EnableSyncedAttributeEditing>
     </JITProvisioning>
 
     <OutboundProvisioning>
