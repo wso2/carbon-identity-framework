@@ -53,6 +53,21 @@ public interface FederatedAssociationManager {
     }
 
     /**
+     * Get associated local user for the given federated user.
+     *
+     * @param tenantDomain      Tenant domain.
+     * @param idpId             UUID of the IDP.
+     * @param federatedUserId   UUID of the federated user.
+     * @return  Associated local user name.
+     * @throws FederatedAssociationManagerException
+     */
+    default User getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
+            throws FederatedAssociationManagerException {
+
+        return null;
+    }
+
+    /**
      * Return the username of the local user associated with the given federated identifier.
      *
      * @param tenantDomain    Tenant domain.
