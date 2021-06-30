@@ -1466,7 +1466,7 @@
                        type="{{listener.type}}"
                        name="{{listener.name}}"
                        orderId="{{listener.order}}"
-                       enable="true">
+                       enable="{{listener.enable | default(true)}}">
             {% for key,value in listener.properties.items() %}
             <Property name="{{key}}">{{value}}</Property>
             {% endfor %}
