@@ -196,8 +196,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         combinedLocalClaims
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
-                    String username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
-                            externalIdPConfigName, context);
+                    String username;
+                    if (FrameworkUtils.isEnhancedFeature()) {
+                        username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                                externalIdPConfigName, context);
+                    } else {
+                        username = sequenceConfig.getAuthenticatedUser().getUserName();
+                    }
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -270,7 +275,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
-        boolean isUserCreated = false;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -303,16 +307,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                                     stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
 
-                    String username;
-                    String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
-                    if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
-                        username = localClaimValues.get(userIdClaimUriInLocalDialect);
-                    } else {
-                        username = associatedLocalUser;
-                    }
-
+                    String username = associatedLocalUser;
                     // If associatedLocalUser is null, that means relevant association not exist already.
-                    if (StringUtils.isEmpty(associatedLocalUser) && !isUserCreated) {
+                    if (StringUtils.isEmpty(associatedLocalUser)) {
                         if (log.isDebugEnabled()) {
                             log.debug(sequenceConfig.getAuthenticatedUser().getLoggableUserId() + " coming from "
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
@@ -320,13 +317,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
-                            if (StringUtils.isEmpty(username)) {
-                                // If there is no subject claim URI configured in the IDP, get the federated user id
-                                // from the authenticated username.
-                                if (StringUtils.isBlank(associatedLocalUser)) {
-                                    username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
-                                            externalIdPConfigName, context);
-                                }
+                            /*
+                            If JIT provisioning enhanced feature is enabled set the federated ID as the
+                            federated username.
+                             */
+                            if (FrameworkUtils.isEnhancedFeature()) {
+                                username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                                        externalIdPConfigName, context);
+                            } else {
+                                username = sequenceConfig.getAuthenticatedUser().getUserName();
                             }
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
@@ -334,11 +333,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
-                    }
-                    if (StringUtils.isEmpty(username)) {
-                        username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
-                                externalIdPConfigName, context);
-                        isUserCreated = true;
                     }
                     if (log.isDebugEnabled()) {
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
@@ -367,13 +361,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getCode(), e);
         }
         return federatedUsername;
-    }
-
-    private boolean isUserNameFoundFromUserIDClaimURI(Map<String, String> localClaimValues, String
-            userIdClaimUriInLocalDialect) {
-
-        return StringUtils.isNotBlank(userIdClaimUriInLocalDialect) && StringUtils.isNotBlank
-                (localClaimValues.get(userIdClaimUriInLocalDialect));
     }
 
     /**
@@ -457,25 +444,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
         receiptPurposeInput.setPiiCategory(piiCategoryValidities);
         return receiptPurposeInput;
-    }
-
-    /**
-     * To get the user name with tenant domain.
-     * @param userName Name of the user.
-     * @param tenantDomain Relevant tenant domain.
-     * @return tenant domain appeneded username
-     */
-    private String getTenantDomainAppendedUserName(String userName, String tenantDomain) {
-
-        // To handle the scenarios where email comes as username, but EnableEmailUserName is not set true in carbon.xml
-        if (!userName.endsWith("@" + tenantDomain)) {
-            userName = MultitenantUtils.getTenantAwareUsername(userName);
-
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-                userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
-            }
-        }
-        return userName;
     }
 
     /**

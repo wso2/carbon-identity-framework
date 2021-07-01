@@ -220,7 +220,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
                     UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                    setSource(tenantDomain, idp, userClaims);
+                    if (FrameworkUtils.isEnhancedFeature()) {
+                        setSource(tenantDomain, idp, userClaims);
+                    }
                     userStoreManager.addUser(username, password, null, userClaims, null);
                 } catch (UserStoreException e) {
                     // Add user operation will fail if a user operation workflow is already defined for the same user.
