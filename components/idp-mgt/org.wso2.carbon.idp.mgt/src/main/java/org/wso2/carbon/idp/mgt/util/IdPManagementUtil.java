@@ -161,8 +161,12 @@ public class IdPManagementUtil {
     /**
      * Set tenantContext and tenantParameter specific to the tenant domain.
      *
+     * @deprecated Setting tenant context and tenant parameter in static method will replace already set value with
+     * new value for two concurrent logins in different tenant domains.
+     * Can use local parameters to resolve this.
      * @param tenantDomain of requested resident IdP
      */
+    @Deprecated
     public static void setTenantSpecifiers(String tenantDomain) {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
@@ -177,8 +181,10 @@ public class IdPManagementUtil {
     /**
      * Get the tenant context specific to the resident IdP tenant domain.
      *
+     * @deprecated Setter is deprecated.
      * @return the tenantContext
      */
+//    @Deprecated
     public static String getTenantContext() {
 
         return tenantContext;
@@ -187,8 +193,10 @@ public class IdPManagementUtil {
     /**
      * Get the tenant parameter specific to the resident IdP tenant domain to be appended with the endpoint URL.
      *
+     * @deprecated Setter is deprecated.
      * @return the tenantParameter
      */
+    @Deprecated
     public static String getTenantParameter() {
 
         return tenantParameter;

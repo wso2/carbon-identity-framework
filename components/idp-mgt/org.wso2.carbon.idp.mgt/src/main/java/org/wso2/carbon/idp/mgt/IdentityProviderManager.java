@@ -205,10 +205,10 @@ public class IdentityProviderManager implements IdpManager {
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
+            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, getTenantContextFromTenantDomain(tenantDomain) +
                     IdentityConstants.STS.WSO2_CARBON_STS);
         } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + IdPManagementUtil.getTenantContext() +
+            stsUrl = IdentityUtil.getServerURL("services/" + getTenantContextFromTenantDomain(tenantDomain) +
                     IdentityConstants.STS.WSO2_CARBON_STS, true, true);
         }
 
@@ -3037,5 +3037,20 @@ public class IdentityProviderManager implements IdpManager {
 
         return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
                 .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
+    }
+
+    /**
+     * Get tenant context using tenant domain.
+     *
+     * @param tenantDomain tenant domain of the tenant
+     * @return tenant context
+     */
+    private String getTenantContextFromTenantDomain(String tenantDomain) {
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            return MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
+        } else {
+            return "";
+        }
     }
 }
