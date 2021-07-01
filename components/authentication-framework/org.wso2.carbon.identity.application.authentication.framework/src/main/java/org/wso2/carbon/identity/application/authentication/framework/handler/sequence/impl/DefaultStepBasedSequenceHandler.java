@@ -311,6 +311,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
                     }
 
+                    if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                    }
+
                     if (mappedAttrs == null || mappedAttrs.isEmpty()) {
                         // do claim handling
                         mappedAttrs = handleClaimMappings(stepConfig, context,

@@ -2013,7 +2013,7 @@ public class FrameworkUtils {
             Map<String, String> extAttributesValueMap, String idpRoleClaimUri, Boolean excludeUnmapped) {
 
         if (idpRoleClaimUri == null) {
-            // Since idpRoleCalimUri is not defined cannot do role mapping.
+            // Since idpRoleClaimUri is not defined cannot do role mapping.
             if (log.isDebugEnabled()) {
                 log.debug("Role claim uri is not configured for the external IDP: " + externalIdPConfig.getIdPName()
                         + ", in Domain: " + externalIdPConfig.getDomain() + ".");
