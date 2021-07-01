@@ -184,7 +184,7 @@ public class IdPManagementUtil {
      * @deprecated Setter is deprecated.
      * @return the tenantContext
      */
-//    @Deprecated
+    @Deprecated
     public static String getTenantContext() {
 
         return tenantContext;
