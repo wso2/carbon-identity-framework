@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
@@ -107,6 +108,26 @@ public interface IdpManager {
      */
     default IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                     String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     * Get basic information of identity providers along with additionally requested information.
+     *
+     * @param limit              The limit per page.
+     * @param offset             The offset value.
+     * @param sortOrder          The order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       The tenant domain of the user.
+     * @param requiredAttributes The required attributes which needs to be returned.
+     * @param expressionNodes    The list of filters.
+     * @return The basic information of identity providers along with requested attributes.
+     * @throws IdentityProviderManagementException Server/client related errors when getting list of identity providers.
+     */
+    default IdpSearchResult getIdPs(Integer limit, Integer offset, String sortOrder, String sortBy, String tenantDomain,
+                                    List<String> requiredAttributes, List<ExpressionNode> expressionNodes)
             throws IdentityProviderManagementException {
 
         return null;

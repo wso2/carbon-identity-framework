@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -391,6 +392,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     public String[] getTags() {
 
         String tags = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.TAGS);
-        return StringUtils.split(tags, ",");
+        String[] tagsArray = StringUtils.split(tags, ",");
+        if (ArrayUtils.isNotEmpty(tagsArray)) {
+            for (int i = 0; i < tagsArray.length; i++) {
+                tagsArray[i] = tagsArray[i].trim();
+            }
+        }
+        return tagsArray;
     }
 }
