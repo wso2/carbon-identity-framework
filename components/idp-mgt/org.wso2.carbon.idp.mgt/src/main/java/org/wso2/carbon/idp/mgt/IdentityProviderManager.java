@@ -3042,15 +3042,14 @@ public class IdentityProviderManager implements IdpManager {
     /**
      * Get tenant context using tenant domain.
      *
-     * @param tenantDomain tenant domain of the tenant
-     * @return tenant context
+     * @param tenantDomain Tenant domain of the tenant
+     * @return Tenant context
      */
     private String getTenantContextFromTenantDomain(String tenantDomain) {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             return MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
-        } else {
-            return "";
         }
+        return "";
     }
 }
