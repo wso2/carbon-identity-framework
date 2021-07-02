@@ -3042,8 +3042,8 @@ public class IdentityProviderManager implements IdpManager {
     /**
      * Get tenant context using tenant domain.
      *
-     * @param tenantDomain Tenant domain of the tenant
-     * @return Tenant context
+     * @param tenantDomain Tenant domain of the tenant.
+     * @return Tenant context of the tenant.
      */
     private String getTenantContextFromTenantDomain(String tenantDomain) {
 
