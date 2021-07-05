@@ -174,6 +174,8 @@ public abstract class FrameworkConstants {
                 + ".ReturnOnlyMappedLocalRoles";
         public static final String SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP = "FederatedRoleManagement"
                 + ".ReturnManuallyAddedLocalRoles";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP_EXCLUDING_UNMAPPED = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRolesUnmappedExclusive";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant

@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -660,6 +661,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private void filterClaims(Map<ClaimMapping, String> userAttributes, List<String> disapprovedClaims,
                               Map<String, String> claimMappings, Map<ClaimMapping, String> modifiedUserAttributes) {
 
+        if (MapUtils.isEmpty(userAttributes)) {
+            return;
+        }
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             String claimKey = entry.getKey().getLocalClaim().getClaimUri();
             if (isConsentApprovedForClaim(disapprovedClaims, claimMappings, claimKey)) {
