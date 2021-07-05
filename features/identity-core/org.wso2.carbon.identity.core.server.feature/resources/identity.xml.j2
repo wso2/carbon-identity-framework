@@ -1183,9 +1183,12 @@
     {% if idp_role_management.return_only_mapped_local_roles is defined %}
         <FederatedRoleManagement>
             <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
-            {% if idp_role_management.return_manually_added_local_roles is defined %}
+        {% if idp_role_management.return_manually_added_local_roles is defined %}
             <ReturnManuallyAddedLocalRoles>{{idp_role_management.return_manually_added_local_roles}}</ReturnManuallyAddedLocalRoles>
-            {% endif %}
+        {% endif %}
+        {% if idp_role_management.return_only_mapped_local_roles_unmapped_exclusive is defined %}
+            <ReturnOnlyMappedLocalRolesUnmappedExclusive>{{idp_role_management.return_only_mapped_local_roles_unmapped_exclusive}}</ReturnOnlyMappedLocalRolesUnmappedExclusive>
+        {% endif %}
         </FederatedRoleManagement>
     {% endif %}
 
