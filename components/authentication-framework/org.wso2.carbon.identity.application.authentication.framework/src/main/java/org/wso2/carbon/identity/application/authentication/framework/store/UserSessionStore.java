@@ -777,11 +777,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving session IDs of user: " +
-                        user.getUserId() + ".", ex);
+                        user.getLoggableUserId() + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session IDs of user: " +
-                    user.getUserId() + ".", e);
+                    user.getLoggableUserId() + ".", e);
         }
         return sessionIdList;
     }
@@ -815,11 +815,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                        .getUserId() + " and session Id: " + sessionId + ".", ex);
+                        .getLoggableUserId() + " and session Id: " + sessionId + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                    .getUserId() + " and session Id: " + sessionId + ".", e);
+                    .getLoggableUserId() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
     }

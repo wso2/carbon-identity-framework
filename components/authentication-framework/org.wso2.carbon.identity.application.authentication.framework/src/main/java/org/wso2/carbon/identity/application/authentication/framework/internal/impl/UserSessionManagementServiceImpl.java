@@ -270,7 +270,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("Retrieving all the active sessions of user: " + user.getUserId() + " of user store " +
+            log.debug("Retrieving all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         diagnosticLog.info("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
@@ -287,7 +287,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of user: " + user.getUserId() + " of user store " +
+            log.debug("Terminating all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         diagnosticLog.info("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
@@ -315,7 +315,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (isUserSessionMappingExist(user, idpId, sessionId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
-                        user.getUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
+                        user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             diagnosticLog.info("Terminating the session: " + sessionId + " which belongs to the user: " +
                     user.getUserName() + " of user store domain: " + user.getUserStoreDomain());
@@ -361,8 +361,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug("Retrieving the list of sessions owned by the user: " + user.getUserId() + " of user " +
-                        "store domain: " + user.getUserStoreDomain() + ".");
+                log.debug("Retrieving the list of sessions owned by the user: " + user.getLoggableUserId()
+                        + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             return UserSessionStore.getInstance().getSessionId(user, idpId);
         } catch (UserSessionException e) {

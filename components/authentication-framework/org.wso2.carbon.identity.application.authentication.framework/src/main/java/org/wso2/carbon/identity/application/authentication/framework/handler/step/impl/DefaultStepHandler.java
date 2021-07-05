@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.D
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -650,7 +651,14 @@ public class DefaultStepHandler implements StepHandler {
                     context.getSubject().setTenantDomain(tenantDomain);
                 }
 
-                if (context.getSubject().getUserId() == null) {
+                try {
+                    // Check if the user id is available for the user. If the user id is not available or cannot be
+                    // resolved, UserIdNotFoundException is thrown.
+                    String userId = context.getSubject().getUserId();
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id is available for user: " + userId);
+                    }
+                } catch (UserIdNotFoundException e) {
                     String tenantDomain = context.getSubject().getTenantDomain();
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     String authenticatedSubjectIdentifier = context.getSubject().getAuthenticatedSubjectIdentifier();
@@ -666,25 +674,21 @@ public class DefaultStepHandler implements StepHandler {
                                 UserSessionStore.getInstance()
                                         .storeUserData(userId, authenticatedSubjectIdentifier, tenantId, idpId);
                             }
-                        } catch (DuplicatedAuthUserException e) {
-                            // When the authenticated user is already persisted the respective user to session mapping will
-                            // be persisted from the same node handling the request.
-                            // Thus, persisting the user to session mapping can be gracefully ignored here.
-
+                        } catch (DuplicatedAuthUserException e1) {
                             String msg = "User authenticated is already persisted. Username: "
                                     + authenticatedSubjectIdentifier + " Tenant Domain:" + tenantDomain
                                     + " IdP: " + federatedIdPName;
                             log.warn(msg);
                             if (log.isDebugEnabled()) {
-                                log.debug(msg, e);
+                                log.debug(msg, e1);
                             }
                             // Since duplicate entry was found, let's try to get the ID again.
                             userId = UserSessionStore.getInstance()
                                     .getFederatedUserId(authenticatedSubjectIdentifier, tenantId, idpId);
                         }
                         context.getSubject().setUserId(userId);
-                    } catch (UserSessionException e) {
-                        log.error("Error while resolving the user id for federated user.", e);
+                    } catch (UserSessionException e2) {
+                        log.error("Error while resolving the user id for federated user.", e2);
                     }
                 }
             }

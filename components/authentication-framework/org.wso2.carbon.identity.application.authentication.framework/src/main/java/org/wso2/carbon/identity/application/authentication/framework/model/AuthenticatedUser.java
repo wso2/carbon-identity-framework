@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -55,6 +56,7 @@ public class AuthenticatedUser extends User {
 
     private static final Log log = LogFactory.getLog(AuthenticatedUser.class);
 
+    protected String userId;
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
@@ -76,7 +78,14 @@ public class AuthenticatedUser extends User {
 
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
         this.tenantDomain = authenticatedUser.getTenantDomain();
-        this.userId = authenticatedUser.getUserId();
+        try {
+            this.userId = authenticatedUser.getUserId();
+        } catch (UserIdNotFoundException e) {
+            // Since the authenticated user is used for unauthenticated users as well, we cannot do anything here.
+            if (log.isDebugEnabled()) {
+                log.debug("Null user id is found while copying the AuthenticateUser instance.");
+            }
+        }
         this.userName = authenticatedUser.getUserName();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
         if (authenticatedUser.getUserAttributes() != null) {
@@ -110,7 +119,6 @@ public class AuthenticatedUser extends User {
         this.userName = user.getUserName();
         this.tenantDomain = user.getTenantDomain();
         this.userStoreDomain = user.getUserStoreDomain();
-        this.userId = user.getUserId();
     }
 
     /**
@@ -152,13 +160,16 @@ public class AuthenticatedUser extends User {
 
         authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
-
-        authenticatedUser.resolveLocalUserId();
+        authenticatedUser.setUserId(authenticatedUser.getLocalUserIdInternal());
 
         return authenticatedUser;
     }
 
-    private void resolveLocalUserId() {
+    /**
+     * Internal method to get the user id of a local user with the parameters available in the authenticated user
+     * object.
+     */
+    private String getLocalUserIdInternal() {
 
         String userId = null;
         try {
@@ -168,10 +179,14 @@ public class AuthenticatedUser extends User {
         } catch (UserSessionException e) {
             log.error("Error while resolving the user id from username");
         }
-        this.setUserId(userId);
+        return userId;
     }
 
-    private void resolveFederatedUserId() {
+    /**
+     * Internal method to get the user id of a federated user with the parameters available in the authenticated user
+     * object.
+     */
+    private String getFederatedUserIdInternal() {
 
         String userId = null;
         try {
@@ -187,9 +202,6 @@ public class AuthenticatedUser extends User {
                                     idpId);
                 }
             } catch (DuplicatedAuthUserException e) {
-                // When the authenticated user is already persisted the respective user to session mapping will
-                // be persisted from the same node handling the request.
-                // Thus, persisting the user to session mapping can be gracefully ignored here.
 
                 String msg = "User authenticated is already persisted. Username: "
                         + this.getAuthenticatedSubjectIdentifier() + " Tenant Domain:"
@@ -205,7 +217,7 @@ public class AuthenticatedUser extends User {
         } catch (UserSessionException e) {
             log.error("Error while resolving the user id from username.");
         }
-        this.setUserId(userId);
+        return userId;
     }
 
     /**
@@ -220,14 +232,41 @@ public class AuthenticatedUser extends User {
             String authenticatedSubjectIdentifier) {
 
         if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Failed to create Federated Authenticated User from the given subject " +
-                    "identifier. Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
+            throw new IllegalArgumentException("Failed to create Federated Authenticated User from the given subject "
+                    + "identifier. Invalid argument. authenticatedSubjectIdentifier : "
+                    + authenticatedSubjectIdentifier);
         }
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
         authenticatedUser.setFederatedUser(true);
+
+        return authenticatedUser;
+    }
+
+    /**
+     * Returns an AuthenticatedUser instance populated from the given subject identifier string.
+     * It is assumed that this user is authenticated from a federated authenticator.
+     *
+     * @param authenticatedSubjectIdentifier a string that represents authenticated subject identifier
+     * @param federatedIdPName               federated IDP name
+     * @return populated AuthenticatedUser instance
+     */
+    public static AuthenticatedUser createFederateAuthenticatedUserFromSubjectIdentifier(
+            String authenticatedSubjectIdentifier, String federatedIdPName) {
+
+        if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Failed to create Federated Authenticated User from the given subject " +
+                            "identifier. Invalid argument. authenticatedSubjectIdentifier : "
+                            + authenticatedSubjectIdentifier);
+        }
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
+        authenticatedUser.setFederatedUser(true);
+        authenticatedUser.setFederatedIdPName(federatedIdPName);
+        authenticatedUser.setUserId(authenticatedUser.getFederatedUserIdInternal());
 
         return authenticatedUser;
     }
@@ -250,40 +289,75 @@ public class AuthenticatedUser extends User {
      * @param authenticatedSubjectIdentifier the authenticated subject identifier
      */
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier) {
+
         this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
     }
 
-    @Override
-    public String getUserId() {
+    public String getUserId() throws UserIdNotFoundException {
 
+        if (this.userId != null) {
+            return userId;
+        }
         // User id can be null sometimes in some flows. Hence trying to resolve it here.
-        if (super.getUserId() == null) {
-            if (!isFederatedUser()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                            ". Since the user is local, trying to resolve it.");
-                }
-                if (userName != null && userStoreDomain != null && tenantDomain != null) {
-                    this.resolveLocalUserId();
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("User id could not be retrieved for user with username: " + userName + " userstore " +
-                                "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
-                    }
-                }
+        userId = resolveUserIdInternal();
+        if (userId == null) {
+            throw new UserIdNotFoundException("User id is not available for user.");
+        }
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
+    }
+
+    private String resolveUserIdInternal() {
+
+        String userId = null;
+        if (!isFederatedUser()) {
+            if (log.isDebugEnabled()) {
+                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                        ". Trying to retrieve user id.");
+            }
+            if (userName != null && userStoreDomain != null && tenantDomain != null) {
+                userId = this.getLocalUserIdInternal();
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                            ". Trying to retrieve or generate user id.");
+                    log.debug("User id could not be resolved for user with username: " + userName + " userstore " +
+                            "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
                 }
-                this.resolveFederatedUserId();
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                        ". Trying to retrieve or generate user id.");
+            }
+            if (federatedIdPName != null && tenantDomain != null && authenticatedSubjectIdentifier != null) {
+                userId = this.getFederatedUserIdInternal();
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("User id could not be retrieved for user with username: " + userName
+                            + " idp name: " + federatedIdPName + " tenant domain: " + tenantDomain);
+                }
             }
         }
-        if (super.getUserId() == null) {
-            throw new NullPointerException("User id is not available for user.");
-        } else {
-            return super.getUserId();
+
+        return userId;
+    }
+
+    public String getLoggableUserId() {
+
+        if (userId != null) {
+            return userId;
         }
+
+        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        String loggableUserId = resolveUserIdInternal();
+        if (loggableUserId == null) {
+            // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
+            loggableUserId = toFullQualifiedUsername();
+        }
+        return loggableUserId;
     }
 
     /**

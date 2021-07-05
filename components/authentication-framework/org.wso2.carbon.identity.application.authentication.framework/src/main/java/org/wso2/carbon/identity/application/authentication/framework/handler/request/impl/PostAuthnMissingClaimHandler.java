@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -319,7 +320,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Updating user profile of user : " + user.getUserId());
+                    log.debug("Updating user profile of user : " + user.getLoggableUserId());
                 }
                 diagnosticLog.info("Updating user profile of user : " + user.getUserName());
 
@@ -336,6 +337,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);
+            } catch (UserIdNotFoundException e) {
+                throw new PostAuthenticationFailedException(
+                        "User id not found",
+                        "User id not found for local user. Could not update profile", e);
             }
         }
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
