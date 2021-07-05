@@ -194,7 +194,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 // if there is a cache entry, wrap the original request with params in cache entry
                 if (authRequest != null) {
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
-                    FrameworkUtils.removeAuthenticationRequestFromCache(sessionDataKey);
                 }
                 context = initializeFlow(request, responseWrapper);
                 context.initializeAnalyticsData();
@@ -506,6 +505,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         AuthenticationRequestCacheEntry authRequest = getAuthenticationRequestFromRequest(request);
         if (authRequest == null) {
             authRequest = FrameworkUtils.getAuthenticationRequestFromCache(sessionDataKey);
+            if (authRequest != null) {
+                FrameworkUtils.removeAuthenticationRequestFromCache(sessionDataKey);
+            }
         }
         return authRequest;
     }
