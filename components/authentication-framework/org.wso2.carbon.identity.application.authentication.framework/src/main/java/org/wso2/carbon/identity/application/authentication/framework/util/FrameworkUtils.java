@@ -168,6 +168,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 public class FrameworkUtils {
 
@@ -2086,7 +2087,7 @@ public class FrameworkUtils {
             ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
             if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
                 for (ClaimMapping mapping : idpToLocalClaimMapping) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
+                    if (getLocalGroupsClaimURI().equals(mapping.getLocalClaim().getClaimUri())
                             && mapping.getRemoteClaim() != null) {
                         return mapping.getRemoteClaim().getClaimUri();
                     }
@@ -2149,8 +2150,8 @@ public class FrameworkUtils {
 
     /**
      * Returns the local claim uri that is mapped for the IdP role claim uri configured.
-     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
-     *
+     * If no role claim uri is configured for the IdP returns the local claim by calling 'IdentityUtils
+     * .#getLocalGroupsClaimURI()'.
      * @param externalIdPConfig IdP configurations
      * @return local claim uri mapped for the IdP role claim uri.
      */
@@ -2170,7 +2171,7 @@ public class FrameworkUtils {
                 }
             }
         }
-        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+        return getLocalGroupsClaimURI();
     }
 
     /**
@@ -2691,10 +2692,13 @@ public class FrameworkUtils {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                    // userstore is read-only, we cannot add the id and empty user id will returned.
-                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                        userId = addUserId(username, userStoreManager);
+                    // If the user id is could not be resolved, probably does not exist in the user store.
+                    if (StringUtils.isBlank(userId)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User id could not be resolved for username: " + username + " in user store " +
+                                    "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
+                                    "user does not exist in the user store.");
+                        }
                     }
                     return userId;
                 }
@@ -2800,7 +2804,7 @@ public class FrameworkUtils {
         ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
         if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
             resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
-                    resolveUser(MultitenantUtils.getTenantAwareUsername(loginIdentifier), tenantDomain);
+                    resolveUser(loginIdentifier, tenantDomain);
         }
         return resolvedUserResult;
     }
@@ -3010,5 +3014,25 @@ public class FrameworkUtils {
                     cookie.setPath("/");
                     response.addCookie(cookie);
                 }));
+    }
+
+    /*
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+    */
+    /**
+     * Reset authentication context.
+     *
+     * @param context Authentication Context.
+     * @throws FrameworkException
+     */
+    public static void resetAuthenticationContext(AuthenticationContext context) {
+
+        context.setSubject(null);
+        context.setStateInfo(null);
+        context.setExternalIdP(null);
+        context.setAuthenticatorProperties(new HashMap<String, String>());
+        context.setRetryCount(0);
+        context.setRetrying(false);
+        context.setCurrentAuthenticator(null);
     }
 }

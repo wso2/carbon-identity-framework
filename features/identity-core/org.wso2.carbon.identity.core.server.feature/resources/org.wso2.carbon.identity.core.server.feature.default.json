@@ -35,6 +35,10 @@
   "identity.token_validation_policy": "CertValidate",
 
   "server.internal_hostname": "localhost",
+  "authenticationendpoint.hostname": "$ref{server.hostname}",
+  "authenticationendpoint.path": "/authenticationendpoint",
+  "recoveryendpoint.hostname" : "$ref{server.hostname}",
+  "recoveryendpoint.path" : "/recoveryendpoint",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -132,7 +136,6 @@
   "oauth.grant_type.uma_ticket.enable": true,
   "oauth.grant_type.uma_ticket.grant_handler": "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler",
   "oauth.grant_type.uma_ticket.grant_validator": "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator",
-  "oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection": false,
   "oauth.grant_type.kerberos.enable": false,
   "oauth.grant_type.kerberos.grant_handler": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrant",
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
@@ -330,6 +333,7 @@
   "identity_mgt.user_onboarding.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
+  "identity_mgt.user_onboarding.disable_random_value_for_credentials": false,
 
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
@@ -348,6 +352,7 @@
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+  "identity_mgt.user_claim_update.email.enable_notify_existing_email": false,
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
   "identity_mgt.user_claim_update.use_verify_claim": true,
@@ -356,6 +361,7 @@
 
   "sp_role_management.return_only_mapped_local_roles": false,
   "idp_role_management.return_only_mapped_local_roles": false,
+  "idp_role_management.return_manually_added_local_roles": false,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
 
   "authentication_policy.check_account_exist": true,
@@ -410,10 +416,16 @@
   "event.default_listener.user_claim_audit_logger.priority": "9",
   "event.default_listener.user_claim_audit_logger.enable": false,
   "event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly": false,
+  "event.default_listener.client_certificate_authentication_handler.priority": "10",
+  "event.default_listener.client_certificate_authentication_handler.enable": true,
   "event.default_listener.username_resolver.priority": "14",
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
   "event.default_listener.userid_resolver.enable": true,
+  "event.default_listener.uma_introspection_data_provider.priority": "161",
+  "event.default_listener.uma_introspection_data_provider.enable": false,
+  "event.default_listener.is_introspection_data_provider.priority": "162",
+  "event.default_listener.is_introspection_data_provider.enable": false,
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
@@ -516,11 +528,8 @@
   "user.enable_per_user_functionality_locking": false,
   "tenant_context.enable_tenant_qualified_urls": false,
   "tenant_context.rewrite.webapps": [
-    "/api/identity/consent-mgt/v1.0/",
     "/oauth2/",
     "/scim2/",
-    "/api/identity/oauth2/dcr/v1.1/",
-    "/api/identity/oauth2/v1.0/",
     "/api/identity/media/v1.0/",
     "/api/",
     "/myaccount/",
@@ -587,6 +596,8 @@
   "fido.trusted.origins": [
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
   ],
+  "fido.user_response_timeout":"300000",
+
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
 
@@ -648,7 +659,7 @@
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.app_title": "Console | WSO2 Identity Server",
   "console.ui.app_name": "Console",
-  "console.ui.app_logo_path": "/assets/images/logo.svg",
+  "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
   "console.ui.product_name": "WSO2 Identity Server",
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
@@ -660,6 +671,9 @@
     "versionOverride": "BETA"
   },
   "console.applications.scopes": {
+    "feature": [
+      "console:applications"
+    ],
     "create": [
       "internal_application_mgt_create"
     ],
@@ -691,7 +705,11 @@
   },
   "console.attribute_dialects.enabled": true,
   "console.ui.is_default_dialect_editing_enabled": false,
+  "console.ui.is_header_avatar_label_allowed": true,
   "console.attribute_dialects.scopes": {
+    "feature": [
+      "console:attributes"
+    ],
     "create": [
       "internal_claim_meta_create"
     ],
@@ -748,6 +766,9 @@
   },
   "console.groups.enabled": true,
   "console.groups.scopes": {
+    "feature": [
+      "console:groups"
+    ],
     "create": [
       "internal_role_mgt_create"
     ],
@@ -763,6 +784,9 @@
   },
   "console.identity_providers.enabled": true,
   "console.identity_providers.scopes": {
+    "feature": [
+      "console:idps"
+    ],
     "create": [
       "internal_idp_create"
     ],
@@ -778,6 +802,9 @@
   },
   "console.oidc_scopes.enabled": true,
   "console.oidc_scopes.scopes": {
+    "feature": [
+      "console:scopes"
+    ],
     "create": [
       "internal_application_mgt_create"
     ],
@@ -820,6 +847,9 @@
   },
   "console.roles.enabled": true,
   "console.roles.scopes": {
+    "feature": [
+      "console:roles"
+    ],
     "create": [
       "internal_role_mgt_create"
     ],
@@ -835,6 +865,9 @@
   },
   "console.users.enabled": true,
   "console.users.scopes": {
+    "feature": [
+      "console:users"
+    ],
     "create": [
       "internal_user_mgt_create"
     ],
@@ -882,7 +915,8 @@
   "myaccount.ui.app_copyright": "WSO2 Identity Server",
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
-  "myaccount.ui.app_logo_path": "/assets/images/logo.svg",
+  "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
   "myaccount.product_version.configs": {
@@ -909,6 +943,7 @@
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
   "myaccount.personal_info.disabled_features": ["profileInfo.mobileVerification"],
+  "myaccount.security.disabled_features": ["security.loginVerifyData.typingDNA"],
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],

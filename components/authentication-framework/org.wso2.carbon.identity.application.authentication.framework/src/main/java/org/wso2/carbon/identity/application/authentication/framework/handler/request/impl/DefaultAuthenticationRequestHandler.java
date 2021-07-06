@@ -61,10 +61,6 @@ import org.wso2.carbon.user.core.model.UserMgtContext;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLEncoder;
@@ -74,6 +70,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
@@ -86,6 +87,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
 
@@ -153,6 +155,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // the flow
             if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
                 // call request path sequence handler
+                diagnosticLog.info("Invoking request path authenticators configured for the service provider: " +
+                        context.getServiceProviderName());
                 FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
             }
 
@@ -164,11 +168,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // Add or Validate session nonce cookie.
                 if (isNonceCookieEnabled()) {
+                    diagnosticLog.info("Session nonce cookie validation is enabled.");
                     String nonceCookieName = getNonceCookieName(context);
                     if (context.isReturning()) {
                         if (validateNonceCookie(request, context)) {
                             addOrUpdateNonceCookie = true;
                         } else {
+                            diagnosticLog.error("Session nonce cookie value is not matching for session with " +
+                                    "sessionDataKey: " + request.getParameter("sessionDataKey"));
                             throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
                                     "matching " +
                                     "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
@@ -182,6 +189,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
             }
         } catch (FrameworkException e) {
+            diagnosticLog.error("Server error occurred in authentication framework. Error message: " +
+                    e.getMessage());
             // Remove nonce cookie after authentication failure.
             removeNonceCookie(request, response, context);
             throw e;
@@ -221,20 +230,26 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Handling post authentication");
         }
+        diagnosticLog.info("In post authentication flow.");
         PostAuthenticationMgtService postAuthenticationMgtService =
                 FrameworkServiceDataHolder.getInstance().getPostAuthenticationMgtService();
 
         if (context.getSequenceConfig().isCompleted()) {
             if (postAuthenticationMgtService != null) {
+                diagnosticLog.info("Found post authentication service. Hence evaluating post authentication");
                 postAuthenticationMgtService.handlePostAuthentication(request, response, context);
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("No post authentication service found. Hence not evaluating post authentication.");
                 }
+                diagnosticLog.info("No post authentication service found. Hence not evaluating post authentication");
                 LoginContextManagementUtil.markPostAuthenticationCompleted(context);
             }
         } else {
-            log.debug("Sequence is not completed yet. Hence skipping post authentication");
+            if (log.isDebugEnabled()) {
+                log.debug("Sequence is not completed yet. Hence skipping post authentication");
+            }
+            diagnosticLog.info("Sequence is not completed yet. Hence skipping post authentication");
         }
     }
 
@@ -244,6 +259,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("User has pressed Deny or Cancel in the login page. Terminating the authentication flow");
         }
+        diagnosticLog.info("User has pressed Deny or Cancel in the login page. Terminating the authentication flow");
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
@@ -261,8 +277,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (FrameworkConstants.REMEMBER_ME_OPT_ON.equalsIgnoreCase(rememberMe)) {
+            diagnosticLog.info("Remember Me option has been set to true.");
             context.setRememberMe(true);
         } else {
+            diagnosticLog.info("Remember Me option is set to false.");
             context.setRememberMe(false);
         }
     }
@@ -285,6 +303,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Starting the sequence");
         }
+        diagnosticLog.info("Initiating the authentication sequence for the service provider: " +
+                context.getServiceProviderName());
 
         // "forceAuthenticate" - go in the full authentication flow even if user
         // is already logged in.
@@ -296,6 +316,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Force Authenticate : " + forceAuthenticate);
         }
+        diagnosticLog.info("forceAuthenticate param is set to " + forceAuthenticate);
 
         // "reAuthenticate" - authenticate again with the same IdPs as before.
         boolean reAuthenticate = request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ?
@@ -304,6 +325,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Re-Authenticate : " + reAuthenticate);
         }
+        diagnosticLog.info("reAuthenticate param is set to " + reAuthenticate);
 
         context.setReAuthenticate(reAuthenticate);
 
@@ -315,6 +337,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (log.isDebugEnabled()) {
             log.debug("Passive Authenticate : " + passiveAuthenticate);
         }
+        diagnosticLog.info("passiveAuthenticate param is set to " + passiveAuthenticate);
 
         context.setPassiveAuthenticate(passiveAuthenticate);
 
@@ -503,6 +526,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
+                sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN, applicationTenantDomain);
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
@@ -633,70 +657,38 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String appName = context.getServiceProviderName();
         int appTenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
         String inboundAuth = context.getCallerPath().substring(1);
-        int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
+        int appId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
-            String userName = authenticatedIdPData.getUser().getUserName();
+            String userId = authenticatedIdPData.getUser().getUserId();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
             if (tenantDomain == null) {
                 tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
             }
-            int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
-                    .getTenantId(tenantDomain);
             String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
-            String idpName = authenticatedIdPData.getIdpName();
-            boolean persistUserToSessionMapping = true;
-            String userId;
-            try {
-                int idpId = UserSessionStore.getInstance().getIdPId(idpName, appTenantId);
 
-                // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
-                // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (isFederatedUser(authenticatedIdPData.getUser())) {
-                    userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
-                    try {
-                        if (userId == null) {
-                            userId = UUID.randomUUID().toString();
-                            UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain,
-                                    idpId);
-                        }
-                    } catch (DuplicatedAuthUserException e) {
-                        // When the authenticated user is already persisted the respective user to session mapping will
-                        // be persisted from the same node handling the request.
-                        // Thus, persisting the user to session mapping can be gracefully ignored here.
-                        persistUserToSessionMapping = false;
-                        String msg = "User authenticated is already persisted. Username: " + userName + " Tenant " +
-                                "Domain:" + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: "
-                                + idpName;
-                        log.warn(msg);
-                        if (log.isDebugEnabled()) {
-                            log.debug(msg, e);
-                        }
-                    }
-                } else {
-                    userId = FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName);
-                }
-                if (StringUtils.isNotEmpty(userId)) {
-                    if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
-                            sessionContextKey)) {
-                        UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+            try {
+                AuthenticatedUser user = authenticatedIdPData.getUser();
+                if (StringUtils.isNotEmpty(user.getUserId())) {
+                    if (!UserSessionStore.getInstance().isExistingMapping(user.getUserId(), sessionContextKey)) {
+                        UserSessionStore.getInstance().storeUserSessionData(user.getUserId(), sessionContextKey);
                     }
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("A unique user id is not set for the user," + userName + "of userstore domain, " +
+                        log.debug("A unique user id is not set for the user," + userId + "of userstore domain, " +
                                 userStoreDomain + "in tenant, " + tenantDomain + ". Hence the session " +
                                 "information of the user is not stored.");
                     }
                 }
             } catch (UserSessionException e) {
-                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                throw new UserSessionException("Error while storing session data for user: " + userId + " of " +
                         "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain, e);
             }
         }
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
             if (appId > 0) {
-                UserSessionStore.getInstance().storeAppSessionDataIfNotExist(sessionContextKey, subject, appId, inboundAuth);
+                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);

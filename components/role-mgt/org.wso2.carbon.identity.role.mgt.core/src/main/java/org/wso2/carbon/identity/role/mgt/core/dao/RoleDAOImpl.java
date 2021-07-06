@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.mgt.core.dao;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -26,6 +27,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -62,10 +66,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+
+import javax.xml.namespace.QName;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_LIMIT;
@@ -124,6 +133,7 @@ public class RoleDAOImpl implements RoleDAO {
     private Log log = LogFactory.getLog(RoleDAOImpl.class);
     private GroupIDResolver groupIDResolver = new GroupIDResolver();
     private UserIDResolver userIDResolver = new UserIDResolver();
+    private Set<String> systemRoles = getSystemRoles();
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -185,7 +195,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleID = addRoleID(roleName, tenantDomain);
                     // Add role permissions.
                     if (CollectionUtils.isNotEmpty(permissions)) {
-                        setPermissionsForRole(roleID, permissions, tenantDomain);
+                        setPermissions(roleID, permissions, tenantDomain, roleName);
                     }
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
@@ -524,6 +534,9 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
+        // Validate the user removal operation based on the default system roles.
+        validateUserRemovalFromRole(deletedUserNamesList, roleName, tenantDomain);
+
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
             try {
@@ -565,6 +578,45 @@ public class RoleDAOImpl implements RoleDAO {
         return new RoleBasicInfo(roleID, roleName);
     }
 
+    private void validateUserRemovalFromRole(List<String> deletedUserNamesList, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedUserNamesList.isEmpty()) {
+            return;
+        }
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                    .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+            // Only the tenant owner can remove users from Administrator role.
+            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove users from the role: %s";
+                    throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                } else {
+                    // Tenant owner cannot be removed from Administrator role.
+                    if (deletedUserNamesList.contains(adminUserName)) {
+                        String errorMessage = "Invalid operation. Tenant owner cannot be removed from the role: %s";
+                        throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                                String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating user removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+    }
+
     private void processBatchUpdateForUsers(String roleName, List<String> userNamesList, int tenantId,
                                             String primaryDomainName, Connection connection,
                                             String removeUserFromRoleSql) throws SQLException {
@@ -600,6 +652,8 @@ public class RoleDAOImpl implements RoleDAO {
                     "Role id: " + roleID + " does not exist in the system.");
         }
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        // Validate the group removal operation based on the default system roles.
+        validateGroupRemovalFromRole(deletedGroupIDList, roleName, tenantDomain);
         if (CollectionUtils.isEmpty(newGroupIDList) && CollectionUtils.isEmpty(deletedGroupIDList)) {
             if (log.isDebugEnabled()) {
                 log.debug("Group lists are empty.");
@@ -675,11 +729,48 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    private void validateGroupRemovalFromRole(List<String> deletedGroupIDList, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedGroupIDList.isEmpty()) {
+            return;
+        }
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                    .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+            // Only the tenant owner can remove groups from Administrator role.
+            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove groups from the role: "
+                            + "%s";
+                    throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating group removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+    }
+
     @Override
     public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be renamed since it's a read only system role.");
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (!isExistingRoleID(roleID, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
@@ -776,6 +867,10 @@ public class RoleDAOImpl implements RoleDAO {
     public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be deleted since it's a read only system role.");
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         UserRealm userRealm;
         try {
@@ -1087,7 +1182,19 @@ public class RoleDAOImpl implements RoleDAO {
     public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Permissions cannot be modified in the role: " + roleName
+                            + " since it's a read only system role.");
+        }
+        return setPermissions(roleID, permissions, tenantDomain, roleName);
+    }
+
+    private RoleBasicInfo setPermissions(String roleID, List<String> permissions, String tenantDomain, String roleName)
+            throws IdentityRoleManagementServerException {
+
+        roleName = appendInternalDomain(roleName);
         /*
         Permission list can be empty in case we want to remove the permissions.
         Therefore validating for NULL will be sufficient.
@@ -1332,6 +1439,47 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
         }
         return removeInternalDomain(roleName);
+    }
+
+    @Override
+    public Set<String> getSystemRoles() {
+
+        // If the system roles are not enabled in the system no need to continue.
+        if (!IdentityUtil.isSystemRolesEnabled()) {
+            return Collections.emptySet();
+        }
+        Set<String> systemRoles = new HashSet<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser
+                .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemRolesConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator roleIdentifierIterator = systemRolesConfig
+                .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
+        if (roleIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        while (roleIdentifierIterator.hasNext()) {
+            OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+            String roleName = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+            if (StringUtils.isNotBlank(roleName)) {
+                systemRoles.add(roleName.trim());
+            }
+        }
+        return systemRoles;
     }
 
     /**

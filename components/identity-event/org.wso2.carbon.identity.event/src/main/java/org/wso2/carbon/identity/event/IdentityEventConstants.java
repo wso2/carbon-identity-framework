@@ -90,6 +90,8 @@ public class IdentityEventConstants {
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
         public static final String PRE_ACCOUNT_RECOVERY = "PRE_ACCOUNT_RECOVERY";
         public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
+        public static final String PRE_GET_USER_RECOVERY_DATA = "PRE_GET_USER_RECOVERY_DATA";
+        public static final String POST_GET_USER_RECOVERY_DATA = "POST_GET_USER_RECOVERY_DATA";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
@@ -168,6 +170,27 @@ public class IdentityEventConstants {
         public static final String POST_GENERATE_SMS_OTP = "POST_GENERATE_SMS_OTP";
         public static final String POST_VALIDATE_SMS_OTP = "POST_VALIDATE_SMS_OTP";
         public static final String SESSION_EXTENSION = "SESSION_EXTENSION";
+
+        // Claim metadata operation related events.
+        public static final String PRE_ADD_CLAIM_DIALECT = "PRE_ADD_CLAIM_DIALECT";
+        public static final String PRE_UPDATE_CLAIM_DIALECT = "PRE_UPDATE_CLAIM_DIALECT";
+        public static final String PRE_DELETE_CLAIM_DIALECT = "PRE_DELETE_CLAIM_DIALECT";
+        public static final String PRE_ADD_LOCAL_CLAIM = "PRE_LOCAL_CLAIM_ADD";
+        public static final String PRE_UPDATE_LOCAL_CLAIM = "PRE_UPDATE_LOCAL_CLAIM";
+        public static final String PRE_DELETE_LOCAL_CLAIM = "POST_DELETE_LOCAL_CLAIM";
+        public static final String PRE_ADD_EXTERNAL_CLAIM = "PRE_ADD_EXTERNAL_CLAIM";
+        public static final String PRE_UPDATE_EXTERNAL_CLAIM = "PRE_UPDATE_EXTERNAL_CLAIM";
+        public static final String PRE_DELETE_EXTERNAL_CLAIM = "PRE_DELETE_EXTERNAL_CLAIM";
+        public static final String POST_ADD_CLAIM_DIALECT = "POST_ADD_CLAIM_DIALECT";
+        public static final String POST_UPDATE_CLAIM_DIALECT = "POST_RENAME_CLAIM_DIALECT";
+        public static final String POST_DELETE_CLAIM_DIALECT = "POST_DELETE_CLAIM_DIALECT";
+        public static final String POST_ADD_LOCAL_CLAIM = "POST_LOCAL_CLAIM_ADD";
+        public static final String POST_UPDATE_LOCAL_CLAIM = "POST_UPDATE_LOCAL_CLAIM";
+        public static final String POST_DELETE_LOCAL_CLAIM = "POST_DELETE_LOCAL_CLAIM";
+        public static final String POST_ADD_EXTERNAL_CLAIM = "POST_ADD_EXTERNAL_CLAIM";
+        public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
+        public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
+        public static final String POST_NON_BASIC_AUTHENTICATION = "POST_NON_BASIC_AUTHENTICATION";
     }
 
     /**
@@ -202,6 +225,7 @@ public class IdentityEventConstants {
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenant-domain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
+        public static final String OPERATION_DESCRIPTION = "OPERATION_DESCRIPTION";
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String USER_CLAIMS = "USER_CLAIMS";
         public static final String ROLE_LIST = "ROLE_LIST";
@@ -220,6 +244,12 @@ public class IdentityEventConstants {
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
         public static final String VERIFIED_EMAIL = "VERIFIED_EMAIL";
         public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
+        public static final String USER_RECOVERY_DATA = "USER_RECOVERY_DATA";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO = "GET_USER_RECOVERY_DATA_SCENARIO";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION =
+                "GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
+                "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
@@ -261,6 +291,17 @@ public class IdentityEventConstants {
         public static final String OTP_STATUS = "otp-status";
         public static final String TRACE_ID = "traceId";
         public static final String SESSION_CONTEXT_ID = "sessionContextId";
+        public static final String LOCAL_CLAIM_URI = "localClaimUri";
+        public static final String LOCAL_CLAIM_PROPERTIES = "localClaimProperties";
+        public static final String EXTERNAL_CLAIM_URI = "externalClaimUri";
+        public static final String CLAIM_DIALECT_URI = "claimDialectUri";
+        public static final String OLD_CLAIM_DIALECT_URI = "oldClaimDialectUri";
+        public static final String NEW_CLAIM_DIALECT_URI = "newClaimDialectUri";
+        public static final String EXTERNAL_CLAIM_PROPERTIES = "externalClaimProperties";
+        public static final String PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM = "PropertyFailedLoginAttemptsClaim";
+        public static final String AUTHENTICATOR_NAME = "authenticatorName";
+        public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
+        public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
     }
 
     public class ErrorMessage {

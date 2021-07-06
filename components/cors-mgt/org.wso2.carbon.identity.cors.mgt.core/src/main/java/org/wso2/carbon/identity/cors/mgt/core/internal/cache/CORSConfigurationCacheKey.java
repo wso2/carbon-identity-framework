@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * CORS configuration container cache key.
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.cache.CacheKey;
 public class CORSConfigurationCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -6281482620654325986L;
+    private final String tenantDomain;
 
     public CORSConfigurationCacheKey(String tenantDomain) {
 

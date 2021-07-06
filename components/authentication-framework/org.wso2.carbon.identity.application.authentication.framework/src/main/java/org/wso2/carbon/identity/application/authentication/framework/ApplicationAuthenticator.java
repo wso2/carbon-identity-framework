@@ -40,7 +40,7 @@ public interface ApplicationAuthenticator extends Serializable {
      * @param request
      * @return boolean
      */
-    public boolean canHandle(HttpServletRequest request);
+    boolean canHandle(HttpServletRequest request);
 
     /**
      * Process the authentication or logout request.
@@ -52,7 +52,7 @@ public interface ApplicationAuthenticator extends Serializable {
      * @throws AuthenticationFailedException
      * @throws LogoutFailedException
      */
-    public AuthenticatorFlowStatus process(HttpServletRequest request,
+    AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException;
 
@@ -63,19 +63,19 @@ public interface ApplicationAuthenticator extends Serializable {
      * @param request
      * @return
      */
-    public String getContextIdentifier(HttpServletRequest request);
+    String getContextIdentifier(HttpServletRequest request);
 
     /**
      * Get the name of the Authenticator
      *
      * @return name
      */
-    public String getName();
+    String getName();
 
     /**
      * @return
      */
-    public String getFriendlyName();
+    String getFriendlyName();
 
     /**
      * Get the claim dialect URI if this authenticator receives claims in a standard dialect
@@ -83,12 +83,12 @@ public interface ApplicationAuthenticator extends Serializable {
      *
      * @return boolean
      */
-    public String getClaimDialectURI();
+    String getClaimDialectURI();
 
     /**
      * @return
      */
-    public List<Property> getConfigurationProperties();
+    List<Property> getConfigurationProperties();
 
     /**
      * Get Authentication Mechanism
@@ -97,5 +97,15 @@ public interface ApplicationAuthenticator extends Serializable {
      */
     default String getAuthMechanism() {
         return getName();
+    }
+
+    /**
+     * Get the tag list of the authenticators.
+     *
+     * @return List of tags.
+     */
+    default String[] getTags() {
+
+        return new String[0];
     }
 }

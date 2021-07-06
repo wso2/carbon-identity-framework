@@ -234,9 +234,10 @@ public class IdentityRequest implements Serializable {
         }
 
         public IdentityRequestBuilder addCookie(String name, Cookie value) {
+
             if (this.cookies.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + name);
+                // Temp-Fix: ignore the second value.
+                return this;
             }
             this.cookies.put(name, value);
             return this;

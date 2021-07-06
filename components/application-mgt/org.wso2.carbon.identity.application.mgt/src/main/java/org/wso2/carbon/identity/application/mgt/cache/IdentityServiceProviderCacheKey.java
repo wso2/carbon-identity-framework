@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for lookup Application (aka. Service Provieder) from the cache.
@@ -31,14 +31,10 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
 
     /**
      * @param serviceProviderName
-     * @param tenantDomain
      */
-    public IdentityServiceProviderCacheKey(String serviceProviderName, String tenantDomain) {
+    public IdentityServiceProviderCacheKey(String serviceProviderName) {
 
         this.serviceProviderKey = serviceProviderName;
-        if (tenantDomain != null) {
-            this.tenantDomain = tenantDomain.toLowerCase();
-        }
     }
 
     /**
@@ -64,14 +60,7 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
 
         IdentityServiceProviderCacheKey that = (IdentityServiceProviderCacheKey) o;
 
-        if (!serviceProviderKey.equals(that.serviceProviderKey)) {
-            return false;
-        }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
-
-        return true;
+        return serviceProviderKey.equals(that.serviceProviderKey);
     }
 
     @Override
@@ -79,7 +68,6 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
 
         int result = super.hashCode();
         result = 31 * result + serviceProviderKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

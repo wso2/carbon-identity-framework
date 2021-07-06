@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key used to access application based on authenticated application information for the request.
@@ -31,11 +31,10 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
     private String serviceProvideCacheInboundAuthType;
 
     public ServiceProviderCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
-            serviceProvideCacheInboundAuthType, String tenantDomain) {
+            serviceProvideCacheInboundAuthType) {
 
         this.serviceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
         this.serviceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
-        this.tenantDomain = tenantDomain;
     }
 
     @Override
@@ -56,10 +55,7 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
         if (!serviceProvideCacheInboundAuthKey.equals(that.serviceProvideCacheInboundAuthKey)) {
             return false;
         }
-        if (!serviceProvideCacheInboundAuthType.equals(that.serviceProvideCacheInboundAuthType)) {
-            return false;
-        }
-        return tenantDomain.equals(that.tenantDomain);
+        return serviceProvideCacheInboundAuthType.equals(that.serviceProvideCacheInboundAuthType);
     }
 
     @Override
@@ -68,7 +64,6 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
         int result = super.hashCode();
         result = 31 * result + serviceProvideCacheInboundAuthKey.hashCode();
         result = 31 * result + serviceProvideCacheInboundAuthType.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

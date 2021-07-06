@@ -64,11 +64,13 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -80,7 +82,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -88,6 +89,7 @@ import org.xml.sax.XMLReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -113,10 +115,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
@@ -137,6 +141,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertific
 public class ApplicationManagementServiceImpl extends ApplicationManagementService {
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
 
@@ -180,6 +185,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                diagnosticLog.error("Pre create application operation of listener: "
+                        + getName(listener) + " failed for application: " + serviceProvider.getApplicationName() +
+                        " of tenantDomain: " + tenantDomain);
                 throw buildServerException("Pre create application operation of listener: "
                         + getName(listener) + " failed for application: " + serviceProvider.getApplicationName() +
                         " of tenantDomain: " + tenantDomain);
@@ -203,6 +211,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + serviceProvider.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                diagnosticLog.error("Post create application operation of listener:" + getName(listener) +
+                        " failed for application: " + serviceProvider.getApplicationName() + " of tenantDomain: "
+                        + tenantDomain);
                 break;
             }
         }
@@ -272,6 +283,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
             log.error("Get application basic info service is not supported.");
+            diagnosticLog.error("Get application basic info service is not supported.");
             throw new IdentityApplicationManagementException("This service is not supported.");
         }
 
@@ -329,6 +341,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
 
             } else {
+                diagnosticLog.error("Application pagination is not supported. Tenant domain: " +
+                        tenantDomain);
                 throw new UnsupportedOperationException("Application pagination is not supported. Tenant domain: " +
                         tenantDomain);
             }
@@ -389,6 +403,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     }
                 }
             } else {
+                diagnosticLog.error("Application pagination is not supported in " +
+                        appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
                 throw new UnsupportedOperationException("Application pagination is not supported in " +
                         appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
             }
@@ -442,6 +458,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     }
                 }
             } else {
+                diagnosticLog.error("Application filtering and pagination not supported. " +
+                        "Tenant domain: " + tenantDomain);
                 throw new UnsupportedOperationException("Application filtering and pagination not supported. " +
                         "Tenant domain: " + tenantDomain);
             }
@@ -468,6 +486,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                           int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        diagnosticLog.info("Retrieving all application basic info.");
         ApplicationBasicInfo[] applicationBasicInfoArray;
 
         try {
@@ -485,6 +504,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         if (log.isDebugEnabled()) {
                             log.debug("Invoking pre listener: " + listener.getClass().getName());
                         }
+                        diagnosticLog.info("'doPreGetApplicationBasicInfo' execution failed for the listener: "
+                                + getName(listener));
                         return new ApplicationBasicInfo[0];
                     }
                 }
@@ -500,10 +521,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         if (log.isDebugEnabled()) {
                             log.debug("Invoking post listener: " + listener.getClass().getName());
                         }
+                        diagnosticLog.info("'doPostGetApplicationBasicInfo' execution failed for the listener: "
+                                + getName(listener));
                         return new ApplicationBasicInfo[0];
                     }
                 }
             } else {
+                diagnosticLog.error("Application filtering and pagination not supported in " +
+                        appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
                 throw new UnsupportedOperationException("Application filtering and pagination not supported in " +
                         appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
             }
@@ -592,6 +617,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 // This means the application is not a valid one.
                 String msg = "Cannot find application with id: " + serviceProvider.getApplicationID() + " in " +
                         "tenantDomain: " + tenantDomain;
+                diagnosticLog.error(msg);
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
 
@@ -607,6 +633,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             updateApplicationPermissions(serviceProvider, applicationName, storedAppName);
         } catch (Exception e) {
             String error = "Error occurred while updating the application: " + applicationName + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -685,7 +712,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreDeleteApplication(applicationName, tenantDomain, username)) {
-
+                diagnosticLog.error("Pre Delete application operation of listener: " + getName(listener) +
+                        " failed for application: " + applicationName + " of tenantDomain: " + tenantDomain);
                 throw buildServerException("Pre Delete application operation of listener: " + getName(listener) +
                         " failed for application: " + applicationName + " of tenantDomain: " + tenantDomain);
             }
@@ -709,11 +737,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     log.debug("Application cannot be found for name: " + applicationName +
                             " in tenantDomain: " + tenantDomain);
                 }
+                diagnosticLog.info("Application cannot be found for name: " + applicationName +
+                        " in tenantDomain: " + tenantDomain);
                 return;
             }
 
         } catch (Exception e) {
             String error = "Error occurred while deleting the application: " + applicationName + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw buildServerException(error, e);
         } finally {
             endTenantFlow();
@@ -723,6 +754,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (listener.isEnable() && !listener.doPostDeleteApplication(serviceProvider, tenantDomain, username)) {
                 log.error("Post Delete application operation of listener: " + getName(listener) + " failed for " +
                         "application with name: " + applicationName + " of tenantDomain: " + tenantDomain);
+                diagnosticLog.error("Post Delete application operation of listener: " + getName(listener) +
+                        " failed for application with name: " + applicationName + " of tenantDomain: " + tenantDomain);
                 return;
             }
         }
@@ -749,14 +782,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
         }
 
-        try {
-            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-                IdentityServiceProviderCache.getInstance().clearCacheEntry(
-                        new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName(), tenantDomain));
-            }
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            IdentityServiceProviderCache.getInstance().clearCacheEntry(
+                    new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName()), tenantDomain);
         }
     }
 
@@ -771,6 +799,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (Exception e) {
             String error = "Error occurred while retrieving Identity Provider: " + federatedIdPName + ". " +
                     e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -791,6 +820,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return new IdentityProvider[0];
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Identity Providers" + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -811,6 +841,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return new LocalAuthenticatorConfig[0];
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Local Authenticators" + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -821,6 +852,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        diagnosticLog.info("Retrieving all request path authenticators in tenant domain: " + tenantDomain);
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -831,6 +863,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return new RequestPathAuthenticatorConfig[0];
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Request Path Authenticators" + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -843,12 +876,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
-            ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
-                    .getAllClaimMappings(claimDialect);
+
             List<String> claimUris = new ArrayList<>();
-            for (ClaimMapping claimMap : claimMappings) {
-                claimUris.add(claimMap.getClaim().getClaimUri());
+            if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(claimDialect)) {
+                // Local claims are retrieved via ClaimMetadataManagement service for consistency.
+                List<LocalClaim> localClaims = ApplicationManagementServiceComponentHolder.getInstance()
+                        .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+                claimUris = getLocalClaimURIs(localClaims);
+            } else {
+                ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                        .getClaimManager().getAllClaimMappings(claimDialect);
+                for (ClaimMapping claimMap : claimMappings) {
+                    claimUris.add(claimMap.getClaim().getClaimUri());
+                }
             }
+
             String[] allLocalClaimUris = (claimUris.toArray(new String[claimUris.size()]));
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
@@ -856,6 +898,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return allLocalClaimUris;
         } catch (Exception e) {
             String error = "Error while reading system claims" + ". " + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -883,6 +926,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (Exception e) {
             String error = "Error occurred while retrieving the service provider for client id :  " + clientId + ". "
                     + e.getMessage();
+            diagnosticLog.error(error);
             throw new IdentityApplicationManagementException(error, e);
         }
 
@@ -1113,11 +1157,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider getServiceProviderByClientId(String clientId, String clientType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        diagnosticLog.info("Retrieving service provider by client ID: " + clientId);
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreGetServiceProviderByClientId(clientId, clientType,
                     tenantDomain)) {
+                diagnosticLog.info("'doPreGetServiceProviderByClientId' execution failed for listener: "
+                        + getName(listener));
                 return null;
             }
         }
@@ -1164,12 +1211,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
                 .getFileBasedSPs().containsKey(serviceProviderName)) {
+            diagnosticLog.info("Service provider for the client ID: " + clientId + " is null. " +
+                    "Checking file based service providers.");
             serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
         }
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId,
                     clientType, tenantDomain)) {
+                diagnosticLog.info("'doPostGetServiceProviderByClientId' execution failed for listener: "
+                        + getName(listener));
                 return null;
             }
         }
@@ -1494,9 +1545,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         applicationTemplateDAO.createApplicationTemplate(spTemplate, tenantDomain);
 
         // Add application template to cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName(),
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName());
+        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
     }
 
     /**
@@ -1511,9 +1561,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // Get SP template from cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey, tenantDomain);
 
         if (spTemplate == null) {
             // Get SP template from database
@@ -1538,9 +1587,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         applicationTemplateDAO.deleteApplicationTemplate(templateName, tenantDomain);
 
         // Delete SP template from cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey, tenantDomain);
     }
 
     /**
@@ -1561,13 +1609,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // Update the template in cache
         if (!templateName.equals(spTemplate.getName())) {
-            ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                    tenantDomain);
-            ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey);
+            ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+            ServiceProviderTemplateCache.getInstance().clearCacheEntry(templateCacheKey, tenantDomain);
         }
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName(),
-                tenantDomain);
-        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(spTemplate.getName());
+        ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
     }
 
     /**
@@ -1582,9 +1628,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // Check existence in cache
-        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName,
-                tenantDomain);
-        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey);
+        ServiceProviderTemplateCacheKey templateCacheKey = new ServiceProviderTemplateCacheKey(templateName);
+        SpTemplate spTemplate = getSpTemplateFromCache(templateCacheKey, tenantDomain);
 
         if (spTemplate == null) {
             // Check existence in database
@@ -1674,19 +1719,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.debug(String.format("Template with name: %s is taken from database for tenant: %s ",
                         templateName, tenantDomain));
             }
-            ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate);
+            ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
             return spTemplate;
         }
         return null;
     }
 
-    private SpTemplate getSpTemplateFromCache(ServiceProviderTemplateCacheKey templateCacheKey) {
+    private SpTemplate getSpTemplateFromCache(ServiceProviderTemplateCacheKey templateCacheKey, String tenantDomain) {
 
-        SpTemplate spTemplate = ServiceProviderTemplateCache.getInstance().getValueFromCache(templateCacheKey);
+        SpTemplate spTemplate = ServiceProviderTemplateCache.getInstance()
+                .getValueFromCache(templateCacheKey, tenantDomain);
         if (spTemplate != null) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Template with name: %s is taken from cache of tenant: %s ",
-                        templateCacheKey.getTemplateName(), templateCacheKey.getTenantDomain()));
+                        templateCacheKey.getTemplateName(), tenantDomain));
             }
             return spTemplate;
         }
@@ -1970,12 +2016,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
         }
         try {
+            // Creating secure parser by disabling XXE.
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setNamespaceAware(true);
+            spf.setXIncludeAware(false);
+            try {
+                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+                spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            } catch (SAXException | ParserConfigurationException e) {
+                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or "
+                        + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
+                        + " or secure-processing.");
+            }
+            // Creating source object using the secure parser.
+            Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
+                    new InputSource(new StringReader(spFileContent.getContent())));
+            // Performing unmarshall operation by passing the generated source object to the unmarshaller.
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            return (ServiceProvider) unmarshaller.unmarshal(new ByteArrayInputStream(
-                    spFileContent.getContent().getBytes(StandardCharsets.UTF_8)));
-
-        } catch (JAXBException e) {
+            return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+        } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }
@@ -2127,12 +2189,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        diagnosticLog.info("Creating application with name: " + application.getApplicationName());
         // Invoking the listeners.
         Collection<ApplicationResourceManagementListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationResourceMgtListeners();
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() && !listener.doPreCreateApplication(application, tenantDomain, username)) {
+                diagnosticLog.error("Pre create application operation of listener: "
+                        + getName(listener) + " failed for application: " + application.getApplicationName() +
+                        " of tenantDomain: " + tenantDomain);
                 throw buildServerException("Pre create application operation of listener: "
                         + getName(listener) + " failed for application: " + application.getApplicationName() +
                         " of tenantDomain: " + tenantDomain);
@@ -2146,12 +2212,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
                     username)) {
+                diagnosticLog.error("Post create application operation of listener:" + getName(listener) +
+                        " failed for application: " + application.getApplicationName() + " of tenantDomain: "
+                        + tenantDomain);
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
                 break;
             }
         }
 
+        diagnosticLog.info("Application creation is successful. Application resource ID: " + resourceId);
         return resourceId;
     }
 
@@ -2557,6 +2627,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         }
+    }
+
+    private ArrayList<String> getLocalClaimURIs(List<LocalClaim> localClaims) {
+
+        // Using Java 8 streams to do the mapping will result in breaking at the axis level thus using the following
+        // approach.
+        ArrayList<String> localClaimsArray = new ArrayList<String>();
+        for (LocalClaim localClaim : localClaims) {
+            localClaimsArray.add(localClaim.getClaimURI());
+        }
+        return localClaimsArray;
     }
 }
 

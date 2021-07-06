@@ -130,6 +130,7 @@ public abstract class FrameworkConstants {
     public static final String BACK_TO_FIRST_STEP = "BACK_TO_FIRST_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
+    public static final String TAGS = "Tags";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
@@ -141,6 +142,17 @@ public abstract class FrameworkConstants {
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
+
+    // DB product names.
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
 
     private FrameworkConstants() {
 
@@ -166,6 +178,8 @@ public abstract class FrameworkConstants {
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
         public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
                 + ".ReturnOnlyMappedLocalRoles";
+        public static final String SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnManuallyAddedLocalRoles";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
@@ -419,6 +433,7 @@ public abstract class FrameworkConstants {
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
         public static final String JS_AUTH_FAILURE = "fail";
+        public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -491,7 +506,7 @@ public abstract class FrameworkConstants {
     }
 
     public static class Application {
-    
+
         public static final String MY_ACCOUNT_APP = "My Account";
         public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
         public static final String CONSOLE_APP = "Console";

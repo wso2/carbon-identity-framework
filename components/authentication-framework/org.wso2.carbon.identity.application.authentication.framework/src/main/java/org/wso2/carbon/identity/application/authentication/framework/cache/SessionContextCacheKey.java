@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 public class SessionContextCacheKey extends CacheKey {
 

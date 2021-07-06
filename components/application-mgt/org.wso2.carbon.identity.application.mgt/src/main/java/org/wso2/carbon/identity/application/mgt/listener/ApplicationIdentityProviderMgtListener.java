@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
@@ -53,7 +54,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             IdentityProviderManagementException {
 
         try {
-            IdentityServiceProviderCache.getInstance().clear();
+            IdentityServiceProviderCache.getInstance().clear(tenantDomain);
 
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
@@ -90,6 +91,12 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
 
                     // Validating Applications with Outbound Provisioning Connectors configured.
                     updateApplicationWithProvisioningConnectors(identityProvider, provisioningIdps);
+
+                    // Clear application caches if IDP name is updated.
+                    if (!StringUtils.equals(oldIdPName, identityProvider.getIdentityProviderName())) {
+
+                        CacheBackedApplicationDAO.clearAllAppCache(serviceProvider, tenantDomain);
+                    }
                 }
 
                 offset = connectedApplications.getOffSet() + connectedApplications.getLimit();
@@ -120,6 +127,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             throws IdentityApplicationManagementException, IdentityProviderManagementException {
 
         if (authSteps != null && authSteps.length != 0) {
+
             if (ApplicationConstants.AUTH_TYPE_FEDERATED
                     .equalsIgnoreCase(localAndOutboundAuthConfig.getAuthenticationType())) {
                 updateApplicationWithFederatedAuthenticator(identityProvider, tenantDomain,
@@ -162,7 +170,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         }
 
         // Clear the SP cache since deleted IDP might have contained association with SPs.
-        IdentityServiceProviderCache.getInstance().clear();
+        IdentityServiceProviderCache.getInstance().clear(tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug("IdentityServiceProvider Cache is cleared on post delete event of idp: " + idPName + " of " +
                     "tenantDomain: " + tenantDomain);

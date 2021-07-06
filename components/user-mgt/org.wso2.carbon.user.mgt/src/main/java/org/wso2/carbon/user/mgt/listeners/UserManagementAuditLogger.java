@@ -27,6 +27,7 @@ import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
@@ -209,8 +210,13 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 JSONArray permissionsArray = new JSONArray(permissions);
                 dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
             }
-            audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
-                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+                audit.warn(createAuditMessage(ListenerUtils.ADD_GROUP_ACTION,
+                        ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            } else {
+                audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                        ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            }
         }
         return true;
     }

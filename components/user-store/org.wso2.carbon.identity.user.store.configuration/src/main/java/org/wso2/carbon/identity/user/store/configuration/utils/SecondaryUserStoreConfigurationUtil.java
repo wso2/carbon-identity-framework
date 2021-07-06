@@ -917,6 +917,9 @@ public class SecondaryUserStoreConfigurationUtil {
         if (e.getMessage() != null) {
             errorMessage = e.getMessage();
         }
+        if (e.getErrorCode() != null) {
+            return new IdentityUserStoreClientException(e.getErrorCode(), errorMessage, e);
+        }
         return new IdentityUserStoreClientException(errorMessage, e);
     }
 }

@@ -80,17 +80,21 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String REQUEST_TYPE_OAUTH2 = "oauth2";
     private static final String SP_NAME_DEFAULT = "DEFAULT";
     private static final Log log = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
                                              AuthenticationContext context) throws PostAuthenticationFailedException {
 
+        diagnosticLog.info("In consent management flow for the application: " +
+                context.getSequenceConfig().getApplicationConfig().getApplicationName());
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (authenticatedUser == null) {
             if (isDebugEnabled()) {
                 String message = "User not available in AuthenticationContext. Returning";
                 logDebug(message);
             }
+            diagnosticLog.info("User not available in AuthenticationContext. Returning");
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
@@ -102,12 +106,15 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         // Check whether currently engaged SP has skipConsent enabled
         if (FrameworkUtils.isConsentPageSkippedForSP(getServiceProvider(context))) {
+            diagnosticLog.info("skipConsent config is engaged to the service provider. Hence returning.");
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
         if (isConsentPrompted(context)) {
+            diagnosticLog.info("Consent is already prompted. Handing post consent prompt flow.");
             return handlePostConsent(request, response, context);
         } else {
+            diagnosticLog.info("Handling pre-consent flow.");
             return handlePreConsent(request, response, context);
         }
     }
@@ -159,10 +166,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                                getSPTenantDomain(serviceProvider));
                 logDebug(message);
             }
+            diagnosticLog.info(String.format("Retrieving required consent data of user: %s for service " +
+                            "provider: %s in tenant domain: %s.",
+                    authenticatedUser.getAuthenticatedSubjectIdentifier(),
+                    serviceProvider.getApplicationName(),
+                    getSPTenantDomain(serviceProvider)));
 
-            if (isNotEmpty(consentClaimsData.getClaimsWithConsent())) {
-                removeClaimsWithoutConsent(context, consentClaimsData);
-            }
+            removeClaimsWithoutConsent(context, consentClaimsData);
 
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
@@ -174,6 +184,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                                    getSPTenantDomain(serviceProvider));
                     logDebug(message);
                 }
+                diagnosticLog.info(String.format("Required consent data is empty for user: %s for service " +
+                                "provider: %s in tenant domain: %s. Post authentication completed.",
+                        authenticatedUser.getAuthenticatedSubjectIdentifier(),
+                        serviceProvider.getApplicationName(),
+                        getSPTenantDomain(serviceProvider)));
                 return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
             } else {
                 String mandatoryLocalClaims = buildConsentClaimString(consentClaimsData.getMandatoryClaims());
@@ -189,6 +204,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                             serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                     logDebug(message);
                 }
+                diagnosticLog.info(String.format("Require consent for mandatory claims: %s, requested claims: %s, " +
+                                "from user: %s for service provider: %s in tenant domain: %s.",
+                        consentClaimsData.getMandatoryClaims(),
+                        consentClaimsData.getRequestedClaims(),
+                        authenticatedUser.getAuthenticatedSubjectIdentifier(),
+                        serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider)));
 
                 redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
                 setConsentPoppedUpState(context);
@@ -203,6 +224,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                          "provider: %s in tenant domain: %s.", authenticatedUser
                     .getAuthenticatedSubjectIdentifier(), serviceProvider.getApplicationName(), getSPTenantDomain
                     (serviceProvider));
+            diagnosticLog.error(error + ". Error message: " + e.getMessage());
             throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing user " +
                                                         "consent.", error, e);
         }
@@ -280,6 +302,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                         serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 logDebug(message);
             }
+            diagnosticLog.info(String.format("User: %s has approved consent for service provider: %s in tenant " +
+                            "domain %s.", authenticatedUser.getAuthenticatedSubjectIdentifier(),
+                    serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider)));
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
 
@@ -293,12 +318,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 String error = "Authentication Failure: Consent management is disabled for SSO.";
                 String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
                                    "sso consent management is invoked.";
+                diagnosticLog.error(errorDesc + ". Error message: " + e.getMessage());
                 throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
                 String error = "Error occurred while processing consent input of user: %s, for service provider: %s " +
                                "in tenant domain: %s.";
                 error = String.format(error, authenticatedUser.getAuthenticatedSubjectIdentifier(), serviceProvider
                         .getApplicationName(), getSPTenantDomain(serviceProvider));
+                diagnosticLog.error(error + ". Error message: " + e.getMessage());
                 throw new PostAuthenticationFailedException("Authentication failed. Error while processing user " +
                                                             "consent input.", error, e);
             }
@@ -328,6 +355,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 logDebug("Cannot find " + CONSENT_CLAIM_META_DATA + " entry in AuthenticationContext. Retrieving from" +
                          " SSOConsentService.");
             }
+            diagnosticLog.info("Cannot find " + CONSENT_CLAIM_META_DATA + " entry in AuthenticationContext. " +
+                    "Retrieving from SSOConsentService.");
             try {
                 consentClaimsData = getSSOConsentService().getConsentRequiredClaimsWithExistingConsents(serviceProvider,
                                                                                                    authenticatedUser);
@@ -335,12 +364,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 String error = "Authentication Failure: Consent management is disabled for SSO.";
                 String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
                                    "sso consent management is invoked.";
+                diagnosticLog.error(errorDesc + ". Error message: " + e.getMessage());
                 throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
                 String error = String.format("Error occurred while retrieving consent data of user: %s for service " +
                                              "provider: %s in tenant domain: %s.",
                                              authenticatedUser.getAuthenticatedSubjectIdentifier(),
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
+                diagnosticLog.error(error + ". Error message: " + e.getMessage());
                 throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing " +
                                                             "user consent.", error, e);
             }
@@ -483,9 +514,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             uriBuilder = getUriBuilder(context, requestedLocalClaims, mandatoryLocalClaims);
             response.sendRedirect(uriBuilder.build().toString());
         } catch (IOException e) {
+            diagnosticLog.error("Error while redirecting to consent page. Error message: " + e.getMessage());
             throw new PostAuthenticationFailedException("Authentication failed. Error while processing consent " +
                                                         "requirements.", "Error while redirecting to consent page.", e);
         } catch (URISyntaxException e) {
+            diagnosticLog.error("Error while building redirect URI. Error message: " + e.getMessage());
             throw new PostAuthenticationFailedException("Authentication failed. Error while processing consent " +
                                                         "requirements.", "Error while building redirect URI.", e);
         }
@@ -511,6 +544,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             ServiceProvider serviceProvider = getServiceProvider(context);
             String error = "Application configs are null in AuthenticationContext for SP: " + serviceProvider
                     .getApplicationName() + " in tenant domain: " + getSPTenantDomain(serviceProvider);
+            diagnosticLog.error(error);
             throw new PostAuthenticationFailedException("Authentication failed. Error while processing application " +
                                                         "claim configurations.", error);
         }
@@ -580,6 +614,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             if (isDebugEnabled()) {
                 logDebug("Appending requested local claims to redirect URI: " + requestedLocalClaims);
             }
+            diagnosticLog.info("Appending requested local claims to redirect URI: " + requestedLocalClaims);
             uriBuilder.addParameter(REQUESTED_CLAIMS_PARAM, requestedLocalClaims);
         }
 
@@ -587,6 +622,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             if (isDebugEnabled()) {
                 logDebug("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
             }
+            diagnosticLog.info("Appending mandatory local claims to redirect URI: " + mandatoryLocalClaims);
             uriBuilder.addParameter(MANDATORY_CLAIMS_PARAM, mandatoryLocalClaims);
         }
         uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,

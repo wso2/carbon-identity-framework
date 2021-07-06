@@ -117,10 +117,9 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/role</ClaimURI>
-				<DisplayName>Role</DisplayName>
+				<DisplayName>Roles and groups</DisplayName>
 				<AttributeID>role</AttributeID>
-				<Description>Role</Description>
-				<SupportedByDefault/>
+				<Description>Include both userstore groups and internal roles</Description>
 				<ReadOnly />
 			</Claim>
 			<Claim>
@@ -369,6 +368,12 @@
 				<DisplayName>Photo URIL</DisplayName>
 				<AttributeID>photoUrl</AttributeID>
 				<Description>Photo URL</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/websiteurl</ClaimURI>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
+				<Description>Website URL</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
@@ -1599,12 +1604,12 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>website</ClaimURI>
-				<DisplayName>URL</DisplayName>
-				<AttributeID>url</AttributeID>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
 				<Description>URL of the End-User's Web page or blog. This Web page SHOULD contain information published by the End-User or an organization that the End-User is affiliated with.</Description>
 				<DisplayOrder>10</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/websiteurl</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>upn</ClaimURI>
@@ -1622,7 +1627,16 @@
 				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>roles</ClaimURI>
+				<DisplayName>User Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>List of role names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
+				<DisplayOrder>13</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>email</ClaimURI>
@@ -2179,7 +2193,7 @@
 				<Description>Roles</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</ClaimURI>

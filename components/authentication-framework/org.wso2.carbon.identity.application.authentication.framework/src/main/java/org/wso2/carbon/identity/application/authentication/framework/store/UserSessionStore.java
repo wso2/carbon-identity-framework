@@ -126,6 +126,19 @@ public class UserSessionStore {
     }
 
     /**
+     * Method to store user and session mapping for federated users.
+     *
+     * @param userName Name of the authenticated user
+     * @param tenantId Id of the tenant domain
+     * @param idPId    Identity Provider id
+     * @throws UserSessionException if an error occurs when storing the authenticated user details to the database
+     */
+    public void storeUserData(String userId, String userName, int tenantId, int idPId) throws UserSessionException {
+
+        storeUserData(userId, userName, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
+    /**
      * Method to get the unique Id of a user from the database.
      *
      * @param userName   Name of the authenticated user
@@ -168,6 +181,10 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Id of a user from the database.
+     * @deprecated use {@link #getFederatedUserId(String, int, int)} instead.
+     * Initially when the user store did not support user id, it was created and stored in here. Now the user store
+     * support user ids for local users, this is not required for local users anymore. However similar capability is
+     * still required for federated users.
      *
      * @param userName   Name of the authenticated user
      * @param tenantId   Id of the tenant domain
@@ -175,6 +192,7 @@ public class UserSessionStore {
      * @return the user id of the user
      * @throws UserSessionException if an error occurs when retrieving the user id of the user from the database
      */
+    @Deprecated
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
@@ -203,12 +221,16 @@ public class UserSessionStore {
 
     /**
      * Method to return the user Ids of the users in a given user store from the database.
+     * @deprecated
+     * User ids of local users are no longer stored in IDN_AUTH_USER table and user ids of all the users in a domain
+     * should not be retrieved at once.
      *
      * @param userDomain name of the user Store domain
      * @param tenantId   id of the tenant domain
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
+    @Deprecated
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
@@ -300,7 +322,7 @@ public class UserSessionStore {
     }
 
     /**
-     * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_STORE.
+     * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_MAPPING.
      *
      * @param userId    Id of the user
      * @param sessionId Id of the authenticated session
@@ -315,6 +337,9 @@ public class UserSessionStore {
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.executeUpdate();
                 IdentityDatabaseUtil.commitTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Stored user session data for user " + userId + " with session id: " + sessionId);
+                }
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while storing mapping between user Id: " + userId +
@@ -538,16 +563,41 @@ public class UserSessionStore {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
-                    preparedStatement.setString(1, sessionId);
-                    preparedStatement.setString(2, subject);
-                    preparedStatement.setInt(3, appID);
-                    preparedStatement.setString(4, inboundAuth);
-                });
+                String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
+                if (JdbcUtils.isOracleDB()) {
+                    query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                        preparedStatement.setString(5, sessionId);
+                        preparedStatement.setString(6, subject);
+                        preparedStatement.setInt(7, appID);
+                        preparedStatement.setString(8, inboundAuth);
+                    });
+                } else {
+                    if (JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
+                    } else if (JdbcUtils.isMySQLDB() ||  JdbcUtils.isMariaDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
+                    } else if (JdbcUtils.isPostgreSQLDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
+                    } else if (JdbcUtils.isOracleDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    }
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                    });
+                }
                 return null;
             });
         } catch (TransactionException e) {
-            throw new DataAccessException("Error while storing application data for session in the database.", e);
+            throw new DataAccessException("Error while storing application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
         }
     }
 
@@ -559,7 +609,9 @@ public class UserSessionStore {
      * @param appID       Id of the application.
      * @param inboundAuth Protocol used in the app.
      * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
+     * @deprecated Please use storeAppSessionData method instead.
      */
+    @Deprecated
     public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
@@ -592,7 +644,10 @@ public class UserSessionStore {
      * @param appTenantID     app tenant id
      * @return the application id
      * @throws UserSessionException if an error occurs when retrieving app id
+     *
+     * @deprecated Since the UserSessionStore should not invoke the application management table.
      */
+    @Deprecated
     public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
 
         Integer appId;
@@ -662,6 +717,9 @@ public class UserSessionStore {
                     preparedStatement.addBatch();
                 }
             }), sessionId);
+            if (log.isDebugEnabled()) {
+                log.debug("Inserted metadata for session id: " + sessionId);
+            }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing metadata of session:" + sessionId +
                     " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
@@ -719,11 +777,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving session IDs of user: " +
-                        user.getUserName() + ".", ex);
+                        user.getUserId() + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session IDs of user: " +
-                    user.getUserName() + ".", e);
+                    user.getUserId() + ".", e);
         }
         return sessionIdList;
     }
@@ -738,7 +796,7 @@ public class UserSessionStore {
      */
     public boolean isExistingMapping(User user, int idpId, String sessionId) throws UserSessionException {
 
-        Boolean isExisting = false;
+        boolean isExisting = false;
 
         int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -757,11 +815,11 @@ public class UserSessionStore {
                 }
             } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                        .getUserName() + " and session Id: " + sessionId + ".", ex);
+                        .getUserId() + " and session Id: " + sessionId + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                    .getUserName() + " and session Id: " + sessionId + ".", e);
+                    .getUserId() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
     }

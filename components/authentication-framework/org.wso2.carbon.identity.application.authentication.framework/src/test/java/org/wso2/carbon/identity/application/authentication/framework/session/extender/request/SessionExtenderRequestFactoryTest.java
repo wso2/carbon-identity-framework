@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.request;
 
+import org.apache.log4j.MDC;
 import org.mockito.Mock;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
 import java.util.Enumeration;
-import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,7 +53,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderRequestFactory.
  */
-public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
+
+public class SessionExtenderRequestFactoryTest {
 
     @Mock
     private HttpServletRequest mockedHttpRequest;
@@ -103,7 +103,7 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
         return new Object[][]{
                 {IDP_SESSION_KEY, null, IDP_SESSION_KEY, null},
                 {null, new Cookie[] {sessionCookie}, null, sessionCookie},
-                {IDP_SESSION_KEY, new Cookie[] {sessionCookie}, IDP_SESSION_KEY, null}
+                {IDP_SESSION_KEY, new Cookie[] {sessionCookie}, IDP_SESSION_KEY, sessionCookie}
         };
     }
 
@@ -144,12 +144,11 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
         when(exception.getErrorCode()).thenReturn(EXCEPTION_ERROR_CODE);
         when(exception.getErrorMessage()).thenReturn(EXCEPTION_MESSAGE);
         when(exception.getDescription()).thenReturn(EXCEPTION_DESCRIPTION);
-        when(UUID.randomUUID().toString()).thenReturn(TRACE_ID);
+        MDC.put("Correlation-ID", TRACE_ID);
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderRequestFactory.handleException(exception, mockedHttpRequest, mockedHttpResponse);
         HttpIdentityResponse response = responseBuilder.build();
-
         assertEquals(response.getBody(), ERROR_RESPONSE_BODY);
         assertEquals(response.getStatusCode(), 400);
     }

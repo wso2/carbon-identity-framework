@@ -26,6 +26,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -62,15 +64,18 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class
+        , IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
@@ -93,6 +98,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         mockStatic(FrameworkUtils.class);
         mockStatic(ConfigurationFacade.class);
         mockStatic(ClaimMetadataHandler.class);
+        mockStatic(IdentityTenantUtil.class);
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
 
         PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
@@ -133,11 +139,14 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore(boolean hasSpRoleMapping)
             throws Exception {
 
+        PowerMockito.spy(AdminServicesUtil.class);
+        PowerMockito.doReturn(null).when(AdminServicesUtil.class, "getUserRealm");
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true, hasSpRoleMapping);
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
         when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
         doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
                 (Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        PowerMockito.when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
 
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response,
@@ -205,8 +214,8 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         }
 
         if (withSpRoleMapping) {
-            sequenceConfig.getApplicationConfig().getClaimMappings().put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI,
-                    FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            sequenceConfig.getApplicationConfig().getClaimMappings().put(getLocalGroupsClaimURI(),
+                    getLocalGroupsClaimURI());
             sequenceConfig.getApplicationConfig().getServiceProvider().getClaimConfig().setLocalClaimDialect(true);
             sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_1, SP_MAPPED_ROLE_1);
             sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_2, SP_MAPPED_ROLE_2);
@@ -218,7 +227,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private boolean isSpRoleMappingSuccessful(Map<ClaimMapping, String> authenticatedUserAttributes) {
 
         for (Map.Entry<ClaimMapping, String> entry : authenticatedUserAttributes.entrySet()) {
-            if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey().getLocalClaim().getClaimUri())) {
+            if (getLocalGroupsClaimURI().equals(entry.getKey().getLocalClaim().getClaimUri())) {
                 List<String> roles = Arrays.asList(entry.getValue().split(","));
                 return roles.size() == 2 && roles.contains(SP_MAPPED_ROLE_1) && roles.contains(SP_MAPPED_ROLE_2);
             }

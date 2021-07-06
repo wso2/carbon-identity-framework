@@ -481,6 +481,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 List<ClaimMapping> claimMappings = new ArrayList<>();
 
                 for (LocalClaim localClaim : localClaims) {
+                    if (isFilterableClaim(localClaim)) {
+                        continue;
+                    }
+
                     ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
                             .tenantId);
                     claimMappings.add(claimMapping);
@@ -546,6 +550,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             List<ClaimMapping> claimMappings = new ArrayList<>();
 
             for (LocalClaim localClaim : localClaims) {
+                if (isFilterableClaim(localClaim)) {
+                    continue;
+                }
+
                 ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
                         .tenantId);
 
@@ -582,5 +590,22 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);
         }
+    }
+
+    private boolean isFilterableClaim(LocalClaim localClaim) {
+
+        // Filter the local claim `role` when groups vs roles separation is enabled. This claim is
+        // considered as a legacy claim going forward, thus `roles` and `groups` claims should be used
+        // instead.
+        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() && UserCoreConstants.ROLE_CLAIM.
+                equals(localClaim.getClaimURI())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping the legacy role claim: " + localClaim.getClaimURI() + ", when getting " +
+                        "local claims");
+            }
+            return true;
+        }
+
+        return false;
     }
 }

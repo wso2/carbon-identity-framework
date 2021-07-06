@@ -42,6 +42,13 @@ public class IdentityUserStoreMgtException extends Exception {
         this.errorCode = errorCode;
     }
 
+    public IdentityUserStoreMgtException(String errorCode, String message, Throwable cause) {
+
+        super(message, cause);
+        this.message = message;
+        this.errorCode = errorCode;
+    }
+
     public String getErrorCode() {
 
         return errorCode;

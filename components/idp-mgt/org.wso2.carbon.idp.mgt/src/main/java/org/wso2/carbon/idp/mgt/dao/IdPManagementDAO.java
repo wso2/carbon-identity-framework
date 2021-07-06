@@ -78,6 +78,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
 
@@ -1932,6 +1933,35 @@ public class IdPManagementDAO {
                                        String tenantDomain) throws IdentityProviderManagementException {
 
         return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain);
+    }
+
+    /**
+     * Retrieve the identity provider name by the resource id.
+     *
+     * @param resourceId UUID of the IDP.
+     * @return Name of the IDP.
+     * @throws IdentityProviderManagementException Error while retrieving the IDP name from uuid.
+     */
+    public String getIDPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        String idpName;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt =
+                         connection.prepareStatement(GET_IDP_NAME_BY_RESOURCE_ID_SQL)) {
+                prepStmt.setString(1, resourceId);
+                try (ResultSet result = prepStmt.executeQuery()) {
+                    if (result.next()) {
+                        idpName = result.getString("NAME");
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error occurred while retrieving IDP name from uuid: " + resourceId, e);
+        }
+        return idpName;
     }
 
     /**

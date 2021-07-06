@@ -5,7 +5,8 @@
     "PRE_AUTHENTICATION",
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIMS"
+    "POST_SET_USER_CLAIMS",
+    "POST_NON_BASIC_AUTHENTICATION"
   ],
   "identity_mgt.events.schemes.'account.lock.handler'.properties.enable": false,
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'": "2",
@@ -70,7 +71,8 @@
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "PRE_AUTHENTICATION"
+    "PRE_AUTHENTICATION",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
   "identity_mgt.events.schemes.'suspension.notification'.subscriptions": [
@@ -184,5 +186,27 @@
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.module_index": "31",
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT"
+  ],
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.module_index": "32",
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_LOCAL_CLAIM_ADD",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_CLAIM_DIALECT"
   ]
 }

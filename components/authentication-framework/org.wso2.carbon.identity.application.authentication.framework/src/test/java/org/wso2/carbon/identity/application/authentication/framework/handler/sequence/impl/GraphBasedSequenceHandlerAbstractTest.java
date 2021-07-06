@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
@@ -31,10 +33,15 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.Sub
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -48,12 +55,17 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.*",
+        "javax.naming.*", "javax.sql.*"})
+@PrepareForTest({AbstractUserStoreManager.class, IdentityTenantUtil.class})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
@@ -87,18 +99,32 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         System.setProperty("carbon.home", file.toString());
         resetAuthenticators();
 
-        FrameworkServiceDataHolder.getInstance().setRealmService(mock(RealmService.class));
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("foo.com");
+
+        RealmService mockRealmService = mock(RealmService.class);
+        FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
 
         CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO = mock(CacheBackedIdPMgtDAO.class);
         Field daoField = IdentityProviderManager.class.getDeclaredField("dao");
         daoField.setAccessible(true);
         daoField.set(IdentityProviderManager.getInstance(), cacheBackedIdPMgtDAO);
 
-        RealmService mockRealmService = mock(RealmService.class);
         TenantManager tenantManager = mock(TenantManager.class);
         when(tenantManager.getTenantId(anyString())).thenReturn(1);
         when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
         IdentityTenantUtil.setRealmService(mockRealmService);
+        UserRealm mockUserRealm = mock(UserRealm.class);
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.getUserIDFromUserName(anyString())).thenReturn("59d2c583-eafc-412a-a32e-bc409f3bd4e6");
+
+        UserStoreManager mockSecUserStoreManager = mock(UserStoreManager.class);
+        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
+        when(mockSecUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockSecUserStoreManager);
+        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME)).thenReturn("false");
 
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);

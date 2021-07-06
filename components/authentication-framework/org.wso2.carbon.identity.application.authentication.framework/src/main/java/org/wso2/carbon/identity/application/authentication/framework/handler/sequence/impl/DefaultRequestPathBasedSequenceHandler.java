@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import javax.servlet.http.HttpServletResponse;
 public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultRequestPathBasedSequenceHandler instance;
 
     public static DefaultRequestPathBasedSequenceHandler getInstance() {
@@ -75,6 +77,8 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         if (log.isDebugEnabled()) {
             log.debug("Executing the Request Path Authentication...");
         }
+        diagnosticLog.info("Executing the Request Path Authentication for application: " +
+                context.getServiceProviderName());
 
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
@@ -86,12 +90,14 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             if (log.isDebugEnabled()) {
                 log.debug("Executing " + authenticator.getName());
             }
+            diagnosticLog.info("Executing " + authenticator.getName());
 
             if (authenticator.canHandle(request)) {
 
                 if (log.isDebugEnabled()) {
                     log.debug(authenticator.getName() + " can handle the request");
                 }
+                diagnosticLog.info(authenticator.getName() + " can handle the request");
 
                 try {
                     AuthenticatorFlowStatus status = authenticator.process(request, response, context);
@@ -100,6 +106,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     if (log.isDebugEnabled()) {
                         log.debug(authenticator.getName() + ".authenticate() returned: " + status.toString());
                     }
+                    diagnosticLog.info(authenticator.getName() + ".authenticate() returned: " + status.toString());
 
                     AuthenticatedUser authenticatedUser = context.getSubject();
                     seqConfig.setAuthenticatedUser(authenticatedUser);
@@ -135,11 +142,14 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                     if(log.isDebugEnabled()){
                         log.debug("A login attempt was failed due to invalid credentials", e);
                     }
+                    diagnosticLog.error("A login attempt was failed due to invalid credentials");
                     context.setRequestAuthenticated(false);
                 } catch (AuthenticationFailedException e) {
+                    diagnosticLog.error("Authentication failed. Error message: " + e.getMessage());
                     log.error(e.getMessage(), e);
                     context.setRequestAuthenticated(false);
                 } catch (LogoutFailedException e) {
+                    diagnosticLog.error("Logout failed. Error message: " + e.getMessage());
                     throw new FrameworkException(e.getMessage(), e);
                 }
 
@@ -156,6 +166,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         if (log.isDebugEnabled()) {
             log.debug("Handling Post Authentication tasks");
         }
+        diagnosticLog.info("Handling post authentication tasks in request-path authentication");
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         Map<String, String> mappedAttrs;
@@ -241,7 +252,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             if (spToLocalClaimMapping != null && !spToLocalClaimMapping.isEmpty()) {
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
+                    if (IdentityUtil.getLocalGroupsClaimURI().equals(entry.getValue())) {
                         return entry.getKey();
                     }
                 }
@@ -249,7 +260,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         if (spRoleClaimUri == null) {
-            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = IdentityUtil.getLocalGroupsClaimURI();
             if (log.isDebugEnabled()) {
                 String serviceProvider = appConfig.getApplicationName();
                 log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +

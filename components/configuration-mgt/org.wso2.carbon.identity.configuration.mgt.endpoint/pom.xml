@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>5.20.6-SNAPSHOT</version>
+        <version>5.20.104-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>WSO2 Carbon - Configuration Management Endpoint</name>
     <description>Identity Configuration Management Endpoint</description>
     <url>http://wso2.org</url>
@@ -86,7 +86,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -98,7 +97,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${com.fasterxml.jackson.annotation.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -146,8 +144,13 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
-            <scope>provided</scope>
+            <artifactId>org.wso2.carbon.identity.api.server.configuration.mgt</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -165,36 +168,19 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${maven.build.helper.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/gen/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.2</version>
                 <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
+                    <webResources>
+                        <resource>
+                            <!-- this is relative to the pom.xml directory -->
+                            <directory>src/main/webapp</directory>
+                        </resource>
+                    </webResources>
+                    <warName>api#identity#config-mgt#v1.0</warName>
+                    <packagingExcludes>WEB-INF/lib/commons-logging*.jar</packagingExcludes>
+                    <packagingExcludes>WEB-INF/lib/axis2*.jar</packagingExcludes>
+                    <packagingExcludes>WEB-INF/lib/axiom*.jar</packagingExcludes>
                 </configuration>
             </plugin>
         </plugins>

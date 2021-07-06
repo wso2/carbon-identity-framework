@@ -23,7 +23,10 @@ import java.io.Serializable;
 /**
  * Represents a cache entry. Any value that needs to be included in the
  * cache must be encapsulated with a class deriving from this class.
- */
+ *
+ * Deprecated use {@link org.wso2.carbon.identity.core.cache.CacheEntry}.
+ **/
+@Deprecated
 public abstract class CacheEntry implements Serializable {
 
     private static final long serialVersionUID = -7349132415139486164L;

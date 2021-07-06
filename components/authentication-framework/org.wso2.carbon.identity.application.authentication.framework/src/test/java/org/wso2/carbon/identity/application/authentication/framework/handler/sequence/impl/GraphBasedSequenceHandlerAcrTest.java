@@ -29,11 +29,13 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,6 +46,7 @@ import static org.testng.Assert.assertNotNull;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
+@WithRealmService
 @WithAxisConfiguration
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
 
@@ -63,8 +66,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
             }
         }
 
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        SequenceConfig sequenceConfig = configurationLoader.getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = mock(HttpServletRequest.class);

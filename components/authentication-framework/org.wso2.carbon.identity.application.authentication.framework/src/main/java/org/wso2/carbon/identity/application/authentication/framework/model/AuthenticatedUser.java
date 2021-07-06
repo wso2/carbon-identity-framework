@@ -19,16 +19,24 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * AuthenticatedUser is the class that represents the authenticated subject.
@@ -44,6 +52,8 @@ import java.util.Map;
 public class AuthenticatedUser extends User {
 
     private static final long serialVersionUID = -6919627053686253276L;
+
+    private static final Log log = LogFactory.getLog(AuthenticatedUser.class);
 
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
@@ -66,6 +76,7 @@ public class AuthenticatedUser extends User {
 
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
         this.tenantDomain = authenticatedUser.getTenantDomain();
+        this.userId = authenticatedUser.getUserId();
         this.userName = authenticatedUser.getUserName();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
         if (authenticatedUser.getUserAttributes() != null) {
@@ -76,6 +87,30 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+    }
+
+    public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
+
+        this.userId = user.getUserID();
+        this.userName = user.getUsername();
+        this.tenantDomain = user.getTenantDomain();
+        this.userStoreDomain = user.getUserStoreDomain();
+        this.isFederatedUser = false;
+        if (user.getAttributes() != null) {
+            for (Map.Entry<String, String> entry : user.getAttributes().entrySet()) {
+                userAttributes.put(ClaimMapping.build(entry.getKey(), entry.getKey(), null, true), entry.getValue());
+            }
+        }
+
+        this.authenticatedSubjectIdentifier = this.toFullQualifiedUsername();
+    }
+
+    public AuthenticatedUser(User user) {
+
+        this.userName = user.getUserName();
+        this.tenantDomain = user.getTenantDomain();
+        this.userStoreDomain = user.getUserStoreDomain();
+        this.userId = user.getUserId();
     }
 
     /**
@@ -118,7 +153,23 @@ public class AuthenticatedUser extends User {
         authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
 
+        String userId = resolveUserId(authenticatedUser);
+        authenticatedUser.setUserId(userId);
+
         return authenticatedUser;
+    }
+
+    private static String resolveUserId(AuthenticatedUser authenticatedUser) {
+
+        String userId = null;
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
+            userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
+                    authenticatedUser.getUserStoreDomain(), authenticatedUser.getUserName());
+        } catch (UserSessionException e) {
+            log.error("Error while resolving the user id from username");
+        }
+        return userId;
     }
 
     /**
@@ -164,6 +215,35 @@ public class AuthenticatedUser extends User {
      */
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier) {
         this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+    }
+
+    @Override
+    public String getUserId() {
+
+        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        if (userId == null) {
+            if (!isFederatedUser()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                            ". Since the user is local, trying to resolve it.");
+                }
+                if (userName != null && userStoreDomain != null && tenantDomain != null) {
+                    String userId = resolveUserId(this);
+                    setUserId(userId);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id could not be retrieved for user with username: " + userName + " userstore " +
+                                "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
+                    }
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
+                            ". Since the user is federated, trying not to resolve it.");
+                }
+            }
+        }
+        return super.getUserId();
     }
 
     /**

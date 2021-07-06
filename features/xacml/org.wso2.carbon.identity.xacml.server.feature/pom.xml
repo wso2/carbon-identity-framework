@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.20.6-SNAPSHOT</version>
+        <version>5.20.104-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -40,6 +40,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
+            <type>war</type>
         </dependency>
         <dependency>
             <groupId>org.wso2.balana</groupId>
@@ -118,8 +119,10 @@
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.framework</groupId>
                                     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
+                                    <type>war</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/api_resources/</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#entitlement.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 public class PostAuthenticationMgtService {
 
     private static final Log log = LogFactory.getLog(PostAuthenticationMgtService.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     /**
      * Handles post authentication upon an overall authentication event.
@@ -60,6 +61,8 @@ public class PostAuthenticationMgtService {
             log.debug("Executing Post Authentication Management Service for context " + authenticationContext
                     .getContextIdentifier());
         }
+        diagnosticLog.info("Executing Post Authentication Management Service for context " + authenticationContext
+                .getContextIdentifier());
 
         List<PostAuthenticationHandler> postAuthenticationHandlers = FrameworkServiceDataHolder.getInstance()
                 .getPostAuthenticationHandlers();
@@ -69,6 +72,8 @@ public class PostAuthenticationMgtService {
             log.debug("Starting from current post handler index " + currentPostHandlerIndex + " for context : "
                     + authenticationContext.getContextIdentifier());
         }
+        diagnosticLog.info("Starting from current post handler index " + currentPostHandlerIndex + " for context : "
+                + authenticationContext.getContextIdentifier());
 
         if (isPostAuthenticationInProgress(authenticationContext, postAuthenticationHandlers,
                 currentPostHandlerIndex)) {
@@ -113,11 +118,15 @@ public class PostAuthenticationMgtService {
                         currentHandler.getName() + " is enabled. Hence executing for context : " + authenticationContext
                                 .getContextIdentifier());
             }
+            diagnosticLog.info(currentHandler.getName() + " is enabled. Hence executing for context : " +
+                    authenticationContext.getContextIdentifier());
             PostAuthnHandlerFlowStatus flowStatus = currentHandler.handle(request, response, authenticationContext);
             if (log.isDebugEnabled()) {
                 log.debug("Post authentication handler " + currentHandler.getName() + " returned with status : "
                         + flowStatus + " for context identifier : " + authenticationContext.getContextIdentifier());
             }
+            diagnosticLog.info("Post authentication handler " + currentHandler.getName() + " returned with status : "
+                    + flowStatus + " for context identifier : " + authenticationContext.getContextIdentifier());
 
             if (isExecutionFinished(flowStatus)) {
                 if (log.isDebugEnabled()) {
@@ -125,6 +134,9 @@ public class PostAuthenticationMgtService {
                             + " completed execution for session context : " + authenticationContext
                             .getContextIdentifier());
                 }
+                diagnosticLog.info("Post authentication handler " + currentHandler.getName()
+                        + " completed execution for session context : " + authenticationContext
+                        .getContextIdentifier());
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
 
             } else {
@@ -132,6 +144,8 @@ public class PostAuthenticationMgtService {
                     log.debug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence"
                             + " returning for context : " + authenticationContext.getContextIdentifier());
                 }
+                diagnosticLog.info("Post authentication handler " + currentHandler.getName() + " is not completed" +
+                        " yet. Hence returning for context : " + authenticationContext.getContextIdentifier());
                 return true;
             }
         } else {
@@ -139,6 +153,8 @@ public class PostAuthenticationMgtService {
                 log.debug("Post authentication handler " + currentHandler.getName() + " is disabled. Hence returning"
                         + " without executing for context : " + authenticationContext.getContextIdentifier());
             }
+            diagnosticLog.info("Post authentication handler " + currentHandler.getName() + " is disabled. " +
+                    "Hence returning without executing for context : " + authenticationContext.getContextIdentifier());
         }
         return false;
     }
@@ -162,6 +178,8 @@ public class PostAuthenticationMgtService {
             log.debug("Post authentication evaluation has completed for the flow with session data key : "
                     + authenticationContext.getContextIdentifier());
         }
+        diagnosticLog.info("Post authentication evaluation has completed for the flow with session data key : "
+                + authenticationContext.getContextIdentifier());
         LoginContextManagementUtil.markPostAuthenticationCompleted(authenticationContext);
     }
 
@@ -172,6 +190,7 @@ public class PostAuthenticationMgtService {
             if (log.isDebugEnabled()) {
                 log.debug("PASTR cookie is already set to context : " + context.getContextIdentifier());
             }
+            diagnosticLog.info("PASTR cookie is already set to context : " + context.getContextIdentifier());
             return;
         } else {
             if (log.isDebugEnabled()) {
@@ -179,6 +198,8 @@ public class PostAuthenticationMgtService {
                         "PASTR cookie is not set to context : " + context.getContextIdentifier() + ". Hence setting the"
                                 + " " + "cookie");
             }
+            diagnosticLog.info("PASTR cookie is not set to context : " + context.getContextIdentifier() +
+                    ". Hence setting the cookie");
             String pastrCookieValue = UUIDGenerator.generateUUID();
             FrameworkUtils
                     .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
@@ -199,8 +220,13 @@ public class PostAuthenticationMgtService {
                 if (log.isDebugEnabled()) {
                     log.debug("pastr cookie validated successfully for sequence : " + context.getContextIdentifier());
                 }
+                diagnosticLog.info("pastr cookie validated successfully for sequence : " +
+                        context.getContextIdentifier());
                 return;
             } else {
+                diagnosticLog.error("Invalid Request: Your authentication flow is ended or invalid." +
+                        "Post authentication sequence tracking" + " cookie not found in request with" +
+                        " context id : " + context.getContextIdentifier());
                 throw new PostAuthenticationFailedException(
                         "Invalid Request: Your authentication flow is ended or " + "invalid. Please initiate again.",
                         "Post authentication sequence tracking" + " cookie not found in request with context id : "
@@ -212,6 +238,8 @@ public class PostAuthenticationMgtService {
                         "No stored pastr cookie found in authentication context for : " + context.getContextIdentifier()
                                 + " . Hence returning without validating");
             }
+            diagnosticLog.info("No stored pastr cookie found in authentication context for : "
+                    + context.getContextIdentifier() + " . Hence returning without validating");
         }
     }
 
@@ -224,6 +252,8 @@ public class PostAuthenticationMgtService {
                 log.debug("Removing post authentication sequnce tracker cookie for context : " + context
                         .getContextIdentifier());
             }
+            diagnosticLog.info("Removing post authentication sequnce tracker cookie for context : " + context
+                    .getContextIdentifier());
             FrameworkUtils
                     .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
                             pstrCookieObj.toString(), 0);
@@ -231,6 +261,7 @@ public class PostAuthenticationMgtService {
             if (log.isDebugEnabled()) {
                 log.debug("PASTR cookie is not set to context : " + context.getContextIdentifier());
             }
+            diagnosticLog.info("PASTR cookie is not set to context : " + context.getContextIdentifier());
         }
     }
 

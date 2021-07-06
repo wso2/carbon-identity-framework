@@ -181,7 +181,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
                     if (log.isDebugEnabled()) {
                         log.debug("JIT provisioning response flow has hit for the IDP " + externalIdPConfigName + " "
-                                + "for the user, " + sequenceConfig.getAuthenticatedUser().getUserName());
+                                + "for the user, " + sequenceConfig.getAuthenticatedUser().getUserId());
                     }
                     final Map<String, String> localClaimValues;
                     Object unfilteredLocalClaimValues = context
@@ -311,7 +311,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     // If associatedLocalUser is null, that means relevant association not exist already.
                     if (StringUtils.isEmpty(associatedLocalUser) && !isUserCreated) {
                         if (log.isDebugEnabled()) {
-                            log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
+                            log.debug(sequenceConfig.getAuthenticatedUser().getUserId() + " coming from "
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
                                     + " to the UI to sign up.");
                         }
@@ -335,7 +335,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         isUserCreated = true;
                     }
                     if (log.isDebugEnabled()) {
-                        log.debug("User : " + sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
+                        log.debug("User : " + sequenceConfig.getAuthenticatedUser().getUserId() + " coming from "
                                 + externalIdPConfig.getIdPName() + " do have a local account, with the username "
                                 + username);
                     }
@@ -430,6 +430,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             JSONObject piiCategory = (JSONObject) piiCategories.get(categoryIndex);
             PIICategoryValidity piiCategoryValidity = new PIICategoryValidity(piiCategory.getInt("piiCategoryId"),
                     FrameworkConstants.Consent.INFINITE_TERMINATION);
+            piiCategoryValidity.setConsented(true);
             piiCategoryValidities.add(piiCategoryValidity);
         }
         receiptPurposeInput.setPiiCategory(piiCategoryValidities);
@@ -671,7 +672,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         if (claimMapping != null) {
             //Ex. Standard dialects like OIDC.
-            idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
             idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);

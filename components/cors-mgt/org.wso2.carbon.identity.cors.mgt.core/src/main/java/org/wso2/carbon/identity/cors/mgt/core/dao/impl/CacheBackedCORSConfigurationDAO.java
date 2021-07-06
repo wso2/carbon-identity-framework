@@ -94,7 +94,7 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
             log.debug("Adding CORS configuration to Cache with Key: " + tenantDomain);
         }
 
-        CORSConfigurationCache.getInstance().addToCache(cacheKey, cacheEntry);
+        CORSConfigurationCache.getInstance().addToCache(cacheKey, cacheEntry, tenantDomain);
     }
 
     /**
@@ -108,7 +108,7 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
 
         CORSConfigurationCacheKey cacheKey = new CORSConfigurationCacheKey(tenantDomain);
         CORSConfigurationCache cache = CORSConfigurationCache.getInstance();
-        CORSConfigurationCacheEntry cacheEntry = cache.getValueFromCache(cacheKey);
+        CORSConfigurationCacheEntry cacheEntry = cache.getValueFromCache(cacheKey, tenantDomain);
 
         if (cacheEntry != null && cacheEntry.getCorsConfiguration() != null) {
             return cacheEntry.getCorsConfiguration();
@@ -128,6 +128,6 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
     private void clearCaches(String tenantDomain) {
 
         CORSConfigurationCacheKey cacheKey = new CORSConfigurationCacheKey(tenantDomain);
-        CORSConfigurationCache.getInstance().clearCacheEntry(cacheKey);
+        CORSConfigurationCache.getInstance().clearCacheEntry(cacheKey, tenantDomain);
     }
 }

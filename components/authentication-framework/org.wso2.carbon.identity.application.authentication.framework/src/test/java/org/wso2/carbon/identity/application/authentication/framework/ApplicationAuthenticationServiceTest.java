@@ -17,24 +17,20 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
-@PrepareForTest({FrameworkServiceComponent.class})
 public class ApplicationAuthenticationServiceTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
@@ -52,7 +48,6 @@ public class ApplicationAuthenticationServiceTest {
 
     private ApplicationAuthenticationService applicationAuthenticationService;
 
-    private List<ApplicationAuthenticator> authenticators;
 
     @BeforeTest
     public void setUp() throws Exception {
@@ -68,10 +63,9 @@ public class ApplicationAuthenticationServiceTest {
         when(federatedApplicationAuthenticator.getName()).thenReturn(FEDERATED_AUTHENTICATOR_NAME);
         when(localApplicationAuthenticator.getName()).thenReturn(LOCAL_AUTHENTICATOR_NAME);
 
-        authenticators = new ArrayList<>();
-        authenticators.add(requestPathApplicationAuthenticator);
-        authenticators.add(federatedApplicationAuthenticator);
-        authenticators.add(localApplicationAuthenticator);
+        FrameworkServiceComponent.getAuthenticators().add(requestPathApplicationAuthenticator);
+        FrameworkServiceComponent.getAuthenticators().add(federatedApplicationAuthenticator);
+        FrameworkServiceComponent.getAuthenticators().add(localApplicationAuthenticator);
     }
 
     @AfterMethod
@@ -81,7 +75,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test(expectedExceptions = ApplicationAuthenticationException.class)
     public void testGetAuthenticatorWithNullName() throws Exception {
 
-        mockFrameworkServiceComponent();
         applicationAuthenticationService.getAuthenticator(null);
     }
 
@@ -89,7 +82,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetAuthenticatorWithNonExistingName() throws Exception {
 
-        mockFrameworkServiceComponent();
         assertNull(applicationAuthenticationService.getAuthenticator(NON_EXISTING_AUTHENTICATOR_NAME));
     }
 
@@ -97,8 +89,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetAuthenticator() throws Exception {
 
-        // Mock the service component
-        mockFrameworkServiceComponent();
         ApplicationAuthenticator applicationAuthenticator = applicationAuthenticationService.getAuthenticator
                 (REQUESTPATH_AUTHENTICATOR_NAME);
         assertNotNull(applicationAuthenticator);
@@ -108,7 +98,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetAllAuthenticators() throws Exception {
 
-        mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> allAuthenticators = applicationAuthenticationService.getAllAuthenticators();
         assertEquals(allAuthenticators.size(), 3);
     }
@@ -116,7 +105,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetLocalAuthenticators() throws Exception {
 
-        mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> localAuthenticators = applicationAuthenticationService.getLocalAuthenticators();
         assertEquals(localAuthenticators.size(), 1);
         assertEquals(localAuthenticators.get(0).getName(), LOCAL_AUTHENTICATOR_NAME);
@@ -125,7 +113,6 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetFederatedAuthenticators() throws Exception {
 
-        mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> federatedAuthenticators =
                 applicationAuthenticationService.getFederatedAuthenticators();
         assertEquals(federatedAuthenticators.size(), 1);
@@ -135,18 +122,10 @@ public class ApplicationAuthenticationServiceTest {
     @Test
     public void testGetRequestPathAuthenticators() throws Exception {
 
-        mockFrameworkServiceComponent();
         List<ApplicationAuthenticator> requestPathAuthenticators =
                 applicationAuthenticationService.getRequestPathAuthenticators();
         assertEquals(requestPathAuthenticators.size(), 1);
         assertEquals(requestPathAuthenticators.get(0).getName(), REQUESTPATH_AUTHENTICATOR_NAME);
-    }
-
-    private void mockFrameworkServiceComponent() {
-
-        // Mock the getAuthenticators() method of FrameworkServiceComponent
-        mockStatic(FrameworkServiceComponent.class);
-        when(FrameworkServiceComponent.getAuthenticators()).thenReturn(authenticators);
     }
 
 }

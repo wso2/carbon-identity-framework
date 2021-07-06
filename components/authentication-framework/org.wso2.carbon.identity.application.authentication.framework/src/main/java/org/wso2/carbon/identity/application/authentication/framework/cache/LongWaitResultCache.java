@@ -20,9 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
 
-public class LongWaitResultCache extends BaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
+public class LongWaitResultCache extends AuthenticationBaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
 
     private static final String LONG_WAIT_RESULT_CACHE_NAME = "LongWaitResultCache";
     private static final Log log = LogFactory.getLog(LongWaitResultCache.class);

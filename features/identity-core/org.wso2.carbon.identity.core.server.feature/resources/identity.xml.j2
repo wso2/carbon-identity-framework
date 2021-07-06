@@ -79,6 +79,20 @@
     <!-- This configuration is to resolve the internal service URL for internal API calls. -->
     <ServerHostName>{{server.internal_hostname}}</ServerHostName>
 
+    <!--
+        Following configuration adds support to change hostnames and paths of authentication and recovery portals.
+        Note : These configurations works only when tenant qualified URLs are enabled. Otherwise use configurations
+        provided in application-authentication.xml
+    -->
+    <AuthenticationEndpoint>
+        <HostName>{{authenticationendpoint.hostname}}</HostName>
+        <Path>{{authenticationendpoint.path}}</Path>
+    </AuthenticationEndpoint>
+    <RecoveryEndpoint>
+        <HostName>{{recoveryendpoint.hostname}}</HostName>
+        <Path>{{recoveryendpoint.path}}</Path>
+    </RecoveryEndpoint>
+
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
         <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>
@@ -750,16 +764,6 @@
         -->
         <HandleAlreadyLoggedOutSessionsGracefully>{{oauth.handle_logout_gracefully}}</HandleAlreadyLoggedOutSessionsGracefully>
 
-        <!--
-        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
-
-        Default value : false
-        Supported versions : IS 5.8.0 onwards
-        -->
-        <Introspection>
-            <EnableDataProviders>{{oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection}}</EnableDataProviders>
-        </Introspection>
-
         {% if oauth.redirect_to_idp_error_page_on_error is sameas true %}
         <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
         {% endif %}
@@ -1133,6 +1137,7 @@
         <AskPassword>
             <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
             <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
+            <DisableRandomValueForCredentials>{{identity_mgt.user_onboarding.disable_random_value_for_credentials}}</DisableRandomValueForCredentials>
         </AskPassword>
     </EmailVerification>
 
@@ -1195,6 +1200,9 @@
                     <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
                 </VerificationCode>
             </VerificationOnUpdate>
+            <NotificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.email.enable_notify_existing_email}}</Enable>
+             </NotificationOnUpdate>
         </Claim>
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
@@ -1240,6 +1248,9 @@
     {% if idp_role_management.return_only_mapped_local_roles is defined %}
         <FederatedRoleManagement>
             <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
+            {% if idp_role_management.return_manually_added_local_roles is defined %}
+            <ReturnManuallyAddedLocalRoles>{{idp_role_management.return_manually_added_local_roles}}</ReturnManuallyAddedLocalRoles>
+            {% endif %}
         </FederatedRoleManagement>
     {% endif %}
 
@@ -1431,13 +1442,31 @@
                        enable="{{event.default_listener.user_claim_audit_logger.enable}}">
             <Property name="LogUpdatedClaimsOnly">{{event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly}}</Property>
         </EventListener>
+        <EventListener id="client_certificate_authentication_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
+                       name="org.wso2.carbon.identity.auth.service.handler.impl.ClientCertificateBasedAuthenticationHandler"
+                       orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
+                       enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
+
+        <!-- Introspection Data Providers -->
+        <EventListener id="uma_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
+                orderId="{{event.default_listener.uma_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.uma_introspection_data_provider.enable}}">
+        </EventListener>
+        <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
+                orderId="{{event.default_listener.is_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.is_introspection_data_provider.enable}}">
+        </EventListener>
+
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
                        type="{{listener.type}}"
                        name="{{listener.name}}"
                        orderId="{{listener.order}}"
-                       enable="true">
+                       enable="{{listener.enable | default(true)}}">
             {% for key,value in listener.properties.items() %}
             <Property name="{{key}}">{{value}}</Property>
             {% endfor %}
@@ -2387,6 +2416,7 @@
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -2422,10 +2452,10 @@
 
     <TenantContextsToRewrite>
         <WebApp>
-            {% for webapp in tenant_context.rewrite.webapps %}
+            {% for webapp in tenant_context.rewrite.custom_webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
-            {% for webapp in tenant_context.rewrite.custom_webapps %}
+            {% for webapp in tenant_context.rewrite.webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
         </WebApp>
@@ -2461,6 +2491,13 @@
             <HTTPConnectionTimeout>{{oauth.jwks_endpoint.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{oauth.jwks_endpoint.read_timeout}}</HTTPReadTimeout>
             <HTTPSizeLimit>{{oauth.jwks_endpoint.size_limit_bytes}}</HTTPSizeLimit>
+            <HTTPProxy>
+                <Enable>{{http_proxy.enable}}</Enable>
+                <Host>{{http_proxy.host}}</Host>
+                <Port>{{http_proxy.port}}</Port>
+                <Username>{{http_proxy.username}}</Username>
+                <Password>{{http_proxy.password}}</Password>
+            </HTTPProxy>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -2559,6 +2596,12 @@
                 <Origin>{{origin}}</Origin>
             {% endfor %}
         </FIDO2TrustedOrigins>
+
+        <!--
+            Time allocated for the users to authenticate.
+            Time configurations are in milliseconds.
+        -->
+        <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
@@ -2589,6 +2632,23 @@
         <ApplicationName>{{application}}</ApplicationName>
         {% endfor %}
     </SystemApplications>
+    {% endif %}
+
+    <!-- System Roles -->
+    {% if system_roles is defined %}
+    <SystemRoles>
+        <Enabled>{{system_roles.enable}}</Enabled>
+        {% for role in system_roles.read_only_roles %}
+        <Role>
+            <Name>{{role.name}}</Name>
+            <MandatoryScopes>
+                {% for scope in role.scopes %}
+                <Scope>{{scope}}</Scope>
+                {% endfor %}
+            </MandatoryScopes>
+        </Role>
+        {% endfor %}
+    </SystemRoles>
     {% endif %}
 
     <MutualTLS>

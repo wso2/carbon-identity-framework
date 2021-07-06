@@ -171,6 +171,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
 
+        if (claimMappings == null || claimMappings.length == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("No claim mapping configured from the application. Hence skipping getting consent.");
+            }
+            return new ConsentClaimsData();
+        }
+
         List<String> requestedClaims = new ArrayList<>();
         List<String> mandatoryClaims = new ArrayList<>();
 
@@ -353,15 +360,25 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has approved consent.");
         }
         UserConsent userConsent = processUserConsent(consentApprovedClaimIds, consentClaimsData);
+        if (isEmpty(userConsent.getApprovedClaims()) && isEmpty(userConsent.getDisapprovedClaims())) {
+            if (isDebugEnabled()) {
+                logDebug("User: " + authenticatedUser.getAuthenticatedSubjectIdentifier() + " has not provided new " +
+                        "approved/disapproved consent. Hence skipping the consent progress.");
+            }
+            return;
+        }
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
 
         List<ClaimMetaData> claimsWithConsent;
         List<ClaimMetaData> claimsDeniedConsent;
         if (!overrideExistingConsent) {
+            String spName = serviceProvider.getApplicationName();
+            String spTenantDomain = getSPTenantDomain(serviceProvider);
+            Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
             claimsWithConsent =
-                    getUserRequestedClaims(serviceProvider, authenticatedUser, userConsent, true);
+                    getUserRequestedClaims(receipt, userConsent, true);
             claimsDeniedConsent =
-                    getUserRequestedClaims(serviceProvider, authenticatedUser, userConsent, false);
+                    getUserRequestedClaims(receipt, userConsent, false);
         } else {
             claimsWithConsent = userConsent.getApprovedClaims();
             claimsDeniedConsent = userConsent.getDisapprovedClaims();
@@ -733,10 +750,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return userConsent;
     }
 
-    private List<ClaimMetaData> getUserRequestedClaims(ServiceProvider serviceProvider,
-                                                       AuthenticatedUser authenticatedUser,
-                                                       UserConsent userConsent, boolean isConsented)
-            throws SSOConsentServiceException {
+    private List<ClaimMetaData> getUserRequestedClaims(Receipt receipt,
+                                                       UserConsent userConsent, boolean isConsented) {
 
         List<ClaimMetaData> requestedClaims = new ArrayList<>();
         if (isConsented) {
@@ -744,11 +759,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         } else {
             requestedClaims.addAll(userConsent.getDisapprovedClaims());
         }
-
-        String spName = serviceProvider.getApplicationName();
-        String spTenantDomain = getSPTenantDomain(serviceProvider);
-        String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
         if (receipt == null) {
             return requestedClaims;
         }
@@ -762,6 +772,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategoriesFromServices);
         requestedClaims.addAll(claimsFromPIICategoryValidity);
+
+        /* When consent denied requested claim is updated as mandatory, that claim should remove from the
+        requested denied claims list. */
+        if (!isConsented && CollectionUtils.isNotEmpty(requestedClaims)
+                && CollectionUtils.isNotEmpty(userConsent.getApprovedClaims())) {
+            requestedClaims.removeAll(userConsent.getApprovedClaims());
+        }
         return getDistinctClaims(requestedClaims);
     }
 

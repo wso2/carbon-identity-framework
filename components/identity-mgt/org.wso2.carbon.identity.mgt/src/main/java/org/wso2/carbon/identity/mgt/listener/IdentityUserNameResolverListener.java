@@ -592,6 +592,30 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     }
 
     @Override
+    public boolean doPreUpdateUserListOfInternalRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        String[] deletedUserNames = getUserNamesFromUserIDs(deletedUserIDs,
+                (AbstractUserStoreManager) userStoreManager);
+        String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
+
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!listener.doPreUpdateUserListOfInternalRole(roleName, deletedUserNames, newUserNames,
+                        userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean doPreUpdateUserListOfRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -629,6 +653,30 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!listener.doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean doPreUpdateInternalRoleListOfUserWithID(String userID, String[] deletedRoles, String[] newRoles,
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
+        if (userName == null) {
+            return handleUserNameResolveFailure(userID, userStoreManager);
+        }
+
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!listener.doPreUpdateInternalRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
                     return false;
                 }
             }

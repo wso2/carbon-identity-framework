@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.mgt.core.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.Role;
@@ -25,6 +26,7 @@ import org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * RoleDAO interface.
@@ -229,4 +231,14 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     String getRoleNameByID(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get the list of system roles.
+     *
+     * @return A set of system roles.
+     */
+    default Set<String> getSystemRoles() throws NotImplementedException {
+
+        throw new NotImplementedException("getSystemRoles method is not implemented");
+    }
 }
