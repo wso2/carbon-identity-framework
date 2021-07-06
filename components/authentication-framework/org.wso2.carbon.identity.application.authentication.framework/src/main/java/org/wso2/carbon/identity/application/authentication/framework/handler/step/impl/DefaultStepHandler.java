@@ -53,6 +53,7 @@ import org.wso2.carbon.user.core.UserStoreClientException;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -199,7 +200,7 @@ public class DefaultStepHandler implements StepHandler {
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
                 response.sendRedirect(loginPage
                         + ("?" + context.getContextIdIncludedQueryParams()) + "&authenticators="
-                        + URLEncoder.encode(authenticatorNames, "UTF-8") + "&hrd=true");
+                        + urlEncode(authenticatorNames, "UTF-8") + "&hrd=true");
             } catch (IOException e) {
                 throw new FrameworkException(e.getMessage(), e);
             }
@@ -341,7 +342,7 @@ public class DefaultStepHandler implements StepHandler {
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
                 response.sendRedirect(redirectURL
                         + ("?" + context.getContextIdIncludedQueryParams()) + "&authenticators="
-                        + URLEncoder.encode(authenticatorNames, "UTF-8") + "&hrd=true");
+                        + urlEncode(authenticatorNames, "UTF-8") + "&hrd=true");
             } catch (IOException e) {
                 throw new FrameworkException(e.getMessage(), e);
             }
@@ -406,7 +407,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             response.sendRedirect(redirectURL + ("?" + context.getContextIdIncludedQueryParams())
-                    + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + "&authFailure=true"
+                    + "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + "&authFailure=true"
                     + "&authFailureMsg=" + errorMsg + "&hrd=true");
         } catch (IOException e) {
             throw new FrameworkException(e.getMessage(), e);
@@ -735,23 +736,23 @@ public class DefaultStepHandler implements StepHandler {
                 }
 
                 if (UserCoreConstants.ErrorCode.INVALID_CREDENTIAL.equals(errorCode)) {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + urlEncode
                             (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                            + "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
                 } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
                     if (remainingAttempts == 0) {
                         if (StringUtils.isBlank(reason)) {
                             redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
                                     .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                    + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                                    "&remainingAttempts=0" + "&authenticators=" + URLEncoder.encode(authenticatorNames,
+                                    + urlEncode(request.getParameter("username"), "UTF-8") +
+                                    "&remainingAttempts=0" + "&authenticators=" + urlEncode(authenticatorNames,
                                     "UTF-8") + retryParam;
                         } else {
                             redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
                                     .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&lockedReason="
-                                    + reason + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"),
+                                    + reason + "&failedUsername=" + urlEncode(request.getParameter("username"),
                                     "UTF-8") + "&remainingAttempts=0" + "&authenticators=" + URLEncoder.
                                     encode(authenticatorNames, "UTF-8") + retryParam;
                         }
@@ -759,14 +760,14 @@ public class DefaultStepHandler implements StepHandler {
                         if (StringUtils.isBlank(reason)) {
                             redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
                                     .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                    + URLEncoder.encode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
-                                    URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                                    + urlEncode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
+                                    urlEncode(authenticatorNames, "UTF-8") + retryParam;
                         } else {
                             redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
                                     .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&lockedReason="
-                                    + reason + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"),
+                                    + reason + "&failedUsername=" + urlEncode(request.getParameter("username"),
                                     "UTF-8") + "&authenticators=" +
-                                    URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                                    urlEncode(authenticatorNames, "UTF-8") + retryParam;
                         }
                     }
                     return redirectURL;
@@ -779,46 +780,63 @@ public class DefaultStepHandler implements StepHandler {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
                     }
 
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + urlEncode
                             (username, "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                            + "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
                     String username = request.getParameter("username");
                     return response.encodeRedirectURL(
                             ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                            + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
+                            + "&username=" + urlEncode(username, "UTF-8") + "&confirmation=" + otp;
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
-                        retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
+                        retryParam = "&authFailure=true&authFailureMsg=" + urlEncode(reason, "UTF-8");
                     }
-                    retryParam += "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                    retryParam += "&errorCode=" + errorCode + "&failedUsername=" + urlEncode
                             (request.getParameter("username"), "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                            + "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
                 }
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                        "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
             }
         } else {
             String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
             if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                 String redirectURL;
                 redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
-                )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                )) + "&failedUsername=" + urlEncode(request.getParameter("username"), "UTF-8") +
+                        "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
                 String username = request.getParameter("username");
                 return response.encodeRedirectURL(
                         ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                        + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
+                        + "&username=" + urlEncode(username, "UTF-8") + "&confirmation=" + otp;
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+                        "&authenticators=" + urlEncode(authenticatorNames, "UTF-8") + retryParam;
             }
+        }
+    }
+
+    /**
+     * URL Encode a given string after a null check. If the string is null, "null" will be encoded and returned.
+     *
+     * @param s   String to encode.
+     * @param enc The name of a supported character encoding.
+     * @return Encoded string.
+     * @throws UnsupportedEncodingException If any errors occurred.
+     */
+    private String urlEncode(String s, String enc) throws UnsupportedEncodingException {
+
+        if (StringUtils.isNotEmpty(s)) {
+            return URLEncoder.encode(s, enc);
+        } else {
+            return URLEncoder.encode("null", enc);
         }
     }
 
