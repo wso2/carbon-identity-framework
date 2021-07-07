@@ -197,12 +197,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
                     String username;
-                    if (FrameworkUtils.isEnhancedFeature()) {
-                        username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
-                                externalIdPConfigName, context);
-                    } else {
-                        username = sequenceConfig.getAuthenticatedUser().getUserName();
-                    }
+                    username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -317,16 +312,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
-                            /*
-                            If JIT provisioning enhanced feature is enabled set the federated ID as the
-                            federated username.
-                             */
-                            if (FrameworkUtils.isEnhancedFeature()) {
-                                username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
-                                        externalIdPConfigName, context);
-                            } else {
-                                username = sequenceConfig.getAuthenticatedUser().getUserName();
-                            }
+                            username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
                             // Set the property to make sure the request is a returning one.
@@ -334,6 +320,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
                     }
+                    username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                     if (log.isDebugEnabled()) {
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
                                 + " coming from " + externalIdPConfig.getIdPName()
@@ -345,6 +332,20 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
         return SUCCESS_COMPLETED;
+    }
+
+    private String getUsernameFederatedUser(SequenceConfig sequenceConfig, String externalIdPConfigName,
+                                            AuthenticationContext context) throws PostAuthenticationFailedException {
+
+        String username;
+        // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
+        if (FrameworkUtils.isEnhancedFeature()) {
+            username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                    externalIdPConfigName, context);
+        } else {
+            username = sequenceConfig.getAuthenticatedUser().getUserName();
+        }
+        return username;
     }
     
     private String getFederatedUsername(String username, String idpName, AuthenticationContext context)
