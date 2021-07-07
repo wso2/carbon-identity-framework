@@ -839,7 +839,7 @@ public class DefaultStepHandler implements StepHandler {
         if (StringUtils.isNotEmpty(s)) {
             return URLEncoder.encode(s, enc);
         } else {
-            return URLEncoder.encode("null", enc);
+            return StringUtils.EMPTY;
         }
     }
 
