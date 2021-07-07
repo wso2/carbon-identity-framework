@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -68,10 +69,12 @@ public class ProvisionedUserDeleteThread implements Runnable {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
             String[] userList =
-                    ((AbstractUserStoreManager)userRealm.getUserStoreManager()).
-                            getUserList(FrameworkConstants.PROVISIONED_SOURCE_CLAIM, resourceId, null);
-            for (String username : userList) {
-                ((AbstractUserStoreManager) userRealm.getUserStoreManager()).deleteUser(username);
+                    ((AbstractUserStoreManager) userRealm.getUserStoreManager()).
+                            getUserList(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM, resourceId, null);
+            if (ArrayUtils.isNotEmpty(userList)) {
+                for (String username : userList) {
+                    ((AbstractUserStoreManager) userRealm.getUserStoreManager()).deleteUser(username);
+                }
             }
         } catch (UserStoreException e) {
             log.error("Error occurred while deleting the provisioned users from IDP: " + resourceId, e);

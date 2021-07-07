@@ -38,20 +38,21 @@ import java.util.concurrent.Executors;
 public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
 
     private static final Log log = LogFactory.getLog(JITProvisioningIdentityProviderMgtListener.class);
+    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
 
     @Override
     public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider,
                                                String tenantDomain) throws IdentityProviderManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("doPostDeleteIdPByResourceId executed for idp: " + resourceId + " of tenant domain: " +
-                    tenantDomain);
-        }
-
-        if (!FrameworkUtils.isEnhancedFeature()) {
+        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("The doPostDeleteIdPByResourceId executed for idp: %s of tenant domain: %s",
+                    resourceId, tenantDomain));
         }
 
         ProvisionedUserDeleteThread provisionedUserDeleteThread =
@@ -63,7 +64,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
     @Override
     public boolean doPreDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (!FrameworkUtils.isEnhancedFeature()) {
+        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
         }
@@ -77,13 +78,14 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("doPostDeleteIdp executed for idp: " + idPName + " of tenant domain: " + tenantDomain);
-        }
-
-        if (!FrameworkUtils.isEnhancedFeature()) {
+        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("The doPostDeleteIdp executed for idp: %s of tenant domain: %s.",
+                    idPName, tenantDomain));
         }
 
         try {
