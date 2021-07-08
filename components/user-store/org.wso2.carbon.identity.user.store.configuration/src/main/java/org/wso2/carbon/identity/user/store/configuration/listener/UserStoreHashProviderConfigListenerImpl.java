@@ -3,7 +3,10 @@ package org.wso2.carbon.identity.user.store.configuration.listener;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
@@ -20,6 +23,7 @@ import java.util.Set;
  */
 public class UserStoreHashProviderConfigListenerImpl extends AbstractUserStoreConfigListener {
 
+    public static final Log LOG = LogFactory.getLog(UserStoreHashProviderConfigListenerImpl.class);
     public static final String DIGEST_FUNCTION = "PasswordDigest";
     public static final String HASH_PROVIDER_PARAMS_JSON = "Hash.Algorithm.Properties";
     private JsonObject hashPropertyJSON;
@@ -46,30 +50,51 @@ public class UserStoreHashProviderConfigListenerImpl extends AbstractUserStoreCo
     private void validateHashProviderParams(UserStoreDTO userStoreDTO) throws UserStoreException {
 
         PropertyDTO[] userStoreProperty = userStoreDTO.getProperties();
+        String userstoreDomainId = userStoreDTO.getDomainId();
         String digestFunction = null;
         String hashProviderParamsJSON = null;
+        if (ArrayUtils.isEmpty(userStoreProperty)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No userstore properties found for userstore: " + userstoreDomainId);
+            }
+            return;
+        }
         for (PropertyDTO propertyDTO : userStoreProperty) {
-            if (propertyDTO.getName().equals(DIGEST_FUNCTION)) {
+            if (DIGEST_FUNCTION.equals(propertyDTO.getName())) {
                 digestFunction = propertyDTO.getValue();
             }
-            if (propertyDTO.getName().equals(HASH_PROVIDER_PARAMS_JSON)) {
+            if (HASH_PROVIDER_PARAMS_JSON.equals(propertyDTO.getName())) {
                 hashProviderParamsJSON = propertyDTO.getValue();
             }
         }
-        if (StringUtils.isNotBlank(hashProviderParamsJSON)) {
-            HashProviderFactory hashProviderFactory = UserStoreConfigListenersHolder.getInstance().
-                    getHashProviderFactory(digestFunction);
-            if (hashProviderFactory != null) {
-                Set<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderConfigProperties();
-                validateParams(hashProviderParamsJSON, hashProviderMetaProperties);
-                Map<String, Object> hashProviderPropertiesMap =
-                        getHashProviderInitConfigs(hashProviderParamsJSON);
-                try {
-                    hashProviderFactory.getHashProvider(hashProviderPropertiesMap);
-                } catch (HashProviderException e) {
-                    throw new UserStoreException("Error occurred while initializing the hashProvider.", e);
-                }
+        if (StringUtils.isBlank(hashProviderParamsJSON)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No hash provider configurations found for: " + userstoreDomainId);
             }
+            return;
+        }
+        // Retrieve the corresponding HashProviderFactory for the defined hashing function.
+        HashProviderFactory hashProviderFactory = UserStoreConfigListenersHolder.getInstance().
+                getHashProviderFactory(digestFunction);
+        if (hashProviderFactory == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("No HashProviderFactory found digest function : %s for userstore: %s",
+                        digestFunction, userstoreDomainId));
+            }
+            return;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("HashProviderFactory: %s found for digest function: %s for userstore: %s",
+                    hashProviderFactory.getAlgorithm(), digestFunction, userstoreDomainId));
+        }
+        Set<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderConfigProperties();
+        validateParams(hashProviderParamsJSON, hashProviderMetaProperties);
+        Map<String, Object> hashProviderPropertiesMap =
+                getHashProviderInitConfigs(hashProviderParamsJSON);
+        try {
+            hashProviderFactory.getHashProvider(hashProviderPropertiesMap);
+        } catch (HashProviderException e) {
+            throw new UserStoreException("Error occurred while initializing the hashProvider.", e);
         }
     }
 

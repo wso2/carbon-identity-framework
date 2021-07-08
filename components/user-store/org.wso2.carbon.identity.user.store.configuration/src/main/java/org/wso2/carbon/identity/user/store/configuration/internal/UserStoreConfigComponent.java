@@ -132,7 +132,7 @@ public class UserStoreConfigComponent {
             UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
             UserStoreHashProviderConfigListenerImpl userStoreHashProviderListener =
                     new UserStoreHashProviderConfigListenerImpl();
-            ctxt.getBundleContext().registerService(UserStoreHashProviderConfigListenerImpl.class.getName(),
+            ctxt.getBundleContext().registerService(UserStoreConfigListener.class.getName(),
                     userStoreHashProviderListener, null);
             UserStoreConfigListenersHolder.getInstance().
                     setUserStoreConfigListenerService(userStoreHashProviderListener);
