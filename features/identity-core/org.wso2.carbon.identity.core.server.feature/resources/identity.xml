@@ -1715,7 +1715,7 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/configs/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
