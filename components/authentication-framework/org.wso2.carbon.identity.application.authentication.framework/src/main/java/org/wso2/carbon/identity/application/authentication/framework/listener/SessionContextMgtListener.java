@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.listener;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,6 +49,15 @@ public interface SessionContextMgtListener {
     Map<String, String> onPreCreateSession(String sessionContextKey, HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context);
 
+    /**
+     * Pre Update Session in the framework.
+     *
+     * @param sessionContextKey session Context Key.
+     * @param request           Http Servlet Request.
+     * @param response          Http Servlet Response.
+     * @param context           Authentication Context.
+     * @return                  Map of key-values to be added to the session object.
+     */
     Map<String, String> onPreUpdateSession(String sessionContextKey, HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context);
 }
