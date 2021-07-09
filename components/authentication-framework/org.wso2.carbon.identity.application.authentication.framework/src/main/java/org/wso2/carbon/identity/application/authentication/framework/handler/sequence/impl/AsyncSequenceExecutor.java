@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Map;
@@ -115,6 +116,7 @@ public class AsyncSequenceExecutor {
             LongWaitStatusStoreService longWaitStatusStoreService =
                     FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
             try {
+                FrameworkUtils.startTenantFlow(authenticationContext.getTenantDomain());
                 LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(authenticationContext
                         .getContextIdentifier());
                 if (longWaitStatus == null) {
@@ -126,6 +128,8 @@ public class AsyncSequenceExecutor {
                 returnFunction.accept(authenticationContext, data, result);
             } catch (FrameworkException e) {
                 log.error("Error while resuming from the wait. ", e);
+            } finally {
+                FrameworkUtils.endTenantFlow();
             }
         }
     }
