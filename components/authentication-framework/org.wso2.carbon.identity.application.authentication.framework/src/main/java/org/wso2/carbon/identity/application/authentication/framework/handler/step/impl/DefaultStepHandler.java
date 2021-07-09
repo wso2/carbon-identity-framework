@@ -886,26 +886,22 @@ public class DefaultStepHandler implements StepHandler {
         // params set by the Basic Authenticator need to be added to new URL generated for the multi option page.
         // Currently, there is no method to check whether recaptcha has been enabled without manually reading the
         // captcha-config.properties file. Hence, this fragment is always executed without the check, but will not
-        // alter the final URL if recaptcha is not enabled.
+        // alter the final URL if recaptcha is not enabled. This filters out the recaptcha params from the redirect
+        // URL previously set by an authenticator and generates a query string to be appended to the new redirect URL.
         StringBuilder reCaptchaParamString = new StringBuilder("");
-        List<String> authenticatorIdpMappings = Arrays.asList(authenticatorNames.split(";"));
-        for (String authenticatorIdpMapping : authenticatorIdpMappings) {
-            String authenticator = authenticatorIdpMapping.split(":")[0];
-            if (FrameworkConstants.BASIC_AUTHENTICATOR_CLASS.equalsIgnoreCase(authenticator)) {
-                String basicAuthRedirectUrl = ((CommonAuthResponseWrapper) response).getRedirectURL();
-                List<NameValuePair> queryParameters = new URIBuilder(basicAuthRedirectUrl).getQueryParams();
-                List<NameValuePair> reCaptchaParameters = queryParameters.stream().filter(param ->
-                        FrameworkConstants.RECAPTCHA_API_PARAM.equals(param.getName()) ||
-                                FrameworkConstants.RECAPTCHA_KEY_PARAM.equals(param.getName()) ||
-                                FrameworkConstants.RECAPTCHA_PARAM.equals(param.getName()) ||
-                                FrameworkConstants.RECAPTCHA_RESEND_CONFIRMATION_PARAM.equals(param.getName())
-                    )
+        String basicAuthRedirectUrl = ((CommonAuthResponseWrapper) response).getRedirectURL();
+        if (StringUtils.isNotBlank(basicAuthRedirectUrl)) {
+            List<NameValuePair> queryParameters = new URIBuilder(basicAuthRedirectUrl).getQueryParams();
+            List<NameValuePair> reCaptchaParameters = queryParameters.stream().filter(param ->
+                    FrameworkConstants.RECAPTCHA_API_PARAM.equals(param.getName()) ||
+                            FrameworkConstants.RECAPTCHA_KEY_PARAM.equals(param.getName()) ||
+                            FrameworkConstants.RECAPTCHA_PARAM.equals(param.getName()) ||
+                            FrameworkConstants.RECAPTCHA_RESEND_CONFIRMATION_PARAM.equals(param.getName())
+            )
                     .collect(Collectors.toList());
-                for (NameValuePair reCaptchaParam : reCaptchaParameters) {
-                    reCaptchaParamString.append("&").append(reCaptchaParam.getName()).append("=")
-                            .append(reCaptchaParam.getValue());
-                }
-                break;
+            for (NameValuePair reCaptchaParam : reCaptchaParameters) {
+                reCaptchaParamString.append("&").append(reCaptchaParam.getName()).append("=")
+                        .append(reCaptchaParam.getValue());
             }
         }
 
