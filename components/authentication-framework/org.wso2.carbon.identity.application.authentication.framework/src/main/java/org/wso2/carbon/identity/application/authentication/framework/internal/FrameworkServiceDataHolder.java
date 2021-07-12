@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -51,8 +52,10 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class FrameworkServiceDataHolder {
 
@@ -87,7 +90,7 @@ public class FrameworkServiceDataHolder {
     private FederatedAssociationManager federatedAssociationManager;
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
-
+    private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private FrameworkServiceDataHolder() {
 
         setNanoTimeReference(System.nanoTime());
@@ -528,5 +531,20 @@ public class FrameworkServiceDataHolder {
             ServerSessionManagementService sessionManagementService) {
 
         this.serverSessionManagementService = sessionManagementService;
+    }
+
+    public SessionContextMgtListener getSessionContextMgtListener(String inboundType) {
+
+        return sessionContextMgtListeners.get(inboundType);
+    }
+
+    public void setSessionContextMgtListener(String inboundType, SessionContextMgtListener sessionContextMgtListener) {
+
+        sessionContextMgtListeners.put(inboundType, sessionContextMgtListener);
+    }
+
+    public void removeSessionContextMgtListener(String inboundType) {
+
+        sessionContextMgtListeners.remove(inboundType);
     }
 }

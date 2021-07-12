@@ -35,11 +35,11 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
@@ -69,7 +69,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -498,7 +497,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if (context.getRuntimeClaims().size() > 0) {
                     sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
                 }
-
+                handleSessionContextUpdate(context.getRequestType(), sessionContextKey, sessionContext,
+                        request, response, context);
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
@@ -540,6 +540,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
                 }
 
+                handleInboundSessionCreate(context.getRequestType(), sessionContextKey, sessionContext,
+                        request, response, context);
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
@@ -606,6 +608,34 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    private void handleSessionContextUpdate(String requestType, String sessionContextKey, SessionContext sessionContext,
+                                            HttpServletRequest request, HttpServletResponse response,
+                                            AuthenticationContext context) {
+
+        SessionContextMgtListener sessionContextMgtListener = FrameworkServiceDataHolder.getInstance()
+                .getSessionContextMgtListener(requestType);
+        if (sessionContextMgtListener == null) {
+            return;
+        }
+        Map<String, String> inboundProperties = sessionContextMgtListener.onPreUpdateSession(sessionContextKey, request,
+                response, context);
+        inboundProperties.forEach(sessionContext::addProperty);
+    }
+
+    private void handleInboundSessionCreate(String requestType, String sessionContextKey, SessionContext sessionContext,
+                                            HttpServletRequest request, HttpServletResponse response,
+                                            AuthenticationContext context) {
+
+        SessionContextMgtListener sessionContextMgtListener = FrameworkServiceDataHolder.getInstance()
+                .getSessionContextMgtListener(requestType);
+        if (sessionContextMgtListener == null) {
+            return;
+        }
+        Map<String, String> inboundProperties = sessionContextMgtListener.onPreCreateSession(sessionContextKey, request,
+                response, context);
+        inboundProperties.forEach(sessionContext::addProperty);
     }
 
     /**
