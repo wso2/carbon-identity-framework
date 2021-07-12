@@ -23,7 +23,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
@@ -60,8 +59,6 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -70,12 +67,9 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +78,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
@@ -196,8 +189,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         combinedLocalClaims
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
-                    String username;
-                    username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                    String username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -320,7 +312,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
                     }
-                    username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                    if (StringUtils.isEmpty(username)) {
+                        username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                    }
                     if (log.isDebugEnabled()) {
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
                                 + " coming from " + externalIdPConfig.getIdPName()
@@ -339,7 +333,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String username;
         // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
-        if (FrameworkUtils.isEnhancedFeature()) {
+        if (FrameworkUtils.isJitProvisionEnhancedFeature()) {
             username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
                     externalIdPConfigName, context);
         } else {

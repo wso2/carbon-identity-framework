@@ -3038,10 +3038,12 @@ public class FrameworkUtils {
      *
      * @return true if the JIT provisioning enhanced features is enabled else return false.
      */
-    public static boolean isEnhancedFeature() {
+    public static boolean isJitProvisionEnhancedFeature() {
 
-        if (StringUtils.isNotBlank(IdentityUtil.getProperty(FrameworkConstants.ENABLE_ENHANCE_FEATURE))) {
-            return Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.ENABLE_ENHANCE_FEATURE));
+        if (StringUtils.isNotBlank(IdentityUtil.
+                getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE))) {
+            return Boolean.parseBoolean(IdentityUtil.
+                    getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
         }
         return false;
     }

@@ -66,7 +66,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
@@ -220,8 +220,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
                     UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                    if (FrameworkUtils.isEnhancedFeature()) {
-                        setSource(tenantDomain, idp, userClaims);
+                    if (FrameworkUtils.isJitProvisionEnhancedFeature()) {
+                        setJitProvisionedSource(tenantDomain, idp, userClaims);
                     }
                     userStoreManager.addUser(username, password, null, userClaims, null);
                 } catch (UserStoreException e) {
@@ -600,13 +600,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @param userClaims   User claims.
      * @throws FrameworkException If an error occurs while retrieving the resource id of the identity provider.
      */
-    private void setSource(String tenantDomain, String idpName, Map<String, String> userClaims)
+    private void setJitProvisionedSource(String tenantDomain, String idpName, Map<String, String> userClaims)
             throws FrameworkException {
 
         try {
             String idpId = IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain,
                     true).getResourceId();
-            userClaims.put(PROVISIONED_SOURCE_CLAIM, idpId);
+            userClaims.put(PROVISIONED_SOURCE_ID_CLAIM, idpId);
         } catch (IdentityProviderManagementException e) {
             throw new FrameworkException("Error while getting the federated IDP name of the IDP: "
                     + idpName + "in the tenant: " + tenantDomain, e);
