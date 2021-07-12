@@ -30,18 +30,21 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Thread to perform JIT provisioned users deletion task based on provisioned IDP delete.
  */
-public class ProvisionedUserDeleteThread implements Runnable {
+public class JITProvisionedUserDeleteThread implements Runnable {
 
     private static final Log log = LogFactory.getLog(SessionCleanUpService.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     private final String resourceId;
     private final String tenantDomain;
 
-    public ProvisionedUserDeleteThread(String resourceId, String tenantDomain) {
+    public JITProvisionedUserDeleteThread(String resourceId, String tenantDomain) {
 
         this.resourceId = resourceId;
         this.tenantDomain = tenantDomain;
@@ -53,26 +56,33 @@ public class ProvisionedUserDeleteThread implements Runnable {
         if (log.isDebugEnabled()) {
             log.debug("Start running the JIT provisioned user delete task.");
         }
-        diagnosticLog.info("Start running the JIT provisioned user delete task.");
-        provisionedUserDelete();
+        jitProvisionedUserDelete();
         if (log.isDebugEnabled()) {
             log.debug("Stop running the JIT provisioned user delete task.");
         }
-        diagnosticLog.info("Stop running the JIT provisioned user delete task.");
     }
 
-    private void provisionedUserDelete() {
+    private void jitProvisionedUserDelete() {
 
         try {
             FrameworkUtils.startTenantFlow(tenantDomain);
             RealmService realmService = FrameworkServiceComponent.getRealmService();
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-            String[] userList =
-                    ((AbstractUserStoreManager) userRealm.getUserStoreManager()).
-                            getUserList(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM, resourceId, null);
-            if (ArrayUtils.isNotEmpty(userList)) {
-                for (String username : userList) {
+
+            boolean isListedAllProvisionedUsersByIdp = false;
+            String[] provisionedUserList = new String[0];
+            while (!isListedAllProvisionedUsersByIdp) {
+                String[] userList = ((AbstractUserStoreManager) userRealm.getUserStoreManager()).
+                                getUserList(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM, resourceId, null);
+                if (ArrayUtils.isEmpty(provisionedUserList)) {
+                    isListedAllProvisionedUsersByIdp = true;
+                } else {
+                    provisionedUserList = (String[]) ArrayUtils.addAll(provisionedUserList, userList);
+                }
+            }
+            if (ArrayUtils.isNotEmpty(provisionedUserList)) {
+                for (String username : provisionedUserList) {
                     ((AbstractUserStoreManager) userRealm.getUserStoreManager()).deleteUser(username);
                 }
             }

@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.pr
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisionedUserDeleteThread;
+import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.JITProvisionedUserDeleteThread;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -55,8 +55,8 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
                     resourceId, tenantDomain));
         }
 
-        ProvisionedUserDeleteThread provisionedUserDeleteThread =
-                new ProvisionedUserDeleteThread(resourceId, tenantDomain);
+        JITProvisionedUserDeleteThread provisionedUserDeleteThread =
+                new JITProvisionedUserDeleteThread(resourceId, tenantDomain);
         threadPool.submit(provisionedUserDeleteThread);
         return true;
     }
@@ -69,6 +69,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
             return true;
         }
 
+        IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_RESOURCE_ID);
         String idpId = IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain,
                 true).getResourceId();
         IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_RESOURCE_ID, idpId);
@@ -90,9 +91,9 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
 
         try {
             String idpId = (String) IdentityUtil.threadLocalProperties.get().get(FrameworkConstants.IDP_RESOURCE_ID);
-            ProvisionedUserDeleteThread provisionedUserDeleteThread =
-                    new ProvisionedUserDeleteThread(idpId, tenantDomain);
-            threadPool.submit(provisionedUserDeleteThread);
+            JITProvisionedUserDeleteThread JITProvisionedUserDeleteThread =
+                    new JITProvisionedUserDeleteThread(idpId, tenantDomain);
+            threadPool.submit(JITProvisionedUserDeleteThread);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_RESOURCE_ID);
         }
