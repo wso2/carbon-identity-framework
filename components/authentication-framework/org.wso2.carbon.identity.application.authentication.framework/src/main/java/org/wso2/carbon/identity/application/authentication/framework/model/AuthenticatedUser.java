@@ -172,12 +172,18 @@ public class AuthenticatedUser extends User {
     private String getLocalUserIdInternal() {
 
         String userId = null;
-        try {
-            int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
-            userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
-                    this.getUserStoreDomain(), this.getUserName());
-        } catch (UserSessionException e) {
-            log.error("Error while resolving the user id from username");
+        if (userName != null && userStoreDomain != null && tenantDomain != null) {
+            try {
+                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
+                userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
+                        this.getUserStoreDomain(), this.getUserName());
+            } catch (UserSessionException e) {
+                log.error("Error while resolving the user id from username");
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("User id could not be resolved for user: " + toFullQualifiedUsername());
+            }
         }
         return userId;
     }
@@ -189,33 +195,35 @@ public class AuthenticatedUser extends User {
     private String getFederatedUserIdInternal() {
 
         String userId = null;
-        try {
-            int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
-            int idpId = UserSessionStore.getInstance().getIdPId(this.getFederatedIdPName(), tenantId);
-            userId = UserSessionStore.getInstance()
-                    .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
+        if (federatedIdPName != null && tenantDomain != null && authenticatedSubjectIdentifier != null) {
             try {
-                if (userId == null) {
-                    userId = UUID.randomUUID().toString();
-                    UserSessionStore.getInstance()
-                            .storeUserData(userId, this.getAuthenticatedSubjectIdentifier(), tenantId,
-                                    idpId);
-                }
-            } catch (DuplicatedAuthUserException e) {
-
-                String msg = "User authenticated is already persisted. Username: "
-                        + this.getAuthenticatedSubjectIdentifier() + " Tenant Domain:"
-                        + this.getTenantDomain() + " IdP: " + this.getFederatedIdPName();
-                log.warn(msg);
-                if (log.isDebugEnabled()) {
-                    log.debug(msg, e);
-                }
-                // Since duplicate entry was found, let's try to get the ID again.
+                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
+                int idpId = UserSessionStore.getInstance().getIdPId(this.getFederatedIdPName(), tenantId);
                 userId = UserSessionStore.getInstance()
                         .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
+                try {
+                    if (userId == null) {
+                        userId = UUID.randomUUID().toString();
+                        UserSessionStore.getInstance()
+                                .storeUserData(userId, this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
+                    }
+                } catch (DuplicatedAuthUserException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User authenticated is already persisted. Username: "
+                                + this.getAuthenticatedSubjectIdentifier() + " Tenant Domain :"
+                                + this.getTenantDomain() + " IdP: " + this.getFederatedIdPName(), e);
+                    }
+                    // Since duplicate entry was found, let's try to get the ID again.
+                    userId = UserSessionStore.getInstance()
+                            .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
+                }
+            } catch (UserSessionException e) {
+                log.error("Error while resolving the user id from username.");
             }
-        } catch (UserSessionException e) {
-            log.error("Error while resolving the user id from username.");
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("User id could not be resolved for user: " + toFullQualifiedUsername());
+            }
         }
         return userId;
     }
@@ -296,14 +304,14 @@ public class AuthenticatedUser extends User {
     public String getUserId() throws UserIdNotFoundException {
 
         if (this.userId != null) {
-            return userId;
+            return this.userId;
         }
         // User id can be null sometimes in some flows. Hence trying to resolve it here.
-        userId = resolveUserIdInternal();
-        if (userId == null) {
+        this.userId = resolveUserIdInternal();
+        if (this.userId == null) {
             throw new UserIdNotFoundException("User id is not available for user.");
         }
-        return userId;
+        return this.userId;
     }
 
     public void setUserId(String userId) {
@@ -313,33 +321,17 @@ public class AuthenticatedUser extends User {
 
     private String resolveUserIdInternal() {
 
-        String userId = null;
+        String userId;
         if (!isFederatedUser()) {
             if (log.isDebugEnabled()) {
-                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                        ". Trying to retrieve user id.");
+                log.debug("Trying to resolve the user id for the local user: " + toFullQualifiedUsername());
             }
-            if (userName != null && userStoreDomain != null && tenantDomain != null) {
-                userId = this.getLocalUserIdInternal();
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("User id could not be resolved for user with username: " + userName + " userstore " +
-                            "domain: " + userStoreDomain + " tenant domain: " + tenantDomain);
-                }
-            }
+            userId = this.getLocalUserIdInternal();
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("User Id retrieved for the user when it is null for user: " + toFullQualifiedUsername() +
-                        ". Trying to retrieve or generate user id.");
+                log.debug("Trying to resolve the user id for the federated user: " + toFullQualifiedUsername());
             }
-            if (federatedIdPName != null && tenantDomain != null && authenticatedSubjectIdentifier != null) {
-                userId = this.getFederatedUserIdInternal();
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("User id could not be retrieved for user with username: " + userName
-                            + " idp name: " + federatedIdPName + " tenant domain: " + tenantDomain);
-                }
-            }
+            userId = this.getFederatedUserIdInternal();
         }
 
         return userId;

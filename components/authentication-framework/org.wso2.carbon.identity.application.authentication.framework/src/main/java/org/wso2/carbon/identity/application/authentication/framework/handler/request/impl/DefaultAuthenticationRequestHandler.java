@@ -677,7 +677,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // If the user id is not available in the user object, or data is not sufficient to resolve it. Hence
                 // the mapping is not stored.
                 if (log.isDebugEnabled()) {
-                    log.debug("A unique user id is not set for the user:" + user.getLoggableUserId()
+                    log.debug("A unique user id is not set for the user: " + user.getLoggableUserId()
                             + ". Hence the session information of the user is not stored.");
                 }
             }
