@@ -13,6 +13,7 @@
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'On.Failure.Max.Attempts'": "5",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.Time": "5m",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.manageInternally'": true,
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.notifyOnLockIncrement'": false,
   "identity_mgt.events.schemes.emailSend.module_index": "2",
   "identity_mgt.events.schemes.emailSend.subscriptions": [
     "TRIGGER_NOTIFICATION"
