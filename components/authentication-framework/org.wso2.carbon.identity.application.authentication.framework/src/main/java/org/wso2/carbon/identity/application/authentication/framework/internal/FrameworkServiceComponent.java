@@ -799,7 +799,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "session.context.listener",
             service = SessionContextMgtListener.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
+            cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetSessionContextListener"
     )
