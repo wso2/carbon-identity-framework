@@ -168,6 +168,7 @@
   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "totpauthenticationendpoint/totpError.jsp",
   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "totpauthenticationendpoint/enableTOTP.jsp",
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,
