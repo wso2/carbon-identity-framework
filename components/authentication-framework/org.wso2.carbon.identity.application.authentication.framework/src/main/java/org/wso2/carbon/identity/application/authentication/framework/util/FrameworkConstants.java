@@ -143,6 +143,12 @@ public abstract class FrameworkConstants {
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
+    public static final String BASIC_AUTH_MECHANISM = "basic";
+    public static final String RECAPTCHA_PARAM = "reCaptcha";
+    public static final String RECAPTCHA_RESEND_CONFIRMATION_PARAM = "reCaptchaResend";
+    public static final String RECAPTCHA_KEY_PARAM = "reCaptchaKey";
+    public static final String RECAPTCHA_API_PARAM = "reCaptchaAPI";
+
     // DB product names.
     public static final String MY_SQL = "MySQL";
     public static final String MARIA_DB = "MariaDB";
