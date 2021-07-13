@@ -241,8 +241,7 @@ public class AuthenticatedUser extends User {
 
         if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
             throw new IllegalArgumentException("Failed to create Federated Authenticated User from the given subject "
-                    + "identifier. Invalid argument. authenticatedSubjectIdentifier : "
-                    + authenticatedSubjectIdentifier);
+                    + "identifier. Null or empty value provided for authenticatedSubjectIdentifier");
         }
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
@@ -264,10 +263,8 @@ public class AuthenticatedUser extends User {
             String authenticatedSubjectIdentifier, String federatedIdPName) {
 
         if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Failed to create Federated Authenticated User from the given subject " +
-                            "identifier. Invalid argument. authenticatedSubjectIdentifier : "
-                            + authenticatedSubjectIdentifier);
+            throw new IllegalArgumentException("Failed to create Federated Authenticated User from the given subject "
+                    + "identifier. Null or empty value provided for authenticatedSubjectIdentifier");
         }
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
