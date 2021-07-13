@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -561,8 +562,13 @@ public class JsGraphBuilder {
         StepConfig stepConfig = graph.getStepMap().get(stepId);
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
         StepConfig clonedStepConfig = new StepConfig(stepConfig);
-        clonedStepConfig
-                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
+        StepConfig stepConfigFromContext = null;
+        if (MapUtils.isNotEmpty(context.getSequenceConfig().getStepMap())) {
+            stepConfigFromContext = context.getSequenceConfig().getStepMap().values().stream()
+                    .filter(contextStepConfig -> (stepConfig.getOrder() == contextStepConfig.getOrder()))
+                    .findFirst().orElse(null);
+        }
+        clonedStepConfig.applyStateChangesToNewObjectFromContextStepMap(stepConfigFromContext);
         if (log.isDebugEnabled()) {
             log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
         }
