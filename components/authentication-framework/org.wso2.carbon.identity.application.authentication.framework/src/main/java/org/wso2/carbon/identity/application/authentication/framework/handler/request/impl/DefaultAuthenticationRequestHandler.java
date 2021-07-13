@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -52,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -684,35 +686,30 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throws UserSessionException {
 
         String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
-        String appName = context.getServiceProviderName();
-        int appTenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
         String inboundAuth = context.getCallerPath().substring(1);
         int appId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
-            String userId = authenticatedIdPData.getUser().getUserId();
-            String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
-            if (tenantDomain == null) {
-                tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
-            }
-            String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
+            AuthenticatedUser user = authenticatedIdPData.getUser();
 
             try {
-                AuthenticatedUser user = authenticatedIdPData.getUser();
-                if (StringUtils.isNotEmpty(user.getUserId())) {
-                    if (!UserSessionStore.getInstance().isExistingMapping(user.getUserId(), sessionContextKey)) {
-                        UserSessionStore.getInstance().storeUserSessionData(user.getUserId(), sessionContextKey);
+                String userId = user.getUserId();
+
+                try {
+                    if (!UserSessionStore.getInstance().isExistingMapping(userId, sessionContextKey)) {
+                        UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
                     }
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("A unique user id is not set for the user," + userId + "of userstore domain, " +
-                                userStoreDomain + "in tenant, " + tenantDomain + ". Hence the session " +
-                                "information of the user is not stored.");
-                    }
+                } catch (UserSessionException e) {
+                    throw new UserSessionException("Error while storing session data for user: "
+                            + user.getLoggableUserId(), e);
                 }
-            } catch (UserSessionException e) {
-                throw new UserSessionException("Error while storing session data for user: " + userId + " of " +
-                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain, e);
+            } catch (UserIdNotFoundException e) {
+                // If the user id is not available in the user object, or data is not sufficient to resolve it. Hence
+                // the mapping is not stored.
+                if (log.isDebugEnabled()) {
+                    log.debug("A unique user id is not set for the user: " + user.getLoggableUserId()
+                            + ". Hence the session information of the user is not stored.");
+                }
             }
         }
         try {
@@ -723,11 +720,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);
         }
-    }
-
-    private boolean isFederatedUser(AuthenticatedUser authenticatedUser) {
-
-        return authenticatedUser.isFederatedUser();
     }
 
     /**

@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -940,16 +941,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)userRealm.getUserStoreManager();
 
             if (userStoreManager.isExistingUserWithID(user.getUserId())) {
-                return !(isUserDisabled(userStoreManager, user) ||
-                        isUserLocked(userStoreManager, user));
-
+                return !(isUserDisabled(userStoreManager, user) || isUserLocked(userStoreManager, user));
             } else {
-                log.error("Trying to authenticate non existing user: " + user.getUserId());
+                log.error("Trying to authenticate non existing user: " + user.getLoggableUserId());
             }
         } catch (UserStoreException e) {
-            log.error("Error while checking existence of user: " + user.getUserId(), e);
+            log.error("Error while checking existence of user: " + user.getLoggableUserId(), e);
         } catch (FrameworkException e) {
-            log.error("Error while validating user: " + user.getUserId(), e);
+            log.error("Error while validating user: " + user.getLoggableUserId(), e);
+        } catch (UserIdNotFoundException e) {
+            log.error("User id is not available for user: " + user.getLoggableUserId(), e);
         }
         return false;
     }
@@ -963,7 +964,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @throws FrameworkException
      */
     private boolean isUserLocked(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
-            throws FrameworkException {
+            throws FrameworkException, UserIdNotFoundException {
 
         if (!isAccountLockingEnabled(user.getTenantDomain())) {
             return false;
@@ -996,7 +997,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @throws FrameworkException
      */
     private boolean isUserDisabled(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
-            throws FrameworkException {
+            throws FrameworkException, UserIdNotFoundException {
 
         if (!isAccountDisablingEnabled(user.getTenantDomain())) {
             return false;

@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -184,10 +185,13 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             try {
                 UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
                 List<String> roleListOfUser =
-                        ((AbstractUserStoreManager) userRealm.getUserStoreManager()).getRoleListOfUserWithID(getWrapped().getUserId());
+                        ((AbstractUserStoreManager) userRealm.getUserStoreManager())
+                                .getRoleListOfUserWithID(getWrapped().getUserId());
                 return roleListOfUser.toArray(new String[0]);
             } catch (UserStoreException e) {
                 LOG.error("Error when getting role list of user: " + getWrapped(), e);
+            } catch (UserIdNotFoundException e) {
+                LOG.error("User id is not available for user: " + getWrapped().getLoggableUserId(), e);
             }
         }
         return ArrayUtils.EMPTY_STRING_ARRAY;

@@ -149,6 +149,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
 
             AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+            result.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
             result.getUserAttributes().put(ClaimMapping
                             .build("http://wso2.org/claims/givenname", "http://wso2.org/claims/givenname", "Test", false),
                     "Test");

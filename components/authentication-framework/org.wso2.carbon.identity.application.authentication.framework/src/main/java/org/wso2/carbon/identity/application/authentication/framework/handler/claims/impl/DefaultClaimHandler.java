@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -457,7 +458,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
 
         String tenantDomain = authenticatedUser.getTenantDomain();
-        String userId = authenticatedUser.getUserId();
 
         UserRealm realm = getUserRealm(tenantDomain);
 
@@ -511,9 +511,9 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         if (stepConfig == null || stepConfig.isSubjectIdentifierStep()) {
             if (spStandardDialect != null) {
-                setSubjectClaimForLocalClaims(userId, userStore, allLocalClaims, spStandardDialect, context);
+                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allLocalClaims, spStandardDialect, context);
             } else {
-                setSubjectClaimForLocalClaims(userId, userStore, allSPMappedClaims, null, context);
+                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null, context);
             }
         }
 
@@ -655,12 +655,15 @@ public class DefaultClaimHandler implements ClaimHandler {
         } catch (UserStoreException e) {
             if (e.getMessage().contains("UserNotFound")) {
                 if (log.isDebugEnabled()) {
-                    log.debug("User " + authenticatedUser.getUserId() + " not found in user store");
+                    log.debug("User " + authenticatedUser.getLoggableUserId() + " not found in user store");
                 }
             } else {
                 throw new FrameworkException("Error occurred while getting all user claims for " +
-                        authenticatedUser + " in " + tenantDomain, e);
+                        authenticatedUser.getLoggableUserId() + " in " + tenantDomain, e);
             }
+        } catch (UserIdNotFoundException e) {
+            throw new FrameworkException("User id is not available for user: " + authenticatedUser.getLoggableUserId(),
+                    e);
         }
         return allLocalClaims;
     }
@@ -748,7 +751,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Set federated subject's SP Subject Claim URI as a property
      */
-    private void setSubjectClaimForLocalClaims(String userId,
+    private void setSubjectClaimForLocalClaims(AuthenticatedUser authenticatedUser,
                                                AbstractUserStoreManager userStore,
                                                Map<String, String> attributesMap,
                                                String spStandardDialect,
@@ -757,12 +760,12 @@ public class DefaultClaimHandler implements ClaimHandler {
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
             if (spStandardDialect != null) {
-                setSubjectClaim(userId, userStore, attributesMap, spStandardDialect, context);
+                setSubjectClaim(authenticatedUser, userStore, attributesMap, spStandardDialect, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst unfiltered local claims");
                 }
             } else {
-                setSubjectClaim(userId, userStore, attributesMap, null, context);
+                setSubjectClaim(authenticatedUser, userStore, attributesMap, null, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst service provider mapped " +
                              "unfiltered local claims");
@@ -774,7 +777,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Set authenticated user's SP Subject Claim URI as a property
      */
-    private void setSubjectClaim(String userId, AbstractUserStoreManager userStore,
+    private void setSubjectClaim(AuthenticatedUser authenticatedUser, AbstractUserStoreManager userStore,
                                  Map<String, String> attributesMap, String spStandardDialect,
                                  AuthenticationContext context) {
 
@@ -803,22 +806,24 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
 
             // if federated case return
-            if (userId == null || userStore == null) {
-                log.debug("User id or user store \'NULL\'. Possibly federated case");
+            if (authenticatedUser == null || userStore == null || authenticatedUser.isFederatedUser()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User id or user store \'NULL\'. Possibly federated case");
+                }
                 return;
             }
 
             // standard dialect
             if (spStandardDialect != null) {
-                setSubjectClaimForStandardDialect(userId, userStore, context, subjectURI);
+                setSubjectClaimForStandardDialect(authenticatedUser, userStore, context, subjectURI);
             }
         }
     }
 
-    private void setSubjectClaimForStandardDialect(String userId, AbstractUserStoreManager userStore,
+    private void setSubjectClaimForStandardDialect(AuthenticatedUser authenticatedUser, AbstractUserStoreManager userStore,
                                                    AuthenticationContext context, String subjectURI) {
         try {
-            String value = userStore.getUserClaimValueWithID(userId, subjectURI, null);
+            String value = userStore.getUserClaimValueWithID(authenticatedUser.getUserId(), subjectURI, null);
             if (value != null) {
                 context.setProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE, value);
                 if (log.isDebugEnabled()) {
@@ -827,11 +832,14 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Subject claim for " + userId + " not found in user store");
+                    log.debug("Subject claim for " + authenticatedUser.getLoggableUserId() + " not found in user store");
                 }
             }
         } catch (UserStoreException e) {
-            log.error("Error occurred while retrieving " + subjectURI + " claim value for user " + userId, e);
+            log.error("Error occurred while retrieving " + subjectURI + " claim value for user "
+                            + authenticatedUser.getLoggableUserId(), e);
+        } catch (UserIdNotFoundException e) {
+            log.error("User id is not available for user: " + authenticatedUser.getLoggableUserId(), e);
         }
     }
 
