@@ -678,10 +678,16 @@
       "internal_application_mgt_create"
     ],
     "read": [
-      "internal_application_mgt_view"
+      "internal_cors_origins_view",
+      "internal_application_mgt_view",
+      "internal_claim_meta_view",
+      "internal_role_mgt_view",
+      "internal_userstore_view",
+      "internal_idp_view"
     ],
     "update": [
-      "internal_application_mgt_update"
+      "internal_application_mgt_update",
+      "internal_claim_meta_update"
     ],
     "delete": [
       "internal_application_mgt_delete"
@@ -714,6 +720,7 @@
       "internal_claim_meta_create"
     ],
     "read": [
+      "internal_userstore_view",
       "internal_claim_meta_view"
     ],
     "update": [
@@ -753,14 +760,58 @@
       "internal_email_mgt_delete"
     ]
   },
-  "console.general_configurations.enabled": true,
-  "console.general_configurations.scopes": {
+  "console.account_recovery.enabled": true,
+  "console.account_recovery.scopes": {
     "create": [],
     "read": [
-      "internal_idp_view"
+      "internal_governance_view"
     ],
     "update": [
-      "internal_idp_update"
+      "internal_governance_update"
+    ],
+    "delete": []
+  },
+  "console.user_onboarding.enabled": true,
+  "console.user_onboarding.scopes": {
+    "create": [],
+    "read": [
+      "internal_governance_view"
+    ],
+    "update": [
+      "internal_governance_update"
+    ],
+    "delete": []
+  },
+  "console.developer_getting_started.enabled": true,
+  "console.developer_getting_started.scopes": {
+    "create": [],
+    "read": [
+      "internal_application_mgt_create",
+      "internal_idp_create"
+    ],
+    "update": [],
+    "delete": []
+  },
+  "console.manage_getting_started.enabled": true,
+  "console.manage_getting_started.scopes": {
+    "create": [],
+    "read": [
+      "internal_user_mgt_create",
+      "internal_group_mgt_create"
+    ],
+    "update": [
+      "internal_user_mgt_update"
+    ],
+    "delete": []
+  },
+  "console.governance_connectors.enabled": true,
+  "console.governance_connectors.scopes": {
+    "create": [],
+    "read": [
+      "internal_governance_view"
+    ],
+    "update": [
+      "internal_governance_update"
     ],
     "delete": []
   },
@@ -773,7 +824,10 @@
       "internal_role_mgt_create"
     ],
     "read": [
-      "internal_role_mgt_view"
+      "internal_user_mgt_view",
+      "internal_role_mgt_view",
+      "internal_group_mgt_view",
+      "internal_userstore_view"
     ],
     "update": [
       "internal_role_mgt_update"
@@ -791,7 +845,10 @@
       "internal_idp_create"
     ],
     "read": [
-      "internal_idp_view"
+      "internal_userstore_view",
+      "internal_idp_view",
+      "internal_role_mgt_view",
+      "internal_claim_meta_view"
     ],
     "update": [
       "internal_idp_update"
@@ -803,19 +860,20 @@
   "console.oidc_scopes.enabled": true,
   "console.oidc_scopes.scopes": {
     "feature": [
-      "console:scopes"
+      "console:scopes:oidc"
     ],
     "create": [
-      "internal_application_mgt_create"
+      "internal_oidc_scope_mgt_create"
     ],
     "read": [
-      "internal_application_mgt_view"
+      "internal_oidc_scope_mgt_view",
+      "internal_claim_meta_view"
     ],
     "update": [
-      "internal_application_mgt_update"
+      "internal_oidc_scope_mgt_update"
     ],
     "delete": [
-      "internal_application_mgt_delete"
+      "internal_oidc_scope_mgt_delete"
     ]
   },
   "console.remote_fetch.enabled": true,
@@ -854,7 +912,10 @@
       "internal_role_mgt_create"
     ],
     "read": [
-      "internal_role_mgt_view"
+      "internal_user_mgt_view",
+      "internal_role_mgt_view",
+      "internal_userstore_view",
+      "internal_group_mgt_view"
     ],
     "update": [
       "internal_role_mgt_update"
@@ -872,6 +933,12 @@
       "internal_user_mgt_create"
     ],
     "read": [
+      "internal_userstore_view",
+      "internal_role_mgt_view",
+      "internal_group_mgt_view",
+      "internal_governance_view",
+      "internal_login",
+      "internal_user_mgt_view",
       "internal_user_mgt_list"
     ],
     "update": [
