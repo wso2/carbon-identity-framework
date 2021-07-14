@@ -1833,7 +1833,7 @@
         <Resource context="(.*)/oauth2/introspect(.*)"
                 secured="{{resource_access_control.introspect.secured}}"
                 http-method="all"
-                allowed-auth-handlers="BasicClientAuthenticationHandler">
+                allowed-auth-handlers="{{resource_access_control.introspect.allowed-auth-handlers}}">
             {% for permission in resource_access_control.introspect.permissions %}
             <Permissions>{{permission}}</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
