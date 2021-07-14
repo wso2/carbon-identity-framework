@@ -787,7 +787,8 @@
     "create": [],
     "read": [
       "internal_application_mgt_create",
-      "internal_idp_create"
+      "internal_idp_create",
+      "internal_application_mgt_update"
     ],
     "update": [],
     "delete": []
@@ -799,9 +800,7 @@
       "internal_user_mgt_create",
       "internal_group_mgt_create"
     ],
-    "update": [
-      "internal_user_mgt_update"
-    ],
+    "update": [],
     "delete": []
   },
   "console.governance_connectors.enabled": true,
