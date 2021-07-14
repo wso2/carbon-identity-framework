@@ -21,12 +21,15 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.pr
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionCleanUpService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -69,21 +72,27 @@ public class JITProvisionedUserDeleteThread implements Runnable {
             RealmService realmService = FrameworkServiceComponent.getRealmService();
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+            RealmConfiguration realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration();
 
+            int maxUserLimit = Integer.parseInt(realmConfiguration.
+                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_MAX_USER_LIST));
             boolean isListedAllProvisionedUsersByIdp = false;
-            String[] provisionedUserList = new String[0];
             while (!isListedAllProvisionedUsersByIdp) {
-                String[] userList = ((AbstractUserStoreManager) userRealm.getUserStoreManager()).
-                                getUserList(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM, resourceId, null);
-                if (ArrayUtils.isEmpty(provisionedUserList)) {
-                    isListedAllProvisionedUsersByIdp = true;
-                } else {
-                    provisionedUserList = (String[]) ArrayUtils.addAll(provisionedUserList, userList);
+                // Get the provisioned user list from the specified IDP and delete.
+                String[] provisionedUserList = ((AbstractUserStoreManager) userRealm.getUserStoreManager()).
+                        getUserList(FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM, resourceId, null);
+                if (ArrayUtils.isNotEmpty(provisionedUserList)) {
+                    for (String username : provisionedUserList) {
+                        ((AbstractUserStoreManager) userRealm.getUserStoreManager()).deleteUser(username);
+                    }
                 }
-            }
-            if (ArrayUtils.isNotEmpty(provisionedUserList)) {
-                for (String username : provisionedUserList) {
-                    ((AbstractUserStoreManager) userRealm.getUserStoreManager()).deleteUser(username);
+                if (provisionedUserList.length < maxUserLimit) {
+                    /*
+                    If the returned provisioned user list is less than the allowed maximum user list count that
+                    means all the provisioned users have been listed and deleted.
+                     */
+                    isListedAllProvisionedUsersByIdp = true;
                 }
             }
         } catch (UserStoreException e) {
