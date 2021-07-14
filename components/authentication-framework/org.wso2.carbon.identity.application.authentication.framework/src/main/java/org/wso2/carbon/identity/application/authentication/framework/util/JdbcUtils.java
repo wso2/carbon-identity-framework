@@ -36,7 +36,7 @@ public class JdbcUtils {
      */
     public static JdbcTemplate getNewTemplate() {
 
-        DataSource dataSource = IdentityDatabaseUtil.getDataSource();
+        DataSource dataSource = IdentityDatabaseUtil.getSessionDataSource();
         return new JdbcTemplate(dataSource);
     }
 

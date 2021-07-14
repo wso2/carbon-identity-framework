@@ -30,6 +30,11 @@
         <SkipDBSchemaCreation>{{identity_data_source.skip_db_schema_creation}}</SkipDBSchemaCreation>
         <SessionDataPersist>
             <Enable>{{session_data.persistence.enable_persistence}}</Enable>
+            <DataSource>
+                <!-- Include a data source name (jndiConfigName) from the set of data
+                    sources defined in master-datasources.xml -->
+                <Name>{{session.data_source}}</Name>
+            </DataSource>
             <Temporary>{{session_data.persistence.persist_temporary_data}}</Temporary>
             <PoolSize>{{session_data.persistence.persistence_pool_size}}</PoolSize>
             <SessionDataCleanUp>
