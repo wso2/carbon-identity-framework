@@ -333,7 +333,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String username;
         // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
-        if (FrameworkUtils.isJitProvisionEnhancedFeature()) {
+        if (FrameworkUtils.isJitProvisionEnhancedFeatureEnabled()) {
             username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
                     externalIdPConfigName, context);
         } else {
