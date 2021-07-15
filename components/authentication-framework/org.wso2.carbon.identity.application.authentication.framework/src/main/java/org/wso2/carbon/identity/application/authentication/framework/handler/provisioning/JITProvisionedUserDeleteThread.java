@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class JITProvisionedUserDeleteThread implements Runnable {
 
-    private static final Log log = LogFactory.getLog(SessionCleanUpService.class);
+    private static final Log log = LogFactory.getLog(JITProvisionedUserDeleteThread.class);
 
     private final String resourceId;
     private final String tenantDomain;
