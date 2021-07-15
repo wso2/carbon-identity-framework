@@ -37,8 +37,8 @@
   "server.internal_hostname": "localhost",
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
-  "recoveryendpoint.hostname" : "$ref{server.hostname}",
-  "recoveryendpoint.path" : "/recoveryendpoint",
+  "recoveryendpoint.hostname": "$ref{server.hostname}",
+  "recoveryendpoint.path": "/recoveryendpoint",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -86,7 +86,7 @@
   "oauth.endpoints.oidc_check_session_url": "$ref{server.base_path}/oidc/checksession",
   "oauth.endpoints.oidc_logout_url": "$ref{server.base_path}/oidc/logout",
   "oauth.endpoints.oidc_consent_page": "$ref{server.base_path}/authenticationendpoint/oauth2_consent.do",
-  "oauth.endpoints.oidc_logout_consent_page":"$ref{server.base_path}/authenticationendpoint/oauth2_logout_consent.do",
+  "oauth.endpoints.oidc_logout_consent_page": "$ref{server.base_path}/authenticationendpoint/oauth2_logout_consent.do",
   "oauth.endpoints.oidc_logout_page": "$ref{server.base_path}/authenticationendpoint/oauth2_logout.do",
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
@@ -112,8 +112,8 @@
   "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
   "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
 
-  "oauth.grant_type.jwt.enable_iat_validation":"true",
-  "oauth.grant_type.jwt.iat_validity_period":"30",
+  "oauth.grant_type.jwt.enable_iat_validation": "true",
+  "oauth.grant_type.jwt.iat_validity_period": "30",
 
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
@@ -151,9 +151,9 @@
   "oauth.enable_jwt_token_validation_during_introspection": true,
 
   "oauth.extensions.callback_handlers": [
-    {
-      "class":"org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
-    }
+      {
+          "class": "org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
+      }
   ],
   "oauth.token_validator.bearer.enable": true,
   "oauth.token_validator.bearer.class": "org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator",
@@ -177,10 +177,7 @@
   "oauth.oidc.id_token.issuer": "$ref{oauth.endpoints.oauth2_token_url}",
   "oauth.oidc.extensions.claim_callback_handler": "org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback",
   "oauth.oidc.token_validation.id_token_validity": "1h",
-  "oauth.oidc.id_token.supported_encryption_algorithms": [
-    "RSA-OAEP",
-    "RSA1_5"
-  ],
+  "oauth.oidc.id_token.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
   "oauth.oidc.id_token.supported_encryption_methods": [
     "A128GCM",
     "A192GCM",
@@ -268,7 +265,7 @@
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
-  "identity_mgt.recovery.enable_detailed_error_messages":false,
+  "identity_mgt.recovery.enable_detailed_error_messages": false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
@@ -284,7 +281,7 @@
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
   "identity_mgt.resend_notification.resend_code_validity": "1m",
-  "identity_mgt.password_reset_email.notify_on_reset":false,
+  "identity_mgt.password_reset_email.notify_on_reset": false,
 
   "identity_mgt.lite_user_registration.enable": false,
   "identity_mgt.lite_user_registration.lock_on_creation": true,
@@ -318,14 +315,14 @@
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
 
-  "identity_mgt.login_identifiers.enable" : false,
-  "identity_mgt.login_identifiers.primary_claim" : "http://wso2.org/claims/username",
+  "identity_mgt.login_identifiers.enable": false,
+  "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
 
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
-  "identity_mgt.notification.default_notification_channel" : "EMAIL",
-  "identity_mgt.notification.resolve_notification_channel" : false,
+  "identity_mgt.notification.default_notification_channel": "EMAIL",
+  "identity_mgt.notification.resolve_notification_channel": false,
 
   "identity_mgt.user_onboarding.enable_email_verification": false,
   "identity_mgt.user_onboarding.ask_password_from_user": true,
@@ -338,8 +335,8 @@
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
   "identity_mgt.user_self_registration.allow_self_registration": false,
-  "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
-  "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
+  "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel": true,
+  "identity_mgt.user_self_registration.enable_detailed_api_response": false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
   "identity_mgt.user_self_registration.send_confirmation_on_creation": false,
   "identity_mgt.user_self_registration.notify_account_confirmation": false,
@@ -505,9 +502,7 @@
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
-  "resource_access_control.introspect.permissions": [
-    "/permission/admin/manage/identity/applicationmgt/view"
-  ],
+  "resource_access_control.introspect.permissions": ["/permission/admin/manage/identity/applicationmgt/view"],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
@@ -551,10 +546,7 @@
     "/samlartresolve",
     "/passivests"
   ],
-  "tenant_context.rewrite.overwrite.dispatch": [
-    "/myaccount/",
-    "/console/"
-  ],
+  "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
     "/libs/",
     "/resources/",
@@ -562,13 +554,9 @@
     "/deployment.config.json",
     "/rpIFrame.html"
   ],
-  "intermediate_cert_validation.enable":false,
-  "intermediate_cert_validation.cert_cns": [
-    "localhost"
-  ],
-  "intermediate_cert_validation.exempt_contexts": [
-    "scim2"
-  ],
+  "intermediate_cert_validation.enable": false,
+  "intermediate_cert_validation.cert_cns": ["localhost"],
+  "intermediate_cert_validation.exempt_contexts": ["scim2"],
 
   "oauth.jwks_endpoint.enable": true,
   "oauth.jwks_endpoint.enforce_certificate_expiry_time_validity": true,
@@ -593,10 +581,8 @@
   "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
-  "fido.trusted.origins": [
-    "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
-  ],
-  "fido.user_response_timeout":"300000",
+  "fido.trusted.origins": ["${carbon.protocol}://${carbon.host}:${carbon.management.port}"],
+  "fido.user_response_timeout": "300000",
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
@@ -611,10 +597,7 @@
     "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
   ],
 
-  "system_applications.read_only_apps": [
-    "Console",
-    "My Account"
-  ],
+  "system_applications.read_only_apps": ["Console", "My Account"],
 
   "legacy_feature": [
     {
@@ -642,20 +625,16 @@
   "console.applications.developer_app.configs.path": "/develop/applications",
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
-  "console.documentation.github_options": {
-    "branch": "new_restructure"
-  },
+  "console.documentation.github_options.branch": "new_restructure",
   "console.documentation.image_prefix_url": "https://github.com/wso2/docs-is/raw/new_restructure/en/docs/",
   "console.documentation.provider": "GITHUB",
   "console.documentation.structure_file_type": "YAML",
   "console.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "console.login_callback_path": "/login",
   "console.logout_callback_path": "/login",
-  "console.route_paths": {
-    "home": "/develop/applications",
-    "login": "/login",
-    "logout": "/logout"
-  },
+  "console.route_paths.home": "/develop/applications",
+  "console.route_paths.login": "/login",
+  "console.route_paths.logout": "/logout",
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.app_title": "Console | WSO2 Identity Server",
   "console.ui.app_name": "Console",
@@ -667,251 +646,167 @@
   "console.session.params.sessionRefreshTimeOut": 300,
   "console.session.params.checkSessionInterval": 3,
   "console.applications.enabled": true,
-  "console.product_version.configs": {
-    "versionOverride": "BETA"
-  },
-  "console.applications.scopes": {
-    "feature": [
-      "console:applications"
-    ],
-    "create": [
-      "internal_application_mgt_create"
-    ],
-    "read": [
-      "internal_application_mgt_view"
-    ],
-    "update": [
-      "internal_application_mgt_update"
-    ],
-    "delete": [
-      "internal_application_mgt_delete"
-    ]
-  },
+  "console.product_version.configs.versionOverride": "BETA",
+  "console.applications.scopes.feature": ["console:applications"],
+  "console.applications.scopes.create": ["internal_application_mgt_create"],
+  "console.applications.scopes.read": [
+      "internal_cors_origins_view",
+      "internal_application_mgt_view",
+      "internal_claim_meta_view",
+      "internal_role_mgt_view",
+      "internal_userstore_view",
+      "internal_idp_view"
+  ],
+  "console.applications.scopes.update": ["internal_application_mgt_update", "internal_claim_meta_update"],
+  "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.approvals.enabled": true,
-  "console.approvals.scopes": {
-    "create": [
-      "internal_humantask_view"
-    ],
-    "read": [
-      "internal_humantask_view"
-    ],
-    "update": [
-      "internal_humantask_view"
-    ],
-    "delete": [
-      "internal_humantask_view"
-    ]
-  },
+  "console.approvals.scopes.create": ["internal_humantask_view"],
+  "console.approvals.scopes.read": ["internal_humantask_view"],
+  "console.approvals.scopes.update": ["internal_humantask_view"],
+  "console.approvals.scopes.delete": ["internal_humantask_view"],
   "console.attribute_dialects.enabled": true,
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
-  "console.attribute_dialects.scopes": {
-    "feature": [
-      "console:attributes"
-    ],
-    "create": [
-      "internal_claim_meta_create"
-    ],
-    "read": [
-      "internal_claim_meta_view"
-    ],
-    "update": [
-      "internal_claim_meta_update"
-    ],
-    "delete": [
-      "internal_claim_meta_delete"
-    ]
-  },
+  "console.attribute_dialects.scopes.feature": ["console:attributes"],
+  "console.attribute_dialects.scopes.create": ["internal_claim_meta_create"],
+  "console.attribute_dialects.scopes.read": ["internal_userstore_view", "internal_claim_meta_view"],
+  "console.attribute_dialects.scopes.update": ["internal_claim_meta_update"],
+  "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
   "console.certificates.enabled": true,
-  "console.certificates.scopes": {
-    "create": [
-      "internal_keystore_update"
-    ],
-    "read": [
-      "internal_keystore_view"
-    ],
-    "update": [
-      "internal_keystore_update"
-    ],
-    "delete": [
-      "internal_keystore_update"
-    ]
-  },
+  "console.certificates.scopes.create": ["internal_keystore_update"],
+  "console.certificates.scopes.read": ["internal_keystore_view"],
+  "console.certificates.scopes.update": ["internal_keystore_update"],
+  "console.certificates.scopes.delete": ["internal_keystore_update"],
   "console.email_templates.enabled": true,
-  "console.email_templates.scopes": {
-    "create": [
-      "internal_email_mgt_create"
-    ],
-    "read": [
-      "internal_email_mgt_view"
-    ],
-    "update": [
-      "internal_email_mgt_update"
-    ],
-    "delete": [
-      "internal_email_mgt_delete"
-    ]
-  },
-  "console.general_configurations.enabled": true,
-  "console.general_configurations.scopes": {
-    "create": [],
-    "read": [
-      "internal_idp_view"
-    ],
-    "update": [
-      "internal_idp_update"
-    ],
-    "delete": []
-  },
-  "console.groups.enabled": true,
-  "console.groups.scopes": {
-    "feature": [
-      "console:groups"
-    ],
-    "create": [
-      "internal_role_mgt_create"
-    ],
-    "read": [
-      "internal_role_mgt_view"
-    ],
-    "update": [
-      "internal_role_mgt_update"
-    ],
-    "delete": [
-      "internal_role_mgt_delete"
-    ]
-  },
-  "console.identity_providers.enabled": true,
-  "console.identity_providers.scopes": {
-    "feature": [
-      "console:idps"
-    ],
-    "create": [
-      "internal_idp_create"
-    ],
-    "read": [
-      "internal_idp_view"
-    ],
-    "update": [
-      "internal_idp_update"
-    ],
-    "delete": [
-      "internal_idp_delete"
-    ]
-  },
-  "console.oidc_scopes.enabled": true,
-  "console.oidc_scopes.scopes": {
-    "feature": [
-      "console:scopes"
-    ],
-    "create": [
-      "internal_application_mgt_create"
-    ],
-    "read": [
-      "internal_application_mgt_view"
-    ],
-    "update": [
+  "console.email_templates.scopes.create": ["internal_email_mgt_create"],
+  "console.email_templates.scopes.read": ["internal_email_mgt_view"],
+  "console.email_templates.scopes.update": ["internal_email_mgt_update"],
+  "console.email_templates.scopes.delete": ["internal_email_mgt_delete"],
+  "console.account_recovery.enabled": true,
+  "console.account_recovery.scopes.create": [],
+  "console.account_recovery.scopes.read": ["internal_governance_view"],
+  "console.account_recovery.scopes.update": ["internal_governance_update"],
+  "console.account_recovery.scopes.delete": [],
+  "console.user_onboarding.enabled": true,
+  "console.user_onboarding.scopes.create": [],
+  "console.user_onboarding.scopes.read": ["internal_governance_view"],
+  "console.user_onboarding.scopes.update": ["internal_governance_update"],
+  "console.user_onboarding.scopes.delete": [],
+  "console.developer_getting_started.enabled": true,
+  "console.developer_getting_started.scopes.create": [],
+  "console.developer_getting_started.scopes.read": [
+      "internal_application_mgt_create",
+      "internal_idp_create",
       "internal_application_mgt_update"
-    ],
-    "delete": [
-      "internal_application_mgt_delete"
-    ]
-  },
-  "console.remote_fetch.enabled": true,
-  "console.remote_fetch.scopes": {
-    "create": [
-      "internal_identity_mgt_view",
-      "internal_identity_mgt_update",
-      "internal_identity_mgt_create",
-      "internal_identity_mgt_delete"
-    ],
-    "read": [
-      "internal_identity_mgt_view",
-      "internal_identity_mgt_update",
-      "internal_identity_mgt_create",
-      "internal_identity_mgt_delete"
-    ],
-    "update": [
-      "internal_identity_mgt_view",
-      "internal_identity_mgt_update",
-      "internal_identity_mgt_create",
-      "internal_identity_mgt_delete"
-    ],
-    "delete": [
-      "internal_identity_mgt_view",
-      "internal_identity_mgt_update",
-      "internal_identity_mgt_create",
-      "internal_identity_mgt_delete"
-    ]
-  },
-  "console.roles.enabled": true,
-  "console.roles.scopes": {
-    "feature": [
-      "console:roles"
-    ],
-    "create": [
-      "internal_role_mgt_create"
-    ],
-    "read": [
-      "internal_role_mgt_view"
-    ],
-    "update": [
-      "internal_role_mgt_update"
-    ],
-    "delete": [
-      "internal_role_mgt_delete"
-    ]
-  },
-  "console.users.enabled": true,
-  "console.users.scopes": {
-    "feature": [
-      "console:users"
-    ],
-    "create": [
-      "internal_user_mgt_create"
-    ],
-    "read": [
-      "internal_user_mgt_list"
-    ],
-    "update": [
-      "internal_user_mgt_update"
-    ],
-    "delete": [
-      "internal_user_mgt_delete"
-    ]
-  },
-  "console.user_stores.enabled": true,
-  "console.user_stores.scopes": {
-    "create": [
-      "internal_userstore_create"
-    ],
-    "read": [
+  ],
+  "console.developer_getting_started.scopes.update": [],
+  "console.developer_getting_started.scopes.delete": [],
+  "console.manage_getting_started.enabled": true,
+  "console.manage_getting_started.scopes.create": [],
+  "console.manage_getting_started.scopes.read": ["internal_user_mgt_create", "internal_group_mgt_create"],
+  "console.manage_getting_started.scopes.update": [],
+  "console.manage_getting_started.scopes.delete": [],
+  "console.governance_connectors.enabled": true,
+  "console.governance_connectors.scopes.create": [],
+  "console.governance_connectors.scopes.read": ["internal_governance_view"],
+  "console.governance_connectors.scopes.update": ["internal_governance_update"],
+  "console.governance_connectors.scopes.delete": [],
+  "console.groups.enabled": true,
+  "console.groups.scopes.feature": ["console:groups"],
+  "console.groups.scopes.create": ["internal_role_mgt_create"],
+  "console.groups.scopes.read": [
+      "internal_user_mgt_view",
+      "internal_role_mgt_view",
+      "internal_group_mgt_view",
       "internal_userstore_view"
-    ],
-    "update": [
-      "internal_userstore_update"
-    ],
-    "delete": [
-      "internal_userstore_delete"
-    ]
-  },
+  ],
+  "console.groups.scopes.update": ["internal_role_mgt_update"],
+  "console.groups.scopes.delete": ["internal_role_mgt_delete"],
+  "console.identity_providers.enabled": true,
+  "console.identity_providers.scopes.feature": ["console:idps"],
+  "console.identity_providers.scopes.create": ["internal_idp_create"],
+  "console.identity_providers.scopes.read": [
+      "internal_userstore_view",
+      "internal_idp_view",
+      "internal_role_mgt_view",
+      "internal_claim_meta_view"
+  ],
+  "console.identity_providers.scopes.update": ["internal_idp_update"],
+  "console.identity_providers.scopes.delete": ["internal_idp_delete"],
+  "console.oidc_scopes.enabled": true,
+  "console.oidc_scopes.scopes.feature": ["console:scopes:oidc"],
+  "console.oidc_scopes.scopes.create": ["internal_oidc_scope_mgt_create"],
+  "console.oidc_scopes.scopes.read": ["internal_oidc_scope_mgt_view", "internal_claim_meta_view"],
+  "console.oidc_scopes.scopes.update": ["internal_oidc_scope_mgt_update"],
+  "console.oidc_scopes.scopes.delete": ["internal_oidc_scope_mgt_delete"],
+  "console.remote_fetch.enabled": true,
+  "console.remote_fetch.scopes.create": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+  ],
+  "console.remote_fetch.scopes.read": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+  ],
+  "console.remote_fetch.scopes.update": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+  ],
+  "console.remote_fetch.scopes.delete": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+  ],
+  "console.roles.enabled": true,
+  "console.roles.scopes.feature": ["console:roles"],
+  "console.roles.scopes.create": ["internal_role_mgt_create"],
+  "console.roles.scopes.read": [
+      "internal_user_mgt_view",
+      "internal_role_mgt_view",
+      "internal_userstore_view",
+      "internal_group_mgt_view"
+  ],
+  "console.roles.scopes.update": ["internal_role_mgt_update"],
+  "console.roles.scopes.delete": ["internal_role_mgt_delete"],
+  "console.users.enabled": true,
+  "console.users.scopes.feature": ["console:users"],
+  "console.users.scopes.create": ["internal_user_mgt_create"],
+  "console.users.scopes.read": [
+      "internal_userstore_view",
+      "internal_role_mgt_view",
+      "internal_group_mgt_view",
+      "internal_governance_view",
+      "internal_login",
+      "internal_user_mgt_view",
+      "internal_user_mgt_list"
+  ],
+  "console.users.scopes.update": ["internal_user_mgt_update"],
+  "console.users.scopes.delete": ["internal_user_mgt_delete"],
+  "console.user_stores.enabled": true,
+  "console.user_stores.scopes.create": ["internal_userstore_create"],
+  "console.user_stores.scopes.read": ["internal_userstore_view"],
+  "console.user_stores.scopes.update": ["internal_userstore_update"],
+  "console.user_stores.scopes.delete": ["internal_userstore_delete"],
   "console.self_app_identifier": "Console",
-  "console.system_apps_identifiers": [ "Console", "My Account" ],
-  "console.gravatar.configs": {
-    "fallback": "404"
-  },
+  "console.system_apps_identifiers": ["Console", "My Account"],
+  "console.gravatar.configs.fallback": "404",
   "console.list_all_attribute_dialects": false,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "/login",
   "myaccount.logout_callback_path": "/login",
-  "myaccount.route_paths": {
-    "home": "/overview",
-    "login": "/login",
-    "logout": "/logout"
-  },
+  "myaccount.route_paths.home": "/overview",
+  "myaccount.route_paths.login": "/login",
+  "myaccount.route_paths.logout": "/logout",
   "myaccount.ui.app_copyright": "WSO2 Identity Server",
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
@@ -919,25 +814,17 @@
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
-  "myaccount.product_version.configs": {
-    "versionOverride": ""
-  },
-  "myaccount.authenticator_app_configs": {
-    "enabled": true
-  },
+  "myaccount.product_version.configs.versionOverride": "",
+  "myaccount.authenticator_app_configs.enabled": true,
   "myaccount.applications.enabled": true,
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
   "myaccount.security.enabled": true,
-  "myaccount.operations.scopes": {
-    "create": [],
-    "read": [
-      "internal_humantask_view"
-    ],
-    "update": [],
-    "delete": []
-  },
+  "myaccount.operations.scopes.create": [],
+  "myaccount.operations.scopes.read": ["internal_humantask_view"],
+  "myaccount.operations.scopes.update": [],
+  "myaccount.operations.scopes.delete": [],
   "myaccount.session.params.userIdleTimeOut": 600,
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
@@ -948,15 +835,7 @@
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
   "cors.allow_subdomains": false,
-  "cors.supported_methods": [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "HEAD",
-    "OPTIONS"
-  ],
+  "cors.supported_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
   "cors.support_any_header": true,
   "cors.supported_headers": [],
   "cors.exposed_headers": [],
