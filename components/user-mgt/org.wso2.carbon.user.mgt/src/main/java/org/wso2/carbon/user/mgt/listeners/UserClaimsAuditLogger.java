@@ -58,6 +58,15 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/role";
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !Boolean.parseBoolean(System.getProperty(CarbonConstants.DISABLE_LEGACY_LOGS));
+        }
+        return false;
+    }
+
+    @Override
     public int getExecutionOrderId() {
 
         int result = super.getExecutionOrderId();

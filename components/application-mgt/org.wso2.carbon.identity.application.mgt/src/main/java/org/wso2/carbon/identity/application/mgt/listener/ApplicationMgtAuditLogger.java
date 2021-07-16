@@ -47,6 +47,15 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     private static final String SUCCESS = "Success";
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !Boolean.parseBoolean(System.getProperty(CarbonConstants.DISABLE_LEGACY_LOGS));
+        }
+        return false;
+    }
+
+    @Override
     public int getDefaultOrderId() {
         return 200;
     }

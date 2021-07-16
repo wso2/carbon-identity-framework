@@ -53,6 +53,15 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     private final String USER_NAME_QUERY_KEY = "userName";
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !Boolean.parseBoolean(System.getProperty(CarbonConstants.DISABLE_LEGACY_LOGS));
+        }
+        return false;
+    }
+
+    @Override
     public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                  String profile, UserStoreManager userStoreManager) {
 
