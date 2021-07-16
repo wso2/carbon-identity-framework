@@ -28,7 +28,12 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,17 +47,13 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
 
-        List<Application> applicationList;
         HashMap<String, String> propertiesMap = new HashMap<>();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-
         try {
-            applicationList = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPLICATION, (resultSet, rowNumber) ->
-                            new Application(resultSet.getString(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3),
-                                    resultSet.getString(4)),
-                    preparedStatement -> preparedStatement.setString(1, sessionId));
+            List<Application> applicationList = getApplicationForSessionID(sessionId);
+            for (Application application : applicationList) {
+               getApplicationFromAppID(application);
+            }
 
             jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
                     -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
@@ -88,5 +89,34 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
         return null;
+    }
+
+    private void getApplicationFromAppID(Application application) throws SessionManagementServerException {
+
+        Connection identityDBConnection = JDBCPersistenceManager.getInstance().
+                getDBConnection(false);
+        try {
+            PreparedStatement prepStmt = identityDBConnection.prepareStatement(SQLQueries.SQL_GET_APPLICATION);
+            prepStmt.setString(1, application.getAppId());
+            ResultSet rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                application.setAppName(rs.getString(1));
+                application.setResourceId(rs.getString(2));
+            }
+        } catch (SQLException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_APP_DATA,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_APP_DATA.getDescription(), e);
+        }
+    }
+
+    private List<Application> getApplicationForSessionID(String sessionId) throws DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APP_FOR_SESSION_ID,
+                (resultSet, rowNumber) ->
+                        new Application(resultSet.getString(1),
+                                null, resultSet.getString(2), null),
+                preparedStatement -> preparedStatement.setString(1, sessionId));
     }
 }

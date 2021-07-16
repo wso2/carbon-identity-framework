@@ -57,7 +57,10 @@ public class SessionMgtConstants {
                 "User is not provided to perform session management tasks."),
         ERROR_CODE_INVALID_SESSION("USM-10009",
                 "Invalid session",
-                "Session ID is not provided to perform session termination.");
+                "Session ID is not provided to perform session termination."),
+        ERROR_CODE_UNABLE_TO_GET_APP_DATA("USM-10010",
+                                           "SQL Error",
+                                           "Error while retrieving application data.");
 
         private final String code;
         private final String message;
