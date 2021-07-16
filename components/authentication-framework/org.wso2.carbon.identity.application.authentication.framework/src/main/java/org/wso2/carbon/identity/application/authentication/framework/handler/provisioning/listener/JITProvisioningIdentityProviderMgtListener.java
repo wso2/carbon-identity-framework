@@ -45,7 +45,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
     public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider,
                                                String tenantDomain) throws IdentityProviderManagementException {
 
-        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
+        if (!FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
         }
@@ -64,7 +64,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
     @Override
     public boolean doPreDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
+        if (!FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
         }
@@ -79,7 +79,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (!FrameworkUtils.isJITProvisionedEnhancedFeatureEnabled()) {
+        if (!FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
             // JIT provisioning enhanced feature is not enabled. Hence returning.
             return true;
         }
