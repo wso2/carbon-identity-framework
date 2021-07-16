@@ -148,6 +148,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             if (userStoreManager.isExistingUser(username)) {
                 diagnosticLog.info("User with username: '" + username + "' already exists in userstore: '"
                         + userStoreDomain + "'");
+                /*
+                Set PROVISIONED_USER thread local property to true, to identify already provisioned
+                user claim update scenario.
+                 */
+                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
@@ -321,6 +326,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
         }
     }
 
