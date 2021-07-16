@@ -249,6 +249,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         } else {
             when(IdentityDatabaseUtil.getDBConnection(shouldApplyTransaction)).thenReturn(connection1);
         }
+        when(IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction)).thenReturn(connection1);
     }
 
 }

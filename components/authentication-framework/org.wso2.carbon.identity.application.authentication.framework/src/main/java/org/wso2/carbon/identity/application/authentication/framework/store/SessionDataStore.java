@@ -303,7 +303,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection(false);
+            connection = IdentityDatabaseUtil.getSessionDBConnection(false);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return null;
@@ -399,7 +399,7 @@ public class SessionDataStore {
 
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
             String nonFormattedQuery;
             String driverName = connection.getMetaData().getDriverName();
             if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
@@ -436,7 +436,7 @@ public class SessionDataStore {
             log.debug("DB query for removing expired data: " + sqlQuery);
         }
         long currentTime = FrameworkUtils.getCurrentStandardNano();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             boolean deleteCompleted = false;
             int totalDeletedEntries = 0;
             while (!deleteCompleted) {
@@ -498,7 +498,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -551,7 +551,7 @@ public class SessionDataStore {
 
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -593,7 +593,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -655,7 +655,7 @@ public class SessionDataStore {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;

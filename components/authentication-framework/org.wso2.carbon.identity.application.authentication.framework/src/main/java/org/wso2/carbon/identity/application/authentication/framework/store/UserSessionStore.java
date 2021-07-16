@@ -88,7 +88,7 @@ public class UserSessionStore {
     public void storeUserData(String userId, String userName, int tenantId, String userDomain, int idPId)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             try ( PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_INSERT_USER_STORE_OPERATION)) {
                 preparedStatement.setString(1, userId);
@@ -152,7 +152,7 @@ public class UserSessionStore {
             throws UserSessionException {
 
         String userId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                             .prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
                 preparedStatement.setString(1, userName);
@@ -196,7 +196,7 @@ public class UserSessionStore {
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                             .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER)) {
                 preparedStatement.setString(1, userName);
@@ -234,7 +234,7 @@ public class UserSessionStore {
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                             .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER_STORE)) {
                 preparedStatement.setString(1, userDomain.toUpperCase());
@@ -330,7 +330,7 @@ public class UserSessionStore {
      */
     public void storeUserSessionData(String userId, String sessionId) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             try(PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_INSERT_USER_SESSION_STORE_OPERATION)) {
                 preparedStatement.setString(1, userId);
@@ -362,7 +362,7 @@ public class UserSessionStore {
     public boolean isExistingMapping(String userId, String sessionId) throws UserSessionException {
 
         Boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
                 preparedStatement.setString(1, userId);
@@ -393,7 +393,7 @@ public class UserSessionStore {
     public List<String> getSessionId(String userId) throws UserSessionException {
 
         List<String> sessionIdList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
              try (PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_SELECT_SESSION_ID_OF_USER_ID)) {
                  preparedStatement.setString(1, userId);
@@ -420,7 +420,7 @@ public class UserSessionStore {
             log.debug("Removing information of expired and deleted sessions.");
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             Set<String> terminatedAuthSessionIds = getSessionsTerminated(connection);
             String[] sessionsToRemove = new String[terminatedAuthSessionIds.size()];
             terminatedAuthSessionIds.toArray(sessionsToRemove);
@@ -463,7 +463,7 @@ public class UserSessionStore {
             log.debug("Removing meta information of the deleted sessions.");
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             try {
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
@@ -762,7 +762,7 @@ public class UserSessionStore {
 
         List<String> sessionIdList = new ArrayList<>();
         int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_GET_SESSIONS_BY_USER)) {
                 preparedStatement.setString(1, user.getUserName());
@@ -799,7 +799,7 @@ public class UserSessionStore {
         boolean isExisting = false;
 
         int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_GET_SESSION_MAPPING_BY_USER)) {
                 preparedStatement.setString(1, sessionId);
@@ -835,7 +835,7 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
             prepStmt.setString(2, sessionContextKey);
@@ -857,7 +857,7 @@ public class UserSessionStore {
      */
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, sessionContextKey);
             prepStmt.execute();
@@ -877,7 +877,7 @@ public class UserSessionStore {
     public boolean isExistingUser(String userId) throws UserSessionException {
 
         Boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
                 preparedStatement.setString(1, userId);
@@ -909,7 +909,7 @@ public class UserSessionStore {
         long currentTime = System.currentTimeMillis();
         long minTimestamp = currentTime - idleSessionTimeOut;
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(
                     SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT)) {
                 preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);

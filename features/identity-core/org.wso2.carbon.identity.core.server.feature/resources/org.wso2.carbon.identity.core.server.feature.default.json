@@ -3,6 +3,7 @@
   "authentication.consent.subject.prompt": true,
   "authentication.map_federated_users_to_local": false,
 
+  "session.data_source": "jdbc/WSO2IdentityDB",
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
   "database.identity_db.pool_options.maxActive": "50",
