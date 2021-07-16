@@ -40,6 +40,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -64,6 +66,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
@@ -217,6 +220,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
                     UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                    if (FrameworkUtils.isJitProvisionEnhancedFeatureEnabled()) {
+                        setJitProvisionedSource(tenantDomain, idp, userClaims);
+                    }
                     userStoreManager.addUser(username, password, null, userClaims, null);
                 } catch (UserStoreException e) {
                     // Add user operation will fail if a user operation workflow is already defined for the same user.
@@ -584,6 +590,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
 
         return deletingRoles;
+    }
+
+    /**
+     * Set the identity provider's resource id as the source of the provisioned user.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param idpName      Identity provider name.
+     * @param userClaims   User claims.
+     * @throws FrameworkException If an error occurs while retrieving the resource id of the identity provider.
+     */
+    private void setJitProvisionedSource(String tenantDomain, String idpName, Map<String, String> userClaims)
+            throws FrameworkException {
+
+        try {
+            String idpId = IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain,
+                    true).getResourceId();
+            userClaims.put(PROVISIONED_SOURCE_ID_CLAIM, idpId);
+        } catch (IdentityProviderManagementException e) {
+            throw new FrameworkException("Error while getting the federated IDP name of the IDP: "
+                    + idpName + "in the tenant: " + tenantDomain, e);
+        }
     }
 
 }
