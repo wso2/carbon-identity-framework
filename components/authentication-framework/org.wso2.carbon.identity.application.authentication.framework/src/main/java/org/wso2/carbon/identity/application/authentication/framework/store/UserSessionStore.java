@@ -560,11 +560,11 @@ public class UserSessionStore {
     public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
                 String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
-                if (JdbcUtils.isOracleDB()) {
+                if (JdbcUtils.isSessionDBOracle()) {
                     query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     template.executeUpdate(query, preparedStatement -> {
                         preparedStatement.setString(1, sessionId);
@@ -577,13 +577,13 @@ public class UserSessionStore {
                         preparedStatement.setString(8, inboundAuth);
                     });
                 } else {
-                    if (JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                    if (JdbcUtils.isSessionDBMSSql() || JdbcUtils.isSessionDB2()) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
-                    } else if (JdbcUtils.isMySQLDB() ||  JdbcUtils.isMariaDB()) {
+                    } else if (JdbcUtils.isSessionDBMySQL() ||  JdbcUtils.isSessionDBMaria()) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
-                    } else if (JdbcUtils.isPostgreSQLDB()) {
+                    } else if (JdbcUtils.isSessionPostgreSQL()) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
-                    } else if (JdbcUtils.isOracleDB()) {
+                    } else if (JdbcUtils.isSessionDBOracle()) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     }
                     template.executeUpdate(query, preparedStatement -> {
@@ -615,7 +615,7 @@ public class UserSessionStore {
     public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
                 Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
@@ -651,7 +651,7 @@ public class UserSessionStore {
     public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
 
         Integer appId;
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             appId = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_APP_ID_OF_APP,
                     ((resultSet, rowNumber) -> resultSet.getInt(1)),
@@ -681,7 +681,7 @@ public class UserSessionStore {
 
         Integer recordCount;
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             recordCount = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
                     (resultSet, rowNumber) -> resultSet.getInt(1),
@@ -707,7 +707,7 @@ public class UserSessionStore {
      */
     public void storeSessionMetaData(String sessionId, Map<String, String> metaData) throws UserSessionException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             jdbcTemplate.executeBatchInsert(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
                 for (Map.Entry<String, String> entry : metaData.entrySet()) {
@@ -737,7 +737,7 @@ public class UserSessionStore {
     public void updateSessionMetaData(String sessionId, String propertyType, String value) throws
             UserSessionException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_SESSION_META_DATA, preparedStatement -> {
                 preparedStatement.setString(1, value);

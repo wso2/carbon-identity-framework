@@ -48,7 +48,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
 
         HashMap<String, String> propertiesMap = new HashMap<>();
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         try {
             List<Application> applicationList = getApplicationForSessionID(sessionId);
             for (Application application : applicationList) {
@@ -112,7 +112,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     private List<Application> getApplicationForSessionID(String sessionId) throws DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
         return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APP_FOR_SESSION_ID,
                 (resultSet, rowNumber) ->
                         new Application(resultSet.getString(1),

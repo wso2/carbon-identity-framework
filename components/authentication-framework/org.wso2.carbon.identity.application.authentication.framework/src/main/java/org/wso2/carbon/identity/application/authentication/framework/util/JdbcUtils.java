@@ -36,6 +36,17 @@ public class JdbcUtils {
      */
     public static JdbcTemplate getNewTemplate() {
 
+        DataSource dataSource = IdentityDatabaseUtil.getDataSource();
+        return new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Get a new Session Jdbc Template.
+     *
+     * @return a new Jdbc Template.
+     */
+    public static JdbcTemplate getNewSessionTemplate() {
+
         DataSource dataSource = IdentityDatabaseUtil.getSessionDataSource();
         return new JdbcTemplate(dataSource);
     }
@@ -129,5 +140,94 @@ public class JdbcUtils {
     public static boolean isOracleDB() throws DataAccessException {
 
         return isDBTypeOf(FrameworkConstants.ORACLE);
+    }
+
+    /**
+     * Check whether the Session DB type string contains in the driver name or db product name.
+     *
+     * @param dbType database type string.
+     * @return true if the database type matches the driver type, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    private static boolean isSessionDBTypeOf(String dbType) throws DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewSessionTemplate();
+        return jdbcTemplate.getDriverName().contains(dbType) || jdbcTemplate.getDatabaseProductName().contains(dbType);
+    }
+
+    /**
+     * Check if the Session DB is H2.
+     *
+     * @return true if Session DB is H2.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDBH2() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.H2);
+    }
+
+    /**
+     * Check if the DB is MySQL.
+     *
+     * @return true if DB is MySQL.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDBMySQL() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.MY_SQL);
+    }
+
+    /**
+     * Check if the Session DB is Maria DB.
+     *
+     * @return true if Session DB is Maria DB.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDBMaria() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.MARIA_DB);
+    }
+
+    /**
+     * Check if the Session DB is DB2.
+     *
+     * @return true if Session DB DB2, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDB2() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.DB2);
+    }
+
+    /**
+     * Check if the Session DB is PostgreSQL.
+     *
+     * @return true if Session DB is PostgreSQL, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionPostgreSQL() throws DataAccessException {
+        return isSessionDBTypeOf(FrameworkConstants.POSTGRE_SQL);
+    }
+
+    /**
+     * Check if the Session DB is MSSql.
+     *
+     * @return true if Session DB is MSSql, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDBMSSql() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.MICROSOFT) || isSessionDBTypeOf(FrameworkConstants.S_MICROSOFT);
+    }
+
+    /**
+     * Check if the Session DB is Oracle.
+     *
+     * @return true if Session DB is Oracle, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isSessionDBOracle() throws DataAccessException {
+
+        return isSessionDBTypeOf(FrameworkConstants.ORACLE);
     }
 }
