@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -184,14 +183,15 @@ public class DefaultStepHandler implements StepHandler {
             long authTime = 0;
             String max_age = request.getParameter(FrameworkConstants.RequestParams.MAX_AGE);
             if (StringUtils.isNotBlank(max_age) && StringUtils.isNotBlank(context.getSessionIdentifier())) {
+                String loginTenantDomain = context.getLoginTenantDomain();
                 long maxAge = Long.parseLong((max_age));
-                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(), loginTenantDomain)
                         .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
-                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
-                            .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                            loginTenantDomain).getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
                 } else {
-                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
-                            .getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                            loginTenantDomain).getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
                 }
                 long current_time = System.currentTimeMillis();
                 if (maxAge < (current_time - authTime) / 1000) {

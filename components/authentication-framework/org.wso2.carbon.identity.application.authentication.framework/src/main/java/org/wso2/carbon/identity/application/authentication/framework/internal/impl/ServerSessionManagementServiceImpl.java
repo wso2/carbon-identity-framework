@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -43,7 +44,8 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
             return false;
         }
         // Retrieve session information from cache in order to publish event
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                FrameworkUtils.getTenantDomainFromContext());
         terminateSession(sessionContext, sessionId);
         return true;
     }

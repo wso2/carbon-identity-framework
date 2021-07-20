@@ -57,7 +57,6 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -781,7 +780,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                         authenticatedUser.toString()));
                             }
                             context.setPreviousSessionFound(false);
-                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey);
+                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey,
+                                    context.getLoginTenantDomain());
                             sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }

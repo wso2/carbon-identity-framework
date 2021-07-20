@@ -409,7 +409,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
+                            context.getLoginTenantDomain());
                 }
             }
 
@@ -501,7 +502,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         request, response, context);
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
+                        context.getLoginTenantDomain());
             } else {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
                 sessionContext = new SessionContext();
@@ -526,7 +528,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN, applicationTenantDomain);
+                sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN, context.getLoginTenantDomain());
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
@@ -542,7 +544,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 handleInboundSessionCreate(context.getRequestType(), sessionContextKey, sessionContext,
                         request, response, context);
-                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
+                        context.getLoginTenantDomain());
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {

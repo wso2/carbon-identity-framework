@@ -104,7 +104,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         diagnosticLog.info("Initiating logout flow.");
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         // Retrieve session information from cache.
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                context.getLoginTenantDomain());
         ExternalIdPConfig externalIdPConfig = null;
 
         // Remove the session related information from the session tables.
@@ -147,7 +148,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // remove SessionContext from the cache and auth cookie before sending logout request to federated IDP,
         // without waiting till a logout response is received from federated IDP.
         // remove the SessionContext from the cache
-        FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
+        FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
         // remove the cookie
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             diagnosticLog.info("Tenanted sessions are enabled. Removing auth cookies from tenanted context.");

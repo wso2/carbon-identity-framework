@@ -25,12 +25,17 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
-public class SessionContextCache extends AuthenticationBaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getTenantDomainFromContext;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+
+public class SessionContextCache extends BaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";
     private static final Log log = LogFactory.getLog(SessionContextCache.class);
@@ -52,14 +57,20 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
         return instance;
     }
 
+    @Deprecated
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
+
+        addToCache(key, entry, getTenantDomainFromContext());
+    }
+
+    public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry, String loginTenantDomain) {
 
         if (log.isDebugEnabled()) {
             log.debug("Adding session context corresponding to the key : " + key.getContextId() +
                 " with accessed time " + entry.getAccessedTime() + " and validity time " + entry.getValidityPeriod());
         }
         entry.setAccessedTime();
-        super.addToCache(key, entry);
+        super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
         if (authUser != null && authUser instanceof AuthenticatedUser) {
             String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
@@ -71,8 +82,15 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
         }
     }
 
+    @Deprecated
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
-        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key);
+
+        return this.getValueFromCache(key, getTenantDomainFromContext());
+    }
+
+    public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key, String loginTenantDomain) {
+
+        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key, resolveLoginTenantDomain(loginTenantDomain));
 
         // Retrieve session from the database if its not in cache
         if (cacheEntry == null) {
@@ -127,9 +145,22 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
      * @param key Session context cache key.
      * @return Session context cache entry.
      */
+    @Deprecated
     public SessionContextCacheEntry getSessionContextCacheEntry(SessionContextCacheKey key) {
 
-        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key);
+        return getSessionContextCacheEntry(key, getTenantDomainFromContext());
+    }
+
+    /**
+     * Get session context cache entry from the cache.
+     *
+     * @param key               Session context cache key.
+     * @param loginTenantDomain Login tenant domain.
+     * @return Session context cache entry.
+     */
+    public SessionContextCacheEntry getSessionContextCacheEntry(SessionContextCacheKey key, String loginTenantDomain) {
+
+        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key, resolveLoginTenantDomain(loginTenantDomain));
         // Retrieve session from the database if it's not in the cache.
         if (cacheEntry == null) {
             if (log.isDebugEnabled()) {
@@ -168,39 +199,46 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
         if (log.isDebugEnabled()) {
             log.debug("Found an expired session corresponding to the key : " + cachekey.getContextId());
         }
-        clearCacheEntry(cachekey);
+        Object tenantDomainObj = cacheEntry.getContext().getProperty(FrameworkUtils.TENANT_DOMAIN);
+        if (tenantDomainObj != null) {
+            SessionContextCache.getInstance().clearCacheEntry(cachekey,
+                    resolveLoginTenantDomain((String) tenantDomainObj));
+        } else {
+            SessionContextCache.getInstance().clearCacheEntry(cachekey, getTenantDomainFromContext());
+        }
         return true;
     }
 
+    @Deprecated
     public void clearCacheEntry(SessionContextCacheKey key) {
+
+        clearCacheEntry(key, getTenantDomainFromContext());
+    }
+
+    public void clearCacheEntry(SessionContextCacheKey key, String loginTenantDomain) {
 
         if (log.isDebugEnabled()) {
             log.debug("Clear session context corresponding to the key : " + key.getContextId());
         }
-        super.clearCacheEntry(key);
+        super.clearCacheEntry(key, resolveLoginTenantDomain(loginTenantDomain));
         SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
+    @Deprecated
     public void clearCacheEntry(String sessionContextKey) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Clear session context corresponding to the key : " + sessionContextKey);
-        }
-        SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
-        super.clearCacheEntry(sessionContextCacheKey);
-        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
-                SESSION_CONTEXT_CACHE_NAME);
+        clearCacheEntry(sessionContextKey, getTenantDomainFromContext());
 
     }
 
-    public void clearCacheEntry(String sessionContextKey, String tenantDomain) {
+    public void clearCacheEntry(String sessionContextKey, String loginTenantDomain) {
 
         if (log.isDebugEnabled()) {
             log.debug("Clear session context corresponding to the key : " + sessionContextKey +
-                    " in tenant " + tenantDomain);
+                    " in tenant " + loginTenantDomain);
         }
         SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
-        super.clearCacheEntry(sessionContextCacheKey, tenantDomain);
+        super.clearCacheEntry(sessionContextCacheKey, resolveLoginTenantDomain(loginTenantDomain));
         SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
                 SESSION_CONTEXT_CACHE_NAME);
 
@@ -285,5 +323,14 @@ public class SessionContextCache extends AuthenticationBaseCache<SessionContextC
         }
 
         return true;
+    }
+
+    private String resolveLoginTenantDomain(String loginTenantDomain) {
+
+        // We use the login tenant domain to maintain cache only in tenant qualified URL mode.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return loginTenantDomain;
+        }
+        return SUPER_TENANT_DOMAIN_NAME;
     }
 }

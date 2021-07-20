@@ -18,18 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.cache.AbstractCacheListener;
 import org.wso2.carbon.identity.core.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.Serializable;
 import java.util.List;
 
-import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getTenantDomainFromContext;
 
 /**
  * Base cache for authentication flow related caches. The difference from the Base cache is,
@@ -101,23 +98,5 @@ public abstract class AuthenticationBaseCache<K extends Serializable, V extends 
     public void clearCacheEntry(K key) {
 
         clearCacheEntry(key, getTenantDomainFromContext());
-    }
-
-    private static String getTenantDomainFromContext() {
-
-        // We use the tenant domain set in context only in tenant qualified URL mode.
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (StringUtils.isNotBlank(tenantDomain)) {
-                return tenantDomain;
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("TenantQualifiedUrlsEnabled is enabled, but the tenant domain is not set to the" +
-                            " context. Hence using the tenant domain from the carbon context.");
-                }
-                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-        }
-        return SUPER_TENANT_DOMAIN_NAME;
     }
 }

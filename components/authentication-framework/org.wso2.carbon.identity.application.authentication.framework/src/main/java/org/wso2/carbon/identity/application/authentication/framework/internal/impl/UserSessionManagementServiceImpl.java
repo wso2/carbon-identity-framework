@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -383,7 +385,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
             if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                        FrameworkUtils.getTenantDomainFromContext());
                 if (sessionContext != null) {
                     UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDTO.getSession(sessionId);
