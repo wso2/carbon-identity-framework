@@ -175,7 +175,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
             removeClaimsWithoutConsent(context, consentClaimsData);
             // Remove the claims which dont have values given by the user.
-            consentClaimsData = removeClaimsNotInUserAttribute(consentClaimsData, authenticatedUser);
+            consentClaimsData.setRequestedClaims(removeClaimsNotInUserAttributes(consentClaimsData.getRequestedClaims(),
+                    authenticatedUser.getUserAttributes()));
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
                 if (isDebugEnabled()) {
@@ -253,26 +254,26 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     /**
      * Filter out the requested claims with the user attributes.
-     * @param consentClaimsData Claim metadata.
-     * @param user              Authenticated user.
-     * @return                  Filtered claim metadata.
+     *
+     * @param requestedClaims List of requested claims metadata.
+     * @param userAttributes  Authenticated users' attributes.
+     * @return                Filtered claims with user attributes.
      */
-    private ConsentClaimsData removeClaimsNotInUserAttribute(ConsentClaimsData consentClaimsData,
-                                                             AuthenticatedUser user) {
+    private List<ClaimMetaData> removeClaimsNotInUserAttributes(List<ClaimMetaData> requestedClaims,
+                                                                      Map<ClaimMapping, String> userAttributes) {
 
-        List<ClaimMetaData> requestedClaims = consentClaimsData.getRequestedClaims();
         List<ClaimMetaData> filteredRequestClaims = new ArrayList<>();
-        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
-        for (ClaimMetaData claimMetaData : requestedClaims) {
-            for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
-                if (claimMetaData.getClaimUri().equals(attribute.getKey().getLocalClaim().getClaimUri())) {
-                    filteredRequestClaims.add(claimMetaData);
-                    break;
+        if (requestedClaims != null && userAttributes != null) {
+            for (ClaimMetaData claimMetaData : requestedClaims) {
+                for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
+                    if (claimMetaData.getClaimUri().equals(attribute.getKey().getLocalClaim().getClaimUri())) {
+                        filteredRequestClaims.add(claimMetaData);
+                        break;
+                    }
                 }
             }
         }
-        consentClaimsData.setRequestedClaims(filteredRequestClaims);
-        return consentClaimsData;
+        return filteredRequestClaims;
     }
 
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
@@ -334,7 +335,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
             // Remove the claims which dont have values given by the user.
-            consentClaimsData = removeClaimsNotInUserAttribute(consentClaimsData,authenticatedUser);
+            consentClaimsData.setRequestedClaims(removeClaimsNotInUserAttributes(consentClaimsData.getRequestedClaims(),
+                    authenticatedUser.getUserAttributes()));
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
