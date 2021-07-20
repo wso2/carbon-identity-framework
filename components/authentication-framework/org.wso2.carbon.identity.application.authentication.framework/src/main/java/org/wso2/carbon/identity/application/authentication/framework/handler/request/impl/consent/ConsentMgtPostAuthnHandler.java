@@ -44,6 +44,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -173,7 +174,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     getSPTenantDomain(serviceProvider)));
 
             removeClaimsWithoutConsent(context, consentClaimsData);
-
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData = removeClaimsNotInUserAttribute(consentClaimsData, authenticatedUser);
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
                 if (isDebugEnabled()) {
@@ -249,6 +251,30 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         removeUserClaimsFromContext(context, claimsWithoutConsent, spStandardDialect);
     }
 
+    /**
+     * Filter out the requested claims with the user attributes.
+     * @param consentClaimsData Claim metadata.
+     * @param user              Authenticated user.
+     * @return                  Filtered claim metadata.
+     */
+    private ConsentClaimsData removeClaimsNotInUserAttribute(ConsentClaimsData consentClaimsData,
+                                                             AuthenticatedUser user) {
+
+        List<ClaimMetaData> requestedClaims = consentClaimsData.getRequestedClaims();
+        List<ClaimMetaData> filteredRequestClaims = new ArrayList<>();
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+        for (ClaimMetaData claimMetaData : requestedClaims) {
+            for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
+                if (claimMetaData.getClaimUri().equals(attribute.getKey().getLocalClaim().getClaimUri())) {
+                    filteredRequestClaims.add(claimMetaData);
+                    break;
+                }
+            }
+        }
+        consentClaimsData.setRequestedClaims(filteredRequestClaims);
+        return consentClaimsData;
+    }
+
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
 
         return context.getSequenceConfig().getApplicationConfig().getServiceProvider();
@@ -307,7 +333,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider)));
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
-
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData = removeClaimsNotInUserAttribute(consentClaimsData,authenticatedUser);
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
