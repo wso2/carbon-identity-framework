@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
 
     private static final Log log = LogFactory.getLog(JITProvisioningIdentityProviderMgtListener.class);
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(1);
 
     @Override
     public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider,
