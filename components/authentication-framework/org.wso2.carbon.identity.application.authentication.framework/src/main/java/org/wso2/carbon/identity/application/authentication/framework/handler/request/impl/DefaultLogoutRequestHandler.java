@@ -69,7 +69,6 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private static final Log log = LogFactory.getLog(DefaultLogoutRequestHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultLogoutRequestHandler instance;
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static final String LOGOUT_RETURN_URL_SP_PROPERTY = "logoutReturnUrl";
@@ -101,7 +100,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (log.isTraceEnabled()) {
             log.trace("Inside handle()");
         }
-        diagnosticLog.info("Initiating logout flow.");
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         // Retrieve session information from cache.
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
@@ -130,13 +128,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
                     try {
                         UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier());
-                        diagnosticLog.info("Removed federated authentication session for the session identifier: "
-                                + context.getSessionIdentifier());
                         break;
                     } catch (UserSessionException e) {
-                        diagnosticLog.error("Error while deleting federated authentication session details for"
-                                + " the session context key :" + context.getSessionIdentifier() +
-                                ". Error message: " + e.getMessage());
                         throw new FrameworkException("Error while deleting federated authentication session details for"
                                 + " the session context key :" + context.getSessionIdentifier(), e);
                     }
@@ -150,10 +143,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
         // remove the cookie
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            diagnosticLog.info("Tenanted sessions are enabled. Removing auth cookies from tenanted context.");
             FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
         } else {
-            diagnosticLog.info("Tenanted sessions are not enabled. Removing auth cookies.");
             FrameworkUtils.removeAuthCookie(request, response);
         }
         if (context.isPreviousSessionFound()) {
@@ -208,10 +199,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     // sends the logout request to the external IdP
                     return;
                 } catch (AuthenticationFailedException | LogoutFailedException e) {
-                    diagnosticLog.error("Exception while handling logout request. Error message: " + e.getMessage());
                     throw new FrameworkException("Exception while handling logout request", e);
                 } catch (IdentityProviderManagementException e) {
-                    diagnosticLog.error("Exception while getting IdP by name. Error message: " + e.getMessage());
                     log.error("Exception while getting IdP by name", e);
                 }
             }
@@ -244,8 +233,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout return" +
                         " url specified. Therefore directing to the default logout return url.");
             }
-            diagnosticLog.info("The commonAuthCallerPath param specified in the request does not satisfy the logout return" +
-                    " url specified. Therefore directing to the default logout return url.");
             context.setCallerPath(getDefaultLogoutReturnUrl());
         }
 
@@ -291,9 +278,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                       + FrameworkConstants.ResponseParams.LOGGED_OUT + " : " + isLoggedOut + "\n"
                       + FrameworkConstants.SESSION_DATA_KEY + ": " + context.getCallerSessionKey());
         }
-        diagnosticLog.info("Sending response back to: " + context.getCallerPath() + "...\n"
-                + FrameworkConstants.ResponseParams.LOGGED_OUT + " : " + isLoggedOut + "\n"
-                + FrameworkConstants.SESSION_DATA_KEY + ": " + context.getCallerSessionKey());
 
         // redirect to the caller
         response.sendRedirect(redirectURL);
@@ -410,8 +394,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the " +
                         "default logout page of the server.");
             }
-            diagnosticLog.info("The default logout URL is not set in the identity.xml file. Therefore directing " +
-                    "to the default logout page of the server.");
             defaultLogoutUrl = "/authenticationendpoint/samlsso_logout.do";
         }
         return defaultLogoutUrl;

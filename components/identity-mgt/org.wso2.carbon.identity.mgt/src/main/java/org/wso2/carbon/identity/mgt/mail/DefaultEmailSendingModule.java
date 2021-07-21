@@ -47,7 +47,6 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
     public static final String CONF_STRING = "confirmation";
     private static final String SEND_MAIL_PROPERTY = "mailto:";
     private static Log log = LogFactory.getLog(DefaultEmailSendingModule.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private BlockingQueue<Notification> notificationQueue = new LinkedBlockingDeque<Notification>();
 
     /**
@@ -118,20 +117,15 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
             options.setTo(new EndpointReference(SEND_MAIL_PROPERTY + notification.getSendTo()));
             serviceClient.setOptions(options);
             log.info("Sending an email notification to " + notification.getSendTo());
-            diagnosticLog.info("Sending an email notification to " + notification.getSendTo());
             serviceClient.fireAndForget(payload);
             
             if (log.isDebugEnabled()) {
                 log.debug("Email content : " + notification.getBody());
             }
             log.info("Email notification has been sent to " + notification.getSendTo());
-            diagnosticLog.info("Email notification has been sent to " + notification.getSendTo());
         } catch (AxisFault axisFault) {
-            diagnosticLog.error("Failed Sending Email. Error message: " + axisFault.getMessage());
             log.error("Failed Sending Email", axisFault);
         } catch (InterruptedException e) {
-            diagnosticLog.error("Interrupted while waiting until an element becomes available in the notification " +
-                    "queue. Error message: " + e.getMessage());
             log.error("Interrupted while waiting until an element becomes available in the notification queue.", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();

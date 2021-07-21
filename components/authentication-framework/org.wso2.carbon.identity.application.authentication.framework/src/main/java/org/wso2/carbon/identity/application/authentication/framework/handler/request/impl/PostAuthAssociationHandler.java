@@ -60,7 +60,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static PostAuthAssociationHandler instance = new PostAuthAssociationHandler();
 
     /**
@@ -100,7 +99,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
-        diagnosticLog.info("In post auth association flow for application: " + context.getServiceProviderName());
         if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
             return SUCCESS_COMPLETED;
         }
@@ -120,7 +118,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                     if (log.isDebugEnabled()) {
                         log.debug(authenticator.getName() + " has been set up for subject identifier step.");
                     }
-                    diagnosticLog.info(authenticator.getName() + " has been set up for subject identifier step.");
                      /*
                     If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
                     federated idp.
@@ -134,8 +131,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
                                     + "equavlent local user : " + associatedLocalUserName);
                         }
-                        diagnosticLog.info("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
-                                + "equavlent local user : " + associatedLocalUserName);
                         setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
                     }
                 }
@@ -172,8 +167,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 log.debug("Local claims from the local user: " + associatedLocalUserName + ", set as "
                         + "user attributed for the federated scenario");
             }
-            diagnosticLog.info("Local claims from the local user: " + associatedLocalUserName + ", set as "
-                    + "user attributed for the federated scenario");
         }
         // in this case associatedID is a local user name - belongs to a tenant in IS.
         String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
@@ -214,8 +207,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                     log.debug("User : " + stepConfig.getAuthenticatedUser() + " has an associated account as "
                             + associatesUserName + ". Hence continuing as " + associatesUserName);
                 }
-                diagnosticLog.info("User : " + stepConfig.getAuthenticatedUser() + " has an associated account as "
-                        + associatesUserName + ". Hence continuing as " + associatesUserName);
                 stepConfig.getAuthenticatedUser().setUserName(associatesUserName);
                 stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
                 stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
@@ -224,8 +215,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                     log.debug("User " + stepConfig.getAuthenticatedUser() + " doesn't have an associated"
                             + " account. Hence continuing as the same user.");
                 }
-                diagnosticLog.info("User " + stepConfig.getAuthenticatedUser() + " doesn't have an associated"
-                        + " account. Hence continuing as the same user.");
             }
         } catch (FederatedAssociationManagerException | FrameworkException e) {
             throw new PostAuthenticationFailedException(

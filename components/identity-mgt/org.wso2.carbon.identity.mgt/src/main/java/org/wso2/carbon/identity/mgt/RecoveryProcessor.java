@@ -66,7 +66,6 @@ import java.util.UUID;
 public class RecoveryProcessor {
 
     private static final Log log = LogFactory.getLog(RecoveryProcessor.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private final static String USER_STORE_DOMAIN = "userstore-domain";
     private final static String USER_NAME = "user-name";
     private final static String TENANT_DOMAIN = "tenant-domain";
@@ -115,7 +114,6 @@ public class RecoveryProcessor {
      */
     public NotificationDataDTO recoverWithNotification(UserRecoveryDTO recoveryDTO) throws IdentityException {
 
-        diagnosticLog.info("Initiating account recovery with notifications for user: " + recoveryDTO.getUserId());
         String notificationAddress;
         String secretKey = null;
         String confirmationKey = null;
@@ -137,7 +135,6 @@ public class RecoveryProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("No Tenant domain for tenant id " + tenantId, e);
             }
-            diagnosticLog.error("No Tenant domain for tenant id " + tenantId + ". Error message: " + e.getMessage());
         }
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
@@ -182,8 +179,6 @@ public class RecoveryProcessor {
         emailNotificationData.setTagData(TENANT_DOMAIN, domainName);
 
         if ((notificationAddress == null) || (notificationAddress.trim().length() < 0)) {
-            diagnosticLog.error("Notification sending failure. Notification address is not defined for user : "
-                    + userId);
             throw IdentityException
                     .error("Notification sending failure. Notification address is not defined for user : "
                             + userId);
@@ -194,16 +189,12 @@ public class RecoveryProcessor {
             log.debug("Building notification with data - First name: " + firstName +
                     " User name: " + userId + " Send To: " + notificationAddress);
         }
-        diagnosticLog.info("Building notification with data - First name: " + firstName +
-                " User name: " + userId + " Send To: " + notificationAddress);
 
         Config config = null;
         ConfigBuilder configBuilder = ConfigBuilder.getInstance();
         try {
             config = configBuilder.loadConfiguration(ConfigType.EMAIL, StorageType.REGISTRY, tenantId);
         } catch (Exception e1) {
-            diagnosticLog.error("Error while loading email templates for user : " + userId + ". Error message: " +
-                     e1.getMessage());
             throw IdentityException.error("Error while loading email templates for user : " + userId, e1);
         }
 
@@ -218,8 +209,6 @@ public class RecoveryProcessor {
                 try {
                     confirmationKey = getUserExternalCodeStr(internalCode);
                 } catch (Exception e) {
-                    diagnosticLog.error("Error while getting user's external code string. Error message: "
-                            + e.getMessage());
                     throw IdentityException.error("Error while getting user's external code string.", e);
                 }
                 secretKey = UUIDGenerator.generateUUID();
@@ -262,7 +251,6 @@ public class RecoveryProcessor {
                 try {
                     confirmationKey = getUserExternalCodeStr(internalCode);
                 } catch (Exception e) {
-                    diagnosticLog.error("Error while with recovering with password. Error message: " + e.getMessage());
                     throw IdentityException.error("Error while with recovering with password.", e);
                 }
                 secretKey = UUIDGenerator.generateUUID();
@@ -279,8 +267,6 @@ public class RecoveryProcessor {
         try {
             emailNotification = NotificationBuilder.createNotification("EMAIL", emailTemplate, emailNotificationData);
         } catch (Exception e) {
-            diagnosticLog.error("Error when creating notification for user : " + userId + ". Error message: "
-                    + e.getMessage());
             throw IdentityException.error("Error when creating notification for user : " + userId, e);
         }
 
@@ -326,7 +312,6 @@ public class RecoveryProcessor {
             dataStore.invalidate(dataDO);
         } catch (IdentityException e) {
             log.error("Invalid User for confirmation code", e);
-            diagnosticLog.error("Invalid User for confirmation code. Error message: " + e.getMessage());
             return new VerificationBean(VerificationBean.ERROR_CODE_INVALID_USER);
         }
 
@@ -358,7 +343,6 @@ public class RecoveryProcessor {
     public VerificationBean verifyConfirmationCode(int sequence, String username, String code)
             throws IdentityException {
 
-        diagnosticLog.info("Verifying confirmation code supplied by user: " + username);
         UserRecoveryDataDO dataDO = null;
         String internalCode = getUserInternalCodeStr(sequence, username, code);
 
@@ -373,8 +357,6 @@ public class RecoveryProcessor {
             }
 
         } catch (IdentityException e) {
-            diagnosticLog.error("Error loading recovery data for user : " + username + ", Error message: "
-                    + e.getMessage());
             throw IdentityException.error("Error loading recovery data for user : " + username, e);
         }
 
@@ -383,15 +365,12 @@ public class RecoveryProcessor {
         }
 
         if (dataDO == null) {
-            diagnosticLog.error("Provided confirmation code is invalid.");
             throw IdentityException.error("Invalid confirmation code");
         }
 
         if (!dataDO.isValid()) {
-            diagnosticLog.error("Provided confirmation code is expired.");
             throw IdentityException.error("Expired code");
         } else {
-            diagnosticLog.error("Confirmation code verification is successful.");
             return new VerificationBean(true);
         }
 
@@ -414,8 +393,6 @@ public class RecoveryProcessor {
         try {
             externalCode = getUserExternalCodeStr(confirmationKey);
         } catch (Exception e) {
-            diagnosticLog.error("Error occurred while getting external code for user : " + username +
-                    ". Error message: " + e.getMessage());
             throw IdentityException.error("Error occurred while getting external code for user : "
                     + username, e);
         }
@@ -433,7 +410,6 @@ public class RecoveryProcessor {
      */
     public VerificationBean verifyUserForRecovery(int sequence, UserDTO userDTO) {
 
-        diagnosticLog.info("Verifying user for account recovery. User ID: " + userDTO.getUserId());
         String userId = userDTO.getUserId();
         int tenantId = userDTO.getTenantId();
         boolean success = false;
@@ -449,7 +425,6 @@ public class RecoveryProcessor {
                     if (!Boolean.parseBoolean(accountLock)) {
                         success = true;
                     } else {
-                        diagnosticLog.info("Account is locked. Hence account recovery is not allowed.");
                         //account is Locked. Not allowing to recover.
                     }
                 } else if (IdentityMgtConfig.getInstance().isAuthPolicyAccountDisableCheck()) {
@@ -462,7 +437,6 @@ public class RecoveryProcessor {
                         if (log.isDebugEnabled()) {
                             log.debug("Account is disabled. Can not allow to recover.");
                         }
-                        diagnosticLog.info("Account is disabled. Hence account recovery is not allowed.");
                         bean = new VerificationBean(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT);
                     }
                 } else {
@@ -470,8 +444,6 @@ public class RecoveryProcessor {
                 }
             } else {
                 log.error("User with user name : " + userId
-                        + " does not exists in tenant domain : " + userDTO.getTenantDomain());
-                diagnosticLog.error("User with user name : " + userId
                         + " does not exists in tenant domain : " + userDTO.getTenantDomain());
                 bean = new VerificationBean(VerificationBean.ERROR_CODE_INVALID_USER + " "
                         + "User does not exists");
@@ -488,15 +460,12 @@ public class RecoveryProcessor {
                 dataStore.store(dataDO);
                 log.info("User verification successful for user : " + userId +
                         " from tenant domain :" + userDTO.getTenantDomain());
-                diagnosticLog.info("User verification successful for user : " + userId +
-                        " from tenant domain :" + userDTO.getTenantDomain());
 
                 bean = new VerificationBean(userId, getUserExternalCodeStr(internalCode));
             }
         } catch (Exception e) {
             String errorMessage = "Error verifying user : " + userId;
             log.error(errorMessage, e);
-            diagnosticLog.error(errorMessage + ". Error message: " + e.getMessage());
             bean = new VerificationBean(VerificationBean.ERROR_CODE_UNEXPECTED + " "
                     + errorMessage);
         }
@@ -574,7 +543,6 @@ public class RecoveryProcessor {
 
         if ((notificationAddress == null) || (notificationAddress.trim().length() < 0)) {
             log.warn("Notification address is not defined for user " + userId);
-            diagnosticLog.info("Notification address is not defined for user " + userId);
         }
 
         String firstName = Utils.getClaimFromUserStoreManager(userId, tenantId, "http://wso2.org/claims/givenname");
@@ -590,8 +558,6 @@ public class RecoveryProcessor {
             config = configBuilder.loadConfiguration(ConfigType.EMAIL,
                     StorageType.REGISTRY, tenantId);
         } catch (Exception e1) {
-            diagnosticLog.error("Error occurred while loading email templates for user : "
-                    + userId + ". Error message: " + e1.getMessage());
             throw IdentityException.error("Error occurred while loading email templates for user : "
                     + userId, e1);
         }
@@ -639,8 +605,6 @@ public class RecoveryProcessor {
         try {
             emailNotification = NotificationBuilder.createNotification("EMAIL", emailTemplate, emailNotificationData);
         } catch (Exception e) {
-            diagnosticLog.error("Error occurred while creating notification from email template : "
-                    + emailTemplate + ". Error message: " + e.getMessage());
             throw IdentityException.error(
                     "Error occurred while creating notification from email template : "
                             + emailTemplate, e);

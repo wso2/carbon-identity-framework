@@ -42,7 +42,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class UserSessionTerminationListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log log = LogFactory.getLog(UserSessionTerminationListener.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     private static final String USER_SESSION_MAPPING_ENABLED =
             "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
@@ -73,7 +72,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         if (log.isDebugEnabled()) {
             log.debug("Terminating all the active sessions of the password reset user: " + username);
         }
-        diagnosticLog.info("Terminating all the active sessions of the password reset user: " + username);
 
         terminateSessionsOfUser(username, userStoreManager);
         return true;
@@ -93,7 +91,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         if (log.isDebugEnabled()) {
             log.debug("Terminating all the active sessions of the deleted user: " + username);
         }
-        diagnosticLog.info("Terminating all the active sessions of the deleted user: " + username);
 
         terminateSessionsOfUser(username, userStoreManager);
         return true;
@@ -115,8 +112,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
             if (log.isDebugEnabled()) {
                 log.debug("Terminating all the active sessions of the user: " + username);
             }
-            diagnosticLog.info("Terminating all the active sessions of the user: " + username +
-                    " on accountLocked/accountDisabled claim update.");
             terminateSessionsOfUser(username, userStoreManager);
         }
         return true;
@@ -145,8 +140,6 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
                     .terminateSessionsOfUser(username, userStoreDomain, tenantDomain);
         } catch (UserSessionException e) {
             log.error("Failed to terminate active sessions of user: " + username, e);
-            diagnosticLog.error("Failed to terminate active sessions of user: " + username + ". Error message: "
-                    + e.getMessage());
         }
     }
 }
