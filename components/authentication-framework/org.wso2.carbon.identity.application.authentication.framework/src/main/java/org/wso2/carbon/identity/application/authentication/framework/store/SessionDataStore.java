@@ -28,18 +28,15 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -527,7 +524,7 @@ public class SessionDataStore {
             preparedStatement.setInt(7, tenantId);
             preparedStatement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | IOException e) {
+        } catch (SQLException | IOException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while storing session data", e);
         } finally {
@@ -614,14 +611,10 @@ public class SessionDataStore {
     }
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
-            throws SQLException, IOException {
+            throws SQLException, IOException, IdentityApplicationManagementException {
         if (value != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(value);
-            oos.flush();
-            oos.close();
-            InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
+            InputStream inputStream = SessionSerializerProvider.getSessionSerializer(JDBCPersistenceManager.
+                    getInstance().getSessionSerializerName()).serializeSessionObject(value);
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, null, 0);
@@ -633,8 +626,8 @@ public class SessionDataStore {
         if (is != null) {
             ObjectInput ois = null;
             try {
-                ois = new ObjectInputStream(is);
-                return ois.readObject();
+                return SessionSerializerProvider.getSessionSerializer(JDBCPersistenceManager.getInstance()
+                        .getSessionSerializerName()).deSerializeSessionObject(is);
             } finally {
                 if (ois != null) {
                     try {

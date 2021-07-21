@@ -85,6 +85,7 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -459,6 +460,32 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Added application authenticator : " + authenticator.getName());
         }
+    }
+
+    @Reference(
+            name = "session.serializer",
+            service = SessionSerializer.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionSerializer"
+    )
+    protected void setSessionSerializer(SessionSerializer sessionSerializer) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionSerializers().add(sessionSerializer);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added session serializer : " + sessionSerializer.getName());
+        }
+    }
+
+    protected void unsetSessionSerializer(SessionSerializer sessionSerializer) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionSerializers().remove(sessionSerializer);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed session serializer : " + sessionSerializer.getName());
+        }
+
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {

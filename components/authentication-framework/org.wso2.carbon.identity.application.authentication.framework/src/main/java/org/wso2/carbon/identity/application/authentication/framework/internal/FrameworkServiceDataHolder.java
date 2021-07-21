@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -50,6 +51,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.security.PermissionCollection;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -91,6 +93,8 @@ public class FrameworkServiceDataHolder {
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
+    private List<SessionSerializer> sessionSerializers = new ArrayList<>();;
+
     private FrameworkServiceDataHolder() {
 
         setNanoTimeReference(System.nanoTime());
@@ -546,5 +550,9 @@ public class FrameworkServiceDataHolder {
     public void removeSessionContextMgtListener(String inboundType) {
 
         sessionContextMgtListeners.remove(inboundType);
+    }
+
+    public List<SessionSerializer> getSessionSerializers() {
+        return sessionSerializers;
     }
 }
