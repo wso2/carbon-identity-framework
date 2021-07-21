@@ -38,7 +38,6 @@ import java.util.concurrent.Executors;
 public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
 
     private static final Log log = LogFactory.getLog(JITProvisioningIdentityProviderMgtListener.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
 
     @Override

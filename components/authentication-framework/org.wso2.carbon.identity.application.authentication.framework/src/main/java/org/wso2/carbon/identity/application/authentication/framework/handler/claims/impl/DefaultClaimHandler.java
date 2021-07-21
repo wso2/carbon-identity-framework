@@ -72,7 +72,6 @@ public class DefaultClaimHandler implements ClaimHandler {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE =
             FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE;
     private static final Log log = LogFactory.getLog(DefaultClaimHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultClaimHandler instance;
 
     public static DefaultClaimHandler getInstance() {
@@ -91,8 +90,6 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                    AuthenticationContext context, Map<String, String> remoteClaims,
                                                    boolean isFederatedClaims) throws FrameworkException {
 
-        diagnosticLog.info("Handling claim mappings for the application: " +
-                context.getSequenceConfig().getApplicationConfig().getApplicationName());
         if (log.isDebugEnabled()) {
             logInput(remoteClaims, isFederatedClaims);
         }
@@ -190,9 +187,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             log.warn("Authenticator : " + authenticator.getFriendlyName() + " does not have " +
                      "a standard dialect and IdP : " + context.getExternalIdP().getIdPName() +
                      " does not have custom claim mappings. Cannot proceed with claim mappings");
-            diagnosticLog.error("Authenticator : " + authenticator.getFriendlyName() + " does not have " +
-                    "a standard dialect and IdP : " + context.getExternalIdP().getIdPName() +
-                    " does not have custom claim mappings. Cannot proceed with claim mappings");
             return spFilteredClaims;
         }
 
@@ -379,11 +373,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             localToIdPClaimMap = getClaimMappings(idPStandardDialect,
                                                   remoteClaims.keySet(), context.getTenantDomain(), true);
         } catch (Exception e) {
-            diagnosticLog.error("Error occurred while getting claim mappings for " +
-                    "received remote claims from " +
-                    idPStandardDialect + " dialect to " +
-                    ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                    context.getTenantDomain() + " to handle federated claims. Error message: " + e.getMessage());
             throw new FrameworkException("Error occurred while getting claim mappings for " +
                                          "received remote claims from " +
                                          idPStandardDialect + " dialect to " +
