@@ -1119,7 +1119,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String userName;
         String[] users = userStoreManager.getUserList(preferredUserNameClaim, preferredUserNameValue, null);
         if (users.length == 1) {
-            userName = users[0];
+            userName = UserCoreUtil.removeDomainFromName(users[0]);
         } else {
             return true;
         }
@@ -1152,7 +1152,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         } else {
             String[] users = userStoreManager.getUserList(preferredUserNameClaim, preferredUserNameValue, null);
             if (users.length == 1) {
-                userName = users[0];
+                userName = UserCoreUtil.removeDomainFromName(users[0]);
             } else {
                 return true;
             }
