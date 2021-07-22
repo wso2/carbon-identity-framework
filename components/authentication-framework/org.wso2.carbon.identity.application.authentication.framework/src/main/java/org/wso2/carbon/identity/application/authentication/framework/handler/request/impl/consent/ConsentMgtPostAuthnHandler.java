@@ -267,7 +267,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                                                          Map <String, String> claimMappings) {
 
         List<ClaimMetaData> filteredRequestedClaims = new ArrayList<>();
-        if (requestedClaims != null && userAttributes != null) {
+        if (requestedClaims != null && userAttributes != null && claimMappings != null) {
             for (ClaimMetaData claimMetaData : requestedClaims) {
                 for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
                     if (claimMetaData.getClaimUri()
