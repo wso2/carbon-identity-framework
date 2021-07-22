@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -91,6 +92,8 @@ public class FrameworkServiceDataHolder {
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
+    private AccountLockService accountLockService;
+
     private FrameworkServiceDataHolder() {
 
         setNanoTimeReference(System.nanoTime());
@@ -546,5 +549,15 @@ public class FrameworkServiceDataHolder {
     public void removeSessionContextMgtListener(String inboundType) {
 
         sessionContextMgtListeners.remove(inboundType);
+    }
+
+    public void setAccountLockService(AccountLockService accountLockService) {
+
+        this.accountLockService = accountLockService;
+    }
+
+    public AccountLockService getAccountLockService() {
+
+        return accountLockService;
     }
 }
