@@ -99,6 +99,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
@@ -818,6 +819,23 @@ public class FrameworkServiceComponent {
     protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
 
         FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
+    }
+
+
+    @Reference(
+            service = AccountLockService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAccountLockService"
+    )
+    public void setAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(accountLockService);
+    }
+
+    public void unsetAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(null);
     }
 
     private AuthenticatorConfig getAuthenticatorConfig(String name) {

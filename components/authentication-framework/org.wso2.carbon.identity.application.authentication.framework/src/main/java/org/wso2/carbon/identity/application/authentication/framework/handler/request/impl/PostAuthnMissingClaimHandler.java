@@ -69,7 +69,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthnMissingClaimHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile PostAuthnMissingClaimHandler instance;
 
     public static PostAuthnMissingClaimHandler getInstance() {
@@ -104,13 +103,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         if (log.isDebugEnabled()) {
             log.debug("Post authentication handling for missing claims started");
         }
-        diagnosticLog.info("Post authentication handling for missing claims started");
 
         if (getAuthenticatedUser(context) == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No authenticated user found. Hence returning without handling mandatory claims");
             }
-            diagnosticLog.info("No authenticated user found. Hence returning without handling mandatory claims");
             return UNSUCCESS_COMPLETED;
         }
         boolean postAuthRequestTriggered = isPostAuthRequestTriggered(context);
@@ -132,7 +129,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
             }
-            diagnosticLog.info("Successfully returning from missing claim handler");
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
@@ -160,7 +156,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
-            diagnosticLog.info("Mandatory claims missing for the application : " + missingClaims[0]);
             try {
                 // If there are read only claims marked as mandatory and they are missing, we cannot proceed further.
                 // We have to end the flow and show an error message to user.
@@ -170,8 +165,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
-                        diagnosticLog.error("One or more read-only claim is missing in the " +
-                                "requested claim set.");
                         throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
                                 "requested claim set. Please contact your administrator for more information about " +
                                 "this issue.", "One or more read-only claim is missing in the requested claim set");
@@ -197,20 +190,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("Redirecting to outside to pick mandatory claims");
                 }
-                diagnosticLog.info("Redirecting to outside to pick mandatory claims");
             } catch (IOException e) {
-                diagnosticLog.error("Error while handling missing mandatory claims. Error message: " +
-                        e.getMessage());
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims", "Error " +
                         "while redirecting to request claims page", e);
             } catch (URISyntaxException e) {
-                diagnosticLog.error("Error while handling missing mandatory claims. Error message: " +
-                        e.getMessage());
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while building redirect URI", e);
             } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                diagnosticLog.error("Error while handling missing mandatory claims. Error message: " +
-                        e.getMessage());
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim from claim URI.", e);
             }
@@ -226,7 +212,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         if (log.isDebugEnabled()) {
             log.debug("Starting to process the response with missing claims");
         }
-        diagnosticLog.info("Starting to process the response with missing claims");
 
         Map<String, String> claims = new HashMap<String, String>();
         Map<String, String> claimsForContext = new HashMap<String, String>();
@@ -292,8 +277,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                             persistClaims = true;
                         }
                     } catch (FederatedAssociationManagerException | FrameworkException e) {
-                        diagnosticLog.error("Error while getting association for " + subject + ". Error message: "
-                                + e.getMessage());
                         throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                                 "Error while getting association for " + subject, e);
                     }
@@ -307,7 +290,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Local user mapping found. Claims will be persisted");
             }
-            diagnosticLog.info("Local user mapping found. Claims will be persisted");
 
             try {
                 Map<String, String> claimMapping = context.getSequenceConfig().getApplicationConfig()
@@ -322,7 +304,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 if (log.isDebugEnabled()) {
                     log.debug("Updating user profile of user : " + user.getLoggableUserId());
                 }
-                diagnosticLog.info("Updating user profile of user : " + user.getUserName());
 
                 UserRealm realm = getUserRealm(user.getTenantDomain());
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
@@ -332,8 +313,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
                 }
-                diagnosticLog.error("Error while updating claims for local user. Could not update profile. " +
-                        "Error message: " + e.getMessage());
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);
@@ -355,8 +334,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     FrameworkServiceComponent.getRegistryService(),
                     FrameworkServiceComponent.getRealmService(), tenantDomain);
         } catch (CarbonException e) {
-            diagnosticLog.error("Error occurred while retrieving the Realm for " + tenantDomain + " to handle " +
-                    "local claims. Error message: " + e.getMessage());
             throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                     "Error occurred while retrieving the Realm for " + tenantDomain + " to handle local claims", e);
         }

@@ -43,9 +43,13 @@ import javax.xml.namespace.QName;
  */
 public class JDBCPersistenceManager {
 
+    public static final String SESSION_DATA_PERSIST = "SessionDataPersist";
+    public static final String DATA_SOURCE = "DataSource";
+    public static final String NAME = "Name";
     private static Log log = LogFactory.getLog(JDBCPersistenceManager.class);
     private static volatile JDBCPersistenceManager instance;
     private DataSource dataSource;
+    private DataSource sessionDataSource;
     // This property refers to Active transaction state of postgresql db
     private static final String PG_ACTIVE_SQL_TRANSACTION_STATE = "25001";
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
@@ -90,7 +94,7 @@ public class JDBCPersistenceManager {
             }
 
             OMElement dataSourceElem = persistenceManagerConfigElem.getFirstChildWithName(
-                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, "DataSource"));
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, DATA_SOURCE));
 
             if (dataSourceElem == null) {
                 String errorMsg = "DataSource Element is not available for JDBC Persistence " +
@@ -100,12 +104,34 @@ public class JDBCPersistenceManager {
             }
 
             OMElement dataSourceNameElem = dataSourceElem.getFirstChildWithName(
-                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, "Name"));
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, NAME));
 
             if (dataSourceNameElem != null) {
                 String dataSourceName = dataSourceNameElem.getText();
                 Context ctx = new InitialContext();
                 dataSource = (DataSource) ctx.lookup(dataSourceName);
+            }
+            OMElement sessionPersistElem = persistenceManagerConfigElem.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, SESSION_DATA_PERSIST));
+            OMElement sessionDataSourceElem = sessionPersistElem.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, DATA_SOURCE));
+            if (sessionDataSourceElem != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Session datasource is configured, and using: " + sessionDataSourceElem.getText());
+                }
+                OMElement sessionDataSourceNameElem = sessionDataSourceElem.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, NAME));
+                if (sessionDataSourceNameElem != null) {
+                    String dataSourceName = sessionDataSourceNameElem.getText();
+                    Context ctx = new InitialContext();
+                    sessionDataSource = (DataSource) ctx.lookup(dataSourceName);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Using default identity datasource since the different session data source is " +
+                            "not configured");
+                }
+                sessionDataSource = dataSource;
             }
         } catch (NamingException e) {
             String errorMsg = "Error when looking up the Identity Data Source.";
@@ -169,6 +195,38 @@ public class JDBCPersistenceManager {
     }
 
     /**
+     * Returns an database connection for Session data source.
+     *
+     * @param shouldApplyTransaction apply transaction or not
+     * @return Database connection.
+     * @throws IdentityException Exception occurred when getting the data source.
+     */
+    public Connection getSessionDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        try {
+            Connection dbConnection = sessionDataSource.getConnection();
+            if (shouldApplyTransaction) {
+                dbConnection.setAutoCommit(false);
+                try {
+                    dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                } catch (SQLException e) {
+                    // Handling startup error for postgresql
+                    // Active SQL Transaction means that connection is not committed.
+                    // Need to commit before setting isolation property.
+                    if (dbConnection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)
+                            && PG_ACTIVE_SQL_TRANSACTION_STATE.equals(e.getSQLState())) {
+                        dbConnection.commit();
+                        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                    }
+                }
+            }
+            return dbConnection;
+        } catch (SQLException e) {
+            String errMsg = "Error when getting a database connection object from the Session data source.";
+            throw IdentityRuntimeException.error(errMsg, e);
+        }
+    }
+    /**
      * Returns Identity data source.
      *
      * @return Data source.
@@ -186,6 +244,16 @@ public class JDBCPersistenceManager {
     public String getSessionSerializerName() {
 
         return sessionSerializer;
+    }
+
+    /**
+     * Returns Session data source.
+     *
+     * @return Data source.
+     */
+    public DataSource getSessionDataSource() {
+
+        return sessionDataSource;
     }
 
     /**

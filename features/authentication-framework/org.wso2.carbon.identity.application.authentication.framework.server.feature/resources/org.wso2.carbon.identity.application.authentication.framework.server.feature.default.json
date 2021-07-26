@@ -127,7 +127,7 @@
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
-  "authentication.authenticator.fido.parameters.Tags": "MFA,2FA,Passwordless",
+  "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
@@ -155,7 +155,7 @@
   "authentication.authenticator.email_otp.parameters.GmailTokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
   "authentication.authenticator.email_otp.parameters.SendgridAuthTokenType": "Bearer",
   "authentication.authenticator.email_otp.parameters.redirectToMultiOptionPageOnFailure": false,
-  "authentication.authenticator.email_otp.parameters.Tags": "2FA,MFA",
+  "authentication.authenticator.email_otp.parameters.Tags": "MFA",
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
@@ -170,7 +170,7 @@
   "authentication.authenticator.sms_otp.parameters.CaptureAndUpdateMobileNumber": true,
   "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
   "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
-  "authentication.authenticator.sms_otp.parameters.Tags": "2FA,MFA",
+  "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,
@@ -188,7 +188,7 @@
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
-  "authentication.authenticator.totp.parameters.Tags": "2FA,MFA",
+  "authentication.authenticator.totp.parameters.Tags": "MFA",
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,
