@@ -1199,7 +1199,7 @@ public class FrameworkUtils {
         // We use the tenant domain set in context only in tenant qualified URL mode.
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(tenantDomain)) {
+            if (StringUtils.isNotBlank(tenantDomain)) {
                 return tenantDomain;
             } else {
                 if (log.isDebugEnabled()) {
