@@ -61,6 +61,7 @@ public class IdentityCoreConstants {
     public static final String USER_ACCOUNT_DISABLED = " User account is disabled";
 
     //UserCoreConstants class define the rest of the relevant error codes.
+    public static final String USER_ACCOUNT_LOCKED_ERROR_CODE = "17003";
     public static final String USER_ACCOUNT_DISABLED_ERROR_CODE = "17004";
     public static final String USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE = "17005";
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_EMAIL_LINK_ERROR_CODE = "17006";
