@@ -23,7 +23,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
@@ -42,11 +41,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -58,6 +59,8 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -65,15 +68,13 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.exceptio
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +83,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
@@ -145,8 +145,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         if (isProvisionUIRedirectionTriggered != null && (boolean) isProvisionUIRedirectionTriggered) {
             if (log.isDebugEnabled()) {
                 AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
-                log.debug("The request  has hit the response flow of JIT provisioning flow for the user: "
-                        + authenticatedUser);
+                log.debug("The request has hit the response flow of JIT provisioning flow for the user: "
+                        + authenticatedUser.getLoggableUserId());
             }
             return handleResponseFlow(request, context);
         } else {
@@ -181,7 +181,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
                     if (log.isDebugEnabled()) {
                         log.debug("JIT provisioning response flow has hit for the IDP " + externalIdPConfigName + " "
-                                + "for the user, " + sequenceConfig.getAuthenticatedUser().getUserId());
+                                + "for the user, " + sequenceConfig.getAuthenticatedUser().getLoggableUserId());
                     }
                     final Map<String, String> localClaimValues;
                     Object unfilteredLocalClaimValues = context
@@ -194,7 +194,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         combinedLocalClaims
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
-                    String username = sequenceConfig.getAuthenticatedUser().getUserName();
+                    String username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -266,8 +266,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private PostAuthnHandlerFlowStatus handleRequestFlow(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
+        String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
         SequenceConfig sequenceConfig = context.getSequenceConfig();
-        boolean isUserCreated = false;
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
@@ -300,29 +300,17 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                                     stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
 
-                    String username;
-                    String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
-                    if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
-                        username = localClaimValues.get(userIdClaimUriInLocalDialect);
-                    } else {
-                        username = associatedLocalUser;
-                    }
-
+                    String username = associatedLocalUser;
                     // If associatedLocalUser is null, that means relevant association not exist already.
-                    if (StringUtils.isEmpty(associatedLocalUser) && !isUserCreated) {
+                    if (StringUtils.isEmpty(associatedLocalUser)) {
                         if (log.isDebugEnabled()) {
-                            log.debug(sequenceConfig.getAuthenticatedUser().getUserId() + " coming from "
+                            log.debug(sequenceConfig.getAuthenticatedUser().getLoggableUserId() + " coming from "
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
                                     + " to the UI to sign up.");
                         }
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
-                            if (StringUtils.isEmpty(username)) {
-                                // If there is no subject claim URI configured in the IDP, get the authenticated
-                                // username.
-                                username = getTenantDomainAppendedUserName(
-                                        sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
-                            }
+                            username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
                             // Set the property to make sure the request is a returning one.
@@ -331,13 +319,21 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
                     }
                     if (StringUtils.isEmpty(username)) {
-                        username = sequenceConfig.getAuthenticatedUser().getUserName();
-                        isUserCreated = true;
+                        username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                    }
+                    // Check if the associated local account is locked.
+                    if (isAccountLocked(username, context.getTenantDomain())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("The account is locked for the user: %s in the " +
+                                    "tenant domain: %s ", username, context.getTenantDomain()));
+                        }
+                        handleAccountLockLoginFailure(retryURL, context, response);
+                        return PostAuthnHandlerFlowStatus.INCOMPLETE;
                     }
                     if (log.isDebugEnabled()) {
-                        log.debug("User : " + sequenceConfig.getAuthenticatedUser().getUserId() + " coming from "
-                                + externalIdPConfig.getIdPName() + " do have a local account, with the username "
-                                + username);
+                        log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
+                                + " coming from " + externalIdPConfig.getIdPName()
+                                + " do have a local account, with the username " + username);
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
@@ -347,11 +343,71 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return SUCCESS_COMPLETED;
     }
 
-    private boolean isUserNameFoundFromUserIDClaimURI(Map<String, String> localClaimValues, String
-            userIdClaimUriInLocalDialect) {
+    private String getUsernameFederatedUser(SequenceConfig sequenceConfig, String externalIdPConfigName,
+                                            AuthenticationContext context) throws PostAuthenticationFailedException {
 
-        return StringUtils.isNotBlank(userIdClaimUriInLocalDialect) && StringUtils.isNotBlank
-                (localClaimValues.get(userIdClaimUriInLocalDialect));
+        String username;
+        // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
+        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
+            username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+                    externalIdPConfigName, context);
+        } else {
+            username = sequenceConfig.getAuthenticatedUser().getUserName();
+        }
+        return username;
+    }
+
+    private String getFederatedUsername(String username, String idpName, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        String federatedUsername = null;
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+            int idpId = UserSessionStore.getInstance().getIdPId(idpName, tenantId);
+            federatedUsername = UserSessionStore.getInstance().getFederatedUserId(username, tenantId, idpId);
+        } catch (UserSessionException e) {
+            handleExceptions(
+                    String.format(ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getMessage(), username, idpName),
+                    ErrorMessages.ERROR_WHILE_GETTING_FEDERATED_USERNAME.getCode(), e);
+        }
+        return federatedUsername;
+    }
+
+    private boolean isAccountLocked(String username, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        AccountLockService accountLockService = FrameworkServiceDataHolder.getInstance().getAccountLockService();
+        try {
+            return accountLockService.isAccountLocked(username, tenantDomain);
+        } catch (AccountLockServiceException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(), username), e);
+        }
+    }
+
+    private void handleAccountLockLoginFailure(String retryPage, AuthenticationContext context,
+                                               HttpServletResponse response) throws PostAuthenticationFailedException {
+
+        try {
+            // ToDo: Add support to configure enable/disable authentication failure reason.
+            boolean showAuthFailureReason = true;
+            retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
+                    "sp=" + context.getServiceProviderName());
+            String retryParam ;
+            if (showAuthFailureReason) {
+                retryParam = "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
+                        UserCoreConstants.ErrorCode.USER_IS_LOCKED;
+            } else {
+                retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
+            }
+            retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage, retryParam);
+            context.setRetrying(false);
+            response.sendRedirect(retryPage);
+        } catch (IOException e) {
+            handleExceptions(ErrorMessages.ERROR_WHILE_HANDLING_ACCOUNT_LOCK_FAILURE_FED_USERS.getMessage(),
+                    ErrorMessages.ERROR_WHILE_HANDLING_ACCOUNT_LOCK_FAILURE_FED_USERS.getCode(), e);
+        }
     }
 
     /**
@@ -435,25 +491,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
         receiptPurposeInput.setPiiCategory(piiCategoryValidities);
         return receiptPurposeInput;
-    }
-
-    /**
-     * To get the user name with tenant domain.
-     * @param userName Name of the user.
-     * @param tenantDomain Relevant tenant domain.
-     * @return tenant domain appeneded username
-     */
-    private String getTenantDomainAppendedUserName(String userName, String tenantDomain) {
-
-        // To handle the scenarios where email comes as username, but EnableEmailUserName is not set true in carbon.xml
-        if (!userName.endsWith("@" + tenantDomain)) {
-            userName = MultitenantUtils.getTenantAwareUsername(userName);
-
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-                userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
-            }
-        }
-        return userName;
     }
 
     /**
@@ -691,6 +728,16 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
+
+        /*
+        If TOTP is enabled for federated users, the initial federated user login will be identified with the following
+        check and will set the secret key claim for the federated user who is going to be provisioned.
+         */
+        if (context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL) != null) {
+            localClaimValues.put(FrameworkConstants.SECRET_KEY_CLAIM_URL,
+                    context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL).toString());
+        }
+
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
 

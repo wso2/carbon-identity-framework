@@ -58,7 +58,6 @@ import java.util.Map;
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultStepBasedSequenceHandler instance;
     private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
             + ".ReturnOnlyMappedLocalRoles";
@@ -122,7 +121,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     if (log.isDebugEnabled()) {
                         log.debug("Step " + stepConfig.getOrder() + " is completed. Going to get the next one.");
                     }
-                    diagnosticLog.info("Step " + stepConfig.getOrder() + " is completed. Going to get the next one.");
 
                     currentStep = context.getCurrentStep() + 1;
                     context.setCurrentStep(currentStep);
@@ -133,7 +131,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     if (log.isDebugEnabled()) {
                         log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
-                    diagnosticLog.info("Authentication has failed in the Step " + (context.getCurrentStep()));
 
                     // if the step contains multiple login options, we should give the user to retry
                     // authentication
@@ -156,7 +153,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (log.isDebugEnabled()) {
                     log.debug("There are no more steps to execute.");
                 }
-                diagnosticLog.info("There are no more steps to execute.");
 
                 // if no step failed at authentication we should do post authentication work (e.g.
                 // claim handling, provision etc)
@@ -165,7 +161,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     if (log.isDebugEnabled()) {
                         log.debug("Request is successfully authenticated.");
                     }
-                    diagnosticLog.info("Request is successfully authenticated.");
 
                     context.getSequenceConfig().setCompleted(true);
                     handlePostAuthentication(request, response, context);
@@ -183,7 +178,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (log.isDebugEnabled()) {
                 log.debug("Starting Step: " + stepConfig.getOrder());
             }
-            diagnosticLog.info("Starting Step: " + stepConfig.getOrder());
 
             FrameworkUtils.getStepHandler().handle(request, response, context);
 
@@ -192,7 +186,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (log.isDebugEnabled()) {
                     log.debug("Step is not complete yet. Redirecting to outside.");
                 }
-                diagnosticLog.info("Step is not complete yet. Redirecting to outside.");
                 return;
             }
 
@@ -375,7 +368,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserId());
+                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getLoggableUserId());
                         log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                                 .getTenantDomain());
                     }
@@ -395,7 +388,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     "application: %s in tenant-domain: %s", sequenceConfig.getApplicationConfig().getApplicationName
                     (), context.getTenantDomain());
             log.error(errorMsg);
-            diagnosticLog.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
         if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()
@@ -532,10 +524,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             String provisioningUserStoreId = context.getExternalIdP().getProvisioningUserStoreId();
 
             if (provisioningUserStoreId != null) {
-                diagnosticLog.info("Provisioning userstore ID: " + provisioningUserStoreId);
                 userStoreDomain = provisioningUserStoreId;
             } else if (provisioningClaimUri != null) {
-                diagnosticLog.info("Provisioning claim URI: " + provisioningClaimUri);
                 userStoreDomain = extAttributesValueMap.get(provisioningClaimUri);
             }
 
@@ -562,7 +552,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             context.getTenantDomain(), idpToLocalRoleMapping);
 
         } catch (FrameworkException e) {
-            diagnosticLog.error("User provisioning failed. Error message: " + e.getMessage());
             log.error("User provisioning failed!", e);
         } finally {
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();

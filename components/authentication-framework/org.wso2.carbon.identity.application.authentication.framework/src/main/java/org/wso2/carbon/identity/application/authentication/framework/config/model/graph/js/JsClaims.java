@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -246,6 +247,8 @@ public class JsClaims extends AbstractJSContextMemberObject {
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
                     authenticatedUser, String.valueOf(claimValue)), e);
+        } catch (UserIdNotFoundException e) {
+            LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
     }
 
@@ -436,6 +439,8 @@ public class JsClaims extends AbstractJSContextMemberObject {
             return claimValues.get(claimUri);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
+        } catch (UserIdNotFoundException e) {
+            LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
         return null;
     }

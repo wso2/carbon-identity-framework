@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -49,7 +50,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
     private AuthenticatedUser user;
 
     public AuthenticatedIdPData(){
-        authenticators = new ArrayList<AuthenticatorConfig>();
+        authenticators = new ArrayList<>();
     }
 
     public String getIdpName() {
@@ -166,7 +167,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
                                     "IDP : '%s'and the authenticator : '%s'.",
-                            user.getUserId(), idpName, authenticator.getName()));
+                            user.getLoggableUserId(), idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -175,7 +176,7 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
-                    user.getUserId(), idpName, authenticatorName));
+                    user.getLoggableUserId(), idpName, authenticatorName));
         }
 
         return false;
@@ -191,9 +192,9 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
      */
     public boolean isAlreadyAuthenticatedUsing(String authenticatorName, String authMechanism) {
 
-        String userId = null;
+        String loggableUserId = null;
         if (user != null) {
-            userId = user.getUserId();
+            loggableUserId = user.getLoggableUserId();
         }
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)
@@ -201,8 +202,8 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
                             && authenticator.getApplicationAuthenticator().getAuthMechanism().equals(authMechanism))) {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
-                                    "IDP : '%s'and the authenticator : '%s'.",
-                            userId, idpName, authenticator.getName()));
+                                    "IDP : '%s' and the authenticator : '%s'.",
+                            loggableUserId, idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -210,8 +211,8 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
-                            "IDP : '%s'and the authenticator : '%s' before.",
-                    userId, idpName, authenticatorName));
+                            "IDP : '%s' and the authenticator : '%s' before.",
+                    loggableUserId, idpName, authenticatorName));
         }
 
         return false;

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +53,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -75,6 +77,17 @@ public class JsGraphBuilder {
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
+    private static String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
+            "var exit=function(){Log.error('exit function is restricted.')};" +
+            "var print=function(){Log.error('print function is restricted.')};" +
+            "var echo=function(){Log.error('echo function is restricted.')};" +
+            "var readFully=function(){Log.error('readFully function is restricted.')};" +
+            "var readLine=function(){Log.error('readLine function is restricted.')};" +
+            "var load=function(){Log.error('load function is restricted.')};" +
+            "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
+            "var $ARG=null;var $ENV=null;var $EXEC=null;" +
+            "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;";
+    private static String REMOVE_ENGINE = "Object.defineProperty(this, 'engine', {});";
 
     /**
      * Constructs the builder with the given authentication context.
@@ -140,7 +153,6 @@ public class JsGraphBuilder {
         try {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-            Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                     this::sendError);
@@ -150,8 +162,7 @@ public class JsGraphBuilder {
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
                     (LoadExecutor) this::loadLocalLibrary);
-            engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
-            engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
+            removeDefaultFunctions(engine);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -160,6 +171,7 @@ public class JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
+            script = removeInternalEngine(script);
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -561,8 +573,13 @@ public class JsGraphBuilder {
         StepConfig stepConfig = graph.getStepMap().get(stepId);
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
         StepConfig clonedStepConfig = new StepConfig(stepConfig);
-        clonedStepConfig
-                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
+        StepConfig stepConfigFromContext = null;
+        if (MapUtils.isNotEmpty(context.getSequenceConfig().getStepMap())) {
+            stepConfigFromContext = context.getSequenceConfig().getStepMap().values().stream()
+                    .filter(contextStepConfig -> (stepConfig.getOrder() == contextStepConfig.getOrder()))
+                    .findFirst().orElse(null);
+        }
+        clonedStepConfig.applyStateChangesToNewObjectFromContextStepMap(stepConfigFromContext);
         if (log.isDebugEnabled()) {
             log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
         }
@@ -883,6 +900,7 @@ public class JsGraphBuilder {
         void prompt(String template, Object... parameterMap);
     }
 
+    @Deprecated
     @FunctionalInterface
     public interface RestrictedFunction {
 
@@ -895,14 +913,26 @@ public class JsGraphBuilder {
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
+    @Deprecated
     public void exitFunction(Object... arg) {
 
         log.error("Exit function is restricted.");
     }
 
+    @Deprecated
     public void quitFunction(Object... arg) {
 
         log.error("Quit function is restricted.");
+    }
+
+    private void removeDefaultFunctions(ScriptEngine engine) throws ScriptException {
+
+        engine.eval(REMOVE_FUNCTIONS);
+    }
+
+    private String removeInternalEngine(String script) {
+
+        return REMOVE_ENGINE + script;
     }
 
     /**

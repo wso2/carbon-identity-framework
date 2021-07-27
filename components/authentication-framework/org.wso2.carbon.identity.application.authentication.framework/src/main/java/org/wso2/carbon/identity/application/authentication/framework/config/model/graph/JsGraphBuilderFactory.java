@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -45,6 +47,8 @@ public class JsGraphBuilderFactory {
 
     private static final Log LOG = LogFactory.getLog(JsGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+    private static final String[] NASHORN_ARGS = {"--no-java"};
+    private ClassFilter classFilter;
 
     // Suppress the Nashorn deprecation warnings in jdk 11
     @SuppressWarnings("removal")
@@ -54,6 +58,7 @@ public class JsGraphBuilderFactory {
     public void init() {
 
         factory = new NashornScriptEngineFactory();
+        classFilter = new RestrictedClassFilter();
     }
 
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
@@ -82,8 +87,7 @@ public class JsGraphBuilderFactory {
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        ScriptEngine engine = factory.getScriptEngine("--no-java");
-
+        ScriptEngine engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
         Bindings bindings = engine.createBindings();
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
         engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
@@ -95,6 +99,12 @@ public class JsGraphBuilderFactory {
         JsLogger jsLogger = new JsLogger();
         bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return engine;
+    }
+
+    private ClassLoader getClassLoader() {
+
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        return classLoader == null ? NashornScriptEngineFactory.class.getClassLoader() : classLoader;
     }
 
     public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,

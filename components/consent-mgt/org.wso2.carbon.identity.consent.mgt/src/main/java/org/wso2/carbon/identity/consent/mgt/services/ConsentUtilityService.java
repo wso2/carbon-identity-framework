@@ -44,7 +44,6 @@ import java.util.Set;
 public class ConsentUtilityService {
 
     private static final Log log = LogFactory.getLog(ConsentUtilityService.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
 
     /**
      * Validate a given receipt with with respective purposes.
@@ -56,15 +55,12 @@ public class ConsentUtilityService {
     public void validateReceiptPIIs(ReceiptInput receiptInput, List<Purpose> purposes) throws
             ConsentUtilityServiceException {
 
-        diagnosticLog.info("Validating receipts with purposes.");
         if (purposes == null || receiptInput == null) {
-            diagnosticLog.error("Receipt Input and purposes should not be null");
             throw new IllegalArgumentException("Receipt Input and purposes should not be null");
         }
         if (log.isDebugEnabled()) {
             log.debug("Validating receipt against purposes.");
         }
-        diagnosticLog.info("Validating receipt against purposes.");
         List<ReceiptServiceInput> services = receiptInput.getServices();
         for (Purpose purpose : purposes) {
             purpose = fillPurpose(purpose);
@@ -87,17 +83,12 @@ public class ConsentUtilityService {
                                     (consentedPIIs.toArray()));
                         }
                         if (!consentedPIIs.containsAll(mandatoryPIIs)) {
-                            diagnosticLog.error("One or more mandatory attributes are missing in" +
-                                    " the given receipt");
                             throw new ConsentUtilityServiceException("One or more mandatory attributes are missing in" +
                                                                      " the given receipt");
                         }
                     }
                 }
                 if (!purposeConsented && !mandatoryPIIs.isEmpty()) {
-                    diagnosticLog.error("Consent receipt does not contain consent for " +
-                            "purpose " + purpose.getName() + " with ID: " + purpose.getId() + ", which has " +
-                            "mandatory PIIs");
                     throw new ConsentUtilityServiceException("Consent receipt does not contain consent for " +
                             "purpose " + purpose.getName() + " with ID: " + purpose.getId() + ", which has " +
                             "mandatory PIIs");
@@ -118,9 +109,7 @@ public class ConsentUtilityService {
     public Set<String> filterPIIsFromReceipt(Set<String> keySet, ReceiptInput receipt) throws
             ConsentUtilityServiceException {
 
-        diagnosticLog.info("Filtering PIIs from receipt: " + receipt.getConsentReceiptId());
         if (keySet == null || receipt == null) {
-            diagnosticLog.error("Key set and receipt should not be null");
             throw new ConsentUtilityServiceException("Key set and receipt should not be null");
         }
         List<ReceiptServiceInput> services = receipt.getServices();
@@ -149,9 +138,7 @@ public class ConsentUtilityService {
 
     public Set<Integer> getMandatoryPIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
-        diagnosticLog.info("Retrieving mandatory PIIs");
         if (purposes == null) {
-            diagnosticLog.error("Purposes list should not be null");
             throw new ConsentUtilityServiceException("Purposes list should not be null");
         }
         Set<Integer> mandatoryPIIs = new HashSet<>();
@@ -175,10 +162,8 @@ public class ConsentUtilityService {
             ConsentUtilityServiceException {
 
         if (purpose == null) {
-            diagnosticLog.error("Purpose should not be null");
             throw new ConsentUtilityServiceException("Purposes List should not be null");
         }
-        diagnosticLog.info("Retrieving mandatory PIIs for the purpose with ID: " + purpose.getId());
         Set<Integer> mandatoryPIIs = new HashSet<>();
         purpose = fillPurpose(purpose);
         List<PurposePIICategory> purposePIICategories = purpose.getPurposePIICategories();
@@ -199,9 +184,7 @@ public class ConsentUtilityService {
      */
     public Set<Integer> getUniquePIIs(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
-        diagnosticLog.info("Retrieving unique PIIs of purposes");
         if (purposes == null) {
-            diagnosticLog.error("Purposes List should not be null");
             throw new ConsentUtilityServiceException("Purposes List should not be null");
         }
 
@@ -222,9 +205,7 @@ public class ConsentUtilityService {
      */
     public List<Purpose> getFilledPurposes(List<Purpose> purposes) throws ConsentUtilityServiceException {
 
-        diagnosticLog.info("Retrieving purposes with all information");
         if (purposes == null) {
-            diagnosticLog.error("Purposes List should not be null");
             throw new IllegalArgumentException("Purposes List should not be null");
         }
         List<Purpose> filledPurposes = new ArrayList<>();
@@ -252,8 +233,6 @@ public class ConsentUtilityService {
             try {
                 purpose = consentManager.getPurpose(purpose.getId());
             } catch (ConsentManagementException e) {
-                diagnosticLog.error("Error while retrieving purpose with purpose ID: " + purpose
-                        .getId() + ". Error message: " + e.getMessage());
                 throw new ConsentUtilityServiceException("Error while retrieving purpose with purpose ID: " + purpose
                         .getId(), e);
             }
@@ -282,11 +261,8 @@ public class ConsentUtilityService {
                 }
             }
         } catch (ConsentManagementException e) {
-            diagnosticLog.error("Error while retrieving purpose with id:" + purposeId + ". Error message: "
-                    + e.getMessage());
             throw new ConsentUtilityServiceException("Error while retrieving purpose with id:" + purposeId, e);
         }
-        diagnosticLog.error("No PII can be found within given id: " + pIIId + "for purpose :" + purposeId);
         throw new ConsentUtilityServiceException("No PII can be found within given id: " + pIIId + "for purpose :" +
                 purposeId);
     }

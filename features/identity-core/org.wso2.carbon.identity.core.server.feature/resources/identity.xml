@@ -969,6 +969,7 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <EnableEnhancedFeature>false</EnableEnhancedFeature>
     </JITProvisioning>
 
     <OutboundProvisioning>
@@ -1635,6 +1636,10 @@
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/functionsLibrarymgt/create</Permissions>
             <Scopes>internal_functional_lib_create</Scopes>
@@ -1715,7 +1720,7 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/configs/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>

@@ -70,4 +70,9 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilterTest"/>
         </classes>
     </test>
+    <test name="SessionDataStoreTestsWithDataSources" preserve-order="false" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStoreTest"/>
+        </classes>
+    </test>
 </suite>

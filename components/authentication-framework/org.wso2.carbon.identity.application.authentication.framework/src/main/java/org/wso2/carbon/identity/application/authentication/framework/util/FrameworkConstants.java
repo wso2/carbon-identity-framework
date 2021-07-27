@@ -38,6 +38,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -104,6 +105,11 @@ public abstract class FrameworkConstants {
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
 
+    public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
+    public static final String IDP_RESOURCE_ID = "IDPResourceID";
+    public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
+
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
     public static final String AUTH_ERROR_MSG = "AuthErrorMessage";
@@ -142,6 +148,12 @@ public abstract class FrameworkConstants {
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
+
+    public static final String BASIC_AUTH_MECHANISM = "basic";
+    public static final String RECAPTCHA_PARAM = "reCaptcha";
+    public static final String RECAPTCHA_RESEND_CONFIRMATION_PARAM = "reCaptchaResend";
+    public static final String RECAPTCHA_KEY_PARAM = "reCaptchaKey";
+    public static final String RECAPTCHA_API_PARAM = "reCaptchaAPI";
 
     // DB product names.
     public static final String MY_SQL = "MySQL";

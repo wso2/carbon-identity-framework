@@ -2749,7 +2749,7 @@ public class FrameworkUtils {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // If the user id is could not be resolved, probably does not exist in the user store.
+                    // If the user id is could not be resolved, probably user does not exist in the user store.
                     if (StringUtils.isBlank(userId)) {
                         if (log.isDebugEnabled()) {
                             log.debug("User id could not be resolved for username: " + username + " in user store " +
@@ -2792,12 +2792,12 @@ public class FrameworkUtils {
             if (userStoreManager instanceof AbstractUserStoreManager) {
                 String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                /*
-                If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                userstore is read-only, we cannot add the id and empty user id will returned.
-                */
-                if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                    userId = addUserId(username, userStoreManager);
+                // If the user id is could not be resolved, probably user does not exist in the user store.
+                if (StringUtils.isBlank(userId)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id could not be resolved for username: " + username + ". Probably" +
+                                " user does not exist in the user store.");
+                    }
                 }
                 return userId;
             }
@@ -2811,9 +2811,6 @@ public class FrameworkUtils {
                 log.debug("Error occurred while resolving Id for the user: " + username, e);
             }
             throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
-        } catch (UserStoreException e) {
-            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
-                    "the user: " + username, e);
         }
     }
 
@@ -3091,5 +3088,16 @@ public class FrameworkUtils {
         context.setRetryCount(0);
         context.setRetrying(false);
         context.setCurrentAuthenticator(null);
+    }
+
+    /**
+     * Check whether the JIT provisioning enhanced feature is enabled.
+     *
+     * @return true if the JIT provisioning enhanced features is enabled else return false.
+     */
+    public static boolean isJITProvisionEnhancedFeatureEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                    getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
     }
 }
