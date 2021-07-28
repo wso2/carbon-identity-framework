@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.user.store.configuration.utils.AttributeMappingBuilder;
+import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -41,7 +44,8 @@ public class UserStoreConfigListenersHolder {
     private Set<String> allowedUserstores = null;
     private ConfigurationContextService configurationContextService;
     private Map<String, HashProviderFactory> hashProviderFactoryMap;
-
+    private UserStoreAttributeMappings userStoreAttributeMappings;
+    private Map<String, UserStoreConfigurationConstant.UserStoreType> userStoreTypeMappings = null;
 
     private UserStoreConfigListenersHolder() {
 
@@ -83,6 +87,51 @@ public class UserStoreConfigListenersHolder {
     public void setAllowedUserstores(Set<String> allowedUserstores) {
 
         this.allowedUserstores = allowedUserstores;
+    }
+
+    /**
+     * Get user store names and user store type of each user store.
+     *
+     * @return Map of user store names and user store types.
+     */
+    public Map<String, UserStoreConfigurationConstant.UserStoreType> getUserStoreTypeMappings() {
+
+        return userStoreTypeMappings;
+    }
+
+    /**
+     * Set user store type mapping.
+     *
+     * @param userStoreTypeMappings Map of user store names and user store type.
+     */
+    public void setUserStoreTypeMappings(Map<String, UserStoreConfigurationConstant.UserStoreType>
+                                                 userStoreTypeMappings) {
+
+        this.userStoreTypeMappings = userStoreTypeMappings;
+    }
+
+    /**
+     * Get all user store attribute mappings.
+     *
+     * @return UserStoreAttributeMappings.
+     */
+    public UserStoreAttributeMappings getUserStoreAttributeMappings() {
+
+        if (userStoreAttributeMappings == null) {
+            // Read user store attributes mappings from files.
+            AttributeMappingBuilder.getInstance().build();
+        }
+        return userStoreAttributeMappings;
+    }
+
+    /**
+     * Set attribute mappings of all user stores.
+     *
+     * @param userStoreAttributeMappings attribute mappings of user stores.
+     */
+    public void setUserStoreAttributeMappings(UserStoreAttributeMappings userStoreAttributeMappings) {
+
+        this.userStoreAttributeMappings = userStoreAttributeMappings;
     }
 
     public ConfigurationContextService getConfigurationContextService() {

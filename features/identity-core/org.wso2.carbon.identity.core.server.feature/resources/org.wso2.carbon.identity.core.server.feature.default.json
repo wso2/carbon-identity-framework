@@ -828,5 +828,19 @@
   "cors.max_age": -1,
   "cors.tag_requests": false,
   "audit.log.contextual_param.params": [],
-  "common_auth_caller_path.enable_common_auth_caller_path_validation": true
+  "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "user_store_mgt.user_store_type_mapping": [
+    {"userstore_name":"org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager",
+      "userstore_type":"JDBC"
+    },
+    {"userstore_name":"org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager",
+      "userstore_type":"AD"
+    },
+    {"userstore_name":"org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager",
+      "userstore_type":"LDAP"
+    },
+    {"userstore_name":"org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager",
+      "userstore_type":"LDAP"
+    }
+  ]
 }

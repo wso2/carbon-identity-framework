@@ -16,8 +16,12 @@
 package org.wso2.carbon.identity.user.store.configuration;
 
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
+import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -118,4 +122,29 @@ public interface UserStoreConfigService {
      */
     void modifyUserStoreState(String domain, Boolean isDisable, String repositoryClass)
             throws IdentityUserStoreMgtException;
+
+    /**
+     * Get all userstores of the given repository.
+     *
+     * @return an array of {@link UserStoreDTO}
+     * @throws IdentityUserStoreServerException throws an error when getting user store attribute mappings
+     */
+    default UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreServerException {
+
+        // Implement the method.
+        return null;
+    }
+
+    /**
+     * Get all userstores of the given repository.
+     *
+     * @return an array of {@link UserStoreDTO}
+     * @throws IdentityUserStoreServerException throw an error when getting user store type mappings.
+     */
+    default Map<String, UserStoreConfigurationConstant.UserStoreType> getUserStoreTypeMappings()
+            throws IdentityUserStoreServerException {
+
+        // Implement the method.
+        return null;
+    }
 }
