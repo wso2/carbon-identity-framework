@@ -1069,7 +1069,7 @@ public class FrameworkUtils {
     @Deprecated
     public static SessionContext getSessionContextFromCache(String key) {
 
-        return getSessionContextFromCache(key, getTenantDomainFromContext());
+        return getSessionContextFromCache(key, getLoginTenantDomainFromContext());
     }
 
     /**
@@ -1174,7 +1174,7 @@ public class FrameworkUtils {
     @Deprecated
     public static void removeSessionContextFromCache(String key) {
 
-        removeSessionContextFromCache(key, getTenantDomainFromContext());
+        removeSessionContextFromCache(key, getLoginTenantDomainFromContext());
     }
 
     /**
@@ -1194,9 +1194,9 @@ public class FrameworkUtils {
      *
      * @return tenant domain
      */
-    public static String getTenantDomainFromContext() {
+    public static String getLoginTenantDomainFromContext() {
 
-        // We use the tenant domain set in context only in tenant qualified URL mode.
+        // We use the tenant domain set in context only in tenanted session is enabled.
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
             if (StringUtils.isNotBlank(tenantDomain)) {

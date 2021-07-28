@@ -32,7 +32,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getTenantDomainFromContext;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 public class SessionContextCache extends BaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
@@ -60,7 +60,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     @Deprecated
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
 
-        addToCache(key, entry, getTenantDomainFromContext());
+        addToCache(key, entry, getLoginTenantDomainFromContext());
     }
 
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry, String loginTenantDomain) {
@@ -85,7 +85,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     @Deprecated
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
 
-        return this.getValueFromCache(key, getTenantDomainFromContext());
+        return this.getValueFromCache(key, getLoginTenantDomainFromContext());
     }
 
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key, String loginTenantDomain) {
@@ -148,7 +148,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     @Deprecated
     public SessionContextCacheEntry getSessionContextCacheEntry(SessionContextCacheKey key) {
 
-        return getSessionContextCacheEntry(key, getTenantDomainFromContext());
+        return getSessionContextCacheEntry(key, getLoginTenantDomainFromContext());
     }
 
     /**
@@ -204,7 +204,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             SessionContextCache.getInstance().clearCacheEntry(cachekey,
                     resolveLoginTenantDomain((String) tenantDomainObj));
         } else {
-            SessionContextCache.getInstance().clearCacheEntry(cachekey, getTenantDomainFromContext());
+            SessionContextCache.getInstance().clearCacheEntry(cachekey, getLoginTenantDomainFromContext());
         }
         return true;
     }
@@ -212,7 +212,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     @Deprecated
     public void clearCacheEntry(SessionContextCacheKey key) {
 
-        clearCacheEntry(key, getTenantDomainFromContext());
+        clearCacheEntry(key, getLoginTenantDomainFromContext());
     }
 
     public void clearCacheEntry(SessionContextCacheKey key, String loginTenantDomain) {
@@ -227,7 +227,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     @Deprecated
     public void clearCacheEntry(String sessionContextKey) {
 
-        clearCacheEntry(sessionContextKey, getTenantDomainFromContext());
+        clearCacheEntry(sessionContextKey, getLoginTenantDomainFromContext());
 
     }
 
@@ -327,8 +327,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     private String resolveLoginTenantDomain(String loginTenantDomain) {
 
-        // We use the login tenant domain to maintain cache only in tenant qualified URL mode.
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+        // We use the login tenant domain to maintain cache only in tenanted session enabled.
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             return loginTenantDomain;
         }
         return SUPER_TENANT_DOMAIN_NAME;

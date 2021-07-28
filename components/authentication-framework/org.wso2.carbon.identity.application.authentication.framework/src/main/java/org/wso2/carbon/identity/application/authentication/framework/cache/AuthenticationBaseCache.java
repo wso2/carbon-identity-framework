@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 import java.io.Serializable;
 import java.util.List;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getTenantDomainFromContext;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 
 /**
  * Base cache for authentication flow related caches. The difference from the Base cache is,
@@ -74,7 +74,7 @@ public abstract class AuthenticationBaseCache<K extends Serializable, V extends 
      */
     public void addToCache(K key, V entry) {
 
-        addToCache(key, entry, getTenantDomainFromContext());
+        addToCache(key, entry, getLoginTenantDomainFromContext());
     }
 
     /**
@@ -86,7 +86,7 @@ public abstract class AuthenticationBaseCache<K extends Serializable, V extends 
      */
     public V getValueFromCache(K key) {
 
-        return getValueFromCache(key, getTenantDomainFromContext());
+        return getValueFromCache(key, getLoginTenantDomainFromContext());
     }
 
     /**
@@ -97,6 +97,6 @@ public abstract class AuthenticationBaseCache<K extends Serializable, V extends 
      */
     public void clearCacheEntry(K key) {
 
-        clearCacheEntry(key, getTenantDomainFromContext());
+        clearCacheEntry(key, getLoginTenantDomainFromContext());
     }
 }

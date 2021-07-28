@@ -55,7 +55,7 @@ public class SessionManagementService extends AbstractAdmin {
             return false;
         }
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
-                FrameworkUtils.getTenantDomainFromContext());
+                FrameworkUtils.getLoginTenantDomainFromContext());
         // Check whether the session belongs to the logged in user.
         CarbonContext carbonContext = CarbonContext.getThreadLocalCarbonContext();
         String username = carbonContext.getUsername();
