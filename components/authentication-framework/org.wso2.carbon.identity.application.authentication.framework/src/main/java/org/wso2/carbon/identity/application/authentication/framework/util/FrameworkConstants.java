@@ -131,6 +131,9 @@ public abstract class FrameworkConstants {
     public static final String AUTH_MECHANISM = "AuthMechanism";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
+    // Idp to local role mapping thread local identifier.
+    public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
+
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
 
