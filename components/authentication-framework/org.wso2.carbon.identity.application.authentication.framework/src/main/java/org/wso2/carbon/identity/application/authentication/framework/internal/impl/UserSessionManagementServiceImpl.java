@@ -357,7 +357,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
             if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                        FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
                     UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDTO.getSession(sessionId);

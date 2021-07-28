@@ -78,6 +78,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -89,6 +90,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @WithCarbonHome
 @PrepareForTest({SameSiteCookie.class, SessionContextCache.class, AuthenticationResultCache.class,
@@ -134,6 +136,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         FrameworkServiceComponent.getAuthenticators().clear();
         FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("BasicAuthenticator"));
         FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
+        authenticationContext.setTenantDomain("abc");
     }
 
     @Test
@@ -725,7 +728,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetSessionContextFromCacheNullCacheEntry() {
 
         setMockedSessionContextCache();
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY,
+                SUPER_TENANT_DOMAIN_NAME);
         assertNull(sessionContext);
     }
 
@@ -734,9 +738,9 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         cacheEntry.setContext(context);
         setMockedSessionContextCache();
-        when(mockedSessionContextCache.getValueFromCache(cacheKey)).thenReturn(cacheEntry);
+        when(mockedSessionContextCache.getValueFromCache(cacheKey, "abc")).thenReturn(cacheEntry);
 
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY, "abc");
         assertEquals(sessionContext, context);
     }
 
@@ -762,7 +766,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         cacheEntry.setContext(context);
         setMockedSessionContextCache();
-        when(mockedSessionContextCache.getSessionContextCacheEntry(cacheKey)).thenReturn(cacheEntry);
+        when(mockedSessionContextCache.getSessionContextCacheEntry(cacheKey, "abc")).thenReturn(cacheEntry);
         when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class),
                 any(SessionContextCacheEntry.class))).thenReturn(false);
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
