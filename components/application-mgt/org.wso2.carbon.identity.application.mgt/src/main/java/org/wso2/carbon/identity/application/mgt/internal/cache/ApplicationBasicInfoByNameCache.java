@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,25 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
- * Cache to maintain the application resource id - ApplicationBasicInfo.
+ * Cache to maintain the application name - ApplicationBasicInfo.
  */
-public class ApplicationBasicInfoByResourceIdCache extends
-        BaseCache<ApplicationBasicInfoResourceIdCacheKey, ApplicationBasicInfoCacheEntry> {
+public class ApplicationBasicInfoByNameCache extends
+        BaseCache<ApplicationBasicInfoNameCacheKey, ApplicationBasicInfoCacheEntry> {
 
-    private static final String SP_CACHE_NAME = "ApplicationBasicInfoCache.ResourceId";
-    private static volatile ApplicationBasicInfoByResourceIdCache instance;
+    private static final String SP_CACHE_NAME = "ApplicationBasicInfoCache.Name";
+    private static volatile ApplicationBasicInfoByNameCache instance;
 
-    private ApplicationBasicInfoByResourceIdCache() {
+    private ApplicationBasicInfoByNameCache() {
 
         super(SP_CACHE_NAME);
     }
 
-    public static ApplicationBasicInfoByResourceIdCache getInstance() {
+    public static ApplicationBasicInfoByNameCache getInstance() {
 
         if (instance == null) {
-            synchronized (ApplicationBasicInfoByResourceIdCache.class) {
+            synchronized (ApplicationBasicInfoByNameCache.class) {
                 if (instance == null) {
-                    instance = new ApplicationBasicInfoByResourceIdCache();
+                    instance = new ApplicationBasicInfoByNameCache();
                 }
             }
         }
