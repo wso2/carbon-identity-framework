@@ -2543,6 +2543,10 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>{{authentication.adaptive.long_wait.timout}}</LongWaitTimeout>
+
+        {% if authentication.adaptive.allow_loops is defined %}
+            <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
+        {% endif %}
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
