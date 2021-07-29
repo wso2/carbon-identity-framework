@@ -366,6 +366,20 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    /**
      * Get custom inbound authenticator configurations.
      *
      * @return custom inbound authenticator configs maps.

@@ -153,6 +153,20 @@ public interface ApplicationDAO {
         return null;
     }
 
+    /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    default ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
     default String addApplication(ServiceProvider application, String tenantDomain)
             throws IdentityApplicationManagementException {
 
