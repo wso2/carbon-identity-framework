@@ -545,12 +545,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             FrameworkUtils.getProvisioningHandler()
                     .handle(mappedRoles, subjectIdentifier, extAttributesValueMap, userStoreDomain,
                             context.getTenantDomain());
-            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
 
         } catch (FrameworkException e) {
-            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
             log.error("User provisioning failed!", e);
         } finally {
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
         }
     }
