@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -26,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -51,10 +53,13 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdPManagementUtil.class, IdentityUtil.class, IdentityTenantUtil.class,
         CarbonContext.class, CarbonContext.class, PrivilegedCarbonContext.class,
-        ServerConfiguration.class, SessionCleanUpService.class})
+        ServerConfiguration.class, SessionCleanUpService.class, FrameworkServiceDataHolder.class})
 public class SessionDataStoreTest extends DataStoreBaseTest {
 
     private static final String DB_NAME = "SESSION_DATA_STORE";
+
+    @Mock
+    FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -85,6 +90,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         mockIdentityDataBaseUtilConnection(connection, true);
         mockCarbonContext();
         mockIdentityUtils();
+        mockDataHolder();
         SessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
     }
 
@@ -114,6 +120,13 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("abc.com");
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getCleanUpPeriod(any(String.class))).thenReturn(new Long(11111111));
+    }
+
+    private void mockDataHolder() {
+
+        mockStatic(FrameworkServiceDataHolder.class);
+        when(FrameworkServiceDataHolder.getInstance()).thenReturn(mockFrameworkServiceDataHolder);
+        when(mockFrameworkServiceDataHolder.getSessionSerializer()).thenReturn(new JavaSessionSerializer());
     }
 
     private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction) throws

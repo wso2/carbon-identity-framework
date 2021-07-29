@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
-import java.io.IOException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
+
 import java.io.InputStream;
 
 /**
@@ -27,25 +28,18 @@ import java.io.InputStream;
 public interface SessionSerializer {
 
     /**
-     * Return the name of the Serializer.
-     *
-     * @return String
-     */
-    public String getName();
-
-    /**
      * Serialize the session object.
      *
      * @param value Session Object
      * @return Object Input
      */
-    public InputStream serializeSessionObject(Object value) throws IOException;
+    InputStream serializeSessionObject(Object value) throws SessionSerializerException;
 
     /**
      * DeSerialize the session object.
      *
-     * @param objectInput Serialized Session Object
-     * @return Object
+     * @param inputStream
+     * @return Session Object
      */
-    public Object deSerializeSessionObject(InputStream inputStream) throws IOException, ClassNotFoundException;
+    Object deSerializeSessionObject(InputStream inputStream) throws SessionSerializerException;
 }

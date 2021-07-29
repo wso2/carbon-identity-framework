@@ -52,7 +52,6 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import java.security.PermissionCollection;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -94,7 +93,7 @@ public class FrameworkServiceDataHolder {
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
-    private List<SessionSerializer> sessionSerializers = new ArrayList<>();;
+    private SessionSerializer sessionSerializer;
 
     private AccountLockService accountLockService;
 
@@ -555,8 +554,8 @@ public class FrameworkServiceDataHolder {
         sessionContextMgtListeners.remove(inboundType);
     }
 
-    public List<SessionSerializer> getSessionSerializers() {
-        return sessionSerializers;
+    public SessionSerializer getSessionSerializer() {
+        return sessionSerializer;
     }
 
     public void setAccountLockService(AccountLockService accountLockService) {
@@ -567,5 +566,9 @@ public class FrameworkServiceDataHolder {
     public AccountLockService getAccountLockService() {
 
         return accountLockService;
+    }
+
+    public void setSessionSerializer(SessionSerializer sessionSerializer) {
+        this.sessionSerializer = sessionSerializer;
     }
 }

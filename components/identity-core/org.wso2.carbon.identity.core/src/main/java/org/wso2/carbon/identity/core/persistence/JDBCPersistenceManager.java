@@ -53,7 +53,6 @@ public class JDBCPersistenceManager {
     // This property refers to Active transaction state of postgresql db
     private static final String PG_ACTIVE_SQL_TRANSACTION_STATE = "25001";
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
-    private String sessionSerializer;
 
     private JDBCPersistenceManager() {
 
@@ -234,16 +233,6 @@ public class JDBCPersistenceManager {
     public DataSource getDataSource() {
 
         return dataSource;
-    }
-
-    /**
-     * Returns Session Serializer.
-     *
-     * @return String.
-     */
-    public String getSessionSerializerName() {
-
-        return sessionSerializer;
     }
 
     /**

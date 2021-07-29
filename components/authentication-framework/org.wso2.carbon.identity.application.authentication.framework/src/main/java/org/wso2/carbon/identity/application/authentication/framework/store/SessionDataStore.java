@@ -23,12 +23,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -271,7 +272,6 @@ public class SessionDataStore {
                     sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
         }
-
     }
 
     public static SessionDataStore getInstance() {
@@ -338,7 +338,7 @@ public class SessionDataStore {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
-        } catch (ClassNotFoundException | IOException | SQLException |
+        } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
                 IdentityApplicationManagementException e) {
             log.error("Error while retrieving session data", e);
         } finally {
@@ -524,7 +524,7 @@ public class SessionDataStore {
             preparedStatement.setInt(7, tenantId);
             preparedStatement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | IOException | IdentityApplicationManagementException e) {
+        } catch (SQLException | IOException | SessionSerializerException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while storing session data", e);
         } finally {
@@ -611,10 +611,10 @@ public class SessionDataStore {
     }
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
-            throws SQLException, IOException, IdentityApplicationManagementException {
+            throws SQLException, IOException, SessionSerializerException {
         if (value != null) {
-            InputStream inputStream = SessionSerializerProvider.getSessionSerializer(JDBCPersistenceManager.
-                    getInstance().getSessionSerializerName()).serializeSessionObject(value);
+            InputStream inputStream = FrameworkServiceDataHolder.getInstance().
+                    getSessionSerializer().serializeSessionObject(value);
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, null, 0);
@@ -622,12 +622,12 @@ public class SessionDataStore {
     }
 
     private Object getBlobObject(InputStream is)
-            throws IdentityApplicationManagementException, IOException, ClassNotFoundException {
+            throws IdentityApplicationManagementException, IOException, ClassNotFoundException,
+            SessionSerializerException {
         if (is != null) {
             ObjectInput ois = null;
             try {
-                return SessionSerializerProvider.getSessionSerializer(JDBCPersistenceManager.getInstance()
-                        .getSessionSerializerName()).deSerializeSessionObject(is);
+                return FrameworkServiceDataHolder.getInstance().getSessionSerializer().deSerializeSessionObject(is);
             } finally {
                 if (ois != null) {
                     try {
