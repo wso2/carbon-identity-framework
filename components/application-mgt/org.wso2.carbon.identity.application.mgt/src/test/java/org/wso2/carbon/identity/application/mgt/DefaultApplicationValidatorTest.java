@@ -78,6 +78,15 @@ public class DefaultApplicationValidatorTest {
                 "    var whilefor = true;\n" +
                 "    var forwhile = true;\n" +
                 "    var some_whiles = true;\n" +
+                "    var fore = true;\n" +
+                "    var foreach = true;\n" +
+                "    var foreaches = true;\n" +
+                "    executeStep(1);\n" +
+                "};\n";
+
+        String scriptSeven = "var onLoginRequest = function(context) {\n" +
+                "    var array1 = ['a', 'b', 'c'];\n" +
+                "    array1.forEach(element => console.log(element));\n" +
                 "    executeStep(1);\n" +
                 "};\n";
 
@@ -89,6 +98,7 @@ public class DefaultApplicationValidatorTest {
                 {"true", "false", scriptFour},
                 {"true", "false", scriptFive},
                 {"true", "false", scriptFour},
+                {"true", "false", scriptSeven},
                 {"false", "false", scripSix},
                 {"false", "true", scripOne},
                 {"false", "true", scriptFive},

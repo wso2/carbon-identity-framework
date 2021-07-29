@@ -98,7 +98,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
     public DefaultApplicationValidator() {
 
-        loopPattern = Pattern.compile("\\b(for|while)\\b");
+        loopPattern = Pattern.compile("\\b(for|while|forEach)\\b");
     }
 
     @Override
