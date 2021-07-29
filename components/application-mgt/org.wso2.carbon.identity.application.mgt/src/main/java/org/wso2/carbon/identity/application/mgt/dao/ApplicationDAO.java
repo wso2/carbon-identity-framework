@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -164,7 +165,7 @@ public interface ApplicationDAO {
     default ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        return null;
+        throw new NotImplementedException();
     }
 
     default String addApplication(ServiceProvider application, String tenantDomain)

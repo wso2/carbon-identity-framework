@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -376,7 +377,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        return null;
+        throw new NotImplementedException();
     }
 
     /**
