@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 public interface SecretManager {
 
     /**
-     * This API is used to create the given secret including a file.
+     * This API is used to create the given secret.
      *
      * @param secret The {@link Secret}.
      * @return 201 created. Returns {@link Secret} created.

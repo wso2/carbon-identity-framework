@@ -30,12 +30,13 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.CachedBackedSecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretManagerConfigurationHolder;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -75,6 +76,8 @@ public class SecretManagerComponent {
 
             bundleContext.registerService(SecretManager.class.getName(),
                     new SecretManagerImpl(secretManagerConfigurationHolder), null);
+            bundleContext.registerService(SecretResolveManager.class.getName(),
+                    new SecretResolveManagerImpl(secretManagerConfigurationHolder), null);
             SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled
                     (isSecretManagementEnabled());
         } catch (Throwable e) {

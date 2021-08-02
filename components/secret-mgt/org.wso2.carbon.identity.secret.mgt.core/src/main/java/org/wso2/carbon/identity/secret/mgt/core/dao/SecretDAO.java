@@ -106,4 +106,13 @@ public interface SecretDAO {
      * @throws SecretManagementException if an error occurs while validating the secretId.
      */
     boolean isExistingSecret(int tenantId, String secretId) throws SecretManagementException;
+
+    /**
+     * Returns {@link Secret} with value by id.
+     *
+     * @return {@link Secret} with value for the given name.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    Secret getSecretWithValue(int tenantId, String name) throws SecretManagementException;
+
 }

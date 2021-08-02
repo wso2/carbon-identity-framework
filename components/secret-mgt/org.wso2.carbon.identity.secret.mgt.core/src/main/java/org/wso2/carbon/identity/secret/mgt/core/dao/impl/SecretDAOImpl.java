@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.dao.impl;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -47,6 +50,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_CREATED_TIME_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_NAME_BY_ID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_WITH_VALUE_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
@@ -54,6 +58,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_VALUE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_DELETE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
@@ -104,7 +109,7 @@ public class SecretDAOImpl implements SecretDAO {
 
             return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
                     null : buildSecretFromRawData(secretRawDataCollectors);
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | CryptoException e) {
             throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
         }
     }
@@ -135,7 +140,7 @@ public class SecretDAOImpl implements SecretDAO {
 
             return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
                     null : buildSecretFromRawData(secretRawDataCollectors);
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | CryptoException e) {
             throw handleServerException(ERROR_CODE_GET_SECRET, "id = " + secretId, e);
         }
     }
@@ -248,7 +253,40 @@ public class SecretDAOImpl implements SecretDAO {
         }
     }
 
-    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) {
+    @Override
+    public Secret getSecretWithValue(int tenantId, String name) throws SecretManagementException {
+
+        JdbcTemplate jdbcTemplate = getNewTemplate();
+        List<SecretRawDataCollector> secretRawDataCollectors;
+        try {
+            String query = GET_SECRET_WITH_VALUE_BY_NAME;
+            secretRawDataCollectors = jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> {
+                        SecretRawDataCollector.SecretRawDataCollectorBuilder
+                                secretRawDataCollectorBuilder =
+                                new SecretRawDataCollector.SecretRawDataCollectorBuilder()
+                                        .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
+                                        .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
+                                        .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
+                                        .setValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_VALUE))
+                                        .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
+                                        .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
+                                                calendar));
+                        return secretRawDataCollectorBuilder.build();
+                    }, preparedStatement -> {
+                        int initialParameterIndex = 1;
+                        preparedStatement.setString(initialParameterIndex, name);
+                        preparedStatement.setInt(++initialParameterIndex, tenantId);
+                    });
+
+            return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
+                    null : buildSecretFromRawData(secretRawDataCollectors);
+        } catch (DataAccessException | CryptoException e) {
+            throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
+        }
+    }
+
+    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) throws SecretManagementException, CryptoException {
 
         Secret secret = new Secret();
         secretRawDataCollectors.forEach(secretRawDataCollector -> {
@@ -264,11 +302,13 @@ public class SecretDAOImpl implements SecretDAO {
                         IdentityTenantUtil.getTenantDomain(secretRawDataCollector.getTenantId()));
             }
         });
+        if (secret.getValue() != null) {
+            secret.setValue(getDecryptedSecret(secret.getValue()));
+        }
         return secret;
     }
 
-    private Timestamp getCreatedTimeInResponse(Secret secret)
-            throws TransactionException {
+    private Timestamp getCreatedTimeInResponse(Secret secret) throws TransactionException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         return jdbcTemplate.withTransaction(template ->
@@ -336,5 +376,17 @@ public class SecretDAOImpl implements SecretDAO {
     private JdbcTemplate getNewTemplate() {
 
         return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
+    }
+
+    /**
+     * Decrypt secret.
+     *
+     * @param cipherText cipher text secret.
+     * @return decrypted secret.
+     */
+    private String getDecryptedSecret(String cipherText) throws CryptoException {
+
+        return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(
+                cipherText), Charsets.UTF_8);
     }
 }
