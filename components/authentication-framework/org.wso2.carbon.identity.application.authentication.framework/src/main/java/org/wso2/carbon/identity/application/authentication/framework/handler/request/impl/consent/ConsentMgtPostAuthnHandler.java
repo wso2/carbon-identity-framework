@@ -44,6 +44,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -138,6 +139,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             throws PostAuthenticationFailedException {
 
         String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        Map<String, String> claimMappings = context.getSequenceConfig().getApplicationConfig().getClaimMappings();
 
         // Due to: https://github.com/wso2/product-is/issues/2317.
         // Should be removed once the issue is fixed
@@ -161,7 +163,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
 
             removeClaimsWithoutConsent(context, consentClaimsData);
-
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData.setRequestedClaims(
+                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                            authenticatedUser.getUserAttributes(), claimMappings));
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
                 if (isDebugEnabled()) {
@@ -225,6 +230,33 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         removeUserClaimsFromContext(context, claimsWithoutConsent, spStandardDialect);
     }
 
+    /**
+     * Filter out the requested claims with the user attributes.
+     *
+     * @param requestedClaims List of requested claims metadata.
+     * @param userAttributes  Authenticated users' attributes.
+     * @param claimMappings   Claim mappings of the application.
+     * @return Filtered claims with user attributes.
+     */
+    private List<ClaimMetaData> removeConsentRequestedNullUserAttributes(List<ClaimMetaData> requestedClaims,
+                                                                         Map<ClaimMapping, String> userAttributes,
+                                                                         Map <String, String> claimMappings) {
+
+        List<ClaimMetaData> filteredRequestedClaims = new ArrayList<>();
+        if (requestedClaims != null && userAttributes != null && claimMappings != null) {
+            for (ClaimMetaData claimMetaData : requestedClaims) {
+                for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
+                    if (claimMetaData.getClaimUri()
+                            .equals(claimMappings.get(attribute.getKey().getLocalClaim().getClaimUri()))) {
+                        filteredRequestedClaims.add(claimMetaData);
+                        break;
+                    }
+                }
+            }
+        }
+        return filteredRequestedClaims;
+    }
+
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
 
         return context.getSequenceConfig().getApplicationConfig().getServiceProvider();
@@ -269,6 +301,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+        Map<String, String> claimMappings = applicationConfig.getClaimMappings();
         ServiceProvider serviceProvider = getServiceProvider(context);
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
             if (isDebugEnabled()) {
@@ -280,7 +313,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
-
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData.setRequestedClaims(
+                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                    authenticatedUser.getUserAttributes(), claimMappings));
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
