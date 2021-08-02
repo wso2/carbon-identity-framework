@@ -1969,4 +1969,7 @@
         <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
 
+    <!-- Claim to store localization code  -->
+    <LocaleClaimUri>http://wso2.org/claims/local</LocaleClaimUri>
+
 </Server>
