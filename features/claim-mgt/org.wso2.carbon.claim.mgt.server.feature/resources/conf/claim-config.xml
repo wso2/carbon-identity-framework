@@ -763,6 +763,14 @@
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/userSourceId</ClaimURI>
+				<DisplayName>User Source ID</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>userSourceId</AttributeID>
+				<Description>Claim to represent the provisioned IDP ID of the user.</Description>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2605,6 +2613,16 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId</ClaimURI>
+				<DisplayName>User Source ID</DisplayName>
+				<AttributeID>userSourceId</AttributeID>
+				<Description>User Provisioned IDP ID</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/userSourceId</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">

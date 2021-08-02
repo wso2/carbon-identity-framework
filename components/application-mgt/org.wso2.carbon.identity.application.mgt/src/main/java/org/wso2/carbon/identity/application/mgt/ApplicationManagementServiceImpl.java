@@ -518,6 +518,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return applicationBasicInfoArray;
     }
 
+    @Override
+    public ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        Collection<ApplicationResourceManagementListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
+
+        for (ApplicationResourceManagementListener listener : listeners) {
+            if (listener.isEnabled() &&
+                    !listener.doPreGetApplicationBasicInfoByName(name, tenantDomain)) {
+                throw buildServerException("Error executing doPreGetApplicationBasicInfoByName operation of " +
+                        "listener: " + getName(listener) + " for application name: " + name);
+            }
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ApplicationBasicInfo basicAppInfo = appDAO.getApplicationBasicInfoByName(name, tenantDomain);
+
+        for (ApplicationResourceManagementListener listener : listeners) {
+            if (listener.isEnabled() &&
+                    !listener.doPostGetApplicationBasicInfoByName(basicAppInfo, name, tenantDomain)) {
+                throw buildServerException("Error executing doPostGetApplicationBasicInfoByName operation of " +
+                        "listener: " + getName(listener) + " for application name: " + name);
+            }
+        }
+        return basicAppInfo;
+    }
+
     /**
      * Get count of all Application Basic Information.
      *

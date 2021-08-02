@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -60,6 +61,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,6 +93,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
     public static final String IS_HANDLER = "IS_HANDLER";
+    private static final String CONF_ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
+    private static Pattern loopPattern;
+
+    public DefaultApplicationValidator() {
+
+        loopPattern = Pattern.compile("\\b(for|while|forEach)\\b");
+    }
 
     @Override
     public int getOrderId() {
@@ -116,7 +126,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                         .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null,
                 tenantDomain, serviceProvider.getApplicationName());
         validateRoleConfigs(validationErrors, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
-
+        if (isAuthenticationScriptAvailableConfig(serviceProvider)) {
+            validateAdaptiveAuthScript(validationErrors,
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
+        }
         return validationErrors;
     }
 
@@ -472,5 +485,56 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
                 .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
+    }
+
+    private void validateAdaptiveAuthScript(List<String> validationErrors,
+                                            AuthenticationScriptConfig authenticationScriptConfig) {
+
+        String script = getAdaptiveAuthScript(authenticationScriptConfig);
+        if (StringUtils.isBlank(script)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Provided authentication script is empty.");
+            }
+            return;
+        }
+
+        if (!isLoopsInAdaptiveAuthScriptAllowed()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Loops are not allowed in the authentication script. " +
+                        "Therefore checking whether loops are present in the provided script.");
+            }
+            Matcher matcher = loopPattern.matcher(script);
+            if (matcher.find()) {
+                validationErrors.add("Loops are not allowed in the adaptive authentication script, " +
+                        "but loops are available in the provided script.");
+            }
+        }
+    }
+
+    private boolean isLoopsInAdaptiveAuthScriptAllowed() {
+
+        String confAllowLoops = IdentityUtil.getProperty(CONF_ADAPTIVE_AUTH_ALLOW_LOOPS);
+
+        // By default allow loops.
+        if (StringUtils.isBlank(confAllowLoops)) {
+            return true;
+        }
+
+        return Boolean.parseBoolean(confAllowLoops);
+    }
+
+    private String getAdaptiveAuthScript(AuthenticationScriptConfig scriptConfig) {
+
+        if (scriptConfig != null) {
+            return scriptConfig.getContent();
+        }
+
+        return null;
+    }
+
+    private boolean isAuthenticationScriptAvailableConfig(ServiceProvider serviceProvider) {
+
+        return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
     }
 }
