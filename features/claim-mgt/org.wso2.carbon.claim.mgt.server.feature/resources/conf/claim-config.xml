@@ -147,7 +147,7 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/locality</ClaimURI>
 				<DisplayName>Locality</DisplayName>
-				<AttributeID>local</AttributeID>
+				<AttributeID>localityAddress</AttributeID>
 				<Description>Locality</Description>
 			</Claim>
 			<Claim>
