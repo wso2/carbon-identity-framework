@@ -71,11 +71,11 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     public BaseCache(String cacheName, boolean isTemp,
                      List<AbstractCacheListener<K, V>> cacheListeners) {
 
-        this.cacheName = cacheName;
+        this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
         identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null) {
-            if (!identityCacheConfig.isDistributed()) {
-                this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
+            if (identityCacheConfig.isDistributed()) {
+                this.cacheName = cacheName;
             }
             identityCacheConfig.setTemporary(isTemp);
         }
