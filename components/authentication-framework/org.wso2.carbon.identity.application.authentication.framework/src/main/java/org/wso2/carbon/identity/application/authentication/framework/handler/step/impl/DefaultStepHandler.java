@@ -61,7 +61,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -84,7 +83,6 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESIDENT_IDP;
 public class DefaultStepHandler implements StepHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static volatile DefaultStepHandler instance;
     private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
     Log audit = CarbonConstants.AUDIT_LOG;
@@ -135,8 +133,6 @@ public class DefaultStepHandler implements StepHandler {
                 log.debug("No current authenticated IDPs in the authentication context. " +
                         "Continuing with the previous authenticated IDPs");
             }
-            diagnosticLog.info("No current authenticated IDPs in the authentication context. " +
-                    "Continuing with the previous authenticated IDPs");
             authenticatedIdPs = context.getPreviousAuthenticatedIdPs();
         }
 
@@ -156,19 +152,15 @@ public class DefaultStepHandler implements StepHandler {
 
         // check passive authentication
         if (context.isPassiveAuthenticate()) {
-            diagnosticLog.info("Passive authentication set to: true");
             if (authenticatedStepIdps.isEmpty()) {
                 AuthenticatorConfig authenticatorConfig = getFlowHandlerConfigInStep(authConfigList);
                 if (authenticatedIdPs.keySet().size() > 0 && authenticatorConfig != null) {
                     // During Passive authentication, if the authenticatedStepIdps empty and contain a flow handler in
                     // the step. Then considering as authenticated.
-                    diagnosticLog.info("Authenticated Step IDPs are empty and a flow handler configured in " +
-                            "the step. Proceeding with Authenticated IDPs.");
                     String authenticatedIdP = RESIDENT_IDP;
                     if (authenticatedIdPs.get(authenticatedIdP) == null) {
                         authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
                     }
-                    diagnosticLog.info("Authenticated IDP is: " + authenticatedIdP);
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatorConfig);
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
@@ -178,7 +170,6 @@ public class DefaultStepHandler implements StepHandler {
                 }
             } else {
                 String authenticatedIdP = authenticatedStepIdps.entrySet().iterator().next().getKey();
-                diagnosticLog.info("Authenticated Step IDP is: " + authenticatedIdP);
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
                         .get(authenticatedIdP));
@@ -189,18 +180,18 @@ public class DefaultStepHandler implements StepHandler {
             stepConfig.setCompleted(true);
             return;
         } else {
-            diagnosticLog.info("Passive authentication set to: false");
             long authTime = 0;
             String max_age = request.getParameter(FrameworkConstants.RequestParams.MAX_AGE);
             if (StringUtils.isNotBlank(max_age) && StringUtils.isNotBlank(context.getSessionIdentifier())) {
+                String loginTenantDomain = context.getLoginTenantDomain();
                 long maxAge = Long.parseLong((max_age));
-                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(), loginTenantDomain)
                         .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
-                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
-                            .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                            loginTenantDomain).getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
                 } else {
-                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
-                            .getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
+                            loginTenantDomain).getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
                 }
                 long current_time = System.currentTimeMillis();
                 if (maxAge < (current_time - authTime) / 1000) {
@@ -213,7 +204,6 @@ public class DefaultStepHandler implements StepHandler {
 
         if (request.getParameter(FrameworkConstants.RequestParams.USER_ABORT) != null
                 && Boolean.parseBoolean(request.getParameter(FrameworkConstants.RequestParams.USER_ABORT))) {
-            diagnosticLog.info("User aborted the authentication flow.");
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                     .USER_ABORT);
             stepConfig.setCompleted(true);
@@ -222,7 +212,6 @@ public class DefaultStepHandler implements StepHandler {
 
         // if Request has fidp param and if this is the first step
         if (fidp != null && stepConfig.getOrder() == 1) {
-            diagnosticLog.info("Request has FIDP parameter set to: " + fidp);
             handleHomeRealmDiscovery(request, response, context);
             return;
         } else if (context.isReturning()) {
@@ -244,7 +233,6 @@ public class DefaultStepHandler implements StepHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Executing in Dumb mode");
             }
-            diagnosticLog.info("Executing in dumb mode");
 
             try {
                 request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
@@ -268,15 +256,12 @@ public class DefaultStepHandler implements StepHandler {
                     if (log.isDebugEnabled()) {
                         log.debug("Re-authenticating with " + idp + " IdP");
                     }
-                    diagnosticLog.info("Re-authenticating with IDP: " + idp);
 
                     try {
                         context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
                                 idp, context.getTenantDomain()));
                     } catch (IdentityProviderManagementException e) {
                         log.error("Exception while getting IdP by name", e);
-                        diagnosticLog.error("Error occurred while getting IDP by name. Error message: " +
-                                e.getMessage());
                     }
                     doAuthentication(request, response, context, authenticatorConfig);
                     return;
@@ -380,7 +365,6 @@ public class DefaultStepHandler implements StepHandler {
         if (log.isDebugEnabled()) {
             log.debug("Sending to the Multi Option page");
         }
-        diagnosticLog.info("Sending to the Multi Option page");
         Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
         String showAuthFailureReason = null;
         if (MapUtils.isNotEmpty(parameterMap)) {
@@ -389,7 +373,6 @@ public class DefaultStepHandler implements StepHandler {
                 log.debug("showAuthFailureReason has been set as : " + showAuthFailureReason);
             }
         }
-        diagnosticLog.info("showAuthFailureReason has been set as : " + showAuthFailureReason);
         String retryParam = StringUtils.EMPTY;
 
         if (stepConfig.isRetrying()) {
@@ -403,7 +386,6 @@ public class DefaultStepHandler implements StepHandler {
             response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
                     showAuthFailureReason, retryParam, loginPage));
         } catch (IOException | URISyntaxException e) {
-            diagnosticLog.error("Server error occurred. Error message: " + e.getMessage());
             throw new FrameworkException(e.getMessage(), e);
         }
     }
@@ -415,14 +397,12 @@ public class DefaultStepHandler implements StepHandler {
         if (log.isDebugEnabled()) {
             log.debug("Request contains fidp parameter. Initiating Home Realm Discovery");
         }
-        diagnosticLog.info("Request contains fidp parameter. Initiating Home Realm Discovery");
 
         String domain = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
 
         if (log.isDebugEnabled()) {
             log.debug("Received domain: " + domain);
         }
-        diagnosticLog.info("Received domain: " + domain);
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         StepConfig stepConfig = sequenceConfig.getStepMap().get(context.getCurrentStep());
@@ -451,7 +431,6 @@ public class DefaultStepHandler implements StepHandler {
         if (log.isDebugEnabled()) {
             log.debug("Home realm discovered: " + homeRealm);
         }
-        diagnosticLog.info("Home realm discovered: " + homeRealm);
 
         // try to find an IdP with the retrieved realm
         ExternalIdPConfig externalIdPConfig = null;
@@ -460,8 +439,6 @@ public class DefaultStepHandler implements StepHandler {
                 .getIdPConfigByRealm(homeRealm, context.getTenantDomain());
         } catch (IdentityProviderManagementException e) {
             log.error("Exception while getting IdP by realm", e);
-            diagnosticLog.error("Server error occurred while getting IDP by home-realm. Error message: "
-                    + e.getMessage());
         }
         // if an IdP exists
         if (externalIdPConfig != null) {
@@ -470,7 +447,6 @@ public class DefaultStepHandler implements StepHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Found IdP of the realm: " + idpName);
             }
-            diagnosticLog.info("Found IdP of the realm: " + idpName);
 
             Map<String, AuthenticatedIdPData> authenticatedIdPs = context.getPreviousAuthenticatedIdPs();
             Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
@@ -501,7 +477,6 @@ public class DefaultStepHandler implements StepHandler {
         if (log.isDebugEnabled()) {
             log.debug("An IdP was not found for the sent domain. Sending to the domain page");
         }
-        diagnosticLog.info("An IdP was not found for the sent domain. Sending to the domain page");
 
         String errorMsg = "domain.unknown";
 
@@ -511,7 +486,6 @@ public class DefaultStepHandler implements StepHandler {
                     + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + "&authFailure=true"
                     + "&authFailureMsg=" + errorMsg + "&hrd=true");
         } catch (IOException e) {
-            diagnosticLog.error("Server error occurred. Error message: " + e.getMessage());
             throw new FrameworkException(e.getMessage(), e);
         }
     }
@@ -523,7 +497,6 @@ public class DefaultStepHandler implements StepHandler {
         if (log.isDebugEnabled()) {
             log.debug("Relieved a request from the multi option page");
         }
-        diagnosticLog.info("Relieved a request from the multi option page");
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         int currentStep = context.getCurrentStep();
@@ -537,7 +510,6 @@ public class DefaultStepHandler implements StepHandler {
             if (log.isDebugEnabled()) {
                 log.debug("User has selected IdP: " + selectedIdp);
             }
-            diagnosticLog.info("User has selected IdP: " + selectedIdp);
 
             try {
                 ExternalIdPConfig externalIdPConfig = ConfigurationFacade.getInstance()
@@ -546,8 +518,6 @@ public class DefaultStepHandler implements StepHandler {
                 context.setExternalIdP(externalIdPConfig);
             } catch (IdentityProviderManagementException e) {
                 log.error("Exception while getting IdP by name", e);
-                diagnosticLog.error("Server error occurred while getting IDP by name. Error message: "
-                        + e.getMessage());
             }
         }
 
@@ -559,8 +529,6 @@ public class DefaultStepHandler implements StepHandler {
                 if (StringUtils.isNotBlank(selectedIdp) && authenticatorConfig.getIdps().get(selectedIdp) == null) {
                     // If the selected idp name is not configured for the application, throw error since
                     // this is an invalid case.
-                    diagnosticLog.error("Authenticators configured for application and user selected idp " +
-                            "does not match. Possible tampering of parameters in login page.");
                     throw new FrameworkException("Authenticators configured for application and user selected idp " +
                             "does not match. Possible tampering of parameters in login page.");
                 }
@@ -595,14 +563,12 @@ public class DefaultStepHandler implements StepHandler {
                 if (log.isDebugEnabled()) {
                     log.debug(authenticator.getName() + " can handle the request.");
                 }
-                diagnosticLog.info(authenticator.getName() + " can handle the request.");
 
                 doAuthentication(request, response, context, authenticatorConfig);
                 break;
             }
         }
         if (isNoneCanHandle) {
-            diagnosticLog.error("No authenticator can handle the request in step :  " + currentStep);
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
         }
     }
@@ -635,7 +601,6 @@ public class DefaultStepHandler implements StepHandler {
             if (log.isDebugEnabled()) {
                 log.debug(authenticator.getName() + " returned: " + status.toString());
             }
-            diagnosticLog.info(authenticator.getName() + " returned: " + status.toString());
 
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
                 context.setCurrentAuthenticator(authenticator.getName());

@@ -60,7 +60,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class UserSessionManagementServiceImpl implements UserSessionManagementService {
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private SessionManagementService sessionManagementService = new SessionManagementService();
 
     @Override
@@ -75,13 +74,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
                         userStoreDomain + " in tenant: " + tenantDomain);
             }
-            diagnosticLog.info("Terminating all the active sessions of user: " + username +
-                    " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain);
             terminateSessionsByUserId(userId);
         } catch (SessionManagementException e) {
-            diagnosticLog.error("Error while terminating sessions of user:" + username +
-                    " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain +
-                    ". Error message: " + e.getMessage());
             throw new UserSessionException("Error while terminating sessions of user:" + username +
                     " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
         }
@@ -112,19 +106,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     log.debug("Provided user store manager for the user: " + username + " of userstore domain: " +
                             userStoreDomain + ", is not an instance of the AbstractUserStore manager");
                 }
-                diagnosticLog.error("Unable to get the unique id of the user: " + username + ".");
                 throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
-                diagnosticLog.error("Error occurred while resolving Id for the user: " + username +
-                        ". Error message: " + e.getMessage());
                 throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
             }
         } catch (UserStoreException e) {
-            diagnosticLog.error("Error occurred while retrieving the userstore manager to resolve Id for " +
-                    "the user: " + username + ". Error message: " + e.getMessage());
             throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
                     "the user: " + username, e);
         }
@@ -145,23 +134,17 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
                     "manager: " + userStoreManager.getClass() + ", from the realm.");
         }
-        diagnosticLog.info("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
-                + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
-                "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
-                "manager: " + userStoreManager.getClass() + ", from the realm.");
         return userStoreManager;
     }
 
     private void validate(String username, String userStoreDomain, String tenantDomain) throws UserSessionException {
 
         if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) || StringUtils.isBlank(tenantDomain)) {
-            diagnosticLog.error("Username, userstore domain or tenant domain cannot be empty");
             throw new UserSessionException("Username, userstore domain or tenant domain cannot be empty");
         }
 
         int tenantId = getTenantId(tenantDomain);
         if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
-            diagnosticLog.error("Invalid tenant domain: " + tenantDomain + " provided.");
             throw new UserSessionException("Invalid tenant domain: " + tenantDomain + " provided.");
         }
     }
@@ -179,7 +162,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
             return realmService.getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
-            diagnosticLog.error("Failed to retrieve tenant id for tenant domain: " + tenantDomain);
             throw new UserSessionException("Failed to retrieve tenant id for tenant domain: " + tenantDomain);
         }
     }
@@ -194,7 +176,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + userId + ".");
         }
-        diagnosticLog.info("Retrieving all the active sessions of user: " + userId + ".");
         return getActiveSessionList(getSessionIdListByUserId(userId));
     }
 
@@ -250,7 +231,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
-            diagnosticLog.info("Terminating the session: " + sessionId + " which belongs to the user: " + userId);
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
@@ -273,8 +253,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Retrieving all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
-        diagnosticLog.info("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
-                "domain: " + user.getUserStoreDomain());
         return getActiveSessionList(getSessionIdListByUser(user, idpId));
     }
 
@@ -290,8 +268,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Terminating all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
-        diagnosticLog.info("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
-                "domain: " + user.getUserStoreDomain());
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -317,8 +293,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
                         user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
-            diagnosticLog.info("Terminating the session: " + sessionId + " which belongs to the user: " +
-                    user.getUserName() + " of user store domain: " + user.getUserStoreDomain());
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
@@ -383,7 +357,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
             if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                        FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
                     UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDTO.getSession(sessionId);

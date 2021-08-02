@@ -86,7 +86,7 @@ public class SessionExtenderProcessorTest extends PowerMockTestCase {
         when(sessionExtenderRequest.getTenantDomain()).thenReturn(TENANT_DOMAIN);
         when(sessionExtenderRequest.getSessionKey()).thenReturn(IDP_SESSION_KEY);
         when(SessionContextCache.getInstance()).thenReturn(sessionContextCache);
-        when(sessionContextCache.getSessionContextCacheEntry(anyObject()))
+        when(sessionContextCache.getSessionContextCacheEntry(anyObject(), anyString()))
                 .thenReturn(sessionContextCacheEntry);
         when(sessionContextCacheEntry.getContext()).thenReturn(sessionContext);
 
