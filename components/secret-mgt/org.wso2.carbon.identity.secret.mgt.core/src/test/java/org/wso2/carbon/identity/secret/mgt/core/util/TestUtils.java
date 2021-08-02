@@ -86,7 +86,7 @@ public class TestUtils {
 
         Secret secretAdd = new Secret();
         secretAdd.setSecretName(name);
-        secretAdd.setValue(value);
+        secretAdd.setSecretValue(value);
         return secretAdd;
     }
 }

@@ -28,7 +28,7 @@ public class Secret {
     private String secretName;
     private String lastModified;
     private String created;
-    private String value;
+    private String secretValue;
 
     /**
      * Initialize a Secret object.
@@ -94,13 +94,13 @@ public class Secret {
         this.lastModified = lastModified;
     }
 
-    public String getValue() {
+    public String getSecretValue() {
 
-        return value;
+        return secretValue;
     }
 
-    public void setValue(String value) {
+    public void setSecretValue(String value) {
 
-        this.value = value;
+        this.secretValue = value;
     }
 }

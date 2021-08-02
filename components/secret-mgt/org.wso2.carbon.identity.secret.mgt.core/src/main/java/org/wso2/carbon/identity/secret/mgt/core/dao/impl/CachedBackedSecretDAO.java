@@ -142,29 +142,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
         return secretDAO.isExistingSecret(tenantId, secretId);
     }
 
-    @Override
-    public Secret getSecretWithValue(int tenantId, String name) throws SecretManagementException {
-
-        Secret secret = getSecretFromCacheByName(name, tenantId);
-        if (secret != null && secret.getValue()!= null) {
-            if (log.isDebugEnabled()) {
-                String message = String.format("Cache hit for secret by it's name. Secret name: %s, Tenant id: "
-                        + "%d", name, tenantId);
-                log.debug(message);
-            }
-            return secret;
-        } else {
-            if (log.isDebugEnabled()) {
-                String message = String.format("Cache miss for secret by it's name. Secret name: %s, Tenant id: " +
-                        "%d", name, tenantId);
-                log.debug(message);
-            }
-            secret = secretDAO.getSecretWithValue(tenantId, name);
-            addSecretToCache(secret);
-        }
-        return secret;
-    }
-
     private Secret getSecretFromCacheById(String secretId, int tenantId) throws SecretManagementException {
 
         try {

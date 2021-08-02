@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretManagerConfigurationHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 import org.wso2.carbon.identity.secret.mgt.core.util.TestUtils;
 
@@ -105,6 +104,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretAdd = getSampleSecretAdd(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         Secret secret = secretManager.addSecret(secretAdd);
         assertNotNull(secret.getSecretId(), "Created secret type id cannot be null");
+        assertEquals(secretAdd.getSecretName(), secret.getSecretName());
     }
 
     @Test(priority = 2, expectedExceptions = SecretManagementClientException.class)
@@ -228,12 +228,11 @@ public class SecretManagerTest extends PowerMockTestCase {
 
     private void prepareConfigs() throws Exception {
 
-        SecretManagerConfigurationHolder secretHolder = new SecretManagerConfigurationHolder();
         SecretDAO secretDAO = new SecretDAOImpl();
-        secretHolder.setSecretDAOS(Collections.singletonList(secretDAO));
+        SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
         mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
         mockIdentityTenantUtility();
-        secretManager = new SecretManagerImpl(secretHolder);
+        secretManager = new SecretManagerImpl();
     }
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain) {

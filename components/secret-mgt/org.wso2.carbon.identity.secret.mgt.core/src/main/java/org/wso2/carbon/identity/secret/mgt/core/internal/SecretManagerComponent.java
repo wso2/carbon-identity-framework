@@ -35,12 +35,13 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.CachedBackedSecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretManagerConfigurationHolder;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_NAME;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -67,17 +68,12 @@ public class SecretManagerComponent {
             BundleContext bundleContext = componentContext.getBundleContext();
 
             SecretDAO secretDAO = new SecretDAOImpl();
-            bundleContext.registerService(SecretDAO.class.getName(), secretDAO, null);
             bundleContext.registerService(SecretDAO.class.getName(),
                     new CachedBackedSecretDAO(secretDAO), null);
-            SecretManagerConfigurationHolder secretManagerConfigurationHolder =
-                    new SecretManagerConfigurationHolder();
-            secretManagerConfigurationHolder.setSecretDAOS(secretDAOS);
-
             bundleContext.registerService(SecretManager.class.getName(),
-                    new SecretManagerImpl(secretManagerConfigurationHolder), null);
+                    new SecretManagerImpl(), null);
             bundleContext.registerService(SecretResolveManager.class.getName(),
-                    new SecretResolveManagerImpl(secretManagerConfigurationHolder), null);
+                    new SecretResolveManagerImpl(), null);
             SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled
                     (isSecretManagementEnabled());
         } catch (Throwable e) {
@@ -137,6 +133,6 @@ public class SecretManagerComponent {
 
     private boolean isSecretManagementEnabled() {
 
-        return FrameworkUtils.isTableExists("IDN_SECRET");
+        return FrameworkUtils.isTableExists(DB_TABLE_NAME);
     }
 }

@@ -28,10 +28,12 @@ import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServerException;
+import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretManagerConfigurationHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_INVALID_SECRET_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID;
@@ -39,6 +41,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_GET_REQUEST_INVALID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_MANAGER_NOT_ENABLED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.generateUniqueID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
@@ -52,14 +55,15 @@ public class SecretManagerImpl implements SecretManager {
     private static final Log log = LogFactory.getLog(SecretManagerImpl.class);
     private List<SecretDAO> secretDAOS;
 
-    public SecretManagerImpl(SecretManagerConfigurationHolder secretManagerConfigurationHolder) {
+    public SecretManagerImpl() {
 
-        this.secretDAOS = secretManagerConfigurationHolder.getSecretDAOS();
+        this.secretDAOS = SecretManagerComponentDataHolder.getInstance().getSecretDAOS();
     }
 
     @Override
     public Secret addSecret(Secret secret) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         validateSecretCreateRequest(secret);
         String secretId = generateUniqueID();
         if (log.isDebugEnabled()) {
@@ -74,6 +78,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public Secret getSecret(String secretName) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         validateSecretRetrieveRequest(secretName);
         Secret secret = this.getSecretDAO().getSecretByName(getTenantId(), secretName);
         if (secret == null) {
@@ -88,6 +93,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public Secrets getSecrets() throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         List<Secret> secretList = this.getSecretDAO().getSecrets(getTenantId());
         if (secretList == null) {
             if (log.isDebugEnabled()) {
@@ -102,6 +108,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public Secret getSecretById(String secretId) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
@@ -115,6 +122,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public void deleteSecret(String secretName) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         validateSecretDeleteRequest(secretName);
         this.getSecretDAO().deleteSecretByName(getTenantId(), secretName);
         if (log.isDebugEnabled()) {
@@ -125,6 +133,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public void deleteSecretById(String secretId) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
@@ -141,6 +150,7 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public Secret replaceSecret(Secret secret) throws SecretManagementException {
 
+        validateSecretManagerEnabled();
         validateSecretReplaceRequest(secret);
         String secretId = generateSecretId(secret.getSecretName());
         secret.setSecretId(secretId);
@@ -199,7 +209,7 @@ public class SecretManagerImpl implements SecretManager {
      */
     private void validateSecretCreateRequest(Secret secret) throws SecretManagementException {
 
-        if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getValue())) {
+        if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getSecretValue())) {
             throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
         }
         if (isSecretExist(secret.getSecretName())) {
@@ -220,7 +230,7 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretReplaceRequest(Secret secret)
             throws SecretManagementException {
 
-        if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getValue())) {
+        if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getSecretValue())) {
             throw handleClientException(ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
         }
 
@@ -244,6 +254,13 @@ public class SecretManagerImpl implements SecretManager {
             return secretDAOS.get(secretDAOS.size() - 1);
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, "secretDAOs");
+        }
+    }
+
+    private void validateSecretManagerEnabled() throws SecretManagementServerException {
+
+        if (!SecretManagerComponentDataHolder.getInstance().isSecretManagementEnabled()) {
+            throw handleServerException(ERROR_CODE_SECRET_MANAGER_NOT_ENABLED, DB_TABLE_NAME);
         }
     }
 

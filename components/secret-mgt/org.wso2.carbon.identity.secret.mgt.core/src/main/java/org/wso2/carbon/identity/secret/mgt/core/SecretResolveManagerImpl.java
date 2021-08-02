@@ -1,77 +1,57 @@
 package org.wso2.carbon.identity.secret.mgt.core;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
+import org.apache.commons.codec.Charsets;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServerException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretManagerConfigurationHolder;
 
-import java.util.List;
-
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_GET_REQUEST_INVALID;
-import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
 
 public class SecretResolveManagerImpl implements SecretResolveManager {
 
-    private static final Log log = LogFactory.getLog(SecretManagerImpl.class);
-    private List<SecretDAO> secretDAOS;
+    private final SecretManager secretManager;
 
-    public SecretResolveManagerImpl(SecretManagerConfigurationHolder secretManagerConfigurationHolder) {
+    public SecretResolveManagerImpl() {
 
-        this.secretDAOS = secretManagerConfigurationHolder.getSecretDAOS();
+        this.secretManager = new SecretManagerImpl();
     }
+
     @Override
-    public Secret getResolvedSecret(String secretName) throws SecretManagementException {
+    public ResolvedSecret getResolvedSecret(String secretName) throws SecretManagementException {
 
-        validateSecretRetrieveRequest(secretName);
-        Secret secret = this.getSecretDAO().getSecretByName(getTenantId(), secretName);
-        if (secret == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No secret found for the secretName: " + secretName);
-            }
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName, null);
-        }
-        return secret;
+        Secret secret = secretManager.getSecret(secretName);
+        return getResolvedSecret(secret);
     }
 
-    /**
-     * Validate that secret name is non-empty.
-     *
-     * @param secretName The secret name.
-     * @throws SecretManagementException If secret validation fails.
-     */
-    private void validateSecretRetrieveRequest(String secretName) throws SecretManagementException {
+    private ResolvedSecret getResolvedSecret(Secret secret) throws SecretManagementServerException {
 
-        if (StringUtils.isEmpty(secretName)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid secret identifier with secretName: " + secretName + ".");
-            }
-            throw handleClientException(ERROR_CODE_SECRET_GET_REQUEST_INVALID, null);
+        ResolvedSecret resolvedSecret = (ResolvedSecret) secret;
+        resolvedSecret.setResolvedSecretValue(getDecryptedSecretValue(secret.getSecretValue(), secret.getSecretName()));
+        return resolvedSecret;
+    }
+
+    private String getDecryptedSecretValue(String secretValue, String name) throws SecretManagementServerException {
+
+        try {
+            return decrypt(secretValue);
+        } catch (CryptoException e) {
+            throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
         }
     }
 
     /**
-     * Select highest priority Secret DAO from an already sorted list of Secret DAOs.
+     * Encrypt secret.
      *
-     * @return Highest priority Secret DAO.
+     * @param cipherText cipher text secret.
+     * @return decrypted secret.
      */
-    private SecretDAO getSecretDAO() throws SecretManagementException {
+    private String decrypt(String cipherText) throws CryptoException {
 
-        if (!this.secretDAOS.isEmpty()) {
-            return secretDAOS.get(secretDAOS.size() - 1);
-        } else {
-            throw handleServerException(ERROR_CODE_GET_DAO, "secretDAOs");
-        }
-    }
-
-    private int getTenantId() {
-
-        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(
+                cipherText), Charsets.UTF_8);
     }
 }

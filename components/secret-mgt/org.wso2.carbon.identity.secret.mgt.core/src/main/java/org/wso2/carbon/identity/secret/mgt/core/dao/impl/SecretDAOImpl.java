@@ -50,7 +50,6 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_CREATED_TIME_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_NAME_BY_ID;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_WITH_VALUE_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
@@ -128,6 +127,7 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
+                                        .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_VALUE))
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar));
@@ -220,7 +220,7 @@ public class SecretDAOImpl implements SecretDAO {
                                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                             .getTenantId());
                             preparedStatement.setString(++initialParameterIndex, secret.getSecretName());
-                            preparedStatement.setString(++initialParameterIndex, secret.getValue());
+                            preparedStatement.setString(++initialParameterIndex, secret.getSecretValue());
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
 
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
@@ -253,47 +253,14 @@ public class SecretDAOImpl implements SecretDAO {
         }
     }
 
-    @Override
-    public Secret getSecretWithValue(int tenantId, String name) throws SecretManagementException {
-
-        JdbcTemplate jdbcTemplate = getNewTemplate();
-        List<SecretRawDataCollector> secretRawDataCollectors;
-        try {
-            String query = GET_SECRET_WITH_VALUE_BY_NAME;
-            secretRawDataCollectors = jdbcTemplate.executeQuery(query,
-                    (resultSet, rowNumber) -> {
-                        SecretRawDataCollector.SecretRawDataCollectorBuilder
-                                secretRawDataCollectorBuilder =
-                                new SecretRawDataCollector.SecretRawDataCollectorBuilder()
-                                        .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
-                                        .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
-                                        .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
-                                        .setValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_VALUE))
-                                        .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
-                                        .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
-                                                calendar));
-                        return secretRawDataCollectorBuilder.build();
-                    }, preparedStatement -> {
-                        int initialParameterIndex = 1;
-                        preparedStatement.setString(initialParameterIndex, name);
-                        preparedStatement.setInt(++initialParameterIndex, tenantId);
-                    });
-
-            return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
-                    null : buildSecretFromRawData(secretRawDataCollectors);
-        } catch (DataAccessException | CryptoException e) {
-            throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
-        }
-    }
-
-    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) throws SecretManagementException, CryptoException {
+    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) throws CryptoException {
 
         Secret secret = new Secret();
         secretRawDataCollectors.forEach(secretRawDataCollector -> {
             if (secret.getSecretId() == null) {
                 secret.setSecretId(secretRawDataCollector.getSecretId());
                 secret.setSecretName(secretRawDataCollector.getSecretName());
-                secret.setValue(secretRawDataCollector.getValue());
+                secret.setSecretValue(secretRawDataCollector.getValue());
                 if (secretRawDataCollector.getCreatedTime() != null) {
                     secret.setCreatedTime(secretRawDataCollector.getCreatedTime().toInstant().toString());
                 }
@@ -302,9 +269,6 @@ public class SecretDAOImpl implements SecretDAO {
                         IdentityTenantUtil.getTenantDomain(secretRawDataCollector.getTenantId()));
             }
         });
-        if (secret.getValue() != null) {
-            secret.setValue(getDecryptedSecret(secret.getValue()));
-        }
         return secret;
     }
 
@@ -355,7 +319,7 @@ public class SecretDAOImpl implements SecretDAO {
             template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, secret.getSecretName());
-                preparedStatement.setString(++initialParameterIndex, secret.getValue());
+                preparedStatement.setString(++initialParameterIndex, secret.getSecretValue());
                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                 preparedStatement.setString(++initialParameterIndex, secret.getSecretId());
             });
@@ -378,15 +342,4 @@ public class SecretDAOImpl implements SecretDAO {
         return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
     }
 
-    /**
-     * Decrypt secret.
-     *
-     * @param cipherText cipher text secret.
-     * @return decrypted secret.
-     */
-    private String getDecryptedSecret(String cipherText) throws CryptoException {
-
-        return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(
-                cipherText), Charsets.UTF_8);
-    }
 }

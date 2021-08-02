@@ -29,10 +29,6 @@ public class Secrets {
         this.secrets = secrets;
     }
 
-    public Secrets() {
-
-    }
-
     public List<Secret> getSecrets() {
 
         return secrets;

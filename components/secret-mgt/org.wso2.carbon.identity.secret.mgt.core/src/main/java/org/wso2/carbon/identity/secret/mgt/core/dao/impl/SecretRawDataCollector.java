@@ -25,19 +25,19 @@ import java.sql.Timestamp;
  */
 public class SecretRawDataCollector {
 
-    private int tenantId;
-    private String secretId;
-    private String secretName;
-    private String value;
-    private Timestamp createdTime;
-    private Timestamp lastModified;
+    private final int tenantId;
+    private final String secretId;
+    private final String secretName;
+    private final String secretValue;
+    private final Timestamp createdTime;
+    private final Timestamp lastModified;
 
     public SecretRawDataCollector(SecretRawDataCollectorBuilder builder) {
 
         this.tenantId = builder.getTenantId();
         this.secretId = builder.getSecretId();
         this.secretName = builder.getSecretName();
-        this.value = builder.getValue();
+        this.secretValue = builder.getSecretValue();
         this.createdTime = builder.getCreatedTime();
         this.lastModified = builder.getLastModified();
     }
@@ -59,7 +59,7 @@ public class SecretRawDataCollector {
 
     public String getValue() {
 
-        return value;
+        return secretValue;
     }
 
     public Timestamp getLastModified() {
@@ -72,17 +72,12 @@ public class SecretRawDataCollector {
         return createdTime;
     }
 
-    public void setCreatedTime(Timestamp createdTime) {
-
-        this.createdTime = createdTime;
-    }
-
     public static class SecretRawDataCollectorBuilder {
 
         private int tenantId;
         private String secretId;
         private String secretName;
-        private String value;
+        private String secretValue;
         private Timestamp createdTime;
         private Timestamp lastModified;
 
@@ -146,14 +141,14 @@ public class SecretRawDataCollector {
             return this;
         }
 
-        String getValue() {
+        String getSecretValue() {
 
-            return value;
+            return secretValue;
         }
 
-        public SecretRawDataCollectorBuilder setValue(String value) {
+        public SecretRawDataCollectorBuilder setSecretValue(String value) {
 
-            this.value = value;
+            this.secretValue = value;
             return this;
         }
     }

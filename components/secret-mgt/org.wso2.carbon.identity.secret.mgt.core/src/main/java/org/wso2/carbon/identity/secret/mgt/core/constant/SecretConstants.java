@@ -29,6 +29,7 @@ public class SecretConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED = "LAST_MODIFIED";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
+    public static final String DB_TABLE_NAME = "IDN_SECRET";
 
     public enum ErrorMessages {
         ERROR_CODE_UNEXPECTED("SECRETM_00001", "Unexpected Error"),
@@ -47,7 +48,8 @@ public class SecretConstants {
         ERROR_CODE_REPLACE_SECRET("SECRETM_00012", "Error while replacing the secret : %s."),
         ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS("SECRETM_00013", "Secret with the id: %s does not exists."),
         ERROR_CODE_INVALID_SECRET_ID("SECRETM_00014", "Invalid secret id: %s."),
-        ERROR_CODE_DELETE_SECRET("SECRETM_00015", "Error while deleting the secret: %s.");
+        ERROR_CODE_DELETE_SECRET("SECRETM_00015", "Error while deleting the secret: %s."),
+        ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00016", "DataBase with table: %s does not exist." );
 
         private final String code;
         private final String message;

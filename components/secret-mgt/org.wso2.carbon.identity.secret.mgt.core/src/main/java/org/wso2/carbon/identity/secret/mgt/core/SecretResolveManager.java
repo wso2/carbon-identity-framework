@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.secret.mgt.core;
 
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 
 /**
@@ -15,5 +16,5 @@ public interface SecretResolveManager {
      * @return 200 ok. Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getResolvedSecret(String secretName) throws SecretManagementException;
+    ResolvedSecret getResolvedSecret(String secretName) throws SecretManagementException;
 }
