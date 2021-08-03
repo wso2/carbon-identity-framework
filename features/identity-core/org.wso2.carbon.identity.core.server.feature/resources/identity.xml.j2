@@ -2763,6 +2763,9 @@
         	{% endfor %}
     </CookiesToInvalidate>
 
-        <!-- Claim to store localization code  -->
-        <LocaleClaimUri>http://wso2.org/claims/local</LocaleClaimUri>
+    <!-- Claim to store localization code  -->
+    <!--    By setting true localization code will be store inside the http://wso2.org/claims/locality-->
+    <!--    By setting false localization code will be store inside the http://wso2.org/claims/local-->
+    <isLegacyLocalityClaimUri>true</isLegacyLocalityClaimUri>
+
 </Server>
