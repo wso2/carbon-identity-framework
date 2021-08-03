@@ -24,14 +24,12 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.utils.CarbonUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.wso2.carbon.CarbonConstants.DISABLE_LEGACY_LOGS;
-import static org.wso2.carbon.CarbonConstants.LogEventConstants;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Central log event handler for audit, and diagnostic logs.
@@ -42,7 +40,7 @@ public class CentralLogger extends AbstractEventHandler {
     public boolean isEnabled(MessageContext messageContext) {
 
         if (super.isEnabled(messageContext)) {
-            return !Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_LOGS));
+            return !isLegacyAuditLogsDisabled();
         }
         return false;
     }

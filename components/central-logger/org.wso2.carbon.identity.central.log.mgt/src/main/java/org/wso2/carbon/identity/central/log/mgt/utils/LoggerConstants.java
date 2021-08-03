@@ -23,29 +23,4 @@ package org.wso2.carbon.identity.central.log.mgt.utils;
  */
 public class LoggerConstants {
 
-//    public static final String LOG_TYPE = "logType";
-//    public static final String AUDIT_LOG = "audit";
-//    public static final String DIAGNOSTIC_LOG = "diagnostic";
-
-    // Common keys for both audit/diagnostic logs.
-    public static final String LOG_ID = "id";
-//    public static final String RECORDED_AT = "recordedAt";
-//    public static final String CLIENT_COMPONENT = "clientComponent";
-//    public static final String CORRELATION_ID = "correlationId";
-//
-//    // keys for initiator details in audit logs.
-//    public static final String INITIATOR_ID = "initiator.id";
-//    public static final String INITIATOR_NAME = "initiator.name";
-//    public static final String INITIATOR_TYPE = "initiator.type";
-//
-//    // keys for event details in audit logs.
-//    public static final String EVENT_TYPE = "event.type";
-//
-//    // keys for target details in audit logs.
-//    public static final String TARGET_ID = "target.id";
-//    public static final String TARGET_NAME = "target.name";
-//    public static final String TARGET_TYPE = "target.type";
-//
-//    // keys for data change details in audit logs.
-//    public static final String DATA_CHANGE = "data.change";
 }

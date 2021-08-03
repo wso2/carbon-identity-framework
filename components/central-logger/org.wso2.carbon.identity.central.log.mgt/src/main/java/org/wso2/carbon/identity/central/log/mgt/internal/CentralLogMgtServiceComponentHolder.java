@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.central.log.mgt.internal;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 /**
- *
+ * Service component holder class for central logger.
  */
 public class CentralLogMgtServiceComponentHolder {
 

@@ -30,7 +30,7 @@ import java.util.Map;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 
 /**
- *
+ * Utils class of central logger.
  */
 public class LoggerUtils {
 

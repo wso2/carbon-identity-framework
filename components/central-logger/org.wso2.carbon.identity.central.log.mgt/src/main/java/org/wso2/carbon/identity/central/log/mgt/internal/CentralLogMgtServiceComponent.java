@@ -34,7 +34,7 @@ import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 /**
- *
+ * OSGi declarative services component which handled activation and deactivation of central logger event handler.
  */
 @Component(
     name = "central.log.management.service",
