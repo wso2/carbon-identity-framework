@@ -215,6 +215,10 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_EXTERNAL_CLAIM = "POST_UPDATE_EXTERNAL_CLAIM";
         public static final String POST_DELETE_EXTERNAL_CLAIM = "POST_DELETE_EXTERNAL_CLAIM";
         public static final String POST_NON_BASIC_AUTHENTICATION = "POST_NON_BASIC_AUTHENTICATION";
+
+        // Loggers related events.
+        public static final String PUBLISH_AUDIT_LOG = "PUBLISH_AUDIT_LOG";
+        public static final String PUBLISH_DIAGNOSTIC_LOG = "PUBLISH_DIAGNOSTIC_LOG";
     }
 
     /**
