@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * Perform CRUD operations for {@link org.wso2.carbon.identity.secret.mgt.core.model.Secret}.
- *
- * @since 1.0.0
  */
 public interface SecretDAO {
 
@@ -48,12 +46,12 @@ public interface SecretDAO {
     /**
      * Returns {@link Secret} by name.
      *
-     * @param tenantId Tenant id of the {@link Secret}.
      * @param name     Name of the {@link Secret}.
+     * @param tenantId Tenant id of the {@link Secret}.
      * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secret getSecretByName(int tenantId, String name) throws SecretManagementException;
+    Secret getSecretByName(String name, int tenantId) throws SecretManagementException;
 
     /**
      * Returns {@link Secret} by id.
@@ -61,7 +59,7 @@ public interface SecretDAO {
      * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secret getSecretById(int tenantId, String secretId) throws SecretManagementException;
+    Secret getSecretById(String secretId, int tenantId) throws SecretManagementException;
 
     /**
      * Get secrets for the tenant.
@@ -74,20 +72,20 @@ public interface SecretDAO {
     /**
      * Delete {@link Secret} by the given secretName.
      *
-     * @param tenantId Tenant id of the {@link Secret}.
      * @param secretId Id of the {@link Secret}.
+     * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretById(int tenantId, String secretId) throws SecretManagementException;
+    void deleteSecretById(String secretId, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.
      *
-     * @param tenantId Tenant id of the {@link Secret}.
      * @param name     Name of the {@link Secret}.
+     * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretByName(int tenantId, String name) throws SecretManagementException;
+    void deleteSecretByName(String name, int tenantId) throws SecretManagementException;
 
     /**
      * Replace {@link Secret} or create not exists.
@@ -100,11 +98,11 @@ public interface SecretDAO {
     /**
      * Validates whether a secrets exists with the given secret id in the tenant domain.
      *
-     * @param tenantId id of the considered tenant domain.
      * @param secretId id of the secret.
+     * @param tenantId id of the considered tenant domain.
      * @return whether the secret exists or not.
      * @throws SecretManagementException if an error occurs while validating the secretId.
      */
-    boolean isExistingSecret(int tenantId, String secretId) throws SecretManagementException;
+    boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException;
 
 }

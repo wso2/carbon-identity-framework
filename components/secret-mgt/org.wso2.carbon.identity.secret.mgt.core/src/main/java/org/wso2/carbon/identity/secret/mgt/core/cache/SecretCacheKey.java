@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Abstract representation of the secret cache key.
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.cache.CacheKey;
 public abstract class SecretCacheKey extends CacheKey {
 
     private final String cacheKey;
+    private final String tenantDomain;
 
     public SecretCacheKey(String cacheKey, String tenantDomain) {
 

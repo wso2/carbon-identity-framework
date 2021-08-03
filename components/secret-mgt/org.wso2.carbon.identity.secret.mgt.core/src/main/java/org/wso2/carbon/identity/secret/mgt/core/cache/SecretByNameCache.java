@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * Cache for {@link org.wso2.carbon.identity.secret.mgt.core.model.Secret} from it's name.
@@ -32,16 +32,6 @@ public class SecretByNameCache extends BaseCache<SecretByNameCacheKey, SecretCac
     private SecretByNameCache() {
 
         super(SECRET_CACHE_NAME);
-    }
-
-    public SecretByNameCache(String cacheName) {
-
-        super(cacheName);
-    }
-
-    public SecretByNameCache(String cacheName, boolean isTemp) {
-
-        super(cacheName, isTemp);
     }
 
     public static SecretByNameCache getInstance() {

@@ -49,7 +49,7 @@ public class SecretConstants {
         ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS("SECRETM_00013", "Secret with the id: %s does not exists."),
         ERROR_CODE_INVALID_SECRET_ID("SECRETM_00014", "Invalid secret id: %s."),
         ERROR_CODE_DELETE_SECRET("SECRETM_00015", "Error while deleting the secret: %s."),
-        ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00016", "DataBase with table: %s does not exist." );
+        ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00016", "Secret management feature is not enabled" );
 
         private final String code;
         private final String message;

@@ -82,7 +82,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(int tenantId, String name) throws SecretManagementException {
+    public Secret getSecretByName(String name, int tenantId) throws SecretManagementException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
@@ -114,7 +114,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretById(int tenantId, String secretId) throws SecretManagementException {
+    public Secret getSecretById(String secretId, int tenantId) throws SecretManagementException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
@@ -173,7 +173,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretById(int tenantId, String secretId) throws SecretManagementException {
+    public void deleteSecretById(String secretId, int tenantId) throws SecretManagementException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         try {
@@ -188,7 +188,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(int tenantId, String name) throws SecretManagementException {
+    public void deleteSecretByName(String name, int tenantId) throws SecretManagementException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         try {
@@ -236,7 +236,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public boolean isExistingSecret(int tenantId, String secretId) throws SecretManagementException {
+    public boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException {
 
         JdbcTemplate jdbcTemplate = getNewTemplate();
         String secretName;

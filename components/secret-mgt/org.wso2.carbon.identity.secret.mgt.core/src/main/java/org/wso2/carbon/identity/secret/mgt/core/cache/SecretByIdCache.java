@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * Represents the cache that holds the secret by id
@@ -32,16 +32,6 @@ public class SecretByIdCache extends BaseCache<SecretByIdCacheKey, SecretCacheEn
     private SecretByIdCache() {
 
         super(SECRET_CACHE_NAME);
-    }
-
-    public SecretByIdCache(String cacheName) {
-
-        super(cacheName);
-    }
-
-    public SecretByIdCache(String cacheName, boolean isTemp) {
-
-        super(cacheName, isTemp);
     }
 
     public static SecretByIdCache getInstance() {

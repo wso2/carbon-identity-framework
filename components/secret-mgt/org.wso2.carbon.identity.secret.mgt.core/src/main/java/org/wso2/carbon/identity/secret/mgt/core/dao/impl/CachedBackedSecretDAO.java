@@ -59,7 +59,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(int tenantId, String name) throws SecretManagementException {
+    public Secret getSecretByName(String name, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(name, tenantId);
         if (secret != null) {
@@ -75,14 +75,14 @@ public class CachedBackedSecretDAO implements SecretDAO {
                         "%d", name, tenantId);
                 log.debug(message);
             }
-            secret = secretDAO.getSecretByName(tenantId, name);
+            secret = secretDAO.getSecretByName(name, tenantId);
             addSecretToCache(secret);
         }
         return secret;
     }
 
     @Override
-    public Secret getSecretById(int tenantId, String secretId) throws SecretManagementException {
+    public Secret getSecretById(String secretId, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheById(secretId, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         if (secret != null) {
@@ -96,7 +96,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
                 String message = String.format("Cache miss for secret by it's id. Secret id: %s", secretId);
                 log.debug(message);
             }
-            secret = secretDAO.getSecretById(tenantId, secretId);
+            secret = secretDAO.getSecretById(secretId, tenantId);
             addSecretToCache(secret);
         }
         return secret;
@@ -109,17 +109,17 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretById(int tenantId, String secretId) throws SecretManagementException {
+    public void deleteSecretById(String secretId, int tenantId) throws SecretManagementException {
 
-        secretDAO.deleteSecretById(tenantId, secretId);
+        secretDAO.deleteSecretById(secretId, tenantId);
         deleteCacheBySecretId(secretId, tenantId);
     }
 
     @Override
-    public void deleteSecretByName(int tenantId, String name) throws SecretManagementException {
+    public void deleteSecretByName(String name, int tenantId) throws SecretManagementException {
 
-        secretDAO.deleteSecretByName(tenantId, name);
-        deleteCacheBySecretByName(name, tenantId);
+        secretDAO.deleteSecretByName(name, tenantId);
+        deleteCacheBySecretName(name, tenantId);
     }
 
     @Override
@@ -137,9 +137,14 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public boolean isExistingSecret(int tenantId, String secretId) throws SecretManagementException {
+    public boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException {
 
-        return secretDAO.isExistingSecret(tenantId, secretId);
+        Secret secret = getSecretFromCacheById(secretId, tenantId);
+        if (secret == null) {
+            return secretDAO.isExistingSecret(secretId, tenantId);
+        } else {
+            return true;
+        }
     }
 
     private Secret getSecretFromCacheById(String secretId, int tenantId) throws SecretManagementException {
@@ -167,11 +172,10 @@ public class CachedBackedSecretDAO implements SecretDAO {
         }
     }
 
-    private Secret getSecretFromCacheById(String secretId, String tenantDomain)
-            throws SecretManagementException {
+    private Secret getSecretFromCacheById(String secretId, String tenantDomain) {
 
         SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secretId, tenantDomain);
-        SecretCacheEntry secretCacheEntry = secretByIdCache.getValueFromCache(secretByIdCacheKey);
+        SecretCacheEntry secretCacheEntry = secretByIdCache.getValueFromCache(secretByIdCacheKey, tenantDomain);
         if (secretCacheEntry != null) {
             if (log.isDebugEnabled()) {
                 String message = String.format("Entry found from Secret by id cache. Secret id: %s., Tenant " +
@@ -183,11 +187,10 @@ public class CachedBackedSecretDAO implements SecretDAO {
         return null;
     }
 
-    private Secret getSecretFromCacheByName(String secretName, String tenantDomain)
-            throws SecretManagementException {
+    private Secret getSecretFromCacheByName(String secretName, String tenantDomain) {
 
         SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secretName, tenantDomain);
-        SecretCacheEntry secretCacheEntry = secretByNameCache.getValueFromCache(secretByNameCacheKey);
+        SecretCacheEntry secretCacheEntry = secretByNameCache.getValueFromCache(secretByNameCacheKey, tenantDomain);
         if (secretCacheEntry != null) {
             if (log.isDebugEnabled()) {
                 String message = String.format("Entry found from secret by name cache. Secret id: %s., Tenant" +
@@ -199,7 +202,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
         return null;
     }
 
-    private void addSecretToCache(Secret secret) throws SecretManagementException {
+    private void addSecretToCache(Secret secret) {
 
         if (secret == null) {
             return;
@@ -215,11 +218,11 @@ public class CachedBackedSecretDAO implements SecretDAO {
                     secret.getSecretId(), secret.getTenantDomain());
             log.debug(message);
         }
-        secretByIdCache.addToCache(secretByIdCacheKey, secretCacheEntry);
-        secretByNameCache.addToCache(secretByNameCacheKey, secretCacheEntry);
+        secretByIdCache.addToCache(secretByIdCacheKey, secretCacheEntry, secret.getTenantDomain());
+        secretByNameCache.addToCache(secretByNameCacheKey, secretCacheEntry, secret.getTenantDomain());
     }
 
-    private void deleteSecretFromCache(Secret secret) throws SecretManagementException {
+    private void deleteSecretFromCache(Secret secret) {
 
         if (secret == null) {
             return;
@@ -236,8 +239,8 @@ public class CachedBackedSecretDAO implements SecretDAO {
             log.debug(message);
         }
 
-        secretByIdCache.clearCacheEntry(secretByIdCacheKey);
-        secretByNameCache.clearCacheEntry(secretByNameCacheKey);
+        secretByIdCache.clearCacheEntry(secretByIdCacheKey, secret.getTenantDomain());
+        secretByNameCache.clearCacheEntry(secretByNameCacheKey, secret.getTenantDomain());
     }
 
     private void deleteCacheBySecretId(String secretId, int tenantId) throws SecretManagementException {
@@ -249,7 +252,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
         deleteSecretFromCache(secret);
     }
 
-    private void deleteCacheBySecretByName(String secretName, int tenantId) throws SecretManagementException {
+    private void deleteCacheBySecretName(String secretName, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(secretName, tenantId);
         if (secret == null) {

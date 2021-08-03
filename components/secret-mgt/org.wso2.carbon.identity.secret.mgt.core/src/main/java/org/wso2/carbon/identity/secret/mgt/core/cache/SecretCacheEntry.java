@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 
 /**

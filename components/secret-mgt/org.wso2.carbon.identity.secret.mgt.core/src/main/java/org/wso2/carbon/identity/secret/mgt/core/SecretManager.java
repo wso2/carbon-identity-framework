@@ -31,7 +31,7 @@ public interface SecretManager {
      * This API is used to create the given secret.
      *
      * @param secret The {@link Secret}.
-     * @return 201 created. Returns {@link Secret} created.
+     * @return Returns {@link Secret} created.
      * @throws SecretManagementException Secret management exception.
      */
     Secret addSecret(Secret secret) throws SecretManagementException;
@@ -40,7 +40,7 @@ public interface SecretManager {
      * This API is used to retrieve the given secret.
      *
      * @param secretName Name of the {@link Secret}.
-     * @return 200 ok. Returns {@link Secret} requested.
+     * @return Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
     Secret getSecret(String secretName) throws SecretManagementException;
@@ -48,7 +48,7 @@ public interface SecretManager {
     /**
      * Get all the secrets of the current tenant.
      *
-     * @return 200 ok. {@link Secret} object with all the tenant secrets.
+     * @return {@link Secrets} object with all the tenant secrets.
      * @throws SecretManagementException Secret Management Exception.
      */
     Secrets getSecrets() throws SecretManagementException;

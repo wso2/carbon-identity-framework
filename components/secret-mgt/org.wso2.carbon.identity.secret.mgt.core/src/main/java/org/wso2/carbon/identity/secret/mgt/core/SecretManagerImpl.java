@@ -53,7 +53,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleSe
 public class SecretManagerImpl implements SecretManager {
 
     private static final Log log = LogFactory.getLog(SecretManagerImpl.class);
-    private List<SecretDAO> secretDAOS;
+    private final List<SecretDAO> secretDAOS;
 
     public SecretManagerImpl() {
 
@@ -71,7 +71,9 @@ public class SecretManagerImpl implements SecretManager {
         }
         secret.setSecretId(secretId);
         this.getSecretDAO().addSecret(secret);
-        log.info("Secret: " + secret.getSecretName() + " added successfully");
+        if (log.isDebugEnabled()) {
+            log.debug("Secret: " + secret.getSecretName() + " added successfully");
+        }
         return secret;
     }
 
@@ -80,7 +82,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         validateSecretRetrieveRequest(secretName);
-        Secret secret = this.getSecretDAO().getSecretByName(getTenantId(), secretName);
+        Secret secret = this.getSecretDAO().getSecretByName(secretName, getTenantId());
         if (secret == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the secretName: " + secretName);
@@ -94,7 +96,7 @@ public class SecretManagerImpl implements SecretManager {
     public Secrets getSecrets() throws SecretManagementException {
 
         validateSecretManagerEnabled();
-        List<Secret> secretList = this.getSecretDAO().getSecrets(getTenantId());
+        List secretList = this.getSecretDAO().getSecrets(getTenantId());
         if (secretList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the tenant: " + getTenantDomain());
@@ -112,8 +114,11 @@ public class SecretManagerImpl implements SecretManager {
         if (StringUtils.isBlank(secretId)) {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
-        Secret secret = this.getSecretDAO().getSecretById(getTenantId(), secretId);
+        Secret secret = this.getSecretDAO().getSecretById(secretId, getTenantId());
         if (secret == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No secret found for the secretId: " + secretId);
+            }
             throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
         return secret;
@@ -124,7 +129,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         validateSecretDeleteRequest(secretName);
-        this.getSecretDAO().deleteSecretByName(getTenantId(), secretName);
+        this.getSecretDAO().deleteSecretByName(secretName, getTenantId());
         if (log.isDebugEnabled()) {
             log.debug("Secret: " + secretName + " is deleted successfully.");
         }
@@ -138,7 +143,7 @@ public class SecretManagerImpl implements SecretManager {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
         if (isSecretExistsById(secretId)) {
-            this.getSecretDAO().deleteSecretById(getTenantId(), secretId);
+            this.getSecretDAO().deleteSecretById(secretId, getTenantId());
             if (log.isDebugEnabled()) {
                 log.debug("Secret id: " + secretId + " in tenant: " + getTenantDomain() + " deleted successfully.");
             }
@@ -155,7 +160,9 @@ public class SecretManagerImpl implements SecretManager {
         String secretId = generateSecretId(secret.getSecretName());
         secret.setSecretId(secretId);
         this.getSecretDAO().replaceSecret(secret);
-        log.info(secret.getSecretName() + " secret created successfully.");
+        if (log.isDebugEnabled()) {
+            log.debug(secret.getSecretName() + " secret created successfully.");
+        }
         return secret;
     }
 
@@ -213,6 +220,9 @@ public class SecretManagerImpl implements SecretManager {
             throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
         }
         if (isSecretExist(secret.getSecretName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A secret with the name: " + secret.getSecretName() + " does not exists.");
+            }
             throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
         }
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
@@ -235,6 +245,9 @@ public class SecretManagerImpl implements SecretManager {
         }
 
         if (!isSecretExist(secret.getSecretName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A secret with the name: " + secret.getSecretName() + " does not exists.");
+            }
             throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secret.getSecretName());
         }
 
@@ -290,9 +303,12 @@ public class SecretManagerImpl implements SecretManager {
     private boolean isSecretExistsById(String secretId) throws SecretManagementException {
 
         if (StringUtils.isBlank(secretId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("A secret with the id: " + secretId + " does not exists.");
+            }
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
-        return this.getSecretDAO().isExistingSecret(getTenantId(), secretId);
+        return this.getSecretDAO().isExistingSecret(secretId, getTenantId());
     }
 
     private String generateSecretId(String secretName) throws SecretManagementException {
