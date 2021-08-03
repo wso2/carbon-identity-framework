@@ -162,7 +162,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
         Map<String, Object> eventProperties = new HashMap<>();
         String username = MultitenantUtils.getTenantAwareUsername(context.getSubject().toFullQualifiedUsername());
-        if(context.getSubject().isFederatedUser()) {
+        if (context.getSubject().isFederatedUser()) {
             username = UserCoreUtil.removeDomainFromName(username);
         }
         String tenantDomain = context.getTenantDomain();
