@@ -181,7 +181,9 @@ public class IdentityCoreServiceComponent {
             // -Dmigrate option is used.
             throw e;
         } catch (Throwable e) {
-            log.error("Error occurred while populating identity configuration properties", e);
+            String errMsg = "Error occurred while populating identity configuration properties";
+            log.error(errMsg, e);
+            throw new RuntimeException(errMsg, e);
         }
     }
 
