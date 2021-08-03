@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+
 /**
  * Audit log implementation for Application (Service Provider) changes.
  */
@@ -45,6 +47,15 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State " +
             ": { %s } } | Result : %s ";
     private static final String SUCCESS = "Success";
+
+    @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !isLegacyAuditLogsDisabled();
+        }
+        return false;
+    }
 
     @Override
     public int getDefaultOrderId() {

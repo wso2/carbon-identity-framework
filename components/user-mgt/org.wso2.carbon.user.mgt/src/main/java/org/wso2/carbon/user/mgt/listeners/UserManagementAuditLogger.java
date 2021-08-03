@@ -35,6 +35,8 @@ import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+
 /**
  * This audit logger logs the User Management success activities.
  */
@@ -51,6 +53,15 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
     private final String USER_NAME_KEY = "UserName";
     private final String USER_NAME_QUERY_KEY = "userName";
+
+    @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !isLegacyAuditLogsDisabled();
+        }
+        return false;
+    }
 
     @Override
     public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
