@@ -62,29 +62,4 @@ public class CentralLogger extends AbstractEventHandler {
                 //TODO
         }
     }
-
-//    private void handleAuditLogs(Map<String, Object> eventProperties) {
-//
-//        Map<String, String> auditLogProperties = new HashMap<>();
-//        auditLogProperties.put(LogEventConstants.LOG_ID, generateLogUUID());
-//        auditLogProperties.put(LogEventConstants.CLIENT_COMPONENT, eventProperties.get(LogEventConstants.CLIENT_COMPONENT).toString());
-//        auditLogProperties.put(LogEventConstants.INITIATOR_ID, eventProperties.get(LogEventConstants.INITIATOR_ID).toString());
-//        auditLogProperties.put(LogEventConstants.INITIATOR_NAME, eventProperties.get(LogEventConstants.INITIATOR_NAME).toString());
-//        auditLogProperties.put(LogEventConstants.INITIATOR_TYPE, eventProperties.get(LogEventConstants.INITIATOR_TYPE).toString());
-//        auditLogProperties.put(LogEventConstants.EVENT_TYPE, eventProperties.get(LogEventConstants.EVENT_TYPE).toString());
-//        auditLogProperties.put(LogEventConstants.TARGET_ID, eventProperties.get(LogEventConstants.TARGET_ID).toString());
-//        auditLogProperties.put(LogEventConstants.TARGET_NAME, eventProperties.get(LogEventConstants.TARGET_NAME).toString());
-//        auditLogProperties.put(LogEventConstants.TARGET_TYPE, eventProperties.get(LogEventConstants.TARGET_TYPE).toString());
-//        auditLogProperties.put(LogEventConstants.DATA_CHANGE, eventProperties.get(LogEventConstants.DATA_CHANGE).toString());
-//        CarbonUtils.publishAuditLogs(auditLogProperties);
-//    }
-
-    private void handleDiagnosticLogs() {
-
-    }
-
-    private String generateLogUUID() {
-
-        return UUID.randomUUID().toString();
-    }
 }
