@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+
 public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
 
@@ -36,7 +38,17 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     private final String SUCCESS = "Success";
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !isLegacyAuditLogsDisabled();
+        }
+        return false;
+    }
+
+    @Override
     public int getDefaultOrderId() {
+
         return 220;
     }
 
