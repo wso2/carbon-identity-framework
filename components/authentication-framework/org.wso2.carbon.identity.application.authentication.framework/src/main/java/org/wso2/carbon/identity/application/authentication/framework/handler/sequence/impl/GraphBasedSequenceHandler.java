@@ -78,7 +78,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static final String PROMPT_DEFAULT_ACTION = "Success";
     private static final String PROMPT_ACTION_PREFIX = "action.";
     private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
@@ -108,15 +107,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                         + "Performing Step based authentication. Service Provider :" + sequenceConfig
                         .getApplicationId());
             }
-            diagnosticLog.info("Authentication Graph not defined for the application. "
-                    + "Performing Step based authentication. Service Provider :" + sequenceConfig
-                    .getApplicationId());
             DefaultStepBasedSequenceHandler.getInstance().handle(request, response, context);
             return;
         }
         if (!graph.isBuildSuccessful()) {
-            diagnosticLog.error("Error while building graph from Javascript. Nested exception is: " +
-                    graph.getErrorReason());
             throw new FrameworkException(
                     "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
         }

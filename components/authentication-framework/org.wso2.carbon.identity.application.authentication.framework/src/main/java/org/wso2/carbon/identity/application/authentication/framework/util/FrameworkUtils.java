@@ -1015,7 +1015,14 @@ public class FrameworkUtils {
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
+    @Deprecated
     public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
+        addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
+    }
+
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain,
+                                                String loginTenantDomain) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
@@ -1049,19 +1056,33 @@ public class FrameworkUtils {
 
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
     }
 
     /**
      * @param key
      * @return
+     *
+     * @deprecated to use {{@link #getSessionContextFromCache(String, String)}} to support maintaining cache in
+     * tenant space.
      */
+    @Deprecated
     public static SessionContext getSessionContextFromCache(String key) {
+
+        return getSessionContextFromCache(key, getLoginTenantDomainFromContext());
+    }
+
+    /**
+     * @param key
+     * @param loginTenantDomain
+     * @return
+     */
+    public static SessionContext getSessionContextFromCache(String key, String loginTenantDomain) {
 
         SessionContext sessionContext = null;
         if (StringUtils.isNotBlank(key)) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
+            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey, loginTenantDomain);
 
             if (cacheEntryObj != null) {
                 sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
@@ -1086,7 +1107,8 @@ public class FrameworkUtils {
         if (StringUtils.isNotBlank(sessionContextKey)) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(sessionContextKey);
             SessionContextCache sessionContextCache = SessionContextCache.getInstance();
-            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey);
+            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey,
+                    context.getLoginTenantDomain());
 
             if (cacheEntry != null) {
                 sessionContext = cacheEntry.getContext();
@@ -1146,13 +1168,48 @@ public class FrameworkUtils {
 
     /**
      * @param key
+     * @deprecated to use {{@link #removeSessionContextFromCache(String, String)}} to support maintaining cache in
+     * tenant space.
      */
+    @Deprecated
     public static void removeSessionContextFromCache(String key) {
+
+        removeSessionContextFromCache(key, getLoginTenantDomainFromContext());
+    }
+
+    /**
+     * @param key
+     * @param loginTenantDomain
+     */
+    public static void removeSessionContextFromCache(String key, String loginTenantDomain) {
 
         if (key != null) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-            SessionContextCache.getInstance().clearCacheEntry(cacheKey);
+            SessionContextCache.getInstance().clearCacheEntry(cacheKey, loginTenantDomain);
         }
+    }
+
+    /**
+     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super
+     *
+     * @return tenant domain
+     */
+    public static String getLoginTenantDomainFromContext() {
+
+        // We use the tenant domain set in context only in tenanted session is enabled.
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantedSessionsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
     /**
@@ -3031,5 +3088,16 @@ public class FrameworkUtils {
         context.setRetryCount(0);
         context.setRetrying(false);
         context.setCurrentAuthenticator(null);
+    }
+
+    /**
+     * Check whether the JIT provisioning enhanced feature is enabled.
+     *
+     * @return true if the JIT provisioning enhanced features is enabled else return false.
+     */
+    public static boolean isJITProvisionEnhancedFeatureEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                    getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
     }
 }

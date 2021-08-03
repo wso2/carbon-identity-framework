@@ -30,6 +30,13 @@
         <SkipDBSchemaCreation>{{identity_data_source.skip_db_schema_creation}}</SkipDBSchemaCreation>
         <SessionDataPersist>
             <Enable>{{session_data.persistence.enable_persistence}}</Enable>
+             {% if session.data_source is defined %}
+              <DataSource>
+                    <!-- Include a data source name (jndiConfigName) from the set of data
+                        sources defined in master-datasources.xml -->
+                    <Name>{{session.data_source}}</Name>
+                </DataSource>
+             {% endif %}
             <Temporary>{{session_data.persistence.persist_temporary_data}}</Temporary>
             <PoolSize>{{session_data.persistence.persistence_pool_size}}</PoolSize>
             <SessionDataCleanUp>
@@ -1266,6 +1273,7 @@
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
+        <EnableEnhancedFeature>{{authentication.jit_provisioning.enable_enhanced_feature}}</EnableEnhancedFeature>
     </JITProvisioning>
 
     <!--Application management service configurations-->
@@ -2235,6 +2243,10 @@
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/functionsLibrarymgt/create</Permissions>
             <Scopes>internal_functional_lib_create</Scopes>
@@ -2531,6 +2543,10 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>{{authentication.adaptive.long_wait.timout}}</LongWaitTimeout>
+
+        {% if authentication.adaptive.allow_loops is defined %}
+            <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
+        {% endif %}
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->

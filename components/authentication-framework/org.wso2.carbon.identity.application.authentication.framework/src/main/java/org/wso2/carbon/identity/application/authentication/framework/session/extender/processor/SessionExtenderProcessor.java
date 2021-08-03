@@ -73,7 +73,7 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
         SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionKey);
         SessionContextCacheEntry sessionContextCacheEntry =
-                SessionContextCache.getInstance().getSessionContextCacheEntry(sessionContextCacheKey);
+                SessionContextCache.getInstance().getSessionContextCacheEntry(sessionContextCacheKey, tenantDomain);
         if (sessionContextCacheEntry == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No session available for requested session identifier: " + sessionKey);
@@ -87,7 +87,7 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
         long currentTime = System.currentTimeMillis();
         FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionKey, currentTime);
-        FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext, tenantDomain);
+        FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext, tenantDomain, tenantDomain);
 
         String traceId = FrameworkUtils.getCorrelation();
         fireEvent(sessionKey, sessionContext, tenantDomain, traceId);

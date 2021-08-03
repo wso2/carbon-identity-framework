@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
  * Cache to maintain the application resource id - ApplicationBasicInfo.
  */
 public class ApplicationBasicInfoByResourceIdCache extends
-        BaseCache<ApplicationBasicInfoResourceIdCacheKey, ApplicationBasicInfoResourceIdCacheEntry> {
+        BaseCache<ApplicationBasicInfoResourceIdCacheKey, ApplicationBasicInfoCacheEntry> {
 
     private static final String SP_CACHE_NAME = "ApplicationBasicInfoCache.ResourceId";
     private static volatile ApplicationBasicInfoByResourceIdCache instance;

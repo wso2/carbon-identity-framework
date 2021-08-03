@@ -21,12 +21,12 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 /**
  * Cache entry for basic information for the application.
  */
-public class ApplicationBasicInfoResourceIdCacheEntry extends CacheEntry {
+public class ApplicationBasicInfoCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = -8407506285763321118L;
     private ApplicationBasicInfo applicationBasicInfo;
 
-    public ApplicationBasicInfoResourceIdCacheEntry(ApplicationBasicInfo serviceProvider) {
+    public ApplicationBasicInfoCacheEntry(ApplicationBasicInfo serviceProvider) {
 
         this.applicationBasicInfo = serviceProvider;
     }

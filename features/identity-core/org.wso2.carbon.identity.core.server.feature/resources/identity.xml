@@ -969,6 +969,7 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <EnableEnhancedFeature>false</EnableEnhancedFeature>
     </JITProvisioning>
 
     <OutboundProvisioning>
@@ -1632,6 +1633,10 @@
             <Scopes>internal_idp_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>

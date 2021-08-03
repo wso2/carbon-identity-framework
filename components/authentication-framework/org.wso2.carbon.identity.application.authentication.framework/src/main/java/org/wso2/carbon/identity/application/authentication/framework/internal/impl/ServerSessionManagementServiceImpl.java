@@ -43,7 +43,8 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
             return false;
         }
         // Retrieve session information from cache in order to publish event
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                FrameworkUtils.getLoginTenantDomainFromContext());
         terminateSession(sessionContext, sessionId);
         return true;
     }

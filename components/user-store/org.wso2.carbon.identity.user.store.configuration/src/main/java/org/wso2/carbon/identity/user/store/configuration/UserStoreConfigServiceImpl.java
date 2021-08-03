@@ -15,7 +15,6 @@
  */
 package org.wso2.carbon.identity.user.store.configuration;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,7 +61,6 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
     private static final Log LOG = LogFactory.getLog(UserStoreConfigServiceImpl.class);
-    private static final Log diagnosticLog = LogFactory.getLog("diagnostics");
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
@@ -71,7 +69,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Adding userstore with domain ID: " + userStoreDTO.getDomainId());
         loadTenant();
         try {
             triggerListenersOnUserStorePreAdd(userStoreDTO);
@@ -90,14 +87,10 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
         } catch (UserStoreClientException e) {
-            diagnosticLog.error("Error occurred while adding userstore with ID: " + userStoreDTO.getDomainId()
-                    + ". Error message: " + e.getMessage());
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
                     + " cannot be added.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
-            diagnosticLog.error("Error occurred while adding userstore with ID: " + userStoreDTO.getDomainId()
-                    + ". Error message: " + errorMessage);
             throw new IdentityUserStoreMgtException(errorMessage, e);
         }
     }
@@ -105,7 +98,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void updateUserStore(UserStoreDTO userStoreDTO, boolean isStateChange) throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Updating userstore with domain ID: " + userStoreDTO.getDomainId());
         loadTenant();
         try {
             triggerListenersOnUserStorePreUpdate(userStoreDTO, isStateChange);
@@ -133,14 +125,10 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                         false);
             }
         } catch (UserStoreClientException e) {
-            diagnosticLog.error("Error occurred while updating userstore with ID: " + userStoreDTO.getDomainId()
-            + ". Error message: " + e.getMessage());
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
                     + " cannot be updated.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
-            diagnosticLog.error("Error occurred while updating userstore with ID: " + userStoreDTO.getDomainId()
-                    + ". Error message: " + errorMessage);
             throw new IdentityUserStoreMgtException(errorMessage, e);
         }
     }
@@ -149,7 +137,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void updateUserStoreByDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Updating userstore by domain name: " + previousDomainName);
         loadTenant();
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
@@ -176,8 +163,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
-            diagnosticLog.error("Error occurred while updating userstore by domain name: " + previousDomainName
-                    + ". Error message: " + errorMessage);
             throw new IdentityUserStoreMgtException(errorMessage);
         }
     }
@@ -185,9 +170,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Deleting userstore with domain name: " + domain);
         if (StringUtils.isEmpty(domain)) {
-            diagnosticLog.error("Domain name is empty.");
             throw new IdentityUserStoreClientException("No selected user store to delete.");
         }
 
@@ -196,7 +179,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 LOG.debug("Failed to delete user store " + domain + " " +
                           ": No privileges to delete own user store configurations ");
             }
-            diagnosticLog.error("No privileges to delete own user store configurations.");
             throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
@@ -212,8 +194,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
             }
         } catch (UserStoreException e) {
-            diagnosticLog.error("Error occurred while deleting the user store with name: " + domain +
-                    ". Error message: " + e.getMessage());
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
     }
@@ -221,9 +201,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void deleteUserStoreSet(String[] domains) throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Deleting userstore set: " + ArrayUtils.toString(domains));
         if (domains == null || domains.length <= 0) {
-            diagnosticLog.error("Userstore set is empty.");
             throw new IdentityUserStoreMgtException("No selected user stores to delete");
         }
 
@@ -231,13 +209,11 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Failed to delete user store : No privileges to delete own user store configurations ");
             }
-            diagnosticLog.error("No privileges to delete own user store configurations.");
             throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
         } catch (UserStoreException e) {
-            diagnosticLog.error("Error occurred while deleting the user stores. Error message: " + e.getMessage());
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
     }
@@ -245,7 +221,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Retrieving userstore with domain name: " + domain);
         UserStoreDTO[] userStoreDTOS = new UserStoreDTO[0];
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                 getInstance().getUserStoreDAOFactories();
@@ -284,7 +259,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Retrieving all userstores");
         List<UserStoreDTO> userStoreDTOList = new ArrayList<>();
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                 getInstance().getUserStoreDAOFactories();
@@ -304,11 +278,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         try {
             triggerListenersOnUserStoresPostGet(userStoreDTOS);
         } catch (UserStoreClientException e) {
-            diagnosticLog.error("Error occurred while retrieving all userstores. Error message: " + e.getMessage());
             throw buildIdentityUserStoreClientException("Userstores cannot be retrieved.", e);
         } catch (UserStoreException e) {
-            diagnosticLog.error("Error occurred while triggering userstores post get listeners. Error message: "
-                    + e.getMessage());
             throw new IdentityUserStoreMgtException("Error occurred while triggering userstores post get listener.", e);
         }
 
@@ -337,7 +308,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                                        String connectionPassword, String messageID)
             throws IdentityUserStoreMgtException {
 
-        diagnosticLog.info("Testing RDBMS connection health for userstore domain: " + domainName);
         if (StringUtils.isNotEmpty(messageID) && StringUtils.isNotEmpty(domainName)) {
             if (connectionPassword.equalsIgnoreCase(UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK)) {
                 Map<String, String> secondaryUserStoreProperties = SecondaryUserStoreConfigurationUtil
@@ -368,7 +338,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         } catch (JAXBException e) {
             String errorMessage = "Error while checking RDBMS connection health";
             LOG.error(errorMessage, e);
-            diagnosticLog.error(errorMessage + ". Error message: " + e.getMessage());
             throw new IdentityUserStoreMgtException(errorMessage);
         }
         wSDataSourceDefinition.setDsXMLConfiguration(out.toString());
