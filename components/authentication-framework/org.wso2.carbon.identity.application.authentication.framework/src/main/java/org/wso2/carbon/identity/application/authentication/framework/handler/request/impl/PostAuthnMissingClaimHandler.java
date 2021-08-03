@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -308,6 +309,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 UserRealm realm = getUserRealm(user.getTenantDomain());
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
+                /*
+                Set MANDATORY_CLAIM_UPDATE_FLOW thread local property to true, to identify
+                the mandatory claim update flow.
+                 */
+                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.MANDATORY_CLAIM_UPDATE_FLOW, true);
                 userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
@@ -320,6 +326,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 throw new PostAuthenticationFailedException(
                         "User id not found",
                         "User id not found for local user. Could not update profile", e);
+            } finally {
+                IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.MANDATORY_CLAIM_UPDATE_FLOW);
             }
         }
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
