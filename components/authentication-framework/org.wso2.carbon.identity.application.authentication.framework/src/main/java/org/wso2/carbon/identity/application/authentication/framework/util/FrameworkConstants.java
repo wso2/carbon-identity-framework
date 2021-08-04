@@ -106,9 +106,11 @@ public abstract class FrameworkConstants {
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String MANDATORY_CLAIM_UPDATE_FLOW = "MandatoryClaimUpdateFlow";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
+    public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
