@@ -854,6 +854,7 @@
             <RecoveryLink>false</RecoveryLink>
             <AccountLockNotification>false</AccountLockNotification>
             <AccountUnlockNotification>false</AccountUnlockNotification>
+            <ExpiryTime>1440</ExpiryTime>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
         <NotifyUserExistence>false</NotifyUserExistence>
