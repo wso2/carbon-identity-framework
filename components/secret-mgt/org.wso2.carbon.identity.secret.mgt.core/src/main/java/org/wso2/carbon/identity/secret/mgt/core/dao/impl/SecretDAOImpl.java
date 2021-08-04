@@ -18,15 +18,13 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.dao.impl;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
-import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.Template;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.NamedTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -84,7 +82,7 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public Secret getSecretByName(String name, int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
         try {
             String query = GET_SECRET_BY_NAME;
@@ -101,9 +99,9 @@ public class SecretDAOImpl implements SecretDAO {
                                                 calendar));
                         return secretRawDataCollectorBuilder.build();
                     }, preparedStatement -> {
-                        int initialParameterIndex = 1;
-                        preparedStatement.setString(initialParameterIndex, name);
-                        preparedStatement.setInt(++initialParameterIndex, tenantId);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, name);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
+
                     });
 
             return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
@@ -116,7 +114,7 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public Secret getSecretById(String secretId, int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
         try {
             String query = GET_SECRET_BY_ID;
@@ -134,8 +132,8 @@ public class SecretDAOImpl implements SecretDAO {
                         return secretRawDataCollectorBuilder.build();
                     },
                     preparedStatement -> {
-                        preparedStatement.setString(1, secretId);
-                        preparedStatement.setInt(2, tenantId);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secretId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
 
             return secretRawDataCollectors == null || secretRawDataCollectors.size() == 0 ?
@@ -148,7 +146,7 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public List getSecrets(int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             return jdbcTemplate.executeQuery(GET_SECRETS,
                     (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
@@ -165,7 +163,7 @@ public class SecretDAOImpl implements SecretDAO {
                         return secret;
                     })),
                     preparedStatement -> {
-                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_SECRETS_DOES_NOT_EXISTS, e);
@@ -175,12 +173,11 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public void deleteSecretById(String secretId, int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_SECRET_BY_ID, preparedStatement -> {
-                int initialParameterIndex = 1;
-                preparedStatement.setString(initialParameterIndex, secretId);
-                preparedStatement.setInt(++initialParameterIndex, tenantId);
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secretId);
+                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
             });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_DELETE_SECRET, secretId, e);
@@ -190,12 +187,11 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public void deleteSecretByName(String name, int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_SECRET, preparedStatement -> {
-                int initialParameterIndex = 1;
-                preparedStatement.setString(initialParameterIndex, name);
-                preparedStatement.setInt(++initialParameterIndex, tenantId);
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, name);
+                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
             });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_DELETE_SECRET, e);
@@ -207,7 +203,7 @@ public class SecretDAOImpl implements SecretDAO {
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
 
@@ -215,15 +211,15 @@ public class SecretDAOImpl implements SecretDAO {
                 template.executeInsert(INSERT_SECRET,
                         preparedStatement -> {
                             int initialParameterIndex = 1;
-                            preparedStatement.setString(initialParameterIndex, secret.getSecretId());
-                            preparedStatement.setInt(++initialParameterIndex,
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
+                            preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
                                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                             .getTenantId());
-                            preparedStatement.setString(++initialParameterIndex, secret.getSecretName());
-                            preparedStatement.setString(++initialParameterIndex, secret.getSecretValue());
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, secret.getSecretName());
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_VALUE, secret.getSecretValue());
+                            preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, currentTime, calendar);
 
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
                         }, secret, false);
                 return null;
             });
@@ -238,7 +234,7 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         String secretName;
         try {
             secretName = jdbcTemplate.fetchSingleRecord(GET_SECRET_NAME_BY_ID, (resultSet, rowNumber) ->
@@ -274,7 +270,7 @@ public class SecretDAOImpl implements SecretDAO {
 
     private Timestamp getCreatedTimeInResponse(Secret secret) throws TransactionException {
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         return jdbcTemplate.withTransaction(template ->
                 template.fetchSingleRecord(GET_SECRET_CREATED_TIME_BY_NAME,
                         (resultSet, rowNumber) -> resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, calendar),
@@ -293,7 +289,7 @@ public class SecretDAOImpl implements SecretDAO {
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
 
-        JdbcTemplate jdbcTemplate = getNewTemplate();
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
 
@@ -313,15 +309,15 @@ public class SecretDAOImpl implements SecretDAO {
         }
     }
 
-    private void updateSecretMetadata(Template<?> template, Secret secret, Timestamp currentTime) throws SecretManagementException, DataAccessException {
+    private void updateSecretMetadata(NamedTemplate<Timestamp> template, Secret secret, Timestamp currentTime)
+            throws SecretManagementException, DataAccessException {
 
         try {
             template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
-                int initialParameterIndex = 1;
-                preparedStatement.setString(initialParameterIndex, secret.getSecretName());
-                preparedStatement.setString(++initialParameterIndex, secret.getSecretValue());
-                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                preparedStatement.setString(++initialParameterIndex, secret.getSecretId());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, secret.getSecretName());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_VALUE, secret.getSecretValue());
+                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
             });
         } catch (DataAccessException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
@@ -337,9 +333,8 @@ public class SecretDAOImpl implements SecretDAO {
      *
      * @return a new Jdbc Template.
      */
-    private JdbcTemplate getNewTemplate() {
+    private NamedJdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        return new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
     }
-
 }

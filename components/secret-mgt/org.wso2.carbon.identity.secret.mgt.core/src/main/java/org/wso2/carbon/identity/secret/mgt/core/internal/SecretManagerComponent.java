@@ -68,6 +68,7 @@ public class SecretManagerComponent {
             BundleContext bundleContext = componentContext.getBundleContext();
 
             SecretDAO secretDAO = new SecretDAOImpl();
+            SecretManagerComponentDataHolder.getInstance().setSecretDAOS(secretDAOS);
             bundleContext.registerService(SecretDAO.class.getName(),
                     new CachedBackedSecretDAO(secretDAO), null);
             bundleContext.registerService(SecretManager.class.getName(),

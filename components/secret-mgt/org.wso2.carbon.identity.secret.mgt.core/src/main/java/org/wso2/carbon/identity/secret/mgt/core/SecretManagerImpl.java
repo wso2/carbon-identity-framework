@@ -24,6 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
@@ -35,6 +37,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_INVALID_SECRET_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
@@ -70,6 +73,7 @@ public class SecretManagerImpl implements SecretManager {
             log.debug("Secret id generated: " + secretId);
         }
         secret.setSecretId(secretId);
+        secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().addSecret(secret);
         if (log.isDebugEnabled()) {
             log.debug("Secret: " + secret.getSecretName() + " added successfully");
@@ -159,6 +163,7 @@ public class SecretManagerImpl implements SecretManager {
         validateSecretReplaceRequest(secret);
         String secretId = generateSecretId(secret.getSecretName());
         secret.setSecretId(secretId);
+        secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().replaceSecret(secret);
         if (log.isDebugEnabled()) {
             log.debug(secret.getSecretName() + " secret created successfully.");
@@ -323,5 +328,26 @@ public class SecretManagerImpl implements SecretManager {
             }
         }
         return secretId;
+    }
+
+    private String getEncryptedSecret(String secretValue, String name) throws SecretManagementServerException {
+
+        try {
+            return encrypt(secretValue);
+        } catch (CryptoException e) {
+            throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
+        }
+    }
+
+    /**
+     * Encrypt secret.
+     *
+     * @param plainText plain text secret.
+     * @return encrypted secret.
+     */
+    private String encrypt(String plainText) throws CryptoException {
+
+        return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
+                plainText.getBytes());
     }
 }
