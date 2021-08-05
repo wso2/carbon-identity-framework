@@ -45,7 +45,7 @@ public class CentralLogger extends AbstractEventHandler {
     }
 
     @Override
-    public void handleEvent(Event event) throws IdentityEventException {
+    public void handleEvent(Event event) {
 
         String eventName = event.getEventName();
         Map<String, Object> eventProperties = event.getEventProperties();
@@ -56,9 +56,8 @@ public class CentralLogger extends AbstractEventHandler {
                 CarbonUtils.publishAuditLogs(eventProperties);
                 break;
             case PUBLISH_DIAGNOSTIC_LOG:
+                // TODO add the diagnostic log publishing method
                 break;
-            default:
-                //TODO
         }
     }
 }

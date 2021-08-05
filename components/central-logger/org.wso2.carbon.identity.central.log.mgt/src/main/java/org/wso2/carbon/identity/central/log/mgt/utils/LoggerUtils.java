@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -34,10 +36,23 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLIS
  */
 public class LoggerUtils {
 
+    private static final Log log = LogFactory.getLog(LoggerUtils.class);
+
+    /**
+     * @param clientComponent Client component which initiates the request.
+     * @param initiatorId     Request initiator's id.
+     * @param initiatorName   Request initiator's name.
+     * @param initiatorType   Request initiator's type.
+     * @param evenType        State changing event name.
+     * @param targetId        Target resource's id.
+     * @param targetName      Target resource's name.
+     * @param targetType      Target resource type.
+     * @param dataChange      Changing data.
+     */
     public static void triggerAuditLogEvent(String clientComponent, String initiatorId,
-                                             String initiatorName, String initiatorType, String evenType,
-                                             String TargetId, String TargetName, String TargetType,
-                                             String dataChange) {
+                                            String initiatorName, String initiatorType, String evenType,
+                                            String targetId, String targetName, String targetType,
+                                            String dataChange) {
 
         try {
             Map<String, Object> addAuditLogProperties = new HashMap<>();
@@ -46,9 +61,9 @@ public class LoggerUtils {
             addAuditLogProperties.put(CarbonConstants.LogEventConstants.INITIATOR_NAME, initiatorName);
             addAuditLogProperties.put(CarbonConstants.LogEventConstants.INITIATOR_TYPE, initiatorType);
             addAuditLogProperties.put(CarbonConstants.LogEventConstants.EVENT_TYPE, evenType);
-            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_ID, TargetId);
-            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_NAME, TargetName);
-            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_TYPE, TargetType);
+            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_ID, targetId);
+            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_NAME, targetName);
+            addAuditLogProperties.put(CarbonConstants.LogEventConstants.TARGET_TYPE, targetType);
             addAuditLogProperties.put(CarbonConstants.LogEventConstants.DATA_CHANGE, dataChange);
 
             IdentityEventService eventMgtService =
@@ -56,8 +71,8 @@ public class LoggerUtils {
             Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
             eventMgtService.handleEvent(auditEvent);
         } catch (IdentityEventException e) {
-            // TODO
+            String errorLog = "Error occurred when firing the event. Unable to audit the request.";
+            log.error(errorLog, e);
         }
     }
-
 }

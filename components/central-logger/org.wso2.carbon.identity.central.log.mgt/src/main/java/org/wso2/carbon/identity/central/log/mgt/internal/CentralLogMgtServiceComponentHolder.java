@@ -39,11 +39,21 @@ public class CentralLogMgtServiceComponentHolder {
 
     private IdentityEventService identityEventService;
 
+    /**
+     * Set identity event service.
+     *
+     * @param identityEventService Identity Event Service.
+     */
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
     }
 
+    /**
+     * Return identity event service.
+     *
+     * @return Identity Event Service.
+     */
     public IdentityEventService getIdentityEventService() {
 
         return identityEventService;
