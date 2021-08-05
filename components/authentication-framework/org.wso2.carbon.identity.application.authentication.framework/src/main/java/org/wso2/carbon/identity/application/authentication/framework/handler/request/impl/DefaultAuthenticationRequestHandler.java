@@ -712,14 +712,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth)
             throws UserSessionException {
 
-        for (int retryTimes = 0; retryTimes < FrameworkConstants.maxRetryTime; retryTimes++) {
+        for (int retryTimes = 0; retryTimes < FrameworkConstants.MAX_RETRY_TIME; retryTimes++) {
             try {
                 UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
                 return;
             } catch (DataAccessException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error while storing Application session data in the database. Retrying to store the " +
-                            "data.");
+                            "data.", e);
                 }
             }
         }

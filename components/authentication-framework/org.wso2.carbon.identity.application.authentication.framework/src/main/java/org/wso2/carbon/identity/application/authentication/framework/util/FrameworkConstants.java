@@ -147,7 +147,7 @@ public abstract class FrameworkConstants {
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
     // Maximum retry times for session data store.
-    public static final int maxRetryTime = 3;
+    public static final int MAX_RETRY_TIME = 3;
 
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
