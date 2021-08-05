@@ -83,8 +83,10 @@ import org.wso2.carbon.identity.application.authentication.framework.servlet.Lon
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavaSessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -348,6 +350,7 @@ public class FrameworkServiceComponent {
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
+        FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
     }
 
     @Deactivate
@@ -460,6 +463,35 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Added application authenticator : " + authenticator.getName());
         }
+    }
+
+    @Reference(
+            name = "session.serializer",
+            service = SessionSerializer.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionSerializer"
+    )
+    protected void setSessionSerializer(SessionSerializer sessionSerializer) {
+
+        SessionSerializer existingSessionSerializer = FrameworkServiceDataHolder.getInstance().getSessionSerializer();
+
+        if (existingSessionSerializer != null) {
+            log.warn("Multiple Session Serializers are registered. Serializer:"
+                    + existingSessionSerializer.getClass().getName() + " will be replaced with "
+                    + sessionSerializer.getClass().getName());
+        }
+        FrameworkServiceDataHolder.getInstance().setSessionSerializer(sessionSerializer);
+    }
+
+    protected void unsetSessionSerializer(SessionSerializer sessionSerializer) {
+
+        FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed session serializer.");
+        }
+
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
