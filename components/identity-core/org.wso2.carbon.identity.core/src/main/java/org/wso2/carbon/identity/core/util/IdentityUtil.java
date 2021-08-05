@@ -1552,8 +1552,6 @@ public class IdentityUtil {
 
         if (Boolean.parseBoolean(IdentityUtil.getProperty("UseLegacyLocalizationClaim"))) {
             return "http://wso2.org/claims/locality";
-        } else if (IdentityUtil.getProperty("UseLegacyLocalizationClaim") == null) {
-            return "http://wso2.org/claims/local";
         } else {
             return "http://wso2.org/claims/local";
         }
