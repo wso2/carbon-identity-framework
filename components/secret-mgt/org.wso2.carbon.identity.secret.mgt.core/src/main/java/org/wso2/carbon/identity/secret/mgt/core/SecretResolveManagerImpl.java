@@ -28,7 +28,11 @@ public class SecretResolveManagerImpl implements SecretResolveManager {
 
     private ResolvedSecret getResolvedSecret(Secret secret) throws SecretManagementServerException {
 
-        ResolvedSecret resolvedSecret = (ResolvedSecret) secret;
+        ResolvedSecret resolvedSecret = new ResolvedSecret();
+        resolvedSecret.setSecretId(secret.getSecretId());
+        resolvedSecret.setSecretName(secret.getSecretName());
+        resolvedSecret.setCreatedTime(secret.getCreatedTime());
+        resolvedSecret.setLastModified(secret.getLastModified());
         resolvedSecret.setResolvedSecretValue(getDecryptedSecretValue(secret.getSecretValue(), secret.getSecretName()));
         return resolvedSecret;
     }
