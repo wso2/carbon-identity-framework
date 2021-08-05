@@ -85,8 +85,8 @@ public class JsGraphBuilder {
             "var load=function(){Log.error('load function is restricted.')};" +
             "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
-            "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;";
-    private static String REMOVE_ENGINE = "Object.defineProperty(this, 'engine', {});";
+            "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
+            "Object.defineProperty(this, 'engine', {});";
 
     /**
      * Constructs the builder with the given authentication context.
@@ -161,7 +161,6 @@ public class JsGraphBuilder {
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
                     (LoadExecutor) this::loadLocalLibrary);
-            removeDefaultFunctions(engine);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -170,7 +169,7 @@ public class JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
-            script = removeInternalEngine(script);
+            removeDefaultFunctions(engine);
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));
@@ -924,11 +923,6 @@ public class JsGraphBuilder {
         engine.eval(REMOVE_FUNCTIONS);
     }
 
-    private String removeInternalEngine(String script) {
-
-        return REMOVE_ENGINE + script;
-    }
-
     /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
@@ -977,6 +971,7 @@ public class JsGraphBuilder {
                                 .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
                         functionMap.forEach(globalBindings::put);
                     }
+                    removeDefaultFunctions(scriptEngine);
                     Compilable compilable = (Compilable) scriptEngine;
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
