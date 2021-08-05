@@ -671,7 +671,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         String inboundAuth = context.getCallerPath().substring(1);
         int appId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
-        int maxRetryTime = 3;
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             AuthenticatedUser user = authenticatedIdPData.getUser();
@@ -696,7 +695,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
             }
         }
-        storeAppSessionData(sessionContextKey, subject, appId, inboundAuth, maxRetryTime);
+        if (appId > 0) {
+            storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+        }
     }
 
     /**
@@ -705,22 +706,25 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @param sessionContextKey Context of the authenticated session.
      * @param subject           Username in application
      * @param appId             ID of the application.
-     * @param inboundAuth       Protocol of authentication.
-     * @param maxRetryTime      Protocol used in app.
+     * @param inboundAuth       Protocol used in app.
      * @throws UserSessionException If storing app session data fails.
      */
-    private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth,
-                                     int maxRetryTime) throws UserSessionException {
-        for (int retryTimes = 0; retryTimes < maxRetryTime; ++retryTimes){
+    private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth)
+            throws UserSessionException {
+
+        for (int retryTimes = 0; retryTimes < FrameworkConstants.maxRetryTime; retryTimes++) {
             try {
-                if (appId > 0) {
-                    UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
-                }
+                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
                 return;
-            } catch (DataAccessException ignored) {
+            } catch (DataAccessException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while storing Application session data in the database. Retrying to store the " +
+                            "data.");
+                }
             }
         }
-        throw new UserSessionException("Error while storing Application session data in the database.");
+        throw new UserSessionException("Error while storing Application session data in the database for subject: "
+                + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".");
     }
 
     /**
