@@ -1548,7 +1548,7 @@ public class IdentityUtil {
      *
      * @return 'http://wso2.org/claims/locality' or 'http://wso2.org/claims/local' based on the configuration.
      */
-    private static String getClaimUriLocale() {
+    public static String getClaimUriLocale() {
 
         if (Boolean.parseBoolean(IdentityUtil.getProperty("UseLegacyLocalizationClaim"))) {
             return "http://wso2.org/claims/locality";
