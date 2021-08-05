@@ -35,11 +35,8 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.CachedBackedSecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
-import org.wso2.carbon.user.core.service.RealmService;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_NAME;
 
@@ -65,7 +62,6 @@ public class SecretManagerComponent {
 
         BundleContext bundleContext = componentContext.getBundleContext();
         SecretDAO secretDAO = new SecretDAOImpl();
-        SecretManagerComponentDataHolder.getInstance().setSecretDAOS(new ArrayList<>());
         bundleContext.registerService(SecretDAO.class.getName(),
                 new CachedBackedSecretDAO(secretDAO), null);
         bundleContext.registerService(SecretManager.class.getName(),
@@ -101,29 +97,6 @@ public class SecretManagerComponent {
             log.debug("Purpose DAO is unregistered in SecretManager service.");
         }
         SecretManagerComponentDataHolder.getInstance().getSecretDAOS().remove(secretDAO);
-    }
-
-    @Reference(
-            name = "user.realmservice.default",
-            service = RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService"
-    )
-    protected void setRealmService(RealmService realmService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Setting the Realm Service");
-        }
-        SecretManagerComponentDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Unsetting the Realm Service");
-        }
-        SecretManagerComponentDataHolder.getInstance().setRealmService(null);
     }
 
     private boolean isSecretManagementEnabled() {

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.secret.mgt.core.internal;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public class SecretManagerComponentDataHolder {
 
     private boolean secretManagementEnabled;
     private RealmService realmService;
-    private List<SecretDAO> secretDAOS;
+    private List<SecretDAO> secretDAOS = new ArrayList<>();
 
     public static SecretManagerComponentDataHolder getInstance() {
 
