@@ -1542,4 +1542,21 @@ public class IdentityUtil {
                 IdentityUtil.getProperty(IdentityConstants.SystemRoles.SYSTEM_ROLES_ENABLED_CONFIG_ELEMENT));
     }
 
+    /**
+     * Check whether the system is set to use Claim locality to store localization code as its legacy implementation.
+     * Or set to use Claim local to store localization
+     *
+     * @return 'http://wso2.org/claims/locality' or 'http://wso2.org/claims/local' based on the configuration.
+     */
+    private static String getClaimUriLocale() {
+
+        if (Boolean.parseBoolean(IdentityUtil.getProperty("UseLegacyLocalizationClaim"))) {
+            return "http://wso2.org/claims/locality";
+        } else if (IdentityUtil.getProperty("UseLegacyLocalizationClaim") == null) {
+            return "http://wso2.org/claims/local";
+        } else {
+            return "http://wso2.org/claims/local";
+        }
+    }
+
 }
