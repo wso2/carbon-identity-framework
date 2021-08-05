@@ -26,12 +26,10 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
 public abstract class SecretCacheKey extends CacheKey {
 
     private final String cacheKey;
-    private final String tenantDomain;
 
-    public SecretCacheKey(String cacheKey, String tenantDomain) {
+    public SecretCacheKey(String cacheKey) {
 
         this.cacheKey = cacheKey;
-        this.tenantDomain = tenantDomain;
     }
 
     @Override
@@ -48,7 +46,7 @@ public abstract class SecretCacheKey extends CacheKey {
         }
 
         SecretCacheKey that = (SecretCacheKey) o;
-        return tenantDomain.equals(that.tenantDomain) && cacheKey.equals(that.cacheKey);
+        return cacheKey.equals(that.cacheKey);
     }
 
     @Override
@@ -56,7 +54,6 @@ public abstract class SecretCacheKey extends CacheKey {
 
         int result = super.hashCode();
         result = 31 * result + cacheKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

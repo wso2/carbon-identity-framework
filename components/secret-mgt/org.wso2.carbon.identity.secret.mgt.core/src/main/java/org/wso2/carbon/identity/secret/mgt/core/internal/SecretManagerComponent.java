@@ -54,7 +54,6 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 public class SecretManagerComponent {
 
     private static final Log log = LogFactory.getLog(SecretManagerComponent.class);
-    private List<SecretDAO> secretDAOS = new ArrayList<>();
 
     /**
      * Register SecretManager as an OSGI service.
@@ -64,22 +63,17 @@ public class SecretManagerComponent {
     @Activate
     protected void activate(ComponentContext componentContext) {
 
-        try {
-            BundleContext bundleContext = componentContext.getBundleContext();
-
-            SecretDAO secretDAO = new SecretDAOImpl();
-            SecretManagerComponentDataHolder.getInstance().setSecretDAOS(secretDAOS);
-            bundleContext.registerService(SecretDAO.class.getName(),
-                    new CachedBackedSecretDAO(secretDAO), null);
-            bundleContext.registerService(SecretManager.class.getName(),
-                    new SecretManagerImpl(), null);
-            bundleContext.registerService(SecretResolveManager.class.getName(),
-                    new SecretResolveManagerImpl(), null);
-            SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled
-                    (isSecretManagementEnabled());
-        } catch (Throwable e) {
-            log.error("Error while activating SecretManagerComponent.", e);
-        }
+        BundleContext bundleContext = componentContext.getBundleContext();
+        SecretDAO secretDAO = new SecretDAOImpl();
+        SecretManagerComponentDataHolder.getInstance().setSecretDAOS(new ArrayList<>());
+        bundleContext.registerService(SecretDAO.class.getName(),
+                new CachedBackedSecretDAO(secretDAO), null);
+        bundleContext.registerService(SecretManager.class.getName(),
+                new SecretManagerImpl(), null);
+        bundleContext.registerService(SecretResolveManager.class.getName(),
+                new SecretResolveManagerImpl(), null);
+        SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled
+                (isSecretManagementEnabled());
     }
 
     @Reference(
@@ -96,8 +90,8 @@ public class SecretManagerComponent {
                 log.debug("Secret DAO is registered in SecretManager service.");
             }
 
-            this.secretDAOS.add(secretDAO);
-            this.secretDAOS.sort(Comparator.comparingInt(SecretDAO::getPriority));
+            SecretManagerComponentDataHolder.getInstance().getSecretDAOS().add(secretDAO);
+            SecretManagerComponentDataHolder.getInstance().getSecretDAOS().sort(Comparator.comparingInt(SecretDAO::getPriority));
         }
     }
 
@@ -106,7 +100,7 @@ public class SecretManagerComponent {
         if (log.isDebugEnabled()) {
             log.debug("Purpose DAO is unregistered in SecretManager service.");
         }
-        this.secretDAOS.remove(secretDAO);
+        SecretManagerComponentDataHolder.getInstance().getSecretDAOS().remove(secretDAO);
     }
 
     @Reference(

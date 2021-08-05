@@ -84,7 +84,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     @Override
     public Secret getSecretById(String secretId, int tenantId) throws SecretManagementException {
 
-        Secret secret = getSecretFromCacheById(secretId, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        Secret secret = getSecretFromCacheById(secretId, tenantId);
         if (secret != null) {
             if (log.isDebugEnabled()) {
                 String message = String.format("Cache hit for secret by it's id. Secret id: %s", secretId);
@@ -140,46 +140,19 @@ public class CachedBackedSecretDAO implements SecretDAO {
     public boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheById(secretId, tenantId);
-        if (secret == null) {
-            return secretDAO.isExistingSecret(secretId, tenantId);
-        } else {
+        if (secret != null) {
             return true;
         }
+        return secretDAO.isExistingSecret(secretId, tenantId);
     }
 
-    private Secret getSecretFromCacheById(String secretId, int tenantId) throws SecretManagementException {
+    private Secret getSecretFromCacheById(String secretId, int tenantId) {
 
-        try {
-            String tenantDomain = SecretManagerComponentDataHolder.getInstance().getRealmService()
-                    .getTenantManager().getDomain(tenantId);
-            return getSecretFromCacheById(secretId, tenantDomain);
-        } catch (UserStoreException e) {
-            throw new SecretManagementException("Error when setting tenant domain. ",
-                    SecretConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
-        }
-    }
-
-    private Secret getSecretFromCacheByName(String secretName, int tenantId)
-            throws SecretManagementException {
-
-        try {
-            String tenantDomain = SecretManagerComponentDataHolder.getInstance().getRealmService()
-                    .getTenantManager().getDomain(tenantId);
-            return getSecretFromCacheByName(secretName, tenantDomain);
-        } catch (UserStoreException e) {
-            throw new SecretManagementException("Error when setting tenant domain. ",
-                    SecretConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
-        }
-    }
-
-    private Secret getSecretFromCacheById(String secretId, String tenantDomain) {
-
-        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secretId, tenantDomain);
-        SecretCacheEntry secretCacheEntry = secretByIdCache.getValueFromCache(secretByIdCacheKey, tenantDomain);
+        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secretId);
+        SecretCacheEntry secretCacheEntry = secretByIdCache.getValueFromCache(secretByIdCacheKey, tenantId);
         if (secretCacheEntry != null) {
             if (log.isDebugEnabled()) {
-                String message = String.format("Entry found from Secret by id cache. Secret id: %s., Tenant " +
-                        "domain %s", secretId, tenantDomain);
+                String message = String.format("Entry found from Secret by id cache. Secret id: %s.", secretId);
                 log.debug(message);
             }
             return secretCacheEntry.getSecret();
@@ -187,14 +160,14 @@ public class CachedBackedSecretDAO implements SecretDAO {
         return null;
     }
 
-    private Secret getSecretFromCacheByName(String secretName, String tenantDomain) {
+    private Secret getSecretFromCacheByName(String secretName, int tenantId) {
 
-        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secretName, tenantDomain);
-        SecretCacheEntry secretCacheEntry = secretByNameCache.getValueFromCache(secretByNameCacheKey, tenantDomain);
+        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secretName);
+        SecretCacheEntry secretCacheEntry = secretByNameCache.getValueFromCache(secretByNameCacheKey, tenantId);
         if (secretCacheEntry != null) {
             if (log.isDebugEnabled()) {
-                String message = String.format("Entry found from secret by name cache. Secret id: %s., Tenant" +
-                        " domain %s", secretName, tenantDomain);
+                String message = String.format("Entry found from secret by name cache. Secret id: %s.",
+                        secretName);
                 log.debug(message);
             }
             return secretCacheEntry.getSecret();
@@ -207,10 +180,8 @@ public class CachedBackedSecretDAO implements SecretDAO {
         if (secret == null) {
             return;
         }
-        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secret.getSecretId(),
-                secret.getTenantDomain());
-        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secret.getSecretName(),
-                secret.getTenantDomain());
+        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secret.getSecretId());
+        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secret.getSecretName());
         SecretCacheEntry secretCacheEntry = new SecretCacheEntry(secret);
         if (log.isDebugEnabled()) {
             String message = String.format("Following two cache entries created. 1. Secret by name cache %s, 2." +
@@ -227,10 +198,8 @@ public class CachedBackedSecretDAO implements SecretDAO {
         if (secret == null) {
             return;
         }
-        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secret.getSecretId(),
-                secret.getTenantDomain());
-        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secret.getSecretName(),
-                secret.getTenantDomain());
+        SecretByIdCacheKey secretByIdCacheKey = new SecretByIdCacheKey(secret.getSecretId());
+        SecretByNameCacheKey secretByNameCacheKey = new SecretByNameCacheKey(secret.getSecretName());
 
         if (log.isDebugEnabled()) {
             String message = String.format("Following two cache entries deleted. 1. Secret by name cache %s, 2." +

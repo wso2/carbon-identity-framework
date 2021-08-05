@@ -30,6 +30,5 @@ public class SQLConstants {
             ":TENANT_ID;";
 
     public static final String GET_SECRETS =
-            "SELECT ID, TENANT_ID, NAME, LAST_MODIFIED, CREATED_TIME FROM IDN_SECRET WHERE IDN_SECRET.TENANT_ID =" +
-                    " :TENANT_ID;";
+            "SELECT ID, TENANT_ID, NAME, LAST_MODIFIED, CREATED_TIME FROM IDN_SECRET WHERE TENANT_ID = :TENANT_ID;";
 }

@@ -23,8 +23,8 @@ package org.wso2.carbon.identity.secret.mgt.core.cache;
  */
 public class SecretByIdCacheKey extends SecretCacheKey {
 
-    public SecretByIdCacheKey(String secretId, String tenantDomain) {
+    public SecretByIdCacheKey(String secretId) {
 
-        super(secretId, tenantDomain);
+        super(secretId);
     }
 }

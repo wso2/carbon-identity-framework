@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
-import org.junit.Assert;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -43,20 +43,21 @@ import java.sql.Connection;
 import java.util.Collections;
 import javax.sql.DataSource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.getSampleSecretAdd;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.spyConnection;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 @PrepareForTest({PrivilegedCarbonContext.class, IdentityDatabaseUtil.class, IdentityUtil.class,
         IdentityTenantUtil.class, CryptoUtil.class})
@@ -149,8 +150,8 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretReplaced.getCreatedTime(), secretReplaced.getLastModified());
-        assertEquals("Existing id should be equal to the replaced id", secretCreated.getSecretId(),
-                secretReplaced.getSecretId());
+        assertEquals( secretCreated.getSecretId(), secretReplaced.getSecretId(),
+                "Existing id should be equal to the replaced id");
     }
 
     @Test(priority = 5, expectedExceptions = SecretManagementClientException.class)
@@ -169,8 +170,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretCreated = secretManager.addSecret(secretAdd);
         Secret secretRetrieved = secretManager.getSecret(SAMPLE_SECRET_NAME1);
 
-        assertEquals("Existing id should be equal to the retrieved id", secretCreated.getSecretId(),
-                secretRetrieved.getSecretId());
+        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(), "Existing id should be equal " +
+                "to the retrieved id");
     }
 
     @Test(priority = 7)
@@ -181,8 +182,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretCreated = secretManager.addSecret(secretAdd);
         Secret secretRetrieved = secretManager.getSecretById(secretCreated.getSecretId());
 
-        assertEquals("Existing id should be equal to the retrieved id", secretCreated.getSecretName(),
-                secretRetrieved.getSecretName());
+        assertEquals(secretCreated.getSecretName(), secretRetrieved.getSecretName(), "Existing id should be" +
+                " equal to the retrieved id");
     }
 
     @Test(priority = 8, expectedExceptions = SecretManagementClientException.class)
@@ -245,15 +246,15 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secret2 = secretManager.addSecret(secretAdd2);
 
         Secrets secrets = secretManager.getSecrets();
-        Assert.assertTrue("Retrieved secret count should be equal to the added value",
-                secrets.getSecrets().size() == 2);
-        Assert.assertEquals("Created secret name should be equal to the retrieved secret name",
-                secret1.getSecretName(), secrets.getSecrets().get(0).getSecretName());
-        Assert.assertEquals("Created secret name should be equal to the retrieved secret name",
-                secret2.getSecretName(), secrets.getSecrets().get(1).getSecretName());
+        Assert.assertEquals( 2, secrets.getSecrets().size(), "Retrieved secret count should be equal to the " +
+                "added value");
+        Assert.assertEquals(secret1.getSecretName(), secrets.getSecrets().get(0).getSecretName(),
+                "Created secret name should be equal to the retrieved secret name");
+        Assert.assertEquals(secret2.getSecretName(), secrets.getSecrets().get(1).getSecretName(),
+                "Created secret name should be equal to the retrieved secret name");
     }
 
-    private void prepareConfigs() throws Exception {
+    private void prepareConfigs() {
 
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));

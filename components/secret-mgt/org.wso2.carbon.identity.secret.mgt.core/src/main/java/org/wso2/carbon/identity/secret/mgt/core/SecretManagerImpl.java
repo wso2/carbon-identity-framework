@@ -69,9 +69,6 @@ public class SecretManagerImpl implements SecretManager {
         validateSecretManagerEnabled();
         validateSecretCreateRequest(secret);
         String secretId = generateUniqueID();
-        if (log.isDebugEnabled()) {
-            log.debug("Secret id generated: " + secretId);
-        }
         secret.setSecretId(secretId);
         secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().addSecret(secret);
@@ -93,6 +90,9 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName, null);
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Secret: " + secretName + " is retrieved successfully.");
+        }
         return secret;
     }
 
@@ -107,6 +107,9 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(
                     SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("All secrets of tenant: " + getTenantDomain() + " are retrieved successfully.");
         }
         return new Secrets(secretList);
     }
@@ -125,6 +128,9 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Secret: " + secret.getSecretName() + " is retrieved successfully.");
+        }
         return secret;
     }
 
@@ -133,9 +139,13 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         validateSecretDeleteRequest(secretName);
-        this.getSecretDAO().deleteSecretByName(secretName, getTenantId());
-        if (log.isDebugEnabled()) {
-            log.debug("Secret: " + secretName + " is deleted successfully.");
+        if (isSecretExist(secretName)) {
+            this.getSecretDAO().deleteSecretByName(secretName, getTenantId());
+            if (log.isDebugEnabled()) {
+                log.debug("Secret: " + secretName + " is deleted successfully.");
+            }
+        } else {
+            throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName);
         }
     }
 
@@ -166,7 +176,7 @@ public class SecretManagerImpl implements SecretManager {
         secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().replaceSecret(secret);
         if (log.isDebugEnabled()) {
-            log.debug(secret.getSecretName() + " secret created successfully.");
+            log.debug(secret.getSecretName() + " secret replaced successfully.");
         }
         return secret;
     }

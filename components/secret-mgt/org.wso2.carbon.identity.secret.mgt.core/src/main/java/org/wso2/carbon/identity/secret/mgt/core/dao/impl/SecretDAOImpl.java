@@ -94,6 +94,7 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
+                                        .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_VALUE))
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar));
