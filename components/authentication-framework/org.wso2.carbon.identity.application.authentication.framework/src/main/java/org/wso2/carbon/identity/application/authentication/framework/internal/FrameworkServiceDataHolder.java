@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -92,6 +93,8 @@ public class FrameworkServiceDataHolder {
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
+    private SessionSerializer sessionSerializer;
+
     private AccountLockService accountLockService;
 
     private FrameworkServiceDataHolder() {
@@ -551,6 +554,10 @@ public class FrameworkServiceDataHolder {
         sessionContextMgtListeners.remove(inboundType);
     }
 
+    public SessionSerializer getSessionSerializer() {
+        return sessionSerializer;
+    }
+
     public void setAccountLockService(AccountLockService accountLockService) {
 
         this.accountLockService = accountLockService;
@@ -559,5 +566,9 @@ public class FrameworkServiceDataHolder {
     public AccountLockService getAccountLockService() {
 
         return accountLockService;
+    }
+
+    public void setSessionSerializer(SessionSerializer sessionSerializer) {
+        this.sessionSerializer = sessionSerializer;
     }
 }
