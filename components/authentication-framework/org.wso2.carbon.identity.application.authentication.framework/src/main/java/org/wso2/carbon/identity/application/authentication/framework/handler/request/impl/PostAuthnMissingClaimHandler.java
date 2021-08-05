@@ -63,8 +63,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
         .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
         ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
-        MANDATORY_CLAIM_UPDATE_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
@@ -124,13 +122,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             try {
                 handlePostAuthenticationForMissingClaimsResponse(request, response, context);
             } catch (PostAuthenticationFailedException e) {
-                /*
-                The mandatory claim update for the JIT provisioned users where the attribute update is disabled
-                scenario is handled here.
-                 */
-                if (context.getProperty(MANDATORY_CLAIM_UPDATE_FLOW) != null) {
-                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-                }
                 if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
                     PostAuthnHandlerFlowStatus flowStatus =
                             handlePostAuthenticationForMissingClaimsRequest(request, response, context);
@@ -324,13 +315,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
                     /*
-                    When the attribute update is disabled for JIT provisioned users, the manadatory claim update
+                    When the attribute update is disabled for JIT provisioned users, the mandatory claim update
                     request will be identified through the error code and handled it.
                      */
                     if (ERROR_CODE_INVALID_ATTRIBUTE_UPDATE.equals(e.getErrorCode())) {
                         context.getSequenceConfig().getAuthenticatedUser().
                                 setUserAttributes(authenticatedUserAttributes);
-                        context.setProperty(MANDATORY_CLAIM_UPDATE_FLOW, true);
+                        return;
                     }
                 }
                 throw new PostAuthenticationFailedException(
