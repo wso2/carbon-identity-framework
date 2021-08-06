@@ -61,6 +61,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request
         .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
+        ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
@@ -312,6 +314,15 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
+                    /*
+                    When the attribute update is disabled for JIT provisioned users, the mandatory claim update
+                    request will be identified through the error code and handled it.
+                     */
+                    if (ERROR_CODE_INVALID_ATTRIBUTE_UPDATE.equals(e.getErrorCode())) {
+                        context.getSequenceConfig().getAuthenticatedUser().
+                                setUserAttributes(authenticatedUserAttributes);
+                        return;
+                    }
                 }
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
