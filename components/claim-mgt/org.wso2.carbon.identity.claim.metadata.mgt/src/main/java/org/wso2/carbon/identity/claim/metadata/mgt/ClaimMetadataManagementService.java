@@ -93,7 +93,7 @@ public interface ClaimMetadataManagementService {
     void updateLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException;
 
     /**
-     * Update only attribute mappings for local claims in bulk
+     * Update attribute mappings for local claims in bulk
      *
      * @param localClaimList
      * @param tenantDomain
