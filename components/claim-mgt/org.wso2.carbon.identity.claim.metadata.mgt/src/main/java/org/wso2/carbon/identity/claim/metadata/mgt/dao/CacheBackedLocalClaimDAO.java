@@ -75,6 +75,12 @@ public class CacheBackedLocalClaimDAO {
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
     }
 
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain) throws ClaimMetadataException {
+
+        localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+    }
+
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);

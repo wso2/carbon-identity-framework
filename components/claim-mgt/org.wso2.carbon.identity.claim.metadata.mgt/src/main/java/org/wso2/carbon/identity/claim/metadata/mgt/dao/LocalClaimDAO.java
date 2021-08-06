@@ -221,6 +221,43 @@ public class LocalClaimDAO extends ClaimDAO {
         }
     }
 
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain) throws ClaimMetadataException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+
+        try {
+            // Start transaction
+            connection.setAutoCommit(false);
+
+            Map<Integer, List<AttributeMapping>> claimAttributeMappingsOfDialect =
+                    getClaimAttributeMappingsOfDialect(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
+
+            for (LocalClaim localClaim : localClaimList) {
+                String localClaimURI = localClaim.getClaimURI();
+                int localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
+                        localClaimURI, tenantId);
+                List<AttributeMapping> existingClaimAttributeMappings =
+                        claimAttributeMappingsOfDialect.get(localClaimId);
+                existingClaimAttributeMappings.removeIf(attributeMapping -> attributeMapping.getUserStoreDomain().
+                        equals(userStoreDomain.toUpperCase()));
+                existingClaimAttributeMappings.add(new AttributeMapping(userStoreDomain,
+                        localClaim.getMappedAttribute(userStoreDomain)));
+
+                deleteClaimAttributeMappings(connection, localClaimId, tenantId);
+                addClaimAttributeMappings(connection, localClaimId, existingClaimAttributeMappings, tenantId);
+            }
+
+            // End transaction
+            connection.commit();
+        } catch (SQLException e) {
+            rollbackTransaction(connection);
+            throw new ClaimMetadataException("Error while updating local claims ", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, null);
+        }
+    }
+
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         removeClaim(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);

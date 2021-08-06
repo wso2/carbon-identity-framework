@@ -230,6 +230,23 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     @Override
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        for (LocalClaim localClaim : localClaimList) {
+            ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
+        }
+
+        this.localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
+
+        for (LocalClaim localClaim : localClaimList) {
+            ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
+        }
+    }
+
+    @Override
     public void removeLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
@@ -422,6 +439,25 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             }
         }
         return null;
+    }
+
+    @Override
+    public void validateClaimAttributeMapping(List<LocalClaim> localClaimList,  String tenantDomain)
+            throws ClaimMetadataException {
+
+        for (LocalClaim localClaim : localClaimList) {
+            if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
+            } else if (localClaim.getMappedAttributes().isEmpty()) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getCode(),
+                        String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
+                                .getClaimDialectURI(), localClaim.getClaimURI()));
+            }
+            if (!isExistingLocalClaimURI(localClaim.getClaimURI(), IdentityTenantUtil.getTenantId(tenantDomain))) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getCode(),
+                        String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
+            }
+        }
     }
 
     private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
