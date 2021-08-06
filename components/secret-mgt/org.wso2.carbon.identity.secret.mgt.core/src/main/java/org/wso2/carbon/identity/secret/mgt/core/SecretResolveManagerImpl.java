@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import org.apache.commons.codec.Charsets;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
@@ -66,7 +67,7 @@ public class SecretResolveManagerImpl implements SecretResolveManager {
     }
 
     /**
-     * Encrypt secret.
+     * Decrypt secret.
      *
      * @param cipherText cipher text secret.
      * @return decrypted secret.
@@ -74,6 +75,6 @@ public class SecretResolveManagerImpl implements SecretResolveManager {
     private String decrypt(String cipherText) throws CryptoException {
 
         return new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(
-                cipherText));
+                cipherText), Charsets.UTF_8);
     }
 }

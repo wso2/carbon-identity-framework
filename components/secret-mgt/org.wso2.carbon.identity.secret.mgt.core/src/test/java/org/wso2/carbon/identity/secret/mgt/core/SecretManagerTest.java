@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import org.apache.commons.codec.Charsets;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -331,7 +332,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
     private void encryptSecret(String secret) throws org.wso2.carbon.core.util.CryptoException {
 
-        when(cryptoUtil.encryptAndBase64Encode(secret.getBytes())).thenReturn(ENCRYPTED_VALUE1);
+        when(cryptoUtil.encryptAndBase64Encode(secret.getBytes(Charsets.UTF_8))).thenReturn(ENCRYPTED_VALUE1);
     }
 
     private void decryptSecret(String cipherText) throws org.wso2.carbon.core.util.CryptoException {

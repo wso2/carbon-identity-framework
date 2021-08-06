@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.secret.mgt.core;
 
 import java.util.List;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -358,6 +359,6 @@ public class SecretManagerImpl implements SecretManager {
     private String encrypt(String plainText) throws CryptoException {
 
         return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
-                plainText.getBytes());
+                plainText.getBytes(Charsets.UTF_8));
     }
 }
