@@ -194,7 +194,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         combinedLocalClaims
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
-                    String username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                    String username = getUsernameFederatedUser(stepConfig, sequenceConfig,
+                            externalIdPConfigName, context);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -310,7 +311,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
-                            username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                            username = getUsernameFederatedUser(stepConfig, sequenceConfig,
+                                    externalIdPConfigName, context);
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
                             // Set the property to make sure the request is a returning one.
@@ -319,7 +321,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
                     }
                     if (StringUtils.isEmpty(username)) {
-                        username = getUsernameFederatedUser(sequenceConfig, externalIdPConfigName, context);
+                        username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName, context);
                     }
                     // Check if the associated local account is locked.
                     if (isAccountLocked(username, context.getTenantDomain())) {
@@ -343,13 +345,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return SUCCESS_COMPLETED;
     }
 
-    private String getUsernameFederatedUser(SequenceConfig sequenceConfig, String externalIdPConfigName,
-                                            AuthenticationContext context) throws PostAuthenticationFailedException {
+    private String getUsernameFederatedUser(StepConfig stepConfig, SequenceConfig sequenceConfig,
+                                            String externalIdPConfigName, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
 
         String username;
         // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
-        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
-            username = getFederatedUsername(sequenceConfig.getAuthenticatedUser().getUserName(),
+        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled() && stepConfig.isSubjectIdentifierStep()) {
+            username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
                     externalIdPConfigName, context);
         } else {
             username = sequenceConfig.getAuthenticatedUser().getUserName();
