@@ -146,6 +146,9 @@ public abstract class FrameworkConstants {
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
+    // Maximum retry times for session data store.
+    public static final int MAX_RETRY_TIME = 3;
+
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
