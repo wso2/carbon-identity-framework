@@ -51,6 +51,7 @@ public class SecretResolveManagerImpl implements SecretResolveManager {
         resolvedSecret.setSecretName(secret.getSecretName());
         resolvedSecret.setCreatedTime(secret.getCreatedTime());
         resolvedSecret.setLastModified(secret.getLastModified());
+        resolvedSecret.setTenantDomain(secret.getTenantDomain());
         resolvedSecret.setResolvedSecretValue(getDecryptedSecretValue(secret.getSecretValue(), secret.getSecretName()));
         return resolvedSecret;
     }
