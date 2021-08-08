@@ -495,6 +495,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException | UserStoreException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update application id: " + applicationId, e);
+        } catch (IdentityApplicationManagementException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw e;
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
@@ -4696,6 +4699,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             throw new IdentityApplicationManagementException("Error while creating an application: "
                     + application.getApplicationName() + " in tenantDomain: " + tenantDomain, e);
+        } catch (IdentityApplicationManagementException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }
