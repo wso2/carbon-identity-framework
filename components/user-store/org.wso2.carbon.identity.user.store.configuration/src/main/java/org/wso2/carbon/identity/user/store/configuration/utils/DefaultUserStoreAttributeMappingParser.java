@@ -74,25 +74,23 @@ public class DefaultUserStoreAttributeMappingParser {
 
     private static void init() {
 
-        InputStream inStream = null;
-
         File attributeMappingXml = new File(CarbonUtils.getCarbonConfigDirPath(),
                 CLAIM_CONFIG);
-        try {
-            if (attributeMappingXml.exists()) {
 
-                inStream = new FileInputStream(attributeMappingXml);
+        if (attributeMappingXml.exists()) {
+            try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
+                if (inStream == null) {
+                    String message = String.format("Claim-config configuration is not found at: %s/%s",
+                            CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
+                    throw new FileNotFoundException(message);
+                }
+                buildDefaultAttributeMapping(inStream);
+            } catch (FileNotFoundException e) {
+                LOG.error(String.format("Claim-config configuration is not found at: %s/%s",
+                        CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG), e);
+            } catch (IOException e) {
+                LOG.error("Error occurred while closing input stream", e);
             }
-
-            if (inStream == null) {
-                String message = String.format("Claim-config configuration is not found at: %s/%s",
-                        CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
-                throw new FileNotFoundException(message);
-            }
-            buildDefaultAttributeMapping(inStream);
-        } catch (FileNotFoundException e) {
-            LOG.error(String.format("Claim-config configuration is not found at: %s/%s",
-                    CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG), e);
         }
     }
 
@@ -150,12 +148,6 @@ public class DefaultUserStoreAttributeMappingParser {
             }
         } catch (XMLStreamException e) {
             LOG.error("Error occurred while reading the claim-config.xml file", e);
-        } finally {
-            try {
-                inStream.close();
-            } catch (IOException e) {
-                LOG.error("Error occurred while closing input stream", e);
-            }
         }
     }
 

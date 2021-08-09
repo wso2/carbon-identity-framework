@@ -81,25 +81,21 @@ public class UserStoreAttributeMappingParser {
 
     private static Map<String, ChangedUserStoreAttributeDO> readChangeFiles(String attrMappingsFileName) {
 
-        InputStream inStream = null;
-        try {
-            if (attrMappingsFileName != null) {
-                File attributeMappingXml = new File(getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
-                if (attributeMappingXml.exists()) {
-                    inStream = new FileInputStream(attributeMappingXml);
+        File attributeMappingXml = new File(getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
+        if (attributeMappingXml.exists()) {
+            try (InputStream inStream = new FileInputStream(attributeMappingXml);) {
+                if (inStream == null) {
+                    String message = String.format("Attribute mappings configuration file is not found at: %s/%s.",
+                            getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
+                    throw new FileNotFoundException(message);
                 }
+                return readConfigMappings(inStream);
+            } catch (FileNotFoundException e) {
+                LOG.error(String.format("Attribute mappings configuration file is not found at: %s/%s.",
+                        getUserStoreAttributeMappingDirPath(), attrMappingsFileName), e);
+            } catch (IOException e) {
+                LOG.error("Error occurred while closing input stream", e);
             }
-
-            if (inStream == null) {
-                String message = String.format("Attribute mappings configuration file is not found at: %s/%s.",
-                        getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
-                throw new FileNotFoundException(message);
-            }
-
-            return readConfigMappings(inStream);
-        } catch (FileNotFoundException e) {
-            LOG.error(String.format("Attribute mappings configuration file is not found at: %s/%s.",
-                    getUserStoreAttributeMappingDirPath(), attrMappingsFileName), e);
         }
         return null;
     }
@@ -139,12 +135,6 @@ public class UserStoreAttributeMappingParser {
             }
         } catch (XMLStreamException e) {
             LOG.error("Error occurred while reading the xml file.", e);
-        } finally {
-            try {
-                inStream.close();
-            } catch (IOException e) {
-                LOG.error("Error occurred while closing the input stream.", e);
-            }
         }
         return null;
     }
