@@ -34,5 +34,5 @@ public interface SecretResolveManager {
      * @return 200 ok. Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
-    ResolvedSecret getResolvedSecret(String secretName) throws SecretManagementException;
+    ResolvedSecret getResolvedSecret(String secretTypeName, String secretName) throws SecretManagementException;
 }

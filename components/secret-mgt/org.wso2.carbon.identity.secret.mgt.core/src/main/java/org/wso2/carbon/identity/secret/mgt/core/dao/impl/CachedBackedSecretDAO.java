@@ -25,13 +25,10 @@ import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByIdCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCache;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretCacheEntry;
-import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
-import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.util.List;
 
@@ -59,7 +56,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, int tenantId) throws SecretManagementException {
+    public Secret getSecretByName(String name, String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(name, tenantId);
         if (secret != null) {
@@ -75,7 +72,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
                         "%d", name, tenantId);
                 log.debug(message);
             }
-            secret = secretDAO.getSecretByName(name, tenantId);
+            secret = secretDAO.getSecretByName(name, secretTypeId, secretTypeName, tenantId);
             addSecretToCache(secret);
         }
         return secret;
@@ -103,9 +100,9 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(int tenantId) throws SecretManagementException {
+    public List getSecrets(String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException {
 
-        return secretDAO.getSecrets(tenantId);
+        return secretDAO.getSecrets(secretTypeId, secretTypeName, tenantId);
     }
 
     @Override
@@ -116,9 +113,9 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, int tenantId) throws SecretManagementException {
+    public void deleteSecretByName(String name, String secretTypeId, int tenantId) throws SecretManagementException {
 
-        secretDAO.deleteSecretByName(name, tenantId);
+        secretDAO.deleteSecretByName(name, secretTypeId, tenantId);
         deleteCacheBySecretName(name, tenantId);
     }
 
@@ -144,6 +141,31 @@ public class CachedBackedSecretDAO implements SecretDAO {
             return true;
         }
         return secretDAO.isExistingSecret(secretId, tenantId);
+    }
+
+    @Override
+    public void addSecretType(SecretType secretType) throws SecretManagementException {
+
+        secretDAO.addSecretType(secretType);
+    }
+
+    @Override
+    public void replaceSecretType(SecretType secretType) throws SecretManagementException {
+
+        secretDAO.replaceSecretType(secretType);
+
+    }
+
+    @Override
+    public SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException {
+
+        return secretDAO.getSecretTypeByName(secretTypeName);
+    }
+
+    @Override
+    public void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException {
+
+        secretDAO.deleteSecretTypeByName(secretTypeName);
     }
 
     private Secret getSecretFromCacheById(String secretId, int tenantId) {

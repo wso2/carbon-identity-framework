@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.secret.mgt.core;
 
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
 /**
@@ -30,36 +31,40 @@ public interface SecretManager {
     /**
      * This API is used to create the given secret.
      *
-     * @param secret The {@link Secret}.
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secret         The {@link Secret}.
      * @return Returns {@link Secret} created.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret addSecret(Secret secret) throws SecretManagementException;
+    Secret addSecret(String secretTypeName, Secret secret) throws SecretManagementException;
 
     /**
      * This API is used to retrieve the given secret.
      *
-     * @param secretName Name of the {@link Secret}.
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretName     Name of the {@link Secret}.
      * @return Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getSecret(String secretName) throws SecretManagementException;
+    Secret getSecret(String secretTypeName, String secretName) throws SecretManagementException;
 
     /**
      * Get all the secrets of the current tenant.
      *
+     * @param secretTypeName Name of the {@link SecretType}.
      * @return {@link Secrets} object with all the tenant secrets.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secrets getSecrets() throws SecretManagementException;
+    Secrets getSecrets(String secretTypeName) throws SecretManagementException;
 
     /**
      * This API is used to delete the given secret.
      *
-     * @param secretName Request to delete the {@link Secret}.
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretName     Request to delete the {@link Secret}.
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteSecret(String secretName) throws SecretManagementException;
+    void deleteSecret(String secretTypeName, String secretName) throws SecretManagementException;
 
     /**
      * This function is used to get a secret by the secret id.
@@ -81,8 +86,42 @@ public interface SecretManager {
     /**
      * This function is used to replace a given secret.
      *
-     * @param secret secret object.
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secret         secret object.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret replaceSecret(Secret secret) throws SecretManagementException;
+    Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException;
+
+    /**
+     * Add {@link SecretType}.
+     *
+     * @param secretType {@link SecretType} to be added.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    SecretType addSecretType(SecretType secretType) throws SecretManagementException;
+
+    /**
+     * Replace {@link SecretType}.
+     *
+     * @param secretType {@link SecretType} to be replaced.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    SecretType replaceSecretType(SecretType secretType) throws SecretManagementException;
+
+    /**
+     * Get {@link SecretType} by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @return {@link SecretType} for the given name.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    SecretType getSecretType(String secretTypeName) throws SecretManagementException;
+
+    /**
+     * Delete {@link SecretType} by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
+    void deleteSecretType(String secretTypeName) throws SecretManagementException;
 }

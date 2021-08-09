@@ -29,6 +29,8 @@ public class Secret {
     private String lastModified;
     private String created;
     private String secretValue;
+    private String secretType;
+    private String description;
 
     /**
      * Initialize a Secret object.
@@ -102,5 +104,25 @@ public class Secret {
     public void setSecretValue(String value) {
 
         this.secretValue = value;
+    }
+
+    public String getSecretType() {
+
+        return secretType;
+    }
+
+    public void setSecretType(String secretType) {
+
+        this.secretType = secretType;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
+
+    public void setDescription(String description) {
+
+        this.description = description;
     }
 }
