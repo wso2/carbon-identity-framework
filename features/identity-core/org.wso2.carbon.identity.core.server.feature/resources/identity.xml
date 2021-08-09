@@ -1969,4 +1969,9 @@
         <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
 
+    <!-- Claim to store localization code  -->
+    <!--    By setting true localization code will be stored inside the http://wso2.org/claims/locality-->
+    <!--    By setting false localization code will be stored inside the http://wso2.org/claims/local-->
+    <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
+
 </Server>
