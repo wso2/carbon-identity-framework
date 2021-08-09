@@ -1,5 +1,5 @@
 {
-  "identity_mgt.account_locking.enable_account_locking": "identity_mgt.events.schemes.'account.lock.handler'.properties.enable",
+  "identity_mgt.account_locking.enable_account_locking": "identity_mgt.events.schemes.'account.lock.handler'.properties.'lock.on.max.failed.attempts.enable'",
   "identity_mgt.account_locking.allowed_failed_attempts": "identity_mgt.events.schemes.'account.lock.handler'.properties.'On.Failure.Max.Attempts'",
   "identity_mgt.account_locking.auto_unlock_after": "identity_mgt.events.schemes.'account.lock.handler'.properties.Time",
   "identity_mgt.account_locking.auto_unlock_time_increment_ratio": "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'",

@@ -8,8 +8,7 @@
     "POST_SET_USER_CLAIMS",
     "POST_NON_BASIC_AUTHENTICATION"
   ],
-  "identity_mgt.events.schemes.'account.lock.handler'.properties.enable": false,
-  "identity_mgt.events.schemes.'account.lock.handler'.properties.lock.on.max.failed.attempts.enable": false,
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'lock.on.max.failed.attempts.enable'": false,
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'": "2",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'On.Failure.Max.Attempts'": "5",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.Time": "5m",
