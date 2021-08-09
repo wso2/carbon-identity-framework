@@ -74,22 +74,21 @@ public class DefaultUserStoreAttributeMappingParser {
 
     private static void init() {
 
-        File attributeMappingXml = new File(CarbonUtils.getCarbonConfigDirPath(),
-                CLAIM_CONFIG);
+        File attributeMappingXml = new File(CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
 
         if (attributeMappingXml.exists()) {
             try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
                 if (inStream == null) {
-                    String message = String.format("Claim-config configuration is not found at: %s/%s",
+                    String message = String.format("Claim-config configuration is not found at: %s/%s.",
                             CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
                     throw new FileNotFoundException(message);
                 }
                 buildDefaultAttributeMapping(inStream);
             } catch (FileNotFoundException e) {
-                LOG.error(String.format("Claim-config configuration is not found at: %s/%s",
+                LOG.error(String.format("Claim-config configuration is not found at: %s/%s.",
                         CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG), e);
             } catch (IOException e) {
-                LOG.error("Error occurred while closing input stream", e);
+                LOG.error("Error occurred while closing input stream.", e);
             }
         }
     }
@@ -100,7 +99,6 @@ public class DefaultUserStoreAttributeMappingParser {
         OMElement localClaimElement = null;
         try {
             builder = new StAXOMBuilder(inStream);
-
             Iterator iterator = builder.getDocumentElement().
                     getFirstChildWithName(new QName(DIALECTS)).
                     getChildrenWithLocalName(DIALECT);
@@ -123,7 +121,6 @@ public class DefaultUserStoreAttributeMappingParser {
                     return;
                 }
                 Iterator claimIterator = localClaimElement.getChildElements();
-
                 defaultAttributes = new HashMap<>();
                 while (claimIterator.hasNext()) {
                     OMElement claimElement = (OMElement) claimIterator.next();
@@ -144,17 +141,16 @@ public class DefaultUserStoreAttributeMappingParser {
                     }
                     defaultAttributes.put(userStoreAttributeDO.getClaimId(), userStoreAttributeDO);
                 }
-
             }
         } catch (XMLStreamException e) {
-            LOG.error("Error occurred while reading the claim-config.xml file", e);
+            LOG.error("Error occurred while reading the claim-config.xml file.", e);
         }
     }
 
     /**
      * Get default user store attributes.
      *
-     * @return String defaultAttributes.
+     * @return Map defaultAttributes.
      */
     public Map<String, UserStoreAttributeDO> getDefaultAttributes() {
 

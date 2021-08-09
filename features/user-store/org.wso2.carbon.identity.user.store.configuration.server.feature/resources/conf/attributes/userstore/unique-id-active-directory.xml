@@ -16,7 +16,7 @@
   ~ under the License.
   -->
 
-<AttributeMapping>
+<AttributeMapping userStoreType="org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager">
     <Attribute>
         <ClaimURI>http://wso2.org/claims/active</ClaimURI>
         <DisplayName>Active</DisplayName>

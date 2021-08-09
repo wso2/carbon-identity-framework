@@ -29,10 +29,6 @@ public class ChangedUserStoreAttributeDO {
     private UserStoreOperation operation;
     private UserStoreAttributeDO userStoreAttributeDO;
 
-    public ChangedUserStoreAttributeDO() {
-
-    }
-
     /**
      * Get operation which should be performed on the attribute {@literal userStoreAttributeDO}.
      *
@@ -70,7 +66,7 @@ public class ChangedUserStoreAttributeDO {
     /**
      * Set attribute details need to be changed.
      *
-     * @param userStoreAttributeDO attribute details.
+     * @param userStoreAttributeDO Attribute details.
      */
     public void setUsAttributeDO(UserStoreAttributeDO userStoreAttributeDO) {
 

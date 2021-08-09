@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store-feature</artifactId>
-        <version>5.20.140-SNAPSHOT</version>
+        <version>5.20.149-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -53,8 +53,7 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
-                                        <include>conf/attributes/userstore/ldap.xml</include>
-                                        <include>conf/attributes/userstore/ad.xml</include>
+                                        <include>conf/attributes/userstore/**.xml</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                     </includes>

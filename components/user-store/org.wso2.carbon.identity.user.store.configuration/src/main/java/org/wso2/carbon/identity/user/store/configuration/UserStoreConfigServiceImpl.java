@@ -475,10 +475,4 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         return UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
     }
 
-    @Override
-    public Map<String, UserStoreConfigurationConstant.UserStoreType> getUserStoreTypeMappings()
-            throws IdentityUserStoreServerException {
-
-        return UserStoreConfigListenersHolder.getInstance().getUserStoreTypeMappings();
-    }
 }

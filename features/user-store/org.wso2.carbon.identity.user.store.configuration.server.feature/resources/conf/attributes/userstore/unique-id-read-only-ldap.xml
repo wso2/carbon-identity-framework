@@ -16,4 +16,4 @@
   ~ under the License.
   -->
 
-<AttributeMapping></AttributeMapping>
+<AttributeMapping userStoreType="org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager"></AttributeMapping>

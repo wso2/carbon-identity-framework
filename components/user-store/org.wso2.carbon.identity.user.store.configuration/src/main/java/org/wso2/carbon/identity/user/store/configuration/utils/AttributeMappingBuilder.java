@@ -46,12 +46,10 @@ public class AttributeMappingBuilder {
     public void build() {
 
         UserStoreAttributeMappings userStoreAttributeMappings = new UserStoreAttributeMappings();
-        userStoreAttributeMappings.setDefaultUserStoreAttrMapping(DefaultUserStoreAttributeMappingParser.getInstance().
-                getDefaultAttributes());
-        userStoreAttributeMappings.setAdUserStoreAttrMappings(UserStoreAttributeMappingParser.getInstance().
-                getADUserStoreAttrChangeDOMap());
-        userStoreAttributeMappings.setLdapUserStoreAttrMappings(UserStoreAttributeMappingParser.getInstance().
-                getLDAPUserStoreAttrChangeDOMap());
+        userStoreAttributeMappings.setDefaultUserStoreAttributeMapping(DefaultUserStoreAttributeMappingParser
+                .getInstance().getDefaultAttributes());
+        userStoreAttributeMappings.setUserStoreAttributeMappings(UserStoreAttributeMappingParser.getInstance()
+                .getUserStoreAttributeChanges());
         UserStoreConfigListenersHolder.getInstance().setUserStoreAttributeMappings(userStoreAttributeMappings);
     }
 }

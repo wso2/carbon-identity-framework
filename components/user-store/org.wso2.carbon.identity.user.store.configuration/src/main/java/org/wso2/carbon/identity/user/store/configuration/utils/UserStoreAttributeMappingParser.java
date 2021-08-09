@@ -33,29 +33,34 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.AD_ATTRIBUTE_MAPPING_CONFIG;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ATTRIBUTES_DIR;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ATTRIBUTE_ID;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.CLAIM_URI;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DISPLAY_NAME;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.LDAP_ATTRIBUTE_MAPPING_CONFIG;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.OPERATION;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORE_DIR;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORE_TYPE;
 
 /**
  * Parser to read and build user store mappings attribute changes.
  */
 public class UserStoreAttributeMappingParser {
 
-    private static Map<String, ChangedUserStoreAttributeDO> adUserStoreAttrChangeDOMap;
-    private static Map<String, ChangedUserStoreAttributeDO> ldapUserStoreAttrChangeDOMap;
+    private static final Map<String, Map<String, ChangedUserStoreAttributeDO>>
+            userStoreAttributeChanges = new HashMap<>();
     private static final Log LOG = LogFactory.getLog(UserStoreAttributeMappingParser.class);
 
     private UserStoreAttributeMappingParser() {
@@ -73,23 +78,29 @@ public class UserStoreAttributeMappingParser {
         return ParserHolder.PARSER;
     }
 
-    private static void init() {
+    private void init() {
 
-        ldapUserStoreAttrChangeDOMap = readChangeFiles(LDAP_ATTRIBUTE_MAPPING_CONFIG);
-        adUserStoreAttrChangeDOMap = readChangeFiles(AD_ATTRIBUTE_MAPPING_CONFIG);
+        try {
+            for (String fileName : getFileNames()) {
+                readChangeFiles(fileName);
+            }
+        } catch (IOException e) {
+            LOG.error(String.format("Error occurred while getting file names inside %s",
+                    getUserStoreAttributeMappingDirPath()), e);
+        }
     }
 
-    private static Map<String, ChangedUserStoreAttributeDO> readChangeFiles(String attrMappingsFileName) {
+    private void readChangeFiles(String attrMappingsFileName) {
 
         File attributeMappingXml = new File(getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
         if (attributeMappingXml.exists()) {
-            try (InputStream inStream = new FileInputStream(attributeMappingXml);) {
+            try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
                 if (inStream == null) {
                     String message = String.format("Attribute mappings configuration file is not found at: %s/%s.",
                             getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
                     throw new FileNotFoundException(message);
                 }
-                return readConfigMappings(inStream);
+                readConfigMappings(inStream);
             } catch (FileNotFoundException e) {
                 LOG.error(String.format("Attribute mappings configuration file is not found at: %s/%s.",
                         getUserStoreAttributeMappingDirPath(), attrMappingsFileName), e);
@@ -97,14 +108,14 @@ public class UserStoreAttributeMappingParser {
                 LOG.error("Error occurred while closing input stream", e);
             }
         }
-        return null;
     }
 
-    private static Map<String, ChangedUserStoreAttributeDO> readConfigMappings(InputStream inStream) {
+    private void readConfigMappings(InputStream inStream) {
 
         try {
             StAXOMBuilder builder = new StAXOMBuilder(inStream);
             Iterator iterator = builder.getDocumentElement().getChildElements();
+            String userStoreType = builder.getDocumentElement().getAttributeValue(new QName(USERSTORE_TYPE));
             Map<String, ChangedUserStoreAttributeDO> attributeChangeDOMap = new HashMap<>();
             if (iterator != null) {
                 while (iterator.hasNext()) {
@@ -112,10 +123,12 @@ public class UserStoreAttributeMappingParser {
                     Iterator attributeIterator = attributeElement.getChildElements();
                     ChangedUserStoreAttributeDO changedUserStoreAttributeDO = new ChangedUserStoreAttributeDO();
                     UserStoreAttributeDO userStoreAttributeDO = new UserStoreAttributeDO();
+                    if (attributeIterator == null) {
+                        continue;
+                    }
                     while (attributeIterator.hasNext()) {
                         OMElement attributes = (OMElement) attributeIterator.next();
                         String attributeQName = attributes.getQName().getLocalPart();
-
                         if (StringUtils.equalsIgnoreCase(OPERATION, attributeQName)) {
                             changedUserStoreAttributeDO.setOperation(attributes.getText());
                         } else if (StringUtils.equalsIgnoreCase(ATTRIBUTE_ID, attributeQName)) {
@@ -131,38 +144,40 @@ public class UserStoreAttributeMappingParser {
                     changedUserStoreAttributeDO.setUsAttributeDO(userStoreAttributeDO);
                     attributeChangeDOMap.put(userStoreAttributeDO.getClaimId(), changedUserStoreAttributeDO);
                 }
-                return attributeChangeDOMap;
             }
+            userStoreAttributeChanges.put(userStoreType, attributeChangeDOMap);
         } catch (XMLStreamException e) {
             LOG.error("Error occurred while reading the xml file.", e);
         }
-        return null;
-    }
-
-
-    /**
-     * Get attributes needs to be changed for AD user store types.
-     *
-     * @return Map adUserStoreAttrChangeDOMap.
-     */
-    protected Map<String, ChangedUserStoreAttributeDO> getADUserStoreAttrChangeDOMap() {
-
-        return adUserStoreAttrChangeDOMap;
     }
 
     /**
-     * Get attributes needs to be changed for LDAP user store types.
+     * Get attributes needs to be changed for available user store types.
      *
-     * @return Map ldapUserStoreAttrChangeDOMap.
+     * @return Map UserStoreAttributeChanges.
      */
-    protected Map<String, ChangedUserStoreAttributeDO> getLDAPUserStoreAttrChangeDOMap() {
+    protected Map<String, Map<String, ChangedUserStoreAttributeDO>> getUserStoreAttributeChanges() {
 
-        return ldapUserStoreAttrChangeDOMap;
+        return userStoreAttributeChanges;
     }
 
     private static String getUserStoreAttributeMappingDirPath() {
 
         return String.format("%s%s%s%s%s", CarbonUtils.getCarbonConfigDirPath(), File.separator, ATTRIBUTES_DIR,
                 File.separator, USERSTORE_DIR);
+    }
+
+    /**
+     * Read all file names inside conf/attributes/userstore directory.
+     *
+     * @return List of file names.
+     * @throws IOException If error occurred while reading file names.
+     */
+    private static List<String> getFileNames() throws IOException {
+
+        return Files.walk(Paths.get(getUserStoreAttributeMappingDirPath()))
+                .filter(Files::isRegularFile)
+                .map(Path::toFile).map(File::getName)
+                .collect(Collectors.toList());
     }
 }

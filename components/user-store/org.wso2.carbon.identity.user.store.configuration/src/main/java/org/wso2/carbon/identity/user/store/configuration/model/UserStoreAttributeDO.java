@@ -18,21 +18,15 @@
 
 package org.wso2.carbon.identity.user.store.configuration.model;
 
-import java.io.Serializable;
-
 /**
  * Data object to hold user store attribute.
  */
-public class UserStoreAttributeDO implements Serializable {
+public class UserStoreAttributeDO {
 
     private String claimUri;
     private String claimId;
     private String mappedAttribute;
     private String displayName;
-
-    public UserStoreAttributeDO() {
-
-    }
 
     /**
      * Get claim uri of the attribute.

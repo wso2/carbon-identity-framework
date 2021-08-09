@@ -45,23 +45,17 @@ public class UserStoreConfigurationConstant {
     public static final String FILE_EXTENSION_XML = ".xml";
     public static final String ALLOWED_USERSTORES = "AllowedUserstores";
     public static final String ALLOWED_USERSTORE = "AllowedUserstore";
-    public static final String USERSTORE_TYPE_MAPPINGS = "UserstoreTypeMappings";
-    public static final String USERSTORE_TYPE_MAPPING = "UserstoreTypeMapping";
-    public static final String USERSTORE_NAME = "UserstoreName";
-    public static final String USERSTORE_TYPE = "UserstoreType";
 
     // Attribute mappings constants
     public static final String CLAIM_CONFIG = "claim-config.xml";
-    public static final String LDAP_ATTRIBUTE_MAPPING_CONFIG = "ldap.xml";
-    public static final String AD_ATTRIBUTE_MAPPING_CONFIG = "ad.xml";
     public static final String DIALECTS = "Dialects";
     public static final String DIALECT = "Dialect";
     public static final String LOCAL_DIALECT_URL = "http://wso2.org/claims";
+    public static final String USERSTORE_TYPE = "userStoreType";
     public static final String DISPLAY_NAME = "DisplayName";
     public static final String ATTRIBUTE_ID = "AttributeID";
     public static final String CLAIM_URI = "ClaimURI";
     public static final String OPERATION = "Operation";
-
     public static final String ATTRIBUTES_DIR = "attributes";
     public static final String USERSTORE_DIR = "userstore";
 
@@ -114,23 +108,9 @@ public class UserStoreConfigurationConstant {
      * User Store Operation enums.
      */
     public enum UserStoreOperation {
+
         UPDATE,
         DELETE;
-
-        @Override
-        public String toString() {
-
-            return this.name().toLowerCase();
-        }
-    }
-
-    /**
-     * User Store Type enums
-     */
-    public enum UserStoreType {
-        JDBC,
-        AD,
-        LDAP;
 
         @Override
         public String toString() {

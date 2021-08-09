@@ -18,10 +18,14 @@
 
 package org.wso2.carbon.identity.user.store.configuration.model;
 
-import org.apache.commons.lang3.SerializationUtils;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.UserStoreOperation;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,60 +35,16 @@ import java.util.Map;
  */
 public class UserStoreAttributeMappings {
 
-    private Map<String, UserStoreAttributeDO> ldapUserStoreAttrMappings;
-    private Map<String, UserStoreAttributeDO> adUserStoreAttrMappings;
     private Map<String, UserStoreAttributeDO> defaultUserStoreAttrMapping;
-
-    public UserStoreAttributeMappings() {
-
-    }
-
-    /**
-     * To get user store attribute mappings of LDAP user store types.
-     *
-     * @return Map of attribute mappings.
-     */
-    public Map<String, UserStoreAttributeDO> getLdapUserStoreAttrMappings() {
-
-        return Collections.unmodifiableMap(ldapUserStoreAttrMappings);
-    }
-
-    /**
-     * Set attribute mappings of LDAP user store.
-     *
-     * @param changedLDAPAttrMap Map of attribute mappings which needs to be changed against default values.
-     */
-    public void setLdapUserStoreAttrMappings(Map<String, ChangedUserStoreAttributeDO> changedLDAPAttrMap) {
-
-        this.ldapUserStoreAttrMappings = getModifiedAttrMap(changedLDAPAttrMap);
-    }
-
-    /**
-     * To get user store attribute mappings of JDBC user store types.
-     *
-     * @return Map of attribute mappings.
-     */
-    public Map<String, UserStoreAttributeDO> getAdUserStoreAttrMappings() {
-
-        return Collections.unmodifiableMap(adUserStoreAttrMappings);
-    }
-
-    /**
-     * Set attribute mappings of AD user store.
-     *
-     * @param changedADAttrMap Map of attribute mappings which needs to be changed against default values.
-     */
-    public void setAdUserStoreAttrMappings(Map<String, ChangedUserStoreAttributeDO> changedADAttrMap) {
-
-        this.adUserStoreAttrMappings = getModifiedAttrMap(changedADAttrMap);
-    }
+    private static final Log LOG = LogFactory.getLog(UserStoreAttributeMappings.class);
+    private final Map<String, Map<String, UserStoreAttributeDO>> userStoreAttrMappings = new HashMap<>();
 
     /**
      * To get default user store attribute mappings.
      *
      * @return Map of attribute mappings.
      */
-    public Map<String, UserStoreAttributeDO> getDefaultUserStoreAttrMapping() {
+    public Map<String, UserStoreAttributeDO> getDefaultUserStoreAttributeMapping() {
 
         return Collections.unmodifiableMap(defaultUserStoreAttrMapping);
     }
@@ -94,11 +54,47 @@ public class UserStoreAttributeMappings {
      *
      * @param defaultUserStoreAttrMapping Map of default attribute mappings.
      */
-    public void setDefaultUserStoreAttrMapping(Map<String, UserStoreAttributeDO> defaultUserStoreAttrMapping) {
+    public void setDefaultUserStoreAttributeMapping(Map<String, UserStoreAttributeDO> defaultUserStoreAttrMapping) {
 
         this.defaultUserStoreAttrMapping = defaultUserStoreAttrMapping;
-        this.ldapUserStoreAttrMappings = defaultUserStoreAttrMapping;
-        this.adUserStoreAttrMappings = defaultUserStoreAttrMapping;
+    }
+
+    /**
+     * Get attribute mappings changes for the given user store type.
+     *
+     * @param userStoretype User store type.
+     * @return Map of attribute uri and attribute mappings of the given user store type.
+     */
+    public Map<String, UserStoreAttributeDO> getUserStoreAttributeMappings(String userStoretype) {
+
+        if (userStoreAttrMappings.containsKey(userStoretype)) {
+            return Collections.unmodifiableMap(userStoreAttrMappings.get(userStoretype));
+        }
+        /*
+         * If details are not available for the given user store type, return default values.
+         * Add a new userstore attribute mappings file to conf/attributes/userstore directory to
+         * configure correct attribute mappings for the userstore.
+         */
+        LOG.warn(String.format("No record found for the given userstore: %s. Default attribute mappings are " +
+                        "returning. Please add userstore attribute mappings file for the userstore %s " +
+                        "to conf/attributes/userstore directory to configure correct attribute mappings.",
+                userStoretype, userStoretype));
+        return defaultUserStoreAttrMapping;
+    }
+
+    /**
+     * Set all available user store attribute mappings.
+     *
+     * @param availableUserStoreAttrMappings Map of user store type and their attribute mappings changes.
+     */
+    public void setUserStoreAttributeMappings(Map<String, Map<String, ChangedUserStoreAttributeDO>>
+                                                      availableUserStoreAttrMappings) {
+
+        for (String userStoreType : availableUserStoreAttrMappings.keySet()) {
+            Map<String, UserStoreAttributeDO> tempMap = getModifiedAttributeMap(availableUserStoreAttrMappings
+                    .get(userStoreType));
+            this.userStoreAttrMappings.put(userStoreType, tempMap);
+        }
     }
 
     /**
@@ -107,33 +103,36 @@ public class UserStoreAttributeMappings {
      * @param changedUserStoreAttrMap Attribute mapping changes which should change default values.
      * @return Map of attribute mappings.
      */
-    private Map<String, UserStoreAttributeDO> getModifiedAttrMap(Map<String, ChangedUserStoreAttributeDO>
-                                                                         changedUserStoreAttrMap) {
+    private Map<String, UserStoreAttributeDO> getModifiedAttributeMap(Map<String, ChangedUserStoreAttributeDO>
+                                                                              changedUserStoreAttrMap) {
 
         if (defaultUserStoreAttrMapping == null) {
             return null;
         }
-        Map<String, UserStoreAttributeDO> clonedAttrMap = SerializationUtils
-                .clone(new HashMap<>(defaultUserStoreAttrMapping));
+        Gson gson = new Gson();
+        String serializedDefaultAttrMappings = gson.toJson(defaultUserStoreAttrMapping);
+        // To deserialize a hashmap using Gson, need a type object of the hashmap.
+        Type type = new TypeToken<HashMap<String, UserStoreAttributeDO>>() {
+        }.getType();
+        Map<String, UserStoreAttributeDO> clonedAttrMap = gson.fromJson(serializedDefaultAttrMappings, type);
         for (String claimId : changedUserStoreAttrMap.keySet()) {
-            if (clonedAttrMap.containsKey(claimId)) {
-                if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.UPDATE) {
-                    if (clonedAttrMap.containsKey(claimId)) {
-                        UserStoreAttributeDO defaultUserStoreAttributeDO = clonedAttrMap.get(claimId);
-                        UserStoreAttributeDO newUserStoreAttributeDO = changedUserStoreAttrMap.get(claimId)
-                                .getUsAttributeDO();
-                        if (StringUtils.isNotBlank(newUserStoreAttributeDO.getMappedAttribute())) {
-                            defaultUserStoreAttributeDO.setMappedAttribute(newUserStoreAttributeDO
-                                    .getMappedAttribute());
-                        }
-                        if (StringUtils.isNotBlank(newUserStoreAttributeDO.getDisplayName())) {
-                            defaultUserStoreAttributeDO.setDisplayName(newUserStoreAttributeDO.getDisplayName());
-                        }
-                        clonedAttrMap.put(claimId, defaultUserStoreAttributeDO);
-                    }
-                } else if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.DELETE) {
-                    clonedAttrMap.remove(claimId);
+            if (!clonedAttrMap.containsKey(claimId)) {
+                continue;
+            }
+            if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.UPDATE) {
+                UserStoreAttributeDO defaultUserStoreAttributeDO = clonedAttrMap.get(claimId);
+                UserStoreAttributeDO newUserStoreAttributeDO = changedUserStoreAttrMap.get(claimId)
+                        .getUsAttributeDO();
+                if (StringUtils.isNotBlank(newUserStoreAttributeDO.getMappedAttribute())) {
+                    defaultUserStoreAttributeDO.setMappedAttribute(newUserStoreAttributeDO
+                            .getMappedAttribute());
                 }
+                if (StringUtils.isNotBlank(newUserStoreAttributeDO.getDisplayName())) {
+                    defaultUserStoreAttributeDO.setDisplayName(newUserStoreAttributeDO.getDisplayName());
+                }
+                clonedAttrMap.put(claimId, defaultUserStoreAttributeDO);
+            } else if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.DELETE) {
+                clonedAttrMap.remove(claimId);
             }
         }
         return clonedAttrMap;

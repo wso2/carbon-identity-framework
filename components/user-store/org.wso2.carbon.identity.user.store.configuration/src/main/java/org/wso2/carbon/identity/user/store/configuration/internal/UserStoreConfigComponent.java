@@ -46,10 +46,8 @@ import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -146,7 +144,6 @@ public class UserStoreConfigComponent {
                 log.error("FileBasedUserStoreDAOFactory could not be registered.");
             }
             readAllowedUserstoreConfiguration();
-            readUserStoreTypeMappingsConfiguration();
 
         } catch (Throwable e) {
             log.error("Failed to load user store org.wso2.carbon.identity.user.store.configuration details.", e);
@@ -273,58 +270,6 @@ public class UserStoreConfigComponent {
             }
         }
         UserStoreConfigListenersHolder.getInstance().setAllowedUserstores(allowedUserstores);
-    }
-
-    private void readUserStoreTypeMappingsConfiguration() {
-
-        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        // Read allowed userstore configurations in identity.xml.
-        OMElement userstoresConfig = configParser
-                .getConfigElement(UserStoreConfigurationConstant.USERSTORE_TYPE_MAPPINGS);
-        if (userstoresConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("'%s' config not found.",
-                        UserStoreConfigurationConstant.USERSTORE_TYPE_MAPPINGS));
-            }
-            return;
-        }
-        Map<String, UserStoreConfigurationConstant.UserStoreType> userstoreTypes = new HashMap<>();
-        Iterator userStoreItr = userstoresConfig.getChildrenWithLocalName(UserStoreConfigurationConstant
-                .USERSTORE_TYPE_MAPPING);
-
-        if (userStoreItr != null) {
-            while (userStoreItr.hasNext()) {
-                OMElement userStoreConfig = (OMElement) userStoreItr.next();
-                Iterator attributeItr = userStoreConfig.getChildElements();
-                UserStoreConfigurationConstant.UserStoreType userStoreType = UserStoreConfigurationConstant
-                        .UserStoreType.JDBC;
-                String userStoreName = "";
-                while (attributeItr.hasNext()) {
-                    OMElement attribute = (OMElement) attributeItr.next();
-                    String attributeQName = attribute.getQName().getLocalPart();
-                    if (StringUtils.equalsIgnoreCase(UserStoreConfigurationConstant.USERSTORE_NAME, attributeQName)) {
-                        userStoreName = attribute.getText();
-                    } else if (StringUtils.equalsIgnoreCase(UserStoreConfigurationConstant.USERSTORE_TYPE,
-                            attributeQName)) {
-                        String userStoreTypeStr = attribute.getText();
-                        if (StringUtils.equalsIgnoreCase(UserStoreConfigurationConstant.UserStoreType.JDBC.toString(),
-                                userStoreTypeStr)) {
-                            userStoreType = UserStoreConfigurationConstant.UserStoreType.JDBC;
-                        } else if (StringUtils.equalsIgnoreCase(
-                                UserStoreConfigurationConstant.UserStoreType.AD.toString(), userStoreTypeStr)) {
-                            userStoreType = UserStoreConfigurationConstant.UserStoreType.AD;
-                        } else if (StringUtils.equalsIgnoreCase(
-                                UserStoreConfigurationConstant.UserStoreType.LDAP.toString(), userStoreTypeStr)) {
-                            userStoreType = UserStoreConfigurationConstant.UserStoreType.LDAP;
-                        }
-                    }
-                }
-                if (StringUtils.isNotBlank(userStoreName)) {
-                    userstoreTypes.put(userStoreName, userStoreType);
-                }
-            }
-        }
-        UserStoreConfigListenersHolder.getInstance().setUserStoreTypeMappings(userstoreTypes);
     }
 
     @Reference(

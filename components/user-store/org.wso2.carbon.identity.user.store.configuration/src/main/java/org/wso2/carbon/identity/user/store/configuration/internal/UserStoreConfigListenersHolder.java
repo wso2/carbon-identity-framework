@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
 import org.wso2.carbon.identity.user.store.configuration.utils.AttributeMappingBuilder;
-import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -45,7 +44,6 @@ public class UserStoreConfigListenersHolder {
     private ConfigurationContextService configurationContextService;
     private Map<String, HashProviderFactory> hashProviderFactoryMap;
     private UserStoreAttributeMappings userStoreAttributeMappings;
-    private Map<String, UserStoreConfigurationConstant.UserStoreType> userStoreTypeMappings = null;
 
     private UserStoreConfigListenersHolder() {
 
@@ -90,27 +88,6 @@ public class UserStoreConfigListenersHolder {
     }
 
     /**
-     * Get user store names and user store type of each user store.
-     *
-     * @return Map of user store names and user store types.
-     */
-    public Map<String, UserStoreConfigurationConstant.UserStoreType> getUserStoreTypeMappings() {
-
-        return userStoreTypeMappings;
-    }
-
-    /**
-     * Set user store type mapping.
-     *
-     * @param userStoreTypeMappings Map of user store names and user store type.
-     */
-    public void setUserStoreTypeMappings(Map<String, UserStoreConfigurationConstant.UserStoreType>
-                                                 userStoreTypeMappings) {
-
-        this.userStoreTypeMappings = userStoreTypeMappings;
-    }
-
-    /**
      * Get all user store attribute mappings.
      *
      * @return UserStoreAttributeMappings.
@@ -127,7 +104,7 @@ public class UserStoreConfigListenersHolder {
     /**
      * Set attribute mappings of all user stores.
      *
-     * @param userStoreAttributeMappings attribute mappings of user stores.
+     * @param userStoreAttributeMappings Attribute mappings of user stores.
      */
     public void setUserStoreAttributeMappings(UserStoreAttributeMappings userStoreAttributeMappings) {
 
