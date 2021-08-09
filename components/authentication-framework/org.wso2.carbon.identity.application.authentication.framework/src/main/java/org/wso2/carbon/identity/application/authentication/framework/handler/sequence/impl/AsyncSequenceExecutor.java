@@ -88,9 +88,12 @@ public class AsyncSequenceExecutor {
         public void run() {
 
             try {
+                FrameworkUtils.startTenantFlow(asyncProcess.authenticationContext.getTenantDomain());
                 asyncProcess.call();
             } catch (FrameworkException e) {
                 log.error("Error while calling async process. ", e);
+            } finally {
+                FrameworkUtils.endTenantFlow();
             }
         }
     }
