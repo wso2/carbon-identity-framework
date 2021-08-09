@@ -312,6 +312,7 @@
   "identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_account_lock_notification": false,
   "identity_mgt.password_reset_by_admin.enable_account_unlock_notification": false,
+  "identity_mgt.password_reset_by_admin.code_validity_period": "1440m",
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
 
