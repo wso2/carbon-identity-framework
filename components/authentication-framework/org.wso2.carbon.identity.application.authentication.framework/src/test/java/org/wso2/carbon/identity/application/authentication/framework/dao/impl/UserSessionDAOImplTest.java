@@ -141,6 +141,7 @@ public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
         DataSource dataSource = mock(DataSource.class);
         mockStatic(IdentityDatabaseUtil.class);
         when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
+        when(IdentityDatabaseUtil.getSessionDataSource()).thenReturn(dataSource);
         when(dataSource.getConnection()).thenReturn(getConnection(DB_NAME));
         FederatedUserSession federatedUserSession = userSessionDAO.getFederatedAuthSessionDetails(IDP_SESSION_INDEX);
         assertEquals(federatedUserSession.getSessionId(), SESSION_CONTEXT_KEY);

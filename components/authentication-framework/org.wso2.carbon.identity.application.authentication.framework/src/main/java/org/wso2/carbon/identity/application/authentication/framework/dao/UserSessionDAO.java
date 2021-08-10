@@ -46,7 +46,7 @@ public interface UserSessionDAO {
             throws SessionManagementServerException {
 
         FederatedUserSession federatedUserSession;
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.DATABASE.SESSION);
         try {
             federatedUserSession = jdbcTemplate
                     .fetchSingleRecord(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,

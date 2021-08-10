@@ -135,9 +135,10 @@ public class SQLQueries {
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
 
     // Retrieve data for the Application model.
-    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME , APP_ID, UUID FROM " +
-            "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
-            "SESSION_ID = ?";
+    public static final String SQL_GET_APP_FOR_SESSION_ID = "SELECT SUBJECT, APP_ID FROM IDN_AUTH_SESSION_APP_INFO " +
+            "WHERE SESSION_ID = ?";
+
+    public static final String SQL_GET_APPLICATION = "SELECT APP_NAME, UUID FROM SP_APP WHERE ID = ?";
 
     public static final String SQL_GET_SESSIONS_BY_USER = "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
             "WHERE USER_ID = (SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND " +

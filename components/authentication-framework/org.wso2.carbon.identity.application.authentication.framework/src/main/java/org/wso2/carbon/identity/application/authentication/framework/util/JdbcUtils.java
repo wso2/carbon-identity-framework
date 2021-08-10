@@ -29,14 +29,33 @@ import javax.sql.DataSource;
  */
 public class JdbcUtils {
 
+    public enum DATABASE {
+        IDENTITY, SESSION
+    }
+
     /**
      * Get a new Jdbc Template.
      *
      * @return a new Jdbc Template.
      */
+    @Deprecated
     public static JdbcTemplate getNewTemplate() {
 
         DataSource dataSource = IdentityDatabaseUtil.getDataSource();
+        return new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Get a new Jdbc Template.
+     *
+     * @return a new Jdbc Template.
+     */
+    public static JdbcTemplate getNewTemplate(DATABASE database) {
+
+        DataSource dataSource = IdentityDatabaseUtil.getDataSource();
+        if (DATABASE.SESSION.equals(database)) {
+            dataSource = IdentityDatabaseUtil.getSessionDataSource();
+        }
         return new JdbcTemplate(dataSource);
     }
 
@@ -48,9 +67,9 @@ public class JdbcUtils {
      * @return true if the database type matches the driver type, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    private static boolean isDBTypeOf(String dbType) throws DataAccessException {
+    private static boolean isDBTypeOf(String dbType, DATABASE database) throws DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(database);
         return jdbcTemplate.getDriverName().contains(dbType) || jdbcTemplate.getDatabaseProductName().contains(dbType);
     }
 
@@ -60,9 +79,34 @@ public class JdbcUtils {
      * @return true if DB is H2.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isH2() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.H2);
+        return isDBTypeOf(FrameworkConstants.H2, DATABASE.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is H2.
+     *
+     * @return true if DB is H2.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isH2(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.H2, database);
+    }
+
+
+    /**
+     * Check if the DB is MySQL.
+     *
+     * @return true if DB is MySQL.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    @Deprecated
+    public static boolean isMySQLDB() throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.MY_SQL, DATABASE.IDENTITY);
     }
 
     /**
@@ -71,9 +115,9 @@ public class JdbcUtils {
      * @return true if DB is MySQL.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    public static boolean isMySQLDB() throws DataAccessException {
+    public static boolean isMySQLDB(DATABASE database) throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.MY_SQL);
+        return isDBTypeOf(FrameworkConstants.MY_SQL, database);
     }
 
     /**
@@ -82,9 +126,21 @@ public class JdbcUtils {
      * @return true if DB is Maria DB.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isMariaDB() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.MARIA_DB);
+        return isDBTypeOf(FrameworkConstants.MARIA_DB, DATABASE.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is Maria DB.
+     *
+     * @return true if DB is Maria DB.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isMariaDB(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.MARIA_DB, database);
     }
 
     /**
@@ -93,9 +149,21 @@ public class JdbcUtils {
      * @return true if DB2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isDB2DB() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.DB2);
+        return isDBTypeOf(FrameworkConstants.DB2, DATABASE.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is DB2.
+     *
+     * @return true if DB2, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isDB2DB(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.DB2, database);
     }
 
     /**
@@ -104,9 +172,21 @@ public class JdbcUtils {
      * @return true if DB is PostgreSQL, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isPostgreSQLDB() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.POSTGRE_SQL);
+        return isDBTypeOf(FrameworkConstants.POSTGRE_SQL, DATABASE.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is PostgreSQL.
+     *
+     * @return true if DB is PostgreSQL, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isPostgreSQLDB(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.POSTGRE_SQL, database);
     }
 
     /**
@@ -115,9 +195,23 @@ public class JdbcUtils {
      * @return true if DB is MSSql, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isMSSqlDB() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.MICROSOFT) || isDBTypeOf(FrameworkConstants.S_MICROSOFT);
+        return isDBTypeOf(FrameworkConstants.MICROSOFT, DATABASE.IDENTITY) || isDBTypeOf(FrameworkConstants.S_MICROSOFT
+                , DATABASE.IDENTITY);
+
+    }
+
+    /**
+     * Check if the DB is MSSql.
+     *
+     * @return true if DB is MSSql, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isMSSqlDB(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.MICROSOFT, database) || isDBTypeOf(FrameworkConstants.S_MICROSOFT, database);
     }
 
     /**
@@ -126,8 +220,20 @@ public class JdbcUtils {
      * @return true if DB is Oracle, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
+    @Deprecated
     public static boolean isOracleDB() throws DataAccessException {
 
-        return isDBTypeOf(FrameworkConstants.ORACLE);
+        return isDBTypeOf(FrameworkConstants.ORACLE, DATABASE.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is Oracle.
+     *
+     * @return true if DB is Oracle, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isOracleDB(DATABASE database) throws DataAccessException {
+
+        return isDBTypeOf(FrameworkConstants.ORACLE, database);
     }
 }
