@@ -713,15 +713,11 @@ public class IdentityManagementEndpointUtil {
                     }
                 }
             } else {
-                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                    basePath = serverUrl + context;
+                if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                    basePath = serverUrl + "/t/" + tenantDomain + context;
                 } else {
-                    if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
-                        basePath = serverUrl + "/t/" + tenantDomain + context;
-                    } else {
-                        basePath = serverUrl + context;
-                    }
+                    basePath = serverUrl + context;
                 }
             }
         } catch (URLBuilderException e) {

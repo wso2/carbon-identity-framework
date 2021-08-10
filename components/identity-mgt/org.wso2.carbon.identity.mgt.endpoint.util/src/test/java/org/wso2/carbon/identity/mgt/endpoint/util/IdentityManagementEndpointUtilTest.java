@@ -165,7 +165,7 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                   "https://foo.com",
                   "test.com",
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://foo.com/api/identity/recovery/v0.9"
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   "https://foo.com",
@@ -223,7 +223,7 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                   "test.com",
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://foo.com/api/identity/recovery/v0.9"
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
                 },
                 { true,
                   "https://foo.com",
