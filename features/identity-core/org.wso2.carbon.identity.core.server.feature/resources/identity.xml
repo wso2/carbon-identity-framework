@@ -854,6 +854,7 @@
             <RecoveryLink>false</RecoveryLink>
             <AccountLockNotification>false</AccountLockNotification>
             <AccountUnlockNotification>false</AccountUnlockNotification>
+            <ExpiryTime>1440</ExpiryTime>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
         <NotifyUserExistence>false</NotifyUserExistence>
@@ -1968,5 +1969,10 @@
         <ApplicationName>Console</ApplicationName>
         <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
+
+    <!-- Claim to store localization code  -->
+    <!--    By setting true localization code will be stored inside the http://wso2.org/claims/locality-->
+    <!--    By setting false localization code will be stored inside the http://wso2.org/claims/local-->
+    <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
 
 </Server>

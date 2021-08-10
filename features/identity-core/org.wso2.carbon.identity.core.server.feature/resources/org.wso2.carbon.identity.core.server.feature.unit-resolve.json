@@ -41,6 +41,7 @@
     "identity_mgt.user_self_registration.verification_email_validity": "m",
     "identity_mgt.user_claim_update.email.verification_email_validity": "m",
     "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity":"m",
+    "identity_mgt.password_reset_by_admin.code_validity_period": "m",
 
     "identity_mgt.tenant_registration.ask_password_email_validity": "m",
 
