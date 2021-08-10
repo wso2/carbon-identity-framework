@@ -767,7 +767,12 @@ public class IdentityManagementEndpointUtil {
                     }
                 }
             } else {
-                basePath = serverUrl + context;
+                if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                    basePath = serverUrl + "/t/" + tenantDomain + context;
+                } else {
+                    basePath = serverUrl + context;
+                }
             }
         } catch (URLBuilderException e) {
             throw new ApiException("Error while building url for context: " + context);
