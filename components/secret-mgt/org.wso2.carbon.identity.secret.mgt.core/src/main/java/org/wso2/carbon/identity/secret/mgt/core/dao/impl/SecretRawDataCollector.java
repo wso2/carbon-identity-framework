@@ -31,6 +31,8 @@ public class SecretRawDataCollector {
     private final String secretValue;
     private final Timestamp createdTime;
     private final Timestamp lastModified;
+    private final String secretType;
+    private final String description;
 
     public SecretRawDataCollector(SecretRawDataCollectorBuilder builder) {
 
@@ -40,6 +42,8 @@ public class SecretRawDataCollector {
         this.secretValue = builder.getSecretValue();
         this.createdTime = builder.getCreatedTime();
         this.lastModified = builder.getLastModified();
+        this.secretType = builder.getSecretType();
+        this.description = builder.getDescription();
     }
 
     public int getTenantId() {
@@ -72,6 +76,16 @@ public class SecretRawDataCollector {
         return createdTime;
     }
 
+    public String getSecretType() {
+
+        return secretType;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
+
     public static class SecretRawDataCollectorBuilder {
 
         private int tenantId;
@@ -80,6 +94,8 @@ public class SecretRawDataCollector {
         private String secretValue;
         private Timestamp createdTime;
         private Timestamp lastModified;
+        private String secretType;
+        private String description;
 
         public SecretRawDataCollector build() {
 
@@ -149,6 +165,28 @@ public class SecretRawDataCollector {
         public SecretRawDataCollectorBuilder setSecretValue(String value) {
 
             this.secretValue = value;
+            return this;
+        }
+
+        String getSecretType() {
+
+            return secretType;
+        }
+
+        public SecretRawDataCollectorBuilder setSecretType(String secretType) {
+
+            this.secretType = secretType;
+            return this;
+        }
+
+        String getDescription() {
+
+            return description;
+        }
+
+        public SecretRawDataCollectorBuilder setDescription(String description) {
+
+            this.description = description;
             return this;
         }
     }

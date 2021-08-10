@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServerException;
-import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 
 import java.util.UUID;
 
@@ -62,7 +61,7 @@ public class SecretUtils {
      * @return SecretManagementServerException.
      */
     public static SecretManagementServerException handleServerException(SecretConstants.ErrorMessages error,
-                                                                        String data) {
+                                                                        String... data) {
 
         String message = populateMessageWithData(error, data);
         return new SecretManagementServerException(message, error.getCode());

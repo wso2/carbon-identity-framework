@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.secret.mgt.core.util;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -88,5 +89,13 @@ public class TestUtils {
         secretAdd.setSecretName(name);
         secretAdd.setSecretValue(value);
         return secretAdd;
+    }
+
+    public static SecretType getSampleSecretTypeAdd (String name, String description) {
+
+        SecretType secretType = new SecretType();
+        secretType.setName(name);
+        secretType.setDescription(description);
+        return secretType;
     }
 }

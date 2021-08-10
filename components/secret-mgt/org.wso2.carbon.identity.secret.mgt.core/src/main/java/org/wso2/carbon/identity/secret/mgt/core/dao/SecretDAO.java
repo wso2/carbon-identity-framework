@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.secret.mgt.core.dao;
 
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.util.List;
 
@@ -51,7 +52,8 @@ public interface SecretDAO {
      * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secret getSecretByName(String name, int tenantId) throws SecretManagementException;
+    Secret getSecretByName(String name, SecretType secretType, int tenantId) throws
+            SecretManagementException;
 
     /**
      * Returns {@link Secret} by id.
@@ -67,7 +69,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @return A list of {@link Secret} for the tenant
      */
-    List getSecrets(int tenantId) throws SecretManagementException;
+    List getSecrets(SecretType secretTypeId, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.
@@ -85,7 +87,7 @@ public interface SecretDAO {
      * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretByName(String name, int tenantId) throws SecretManagementException;
+    void deleteSecretByName(String name, String secretTypeId, int tenantId) throws SecretManagementException;
 
     /**
      * Replace {@link Secret} or create not exists.
@@ -105,4 +107,36 @@ public interface SecretDAO {
      */
     boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException;
 
+    /**
+     * Add {@link SecretType}.
+     *
+     * @param secretType {@link SecretType} to be added.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    void addSecretType(SecretType secretType) throws SecretManagementException;
+
+    /**
+     * Replace {@link SecretType}.
+     *
+     * @param secretType {@link SecretType} to be replaced.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    void replaceSecretType(SecretType secretType) throws SecretManagementException;
+
+    /**
+     * Get {@link SecretType} by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @return {@link SecretType} for the given name.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException;
+
+    /**
+     * Delete {@link SecretType} by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @throws SecretManagementException secret Management Exception.
+     */
+    void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException;
 }
