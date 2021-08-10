@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -1906,6 +1907,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     + ApplicationMgtUtil.getSPValidatorRegex();
             throw buildClientException(INVALID_REQUEST, message);
         }
+
+        ServiceProviderProperty useUserIdForSubject = new ServiceProviderProperty();
+        useUserIdForSubject.setName("useUserIdForSubject");
+        useUserIdForSubject.setValue("true");
+        ArrayList<ServiceProviderProperty> serviceProviderProperties
+                = new ArrayList<>(Arrays.asList(serviceProvider.getSpProperties()));
+        serviceProviderProperties.add(useUserIdForSubject);
+        serviceProvider.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
 
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
     }

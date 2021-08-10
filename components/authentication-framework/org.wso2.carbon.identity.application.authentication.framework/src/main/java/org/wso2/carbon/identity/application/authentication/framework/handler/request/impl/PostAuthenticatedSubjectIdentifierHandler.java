@@ -145,23 +145,36 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
     private void setAuthenticatedSubjectIdentifierBasedOnUserId(SequenceConfig sequenceConfig)
             throws UserIdNotFoundException {
 
-        String authenticatedUserId = sequenceConfig.getAuthenticatedUser().getUserId();
         boolean isUserstoreDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
                 .isUseUserstoreDomainInLocalSubjectIdentifier();
         boolean isUseTenantDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
                 .isUseTenantDomainInLocalSubjectIdentifier();
 
-        if (StringUtils.isNotEmpty(authenticatedUserId)) {
-            if (isUseTenantDomainInLocalSubjectIdentifier) {
-                authenticatedUserId = UserCoreUtil.addTenantDomainToEntry(authenticatedUserId,
-                        sequenceConfig.getAuthenticatedUser().getTenantDomain());
-            }
-            if (isUserstoreDomainInLocalSubjectIdentifier) {
-                authenticatedUserId = UserCoreUtil.addDomainToName(authenticatedUserId,
-                        sequenceConfig.getAuthenticatedUser().getUserStoreDomain());
-            }
+        boolean useUserIdForSubject = sequenceConfig.getApplicationConfig().isUseUserIdForSubject();
+        if (useUserIdForSubject) {
+            String authenticatedUserId = sequenceConfig.getAuthenticatedUser().getUserId();
 
-            sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(authenticatedUserId);
+            if (StringUtils.isNotEmpty(authenticatedUserId)) {
+                if (isUseTenantDomainInLocalSubjectIdentifier) {
+                    authenticatedUserId = UserCoreUtil.addTenantDomainToEntry(authenticatedUserId,
+                            sequenceConfig.getAuthenticatedUser().getTenantDomain());
+                }
+                if (isUserstoreDomainInLocalSubjectIdentifier) {
+                    authenticatedUserId = UserCoreUtil.addDomainToName(authenticatedUserId,
+                            sequenceConfig.getAuthenticatedUser().getUserStoreDomain());
+                }
+
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(authenticatedUserId);
+            }
+        } else {
+            String authenticatedUserName = sequenceConfig.getAuthenticatedUser().getUserName();
+
+            if (StringUtils.isNotEmpty(authenticatedUserName)) {
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(
+                        sequenceConfig.getAuthenticatedUser()
+                                .getUsernameAsSubjectIdentifier(isUserstoreDomainInLocalSubjectIdentifier,
+                                        isUseTenantDomainInLocalSubjectIdentifier));
+            }
         }
     }
 
