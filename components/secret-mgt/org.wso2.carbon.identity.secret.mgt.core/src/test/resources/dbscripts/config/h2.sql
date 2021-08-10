@@ -1,5 +1,5 @@
 -- -----------------------------------------------------
--- Table IDN_CONFIG_TYPE
+-- Table IDN_SECRET_TYPE
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS IDN_SECRET_TYPE (
   ID          VARCHAR(255)  NOT NULL,

@@ -56,7 +56,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException {
+    public Secret getSecretByName(String name, SecretType secretType, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(name, tenantId);
         if (secret != null) {
@@ -72,7 +72,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
                         "%d", name, tenantId);
                 log.debug(message);
             }
-            secret = secretDAO.getSecretByName(name, secretTypeId, secretTypeName, tenantId);
+            secret = secretDAO.getSecretByName(name, secretType, tenantId);
             addSecretToCache(secret);
         }
         return secret;
@@ -100,9 +100,9 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException {
+    public List getSecrets(SecretType secretType, int tenantId) throws SecretManagementException {
 
-        return secretDAO.getSecrets(secretTypeId, secretTypeName, tenantId);
+        return secretDAO.getSecrets(secretType, tenantId);
     }
 
     @Override

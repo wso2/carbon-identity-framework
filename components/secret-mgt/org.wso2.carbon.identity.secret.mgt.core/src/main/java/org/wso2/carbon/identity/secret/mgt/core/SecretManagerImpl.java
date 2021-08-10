@@ -90,7 +90,7 @@ public class SecretManagerImpl implements SecretManager {
         validateSecretManagerEnabled();
         validateSecretRetrieveRequest(secretTypeName, secretName);
         SecretType secretType = getSecretType(secretTypeName);
-        Secret secret = this.getSecretDAO().getSecretByName(secretName, secretType.getId(), secretType.getName(), getTenantId());
+        Secret secret = this.getSecretDAO().getSecretByName(secretName, secretType, getTenantId());
         if (secret == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the secretName: " + secretName);
@@ -109,7 +109,7 @@ public class SecretManagerImpl implements SecretManager {
         validateSecretManagerEnabled();
         validateSecretsRetrieveRequest(secretTypeName);
         SecretType secretType = getSecretType(secretTypeName);
-        List secretList = this.getSecretDAO().getSecrets(secretType.getId(), secretType.getName(), getTenantId());
+        List secretList = this.getSecretDAO().getSecrets(secretType, getTenantId());
         if (secretList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found the secretTypeName: " + secretTypeName + "for the tenant: " + getTenantDomain());
@@ -181,7 +181,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         validateSecretReplaceRequest(secretTypeName, secret);
-        String secretId = generateSecretId(secretTypeName, secret.getSecretName());
+        String secretId = retrieveOrGenerateSecretId(secretTypeName, secret.getSecretName());
         secret.setSecretId(secretId);
         secret.setSecretType(secretTypeName);
         secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
@@ -216,7 +216,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretTypeReplaceRequest(secretType);
         String secretTypeID;
-        secretTypeID = generateSecretTypeId(secretType.getName());
+        secretTypeID = retrieveOrGenerateSecretTypeId(secretType.getName());
         secretType.setId(secretTypeID);
         getSecretDAO().replaceSecretType(secretType);
         if (log.isDebugEnabled()) {
@@ -328,7 +328,7 @@ public class SecretManagerImpl implements SecretManager {
         }
         if (isSecretExist(secretTypeName, secret.getSecretName())) {
             if (log.isDebugEnabled()) {
-                log.debug("A secret with the name: " + secret.getSecretName() + " does not exists.");
+                log.debug("A secret with the name: " + secret.getSecretName() + " does exists.");
             }
             throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
         }
@@ -380,7 +380,7 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretManagerEnabled() throws SecretManagementServerException {
 
         if (!SecretManagerComponentDataHolder.getInstance().isSecretManagementEnabled()) {
-            throw handleServerException(ERROR_CODE_SECRET_MANAGER_NOT_ENABLED, DB_TABLE_SECRET);
+            throw handleServerException(ERROR_CODE_SECRET_MANAGER_NOT_ENABLED);
         }
     }
 
@@ -418,7 +418,7 @@ public class SecretManagerImpl implements SecretManager {
         return this.getSecretDAO().isExistingSecret(secretId, getTenantId());
     }
 
-    private String generateSecretId(String secretTypeName, String secretName) throws SecretManagementException {
+    private String retrieveOrGenerateSecretId(String secretTypeName, String secretName) throws SecretManagementException {
 
         String secretId;
         if (isSecretExist(secretTypeName, secretName)) {
@@ -533,7 +533,7 @@ public class SecretManagerImpl implements SecretManager {
         }
     }
 
-    private String generateSecretTypeId(String secretTypeName) throws SecretManagementException {
+    private String retrieveOrGenerateSecretTypeId(String secretTypeName) throws SecretManagementException {
 
         String secretTypeID;
         if (isSecretTypeExists(secretTypeName)) {

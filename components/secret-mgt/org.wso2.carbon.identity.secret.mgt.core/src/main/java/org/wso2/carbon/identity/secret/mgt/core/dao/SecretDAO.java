@@ -52,7 +52,7 @@ public interface SecretDAO {
      * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secret getSecretByName(String name, String secretTypeId, String secretTypeName, int tenantId) throws
+    Secret getSecretByName(String name, SecretType secretType, int tenantId) throws
             SecretManagementException;
 
     /**
@@ -69,7 +69,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @return A list of {@link Secret} for the tenant
      */
-    List getSecrets(String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException;
+    List getSecrets(SecretType secretTypeId, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.

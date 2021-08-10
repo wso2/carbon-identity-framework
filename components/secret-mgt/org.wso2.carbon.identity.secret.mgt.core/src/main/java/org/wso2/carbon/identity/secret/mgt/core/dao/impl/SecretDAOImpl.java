@@ -90,7 +90,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, String secretTypeId, String secretTypeName, int tenantId) throws
+    public Secret getSecretByName(String name, SecretType secretType, int tenantId) throws
             SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
@@ -110,11 +110,11 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
                                         .setDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION))
-                                        .setSecretType(secretTypeName);
+                                        .setSecretType(secretType.getName());
                         return secretRawDataCollectorBuilder.build();
                     }, preparedStatement -> {
                         preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, name);
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeId);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getId());
                         preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
 
@@ -160,7 +160,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(String secretTypeId, String secretTypeName, int tenantId) throws SecretManagementException {
+    public List getSecrets(SecretType secretType, int tenantId) throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
@@ -177,12 +177,12 @@ public class SecretDAOImpl implements SecretDAO {
                         secret.setSecretName(secretName);
                         secret.setLastModified(secretLastModified);
                         secret.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        secret.setSecretType(secretTypeName);
+                        secret.setSecretType(secretType.getName());
                         secret.setDescription(description);
                         return secret;
                     })),
                     preparedStatement -> {
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeId);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getId());
                         preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
         } catch (DataAccessException e) {
