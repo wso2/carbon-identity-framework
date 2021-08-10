@@ -233,7 +233,6 @@ public class LocalClaimDAO extends ClaimDAO {
             throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
-        PreparedStatement prepStmt = null;
 
         try {
             // Start transaction
