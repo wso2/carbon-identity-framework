@@ -67,6 +67,8 @@ public class ClaimConstants {
                 "Claim URI : %s already exists for claim dialect : %s"),
         ERROR_CODE_EXISTING_LOCAL_CLAIM_URI("100011",
                 "Local claim URI : %s already exists."),
+        ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI("100012",
+                "Local claim URI : %s does not exist."),
 
         // Client errors.
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
