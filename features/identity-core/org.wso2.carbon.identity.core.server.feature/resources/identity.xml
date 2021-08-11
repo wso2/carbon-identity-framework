@@ -154,7 +154,7 @@
             <!--If true old access token cleaning feature is enabled -->
             <EnableTokenCleanup>true</EnableTokenCleanup>
             <!--If true  old access token retained in audit table  -->
-            <RetainOldAccessToken>true</RetainOldAccessToken>
+            <RetainOldAccessToken>false</RetainOldAccessToken>
         </TokenCleanup>
         <!-- Specify the Token issuer class to be used.
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
