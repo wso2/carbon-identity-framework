@@ -350,7 +350,9 @@ public class FrameworkServiceComponent {
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
-        FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        if (FrameworkServiceDataHolder.getInstance().getSessionSerializer() == null) {
+            FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        }
     }
 
     @Deactivate
@@ -482,6 +484,7 @@ public class FrameworkServiceComponent {
                     + sessionSerializer.getClass().getName());
         }
         FrameworkServiceDataHolder.getInstance().setSessionSerializer(sessionSerializer);
+        log.info("Session serializer got registered: " + sessionSerializer.getClass().getName());
     }
 
     protected void unsetSessionSerializer(SessionSerializer sessionSerializer) {
