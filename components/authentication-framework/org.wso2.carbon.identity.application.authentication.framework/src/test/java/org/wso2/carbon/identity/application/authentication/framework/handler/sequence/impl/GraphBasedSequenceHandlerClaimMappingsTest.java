@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -57,6 +60,19 @@ import static org.testng.Assert.assertEquals;
 @WithCarbonHome
 @WithRealmService
 public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequenceHandlerAbstractTest {
+
+    @BeforeTest
+    public void init() {
+
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+    }
+
+    @AfterTest
+    public void teardown() {
+
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+    }
 
     public void testHandleClaimHandling() throws Exception {
 

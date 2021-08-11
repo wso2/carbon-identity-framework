@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -47,6 +50,19 @@ import static org.mockito.Mockito.mock;
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithRealmService
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
+
+    @BeforeTest
+    public void init() {
+
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+    }
+
+    @AfterTest
+    public void teardown() {
+
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+    }
 
     @Test
     public void testHandleLongWait() throws Exception {

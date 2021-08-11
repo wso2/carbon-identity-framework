@@ -2548,6 +2548,10 @@
         {% if authentication.adaptive.allow_loops is defined %}
             <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
+        <ExecutionSupervisor>
+            <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
+            <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
+        </ExecutionSupervisor>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
