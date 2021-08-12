@@ -46,7 +46,7 @@
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
   "oauth.token_cleanup.enable": true,
-  "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
+  "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
   "oauth.use_entityid_as_issuer_in_oidc_discovery": true,
   "oauth.token_validation.authorization_code_validity": "5m",
