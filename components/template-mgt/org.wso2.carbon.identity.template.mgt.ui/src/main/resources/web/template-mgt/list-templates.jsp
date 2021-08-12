@@ -30,9 +30,9 @@
                        resourceBundle="org.wso2.carbon.identity.template.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
     
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <div id="middle">
         
         <h2>

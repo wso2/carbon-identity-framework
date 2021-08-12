@@ -74,9 +74,9 @@
     <carbon:breadcrumb label="application.mgt"
                        resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
     <%
         String[] updateTemplateError = (String[]) request.getSession().getAttribute("updateTemplateError");

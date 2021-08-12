@@ -28,9 +28,9 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 
-<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
-<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+<script type="text/javascript" src="../admin/js/cookies.js"></script>
 
 <fmt:bundle basename="org.wso2.carbon.directory.server.manager.ui.i18n.Resources">
 
