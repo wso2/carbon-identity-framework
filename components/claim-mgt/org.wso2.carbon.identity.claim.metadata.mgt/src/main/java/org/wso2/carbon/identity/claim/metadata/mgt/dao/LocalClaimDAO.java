@@ -224,10 +224,10 @@ public class LocalClaimDAO extends ClaimDAO {
     /**
      * Update attribute claim mappings related to tenant id and domain.
      *
-     * @param localClaimList  list of local claims
-     * @param tenantId        Tenant Id
-     * @param userStoreDomain Domain name
-     * @throws ClaimMetadataException If an error occurred while updating local claims
+     * @param localClaimList  list of local claims.
+     * @param tenantId        Tenant Id.
+     * @param userStoreDomain Domain name.
+     * @throws ClaimMetadataException If an error occurred while updating local claims.
      */
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
             throws ClaimMetadataException {
@@ -235,7 +235,7 @@ public class LocalClaimDAO extends ClaimDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
 
         try {
-            // Start transaction
+            // Start transaction.
             connection.setAutoCommit(false);
 
             Map<Integer, List<AttributeMapping>> claimAttributeMappingsOfDialect =
@@ -256,7 +256,7 @@ public class LocalClaimDAO extends ClaimDAO {
                 addClaimAttributeMappings(connection, localClaimId, existingClaimAttributeMappings, tenantId);
             }
 
-            // End transaction
+            // End transaction.
             connection.commit();
         } catch (SQLException e) {
             rollbackTransaction(connection);

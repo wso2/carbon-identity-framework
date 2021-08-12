@@ -231,12 +231,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
-     * Update attribute mappings for local claims in bulk
+     * Update attribute mappings for local claims in bulk.
      *
-     * @param localClaimList
-     * @param tenantDomain
-     * @param userStoreDomain
-     * @throws ClaimMetadataException
+     * @param localClaimList    list of local claims.
+     * @param tenantDomain      tenant domain name.
+     * @param userStoreDomain   user store domain name.
+     * @throws ClaimMetadataException if error occurs while updating local claims.
      */
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
             throws ClaimMetadataException {
@@ -251,7 +251,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         this.localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
 
         for (LocalClaim localClaim : localClaimList) {
-            ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
+            claimMetadataEventPublisherProxy.publishPostUpdateLocalClaim(tenantId, localClaim);
         }
     }
 

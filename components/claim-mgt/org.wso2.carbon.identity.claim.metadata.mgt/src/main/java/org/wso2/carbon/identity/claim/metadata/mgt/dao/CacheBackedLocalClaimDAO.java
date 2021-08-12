@@ -76,12 +76,12 @@ public class CacheBackedLocalClaimDAO {
     }
 
     /**
-     * Update attribute claim mappings related to tenant id and domain.
+     * Update attribute claim mappings related to tenant id and domain in bulk.
      *
-     * @param localClaimList  list of local claims
-     * @param tenantId        Tenant Id
-     * @param userStoreDomain Domain name
-     * @throws ClaimMetadataException If an error occurred while updating local claims
+     * @param localClaimList  list of local claims.
+     * @param tenantId        Tenant Id.
+     * @param userStoreDomain Domain name.
+     * @throws ClaimMetadataException If an error occurred while updating local claims.
      */
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
             throws ClaimMetadataException {
