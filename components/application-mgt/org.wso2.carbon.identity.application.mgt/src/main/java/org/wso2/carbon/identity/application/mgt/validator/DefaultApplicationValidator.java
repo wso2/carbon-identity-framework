@@ -95,6 +95,11 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     public static final String IS_HANDLER = "IS_HANDLER";
     private static final String CONF_ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
     private static Pattern loopPattern;
+    private static final int MODE_DEFAULT = 1;
+    private static final int MODE_ESCAPE = 2;
+    private static final int MODE_STRING = 3;
+    private static final int MODE_SINGLE_LINE = 4;
+    private static final int MODE_MULTI_LINE = 5;
 
     public DefaultApplicationValidator() {
 
@@ -503,6 +508,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 log.debug("Loops are not allowed in the authentication script. " +
                         "Therefore checking whether loops are present in the provided script.");
             }
+            script = removeCommentsFromScript(script);
             Matcher matcher = loopPattern.matcher(script);
             if (matcher.find()) {
                 validationErrors.add("Loops are not allowed in the adaptive authentication script, " +
@@ -536,5 +542,43 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
+    }
+
+    private String removeCommentsFromScript(String script) {
+
+        StringBuilder cleanedScript = new StringBuilder();
+        int mode = MODE_DEFAULT;
+        for (int i = 0; i < script.length(); i++) {
+            String subString = script.substring(i, Math.min(i + 2, script.length()));
+            char c = script.charAt(i);
+            switch (mode) {
+                case MODE_DEFAULT: // Checks if start of a comment if not checks if start of a string.
+                    mode = subString.equals("/*") ? MODE_MULTI_LINE
+                            : (subString.equals("//") ? MODE_SINGLE_LINE
+                            : (((c == '"') || (c == '\'')) ? MODE_STRING : MODE_DEFAULT));
+                    break;
+                case MODE_STRING: // Checks if end of a string if not checks if a char is a escape character.
+                    mode = ((c == '"') || (c == '\'')) ? MODE_DEFAULT : ((c == '\\') ? MODE_ESCAPE : MODE_STRING);
+                    break;
+                case MODE_ESCAPE: // Marks end of escape character.
+                    mode = MODE_STRING;
+                    break;
+                case MODE_SINGLE_LINE: // Checks to see if new line which marks end of a single line comment.
+                    mode = (c == '\n') ? MODE_DEFAULT : MODE_SINGLE_LINE;
+                    continue;
+                case MODE_MULTI_LINE: // Checks to see if end of a new line comment.
+                    mode = subString.equals("*/") ? MODE_DEFAULT : MODE_MULTI_LINE;
+                    if (mode == MODE_DEFAULT) {
+                        i += 1;
+                    }
+                    continue;
+            }
+            // If char is not part of a comment
+            // then append to cleaned script.
+            if (mode < 4) {
+                cleanedScript.append(c);
+            }
+        }
+        return cleanedScript.toString();
     }
 }
