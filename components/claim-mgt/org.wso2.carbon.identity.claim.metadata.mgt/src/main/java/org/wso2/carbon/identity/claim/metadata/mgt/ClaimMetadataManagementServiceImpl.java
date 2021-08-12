@@ -230,14 +230,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
     }
 
-    /**
-     * Update attribute mappings for local claims in bulk.
-     *
-     * @param localClaimList    list of local claims.
-     * @param tenantDomain      tenant domain name.
-     * @param userStoreDomain   user store domain name.
-     * @throws ClaimMetadataException if error occurs while updating local claims.
-     */
+    @Override
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
             throws ClaimMetadataException {
 
@@ -450,13 +443,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         return null;
     }
 
-    /**
-     * To validate claim mapping attributes of local claims.
-     *
-     * @param localClaimList List of Local claims
-     * @param tenantDomain  Tenant domain
-     * @throws ClaimMetadataException If an error occurred while validating local claims.
-     */
+    @Override
     public void validateClaimAttributeMapping(List<LocalClaim> localClaimList,  String tenantDomain)
             throws ClaimMetadataException {
 
