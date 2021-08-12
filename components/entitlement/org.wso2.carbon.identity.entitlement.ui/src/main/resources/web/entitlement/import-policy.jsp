@@ -38,9 +38,9 @@
                        resourceBundle="org.wso2.carbon.identity.entitlement.ui.i18n.Resources"
                        topPage="true" request="<%=request%>" />
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript" src="extensions/js/vui.js"></script>
     <script type="text/javascript" src="../ajax/js/prototype.js"></script>
     <script type="text/javascript" src="../resources/js/resource_util.js"></script>
