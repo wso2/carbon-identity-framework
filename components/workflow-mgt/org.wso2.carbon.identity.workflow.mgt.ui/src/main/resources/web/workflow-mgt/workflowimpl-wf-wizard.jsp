@@ -167,9 +167,9 @@
             topPage="false"
             request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
 
     <!-- Override carbon jquery from latest release of it, because this tokenizer support for latest one -->
     <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
