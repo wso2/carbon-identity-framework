@@ -52,6 +52,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_TENANT_DOMAIN;
@@ -227,6 +228,24 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         this.localClaimDAO.updateLocalClaim(localClaim, tenantId);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
+    }
+
+    @Override
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        ClaimMetadataEventPublisherProxy claimMetadataEventPublisherProxy =
+                ClaimMetadataEventPublisherProxy.getInstance();
+        for (LocalClaim localClaim : localClaimList) {
+            claimMetadataEventPublisherProxy.publishPreUpdateLocalClaim(tenantId, localClaim);
+        }
+
+        this.localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
+
+        for (LocalClaim localClaim : localClaimList) {
+            claimMetadataEventPublisherProxy.publishPostUpdateLocalClaim(tenantId, localClaim);
+        }
     }
 
     @Override
@@ -422,6 +441,25 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             }
         }
         return null;
+    }
+
+    @Override
+    public void validateClaimAttributeMapping(List<LocalClaim> localClaimList,  String tenantDomain)
+            throws ClaimMetadataException {
+
+        for (LocalClaim localClaim : localClaimList) {
+            if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
+            } else if (localClaim.getMappedAttributes().isEmpty()) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getCode(),
+                        String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
+                                .getClaimDialectURI(), localClaim.getClaimURI()));
+            }
+            if (!isExistingLocalClaimURI(localClaim.getClaimURI(), IdentityTenantUtil.getTenantId(tenantDomain))) {
+                throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getCode(),
+                        String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
+            }
+        }
     }
 
     private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
