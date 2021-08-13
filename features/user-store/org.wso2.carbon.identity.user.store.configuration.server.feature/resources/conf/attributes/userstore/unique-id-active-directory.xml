@@ -1,0 +1,162 @@
+<!--
+  ~ Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<AttributeMapping userStoreType="org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager">
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/active</ClaimURI>
+        <DisplayName>Active</DisplayName>
+        <AttributeID>msDS-cloudExtensionAttribute2</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/addresses</ClaimURI>
+        <DisplayName>Address</DisplayName>
+        <AttributeID>postalAddress</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/addresses.formatted</ClaimURI>
+        <DisplayName>Address - Formatted</DisplayName>
+        <AttributeID>formattedAddress</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/country</ClaimURI>
+        <DisplayName>Country</DisplayName>
+        <AttributeID>co</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/created</ClaimURI>
+        <DisplayName>Created Time</DisplayName>
+        <AttributeID>whenCreated</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/dob</ClaimURI>
+        <DisplayName>Birth Date</DisplayName>
+        <AttributeID>info</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/externalid</ClaimURI>
+        <DisplayName>External ID</DisplayName>
+        <AttributeID>uid</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/gender</ClaimURI>
+        <DisplayName>Gender</DisplayName>
+        <AttributeID>msDS-cloudExtensionAttribute9</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/groups</ClaimURI>
+        <DisplayName>Groups</DisplayName>
+        <AttributeID>memberOf</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/local</ClaimURI>
+        <DisplayName>Local</DisplayName>
+        <AttributeID>localeID</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/locality</ClaimURI>
+        <DisplayName>Locality</DisplayName>
+        <AttributeID>l</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/location</ClaimURI>
+        <DisplayName>Location</DisplayName>
+        <AttributeID>profilePath</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/metadata.version</ClaimURI>
+        <DisplayName>User Metadata - Version</DisplayName>
+        <AttributeID>replPropertyMetaData</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/modified</ClaimURI>
+        <DisplayName>Last Modified Time</DisplayName>
+        <AttributeID>whenChanged</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/nickname</ClaimURI>
+        <DisplayName>Nick Name</DisplayName>
+        <AttributeID>name</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/photourl</ClaimURI>
+        <DisplayName>Photo URL</DisplayName>
+        <AttributeID>labeledURI</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/region</ClaimURI>
+        <DisplayName>Region</DisplayName>
+        <AttributeID>st</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/resourceType</ClaimURI>
+        <DisplayName>Resource Type</DisplayName>
+        <AttributeID>employeeType</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <ClaimURI>http://wso2.org/claims/roles</ClaimURI>
+    <DisplayName>Roles</DisplayName>
+    <AttributeID>memberOf</AttributeID>
+    <Description>Roles</Description>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
+        <DisplayName>Photo - Thumbnail</DisplayName>
+        <AttributeID>thumbnailPhoto</AttributeID>F
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/timeZone</ClaimURI>
+        <DisplayName>Time Zone</DisplayName>
+        <AttributeID>msDS-cloudExtensionAttribute1</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/userid</ClaimURI>
+        <DisplayName>User ID</DisplayName>
+        <AttributeID>objectGUID</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/username</ClaimURI>
+        <DisplayName>Username</DisplayName>
+        <AttributeID>userPrincipalName</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+    <Attribute>
+        <ClaimURI>http://wso2.org/claims/websiteurl</ClaimURI>
+        <DisplayName>Website URL</DisplayName>
+        <AttributeID>profilePath</AttributeID>
+        <Operation>update</Operation>
+    </Attribute>
+</AttributeMapping>
