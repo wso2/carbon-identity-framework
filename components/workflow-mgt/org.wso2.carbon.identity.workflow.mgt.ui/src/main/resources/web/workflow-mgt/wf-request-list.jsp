@@ -55,10 +55,6 @@
 %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
-<script type="text/javascript" src="../admin/js/main.js"></script>
-
 <%
     String taskTypeFilter = request.getParameter(REQUEST_TYPE_FILTER);
     String statusToFilter = request.getParameter(REQUEST_STATUS_FILTER);
@@ -173,9 +169,9 @@
                        resourceBundle="org.wso2.carbon.identity.workflow.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <link rel="stylesheet" href="/carbon/styles/css/main.css">
 
 
