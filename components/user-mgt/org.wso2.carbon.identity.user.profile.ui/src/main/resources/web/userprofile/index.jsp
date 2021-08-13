@@ -27,8 +27,6 @@
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <%@page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo"%>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo" %>
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <%!
     private static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
@@ -180,9 +178,9 @@
             topPage="true"
             request="<%=request%>"/>
 
-            <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-			<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-			<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+            <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+			<script type="text/javascript" src="../admin/js/cookies.js"></script>
+			<script type="text/javascript" src="../admin/js/main.js"></script>
 
     <div id="middle">
         <%

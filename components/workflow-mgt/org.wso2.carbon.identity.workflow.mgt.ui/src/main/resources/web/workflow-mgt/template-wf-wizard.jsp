@@ -43,11 +43,6 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
 
-
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
-<script type="text/javascript" src="../admin/js/main.js"></script>
-
 <%
 
     WorkflowAdminServiceClient client;
@@ -195,9 +190,9 @@
     <link rel="stylesheet" type="text/css" href="css/input_style.css">
 
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
 
     <!-- Override carbon jquery from latest release of it, because this tokenizer support for latest one -->
 
