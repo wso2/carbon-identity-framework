@@ -3843,6 +3843,7 @@ public class IdPManagementDAO {
      * @throws SQLException          Database Exception.
      */
     private void deleteIdpProvConfigProperty(Connection conn, int provisioningConfigId) throws SQLException {
+
         PreparedStatement prepStmt = null;
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_PROV_CONFIG_PROPERTY;
         try {

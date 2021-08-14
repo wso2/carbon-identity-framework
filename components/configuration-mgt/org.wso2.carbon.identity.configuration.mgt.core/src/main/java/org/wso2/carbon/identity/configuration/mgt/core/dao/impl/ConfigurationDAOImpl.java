@@ -487,6 +487,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      * @return resourceId for the given resource.
      */
     private String getResourceId(int tenantId, String resourceTypeId, String resourceName) throws TransactionException {
+
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.withTransaction(template ->
                 template.fetchSingleRecord(
