@@ -160,6 +160,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_TYPE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
@@ -477,6 +479,30 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     /**
+     * Get resourceId for the {@link Resource}.
+     *
+     * @param tenantId          Tenant Id of the {@link Resource}.
+     * @param resourceTypeId    Type Id of the {@link Resource}.
+     * @param resourceName      Name of the {@link Resource}.
+     * @return resourceId for the given resource.
+     */
+    private String getResourceId(int tenantId, String resourceTypeId, String resourceName) throws TransactionException {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        return jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(
+                        GET_RESOURCE_ID_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID),
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resourceName);
+                            preparedStatement.setInt(++initialParameterIndex,tenantId);
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }
+                )
+        );
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -485,13 +511,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            if (isMySQLDB()) {
+                String resourceId = getResourceId(tenantId, resourceTypeId, resourceName);
+                deleteFiles(resourceId);
+            }
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_SQL, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, resourceName);
                 preparedStatement.setInt(++initialParameterIndex, tenantId);
                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
             });
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_RESOURCE_TYPE, resourceName, e);
         }
     }
@@ -504,6 +534,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            if (isMySQLDB()) {
+                deleteFiles(resourceId);
+            }
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_BY_ID_SQL, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, resourceId);
@@ -765,6 +798,35 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      */
     @Override
     public void deleteResourceTypeByName(String resourceTypeName) throws ConfigurationManagementException {
+
+        try {
+            if (isMySQLDB()) {
+                JdbcTemplate jdbcTemplateGetResourceTypeId = JdbcUtils.getNewTemplate();
+                String resourceTypeId = jdbcTemplateGetResourceTypeId.withTransaction(template ->
+                        template.fetchSingleRecord(GET_RESOURCE_TYPE_ID_BY_NAME_SQL,
+                                (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID),
+                                preparedStatement -> {
+                                    int initialParameterIndex = 1;
+                                    preparedStatement.setString(initialParameterIndex, resourceTypeName);
+                                }
+                        )
+                );
+                JdbcTemplate jdbcTemplateGetIds = JdbcUtils.getNewTemplate();
+                jdbcTemplateGetIds.executeQuery(GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL, ((resultSet, rowNumber) -> {
+                    String ResourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                    int TenantId = resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID);
+                    try {
+                        CachedBackedConfigurationDAO cachedBackedConfigurationDAO = new CachedBackedConfigurationDAO(this);
+                        cachedBackedConfigurationDAO.deleteResourceById(TenantId, ResourceId);
+                    } catch (ConfigurationManagementException e) {
+                        log.error(ERROR_CODE_DELETE_RESOURCE + ResourceId, e);
+                    }
+                    return null;
+                }), preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+            }
+        } catch (TransactionException | DataAccessException e) {
+            throw handleServerException(ERROR_CODE_DELETE_RESOURCE_TYPE, resourceTypeName, e);
+        }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {

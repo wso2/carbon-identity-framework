@@ -35,6 +35,7 @@ public class IdPManagementConstants {
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
+    public static final String MySQL = "MySQL";
 
     public static final String RESIDENT_IDP = "LOCAL";
     public static final String EQ = "eq";
@@ -182,11 +183,16 @@ public class IdPManagementConstants {
                 + "PROVISIONING_CONFIG_ID, PROPERTY_KEY, PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, " +
                 "IS_SECRET FROM IDP_PROV_CONFIG_PROPERTY WHERE TENANT_ID=? AND PROVISIONING_CONFIG_ID=?";
 
+        public static final String GET_IDP_PROVISIONING_CONFIGS_ID = "SELECT ID " +
+                "FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=?";
 
         public static final String GET_LOCAL_IDP_DEFAULT_CLAIM_VALUES_SQL = "SELECT CLAIM_URI,DEFAULT_VALUE," +
                 "IS_REQUESTED FROM IDP_LOCAL_CLAIM " + " WHERE IDP_ID = ? AND TENANT_ID =?";
 
         public static final String DELETE_PROVISIONING_CONNECTORS = "DELETE FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=?";
+
+        public static final String DELETE_IDP_PROV_CONFIG_PROPERTY = "DELETE FROM IDP_PROV_CONFIG_PROPERTY WHERE " +
+                "PROVISIONING_CONFIG_ID=?";
 
         public static final String GET_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
                 "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID=?";
@@ -304,6 +310,11 @@ public class IdPManagementConstants {
         public static final String DELETE_ALL_IDP_BY_TENANT_ID_SQL = "DELETE FROM IDP WHERE TENANT_ID = ?";
 
         public static final String DELETE_IDP_BY_RESOURCE_ID_SQL = "DELETE FROM IDP WHERE UUID=?";
+
+        public static final String GET_IDP_CONFIGS_ID_FROM_UUID = "SELECT ID FROM IDP WHERE UUID=?";
+
+        public static final String GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME =
+                "SELECT ID FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
 
         public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +
                 "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
