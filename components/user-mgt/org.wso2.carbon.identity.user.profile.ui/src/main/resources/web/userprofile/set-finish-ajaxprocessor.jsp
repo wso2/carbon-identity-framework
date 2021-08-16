@@ -34,8 +34,6 @@
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
 <jsp:include page="../dialog/display_messages.jsp" />
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%

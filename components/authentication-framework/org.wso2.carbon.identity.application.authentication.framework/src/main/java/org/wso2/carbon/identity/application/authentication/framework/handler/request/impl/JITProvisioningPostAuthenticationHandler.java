@@ -324,7 +324,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName, context);
                     }
                     // Check if the associated local account is locked.
-                    if (isAccountLocked(username, context.getTenantDomain())) {
+                    if (StringUtils.isNotBlank(associatedLocalUser) &&
+                            isAccountLocked(username, context.getTenantDomain())) {
                         if (log.isDebugEnabled()) {
                             log.debug(String.format("The account is locked for the user: %s in the " +
                                     "tenant domain: %s ", username, context.getTenantDomain()));
@@ -351,7 +352,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String username;
         // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
-        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled() && stepConfig.isSubjectIdentifierStep()) {
+        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
             username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
                     externalIdPConfigName, context);
         } else {

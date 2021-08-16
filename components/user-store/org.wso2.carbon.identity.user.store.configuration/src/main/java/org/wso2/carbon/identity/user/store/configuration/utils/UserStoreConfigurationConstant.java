@@ -46,6 +46,19 @@ public class UserStoreConfigurationConstant {
     public static final String ALLOWED_USERSTORES = "AllowedUserstores";
     public static final String ALLOWED_USERSTORE = "AllowedUserstore";
 
+    // Attribute mappings constants
+    public static final String CLAIM_CONFIG = "claim-config.xml";
+    public static final String DIALECTS = "Dialects";
+    public static final String DIALECT = "Dialect";
+    public static final String LOCAL_DIALECT_URL = "http://wso2.org/claims";
+    public static final String USERSTORE_TYPE = "userStoreType";
+    public static final String DISPLAY_NAME = "DisplayName";
+    public static final String ATTRIBUTE_ID = "AttributeID";
+    public static final String CLAIM_URI = "ClaimURI";
+    public static final String OPERATION = "Operation";
+    public static final String ATTRIBUTES_DIR = "attributes";
+    public static final String USERSTORE_DIR = "userstore";
+
     private UserStoreConfigurationConstant() {
 
     }
@@ -88,6 +101,21 @@ public class UserStoreConfigurationConstant {
         public String toString() {
 
             return code + ":" + message;
+        }
+    }
+
+    /**
+     * User Store Operation enums.
+     */
+    public enum UserStoreOperation {
+
+        UPDATE,
+        DELETE;
+
+        @Override
+        public String toString() {
+
+            return this.name().toLowerCase();
         }
     }
 }

@@ -19,12 +19,15 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -56,6 +59,19 @@ import static org.mockito.Mockito.mock;
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
+
+    @BeforeTest
+    public void init() {
+
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+    }
+
+    @AfterTest
+    public void teardown() {
+
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+    }
 
     public void testExceptionRetry() throws Exception {
 

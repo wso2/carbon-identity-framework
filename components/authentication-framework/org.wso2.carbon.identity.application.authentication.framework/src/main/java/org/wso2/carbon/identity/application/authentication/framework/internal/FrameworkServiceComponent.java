@@ -19,11 +19,11 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -44,13 +44,11 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
-import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
-import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
-import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -58,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.impl.Lo
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
@@ -74,6 +73,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
@@ -103,7 +104,6 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
-import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -115,6 +115,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.servlet.Servlet;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
@@ -227,6 +228,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(ServerSessionManagementService.class.getName(),
                 serverSessionManagementService, null);
         dataHolder.setServerSessionManagementService(serverSessionManagementService);
+        setAdaptiveAuthExecutionSupervisor();
 
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
@@ -350,7 +352,39 @@ public class FrameworkServiceComponent {
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
-        FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        if (FrameworkServiceDataHolder.getInstance().getSessionSerializer() == null) {
+            FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        }
+    }
+
+    private void setAdaptiveAuthExecutionSupervisor() {
+
+        String threadCountString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_THREAD_COUNT);
+        int threadCount = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT;
+        if (StringUtils.isNotBlank(threadCountString)) {
+            try {
+                threadCount = Integer.parseInt(threadCountString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor thread count config: "
+                        + threadCountString + ", setting thread count to default value: " + threadCount, e);
+            }
+        }
+
+        String timeoutString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT);
+        long timeoutInMillis = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT;
+        if (StringUtils.isNotBlank(timeoutString)) {
+            try {
+                timeoutInMillis = Long.parseLong(timeoutString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor timeout config: "
+                        + timeoutString + ", setting timeout to default value: " + timeoutInMillis, e);
+            }
+        }
+
+        FrameworkServiceDataHolder.getInstance()
+                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis));
     }
 
     @Deactivate
@@ -362,6 +396,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
         SessionDataStore.getInstance().stopService();
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
     }
 
     @Reference(
@@ -482,6 +517,7 @@ public class FrameworkServiceComponent {
                     + sessionSerializer.getClass().getName());
         }
         FrameworkServiceDataHolder.getInstance().setSessionSerializer(sessionSerializer);
+        log.info("Session serializer got registered: " + sessionSerializer.getClass().getName());
     }
 
     protected void unsetSessionSerializer(SessionSerializer sessionSerializer) {

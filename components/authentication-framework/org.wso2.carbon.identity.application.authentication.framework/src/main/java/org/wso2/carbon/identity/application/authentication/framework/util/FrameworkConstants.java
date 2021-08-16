@@ -491,6 +491,14 @@ public abstract class FrameworkConstants {
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
+                "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
+        public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
+                "AdaptiveAuth.ExecutionSupervisor.Timeout";
+        public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
+        public static final String PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME
+                = "AdaptiveAuthExecutionSupervisorElapsedTime";
     }
 
     public static class ResidentIdpPropertyName {

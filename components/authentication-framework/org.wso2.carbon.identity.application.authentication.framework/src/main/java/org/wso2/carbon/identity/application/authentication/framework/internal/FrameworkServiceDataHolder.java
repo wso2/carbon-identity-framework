@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -96,6 +97,7 @@ public class FrameworkServiceDataHolder {
     private SessionSerializer sessionSerializer;
 
     private AccountLockService accountLockService;
+    private JSExecutionSupervisor jsExecutionSupervisor;
 
     private FrameworkServiceDataHolder() {
 
@@ -537,6 +539,16 @@ public class FrameworkServiceDataHolder {
             ServerSessionManagementService sessionManagementService) {
 
         this.serverSessionManagementService = sessionManagementService;
+    }
+
+    public JSExecutionSupervisor getJsExecutionSupervisor() {
+
+        return jsExecutionSupervisor;
+    }
+
+    public void setJsExecutionSupervisor(JSExecutionSupervisor jsExecutionSupervisor) {
+
+        this.jsExecutionSupervisor = jsExecutionSupervisor;
     }
 
     public SessionContextMgtListener getSessionContextMgtListener(String inboundType) {
