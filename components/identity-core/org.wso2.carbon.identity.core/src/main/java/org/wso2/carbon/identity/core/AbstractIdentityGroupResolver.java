@@ -22,15 +22,16 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.common.AbstractGroupDomainResolverListener;
+import org.wso2.carbon.user.core.common.AbstractGroupResolver;
 import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.listener.GroupOperationEventListener;
 
 /**
  * Abstract implementation of AbstractGroupDomainResolverListener.
  */
-public class AbstractIdentityGroupDomainResolverListener extends AbstractGroupDomainResolverListener {
+public class AbstractIdentityGroupResolver extends AbstractGroupResolver {
 
+    @Override
     public boolean isEnable() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
@@ -54,7 +55,7 @@ public class AbstractIdentityGroupDomainResolverListener extends AbstractGroupDo
     }
 
     @Override
-    public boolean preResolveGroupDomainByGroupId(Group group, int tenantId)
+    public boolean resolveGroupDomainByGroupId(Group group, int tenantId)
             throws UserStoreException {
 
         return true;
