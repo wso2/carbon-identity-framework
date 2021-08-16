@@ -81,6 +81,7 @@
     "authentication.adaptive.http_connections.read_timeout": "ms",
     "authentication.adaptive.http_connections.request_timeout": "ms",
     "authentication.adaptive.long_wait.page_refresh_interval": "ms",
-    "authentication.adaptive.long_wait.timout": "ms"
+    "authentication.adaptive.long_wait.timout": "ms",
+    "authentication.adaptive.execution_supervisor.timeout": "ms"
   }
 }

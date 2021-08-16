@@ -55,6 +55,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoaderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisorTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestTest"/>

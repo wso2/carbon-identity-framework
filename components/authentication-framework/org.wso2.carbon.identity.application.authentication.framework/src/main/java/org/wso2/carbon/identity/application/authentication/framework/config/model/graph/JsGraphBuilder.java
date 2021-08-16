@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -172,8 +173,18 @@ public class JsGraphBuilder {
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             removeDefaultFunctions(engine);
             engine.eval(script);
-            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
-                    new JsAuthenticationContext(authenticationContext));
+
+            String identifier = UUID.randomUUID().toString();
+            long elapsedTime;
+            try {
+                getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
+                        authenticationContext.getTenantDomain(), 0L);
+                invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
+                        new JsAuthenticationContext(authenticationContext));
+            } finally {
+                elapsedTime = getJSExecutionSupervisor().completed(identifier);
+            }
+            setAuthScriptExecutionElapsedTime(authenticationContext, elapsedTime);
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
@@ -929,6 +940,28 @@ public class JsGraphBuilder {
         engine.eval(REMOVE_FUNCTIONS);
     }
 
+    private JSExecutionSupervisor getJSExecutionSupervisor() {
+
+        return FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor();
+    }
+
+    private void setAuthScriptExecutionElapsedTime(AuthenticationContext context, long elapsedTime) {
+
+        context.setProperty(FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME,
+                elapsedTime);
+    }
+
+    private long getAuthScriptExecutionElapsedTime(AuthenticationContext context) {
+
+        long elapsedTime = 0L;
+        Object elapsedTimeObj = context.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME);
+        if (elapsedTimeObj != null) {
+            elapsedTime = (Long) elapsedTimeObj;
+        }
+        return elapsedTime;
+    }
+
     /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
@@ -983,8 +1016,18 @@ public class JsGraphBuilder {
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
                     JSObject builderFunction = (JSObject) compiledScript.eval();
-                    result = jsConsumer.apply(builderFunction);
 
+                    String identifier = UUID.randomUUID().toString();
+                    long elapsedTime = getAuthScriptExecutionElapsedTime(authenticationContext);
+                    try {
+                        getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
+                                authenticationContext.getTenantDomain(), elapsedTime);
+                        result = jsConsumer.apply(builderFunction);
+                    } finally {
+                        elapsedTime = getJSExecutionSupervisor().completed(identifier);
+                    }
+
+                    setAuthScriptExecutionElapsedTime(authenticationContext, elapsedTime);
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
