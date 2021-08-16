@@ -1908,13 +1908,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
-        ServiceProviderProperty useUserIdForSubject = new ServiceProviderProperty();
-        useUserIdForSubject.setName("useUserIdForSubject");
-        useUserIdForSubject.setValue("true");
+        boolean containsUseUserIdForSubjectProp = false;
         ArrayList<ServiceProviderProperty> serviceProviderProperties
                 = new ArrayList<>(Arrays.asList(serviceProvider.getSpProperties()));
-        serviceProviderProperties.add(useUserIdForSubject);
-        serviceProvider.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
+        for (ServiceProviderProperty prop: serviceProviderProperties) {
+            if (IdentityApplicationConstants.USE_USER_ID_FOR_SUBJECT.equals(prop.getName())) {
+                containsUseUserIdForSubjectProp = true;
+                break;
+            }
+        }
+        if (!containsUseUserIdForSubjectProp) {
+            ServiceProviderProperty useUserIdForSubject = new ServiceProviderProperty();
+            useUserIdForSubject.setName(IdentityApplicationConstants.USE_USER_ID_FOR_SUBJECT);
+            useUserIdForSubject.setValue("true");
+            serviceProviderProperties.add(useUserIdForSubject);
+            serviceProvider.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
+        }
 
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
     }
