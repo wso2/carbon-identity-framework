@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -84,5 +85,28 @@ public class RoleManagementServiceComponent {
             log.debug("Unsetting the Realm Service.");
         }
         RoleManagementServiceComponentHolder.getInstance().setRealmService(null);
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        RoleManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Role Management bundle");
+        }
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        RoleManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Role Management bundle");
+        }
     }
 }

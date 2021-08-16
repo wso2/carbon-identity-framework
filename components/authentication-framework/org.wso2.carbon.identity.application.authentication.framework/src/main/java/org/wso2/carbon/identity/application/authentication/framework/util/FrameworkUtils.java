@@ -2815,6 +2815,41 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieves the username of the given userid.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param userId           userid.
+     * @return username of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserNameFromUserId(UserStoreManager userStoreManager, String userId) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userId);
+
+                if (StringUtils.isBlank(userName)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User Name could not be resolved for userid: " + userId + ".");
+                    }
+                }
+                return userName;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + userId + ", is not an instance of the " +
+                        "AbstractUserStore manager.");
+            }
+            throw new UserSessionException("Unable to get the user name of the user Id: " + userId + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving user name for the user Id: " + userId, e);
+            }
+            throw new UserSessionException("Error occurred while resolving user name for the user Id: " + userId, e);
+        }
+    }
+
+    /**
      * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
