@@ -90,7 +90,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
@@ -946,10 +945,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isUserLocked(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
             throws FrameworkException, UserIdNotFoundException {
 
-        if (!isAccountLockingEnabled(user.getTenantDomain())) {
-            return false;
-        }
-
         String accountLockedClaimValue = getClaimValue(user.getUserId(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
         boolean accountLocked = Boolean.parseBoolean(accountLockedClaimValue);
 
@@ -986,14 +981,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String accountDisabledClaimValue = getClaimValue(
                 user.getUserId(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
         return Boolean.parseBoolean(accountDisabledClaimValue);
-    }
-
-    private boolean isAccountLockingEnabled(String tenantDomain) throws FrameworkException {
-
-        Property accountLockConfigProperty = FrameworkUtils.getResidentIdpConfiguration(
-                ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY, tenantDomain);
-
-        return accountLockConfigProperty != null && Boolean.parseBoolean(accountLockConfigProperty.getValue());
     }
 
     private boolean isAccountDisablingEnabled(String tenantDomain) throws FrameworkException {
