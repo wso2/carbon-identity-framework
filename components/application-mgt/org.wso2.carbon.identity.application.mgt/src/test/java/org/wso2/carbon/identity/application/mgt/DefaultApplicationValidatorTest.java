@@ -56,7 +56,7 @@ public class DefaultApplicationValidatorTest {
         String scriptFour = "var onLoginRequest = function(context) {\n" +
                 "    var n = 0;\n" +
                 "\tvar x = 0;\n" +
-                "\twhile (n < 3) {\n" +
+                "\tvar abc = 'abc';while (n < 3) {\n" +
                 "\t  n++;\n" +
                 "\t  x += n;\n" +
                 "\t}\n" +
@@ -75,6 +75,7 @@ public class DefaultApplicationValidatorTest {
                 "    var therefore = true;\n" +
                 "    var fivefor = true;\n" +
                 "    var for_auth = true;\n" +
+                "    var _for = true;\n" +
                 "    var whilefor = true;\n" +
                 "    var forwhile = true;\n" +
                 "    var some_whiles = true;\n" +
@@ -98,8 +99,8 @@ public class DefaultApplicationValidatorTest {
                 "unauthorized users,\n// can be either an absolute url or relative url to server root, or " +
                 "empty/null\n// null/empty value will redirect to the default error page\nvar errorPage = '';\n\n// " +
                 "Additional query params to be added to the above url.\n// Hint: Use i18n keys for error " +
-                "messages\nvar errorPageParameters = {\n    'status': 'Unauthorized',\n    'statusMsg': 'You need to " +
-                "be over ' + ageLimit + ' years to login to this application.'\n};\n\n/*\nHi am a multi line comment " +
+                "messages\nvar errorPageParameters = {\n 'status': 'Unauthorized',\n    'statusMsg': \"You need to " +
+                "be over \" + ageLimit + \" for login to this application.\"\n};\n\n/*\nHi am a multi line comment " +
                 "1\n*/\n// Date of birth attribute at the client side\nvar dateOfBirthClaim = 'http://wso2" +
                 ".org/claims/dob';\n\n// The validator function for DOB. Default validation check if the DOB is in " +
                 "YYYY-MM-dd format\nvar validateDOB = function (dob) {\n    return dob.match(/^(\\d{4})-(\\d{2})-" +
@@ -107,9 +108,9 @@ public class DefaultApplicationValidatorTest {
                 "onSuccess: function (context) {\n            var underAge = true;\n            // Extracting user " +
                 "store domain of authenticated subject from the first step\n            var dob = context" +
                 ".currentKnownSubject.localClaims[dateOfBirthClaim];// Adding a single line comment with for while " +
-                "foreach \n            Log.debug('DOB of user ' + context.currentKnownSubject.identifier + ' is : ' +" +
-                " dob);\n            if (dob && validateDOB(dob)) {\n                var birthDate = new Date(dob);\n" +
-                "                if (getAge(birthDate) >= ageLimit) {\n                    underAge = false;\n       " +
+                "foreach \n            Log.debug('DOB for user ' + context.currentKnownSubject.identifier + ' is : " +
+                "' + dob);\n Log.debug('while for forEach ');\n if (dob && validateDOB(dob)) {\n var birthDate = new " +
+                "Date(dob);\n   if (getAge(birthDate) >= ageLimit) {\n                    underAge = false;\n       " +
                 "         }\n            }\n            if (underAge === true) {\n                Log.debug('User ' +" +
                 " context.currentKnownSubject.identifier + ' is under aged. Hence denied to login.');\n              " +
                 "  sendError(errorPage, errorPageParameters);\n            }\n        }\n    });\n};\n/*\n* Hi am a " +
