@@ -352,4 +352,9 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
                                                              String profileName) throws UserStoreException {
         return new HashMap<>();
     }
+
+    protected String doGetUserIDFromUserNameWithID(String userName) throws UserStoreException {
+
+        return StringUtils.EMPTY;
+    }
 }
