@@ -503,7 +503,8 @@ public abstract class FrameworkConstants {
 
     public static class ResidentIdpPropertyName {
 
-       public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
+        public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
+        public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
     }
 
 
