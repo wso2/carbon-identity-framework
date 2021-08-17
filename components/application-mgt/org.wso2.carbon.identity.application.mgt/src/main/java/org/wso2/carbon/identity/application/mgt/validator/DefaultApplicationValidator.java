@@ -508,7 +508,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 log.debug("Loops are not allowed in the authentication script. " +
                         "Therefore checking whether loops are present in the provided script.");
             }
-            script = removeCommentsFromScript(script);
+            script = getCleanedScript(script);
             Matcher matcher = loopPattern.matcher(script);
             if (matcher.find()) {
                 validationErrors.add("Loops are not allowed in the adaptive authentication script, " +
@@ -544,7 +544,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
     }
 
-    private String removeCommentsFromScript(String script) {
+    private String getCleanedScript(String script) {
 
         StringBuilder cleanedScript = new StringBuilder();
         int mode = MODE_DEFAULT;
@@ -559,6 +559,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     break;
                 case MODE_STRING: // Checks if end of a string if not checks if a char is a escape character.
                     mode = ((c == '"') || (c == '\'')) ? MODE_DEFAULT : ((c == '\\') ? MODE_ESCAPE : MODE_STRING);
+                    if (mode == MODE_DEFAULT) {
+                        continue;
+                    }
                     break;
                 case MODE_ESCAPE: // Marks end of escape character.
                     mode = MODE_STRING;
@@ -573,9 +576,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     }
                     continue;
             }
-            // If char is not part of a comment
-            // then append to cleaned script.
-            if (mode < 4) {
+            // If char is not part of a comment or part
+            // of a string then append to cleaned script.
+            if (mode < 2) {
                 cleanedScript.append(c);
             }
         }
