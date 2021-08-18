@@ -85,7 +85,7 @@ public class IdentityEventConstants {
         public static final String PRE_GET_GROUP_LIST_OF_ROLES = "PRE_GET_GROUP_LIST_OF_ROLES";
         public static final String POST_GET_GROUP_LIST_OF_ROLES = "POST_GET_GROUP_LIST_OF_ROLES";
         public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE = "PRE_UPDATE_GROUP_LIST_OF_ROLE";
-        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE = "UPDATE_GROUP_LIST_OF_ROLE";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE = "POST_UPDATE_GROUP_LIST_OF_ROLE";
         public static final String PRE_GET_PERMISSION_LIST_OF_ROLE = "PRE_GET_PERMISSION_LIST_OF_ROLE";
         public static final String POST_GET_PERMISSION_LIST_OF_ROLE = "POST_GET_PERMISSION_LIST_OF_ROLE";
         public static final String PRE_SET_PERMISSIONS_FOR_ROLE = "PRE_SET_PERMISSIONS_FOR_ROLE";
