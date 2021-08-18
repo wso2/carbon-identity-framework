@@ -284,8 +284,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
-                Map<String, String> localClaimValues = (Map<String, String>) context
-                        .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                Map<String, String> localClaimValues;
+                if (stepConfig.isSubjectAttributeStep()) {
+                    localClaimValues = (Map<String, String>) context
+                            .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                } else {
+                    localClaimValues = getLocalClaimValuesForIDPInNonAttributeSelectionStep(context, stepConfig,
+                            externalIdPConfig);
+                }
                 if (localClaimValues == null || localClaimValues.size() == 0) {
                     Map<ClaimMapping, String> userAttributes = stepConfig.getAuthenticatedUser().getUserAttributes();
                     localClaimValues = FrameworkUtils.getClaimMappings
@@ -877,6 +883,61 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
 
         return null;
+    }
+
+    /**
+     * Uses to get local claim values of an authenticated user from an IDP in non attribute selection steps.
+     *
+     * @param context           Authentication Context.
+     * @param stepConfig        Current step configuration.
+     * @param externalIdPConfig Identity providers config.
+     * @return
+     * @throws PostAuthenticationFailedException
+     */
+    private Map<String, String> getLocalClaimValuesForIDPInNonAttributeSelectionStep(AuthenticationContext context,
+                                                                                     StepConfig stepConfig,
+                                                                                     ExternalIdPConfig externalIdPConfig)
+            throws PostAuthenticationFailedException {
+
+        boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
+        ApplicationAuthenticator authenticator =
+                stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
+        String idPStandardDialect = authenticator.getClaimDialectURI();
+        Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
+        Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
+        Map<String, String> claimMapping;
+        Map<String, String> localClaimValues = new HashMap<>();
+        if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
+            try {
+                claimMapping = ClaimMetadataHandler.getInstance()
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect,
+                                originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
+                                true);
+            } catch (ClaimMetadataException e) {
+                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode
+                        (), ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
+            }
+        } else {
+            Map<String, String> IDPClaimMapping = new HashMap<>();
+            ClaimMapping[] customClaimMapping = context.getExternalIdP().getClaimMappings();
+            for (ClaimMapping externalClaim : customClaimMapping) {
+                if (originalExternalAttributeValueMap.containsKey(externalClaim.getRemoteClaim().getClaimUri())) {
+                    IDPClaimMapping.put(externalClaim.getLocalClaim().getClaimUri(),
+                            externalClaim.getRemoteClaim().getClaimUri());
+                }
+            }
+            claimMapping = IDPClaimMapping;
+        }
+
+        if (claimMapping != null) {
+            for (Map.Entry<String, String> entry : claimMapping.entrySet()) {
+                if (originalExternalAttributeValueMap.containsKey(entry.getValue()) &&
+                        originalExternalAttributeValueMap.get(entry.getValue()) != null) {
+                    localClaimValues.put(entry.getKey(), originalExternalAttributeValueMap.get(entry.getValue()));
+                }
+            }
+        }
+        return localClaimValues;
     }
 
 }
