@@ -25,7 +25,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -44,7 +43,7 @@ import javax.sql.DataSource;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class})
 @PowerMockIgnore("jdk.internal.reflect.*")
@@ -55,11 +54,12 @@ public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String DB_NAME = "testOIDCSLO";
-    private static String SESSION_CONTEXT_KEY = "02278824dfe9862d265e389365c0a71c365401672491b78c6ee7dd6fc44d8af4";
-    private static String IDP_SESSION_INDEX = "15043ffc-877d-4205-af41-9b107f7da38c";
-    private static String IDP_NAME = "Federated-IdP";
-    private static String AUTHENTICATOR_ID = "OpenIDConnectAuthenticator";
-    private static String PROTOCOL_TYPE = "oidc";
+    private static final String SESSION_CONTEXT_KEY
+            = "02278824dfe9862d265e389365c0a71c365401672491b78c6ee7dd6fc44d8af4";
+    private static final String IDP_SESSION_INDEX = "15043ffc-877d-4205-af41-9b107f7da38c";
+    private static final String IDP_NAME = "Federated-IdP";
+    private static final String AUTHENTICATOR_ID = "OpenIDConnectAuthenticator";
+    private static final String PROTOCOL_TYPE = "oidc";
 
     @BeforeMethod
     public void init() {

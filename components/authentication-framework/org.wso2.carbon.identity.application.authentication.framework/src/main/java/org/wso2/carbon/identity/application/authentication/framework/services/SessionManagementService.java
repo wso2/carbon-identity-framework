@@ -30,6 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+/**
+ * Session management service.
+ */
 public class SessionManagementService extends AbstractAdmin {
 
     private static Log log = LogFactory.getLog(SessionManagementService.class);

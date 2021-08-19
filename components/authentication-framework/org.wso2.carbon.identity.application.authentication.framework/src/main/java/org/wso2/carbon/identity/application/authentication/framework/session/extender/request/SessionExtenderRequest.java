@@ -48,6 +48,9 @@ public class SessionExtenderRequest extends IdentityRequest {
         return sessionCookie;
     }
 
+    /**
+     * Session extender request builder.
+     */
     public static class SessionExtenderRequestBuilder extends IdentityRequestBuilder {
 
         private String sessionKey = null;

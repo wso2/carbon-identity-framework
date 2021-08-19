@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.exception;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ * Authentication failed exception.
+ */
 public class AuthenticationFailedException extends IdentityException {
 
     private static final long serialVersionUID = -8680141408172156343L;

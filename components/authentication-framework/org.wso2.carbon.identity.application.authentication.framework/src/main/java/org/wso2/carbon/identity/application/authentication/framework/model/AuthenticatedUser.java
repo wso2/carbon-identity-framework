@@ -357,12 +357,15 @@ public class AuthenticatedUser extends User {
      * @param serviceProvider service provider
      */
 
-    public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier, ServiceProvider serviceProvider) {
+    public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier,
+                                                  ServiceProvider serviceProvider) {
 
         if (!isFederatedUser() && serviceProvider != null) {
-            boolean useUserstoreDomainInLocalSubjectIdentifier = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+            boolean useUserstoreDomainInLocalSubjectIdentifier
+                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                     .isUseUserstoreDomainInLocalSubjectIdentifier();
-            boolean useTenantDomainInLocalSubjectIdentifier = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+            boolean useTenantDomainInLocalSubjectIdentifier
+                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                     .isUseTenantDomainInLocalSubjectIdentifier();
             if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
                 authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
@@ -444,7 +447,7 @@ public class AuthenticatedUser extends User {
     @Override
     public boolean equals(Object o) {
 
-        if(!isFederatedUser) {
+        if (!isFederatedUser) {
             return super.equals(o);
         } else {
             if (this == o) {
@@ -464,14 +467,15 @@ public class AuthenticatedUser extends User {
             }
             // checking for null because we can't be 100% sure that federatedIdPName is set to a non-null value in all
             // places that use AuthenticatedUser
-            return federatedIdPName != null ? federatedIdPName.equals(that.federatedIdPName) : that.federatedIdPName == null;
+            return federatedIdPName != null ?
+                    federatedIdPName.equals(that.federatedIdPName) : that.federatedIdPName == null;
         }
     }
 
     @Override
     public int hashCode() {
 
-        if(!isFederatedUser) {
+        if (!isFederatedUser) {
             return super.hashCode();
         } else {
             int result = authenticatedSubjectIdentifier.hashCode();

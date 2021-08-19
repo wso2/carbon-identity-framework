@@ -76,11 +76,11 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
                 String key = (String)property.getKey();
                 String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
@@ -93,7 +93,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      * Process IdentityRequest
      *
      * @param identityRequest IdentityRequest
-     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error occurred while processing IdentityRequest
+     * @throws FrameworkException Error occurred while processing IdentityRequest
      * @return IdentityResponseBuilder
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)

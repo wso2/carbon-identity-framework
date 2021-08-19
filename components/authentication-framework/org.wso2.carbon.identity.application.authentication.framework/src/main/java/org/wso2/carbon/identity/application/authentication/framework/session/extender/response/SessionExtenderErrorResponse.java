@@ -44,6 +44,9 @@ public class SessionExtenderErrorResponse extends IdentityResponse {
         return response;
     }
 
+    /**
+     * Session extender error response builder
+     */
     public static class SessionExtenderErrorResponseBuilder extends IdentityResponseBuilder {
 
         private String response = null;

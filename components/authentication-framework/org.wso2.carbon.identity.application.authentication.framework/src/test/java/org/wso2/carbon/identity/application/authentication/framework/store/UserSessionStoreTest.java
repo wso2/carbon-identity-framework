@@ -113,52 +113,52 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     }
 
     @Test(dataProvider = "getValidUsers")
-    public void testStoreUserData(String userId, String username, int tenantId, String userDomain, int IdpId) throws
+    public void testStoreUserData(String userId, String username, int tenantId, String userDomain, int idpId) throws
             Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection,true);
-            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
+            mockIdentityDataBaseUtilConnection(connection, true);
+            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
 
     @Test(dataProvider = "getUsersWithDuplicatedId", dependsOnMethods = {"testStoreUserData"}, expectedExceptions =
             UserSessionException.class)
     public void testExceptionAtStoreUserDataForDuplicatedUserID(String userId, String username, int tenantId, String
-            userDomain, int IdpId) throws Exception {
+            userDomain, int idpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, true);
-            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
+            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
 
     @Test(dataProvider = "getDuplicatedUsers", dependsOnMethods = {"testStoreUserData"}, expectedExceptions =
             DuplicatedAuthUserException.class)
     public void testExceptionAtStoreUserDataForInvalidUser(String userId, String username, int tenantId, String
-            userDomain, int IdpId) throws Exception {
+            userDomain, int idpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection,true);
-            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
+            mockIdentityDataBaseUtilConnection(connection, true);
+            UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, idpId);
         }
     }
 
     @Test(dataProvider = "getValidUsers", dependsOnMethods = {"testStoreUserData"})
     public void testGetUserIdForAllUserParams(String expectedUserId, String username, int tenantId, String userDomain,
-                                              int IdpId) throws Exception {
+                                              int idpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, false);
-            String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain, IdpId);
+            String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain, idpId);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
-                    " of userstore domain: " + userDomain + ", tenant: " + tenantId + " and idp id: " + IdpId);
+                    " of userstore domain: " + userDomain + ", tenant: " + tenantId + " and idp id: " + idpId);
         }
     }
 
     @Test(dataProvider = "getValidUsers", dependsOnMethods = {"testStoreUserData"})
     public void testGetUserIdWithoutIdPParam(String expectedUserId, String username, int tenantId, String userDomain,
-                                             int IdpId) throws Exception {
+                                             int idpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, false);
@@ -170,11 +170,12 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
     @Test(dataProvider = "getValidUsers", dependsOnMethods = {"testStoreUserData"})
     public void testGetUserIdsOfUserStore(String expectedUserId, String username, int tenantId, String userDomain, int
-            IdpId) throws Exception {
+            idpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection,false);
-            List<String> userIdsOfUserStore = UserSessionStore.getInstance().getUserIdsOfUserStore(userDomain, tenantId);
+            mockIdentityDataBaseUtilConnection(connection, false);
+            List<String> userIdsOfUserStore
+                    = UserSessionStore.getInstance().getUserIdsOfUserStore(userDomain, tenantId);
             Assert.assertTrue(userIdsOfUserStore.contains(expectedUserId), "Expected userId not found in the user " +
                     "list retrieved for userstore domain: " + userDomain + " of tenant: " + tenantId);
         }
@@ -222,8 +223,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         try (Connection connection = getConnection(DB_NAME)) {
             mockIdentityDataBaseUtilConnection(connection, false);
-            Assert.assertFalse(UserSessionStore.getInstance().isExistingMapping(userId, sessionId), "Expected session:" +
-                    " " + sessionId + " to be unavailable for user id: " + userId);
+            Assert.assertFalse(UserSessionStore.getInstance().isExistingMapping(userId, sessionId),
+                    "Expected session: " + sessionId + " to be unavailable for user id: " + userId);
         }
     }
 

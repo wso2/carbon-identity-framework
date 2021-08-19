@@ -35,7 +35,8 @@ public class UIBasedConfigurationLoaderTest extends AbstractFrameworkTest {
 
     public void testGetSequence_Deprecated() throws Exception {
         ServiceProvider testSp1 = new ServiceProvider();
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig
+                = new LocalAndOutboundAuthenticationConfig();
         testSp1.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
         AuthenticationStep step1 = new AuthenticationStep();
@@ -55,5 +56,4 @@ public class UIBasedConfigurationLoaderTest extends AbstractFrameworkTest {
         assertNotNull(sequenceConfig.getStepMap().get(1));
         assertNotNull(sequenceConfig.getStepMap().get(2));
     }
-
 }

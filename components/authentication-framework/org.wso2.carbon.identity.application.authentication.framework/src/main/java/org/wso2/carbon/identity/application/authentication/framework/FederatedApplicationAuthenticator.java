@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+/**
+ * Federated application authenticator.
+ */
 public interface FederatedApplicationAuthenticator extends ApplicationAuthenticator {
 
 }

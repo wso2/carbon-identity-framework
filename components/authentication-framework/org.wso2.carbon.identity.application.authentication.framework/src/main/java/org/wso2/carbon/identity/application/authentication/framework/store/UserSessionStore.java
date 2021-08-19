@@ -89,7 +89,7 @@ public class UserSessionStore {
             throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try ( PreparedStatement preparedStatement = connection
+            try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_INSERT_USER_STORE_OPERATION)) {
                 preparedStatement.setString(1, userId);
                 preparedStatement.setString(2, userName);
@@ -331,7 +331,7 @@ public class UserSessionStore {
     public void storeUserSessionData(String userId, String sessionId) throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try(PreparedStatement preparedStatement = connection
+            try (PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_INSERT_USER_SESSION_STORE_OPERATION)) {
                 preparedStatement.setString(1, userId);
                 preparedStatement.setString(2, sessionId);
@@ -836,7 +836,8 @@ public class UserSessionStore {
             throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
+             PreparedStatement prepStmt
+                     = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
             prepStmt.setString(2, sessionContextKey);
             prepStmt.setString(3, authHistory.getIdpName());
@@ -858,7 +859,8 @@ public class UserSessionStore {
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
+             PreparedStatement prepStmt
+                     = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, sessionContextKey);
             prepStmt.execute();
         } catch (SQLException e) {
