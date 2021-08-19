@@ -172,13 +172,13 @@ public class JsGraphBuilder {
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             removeDefaultFunctions(engine);
-            engine.eval(script);
 
             String identifier = UUID.randomUUID().toString();
             long elapsedTime;
             try {
                 getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
                         authenticationContext.getTenantDomain(), 0L);
+                engine.eval(script);
                 invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                         new JsAuthenticationContext(authenticationContext));
             } finally {
@@ -1015,13 +1015,13 @@ public class JsGraphBuilder {
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
-                    JSObject builderFunction = (JSObject) compiledScript.eval();
 
                     String identifier = UUID.randomUUID().toString();
                     long elapsedTime = getAuthScriptExecutionElapsedTime(authenticationContext);
                     try {
                         getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
                                 authenticationContext.getTenantDomain(), elapsedTime);
+                        JSObject builderFunction = (JSObject) compiledScript.eval();
                         result = jsConsumer.apply(builderFunction);
                     } finally {
                         elapsedTime = getJSExecutionSupervisor().completed(identifier);
