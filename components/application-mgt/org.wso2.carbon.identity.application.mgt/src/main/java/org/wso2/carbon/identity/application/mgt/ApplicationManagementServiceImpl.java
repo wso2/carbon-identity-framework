@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.MDC;
 import org.apache.xerces.impl.Constants;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
@@ -133,6 +134,11 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYST
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
+import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.buildSPData;
+import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getAppId;
+import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getApplicationName;
+import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getInitiatorId;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
@@ -143,6 +149,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
+    private static final String TARGET_APPLICATION = "APPLICATION";
+    private static final String USER = "USER";
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -210,6 +218,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 break;
             }
         }
+
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
+                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(),
+                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
+                buildSPData(serviceProvider));
 
         return serviceProvider;
     }
@@ -649,6 +663,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
+                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
+                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
+                buildSPData(serviceProvider));
     }
 
     // Will be supported with 'Advance Consent Management Feature'.
@@ -757,6 +776,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
+                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(),
+                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION, null);
     }
 
     /**
@@ -2198,6 +2221,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        triggerAuditLogEvent(MDC.get("clientComponent"), getInitiatorId(username, tenantDomain),
+                getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(), getAppId(application),
+                getApplicationName(application), TARGET_APPLICATION, buildSPData(application));
+
         return resourceId;
     }
 
@@ -2301,6 +2329,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
+                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(), getAppId(updatedApp),
+                getApplicationName(updatedApp), TARGET_APPLICATION, buildSPData(updatedApp));
     }
 
     @Override
@@ -2520,6 +2553,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
+                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(), getAppId(application),
+                getApplicationName(application), TARGET_APPLICATION, null);
     }
 
     private void doPreDeleteChecks(String applicationName, String tenantDomain,

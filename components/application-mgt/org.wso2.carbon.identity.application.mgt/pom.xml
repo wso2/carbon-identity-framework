@@ -93,6 +93,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.security.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
 
         <!-- Adding dependency to identity.core temporary -->
         <!-- 
@@ -146,6 +150,21 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -154,7 +173,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -200,7 +218,10 @@
                             org.wso2.carbon.identity.claim.metadata.mgt.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.consent.mgt.core.*; version="${carbon.consent.mgt.imp.pkg.version.range}",
-                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}"
+                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.model; version="${carbon.identity.package.import.version.range}",
+                            org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,
