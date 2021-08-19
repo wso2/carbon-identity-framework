@@ -2221,7 +2221,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogEvent(MDC.get("clientComponent"), getInitiatorId(username, tenantDomain),
+        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT), getInitiatorId(username, tenantDomain),
                 getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(), getAppId(application),
                 getApplicationName(application), TARGET_APPLICATION, buildSPData(application));
