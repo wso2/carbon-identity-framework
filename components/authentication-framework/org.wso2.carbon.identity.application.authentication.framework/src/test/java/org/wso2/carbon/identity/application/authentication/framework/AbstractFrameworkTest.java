@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.InputStream;
 import java.util.UUID;
+
 import javax.xml.stream.XMLStreamException;
 
 public class AbstractFrameworkTest {

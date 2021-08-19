@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,8 +55,9 @@ import static org.testng.Assert.assertTrue;
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
 @PrepareForTest(IdentityUtil.class)
-//@PowerMockIgnore({"org.xml.*","org.w3c.*"})
 public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
+
+    private static final String ERROR_MESSAGE = "CLIENT_ERROR_MESSAGE";
 
     @Mock
     HttpServletRequest request;
@@ -189,7 +191,6 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
 
     @Test
     public void testHandleFrameworkClientException() throws Exception {
-        final String ERROR_MESSAGE = "CLIENT_ERROR_MESSAGE";
         FrameworkClientException clientException = new FrameworkClientException(ERROR_MESSAGE);
 
         HttpIdentityResponseBuilder responseBuilder =

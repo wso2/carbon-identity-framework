@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 import static org.testng.Assert.assertEquals;
 
 public class DefaultHomeRealmDiscovererTest {
+    private static final String HOME_REALM = "HOME_REALM";
 
     @Test
     public void testGetInstance() throws Exception {
@@ -33,8 +34,6 @@ public class DefaultHomeRealmDiscovererTest {
     @Test
     public void testDiscover() throws Exception {
 
-        final String HOME_REALM = "HOME_REALM";
         assertEquals(DefaultHomeRealmDiscoverer.getInstance().discover(HOME_REALM), HOME_REALM);
     }
-
 }

@@ -22,6 +22,9 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.concurrent.BlockingDeque;
 
+/**
+ * Temporary authentication context data delete task.
+ */
 public class TempAuthContextDataDeleteTask implements Runnable {
 
     private static final Log log = LogFactory.getLog(TempAuthContextDataDeleteTask.class);

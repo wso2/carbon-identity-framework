@@ -53,6 +53,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import static org.mockito.Matchers.anyInt;
@@ -68,7 +69,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({AbstractUserStoreManager.class, IdentityTenantUtil.class})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
-    protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
+    protected static final String APPLICATION_AUTHENTICATION_FILE_NAME
+            = "application-authentication-GraphStepHandlerTest.xml";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
     protected JsGraphBuilderFactory graphBuilderFactory;
@@ -118,13 +120,15 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
         when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-        when(mockUserStoreManager.getUserIDFromUserName(anyString())).thenReturn("59d2c583-eafc-412a-a32e-bc409f3bd4e6");
+        when(mockUserStoreManager.getUserIDFromUserName(anyString()))
+                .thenReturn("59d2c583-eafc-412a-a32e-bc409f3bd4e6");
 
         UserStoreManager mockSecUserStoreManager = mock(UserStoreManager.class);
         RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
         when(mockSecUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
         when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockSecUserStoreManager);
-        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME)).thenReturn("false");
+        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME))
+                .thenReturn("false");
 
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);
@@ -151,7 +155,8 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
             AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
             result.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
             result.getUserAttributes().put(ClaimMapping
-                            .build("http://wso2.org/claims/givenname", "http://wso2.org/claims/givenname", "Test", false),
+                            .build("http://wso2.org/claims/givenname", "http://wso2.org/claims/givenname", "Test",
+                                    false),
                     "Test");
             result.getUserAttributes().put(ClaimMapping
                             .build("http://wso2.org/claims/lastname", "http://wso2.org/claims/lastname", "Test", false),

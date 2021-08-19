@@ -51,7 +51,8 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
     public void testHandleStaticSequence(String spFileName, int authHistoryCount) throws
             Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
@@ -59,7 +60,7 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
         AuthenticationContext context = getAuthenticationContext(sp1);
 
         SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+                .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = mock(HttpServletRequest.class);
@@ -82,5 +83,4 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
                 {"disabled-js-sp-1.xml", 3},
         };
     }
-
 }

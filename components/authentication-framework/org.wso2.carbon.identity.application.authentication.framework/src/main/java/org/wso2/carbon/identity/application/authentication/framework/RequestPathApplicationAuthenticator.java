@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+/**
+ * Request path application authenticator.
+ */
 public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator {
 
 }
