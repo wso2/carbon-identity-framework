@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.InputStream;
+
 import javax.xml.stream.XMLStreamException;
 
 import static org.testng.Assert.assertEquals;

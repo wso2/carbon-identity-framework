@@ -131,7 +131,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
         return builder;
@@ -141,7 +142,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
     }

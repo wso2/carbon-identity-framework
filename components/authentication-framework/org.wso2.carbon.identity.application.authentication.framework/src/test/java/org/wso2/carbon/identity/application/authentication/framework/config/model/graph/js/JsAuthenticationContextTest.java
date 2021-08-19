@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -46,6 +47,11 @@ import static org.testng.Assert.assertTrue;
 public class JsAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
+    private static final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
+    private static final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
+    private static final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
+    private static final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
+
     private ScriptEngine scriptEngine;
 
     @BeforeClass
@@ -125,8 +131,6 @@ public class JsAuthenticationContextTest {
     @Test
     public void testGetServiceProviderFromWrappedContext() throws Exception {
 
-        final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
-
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
 
@@ -143,10 +147,6 @@ public class JsAuthenticationContextTest {
 
     @Test
     public void testGetLastLoginFailedUserFromWrappedContext() throws Exception {
-
-        final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
-        final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
-        final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
 
         AuthenticatedUser lastAttemptedUser = new AuthenticatedUser();
         lastAttemptedUser.setUserName(LAST_ATTEMPTED_USER_USERNAME);

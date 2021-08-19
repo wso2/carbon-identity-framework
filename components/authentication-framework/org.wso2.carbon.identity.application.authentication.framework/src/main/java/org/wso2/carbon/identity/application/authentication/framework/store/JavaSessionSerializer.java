@@ -20,13 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
-
+import java.io.ObjectOutputStream;
 
 /**
  * Default implementation of the Session Serializer.

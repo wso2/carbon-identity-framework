@@ -37,6 +37,9 @@ public class SessionExtenderResponse extends IdentityResponse {
         return traceId;
     }
 
+    /**
+     * Session extender response builder.
+     */
     public static class SessionExtenderResponseBuilder extends IdentityResponseBuilder {
 
         private String traceId = null;

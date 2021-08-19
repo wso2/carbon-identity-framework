@@ -1,5 +1,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+/**
+ * Session data.
+ */
 public class SessionData {
 
     private String user;

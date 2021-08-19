@@ -65,16 +65,17 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
+/**
+ * Default provisioning handler.
+ */
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
-    private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
-    private SecureRandom random = new SecureRandom();
 
     public static DefaultProvisioningHandler getInstance() {
         if (instance == null) {
@@ -337,7 +338,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         "provisioning");
             } else {
                 throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
-                        " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp, e);
+                        " in tenant: " + tenantDomain + " to the federated subject: " + subject + " in IdP: " + idp, e);
             }
         } finally {
             // end tenant flow
@@ -515,7 +516,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         .DOMAIN_SEPARATOR)) {
                     updatedRoles.add(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR +
                             UserCoreUtil.removeDomainFromName(role));
-                } else if (StringUtils.containsIgnoreCase(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+                } else if (StringUtils.containsIgnoreCase(role, APPLICATION_DOMAIN
+                        + CarbonConstants.DOMAIN_SEPARATOR)) {
                     updatedRoles.add(APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
                             .removeDomainFromName(role));
                 } else if (StringUtils.containsIgnoreCase(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {

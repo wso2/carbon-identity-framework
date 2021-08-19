@@ -41,6 +41,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -110,7 +111,6 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
                                  Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
-                System.out.println("Calling With : " + ctx);
                 r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
             JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);

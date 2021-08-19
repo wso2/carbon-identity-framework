@@ -25,6 +25,9 @@ import java.io.Serializable;
  */
 public class LongWaitStatus implements Serializable {
 
+    /**
+     * Long wait status.
+     */
     public enum Status {
         WAITING, COMPLETED, UNKNOWN
     }
