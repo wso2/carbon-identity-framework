@@ -219,8 +219,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
-                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(),
                 getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
                 buildSPData(serviceProvider));
@@ -663,8 +662,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
-                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
                 getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
                 buildSPData(serviceProvider));
@@ -776,8 +774,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
-                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(),
                 getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION, null);
     }
@@ -2221,8 +2218,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT), getInitiatorId(username, tenantDomain),
-                getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(), getAppId(application),
                 getApplicationName(application), TARGET_APPLICATION, buildSPData(application));
 
@@ -2330,8 +2326,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
-                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(), getAppId(updatedApp),
                 getApplicationName(updatedApp), TARGET_APPLICATION, buildSPData(updatedApp));
     }
@@ -2553,8 +2548,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(MDC.get(CarbonConstants.LogEventConstants.CLIENT_COMPONENT),
-                getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
+        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(), getAppId(application),
                 getApplicationName(application), TARGET_APPLICATION, null);
     }

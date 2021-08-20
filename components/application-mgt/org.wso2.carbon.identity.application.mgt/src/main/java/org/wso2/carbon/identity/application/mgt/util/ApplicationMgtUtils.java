@@ -79,8 +79,8 @@ public class ApplicationMgtUtils {
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
         if (userId == null) {
             AuthenticatedUser user = new AuthenticatedUser();
-            user.setUserName(UserCoreUtil.removeDomainFromName(userName));
             user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(userName));
+            user.setUserName(UserCoreUtil.removeDomainFromName(userName));
             user.setTenantDomain(tenantDomain);
             userId = user.getLoggableUserId();
         }
@@ -130,5 +130,4 @@ public class ApplicationMgtUtils {
         }
         return StringUtils.EMPTY;
     }
-
 }
