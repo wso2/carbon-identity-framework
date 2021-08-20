@@ -36,15 +36,6 @@ import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 public class CentralLogger extends AbstractEventHandler {
 
     @Override
-    public boolean isEnabled(MessageContext messageContext) {
-
-        if (super.isEnabled(messageContext)) {
-            return !isLegacyAuditLogsDisabled();
-        }
-        return false;
-    }
-
-    @Override
     public void handleEvent(Event event) {
 
         String eventName = event.getEventName();
@@ -53,7 +44,10 @@ public class CentralLogger extends AbstractEventHandler {
         // This central log event handler handles only audit logs and diagnostic logs.
         switch (eventName) {
             case PUBLISH_AUDIT_LOG:
-                CarbonUtils.publishAuditLogs(eventProperties);
+                // Publish new audit logs only if the old audit log publishing is disabled.
+                if (isLegacyAuditLogsDisabled()) {
+                    CarbonUtils.publishAuditLogs(eventProperties);
+                }
                 break;
             case PUBLISH_DIAGNOSTIC_LOG:
                 // TODO add the diagnostic log publishing method
