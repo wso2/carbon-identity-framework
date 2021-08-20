@@ -49,7 +49,7 @@ public class LoggerUtils {
      * @param targetType      Target resource type.
      * @param dataChange      Changing data.
      */
-    public static void triggerAuditLogEvent(String clientComponent, String initiatorId,
+    public static void triggerAuditLogEvent(Object clientComponent, String initiatorId,
                                             String initiatorName, String initiatorType, String evenType,
                                             String targetId, String targetName, String targetType,
                                             String dataChange) {
