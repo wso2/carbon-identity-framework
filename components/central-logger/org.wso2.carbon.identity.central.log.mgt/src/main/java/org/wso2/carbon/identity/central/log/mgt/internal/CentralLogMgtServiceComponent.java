@@ -87,8 +87,5 @@ public class CentralLogMgtServiceComponent {
     protected void unsetIdentityEventService(IdentityEventService identityEventService) {
 
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
-        if (log.isDebugEnabled()) {
-            log.debug("IdentityEventService set in Central logger.");
-        }
     }
 }
