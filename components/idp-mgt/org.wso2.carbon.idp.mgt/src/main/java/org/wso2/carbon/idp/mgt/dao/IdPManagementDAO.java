@@ -3808,32 +3808,24 @@ public class IdPManagementDAO {
      */
     private void deleteProvisioningConnectorConfigs(Connection conn, int idPId) throws SQLException {
 
-        PreparedStatement prepStmt = null;
-        PreparedStatement prepStmtGetConfigId = null;
         String databaseProductName = conn.getMetaData().getDatabaseProductName();
         if (databaseProductName.contains(MySQL)) {
             ResultSet resultSetGetConfigId;
             String sqlStmtGetConfigId = IdPManagementConstants.SQLQueries.GET_IDP_PROVISIONING_CONFIGS_ID;
-            try {
-                prepStmtGetConfigId = conn.prepareStatement(sqlStmtGetConfigId);
+            try (PreparedStatement prepStmtGetConfigId = conn.prepareStatement(sqlStmtGetConfigId)) {
                 prepStmtGetConfigId.setInt(1, idPId);
                 resultSetGetConfigId = prepStmtGetConfigId.executeQuery();
                 while (resultSetGetConfigId.next()) {
                     int id = resultSetGetConfigId.getInt("ID");
                     deleteIdpProvConfigProperty(conn, id);
                 }
-            } finally {
-                IdentityDatabaseUtil.closeStatement(prepStmtGetConfigId);
             }
         }
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_PROVISIONING_CONNECTORS;
 
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, idPId);
             prepStmt.executeUpdate();
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
@@ -3844,14 +3836,10 @@ public class IdPManagementDAO {
      */
     private void deleteIdpProvConfigProperty(Connection conn, int provisioningConfigId) throws SQLException {
 
-        PreparedStatement prepStmt = null;
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_PROV_CONFIG_PROPERTY;
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, provisioningConfigId);
             prepStmt.executeUpdate();
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
@@ -3864,22 +3852,21 @@ public class IdPManagementDAO {
      */
     private void deleteIdP(Connection conn, int tenantId, String idPName, String resourceId) throws SQLException {
 
-        PreparedStatement prepStmt = null;
-        PreparedStatement prepStmtGetIdpId = null;
-        PreparedStatement prepStmtIdpIdFromUUID = null;
         String databaseProductName = conn.getMetaData().getDatabaseProductName();
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_BY_RESOURCE_ID_SQL;
+        String sqlStmtGetIdpId = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
+        String sqlStmtIdpIdFromUUID = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_UUID;
+
         if (StringUtils.isBlank(resourceId)) {
             sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_SQL;
         }
 
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt);
+        PreparedStatement prepStmtGetIdpId = conn.prepareStatement(sqlStmtGetIdpId);
+            PreparedStatement prepStmtIdpIdFromUUID = conn.prepareStatement(sqlStmtIdpIdFromUUID)) {
             if (StringUtils.isBlank(resourceId)) {
                 if (databaseProductName.contains(MySQL)) {
                     ResultSet resultSetGetIdpId = null;
-                    String sqlStmtGetIdpId = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
-                    prepStmtGetIdpId = conn.prepareStatement(sqlStmtGetIdpId);
                     prepStmtGetIdpId.setInt(1, tenantId);
                     prepStmtGetIdpId.setString(2, idPName);
                     resultSetGetIdpId = prepStmtGetIdpId.executeQuery();
@@ -3893,8 +3880,6 @@ public class IdPManagementDAO {
             } else {
                 if (databaseProductName.contains(MySQL)) {
                     ResultSet resultSetGetIdpId = null;
-                    String sqlStmtIdpIdFromUUID = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_UUID;
-                    prepStmtIdpIdFromUUID = conn.prepareStatement(sqlStmtIdpIdFromUUID);
                     prepStmtIdpIdFromUUID.setString(1, resourceId);
                     resultSetGetIdpId = prepStmtIdpIdFromUUID.executeQuery();
                     while (resultSetGetIdpId.next()) {
@@ -3905,10 +3890,6 @@ public class IdPManagementDAO {
                 prepStmt.setString(1, resourceId);
             }
             prepStmt.executeUpdate();
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
-            IdentityDatabaseUtil.closeStatement(prepStmtGetIdpId);
-            IdentityDatabaseUtil.closeStatement(prepStmtIdpIdFromUUID);
         }
     }
 
