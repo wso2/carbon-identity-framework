@@ -64,6 +64,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -75,6 +76,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
+/**
+ * Graph based authentication sequence handler.
+ */
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
@@ -141,9 +145,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setProperty(PROP_CURRENT_NODE, null);
             AuthGraphNode startNode = context.getSequenceConfig().getAuthenticationGraph().getStartNode();
             if (startNode instanceof StepConfigGraphNode) {
-                ((StepConfigGraphNode)startNode).getStepConfig().setCompleted(false);
-                ((StepConfigGraphNode)startNode).getStepConfig().setAuthenticatedAutenticator(null);
-                ((StepConfigGraphNode)startNode).getStepConfig().setAuthenticatedUser(null);
+                ((StepConfigGraphNode) startNode).getStepConfig().setCompleted(false);
+                ((StepConfigGraphNode) startNode).getStepConfig().setAuthenticatedAutenticator(null);
+                ((StepConfigGraphNode) startNode).getStepConfig().setAuthenticatedUser(null);
                 if (((StepConfigGraphNode) startNode).getNext() instanceof DynamicDecisionNode) {
                     ((DynamicDecisionNode) ((StepConfigGraphNode) startNode).getNext()).setDefaultEdge(new EndStep());
                 }
@@ -181,7 +185,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
-            handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
+            handleAuthFail(request, response, context, sequenceConfig, (FailNode) currentNode);
         }
         return isInterrupt;
     }
@@ -230,8 +234,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
             context.setReturning(false);
         } else {
-            if (promptNode.getHandlerMap().get(ShowPromptNode.preHandler) != null) {
-                Object result = evaluateHandler(ShowPromptNode.preHandler, promptNode, context, promptNode
+            if (promptNode.getHandlerMap().get(ShowPromptNode.PRE_HANDLER) != null) {
+                Object result = evaluateHandler(ShowPromptNode.PRE_HANDLER, promptNode, context, promptNode
                         .getParameters().get(STEP_IDENTIFIER_PARAM));
                 if (Boolean.TRUE.equals(result)) {
                     executeFunction(SKIPPED_CALLBACK_NAME, promptNode, context);
@@ -356,8 +360,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             } catch (IOException e) {
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);
             } catch (URISyntaxException e) {
-                throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
-                        + "URL.", e);
+                throw new FrameworkException("Error when redirecting user to " + errorPage
+                        + ". Error page is not a valid URL.", e);
             }
 
             context.setRequestAuthenticated(false);
@@ -693,7 +697,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
         jsBasedEvaluator.evaluate(context,
-                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context), new JsWritableParameters(data)));
+                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context),
+                        new JsWritableParameters(data)));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }

@@ -27,6 +27,9 @@ import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Default implementation of user store preference supplier.
+ */
 public class DefaultUserStorePreferenceOrderSupplier implements UserStorePreferenceOrderSupplier<List<String>> {
 
     private static volatile DefaultUserStorePreferenceOrderSupplier instance =

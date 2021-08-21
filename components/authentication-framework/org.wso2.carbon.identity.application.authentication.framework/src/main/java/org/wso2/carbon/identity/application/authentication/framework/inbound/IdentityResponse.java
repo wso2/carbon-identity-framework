@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import java.io.Serializable;
 
+/**
+ * Identity response.
+ */
 public class IdentityResponse implements Serializable {
 
     private static final long serialVersionUID = 1348704275109461974L;
@@ -30,6 +33,9 @@ public class IdentityResponse implements Serializable {
         this.context = builder.context;
     }
 
+    /**
+     * Identity response builder.
+     */
     public static class IdentityResponseBuilder {
 
         protected IdentityMessageContext context;
@@ -47,8 +53,10 @@ public class IdentityResponse implements Serializable {
         }
     }
 
+    /**
+     * Identity response constants.
+     */
     public static class IdentityResponseConstants {
-
 
     }
 }

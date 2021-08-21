@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence;
 
+/**
+ * Request path based sequence handler.
+ */
 public interface RequestPathBasedSequenceHandler extends SequenceHandler {
 
 }

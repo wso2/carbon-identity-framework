@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Cache for {@link org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus}
+ */
 public class LongWaitResultCache extends AuthenticationBaseCache<LongWaitResultCacheKey, LongWaitResultCacheEntry> {
 
     private static final String LONG_WAIT_RESULT_CACHE_NAME = "LongWaitResultCache";

@@ -23,7 +23,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Filtering out and selecting the SP claims.

@@ -67,6 +67,9 @@ import java.util.stream.Collectors;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
+/**
+ * Default claim handler implementation.
+ */
 public class DefaultClaimHandler implements ClaimHandler {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE =
@@ -209,7 +212,8 @@ public class DefaultClaimHandler implements ClaimHandler {
              Set all locally mapped unfiltered null remote claims as a property.
              This property will used to retrieve unfiltered null value claims.
              */
-                context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES, localUnfilteredClaimsForNullValues);
+                context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES,
+                        localUnfilteredClaimsForNullValues);
             }
 
             // set unfiltered remote claims as a property
@@ -661,10 +665,10 @@ public class DefaultClaimHandler implements ClaimHandler {
             FrameworkException {
         AbstractUserStoreManager userStore;
         try {
-            userStore = (AbstractUserStoreManager)realm.getUserStoreManager();
+            userStore = (AbstractUserStoreManager) realm.getUserStoreManager();
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving the UserStoreManager " +
-                                         "from Realm for " + tenantDomain + " to handle local claims", e);
+                    "from Realm for " + tenantDomain + " to handle local claims", e);
         }
         return userStore;
     }
@@ -809,7 +813,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
-    private void setSubjectClaimForStandardDialect(AuthenticatedUser authenticatedUser, AbstractUserStoreManager userStore,
+    private void setSubjectClaimForStandardDialect(AuthenticatedUser authenticatedUser,
+                                                   AbstractUserStoreManager userStore,
                                                    AuthenticationContext context, String subjectURI) {
         try {
             String value = userStore.getUserClaimValueWithID(authenticatedUser.getUserId(), subjectURI, null);
@@ -821,7 +826,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Subject claim for " + authenticatedUser.getLoggableUserId() + " not found in user store");
+                    log.debug("Subject claim for " + authenticatedUser.getLoggableUserId()
+                            + " not found in user store");
                 }
             }
         } catch (UserStoreException e) {

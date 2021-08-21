@@ -236,8 +236,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                  Identifier first request received and current step does not contains any flow handler.
                     (To handle browser back with only with identifier-first and basic)
                 */
-                if (isBackToFirstStepRequest(request) ||
-                        (isIdentifierFirstRequest(request) && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
+                if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
+                        && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -452,7 +452,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private void associateTransientRequestData(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) {
 
-        if(context == null) {
+        if (context == null) {
             return;
         }
         // set current request and response to the authentication context.
@@ -727,10 +727,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setPreviousSessionFound(true);
 
                     effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
-                    effectiveSequence.setReqPathAuthenticators(new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
+                    effectiveSequence.setReqPathAuthenticators(
+                            new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
                     effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
                     effectiveSequence.setAuthenticatedIdPs(previousAuthenticatedSeq.getAuthenticatedIdPs());
-                    effectiveSequence.setAuthenticatedReqPathAuthenticator(previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
+                    effectiveSequence.setAuthenticatedReqPathAuthenticator(
+                            previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
 
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
@@ -765,8 +767,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }
-                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
-                    // authentication step updates will be reflected.
+                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim
+                    // updates, authentication step updates will be reflected.
                     refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
                             context.getRequestType(), context.getTenantDomain());
                     context.setAuthenticatedIdPsOfApp(sessionContext.getAuthenticatedIdPsOfApp(appName));
@@ -917,7 +919,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         try {
             UserRealm userRealm = (UserRealm) FrameworkServiceComponent.getRealmService().
                     getTenantUserRealm(tenantId);
-            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)userRealm.getUserStoreManager();
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
 
             if (userStoreManager.isExistingUserWithID(user.getUserId())) {
                 return !(isUserDisabled(userStoreManager, user) || isUserLocked(userStoreManager, user));

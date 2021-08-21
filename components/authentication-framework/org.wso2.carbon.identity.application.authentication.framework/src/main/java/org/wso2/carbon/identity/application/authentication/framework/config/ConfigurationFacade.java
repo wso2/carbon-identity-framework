@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -50,12 +49,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_WAIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.IDENTIFIER_FIRST_CONFIRMATION;
 
+/**
+ * Configuration facade.
+ */
 public class ConfigurationFacade {
 
     private static final Log log = LogFactory.getLog(ConfigurationFacade.class);
     private UIBasedConfigurationLoader uiBasedConfigurationLoader;
     private static volatile ConfigurationFacade instance;
-    private SequenceLoader sequenceBuilder;
 
     public ConfigurationFacade() {
         // Read the default config from the files

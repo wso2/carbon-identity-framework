@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Select the preferred acr value from the available list.
+ */
 public class SelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
@@ -85,9 +88,9 @@ public class SelectAcrFromFunction implements SelectOneFunction {
                 if (outcomeToTest.equals(acrChecked)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Reassigning Best Match for the outcome : " + outcomeToTest + " with priority : " +
-                                x+1);
+                                x + 1);
                     }
-                    acrRequestedWithPriority.put(x+1, acrChecked) ;
+                    acrRequestedWithPriority.put(x + 1, acrChecked);
                     break;
                 }
             }

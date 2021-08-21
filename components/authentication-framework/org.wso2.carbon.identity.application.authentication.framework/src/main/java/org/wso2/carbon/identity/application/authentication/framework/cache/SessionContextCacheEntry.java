@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Wrapper object to cache {@link SessionContext}
+ */
 public class SessionContextCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 42165605438157753L;

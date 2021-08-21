@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import java.io.Serializable;
 
+/**
+ * Status of authentication flow
+ */
 public enum AuthenticatorFlowStatus implements Serializable {
     SUCCESS_COMPLETED, FAIL_COMPLETED, INCOMPLETE, UNKNOWN, FALLBACK, USER_ABORT
 }

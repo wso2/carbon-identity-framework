@@ -90,9 +90,9 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
 
         try {
             String idpId = (String) IdentityUtil.threadLocalProperties.get().get(FrameworkConstants.IDP_RESOURCE_ID);
-            JITProvisionedUserDeleteThread JITProvisionedUserDeleteThread =
+            JITProvisionedUserDeleteThread jitProvisionedUserDeleteThread =
                     new JITProvisionedUserDeleteThread(idpId, tenantDomain);
-            threadPool.submit(JITProvisionedUserDeleteThread);
+            threadPool.submit(jitProvisionedUserDeleteThread);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_RESOURCE_ID);
         }

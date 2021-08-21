@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.servlet;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 
 import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
  * authenticationendpoint. In case of invalid sessionDataKey, initiates redirection forcing application to
  * start authentication flow with new sessionDataKey
  */
-public class LoginContextServlet extends HttpServlet{
+public class LoginContextServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

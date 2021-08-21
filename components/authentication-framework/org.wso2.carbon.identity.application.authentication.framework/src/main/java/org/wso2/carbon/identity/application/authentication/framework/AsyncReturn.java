@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 
 import java.util.Map;
 
+/**
+ * Asynchronous return functional interface.
+ */
 @FunctionalInterface
 public interface AsyncReturn {
 

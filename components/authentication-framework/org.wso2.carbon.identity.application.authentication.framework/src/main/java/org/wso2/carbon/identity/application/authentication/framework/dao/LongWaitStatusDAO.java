@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.LongW
 
 import java.sql.Timestamp;
 
+/**
+ * Long wait status DAO interface.
+ */
 public interface LongWaitStatusDAO {
 
     void addWaitStatus(int tenantId, String waitKey, LongWaitStatus status, Timestamp createdTime, Timestamp

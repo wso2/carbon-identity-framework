@@ -33,14 +33,14 @@ public class JSExecutionSupervisor {
 
     private static final Log LOG = LogFactory.getLog(JSExecutionSupervisor.class);
     private static final String JS_EXECUTION_MONITOR = "JS-Exec-Monitor";
-    private final long TIMEOUT_IN_MILLIS;
+    private final long timeoutInMillis;
     private long taskExecutionRateInMillis = 100L;
     private Map<String, TaskHolder> currentScriptExecutions = new HashMap<>();
     private ScheduledExecutorService monitoringService;
 
     public JSExecutionSupervisor(int threadCount, long timeoutInMillis) {
 
-        this.TIMEOUT_IN_MILLIS = timeoutInMillis;
+        this.timeoutInMillis = timeoutInMillis;
 
         if (taskExecutionRateInMillis > timeoutInMillis) {
             taskExecutionRateInMillis = timeoutInMillis;
@@ -154,7 +154,7 @@ public class JSExecutionSupervisor {
             }
 
             long elapsedTime = getTotalElapsedTime();
-            if (elapsedTime > TIMEOUT_IN_MILLIS) {
+            if (elapsedTime > timeoutInMillis) {
                 StackTraceElement[] stackTraceElements = originalThread.getStackTrace();
                 Throwable throwable = new Throwable();
                 throwable.setStackTrace(stackTraceElements);

@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import java.io.Serializable;
 
+/**
+ * Authenticator statuses.
+ */
 public enum AuthenticatorStatus implements Serializable {
     FAIL, PASS, CONTINUE
 }
