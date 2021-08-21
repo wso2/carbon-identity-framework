@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,7 +38,8 @@ import javax.servlet.http.HttpServletRequest;
  * instead of
  * var userName = context.getRequest().getParameter("redirect_uri)
  * <p>
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HTTPServletRequest.
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * HTTPServletRequest.
  */
 public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> {
 

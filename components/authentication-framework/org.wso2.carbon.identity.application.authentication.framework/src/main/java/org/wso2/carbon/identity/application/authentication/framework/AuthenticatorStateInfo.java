@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import java.io.Serializable;
 
+/**
+ * Authenticator state info.
+ */
 public abstract class AuthenticatorStateInfo implements Serializable {
 
     private static final long serialVersionUID = -1137594892169989451L;

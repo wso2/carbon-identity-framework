@@ -67,6 +67,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.xml.namespace.QName;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -374,7 +375,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (!overrideExistingConsent) {
             String spName = serviceProvider.getApplicationName();
             String spTenantDomain = getSPTenantDomain(serviceProvider);
-            Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
+            Receipt receipt =
+                    getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
             claimsWithConsent =
                     getUserRequestedClaims(receipt, userConsent, true);
             claimsDeniedConsent =
@@ -1103,8 +1105,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             throw new SSOConsentServiceException("Consent Management Error",
                     "Error while retrieving user consents.", e);
         } catch (IdentityException e) {
-            throw new SSOConsentServiceException("Consent Management Error",
-                    "Error while initializing registry for the tenant domain: " + authenticatedUser.getTenantDomain(), e);
+            throw new SSOConsentServiceException("Consent Management Error", "Error while initializing registry for " +
+                    "the tenant domain: " + authenticatedUser.getTenantDomain(), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }

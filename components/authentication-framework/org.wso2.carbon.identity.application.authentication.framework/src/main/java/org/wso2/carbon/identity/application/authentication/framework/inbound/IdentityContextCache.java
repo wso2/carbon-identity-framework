@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+/**
+ * Identity Context cache.
+ */
 public class IdentityContextCache extends AuthenticationBaseCache<String, IdentityMessageContext> {
 
     private static final String INBOUND_CONTEXT_CACHE_NAME = "InboundContextCache";

@@ -20,9 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 /**
  * Node which does long wait in UI and calls backend service.
  * May provide feedback to the UI via websocket or HTTP Polling.

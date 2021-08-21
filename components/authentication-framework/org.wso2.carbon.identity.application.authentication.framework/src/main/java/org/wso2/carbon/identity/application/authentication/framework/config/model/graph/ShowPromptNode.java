@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode {
 
-    public static final String preHandler = "preHandler";
+    public static final String PRE_HANDLER = "preHandler";
 
     private static final long serialVersionUID = -5644595996095910601L;
     private String templateId;

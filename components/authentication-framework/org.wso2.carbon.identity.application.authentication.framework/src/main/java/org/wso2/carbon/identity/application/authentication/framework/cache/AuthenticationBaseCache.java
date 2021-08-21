@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.cache.AbstractCacheListener;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
@@ -41,9 +39,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
-public abstract class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K,V> {
-
-    private static final Log log = LogFactory.getLog(AuthenticationBaseCache.class);
+public abstract class AuthenticationBaseCache<K extends Serializable, V extends Serializable> extends BaseCache<K, V> {
 
     public AuthenticationBaseCache(String cacheName) {
 

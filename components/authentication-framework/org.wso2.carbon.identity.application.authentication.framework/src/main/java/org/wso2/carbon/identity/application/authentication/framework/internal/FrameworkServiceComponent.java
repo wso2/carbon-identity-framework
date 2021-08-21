@@ -242,7 +242,8 @@ public class FrameworkServiceComponent {
                         "enabled.");
             }
         }
-        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator
+                = new AuthenticationMethodNameTranslatorImpl();
         authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
         bundleContext
                 .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);

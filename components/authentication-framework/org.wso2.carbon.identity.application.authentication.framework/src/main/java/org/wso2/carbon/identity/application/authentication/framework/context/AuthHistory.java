@@ -110,7 +110,7 @@ public class AuthHistory implements Serializable {
     public String toTranslatableString() {
         StringBuilder builder = new StringBuilder();
         builder.append(authenticatorName);
-        if(code != null) {
+        if (code != null) {
             builder.append("_").append(code);
         }
         return builder.toString();

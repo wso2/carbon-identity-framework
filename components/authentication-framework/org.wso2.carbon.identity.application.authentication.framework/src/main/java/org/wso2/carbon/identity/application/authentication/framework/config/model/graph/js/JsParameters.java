@@ -56,6 +56,7 @@ public class JsParameters extends AbstractJSObjectWrapper<Map> {
     @Override
     public void setMember(String name, Object value) {
 
-        LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: " + value);
+        LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: "
+                + value);
     }
 }

@@ -46,8 +46,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,6 +53,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Default implementation of step based sequence handler.
+ */
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
@@ -454,7 +458,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return Role Claim Uri as String.
      * @throws FrameworkException
      */
-    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context) throws FrameworkException {
+    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context)
+            throws FrameworkException {
 
         String idpRoleClaimUri = getIdpRoleClaimUri(context.getExternalIdP());
         return FrameworkUtils.getMappedIdpRoleClaimUri(idpRoleClaimUri, stepConfig, context);

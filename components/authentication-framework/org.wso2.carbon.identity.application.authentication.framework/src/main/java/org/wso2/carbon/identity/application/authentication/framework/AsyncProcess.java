@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+/**
+ * Asynchronous authentication process.
+ */
 public class AsyncProcess {
 
     private AsyncCaller asyncCaller;

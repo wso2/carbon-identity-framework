@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,7 +37,8 @@ import javax.servlet.http.HttpServletResponse;
  * instead of
  * context.getResponse().addCookie(cookie);
  * <p>
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HttpServletResponse.
+ * Also, it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * HttpServletResponse.
  */
 public class JsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> {
 

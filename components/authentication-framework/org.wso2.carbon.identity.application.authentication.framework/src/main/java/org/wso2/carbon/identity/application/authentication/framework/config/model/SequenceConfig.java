@@ -189,5 +189,4 @@ public class SequenceConfig implements Serializable, Cloneable {
         sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
         return sequenceConfig;
     }
-
 }
