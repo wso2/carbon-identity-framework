@@ -53,7 +53,8 @@ import java.util.Map;
 /**
  * Sequence Configuration loader, loads the sequence configuration from the database.
  * <p>
- * History: The main logic was moved from @see {@link org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder},
+ * History: The main logic was moved from @see
+ * {@link org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder},
  * This is one step to move away from Singleton pattern used throughout the code.
  * Few other singletons should be removed and passed relevant information as setters or constructor arguments here.
  */

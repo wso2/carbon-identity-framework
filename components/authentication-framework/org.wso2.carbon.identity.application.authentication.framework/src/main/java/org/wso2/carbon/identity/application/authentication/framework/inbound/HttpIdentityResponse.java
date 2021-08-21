@@ -19,12 +19,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import javax.servlet.http.Cookie;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
+
+/**
+ * HTTP identity response.
+ */
 public class HttpIdentityResponse implements Serializable {
 
     private static final long serialVersionUID = -1100735485859523120L;
@@ -60,7 +64,7 @@ public class HttpIdentityResponse implements Serializable {
 
     public String getParameterValue(String paramName) {
         String[] values = parameters.get(paramName);
-        if(values.length > 0) {
+        if (values.length > 0) {
             return values[0];
         }
         return null;
@@ -93,6 +97,9 @@ public class HttpIdentityResponse implements Serializable {
         this.isFragmentUrl = builder.isFragmentUrl;
     }
 
+    /**
+     * HTTP identity response builder.
+     */
     public static class HttpIdentityResponseBuilder {
 
         protected Map<String, String> headers = new HashMap();
@@ -111,17 +118,17 @@ public class HttpIdentityResponse implements Serializable {
 
         public HttpIdentityResponseBuilder addHeader(String name, String value) {
             String newValue = value;
-            if(this.headers.containsKey(name)) {
+            if (this.headers.containsKey(name)) {
                 String existingValue = headers.get(name);
-                newValue =  existingValue +"," + value;
+                newValue = existingValue + "," + value;
             }
             this.headers.put(name, newValue);
             return this;
         }
 
         public HttpIdentityResponseBuilder addHeaders(Map<String, String> headers) {
-            for(Map.Entry<String,String> header:headers.entrySet()) {
-                if(this.headers.containsKey(header.getKey())) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                if (this.headers.containsKey(header.getKey())) {
                     throw FrameworkRuntimeException.error("Headers map trying to override existing " +
                             "header " + header.getKey());
                 }
@@ -136,7 +143,7 @@ public class HttpIdentityResponse implements Serializable {
         }
 
         public HttpIdentityResponseBuilder addCookie(Cookie cookie) {
-            if(this.cookies.containsKey(cookie.getName())) {
+            if (this.cookies.containsKey(cookie.getName())) {
                 throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
                         "cookie " + cookie.getName());
             }
@@ -144,9 +151,9 @@ public class HttpIdentityResponse implements Serializable {
             return this;
         }
 
-        public HttpIdentityResponseBuilder addCookies(Map<String,Cookie> cookies) {
-            for(Map.Entry<String,Cookie> cookie:cookies.entrySet()) {
-                if(this.cookies.containsKey(cookie.getKey())) {
+        public HttpIdentityResponseBuilder addCookies(Map<String, Cookie> cookies) {
+            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
+                if (this.cookies.containsKey(cookie.getKey())) {
                     throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
                             "cookie " + cookie.getKey());
                 }
@@ -160,22 +167,22 @@ public class HttpIdentityResponse implements Serializable {
             return this;
         }
 
-        public HttpIdentityResponseBuilder setParameters(Map<String,String[]> parameters) {
+        public HttpIdentityResponseBuilder setParameters(Map<String, String[]> parameters) {
             this.parameters = parameters;
             return this;
         }
 
         public HttpIdentityResponseBuilder addParameter(String name, String value) {
-            if(this.parameters.containsKey(name)) {
+            if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
             }
-            this.parameters.put(name, new String[]{value});
+            this.parameters.put(name, new String[] {value});
             return this;
         }
 
         public HttpIdentityResponseBuilder addParameter(String name, String[] values) {
-            if(this.parameters.containsKey(name)) {
+            if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
             }
@@ -183,9 +190,9 @@ public class HttpIdentityResponse implements Serializable {
             return this;
         }
 
-        public HttpIdentityResponseBuilder addParameters(Map<String,String[]> parameters) {
-            for(Map.Entry<String,String[]> parameter:parameters.entrySet()) {
-                if(this.parameters.containsKey(parameter.getKey())) {
+        public HttpIdentityResponseBuilder addParameters(Map<String, String[]> parameters) {
+            for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
+                if (this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                             "key " + parameter.getKey());
                 }

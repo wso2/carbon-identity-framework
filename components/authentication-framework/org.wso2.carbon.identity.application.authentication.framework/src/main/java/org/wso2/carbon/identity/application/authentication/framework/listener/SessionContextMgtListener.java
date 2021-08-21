@@ -20,9 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.listener;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 
 /**
  * Session Context Management listener to call the specific inbound components. The inbound components can use this

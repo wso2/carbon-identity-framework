@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.hr
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
+/**
+ * Home realm discoverer interface.
+ */
 public interface HomeRealmDiscoverer {
 
     public String discover(String value) throws FrameworkException;

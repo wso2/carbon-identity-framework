@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
+/**
+ * Functional interface to select one outcome from possible outcomes.
+ */
 @FunctionalInterface
 public interface SelectOneFunction {
     String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj);

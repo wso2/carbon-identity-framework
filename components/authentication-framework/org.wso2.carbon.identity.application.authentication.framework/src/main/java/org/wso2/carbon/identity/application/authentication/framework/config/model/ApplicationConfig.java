@@ -42,6 +42,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Authentication configuration of an application.
+ */
 public class ApplicationConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 8082478632322393384L;

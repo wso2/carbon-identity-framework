@@ -22,9 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
@@ -44,15 +42,13 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,7 +66,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
-    private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+    private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY
+            = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     private static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
     private static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
     private static final String CONSENT_PROMPTED = "consentPrompted";
@@ -80,7 +77,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String CONSENT_CLAIM_META_DATA = "consentClaimMetaData";
     private static final String REQUEST_TYPE_OAUTH2 = "oauth2";
     private static final String SP_NAME_DEFAULT = "DEFAULT";
-    private static final Log log = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
+    private static final String USER_CONSENT_INPUT = "consent";
+    private static final String USER_CONSENT_APPROVE = "approve";
+    private static final String LOGIN_ENDPOINT = "login.do";
+    private static final String CONSENT_ENDPOINT = "consent.do";
+    private static final Log LOG = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
@@ -126,12 +127,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private boolean isDebugEnabled() {
 
-        return log.isDebugEnabled();
+        return LOG.isDebugEnabled();
     }
 
     private void logDebug(String message) {
 
-        log.debug(message);
+        LOG.debug(message);
     }
 
     protected PostAuthnHandlerFlowStatus handlePreConsent(HttpServletRequest request, HttpServletResponse response,
@@ -240,7 +241,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
      */
     private List<ClaimMetaData> removeConsentRequestedNullUserAttributes(List<ClaimMetaData> requestedClaims,
                                                                          Map<ClaimMapping, String> userAttributes,
-                                                                         Map <String, String> claimMappings) {
+                                                                         Map<String, String> claimMappings) {
 
         List<ClaimMetaData> filteredRequestedClaims = new ArrayList<>();
         if (requestedClaims != null && userAttributes != null && claimMappings != null) {
@@ -295,9 +296,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     protected PostAuthnHandlerFlowStatus handlePostConsent(HttpServletRequest request, HttpServletResponse response,
                                                            AuthenticationContext context)
             throws PostAuthenticationFailedException {
-
-        final String USER_CONSENT_INPUT = "consent";
-        final String USER_CONSENT_APPROVE = "approve";
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
@@ -602,13 +600,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private URIBuilder getUriBuilder(AuthenticationContext context, String requestedLocalClaims, String
             mandatoryLocalClaims) throws URISyntaxException {
 
-        final String LOGIN_ENDPOINT = "login.do";
-        final String CONSENT_ENDPOINT = "consent.do";
-
-        String CONSENT_ENDPOINT_URL = ConfigurationFacade.getInstance()
+        String consentEndpointUrl = ConfigurationFacade.getInstance()
                 .getAuthenticationEndpointURL().replace(LOGIN_ENDPOINT, CONSENT_ENDPOINT);
         URIBuilder uriBuilder;
-        uriBuilder = new URIBuilder(CONSENT_ENDPOINT_URL);
+        uriBuilder = new URIBuilder(consentEndpointUrl);
 
         if (isNotBlank(requestedLocalClaims)) {
             if (isDebugEnabled()) {

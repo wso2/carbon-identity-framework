@@ -30,11 +30,15 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Servlet to get the status of long wait process.
+ */
 public class LongWaitStatusServlet extends HttpServlet {
 
     private static final long serialVersionUID = -3714283612680472526L;

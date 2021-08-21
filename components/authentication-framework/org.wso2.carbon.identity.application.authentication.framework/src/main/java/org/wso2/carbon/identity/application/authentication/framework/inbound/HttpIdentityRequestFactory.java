@@ -32,10 +32,14 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * HTTP identity request factory.
+ */
 public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);

@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -38,17 +37,14 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimManager;
-import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -56,21 +52,21 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request
-        .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
-        ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
 
+/**
+ * Post authentication handler for missing claims.
+ */
 public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthnMissingClaimHandler.class);
-    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile PostAuthnMissingClaimHandler instance;
 
     public static PostAuthnMissingClaimHandler getInstance() {
@@ -237,7 +233,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
             if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
 
-                String localClaimURI = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                String localClaimURI
+                        = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
                 claims.put(localClaimURI, entry.getValue()[0]);
 
                 if (spToCarbonClaimMappingObject != null) {
@@ -272,7 +269,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                                 .getTenantDomain(), stepConfig.getAuthenticatedIdP(), subject);
                         if (StringUtils.isNotBlank(associatedID)) {
                             String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER
+                                            + context.getTenantDomain());
                             UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedID));
                             user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
                                     fullQualifiedAssociatedUserId);

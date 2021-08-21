@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Logout request handler interface.
+ */
 public interface LogoutRequestHandler {
 
     void handle(HttpServletRequest request, HttpServletResponse response,

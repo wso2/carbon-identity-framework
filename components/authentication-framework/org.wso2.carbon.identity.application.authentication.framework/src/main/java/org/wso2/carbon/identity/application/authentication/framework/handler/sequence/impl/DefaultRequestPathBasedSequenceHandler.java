@@ -46,9 +46,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Default request path based sequence handler.
+ */
 public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
@@ -133,7 +137,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                             authenticatedIdPData.getIdpName()));
 
                 } catch (InvalidCredentialsException e) {
-                    if(log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("A login attempt was failed due to invalid credentials", e);
                     }
                     context.setRequestAuthenticated(false);
@@ -209,7 +213,8 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
                               sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
+                    log.debug("Authenticated User Tenant Domain: "
+                            + sequenceConfig.getAuthenticatedUser().getTenantDomain());
                 }
             }
         }
