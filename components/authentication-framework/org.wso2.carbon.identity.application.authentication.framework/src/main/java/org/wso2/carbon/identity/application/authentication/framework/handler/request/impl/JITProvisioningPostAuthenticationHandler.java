@@ -891,8 +891,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param context           Authentication Context.
      * @param stepConfig        Current step configuration.
      * @param externalIdPConfig Identity providers config.
-     * @return Mapped federated user values to local claim uri.
-     * @throws PostAuthenticationFailedException
+     * @return Mapped federated user values to local claims.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
      */
     private Map<String, String> getLocalClaimValuesForIDPInNonAttributeSelectionStep(AuthenticationContext context,
                                                                                      StepConfig stepConfig,
