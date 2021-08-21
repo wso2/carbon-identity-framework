@@ -891,7 +891,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param context           Authentication Context.
      * @param stepConfig        Current step configuration.
      * @param externalIdPConfig Identity providers config.
-     * @return
+     * @return Mapped federated user values to local claim uri.
      * @throws PostAuthenticationFailedException
      */
     private Map<String, String> getLocalClaimValuesForIDPInNonAttributeSelectionStep(AuthenticationContext context,
@@ -914,8 +914,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
                                 true);
             } catch (ClaimMetadataException e) {
-                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode
-                        (), ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
+                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode(),
+                        ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
             }
         } else {
             Map<String, String> IDPClaimMapping = new HashMap<>();
