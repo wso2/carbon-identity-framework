@@ -52,6 +52,7 @@
                             org.wso2.carbon.identity.core.bean.context;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
