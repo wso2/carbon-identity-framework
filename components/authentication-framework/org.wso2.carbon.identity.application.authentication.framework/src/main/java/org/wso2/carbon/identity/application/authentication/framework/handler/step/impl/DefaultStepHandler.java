@@ -78,6 +78,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESIDENT_IDP;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Default implementation of the authentication step handler.
@@ -719,8 +720,10 @@ public class DefaultStepHandler implements StepHandler {
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
-            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                    data, SUCCESS));
+            if (!isLegacyAuditLogsDisabled()) {
+                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                        data, SUCCESS));
+            }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("A login attempt was failed due to invalid credentials", e);
@@ -733,8 +736,10 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
-            audit.warn(String.format(AUDIT_MESSAGE, initiator,
-                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+            if (!isLegacyAuditLogsDisabled()) {
+                audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                        data, FAILURE));
+            }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -761,8 +766,10 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
-            audit.warn(String.format(AUDIT_MESSAGE, initiator,
-                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+            if (!isLegacyAuditLogsDisabled()) {
+                audit.warn(String.format(AUDIT_MESSAGE, initiator,
+                        "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+            }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);
