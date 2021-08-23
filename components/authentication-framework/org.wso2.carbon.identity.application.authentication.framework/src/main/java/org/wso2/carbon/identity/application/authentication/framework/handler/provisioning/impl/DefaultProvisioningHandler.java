@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
@@ -55,9 +57,13 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
@@ -149,6 +155,18 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
+
+                    List<Claim> existingUserClaimList = new ArrayList<>(Arrays.asList(userStoreManager
+                            .getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null)));
+                    Set<String> notToDelete = getNotToDeleteClaims();
+                    existingUserClaimList.removeIf(claim -> claim.getClaimUri().contains("/identity/") ||
+                            notToDelete.contains(claim.getClaimUri()) || userClaims.containsKey(claim.getClaimUri()));
+
+                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                    for (Claim claim : existingUserClaimList) {
+                        toBeDeletedUserClaims.add(claim.getClaimUri());
+                    }
+
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
@@ -157,7 +175,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
                     will be deleted.
                     */
-                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
                     if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
                         Claim[] userActiveClaims =
                                 userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
@@ -576,4 +593,40 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
     }
 
+    /**
+     * Claims which must not delete during existing claim mapping syncing process with idp claims.
+     *
+     * @return Claims not to delete.
+     */
+    private Set<String> getNotToDeleteClaims() {
+        OMElement notToDeleteClaimsConfig = IdentityConfigParser.getInstance().
+                getConfigElement(FrameworkConstants.Config.NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT);
+        if (notToDeleteClaimsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.Config.NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT + " config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator claimURIIdentifierIterator = notToDeleteClaimsConfig
+                .getChildrenWithLocalName(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT);
+        if (claimURIIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT + " config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> notToDeleteClaims = new HashSet<>();
+
+        while (claimURIIdentifierIterator.hasNext()) {
+            OMElement claimURIIdentifierConfig = (OMElement) claimURIIdentifierIterator.next();
+            String claimURI = claimURIIdentifierConfig.getText();
+            if (StringUtils.isNotBlank(claimURI)) {
+                notToDeleteClaims.add(claimURI.trim());
+            }
+        }
+
+        return notToDeleteClaims;
+    }
 }

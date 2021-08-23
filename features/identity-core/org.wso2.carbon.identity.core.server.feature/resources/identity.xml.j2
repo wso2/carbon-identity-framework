@@ -2816,4 +2816,11 @@
     <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
 
 
+    <!-- Claims which must not delete during existing claim mapping syncing process with idp claims. -->
+    <ClaimsNotToDelete>
+    	{% for claimuri in claims_not_to_delete.claim_uri %}
+        <ClaimURI>{{claimuri}}</ClaimURI>
+        {% endfor %}
+    </ClaimsNotToDelete>
+
 </Server>
