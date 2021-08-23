@@ -283,6 +283,12 @@ public abstract class FrameworkConstants {
         public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
                 "PasswordUpdate.PreserveLoggedInSession";
 
+        /**
+         * Configuration to avoid deleting claim mapping during existing claim mapping syncing process with idp claims.
+         */
+        public static final String NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT = "ClaimsNotToDelete";
+        public static final String CLAIM_URI_CONFIG_ELEMENT = "ClaimURI";
+
         private Config() {
         }
 
