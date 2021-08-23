@@ -252,4 +252,16 @@ public interface ApplicationDAO {
 
         return 0;
     }
+
+    /**
+     * Method that can be run after updating components related to the service provider. Contains post application
+     * dependency update tasks.
+     *
+     * @param serviceProvider   Service provider application.
+     * @param tenantDomain      Tenant domain of the service provider.
+     */
+    default void clearApplicationFromCache(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+    }
 }
