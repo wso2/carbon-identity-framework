@@ -78,7 +78,7 @@ public class JsGraphBuilder {
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
-    private static String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
+    private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
             "var exit=function(){Log.error('exit function is restricted.')};" +
             "var print=function(){Log.error('print function is restricted.')};" +
             "var echo=function(){Log.error('echo function is restricted.')};" +
@@ -172,13 +172,13 @@ public class JsGraphBuilder {
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             removeDefaultFunctions(engine);
-            engine.eval(script);
 
             String identifier = UUID.randomUUID().toString();
             long elapsedTime;
             try {
                 getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
                         authenticationContext.getTenantDomain(), 0L);
+                engine.eval(script);
                 invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                         new JsAuthenticationContext(authenticationContext));
             } finally {
@@ -452,7 +452,8 @@ public class JsGraphBuilder {
                             }
                         }
                     } else {
-                        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                        for (FederatedAuthenticatorConfig federatedAuthConfig
+                                : idp.getFederatedAuthenticatorConfigs()) {
                             if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
                                 authenticators.contains(federatedAuthConfig.getDisplayName())) {
                                 removeOption = false;
@@ -892,24 +893,36 @@ public class JsGraphBuilder {
         return new StepConfigGraphNode(stepConfig);
     }
 
+    /**
+     * Functional interface for authentication failed callback.
+     */
     @FunctionalInterface
     public interface FailAuthenticationFunction {
 
         void fail(Object... parameterMap);
     }
 
+    /**
+     * Functional interface for executeStep function.
+     */
     @FunctionalInterface
     public interface StepExecutor {
 
         void executeStep(Integer stepId, Object... parameterMap);
     }
 
+    /**
+     * Functional interface for prompt in the authentication.
+     */
     @FunctionalInterface
     public interface PromptExecutor {
 
         void prompt(String template, Object... parameterMap);
     }
 
+    /**
+     * Functional interface for restricted functions in authentication script.
+     */
     @Deprecated
     @FunctionalInterface
     public interface RestrictedFunction {
@@ -917,6 +930,9 @@ public class JsGraphBuilder {
         void exit(Object... arg);
     }
 
+    /**
+     * Functional interface to load authentication library.
+     */
     @FunctionalInterface
     public interface LoadExecutor {
 
@@ -1015,13 +1031,13 @@ public class JsGraphBuilder {
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
-                    JSObject builderFunction = (JSObject) compiledScript.eval();
 
                     String identifier = UUID.randomUUID().toString();
                     long elapsedTime = getAuthScriptExecutionElapsedTime(authenticationContext);
                     try {
                         getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
                                 authenticationContext.getTenantDomain(), elapsedTime);
+                        JSObject builderFunction = (JSObject) compiledScript.eval();
                         result = jsConsumer.apply(builderFunction);
                     } finally {
                         elapsedTime = getJSExecutionSupervisor().completed(identifier);

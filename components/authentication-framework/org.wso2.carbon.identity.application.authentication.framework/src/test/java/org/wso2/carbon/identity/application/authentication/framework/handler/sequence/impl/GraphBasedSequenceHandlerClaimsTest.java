@@ -95,8 +95,9 @@ public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandl
         when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
         FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
-        PowerMockito.when(mockUserStoreManager.getUserClaimValues(anyString(), eq(new String[]{"http://wso2.org/claims/lastname"})
-            , anyString())).thenReturn(Collections.singletonMap("http://wso2.org/claims/lastname", "lastNameValue"));
+        PowerMockito.when(mockUserStoreManager.getUserClaimValues(anyString(),
+                eq(new String[]{"http://wso2.org/claims/lastname"}),
+                anyString())).thenReturn(Collections.singletonMap("http://wso2.org/claims/lastname", "lastNameValue"));
 
         graphBasedSequenceHandler.handle(req, resp, context);
 

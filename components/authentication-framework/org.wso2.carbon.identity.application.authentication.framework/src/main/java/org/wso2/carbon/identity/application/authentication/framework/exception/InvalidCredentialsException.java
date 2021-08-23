@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.exception;
 
 import org.wso2.carbon.identity.application.common.model.User;
 
+/**
+ * Invalid credential exception.
+ */
 public class InvalidCredentialsException extends AuthenticationFailedException {
 
     private static final long serialVersionUID = 6368867651869262347L;

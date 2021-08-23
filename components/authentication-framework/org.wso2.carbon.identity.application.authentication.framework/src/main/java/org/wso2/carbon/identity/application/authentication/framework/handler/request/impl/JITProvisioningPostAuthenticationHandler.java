@@ -77,6 +77,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -93,7 +94,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);
-    private static volatile JITProvisioningPostAuthenticationHandler instance = new JITProvisioningPostAuthenticationHandler();
+    private static volatile JITProvisioningPostAuthenticationHandler instance
+            = new JITProvisioningPostAuthenticationHandler();
 
     /**
      * To get an instance of {@link JITProvisioningPostAuthenticationHandler}.
@@ -303,7 +305,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
+                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                                    context.getTenantDomain());
 
                     String username = associatedLocalUser;
                     // If associatedLocalUser is null, that means relevant association not exist already.
@@ -402,7 +405,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             boolean showAuthFailureReason = true;
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
-            String retryParam ;
+            String retryParam;
             if (showAuthFailureReason) {
                 retryParam = "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
                         UserCoreConstants.ErrorCode.USER_IS_LOCKED;
@@ -644,7 +647,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @return list of cliams available in the tenant.
      * @throws PostAuthenticationFailedException PostAuthentication Failed Exception.
      */
-    private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain, String externalIdPConfigName)
+    private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain,
+                                                                       String externalIdPConfigName)
             throws PostAuthenticationFailedException {
 
         RealmService realmService = FrameworkServiceComponent.getRealmService();
@@ -693,11 +697,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private void callDefaultProvisioningHandler(String username, AuthenticationContext context,
-                                                ExternalIdPConfig externalIdPConfig, Map<String, String> localClaimValues, StepConfig stepConfig)
+                                                ExternalIdPConfig externalIdPConfig,
+                                                Map<String, String> localClaimValues, StepConfig stepConfig)
             throws PostAuthenticationFailedException {
 
         boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
-        ApplicationAuthenticator authenticator = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
+        ApplicationAuthenticator authenticator
+                = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
         String idPStandardDialect = authenticator.getClaimDialectURI();
         String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
@@ -707,8 +713,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
             try {
                 claimMapping = ClaimMetadataHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
-                                true);
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect,
+                                originalExternalAttributeValueMap.keySet(), context.getTenantDomain(), true);
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode
                         (), ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);

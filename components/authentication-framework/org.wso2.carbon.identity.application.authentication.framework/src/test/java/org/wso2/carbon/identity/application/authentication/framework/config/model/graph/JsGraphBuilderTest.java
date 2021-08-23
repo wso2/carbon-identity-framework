@@ -55,7 +55,6 @@ import static org.testng.Assert.assertTrue;
 @Test
 public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
-    protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Mock
@@ -155,8 +154,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.filterOptions(options, stepConfig);
-        assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter, "Authentication options after " +
-            "filtering mismatches expected. " + options.toString());
+        assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter,
+                "Authentication options after filtering mismatches expected. " + options);
     }
 
     @DataProvider
@@ -375,7 +374,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
                 {singleParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz"},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user"},
-                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator","domain", "localhost"}
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator", "domain",
+                        "localhost"}
         };
     }
 }

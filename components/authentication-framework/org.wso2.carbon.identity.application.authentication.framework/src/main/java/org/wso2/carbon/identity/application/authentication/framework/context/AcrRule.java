@@ -19,10 +19,14 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 /**
- * exact: where the authentication context statement in the assertion must be the exact match of, at least, one of the authentication contexts specified.
- * minimum: where the authentication context statement in the assertion must be, at least, as strong (as deemed by the identity provider) one of the authentication contexts specified.
- * maximum: where the authentication context statement in the assertion must be no stronger than any of the authentication contexts specified.
- * better: where the authentication context statement in the assertion must be stronger than any of the authentication contexts specified.
+ * exact: where the authentication context statement in the assertion must be the exact match of, at least,
+ * one of the authentication contexts specified.
+ * minimum: where the authentication context statement in the assertion must be, at least, as strong
+ * (as deemed by the identity provider) one of the authentication contexts specified.
+ * maximum: where the authentication context statement in the assertion must be no stronger than any of the
+ * authentication contexts specified.
+ * better: where the authentication context statement in the assertion must be stronger than any of the
+ * authentication contexts specified.
  */
 public enum AcrRule {
     EXACT,

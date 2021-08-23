@@ -73,12 +73,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -98,11 +98,11 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*"})
 public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
-    final public static String ROOT_DOMAIN = "/";
-    final public static String DUMMY_TENANT_DOMAIN = "ABC";
-    final public static String DUMMY_SP_NAME = "wso2carbon-local-sp";
-    final public static String REDIRECT_URL = "custom-page?";
-    final public static String DUMMY_CACHE_KEY = "cache-key";
+    private static final String ROOT_DOMAIN = "/";
+    private static final String DUMMY_TENANT_DOMAIN = "ABC";
+    private static final String DUMMY_SP_NAME = "wso2carbon-local-sp";
+    private static final String REDIRECT_URL = "custom-page?";
+    private static final String DUMMY_CACHE_KEY = "cache-key";
 
     SessionContextCacheKey cacheKey = new SessionContextCacheKey(DUMMY_CACHE_KEY);
     SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
@@ -159,7 +159,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testGetRequestCoordinatorExistingHandler() {
 
-        DefaultRequestCoordinator testRequestCoordinator= new DefaultRequestCoordinator();
+        DefaultRequestCoordinator testRequestCoordinator = new DefaultRequestCoordinator();
         ConfigurationFacade.getInstance().getExtensions()
                 .put(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR, testRequestCoordinator);
         Object requestCoordinator = FrameworkUtils.getRequestCoordinator();
@@ -237,7 +237,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         DefaultRequestPathBasedSequenceHandler testRequestPathBasedSequenceHandler;
         testRequestPathBasedSequenceHandler = new DefaultRequestPathBasedSequenceHandler();
         ConfigurationFacade.getInstance().getExtensions()
-                .put(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER, testRequestPathBasedSequenceHandler);
+                .put(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER,
+                        testRequestPathBasedSequenceHandler);
         Object requestPathBasedSequenceHandler = FrameworkUtils.getRequestPathBasedSequenceHandler();
         assertEquals(requestPathBasedSequenceHandler, testRequestPathBasedSequenceHandler);
     }

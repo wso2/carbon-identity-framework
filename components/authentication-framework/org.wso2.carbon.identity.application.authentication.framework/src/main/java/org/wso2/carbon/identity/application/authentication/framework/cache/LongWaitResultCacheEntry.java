@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
+/**
+ * Wrapper object to cache {@link LongWaitStatus}
+ */
 public class LongWaitResultCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 6445482590207584994L;

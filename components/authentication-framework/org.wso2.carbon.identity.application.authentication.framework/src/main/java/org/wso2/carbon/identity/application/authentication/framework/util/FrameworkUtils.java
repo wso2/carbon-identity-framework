@@ -170,6 +170,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
+/**
+ * Utility methods for authentication framework.
+ */
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
@@ -218,8 +221,7 @@ public class FrameworkUtils {
     public static AuthenticationRequestCacheEntry getAuthenticationRequestFromCache(String key) {
 
         AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
-        AuthenticationRequestCacheEntry authRequest = AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
-        return authRequest;
+        return AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
     }
 
     /**
@@ -554,7 +556,8 @@ public class FrameworkUtils {
      * @param status        Failure status.
      * @param statusMsg     Failure status message.
      * @throws IOException
-     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext, String, String)}.
+     * @deprecated use
+     * {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext, String, String)}.
      */
     @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
@@ -589,7 +592,7 @@ public class FrameworkUtils {
      */
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
                                        AuthenticationContext context, String status,
-                                       String statusMsg) throws IOException{
+                                       String statusMsg) throws IOException {
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
@@ -1419,14 +1422,15 @@ public class FrameworkUtils {
     }
 
     public static Map<String, AuthenticatorConfig> getAuthenticatedStepIdPs(StepConfig stepConfig,
-                                                                            Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+                                                                            Map<String, AuthenticatedIdPData>
+                                                                                    authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
                     stepConfig.getOrder()));
         }
 
-        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
+        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<>();
         List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
 
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
@@ -1671,7 +1675,8 @@ public class FrameworkUtils {
 
         // If the host name is not white listed then the query params will not be removed from the redirect url.
         List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
-        if (CollectionUtils.isNotEmpty(filteringEnabledHosts) && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts)
+                && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
             return redirectUrl;
         }
 
@@ -1757,8 +1762,8 @@ public class FrameworkUtils {
             }
         } else if (authenticatedSubject.indexOf(CarbonConstants.DOMAIN_SEPARATOR) == 0) {
             throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
-                                               + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
-                                               + "\'");
+                                               + authenticatedSubject + " begins with '"
+                                               + CarbonConstants.DOMAIN_SEPARATOR + "'");
         }
         return authenticatedSubject;
     }
@@ -2088,7 +2093,8 @@ public class FrameworkUtils {
                 federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
                         .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
                 if (log.isDebugEnabled()) {
-                    log.debug("The IDP side role claim value separator is configured as : " + federatedIDPRoleClaimAttributeSeparator);
+                    log.debug("The IDP side role claim value separator is configured as : "
+                            + federatedIDPRoleClaimAttributeSeparator);
                 }
             } else {
                 federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
@@ -2648,7 +2654,7 @@ public class FrameworkUtils {
             }
 
             String schemaPattern = null;
-            if (metaData.getDriverName().contains("Oracle")){
+            if (metaData.getDriverName().contains("Oracle")) {
                 if (log.isDebugEnabled()) {
                     log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
                 }
@@ -2815,6 +2821,41 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieves the username of the given userid.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param userId           userid.
+     * @return username of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserNameFromUserId(UserStoreManager userStoreManager, String userId) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userId);
+
+                if (StringUtils.isBlank(userName)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User Name could not be resolved for userid: " + userId + ".");
+                    }
+                }
+                return userName;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + userId + ", is not an instance of the " +
+                        "AbstractUserStore manager.");
+            }
+            throw new UserSessionException("Unable to get the user name of the user Id: " + userId + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving user name for the user Id: " + userId, e);
+            }
+            throw new UserSessionException("Error occurred while resolving user name for the user Id: " + userId, e);
+        }
+    }
+
+    /**
      * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
@@ -2853,7 +2894,8 @@ public class FrameworkUtils {
      * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
      * resolvedUserResult with FAIL status.
      */
-    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier, String tenantDomain) {
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
+                                                                              String tenantDomain) {
 
         ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
         if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
@@ -3071,7 +3113,8 @@ public class FrameworkUtils {
     }
 
     /*
-    TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step,
+     rather than resetting.
     */
     /**
      * Reset authentication context.

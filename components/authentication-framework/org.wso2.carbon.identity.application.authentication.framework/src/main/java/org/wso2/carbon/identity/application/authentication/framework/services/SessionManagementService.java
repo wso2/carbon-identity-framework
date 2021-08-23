@@ -30,6 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+/**
+ * Session management service.
+ */
 public class SessionManagementService extends AbstractAdmin {
 
     private static Log log = LogFactory.getLog(SessionManagementService.class);
@@ -45,7 +48,8 @@ public class SessionManagementService extends AbstractAdmin {
      *
      * Terminates the requested session, after validating whether the session belongs to the logged in user.
      * @deprecated Use UserSessionManagementService to terminate the session of the current user
-     * {@link org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService#terminateSessionBySessionId(String, String)}
+     * {@link org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService
+     * #terminateSessionBySessionId(String, String)}
      * @param sessionId
      * @return
      */

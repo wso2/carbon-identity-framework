@@ -60,6 +60,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Authentication framework data holder.
+ */
 public class FrameworkServiceDataHolder {
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
@@ -70,12 +73,12 @@ public class FrameworkServiceDataHolder {
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-    private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
-    private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
+    private List<IdentityProcessor> identityProcessors = new ArrayList<>();
+    private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsGraphBuilderFactory JsGraphBuilderFactory;
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -218,15 +221,14 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
-    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+    public JsGraphBuilderFactory getJsGraphBuilderFactory() {
 
-        return JsGraphBuilderFactory;
+        return jsGraphBuilderFactory;
     }
 
-    public void setJsGraphBuilderFactory(
-            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
 
-        JsGraphBuilderFactory = jsGraphBuilderFactory;
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 
     public MultiAttributeLoginService getMultiAttributeLoginService() {

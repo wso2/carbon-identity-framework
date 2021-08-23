@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
@@ -88,7 +89,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
 
         AuthenticationContext context = processSequenceWithAcr(new String[] { "acr1" });
@@ -109,12 +111,15 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>)GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -141,7 +146,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
-        assertEquals( authHistories.size(), 3);
+        assertEquals(authHistories.size(), 3);
         assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicMockAuthenticator");
         assertEquals(authHistories.get(1).getAuthenticatorName(), "FptMockAuthenticator");
         assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
@@ -156,19 +161,22 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fail.xml");
 
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
-        assertEquals( authHistories.size(), 3);
+        assertEquals(authHistories.size(), 3);
         assertEquals(authHistories.get(0).getAuthenticatorName(), "BasicFailingMockAuthenticator");
         assertEquals(authHistories.get(1).getAuthenticatorName(), "BasicMockAuthenticator");
         assertEquals(authHistories.get(2).getAuthenticatorName(), "FptMockAuthenticator");
@@ -185,19 +193,22 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
+                (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fallback.xml");
 
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
-        assertEquals( authHistories.size(), 4);
+        assertEquals(authHistories.size(), 4);
         assertEquals(authHistories.get(0).getAuthenticatorName(), "MockFallbackAuthenticator");
         assertEquals(authHistories.get(1).getAuthenticatorName(), "BasicMockAuthenticator");
         assertEquals(authHistories.get(2).getAuthenticatorName(), "HwkMockAuthenticator");
@@ -212,7 +223,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest::customFunction1);
+                (Function<JsAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                        ::customFunction1);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -317,7 +329,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         }
     }
 
-    public static class MockFallbackAuthenticator extends MockAuthenticator{
+    public static class MockFallbackAuthenticator extends MockAuthenticator {
 
         public MockFallbackAuthenticator(String name) {
             super(name);

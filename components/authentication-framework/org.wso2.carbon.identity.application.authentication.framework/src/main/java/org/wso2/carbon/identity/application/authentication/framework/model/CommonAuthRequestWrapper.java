@@ -17,11 +17,15 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+
+/**
+ * Common authentication request wrapper.
+ */
 public class CommonAuthRequestWrapper extends HttpServletRequestWrapper {
 
     private Map extraParameters;

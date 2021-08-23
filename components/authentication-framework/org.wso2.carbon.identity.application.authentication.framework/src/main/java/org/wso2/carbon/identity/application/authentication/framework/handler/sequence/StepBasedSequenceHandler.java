@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Step based sequence handler interface.
+ */
 public interface StepBasedSequenceHandler extends SequenceHandler {
 
     /**

@@ -55,6 +55,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -76,6 +77,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
+    private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
 
     private DefaultRequestPathBasedSequenceHandler requestPathBasedSequenceHandler;
 
@@ -106,9 +108,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @Spy
     private AuthenticatorConfig authenticatorConfig;
 
-
     private AuthenticationContext context;
-
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -211,7 +211,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
         doReturn(AuthenticatorFlowStatus.SUCCESS_COMPLETED).when(requestPathAuthenticator)
-                .process(any(HttpServletRequest.class), any(HttpServletResponse.class), any(AuthenticationContext.class));
+                .process(any(HttpServletRequest.class), any(HttpServletResponse.class),
+                        any(AuthenticationContext.class));
 
         String subjectIdentifier = "H2/alice@t1.com";
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
@@ -247,7 +248,6 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     @DataProvider
     public Object[][] getPostAuthenticationData() {
 
-        final String SUBJECT_CLAIM_URI = "subjectClaimUri";
         Util.mockIdentityUtil();
 
         return new Object[][]{
@@ -357,7 +357,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         requestPathBasedSequenceHandler.handlePostAuthentication(request, response, context, idPData);
 
         assertNotNull(context.getSequenceConfig().getAuthenticatedUser());
-        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), expectedSubjectIdentifier);
+        assertEquals(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                expectedSubjectIdentifier);
     }
 
     @DataProvider(name = "spRoleMappingDataProvider")
@@ -379,7 +380,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         when(applicationMgtSystemConfig.getApplicationDAO()).thenReturn(applicationDAO);
         when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
         when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
-        String mappedRoles = requestPathBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
+        String mappedRoles = requestPathBasedSequenceHandler
+                .getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         assertEquals(mappedRoles, expectedRoles);
     }
 
@@ -484,7 +486,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         ClaimHandler claimHandler = mock(ClaimHandler.class);
         doThrow(new FrameworkException("Claim Handling failed"))
                 .when(claimHandler)
-                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class), any(Map.class), anyBoolean());
+                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
+                        any(Map.class), anyBoolean());
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);

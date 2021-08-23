@@ -35,6 +35,9 @@ import java.util.concurrent.TimeUnit;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
+/**
+ * Cache for {@link org.wso2.carbon.identity.application.authentication.framework.context.SessionContext}
+ */
 public class SessionContextCache extends BaseCache<SessionContextCacheKey, SessionContextCacheEntry> {
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";

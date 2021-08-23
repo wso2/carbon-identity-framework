@@ -50,22 +50,25 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
-        SAML2SSO.FED_AUTH_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
+/**
+ * Default implementation of logout request handler.
+ */
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private static final Log log = LogFactory.getLog(DefaultLogoutRequestHandler.class);
@@ -237,7 +240,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             context.setCallerPath(getDefaultLogoutReturnUrl());
         }
 
-        if(context.getCallerSessionKey() != null) {
+        if (context.getCallerSessionKey() != null) {
             request.setAttribute(FrameworkConstants.SESSION_DATA_KEY, context.getCallerSessionKey());
 
             AuthenticationResult authenticationResult = new AuthenticationResult();
@@ -391,7 +394,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         String defaultLogoutUrl = IdentityUtil.getProperty(DEFAULT_LOGOUT_URL_CONFIG);
         if (StringUtils.isBlank(defaultLogoutUrl)) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the " +
                         "default logout page of the server.");
             }

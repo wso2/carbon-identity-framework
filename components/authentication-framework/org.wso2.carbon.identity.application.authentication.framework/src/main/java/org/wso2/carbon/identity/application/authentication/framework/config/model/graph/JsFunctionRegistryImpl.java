@@ -23,7 +23,6 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Default implementation for the JsFunctionRegistry.

@@ -178,7 +178,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
-        if(subject != null) {
+        if (subject != null) {
             lastAuthenticatedUser = subject;
         }
     }
@@ -536,7 +536,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters at once.
+     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters
+     * at once.
      * @param params Map of parameters to add
      */
     public void addEndpointParams(Map<String, Serializable> params) {
@@ -545,7 +546,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)} for more details.
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)}
+     * for more details.
      * @return
      */
     public Map<String, Serializable> getEndpointParams() {
@@ -575,8 +577,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Initialize the authentication time related parameter maps so that in later we don't need to
      * check whether it is initialized.
-     *
-     * @return the map consists of authentication related parameters.
      */
     public void initializeAnalyticsData() {
 

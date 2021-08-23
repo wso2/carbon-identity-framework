@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
+/**
+ * Cache key for long wait status result.
+ */
 public class LongWaitResultCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 5180299419673067336L;

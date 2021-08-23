@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +45,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -148,7 +146,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
         this.authenticatedUser = authenticatedUser;
     }
 
-    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public JsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -242,7 +240,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
             Map<String, String> claimUriMap = new HashMap<>();
             claimUriMap.put(claimUri, String.valueOf(claimValue));
-            ((AbstractUserStoreManager)userRealm.getUserStoreManager())
+            ((AbstractUserStoreManager) userRealm.getUserStoreManager())
                     .setUserClaimValuesWithID(authenticatedUser.getUserId(), claimUriMap, null);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
@@ -434,8 +432,8 @@ public class JsClaims extends AbstractJSContextMemberObject {
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
             Map<String, String> claimValues =
-                    ((AbstractUserStoreManager)userRealm.getUserStoreManager())
-                            .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[]{claimUri}, null);
+                    ((AbstractUserStoreManager) userRealm.getUserStoreManager())
+                            .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[] {claimUri}, null);
             return claimValues.get(claimUri);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);

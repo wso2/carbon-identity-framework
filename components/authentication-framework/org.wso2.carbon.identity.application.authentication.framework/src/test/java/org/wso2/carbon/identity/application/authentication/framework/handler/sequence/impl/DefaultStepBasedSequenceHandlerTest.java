@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -92,6 +93,19 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
         IdentityTenantUtil.class, IdentityUtil.class})
 
 public class DefaultStepBasedSequenceHandlerTest {
+
+    private static final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
+    private static final String AUTH_USER_NAME_IN_SEQUENCE_CONFIG = "userNameInSeq";
+    private static final String SP_SUBJECT_CLAIM_VALUE = "spSubject";
+    private static final String subjectIdentifier = "subjectID";
+    private static final List<String> mappedRoles = Collections.emptyList();
+    private static final String TENANT_DOMAIN = "foo.com";
+    private static final String PROVISIONING_USERSTORE_CLAIM_URI = "provisioning_user_store_claimUri";
+    private static final String PROVISONING_USERSTORE_BY_ID = "PROVISIONING_USER_STORE1";
+    private static final String PROVISONING_USERSTORE_BY_CLAIM = "PROVISIONING_USER_STORE2";
+    private static final String IDP_ROLE_CLAIM_URI = "idpClaimURI";
+    private static final String MULTI_ATTRIBUTE_SEPARATOR_1 = ",";
+    private static final String MULTI_ATTRIBUTE_SEPARATOR_2 = ",,,";
 
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
 
@@ -313,7 +327,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         Map<String, String> claims = stepBasedSequenceHandler.handleClaimMappings(
                 null,
                 new AuthenticationContext(),
-                new HashMap<String, String>(),
+                new HashMap<>(),
                 false);
         assertNotNull(claims);
     }
@@ -324,7 +338,8 @@ public class DefaultStepBasedSequenceHandlerTest {
         ClaimHandler claimHandler = mock(ClaimHandler.class);
         doThrow(new FrameworkException("Claim Handling failed"))
                 .when(claimHandler)
-                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class), any(Map.class), anyBoolean());
+                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
+                        any(Map.class), anyBoolean());
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
@@ -332,7 +347,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         Map<String, String> claims = stepBasedSequenceHandler.handleClaimMappings(
                 null,
                 new AuthenticationContext(),
-                new HashMap<String, String>(),
+                new HashMap<>(),
                 false);
 
         assertNotNull(claims);
@@ -342,11 +357,8 @@ public class DefaultStepBasedSequenceHandlerTest {
     @DataProvider(name = "idpMappedUserRoleDataProvider")
     public Object[][] getIdpMappedUserRolesData() {
 
-        final String IDP_ROLE_CLAIM_URI = "idpClaimURI";
         final String[] idpRoles = new String[]{"IDP_ROLE1", "IDP_ROLE2", "IDP_ROLE3"};
         final String[] localRoles = new String[]{"LOCAL_ROLE1", "LOCAL_ROLE2", "LOCAL_ROLE3"};
-        final String MULTI_ATTRIBUTE_SEPARATOR_1 = ",";
-        final String MULTI_ATTRIBUTE_SEPARATOR_2 = ",,,";
 
         return new Object[][]{
                 // AttributeValueMap, IDP Role Claim URI, Exclude Unmapped Roles, Multi Attribute Separator,
@@ -503,10 +515,6 @@ public class DefaultStepBasedSequenceHandlerTest {
     @DataProvider(name = "jitProvisioningDataProvider")
     public Object[][] getJitProvisioningData() {
 
-        final String PROVISIONING_USERSTORE_CLAIM_URI = "provisioning_user_store_claimUri";
-        final String PROVISONING_USERSTORE_BY_ID = "PROVISIONING_USER_STORE1";
-        final String PROVISONING_USERSTORE_BY_CLAIM = "PROVISIONING_USER_STORE2";
-
         return new Object[][]{
                 // Provisioning User Store ID , Provisioning User Store Claim URI, External Attribute Map, expected
                 // userstore to which user should be provisioned to
@@ -542,11 +550,8 @@ public class DefaultStepBasedSequenceHandlerTest {
                                           Map<String, String> externalAttributeValues,
                                           String expectedUserStoreToBeProvisioned) throws Exception {
 
-        final String subjectIdentifier = "subjectID";
-        final List<String> mappedRoles = Collections.emptyList();
-        final String TENANT_DOMAIN = "foo.com";
-
-        context = getMockedContextForJitProvisioning(provisioningUserStoreId, provisioningUserStoreClaimUri, TENANT_DOMAIN);
+        context = getMockedContextForJitProvisioning(provisioningUserStoreId, provisioningUserStoreClaimUri,
+                TENANT_DOMAIN);
 
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
@@ -559,7 +564,8 @@ public class DefaultStepBasedSequenceHandlerTest {
         returnMockProvisioningHandler(provisioningHandler);
         mockHandlerThreadLocalProvisioningServiceProvider();
 
-        stepBasedSequenceHandler.handleJitProvisioning(subjectIdentifier, context, mappedRoles, externalAttributeValues);
+        stepBasedSequenceHandler
+                .handleJitProvisioning(subjectIdentifier, context, mappedRoles, externalAttributeValues);
         verify(provisioningHandler).handle(anyList(), anyString(), anyMap(), captor.capture(), anyString(), anyList());
 
         // check whether the user is provisioned to correct user store
@@ -848,10 +854,6 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "postAuthenticationDataProvider")
     public Object[][] providePostAuthenticationSubjectIdentifierData() {
-
-        final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
-        final String AUTH_USER_NAME_IN_SEQUENCE_CONFIG = "userNameInSeq";
-        final String SP_SUBJECT_CLAIM_VALUE = "spSubject";
 
         return new Object[][]{
                 // subjectClaimUriFromAppConfig,

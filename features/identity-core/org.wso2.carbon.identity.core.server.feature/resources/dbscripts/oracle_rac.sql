@@ -1685,6 +1685,10 @@ CREATE TABLE IDN_SECRET_TYPE (
 )
 /
 
+INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
+('1358bdbf-e0cc-4268-a42c-c3e0960e13f0', 'ADAPTIVE_AUTH_CALL_CHOREO', 'Secret type to uniquely identify secrets relevant to callChoreo adaptive auth function')
+/
+
 CREATE TABLE IDN_SECRET (
     ID VARCHAR2(255) NOT NULL,
     TENANT_ID NUMBER(22,0) NOT NULL,

@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import java.util.Map;
 
+/**
+ * Parameters that can be modified from the authentication script.
+ */
 public class JsWritableParameters extends JsParameters {
 
     public JsWritableParameters(Map wrapped) {

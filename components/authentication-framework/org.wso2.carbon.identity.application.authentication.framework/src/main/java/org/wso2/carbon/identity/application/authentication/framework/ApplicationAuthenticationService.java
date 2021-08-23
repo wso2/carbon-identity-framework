@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Application authentication service.
+ */
 public class ApplicationAuthenticationService {
 
     private static final Log log = LogFactory.getLog(ApplicationAuthenticationService.class);

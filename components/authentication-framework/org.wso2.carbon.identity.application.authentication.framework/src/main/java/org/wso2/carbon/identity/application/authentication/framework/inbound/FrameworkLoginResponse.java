@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+/**
+ * Framework login response.
+ */
 public class FrameworkLoginResponse extends IdentityResponse {
 
     protected String authName;
@@ -61,6 +64,9 @@ public class FrameworkLoginResponse extends IdentityResponse {
         this.redirectUrl = builder.redirectUrl;
     }
 
+    /**
+     * Framework login response builder.
+     */
     public static class FrameworkLoginResponseBuilder extends IdentityResponseBuilder {
 
         protected String authName;

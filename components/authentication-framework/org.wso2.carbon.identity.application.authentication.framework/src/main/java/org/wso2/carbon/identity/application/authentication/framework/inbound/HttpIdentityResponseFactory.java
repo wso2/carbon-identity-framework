@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * HTTP identity response factory.
+ */
 public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityResponseFactory.class);
@@ -48,11 +51,11 @@ public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandle
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String) property.getKey();
+                String value = (String) property.getValue();
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
@@ -79,14 +82,16 @@ public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandle
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
     }
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
     }
