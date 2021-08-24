@@ -49,6 +49,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     private static final Log log = LogFactory.getLog(UniqueClaimUserOperationEventListener.class);
 
     private static final String IS_UNIQUE_CLAIM = "isUnique";
+    private static final String SCOPE_WITHIN_USERSTORE = "ScopeWithinUserstore";
     private static Properties properties;
 
     @Override
@@ -184,8 +185,19 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
         String domainName = userStoreMgr.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-        String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
-        String[] userList = userStoreMgr.getUserList(claimUri, claimValueWithDomain, profile);
+        String scopeWithinUserstore =
+                (String) IdentityUtil.readEventListenerProperty(UserOperationEventListener.class.getName(),
+                        UniqueClaimUserOperationEventListener.class.getName()).getProperties().get(
+                                SCOPE_WITHIN_USERSTORE);
+
+        String[] userList;
+        if (StringUtils.isNotEmpty(scopeWithinUserstore) && Boolean.parseBoolean(scopeWithinUserstore)) {
+            String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
+            userList = userStoreMgr.getUserList(claimUri, claimValueWithDomain, profile);
+        } else {
+            userList = userStoreMgr.getUserList(claimUri, claimValue, profile);
+        }
+
         if (userList.length == 1) {
             String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
             if (usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {

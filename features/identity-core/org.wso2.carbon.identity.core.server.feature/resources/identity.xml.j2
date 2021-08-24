@@ -1469,6 +1469,15 @@
                 enable="{{event.default_listener.is_introspection_data_provider.enable}}">
         </EventListener>
 
+        {% if identity_mgt.user_claim_update.uniqueness.enable is defined %}
+            <EventListener id="unique_claim_user_operation_event_listener" type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                    name="org.wso2.carbon.identity.unique.claim.mgt.listener.UniqueClaimUserOperationEventListener"
+                    orderId="{{identity_mgt.user_claim_update.uniqueness.listener_priority}}"
+                    enable="{{identity_mgt.user_claim_update.uniqueness.enable}}">
+                    <Property name="ScopeWithinUserstore">{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</Property>
+            </EventListener>
+        {% endif %}
+
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
