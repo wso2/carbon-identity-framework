@@ -490,7 +490,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update application id: " + applicationId, e);
         } finally {
@@ -4646,7 +4646,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return resourceId;
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
                     + " in tenantDomain: " + tenantDomain + ". Rolling back created application information.");
             IdentityDatabaseUtil.rollbackTransaction(connection);
