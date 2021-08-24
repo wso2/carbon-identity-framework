@@ -134,10 +134,10 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYST
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
-import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.buildSPData;
-import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getAppId;
-import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getApplicationName;
-import static org.wso2.carbon.identity.application.mgt.util.ApplicationMgtUtils.getInitiatorId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
