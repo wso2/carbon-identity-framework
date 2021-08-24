@@ -97,6 +97,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -2747,36 +2748,8 @@ public class FrameworkUtils {
             UserSessionException {
 
         try {
-            if (userStoreDomain == null) {
-                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
-            }
-            UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
-            try {
-                if (userStoreManager instanceof AbstractUserStoreManager) {
-                    String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
-
-                    // If the user id is could not be resolved, probably user does not exist in the user store.
-                    if (StringUtils.isBlank(userId)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("User id could not be resolved for username: " + username + " in user store " +
-                                    "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
-                                    "user does not exist in the user store.");
-                        }
-                    }
-                    return userId;
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
-                }
-                throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while resolving Id for the user: " + username, e);
-                }
-                throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
-            }
-        } catch (UserStoreException e) {
+            return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+        } catch (IdentityException e) {
             throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
                     "the user: " + username, e);
         }
@@ -2939,24 +2912,6 @@ public class FrameworkUtils {
             }
         }
         return userId;
-    }
-
-    private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
-            throws UserStoreException {
-
-        UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService().getTenantUserRealm(tenantId)
-                .getUserStoreManager();
-        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
-            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
-                    userStoreDomain);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
-                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
-                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
-                    "manager: " + userStoreManager.getClass() + ", from the realm.");
-        }
-        return userStoreManager;
     }
 
     /**
