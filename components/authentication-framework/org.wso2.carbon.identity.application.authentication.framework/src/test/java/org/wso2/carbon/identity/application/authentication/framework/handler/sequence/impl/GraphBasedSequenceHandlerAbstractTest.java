@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.Sub
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -106,6 +107,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
         RealmService mockRealmService = mock(RealmService.class);
         FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(mockRealmService);
 
         CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO = mock(CacheBackedIdPMgtDAO.class);
         Field daoField = IdentityProviderManager.class.getDeclaredField("dao");
