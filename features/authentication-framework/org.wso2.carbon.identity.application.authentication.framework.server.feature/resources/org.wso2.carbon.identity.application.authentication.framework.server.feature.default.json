@@ -210,7 +210,7 @@
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
-  "claims_not_to_delete.claim_uri": [
+  "claims_not_to_delete.claim_uris": [
     "http://wso2.org/claims/userid",
     "http://wso2.org/claims/username",
     "http://wso2.org/claims/resourceType",
