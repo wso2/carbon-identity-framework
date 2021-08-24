@@ -2818,7 +2818,7 @@
 
     <!-- Claims which must not delete during existing claim mapping syncing process with idp claims. -->
     <ClaimsNotToDelete>
-    	{% for claimuri in claims_not_to_delete.claim_uri %}
+    	{% for claimuri in claims_not_to_delete.claim_uris %}
         <ClaimURI>{{claimuri}}</ClaimURI>
         {% endfor %}
     </ClaimsNotToDelete>

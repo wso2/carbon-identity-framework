@@ -156,11 +156,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
 
-                    List<Claim> existingUserClaimList = new ArrayList<>(Arrays.asList(userStoreManager
-                            .getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null)));
-                    Set<String> notToDelete = getNotToDeleteClaims();
+                    Claim[] claimList = userStoreManager.getUserClaimValues(
+                            UserCoreUtil.removeDomainFromName(username), null);
+                    List<Claim> existingUserClaimList = new ArrayList<>(Arrays.asList(claimList));
+                    Set<String> notToDeleteClaimSet = getNotToDeleteClaims();
                     existingUserClaimList.removeIf(claim -> claim.getClaimUri().contains("/identity/") ||
-                            notToDelete.contains(claim.getClaimUri()) || userClaims.containsKey(claim.getClaimUri()));
+                            notToDeleteClaimSet.contains(claim.getClaimUri()) ||
+                            userClaims.containsKey(claim.getClaimUri()));
 
                     List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
                     for (Claim claim : existingUserClaimList) {
@@ -599,6 +601,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @return Claims not to delete.
      */
     private Set<String> getNotToDeleteClaims() {
+
         OMElement notToDeleteClaimsConfig = IdentityConfigParser.getInstance().
                 getConfigElement(FrameworkConstants.Config.NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT);
         if (notToDeleteClaimsConfig == null) {
