@@ -2580,11 +2580,14 @@
         <LongWaitTimeout>{{authentication.adaptive.long_wait.timout}}</LongWaitTimeout>
 
         {% if authentication.adaptive.allow_loops is defined %}
-            <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
+        <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
+            {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
+            <MemoryLimit>{{authentication.adaptive.execution_supervisor.memory_limit}}</MemoryLimit>
+            {% endif %}
         </ExecutionSupervisor>
     </AdaptiveAuth>
 

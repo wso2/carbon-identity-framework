@@ -174,17 +174,16 @@ public class JsGraphBuilder {
             removeDefaultFunctions(engine);
 
             String identifier = UUID.randomUUID().toString();
-            long elapsedTime;
+            JSExecutionMonitorData scriptExecutionData;
             try {
-                getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
-                        authenticationContext.getTenantDomain(), 0L);
+                startScriptExecutionMonitor(identifier, authenticationContext);
                 engine.eval(script);
                 invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                         new JsAuthenticationContext(authenticationContext));
             } finally {
-                elapsedTime = getJSExecutionSupervisor().completed(identifier);
+                scriptExecutionData = endScriptExecutionMonitor(identifier);
             }
-            setAuthScriptExecutionElapsedTime(authenticationContext, elapsedTime);
+            storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
@@ -961,21 +960,42 @@ public class JsGraphBuilder {
         return FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor();
     }
 
-    private void setAuthScriptExecutionElapsedTime(AuthenticationContext context, long elapsedTime) {
+    private void storeAuthScriptExecutionMonitorData(AuthenticationContext context,
+                                                     JSExecutionMonitorData jsExecutionMonitorData) {
 
-        context.setProperty(FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME,
-                elapsedTime);
+        context.setProperty(FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_RESULT,
+                jsExecutionMonitorData);
     }
 
-    private long getAuthScriptExecutionElapsedTime(AuthenticationContext context) {
+    private JSExecutionMonitorData retrieveAuthScriptExecutionMonitorData(AuthenticationContext context) {
 
-        long elapsedTime = 0L;
-        Object elapsedTimeObj = context.getProperty(
-                FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME);
-        if (elapsedTimeObj != null) {
-            elapsedTime = (Long) elapsedTimeObj;
+        JSExecutionMonitorData jsExecutionMonitorData;
+        Object storedResult = context.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_RESULT);
+        if (storedResult != null) {
+            jsExecutionMonitorData = (JSExecutionMonitorData) storedResult;
+        } else {
+            jsExecutionMonitorData = new JSExecutionMonitorData(0L, 0L);
         }
-        return elapsedTime;
+        return jsExecutionMonitorData;
+    }
+
+    private void startScriptExecutionMonitor(String identifier, AuthenticationContext context,
+                                             JSExecutionMonitorData previousExecutionResult) {
+
+        getJSExecutionSupervisor().monitor(identifier, context.getServiceProviderName()
+                , context.getTenantDomain(), previousExecutionResult.getElapsedTime(),
+                previousExecutionResult.getConsumedMemory());
+    }
+
+    private void startScriptExecutionMonitor(String identifier, AuthenticationContext context) {
+
+        startScriptExecutionMonitor(identifier, context, new JSExecutionMonitorData(0L, 0L));
+    }
+
+    private JSExecutionMonitorData endScriptExecutionMonitor(String identifier) {
+
+        return getJSExecutionSupervisor().completed(identifier);
     }
 
     /**
@@ -1033,17 +1053,17 @@ public class JsGraphBuilder {
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
 
                     String identifier = UUID.randomUUID().toString();
-                    long elapsedTime = getAuthScriptExecutionElapsedTime(authenticationContext);
+                    JSExecutionMonitorData scriptExecutionData =
+                            retrieveAuthScriptExecutionMonitorData(authenticationContext);
                     try {
-                        getJSExecutionSupervisor().monitor(identifier, authenticationContext.getServiceProviderName(),
-                                authenticationContext.getTenantDomain(), elapsedTime);
+                        startScriptExecutionMonitor(identifier, authenticationContext, scriptExecutionData);
                         JSObject builderFunction = (JSObject) compiledScript.eval();
                         result = jsConsumer.apply(builderFunction);
                     } finally {
-                        elapsedTime = getJSExecutionSupervisor().completed(identifier);
+                        scriptExecutionData = endScriptExecutionMonitor(identifier);
                     }
 
-                    setAuthScriptExecutionElapsedTime(authenticationContext, elapsedTime);
+                    storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext

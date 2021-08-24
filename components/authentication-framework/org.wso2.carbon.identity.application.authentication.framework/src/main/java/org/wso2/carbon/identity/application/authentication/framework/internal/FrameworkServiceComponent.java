@@ -384,8 +384,22 @@ public class FrameworkServiceComponent {
             }
         }
 
+        String memoryLimitString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT);
+        long memoryLimitInBytes = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT;
+        if (StringUtils.isNotBlank(memoryLimitString)) {
+            try {
+                memoryLimitInBytes = Long.parseLong(memoryLimitString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor memory limit config: "
+                        + memoryLimitString + ", memory consumption will not be monitored.", e);
+            }
+        }
+
+
+
         FrameworkServiceDataHolder.getInstance()
-                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis));
+                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis, memoryLimitInBytes));
     }
 
     @Deactivate
