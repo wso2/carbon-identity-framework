@@ -114,6 +114,23 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Retrieves tenantID.
+     *
+     * @param tenantDomain Tenant name
+     * @return tenantId
+     */
+    private static int getTenantID(String tenantDomain) throws IdentityProviderManagementException {
+        int tenantId;
+        try {
+            tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityProviderManagementException(
+                    "Exception occurred while retrieving Tenant ID from Tenant Domain " + tenantDomain, e);
+        }
+        return tenantId;
+    }
+
+    /**
      * Retrieves resident Identity provider for a given tenant.
      *
      * @param tenantDomain Tenant domain whose resident IdP is requested
@@ -252,13 +269,7 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(message);
         }
 
-        int tenantId = -1;
-        try {
-            tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityProviderManagementException(
-                    "Exception occurred while retrieving Tenant ID from Tenant Domain " + tenantDomain, e);
-        }
+        int tenantId = getTenantID(tenantDomain);
         X509Certificate cert = null;
         try {
             IdentityTenantUtil.initializeRegistry(tenantId);
@@ -779,15 +790,7 @@ public class IdentityProviderManager implements IdpManager {
         if (!idPEntityIdAvailable) {
             Property property = new Property();
             property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            int tenantId = -1;
-
-            try {
-                tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-            } catch (UserStoreException e) {
-                throw new IdentityProviderManagementException(
-                        "Exception occurred while retrieving Tenant ID from Tenant Domain " + tenantDomain, e);
-            }
-
+            int tenantId = getTenantID(tenantDomain);
             if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
                 property.setValue(IdPManagementUtil.getResidentIdPEntityId() + "/t/" + tenantDomain);
             } else {
