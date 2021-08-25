@@ -161,7 +161,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userRealm
                     .getUserStoreManager());
             eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            if (context.isRequestAuthenticated()) {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
+            } else {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            }
             Event event = new Event(IdentityEventConstants.Event.POST_AUTHENTICATION, eventProperties);
             identityEventService.handleEvent(event);
         } catch (UserStoreException e) {
