@@ -120,6 +120,7 @@ public class IdentityProviderManager implements IdpManager {
      * @return tenantId
      */
     private static int getTenantID(String tenantDomain) throws IdentityProviderManagementException {
+
         int tenantId;
         try {
             tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
