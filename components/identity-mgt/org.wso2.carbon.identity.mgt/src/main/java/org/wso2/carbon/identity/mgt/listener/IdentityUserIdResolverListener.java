@@ -741,6 +741,50 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
     }
 
     @Override
+    public boolean doPostUpdateUserListOfInternalRole(String roleName, String[] deletedUsers, String[] newUsers,
+                                                      UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        String[] deletedUserIDs;
+        try {
+            deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return true;
+        }
+
+        String[] newUserIDs;
+        try {
+            newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return true;
+        }
+
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!((UniqueIDUserOperationEventListener) listener)
+                        .doPostUpdateUserListOfInternalRoleWithID(roleName, deletedUserIDs, newUserIDs, userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean doPostUpdateUserListOfRole(String roleName, String[] deletedUsers, String[] newUsers,
                                               UserStoreManager userStoreManager) throws UserStoreException {
 
