@@ -3358,8 +3358,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
+                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
         } catch (SQLException e) {

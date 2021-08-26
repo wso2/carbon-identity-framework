@@ -90,7 +90,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
             "TENANT_ID = ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME =
-            "SELECT APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
+            "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
             "TENANT_ID = ? AND APP_NAME LIKE ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ? AND " +
             "APP_NAME != ? ";
