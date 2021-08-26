@@ -335,4 +335,32 @@ public class DefaultSequenceHandlerUtils {
 
         return spRoleClaimUri;
     }
+
+    /**
+     * Get standard role claim uri for the given service provider role uri.
+     *
+     * @param context        AuthenticationContext.
+     * @param spRoleUri      Service Provider role claim URI.
+     * @param sequenceConfig SequenceConfig.
+     * @return Standard role claim uri for the given spRoleUri.
+     * @throws FrameworkException If an error occurred while reading standard role uri.
+     */
+    public static String getStandardRoleClaimUri(AuthenticationContext context, String spRoleUri,
+                                                 SequenceConfig sequenceConfig)
+            throws FrameworkException {
+
+        String spStandardDialect = DefaultSequenceHandlerUtils.getSPStandardDialect(context);
+        if (spStandardDialect != null && DefaultSequenceHandlerUtils.isLocalClaimDialect(context)) {
+            spRoleUri = DefaultSequenceHandlerUtils.getStandardRoleClaimURI(spStandardDialect,
+                    context.getTenantDomain());
+
+        } else if (spStandardDialect != null && !DefaultSequenceHandlerUtils.isLocalClaimDialect(context)) {
+            String localClaim =
+                    DefaultSequenceHandlerUtils.getSPMappedLocalRoleClaimURI(sequenceConfig.getApplicationConfig());
+            spRoleUri = DefaultSequenceHandlerUtils.getStandardClaimURIFromLocal(spStandardDialect,
+                    context.getTenantDomain(), localClaim);
+
+        }
+        return spRoleUri;
+    }
 }

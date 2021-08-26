@@ -429,7 +429,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         String[] roles = DefaultSequenceHandlerUtils.getRolesFromSPMappedClaims(context, sequenceConfig, mappedAttrs,
                 spRoleUri);
         if (!ArrayUtils.isEmpty(roles)) {
-            mappedAttrs.put(spRoleUri, getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
+            String standardRoleClaimUri = DefaultSequenceHandlerUtils.getStandardRoleClaimUri(context,
+                    spRoleUri, sequenceConfig);
+            String spMappedAttributes = getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles));
+            mappedAttrs.put(spRoleUri, spMappedAttributes);
+            mappedAttrs.put(standardRoleClaimUri, spMappedAttributes);
         }
     }
 
