@@ -45,11 +45,12 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
@@ -81,8 +82,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
         int priority = super.getPriority();
         if (priority == -1) {
-            /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims would
-         passed to the service provider given the assert local mapped user option is selected */
+            /* Priority should be greater than PostJitProvisioningHandler, so that JIT provisioned users local claims
+            would be passed to the service provider given the assert local mapped user option is selected */
             priority = 25;
         }
         return priority;

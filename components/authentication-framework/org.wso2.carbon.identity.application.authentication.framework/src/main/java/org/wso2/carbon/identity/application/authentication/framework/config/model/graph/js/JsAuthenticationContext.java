@@ -145,7 +145,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
-        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+        Object lastLoginFailedUser
+                = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return new JsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {

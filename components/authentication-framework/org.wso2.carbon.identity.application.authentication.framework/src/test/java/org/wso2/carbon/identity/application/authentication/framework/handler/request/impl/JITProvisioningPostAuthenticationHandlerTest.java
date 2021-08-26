@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -62,6 +61,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Collections;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
@@ -69,7 +71,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
@@ -93,7 +98,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     private AccountLockService accountLockService;
 
     @BeforeClass
-    protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException, AccountLockServiceException {
+    protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException {
 
         configurationLoader = new UIBasedConfigurationLoader();
         mockStatic(FrameworkUtils.class);

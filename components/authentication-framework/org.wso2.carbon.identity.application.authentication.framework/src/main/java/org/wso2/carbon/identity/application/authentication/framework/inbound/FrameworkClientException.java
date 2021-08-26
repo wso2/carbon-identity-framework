@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
+/**
+ * Framework client exception.
+ */
 public class FrameworkClientException extends FrameworkException {
 
     public FrameworkClientException(String message) {

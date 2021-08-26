@@ -98,5 +98,4 @@ public class HttpIdentityResponseFactoryTest {
                 httpIdentityResponseFactory.handleException(new RuntimeException());
         assertEquals(responseBuilder.statusCode, 500);
     }
-
 }

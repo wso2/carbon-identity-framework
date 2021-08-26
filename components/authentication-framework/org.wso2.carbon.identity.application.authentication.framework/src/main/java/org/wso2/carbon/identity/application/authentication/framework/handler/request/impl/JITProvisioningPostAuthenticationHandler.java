@@ -63,8 +63,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.handler.event.account.lock.constants.AccountConstants;
 import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -82,6 +80,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -98,7 +97,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);
-    private static volatile JITProvisioningPostAuthenticationHandler instance = new JITProvisioningPostAuthenticationHandler();
+    private static volatile JITProvisioningPostAuthenticationHandler instance
+            = new JITProvisioningPostAuthenticationHandler();
 
     /**
      * To get an instance of {@link JITProvisioningPostAuthenticationHandler}.
@@ -287,8 +287,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
-                Map<String, String> localClaimValues = (Map<String, String>) context
-                        .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                Map<String, String> localClaimValues;
+                if (stepConfig.isSubjectAttributeStep()) {
+                    localClaimValues = (Map<String, String>) context
+                            .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                } else {
+                    localClaimValues = getLocalClaimValuesOfIDPInNonAttributeSelectionStep(context, stepConfig,
+                            externalIdPConfig);
+                }
                 if (localClaimValues == null || localClaimValues.size() == 0) {
                     Map<ClaimMapping, String> userAttributes = stepConfig.getAuthenticatedUser().getUserAttributes();
                     localClaimValues = FrameworkUtils.getClaimMappings
@@ -302,7 +308,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
+                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                                    context.getTenantDomain());
 
                     String username = associatedLocalUser;
                     // If associatedLocalUser is null, that means relevant association not exist already.
@@ -445,7 +452,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             boolean showAuthFailureReason = true;
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
-
+                                                                    
             if (!showAuthFailureReason) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
@@ -684,7 +691,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @return list of cliams available in the tenant.
      * @throws PostAuthenticationFailedException PostAuthentication Failed Exception.
      */
-    private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain, String externalIdPConfigName)
+    private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain,
+                                                                       String externalIdPConfigName)
             throws PostAuthenticationFailedException {
 
         RealmService realmService = FrameworkServiceComponent.getRealmService();
@@ -733,11 +741,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private void callDefaultProvisioningHandler(String username, AuthenticationContext context,
-                                                ExternalIdPConfig externalIdPConfig, Map<String, String> localClaimValues, StepConfig stepConfig)
+                                                ExternalIdPConfig externalIdPConfig,
+                                                Map<String, String> localClaimValues, StepConfig stepConfig)
             throws PostAuthenticationFailedException {
 
         boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
-        ApplicationAuthenticator authenticator = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
+        ApplicationAuthenticator authenticator
+                = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
         String idPStandardDialect = authenticator.getClaimDialectURI();
         String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
@@ -747,8 +757,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
             try {
                 claimMapping = ClaimMetadataHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
-                                true);
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect,
+                                originalExternalAttributeValueMap.keySet(), context.getTenantDomain(), true);
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode
                         (), ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
@@ -921,6 +931,59 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
 
         return null;
+    }
+
+    /**
+     * Uses to get local claim values of an authenticated user from an IDP in non attribute selection steps.
+     *
+     * @param context           Authentication Context.
+     * @param stepConfig        Current step configuration.
+     * @param externalIdPConfig Identity providers config.
+     * @return Mapped federated user values to local claims.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    private Map<String, String> getLocalClaimValuesOfIDPInNonAttributeSelectionStep(AuthenticationContext context,
+                                                                                    StepConfig stepConfig,
+                                                                                    ExternalIdPConfig externalIdPConfig)
+            throws PostAuthenticationFailedException {
+
+        boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
+        ApplicationAuthenticator authenticator =
+                stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
+        String idPStandardDialect = authenticator.getClaimDialectURI();
+        Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
+        Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
+        Map<String, String> claimMapping = new HashMap<>();
+        Map<String, String> localClaimValues = new HashMap<>();
+        if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
+            try {
+                claimMapping = ClaimMetadataHandler.getInstance()
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect,
+                                originalExternalAttributeValueMap.keySet(), context.getTenantDomain(),
+                                true);
+            } catch (ClaimMetadataException e) {
+                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode(),
+                        ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
+            }
+        } else {
+            ClaimMapping[] customClaimMapping = context.getExternalIdP().getClaimMappings();
+            for (ClaimMapping externalClaim : customClaimMapping) {
+                if (originalExternalAttributeValueMap.containsKey(externalClaim.getRemoteClaim().getClaimUri())) {
+                    claimMapping.put(externalClaim.getLocalClaim().getClaimUri(),
+                            externalClaim.getRemoteClaim().getClaimUri());
+                }
+            }
+        }
+
+        if (claimMapping != null && claimMapping.size() > 0) {
+            for (Map.Entry<String, String> entry : claimMapping.entrySet()) {
+                if (originalExternalAttributeValueMap.containsKey(entry.getValue()) &&
+                        originalExternalAttributeValueMap.get(entry.getValue()) != null) {
+                    localClaimValues.put(entry.getKey(), originalExternalAttributeValueMap.get(entry.getValue()));
+                }
+            }
+        }
+        return localClaimValues;
     }
 
 }

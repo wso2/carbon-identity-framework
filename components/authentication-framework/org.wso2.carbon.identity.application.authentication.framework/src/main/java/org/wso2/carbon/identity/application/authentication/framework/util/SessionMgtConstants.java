@@ -35,6 +35,9 @@ public class SessionMgtConstants {
     public static final String FEDERATED_AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
     public static final String FEDERATED_PROTOCOL_TYPE = "PROTOCOL_TYPE";
 
+    /**
+     * Session management error messages.
+     */
     public enum ErrorMessages {
 
         ERROR_CODE_UNABLE_TO_GET_SESSION("USM-15001",

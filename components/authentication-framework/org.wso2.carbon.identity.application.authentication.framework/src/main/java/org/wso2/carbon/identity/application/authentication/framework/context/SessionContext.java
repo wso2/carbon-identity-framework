@@ -25,6 +25,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Session context bean.
+ */
 public class SessionContext implements Serializable {
 
     private static final long serialVersionUID = -2381634092699961018L;
@@ -32,7 +35,7 @@ public class SessionContext implements Serializable {
     private Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
     private Map<String, AuthenticatedIdPData> authenticatedIdPs = new HashMap<>();
     private boolean isRememberMe = false;
-    private Map<String,Object> properties = new HashMap<>();
+    private Map<String, Object> properties = new HashMap<>();
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
     // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
     private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;

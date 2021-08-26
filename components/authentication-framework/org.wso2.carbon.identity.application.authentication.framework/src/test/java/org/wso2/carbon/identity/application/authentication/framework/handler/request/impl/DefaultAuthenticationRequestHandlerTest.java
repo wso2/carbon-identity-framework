@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
 import java.util.UUID;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

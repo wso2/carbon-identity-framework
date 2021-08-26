@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
 /**
- * @Depricated Please use {@link UIBasedConfigurationLoader}. It is wrong to have this class as singleton.
+ * @deprecated Please use {@link UIBasedConfigurationLoader}. It is wrong to have this class as singleton.
  * The *Builder suffix gives wrong meaning, This is not conforming to Builder pattern.
  */
 @Deprecated

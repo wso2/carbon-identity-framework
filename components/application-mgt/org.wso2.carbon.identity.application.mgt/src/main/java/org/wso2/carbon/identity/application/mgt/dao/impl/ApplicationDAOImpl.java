@@ -492,7 +492,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update application id: " + applicationId, e);
         } finally {
@@ -3358,8 +3358,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
+                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
         } catch (SQLException e) {
@@ -4685,7 +4686,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return resourceId;
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
                     + " in tenantDomain: " + tenantDomain + ". Rolling back created application information.");
             IdentityDatabaseUtil.rollbackTransaction(connection);

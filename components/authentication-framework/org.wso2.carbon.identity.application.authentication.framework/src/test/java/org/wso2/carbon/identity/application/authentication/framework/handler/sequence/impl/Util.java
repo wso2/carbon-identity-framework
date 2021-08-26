@@ -86,7 +86,8 @@ public class Util {
         when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
         when(applicationConfig.getRoleMappings()).thenReturn(spRoleMappings);
         when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
-        when(serviceProvider.getLocalAndOutBoundAuthenticationConfig()).thenReturn(localAndOutboundAuthenticationConfig);
+        when(serviceProvider.getLocalAndOutBoundAuthenticationConfig())
+                .thenReturn(localAndOutboundAuthenticationConfig);
         when(localAndOutboundAuthenticationConfig.isUseUserstoreDomainInRoles()).thenReturn(false);
         return sequenceConfig;
     }
@@ -102,7 +103,7 @@ public class Util {
         return claimHandler;
     }
 
-    public static void mockIdentityUtil(){
+    public static void mockIdentityUtil() {
 
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getLocalGroupsClaimURI()).thenReturn(UserCoreConstants.ROLE_CLAIM);

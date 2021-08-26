@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.Sub
 import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

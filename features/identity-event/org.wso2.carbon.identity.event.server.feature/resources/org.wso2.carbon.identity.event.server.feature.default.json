@@ -170,7 +170,10 @@
   "identity_mgt.events.schemes.identityOauthEventHandler.module_index": "28",
   "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [
     "POST_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIM"
+    "POST_SET_USER_CLAIM",
+    "POST_UPDATE_USER_LIST_OF_ROLE",
+    "PRE_DELETE_ROLE",
+    "POST_SET_PERMISSIONS_FOR_ROLE"
   ],
   "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
   "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,

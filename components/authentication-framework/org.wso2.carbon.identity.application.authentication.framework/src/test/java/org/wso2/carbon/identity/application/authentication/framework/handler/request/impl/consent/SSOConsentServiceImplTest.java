@@ -41,7 +41,12 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -50,7 +55,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -60,6 +64,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -68,7 +74,6 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
@@ -98,7 +103,7 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
     private ClaimMetadataManagementService claimMetadataManagementService;
 
     @BeforeMethod
-    public void setUp() throws Exception{
+    public void setUp() throws Exception {
 
         initiateH2Base();
         DataSource dataSource = mock(DataSource.class);
@@ -159,7 +164,7 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationName("Travelocity.com");
 
-        User user =new User();
+        User user = new User();
         user.setTenantDomain("carbon.super");
         user.setUserStoreDomain("PRIMARY");
         serviceProvider.setOwner(user);
@@ -230,7 +235,7 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationName("Travelocity.com");
 
-        User user =new User();
+        User user = new User();
         user.setTenantDomain("carbon.super");
         user.setUserStoreDomain("PRIMARY");
         serviceProvider.setOwner(user);

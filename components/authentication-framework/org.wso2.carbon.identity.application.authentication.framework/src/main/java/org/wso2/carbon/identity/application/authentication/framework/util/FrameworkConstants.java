@@ -77,7 +77,8 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ENDPOINT_QUERY_PARAMS_ACTION_INCLUDE = "include";
     public static final String AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE = "exclude";
 
-    public static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
+    public static final String AUDIT_MESSAGE
+            = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     public static final String AUDIT_SUCCESS = "Success";
     public static final String AUDIT_FAILED = "Failed";
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
@@ -174,6 +175,9 @@ public abstract class FrameworkConstants {
 
     }
 
+    /**
+     * Authentication framework configurations.
+     */
     public static class Config {
 
         // Constant definitions for Elements
@@ -284,6 +288,9 @@ public abstract class FrameworkConstants {
 
     }
 
+    /**
+     * Parameters used in authentication requests.
+     */
     public static class RequestParams {
 
         public static final String TYPE = "type";
@@ -317,6 +324,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Parameters used in authentication responses.
+     */
     public static class ResponseParams {
 
         public static final String AUTHENTICATED = "commonAuthAuthenticated";
@@ -329,6 +339,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Standard inbound authentication protocols.
+     */
     public static class StandardInboundProtocols {
 
         public static final String OAUTH2 = "oauth2";
@@ -341,6 +354,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Inbound authentication request types.
+     */
     public static class RequestType {
 
         public static final String CLAIM_TYPE_OPENID = "openid";
@@ -354,6 +370,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Request attributes.
+     */
     public static class RequestAttribute {
 
         public static final String SESSION_DATA = "sessionData";
@@ -367,6 +386,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Default context paths in authentication endpoint.
+     */
     public static class DefaultUrlContexts {
 
         public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
@@ -378,6 +400,9 @@ public abstract class FrameworkConstants {
 
     }
 
+    /**
+     * Analytics related attributes.
+     */
     public static class AnalyticsAttributes {
 
         public static final String USER = "user";
@@ -393,6 +418,9 @@ public abstract class FrameworkConstants {
         public static final String ACTIVE_SESSION_COUNT = "activeSessionCount";
     }
 
+    /**
+     * Attribute names exposed for adaptive authentication script.
+     */
     public static class JSAttributes {
 
         public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "identifier";
@@ -458,6 +486,10 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
     }
+
+    /**
+     * Domain names of internal roles.
+     */
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
@@ -466,6 +498,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Content types.
+     */
     public static class ContentTypes {
 
         public static final String TYPE_APPLICATION_JSON = "application/json";
@@ -488,6 +523,9 @@ public abstract class FrameworkConstants {
         public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
     }
 
+    /**
+     * Adaptive authentication related constants.
+     */
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
@@ -501,6 +539,9 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorElapsedTime";
     }
 
+    /**
+     * Resident IDP related properties.
+     */
     public static class ResidentIdpPropertyName {
 
        public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
@@ -528,6 +569,9 @@ public abstract class FrameworkConstants {
         public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
 
+    /**
+     * Default application related constants.
+     */
     public static class Application {
 
         public static final String MY_ACCOUNT_APP = "My Account";
@@ -536,6 +580,9 @@ public abstract class FrameworkConstants {
         public static final String CONSOLE_APP_PATH = "/console";
     }
 
+    /**
+     * Auto login related constants.
+     */
     public static class AutoLoginConstant {
 
         public static final String COOKIE_NAME = "ALOR";

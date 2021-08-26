@@ -31,6 +31,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+/**
+ * Long wait status DAO implementation.
+ */
 public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
     private static final Log log = LogFactory.getLog(LongWaitStatusDAOImpl.class);
 
@@ -100,14 +103,14 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                 addPrepStmt.setString(1, waitKey);
                 try (ResultSet resultSet = addPrepStmt.executeQuery()) {
                     if (resultSet.next()) {
-                        String wait_status = resultSet.getString("WAIT_STATUS");
+                        String waitStatus = resultSet.getString("WAIT_STATUS");
                         if (log.isDebugEnabled()) {
                             log.debug("Searched for wait status for wait key: " + waitKey + ". Result: "
-                                    + ("1".equals(wait_status) ? "WAITING" : "COMPLETED"));
+                                    + ("1".equals(waitStatus) ? "WAITING" : "COMPLETED"));
                         }
-                        if(wait_status.equals("1")) {
+                        if (waitStatus.equals("1")) {
                             longWaitStatus.setStatus(LongWaitStatus.Status.WAITING);
-                        }else {
+                        } else {
                             longWaitStatus.setStatus(LongWaitStatus.Status.COMPLETED);
                         }
                     } else {

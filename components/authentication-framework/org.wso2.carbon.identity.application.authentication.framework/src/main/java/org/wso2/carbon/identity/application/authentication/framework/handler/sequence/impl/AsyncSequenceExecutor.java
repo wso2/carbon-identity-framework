@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Asynchronous authentication sequence executor.
+ */
 public class AsyncSequenceExecutor {
 
     private static final Log log = LogFactory.getLog(AsyncSequenceExecutor.class);
@@ -53,7 +56,8 @@ public class AsyncSequenceExecutor {
         executorService = Executors.newFixedThreadPool(poolSize);
     }
 
-    public void exec(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext) throws FrameworkException {
+    public void exec(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext)
+            throws FrameworkException {
 
         if (returnFunction == null) {
             throw new FrameworkException("Can not execute the async process, as no callback function registered on " +
@@ -143,7 +147,8 @@ public class AsyncSequenceExecutor {
         private AsyncReturn returnFunction;
         private AuthenticationContext authenticationContext;
 
-        public ObservingAsyncProcess(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext) {
+        public ObservingAsyncProcess(AsyncCaller caller, AsyncReturn returnFunction,
+                                     AuthenticationContext authenticationContext) {
 
             this.caller = caller;
             this.returnFunction = returnFunction;

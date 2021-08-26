@@ -21,11 +21,15 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
+/**
+ * Common authentication handler.
+ */
 public class CommonAuthenticationHandler {
 
     public CommonAuthenticationHandler() {
@@ -44,6 +48,5 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
         }
         FrameworkUtils.getRequestCoordinator().handle(request, response);
-
     }
 }
