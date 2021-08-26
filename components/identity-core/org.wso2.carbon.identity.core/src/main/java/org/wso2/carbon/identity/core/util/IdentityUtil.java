@@ -1569,6 +1569,7 @@ public class IdentityUtil {
      * @return Unique user id of the user.
      * @throws IdentityException When error occurred while retrieving the user id.
      */
+    @Deprecated
     public static String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
             IdentityException {
 

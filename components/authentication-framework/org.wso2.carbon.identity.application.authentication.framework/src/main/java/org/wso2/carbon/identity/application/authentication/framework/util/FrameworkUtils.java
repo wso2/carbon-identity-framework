@@ -2750,8 +2750,7 @@ public class FrameworkUtils {
         try {
             return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
         } catch (IdentityException e) {
-            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
-                    "the user: " + username, e);
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
         }
     }
 
