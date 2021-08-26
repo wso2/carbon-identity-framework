@@ -60,6 +60,8 @@ public class FrameworkErrorConstants {
                 "Error while handling account lock failure"),
         ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS("80019",
                 "Error while checking the account lock status for the user %s"),
+        ERROR_WHILE_CHECKING_ACCOUNT_DISABLE_STATUS("80020",
+                "Error while checking the account disable status for the user %s"),
         ERROR_WHILE_GETTING_FEDERATED_USERNAME("80020", "Error while getting the federated username"),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
