@@ -46,12 +46,19 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.handler.event.account.lock.constants.AccountConstants;
 import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -59,6 +66,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
@@ -68,7 +76,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
  * This is a test class for {@link JITProvisioningPostAuthenticationHandler}.
  */
 @PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, AccountLockService.class,
-        FrameworkServiceDataHolder.class})
+        FrameworkServiceDataHolder.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFrameworkTest {
 
@@ -128,7 +136,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow with an authenticated user")
     public void testHandleWithAuthenticatedUserWithFederatedIdp() throws FrameworkException,
-            FederatedAssociationManagerException, AccountLockServiceException {
+            FederatedAssociationManagerException, AccountLockServiceException, UserStoreException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
@@ -144,6 +152,20 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         mockStatic(AccountLockService.class);
         when(frameworkServiceDataHolder.getAccountLockService()).thenReturn(accountLockService);
         when(accountLockService.isAccountLocked(anyString(), anyString())).thenReturn(false);
+
+        RealmService mockRealmService = mock(RealmService.class);
+        PowerMockito.when(FrameworkServiceDataHolder.getInstance().getRealmService()).thenReturn(mockRealmService);
+        UserRealm mockUserRealm = mock(UserRealm.class);
+        UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
+        Map<String, String> mockClaimValues = mock(HashMap.class);
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.getUserClaimValues(anyString(),
+                        eq(new String[]{AccountConstants.ACCOUNT_DISABLED_CLAIM}),
+                        eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
+        when(mockClaimValues.get(AccountConstants.ACCOUNT_DISABLED_CLAIM)).thenReturn("false");
 
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                 .handle(request, response, context);
