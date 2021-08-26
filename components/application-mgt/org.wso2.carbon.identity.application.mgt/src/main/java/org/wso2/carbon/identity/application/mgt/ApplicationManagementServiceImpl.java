@@ -24,7 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.slf4j.MDC;
 import org.apache.xerces.impl.Constants;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
@@ -131,13 +130,13 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
