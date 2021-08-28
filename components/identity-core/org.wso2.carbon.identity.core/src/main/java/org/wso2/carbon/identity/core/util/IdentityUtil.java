@@ -1574,7 +1574,7 @@ public class IdentityUtil {
             IdentityException {
 
         try {
-            if (userStoreDomain == null) {
+            if (StringUtils.isEmpty(userStoreDomain)) {
                 userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
             }
             org.wso2.carbon.user.api.UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);

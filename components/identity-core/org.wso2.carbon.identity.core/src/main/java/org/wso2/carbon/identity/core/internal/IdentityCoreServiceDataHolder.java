@@ -31,6 +31,7 @@ public class IdentityCoreServiceDataHolder {
     private IdentityCoreServiceDataHolder() {
 
     }
+
     public static IdentityCoreServiceDataHolder getInstance() {
 
         return instance;
@@ -38,6 +39,7 @@ public class IdentityCoreServiceDataHolder {
 
     /**
      * Get realm service.
+     *
      * @return realm service.
      */
     public RealmService getRealmService() {
@@ -47,6 +49,7 @@ public class IdentityCoreServiceDataHolder {
 
     /**
      * Set realm service.
+     *
      * @param realmService Realm service.
      */
     public void setRealmService(RealmService realmService) {
