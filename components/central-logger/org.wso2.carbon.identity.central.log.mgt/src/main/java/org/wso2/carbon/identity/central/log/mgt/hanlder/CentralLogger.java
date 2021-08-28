@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.central.log.mgt.hanlder;
 
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
-import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.utils.CarbonUtils;
