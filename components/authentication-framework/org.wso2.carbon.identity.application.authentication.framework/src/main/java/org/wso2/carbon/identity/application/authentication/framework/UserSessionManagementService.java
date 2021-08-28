@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.model.SessionSearchResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
 
@@ -63,6 +65,19 @@ public interface UserSessionManagementService {
     default boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
         return false;
+    }
+
+    /**
+     * Get a specific session of the given user id.
+     *
+     * @param userId    unique id of the user
+     * @param sessionId unique id of the session
+     * @return user session object. In the default method, null is returned.
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default UserSession getSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
+
+        return null;
     }
 
     /**
@@ -115,5 +130,21 @@ public interface UserSessionManagementService {
             SessionManagementException {
 
         return false;
+    }
+
+    /**
+     * Get active sessions that fulfill the criteria determined by the filter parameter value.
+     *
+     * @param tenantDomain context tenant domain
+     * @param filter       criteria to search for sessions
+     * @param limit        maximum number of sessions to be returned in the result set
+     * @param sortOrder    sort direction for results (ASC, DESC)
+     * @return list of session search result objects. In the default method, null is returned.
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default List<SessionSearchResult> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+                                                  String sortOrder) throws SessionManagementException {
+
+        return null;
     }
 }
