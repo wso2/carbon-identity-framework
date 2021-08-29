@@ -529,6 +529,7 @@
     "/oauth2/",
     "/scim2/",
     "/api/identity/media/v1.0/",
+    "/api/identity/typingdna/v1.0/",
     "/api/",
     "/myaccount/",
     "/console/",
