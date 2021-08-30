@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
-import org.wso2.carbon.identity.application.authentication.framework.model.SessionSearchResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
@@ -967,10 +967,10 @@ public class UserSessionStore {
      * @return the list of sessions found
      * @throws UserSessionException if an error occurs when retrieving the sessions from the database
      */
-    public List<SessionSearchResult> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit,
-                                                 String sortOrder) throws UserSessionException {
+    public List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit,
+                                         String sortOrder) throws UserSessionException {
 
-        List<SessionSearchResult> results = new ArrayList<>();
+        List<UserSession> results = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             String sqlOrder = StringUtils.isNotBlank(sortOrder) ? sortOrder : SessionMgtConstants.DESC;
@@ -1122,9 +1122,9 @@ public class UserSessionStore {
      * @return a SessionSearchResult object
      * @throws SQLException if an error occurs while parsing the result set
      */
-    private SessionSearchResult parseSessionSearchResult(ResultSet record) throws SQLException {
+    private UserSession parseSessionSearchResult(ResultSet record) throws SQLException {
 
-        SessionSearchResult result = new SessionSearchResult();
+        UserSession result = new UserSession();
         List<Application> apps = Arrays.stream(record.getString(8).split(Pattern.quote("|")))
                 .map(this::parseApplication)
                 .collect(Collectors.toList());

@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
-import org.wso2.carbon.identity.application.authentication.framework.model.SessionSearchResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -140,10 +139,10 @@ public interface UserSessionManagementService {
      * @param filter       criteria to search for sessions
      * @param limit        maximum number of sessions to be returned in the result set
      * @param sortOrder    sort direction for results (ASC, DESC)
-     * @return list of session search result objects. In the default method, an empty list is returned.
+     * @return list of session search results. In the default method, an empty list is returned.
      * @throws SessionManagementException if the session retrieval fails
      */
-    default List<SessionSearchResult> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+    default List<UserSession> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
                                                   String sortOrder) throws SessionManagementException {
 
         return Collections.emptyList();

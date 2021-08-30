@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.model.SessionSearchResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -275,7 +274,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
-    public List<SessionSearchResult> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+    public List<UserSession> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
                                                  String sortOrder) throws SessionManagementException {
 
         try {

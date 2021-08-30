@@ -36,11 +36,13 @@ public class UserSession {
 
     public UserSession(){}
 
+    private String userId;
     private String sessionId;
     private String userAgent;
     private String ip;
     private String loginTime;
     private String lastAccessTime;
+    private Long creationTime;
     private List<Application> applications;
 
     public String getUserAgent() {
@@ -89,5 +91,21 @@ public class UserSession {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Long getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(Long creationTime) {
+        this.creationTime = creationTime;
     }
 }
