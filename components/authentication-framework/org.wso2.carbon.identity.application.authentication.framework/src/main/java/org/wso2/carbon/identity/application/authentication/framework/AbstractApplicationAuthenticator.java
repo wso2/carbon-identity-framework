@@ -102,10 +102,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             }
                         }
                     }
-                    // Commenting out this since account lock and disable is now verified in the git provisioning flow.
-                    // if (this instanceof FederatedApplicationAuthenticator) {
-                    //      handlePostAuthentication(context);
-                    // }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, null);
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);

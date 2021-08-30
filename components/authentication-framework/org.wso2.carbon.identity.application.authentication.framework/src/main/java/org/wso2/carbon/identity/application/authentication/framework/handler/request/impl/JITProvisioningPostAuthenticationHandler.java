@@ -349,9 +349,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         // Check if the associated local account is disabled.
                         if (isAccountDisabled(associatedLocalUser, context.getTenantDomain())) {
                             if (log.isDebugEnabled()) {
-                                log.debug(String.format(
-                                        "The account is disabled for the user: %s in the " + "tenant domain: %s ",
-                                        username, context.getTenantDomain()));
+                                log.debug(String.format("The account is disabled for the user: %s in the " +
+                                        "tenant domain: %s ", username, context.getTenantDomain()));
                             }
                             String retryParam =
                                     "&authFailure=true&authFailureMsg=error.user.account.disabled&errorCode=" +
