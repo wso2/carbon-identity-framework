@@ -525,6 +525,18 @@
             <RedirectToPostLogoutUriOnConsentDenial>true</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
+        <!--
+            Configs related to OAuth2 Device Code Grant.
+            Supported versions: IS 5.12.0 onwards
+        -->
+        <DeviceCodeGrant>
+            <KeyLength>6</KeyLength>
+            <ExpiryTime>600000</ExpiryTime>
+            <PollingInterval>5000</PollingInterval>
+            <KeySet>BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789</KeySet>
+            <DeviceTokenPersistRetryCount>5</DeviceTokenPersistRetryCount>
+        </DeviceCodeGrant>
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
