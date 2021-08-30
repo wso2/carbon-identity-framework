@@ -707,6 +707,10 @@ public class CacheBackedIdPMgtDAO {
         for (IdentityProvider identityProvider : identityProviders) {
             identityProvider = this.getIdPByName(null, identityProvider.getIdentityProviderName(),
                     tenantId, tenantDomain);
+            // An IDP might get deleted from another process. Hence, identityProvider is nullable.
+            if (identityProvider == null) {
+                continue;
+            }
             IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
                     identityProvider.getIdentityProviderName());
             idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
