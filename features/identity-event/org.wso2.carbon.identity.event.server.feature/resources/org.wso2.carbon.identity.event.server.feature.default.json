@@ -212,5 +212,10 @@
     "POST_UPDATE_CLAIM_DIALECT",
     "POST_DELETE_CLAIM_DIALECT",
     "POST_ADD_CLAIM_DIALECT"
+  ],
+  "identity_mgt.events.schemes.CentralLogger.module_index": "33",
+  "identity_mgt.events.schemes.CentralLogger.subscriptions": [
+    "PUBLISH_AUDIT_LOG",
+    "PUBLISH_DIAGNOSTIC_LOG"
   ]
 }
