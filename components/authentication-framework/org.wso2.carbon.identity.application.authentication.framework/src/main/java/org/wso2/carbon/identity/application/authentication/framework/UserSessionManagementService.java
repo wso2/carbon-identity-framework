@@ -81,7 +81,7 @@ public interface UserSessionManagementService {
     }
 
     /**
-     * Terminate the session of the given id
+     * Terminate the session of the given id.
      *
      * @param userId    unique id of the user
      * @param sessionId unique id for the session
@@ -119,7 +119,7 @@ public interface UserSessionManagementService {
     }
 
     /**
-     * Terminate the session of the given id
+     * Terminate the session of the given id.
      *
      * @param user      user object
      * @param idpId     id of the user's identity provider

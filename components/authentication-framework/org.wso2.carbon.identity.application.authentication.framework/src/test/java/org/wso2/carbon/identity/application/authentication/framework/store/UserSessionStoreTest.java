@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.sql.DataSource;
 
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -267,7 +268,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     }
 
     @Test(dataProvider = "getSessionAppsData", dependsOnMethods = {"testStoreUserSessionData"})
-    public void testStoreAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws Exception {
+    public void testStoreAppSessionData(String sessionId, String subject, int appID, String inboundAuth)
+            throws Exception {
 
         mockJdbcUtilsTemplate(getDatasource(DB_NAME));
         UserSessionStore.getInstance().storeAppSessionData(sessionId, subject, appID, inboundAuth);

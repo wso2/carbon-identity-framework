@@ -967,8 +967,8 @@ public class UserSessionStore {
      * @return the list of sessions found
      * @throws UserSessionException if an error occurs when retrieving the sessions from the database
      */
-    public List<SessionSearchResult> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
-            throws UserSessionException {
+    public List<SessionSearchResult> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit,
+                                                 String sortOrder) throws UserSessionException {
 
         List<SessionSearchResult> results = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
