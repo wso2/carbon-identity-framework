@@ -534,7 +534,6 @@
             <ExpiryTime>600000</ExpiryTime>
             <PollingInterval>5000</PollingInterval>
             <KeySet>BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789</KeySet>
-            <DeviceTokenPersistRetryCount>5</DeviceTokenPersistRetryCount>
         </DeviceCodeGrant>
 
         <!-- Configs related to OAuth2 token persistence -->
