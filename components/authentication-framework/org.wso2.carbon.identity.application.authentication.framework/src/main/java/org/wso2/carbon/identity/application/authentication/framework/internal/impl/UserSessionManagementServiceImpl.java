@@ -47,6 +47,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
@@ -218,7 +219,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
-    public UserSession getSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
+    public Optional<UserSession> getSessionBySessionId(String userId, String sessionId)
+            throws SessionManagementException {
 
         if (StringUtils.isBlank(userId)) {
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
@@ -232,9 +234,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
         if (sessionContext != null) {
             UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
-            return userSessionDAO.getSession(sessionId);
+            return Optional.ofNullable(userSessionDAO.getSession(sessionId));
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

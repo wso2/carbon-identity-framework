@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Defines the session management service operations.
@@ -75,9 +76,10 @@ public interface UserSessionManagementService {
      * @return user session object. In the default method, null is returned.
      * @throws SessionManagementException if the session retrieval fails
      */
-    default UserSession getSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
+    default Optional<UserSession> getSessionBySessionId(String userId, String sessionId)
+            throws SessionManagementException {
 
-        return null;
+        return Optional.empty();
     }
 
     /**
