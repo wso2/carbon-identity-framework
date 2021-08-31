@@ -57,8 +57,10 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.handler.event.account.lock.constants.AccountConstants;
 import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -68,6 +70,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -330,15 +333,31 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (StringUtils.isEmpty(username)) {
                         username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName, context);
                     }
-                    // Check if the associated local account is locked.
-                    if (StringUtils.isNotBlank(associatedLocalUser) &&
-                            isAccountLocked(username, context.getTenantDomain())) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(String.format("The account is locked for the user: %s in the " +
-                                    "tenant domain: %s ", username, context.getTenantDomain()));
+                    if (StringUtils.isNotBlank(associatedLocalUser)) {
+                        // Check if the associated local account is locked.
+                        if (isAccountLocked(username, context.getTenantDomain())) {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("The account is locked for the user: %s in the " +
+                                        "tenant domain: %s ", username, context.getTenantDomain()));
+                            }
+                            String retryParam =
+                                    "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
+                                            UserCoreConstants.ErrorCode.USER_IS_LOCKED;
+                            handleAccountLockLoginFailure(retryURL, context, response, retryParam);
+                            return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
-                        handleAccountLockLoginFailure(retryURL, context, response);
-                        return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                        // Check if the associated local account is disabled.
+                        if (isAccountDisabled(associatedLocalUser, context.getTenantDomain())) {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("The account is disabled for the user: %s in the " +
+                                        "tenant domain: %s ", username, context.getTenantDomain()));
+                            }
+                            String retryParam =
+                                    "&authFailure=true&authFailureMsg=error.user.account.disabled&errorCode=" +
+                                            IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE;
+                            handleAccountLockLoginFailure(retryURL, context, response, retryParam);
+                            return PostAuthnHandlerFlowStatus.INCOMPLETE;
+                        }
                     }
                     if (log.isDebugEnabled()) {
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
@@ -397,19 +416,44 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
     }
 
+    /**
+     * Uses to check whether associated users account is disabled or not.
+     *
+     * @param username Username of the associated user.
+     * @return Whether user is disabled or not.
+     * @throws PostAuthenticationFailedException When getting claim value.
+     */
+    private boolean isAccountDisabled(String username, String tenantDomain) throws PostAuthenticationFailedException {
+
+        try {
+            UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            UserStoreManager userStoreManager = realm.getUserStoreManager();
+            Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
+                    AccountConstants.ACCOUNT_DISABLED_CLAIM}, UserCoreConstants.DEFAULT_PROFILE);
+            if (claimValues != null && claimValues.size() > 0) {
+                String accountDisabledClaim = claimValues.get(AccountConstants.ACCOUNT_DISABLED_CLAIM);
+                return Boolean.parseBoolean(accountDisabledClaim);
+            }
+        } catch (UserStoreException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_DISABLE_STATUS.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_DISABLE_STATUS.getMessage(), username), e);
+        }
+        return false;
+    }
+
     private void handleAccountLockLoginFailure(String retryPage, AuthenticationContext context,
-                                               HttpServletResponse response) throws PostAuthenticationFailedException {
+                                               HttpServletResponse response, String retryParam)
+            throws PostAuthenticationFailedException {
 
         try {
             // ToDo: Add support to configure enable/disable authentication failure reason.
             boolean showAuthFailureReason = true;
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
-            String retryParam;
-            if (showAuthFailureReason) {
-                retryParam = "&authFailure=true&authFailureMsg=error.user.account.locked&errorCode=" +
-                        UserCoreConstants.ErrorCode.USER_IS_LOCKED;
-            } else {
+                                                                    
+            if (!showAuthFailureReason) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage, retryParam);
