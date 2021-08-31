@@ -360,6 +360,9 @@
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
   "identity_mgt.user_claim_update.use_verify_claim": true,
+  "identity_mgt.user_claim_update.uniqueness.enable": false,
+  "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
+  "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
