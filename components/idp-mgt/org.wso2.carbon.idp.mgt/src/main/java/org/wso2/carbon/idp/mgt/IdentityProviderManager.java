@@ -779,7 +779,13 @@ public class IdentityProviderManager implements IdpManager {
         if (!idPEntityIdAvailable) {
             Property property = new Property();
             property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            property.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            if (tenantId != MultitenantConstants.SUPER_TENANT_ID && IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                property.setValue(IdPManagementUtil.getResidentIdPEntityId() + "/t/" + tenantDomain);
+            } else {
+                property.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            }
+
             if (saml2SSOResidentAuthenticatorConfig.getProperties().length > 0) {
                 List<Property> properties = Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties());
                 properties.add(property);
