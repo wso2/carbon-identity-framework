@@ -746,7 +746,7 @@ public class SecondaryUserStoreConfigurationUtil {
                 .getUserStoreConfigListeners();
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Triggering userstore post userstore domain update listener: %s for tenant: %s",
+                LOG.debug(String.format("Triggering post userstore domain update listener: %s for tenant: %s",
                         userStoreConfigListener.getClass().getName(),
                         CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
             }
