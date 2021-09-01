@@ -533,10 +533,13 @@ public abstract class FrameworkConstants {
                 "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
         public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
                 "AdaptiveAuth.ExecutionSupervisor.Timeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
+                "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
         public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
         public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
-        public static final String PROP_EXECUTION_SUPERVISOR_ELAPSED_TIME
-                = "AdaptiveAuthExecutionSupervisorElapsedTime";
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
+        public static final String PROP_EXECUTION_SUPERVISOR_RESULT
+                = "AdaptiveAuthExecutionSupervisorResult";
     }
 
     /**

@@ -16,9 +16,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import com.sun.management.ThreadMXBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -34,16 +36,31 @@ public class JSExecutionSupervisor {
     private static final Log LOG = LogFactory.getLog(JSExecutionSupervisor.class);
     private static final String JS_EXECUTION_MONITOR = "JS-Exec-Monitor";
     private final long timeoutInMillis;
-    private long taskExecutionRateInMillis = 100L;
+    private final long memoryLimitInBytes;
+    private long taskExecutionRateInMillis = 50L;
     private Map<String, TaskHolder> currentScriptExecutions = new HashMap<>();
     private ScheduledExecutorService monitoringService;
+    private final int monitorTypeTime = 0;
+    private final int monitorTypeMemory = 1;
 
     public JSExecutionSupervisor(int threadCount, long timeoutInMillis) {
 
-        this.timeoutInMillis = timeoutInMillis;
+        this(threadCount, timeoutInMillis, 0L);
+    }
+
+    public JSExecutionSupervisor(int threadCount, long timeoutInMillis, long memoryLimit) {
 
         if (taskExecutionRateInMillis > timeoutInMillis) {
             taskExecutionRateInMillis = timeoutInMillis;
+        }
+
+        this.timeoutInMillis = timeoutInMillis;
+
+        if (memoryLimit > 0) {
+            this.memoryLimitInBytes = memoryLimit;
+        } else {
+            // We are not checking for memory usage.
+            memoryLimitInBytes = -1;
         }
 
         monitoringService = new ScheduledThreadPoolExecutor(threadCount, r -> new Thread(r, JS_EXECUTION_MONITOR));
@@ -64,12 +81,29 @@ public class JSExecutionSupervisor {
      * @param serviceProvider     Service provider of the adaptive auth script.
      * @param tenantDomain        Tenant domain.
      * @param elapsedTimeInMillis Elapsed time in milliseconds if a previous
-     *                            adaptive auth execution happened in the same thread.
+     *                            adaptive auth execution happened in the same flow.
      */
     public void monitor(String identifier, String serviceProvider, String tenantDomain, long elapsedTimeInMillis) {
 
+        monitor(identifier, serviceProvider, tenantDomain, elapsedTimeInMillis, 0L);
+    }
+
+    /**
+     * Start monitoring an adaptive auth execution.
+     *
+     * @param identifier            Monitoring task identifier.
+     * @param serviceProvider       Service provider of the adaptive auth script.
+     * @param tenantDomain          Tenant domain.
+     * @param elapsedTimeInMillis   Elapsed time in milliseconds if a previous
+     *                              adaptive auth execution happened in the same flow.
+     * @param consumedMemoryInBytes Consumed memory in bytes if a previous
+     *                              adaptive auth execution happened in the same flow.
+     */
+    public void monitor(String identifier, String serviceProvider, String tenantDomain, long elapsedTimeInMillis,
+                        long consumedMemoryInBytes) {
+
         MonitoringTask monitoringTask = new MonitoringTask(Thread.currentThread(), identifier, serviceProvider,
-                tenantDomain, elapsedTimeInMillis);
+                tenantDomain, elapsedTimeInMillis, consumedMemoryInBytes);
         ScheduledFuture<?> monitoredFuture = monitoringService.
                 scheduleAtFixedRate(monitoringTask, taskExecutionRateInMillis, taskExecutionRateInMillis,
                         TimeUnit.MILLISECONDS);
@@ -82,13 +116,12 @@ public class JSExecutionSupervisor {
      * @param identifier Monitoring task identifier.
      * @return Total elapsed time of adaptive auth execution in the current thread.
      */
-    public long completed(String identifier) {
+    public JSExecutionMonitorData completed(String identifier) {
 
         TaskHolder taskHolder = currentScriptExecutions.remove(identifier);
-        long elapsedTime = 0L;
         if (taskHolder == null) {
             // Nothing to be done as there was no such task with the given identifier.
-            return elapsedTime;
+            return null;
         }
 
         ScheduledFuture<?> monitoredFuture = taskHolder.getScheduledFuture();
@@ -97,10 +130,15 @@ public class JSExecutionSupervisor {
         }
 
         MonitoringTask task = taskHolder.getMonitoringTask();
+        long elapsedTime = 0L;
+        long consumedMemory = 0L;
         if (task != null) {
             elapsedTime = task.getTotalElapsedTime();
+            consumedMemory = task.getTotalConsumedMemory();
+            task.turnOffThreadMemoryCounting();
         }
-        return elapsedTime;
+
+        return new JSExecutionMonitorData(elapsedTime, consumedMemory);
     }
 
     private class TaskHolder {
@@ -128,14 +166,23 @@ public class JSExecutionSupervisor {
     private class MonitoringTask implements Runnable {
 
         private Thread originalThread;
-        private long timeCreated;
-        private long elapsedTimeInMillis;
         private String id;
         private String serviceProvider;
         private String tenantDomain;
+        private long timeCreated;
+        private long elapsedTimeInMillis;
+        private long startMemoryInBytes;
+        private long consumedMemoryInBytes;
+        private ThreadMXBean memoryCounter = null;
 
         public MonitoringTask(Thread originalThread, String id, String serviceProvider, String tenantDomain,
                               long elapsedTimeInMillis) {
+
+            this(originalThread, id, serviceProvider, tenantDomain, elapsedTimeInMillis, 0L);
+        }
+
+        public MonitoringTask(Thread originalThread, String id, String serviceProvider, String tenantDomain,
+                              long elapsedTimeInMillis, long consumedMemoryInBytes) {
 
             this.originalThread = originalThread;
             this.id = id;
@@ -143,6 +190,24 @@ public class JSExecutionSupervisor {
             this.tenantDomain = tenantDomain;
             this.timeCreated = System.currentTimeMillis();
             this.elapsedTimeInMillis = elapsedTimeInMillis;
+            this.consumedMemoryInBytes = consumedMemoryInBytes;
+
+            if (memoryLimitInBytes > 0) {
+                java.lang.management.ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+                if (threadMXBean instanceof com.sun.management.ThreadMXBean) {
+                    memoryCounter = (ThreadMXBean) threadMXBean;
+                    try {
+                        turnOnThreadMemoryCounting();
+                        startMemoryInBytes = getCurrentMemory(originalThread.getId());
+                    } catch (UnsupportedOperationException e) {
+                        LOG.error("Thread allocated memory measurement is not supported by the JVM. Therefore memory " +
+                                "supervision will not be done for adaptive auth script executions.", e);
+                    }
+                } else {
+                    LOG.error("Thread allocated memory measurement is not supported by the JVM. Therefore memory " +
+                            "supervision will not be done for adaptive auth script executions.");
+                }
+            }
         }
 
         @Override
@@ -154,24 +219,71 @@ public class JSExecutionSupervisor {
             }
 
             long elapsedTime = getTotalElapsedTime();
-            if (elapsedTime > timeoutInMillis) {
-                StackTraceElement[] stackTraceElements = originalThread.getStackTrace();
-                Throwable throwable = new Throwable();
-                throwable.setStackTrace(stackTraceElements);
-                LOG.warn(String.format("The script took too much time to execute. Thread: %s, service " +
-                                "provider: %s, tenant: %s, execution duration: %s(ms).", originalThread.getName(),
-                        serviceProvider, tenantDomain, elapsedTime), throwable);
-                originalThread.interrupt();
-                originalThread.stop();
 
-                // Marking current monitoring task as complete.
-                completed(id);
+            if (elapsedTime > timeoutInMillis) {
+                terminateScriptExecutingThread(monitorTypeTime, elapsedTime);
+            } else if (memoryCounter != null) {
+                long consumedMemory = getTotalConsumedMemory();
+                if (consumedMemory > memoryLimitInBytes) {
+                    terminateScriptExecutingThread(monitorTypeMemory, consumedMemory);
+                }
             }
+        }
+
+        private void terminateScriptExecutingThread(int monitorType, long consumedResourceValue) {
+
+            String warnLog;
+            if (monitorTypeTime == monitorType) {
+                warnLog = String.format("The script took too much time to execute. Thread: %s, service provider: %s, " +
+                                "tenant: %s, execution duration: %s(ms).", originalThread.getName(), serviceProvider,
+                        tenantDomain, consumedResourceValue);
+            } else {
+                warnLog = String.format("The script took too much memory to execute. Thread: %s, service provider: " +
+                                "%s, tenant: %s, consumed memory: %s(bytes).", originalThread.getName(),
+                        serviceProvider, tenantDomain, consumedResourceValue);
+            }
+
+            StackTraceElement[] stackTraceElements = originalThread.getStackTrace();
+            Throwable throwable = new Throwable();
+            throwable.setStackTrace(stackTraceElements);
+            LOG.warn(warnLog, throwable);
+            originalThread.interrupt();
+            originalThread.stop();
+
+            // Marking current monitoring task as complete.
+            completed(id);
         }
 
         private long getTotalElapsedTime() {
 
             return (System.currentTimeMillis() - timeCreated) + elapsedTimeInMillis;
+        }
+
+        private long getTotalConsumedMemory() {
+
+            return (getCurrentMemory(originalThread.getId()) - startMemoryInBytes) + consumedMemoryInBytes;
+        }
+
+        private long getCurrentMemory(long threadId) {
+
+            if (memoryCounter != null) {
+                return memoryCounter.getThreadAllocatedBytes(threadId);
+            }
+            return 0L;
+        }
+
+        private void turnOnThreadMemoryCounting() {
+
+            if (memoryCounter != null) {
+                memoryCounter.setThreadAllocatedMemoryEnabled(true);
+            }
+        }
+
+        private void turnOffThreadMemoryCounting() {
+
+            if (memoryCounter != null) {
+                memoryCounter.setThreadAllocatedMemoryEnabled(false);
+            }
         }
     }
 }
