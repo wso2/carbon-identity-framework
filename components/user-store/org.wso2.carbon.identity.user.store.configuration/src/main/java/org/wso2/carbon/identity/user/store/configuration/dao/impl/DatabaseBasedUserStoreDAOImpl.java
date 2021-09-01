@@ -65,6 +65,7 @@ import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQu
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
@@ -126,10 +127,12 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throws IdentityUserStoreMgtException {
 
         try {
-            triggerListnersOnUserStorePreUpdate(domainName, userStorePersistanceDTO.getUserStoreDTO().getDomainId());
+            String newDomainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
+            triggerListnersOnUserStorePreUpdate(domainName, newDomainName);
             updateUserStoreProperties(domainName, userStorePersistanceDTO);
             removeRealmFromSecondaryUserStoreManager(domainName);
             addRealmToSecondaryUserStoreManager(userStorePersistanceDTO);
+            triggerListenersOnUserStorePostUpdate(domainName, newDomainName);
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be updated.", e);
         } catch (UserStoreException | XMLStreamException e) {

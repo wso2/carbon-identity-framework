@@ -733,7 +733,31 @@ public class SecondaryUserStoreConfigurationUtil {
     }
 
     /**
+     * Trigger the listeners after a userstore name update.
+     *
+     * @param previousDomainName Previous userstore domain name.
+     * @param newDomainName      Current(new) userstore domain name.
+     * @throws UserStoreException If an error occurred while invoking post listeners.
+     */
+    public static void triggerListenersOnUserStorePostUpdate(String previousDomainName, String newDomainName)
+            throws UserStoreException {
+
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore post userstore domain update listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
+            userStoreConfigListener.onUserStoreNamePostUpdate(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
+                    previousDomainName, newDomainName);
+        }
+    }
+
+    /**
      * Trigger the listeners before userstore domain delete
+     *
      * @param domainName user store domain name
      * @throws UserStoreException throws when an error occured when triggering listeners.
      */
