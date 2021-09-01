@@ -47,6 +47,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
@@ -294,6 +295,12 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
                 userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
             } catch (UserStoreException e) {
+                if (ErrorMessages.ERROR_CODE_READONLY_USER_STORE.getCode().
+                        equals(e.getErrorCode())) {
+                    context.getSequenceConfig().getAuthenticatedUser().
+                            setUserAttributes(authenticatedUserAttributes);
+                    return;
+                }
                 throw new PostAuthenticationFailedException(
                         e.getMessage(), "Error while updating claims for local user. Could not update profile", e);
             }
