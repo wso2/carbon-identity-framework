@@ -78,6 +78,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_ROLE= "POST_UPDATE_ROLE";
         public static final String PRE_UPDATE_USER_LIST_OF_ROLE= "PRE_UPDATE_USER_LIST_OF_ROLE";
         public static final String POST_UPDATE_USER_LIST_OF_ROLE= "POST_UPDATE_USER_LIST_OF_ROLE";
+        public static final String POST_UPDATE_USER_LIST_OF_HYBRID_ROLE= "POST_UPDATE_USER_LIST_OF_HYBRID_ROLE";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
 
@@ -162,6 +163,8 @@ public class IdentityEventConstants {
         public static final String POST_ADD_ROLE_WITH_ID = "POST_ADD_ROLE_WITH_ID";
         public static final String PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
         public static final String POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
+        public static final String POST_UPDATE_USER_LIST_OF_HYBRID_ROLE_WITH_ID=
+                "POST_UPDATE_USER_LIST_OF_HYBRID_ROLE_WITH_ID";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
