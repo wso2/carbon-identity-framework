@@ -40,8 +40,9 @@ public class JSExecutionSupervisor {
     private long taskExecutionRateInMillis = 50L;
     private Map<String, TaskHolder> currentScriptExecutions = new HashMap<>();
     private ScheduledExecutorService monitoringService;
-    private final int monitorTypeTime = 0;
-    private final int monitorTypeMemory = 1;
+    private static final int MONITOR_TYPE_TIME = 0;
+    private static final int MONITOR_TYPE_MEMORY = 1;
+    private static final int WARN_THRESHOLD = 70;
 
     public JSExecutionSupervisor(int threadCount, long timeoutInMillis) {
 
@@ -221,11 +222,25 @@ public class JSExecutionSupervisor {
             long elapsedTime = getTotalElapsedTime();
 
             if (elapsedTime > timeoutInMillis) {
-                terminateScriptExecutingThread(monitorTypeTime, elapsedTime);
-            } else if (memoryCounter != null) {
+                terminateScriptExecutingThread(MONITOR_TYPE_TIME, elapsedTime);
+                return;
+            }
+
+            if (isTimeBasedWarnThresholdReached(elapsedTime)) {
+                printThresholdReachedWarnLog(MONITOR_TYPE_TIME, elapsedTime);
+                return;
+            }
+
+            if (memoryCounter != null) {
                 long consumedMemory = getTotalConsumedMemory();
                 if (consumedMemory > memoryLimitInBytes) {
-                    terminateScriptExecutingThread(monitorTypeMemory, consumedMemory);
+                    terminateScriptExecutingThread(MONITOR_TYPE_MEMORY, consumedMemory);
+                    return;
+                }
+
+                if (isMemoryBasedWarnThresholdReached(consumedMemory)) {
+                    printThresholdReachedWarnLog(MONITOR_TYPE_MEMORY, consumedMemory);
+                    return;
                 }
             }
         }
@@ -233,7 +248,7 @@ public class JSExecutionSupervisor {
         private void terminateScriptExecutingThread(int monitorType, long consumedResourceValue) {
 
             String warnLog;
-            if (monitorTypeTime == monitorType) {
+            if (MONITOR_TYPE_TIME == monitorType) {
                 warnLog = String.format("The script took too much time to execute. Thread: %s, service provider: %s, " +
                                 "tenant: %s, execution duration: %s(ms).", originalThread.getName(), serviceProvider,
                         tenantDomain, consumedResourceValue);
@@ -252,6 +267,22 @@ public class JSExecutionSupervisor {
 
             // Marking current monitoring task as complete.
             completed(id);
+        }
+
+        private void printThresholdReachedWarnLog(int monitorType, long consumedResourceValue) {
+
+            String warnLog;
+            if (MONITOR_TYPE_TIME == monitorType) {
+                warnLog = String.format("The script has consumed over 70%% of the allocated time. Thread: %s, service" +
+                        " provider: %s, tenant: %s, execution duration: %s(ms).", originalThread.getName(),
+                        serviceProvider, tenantDomain, consumedResourceValue);
+            } else {
+                warnLog = String.format("The script has consumed over 70%% of the allocated memory. Thread: %s, " +
+                        "service provider: %s, tenant: %s, consumed memory: %s(bytes).", originalThread.getName(),
+                        serviceProvider, tenantDomain, consumedResourceValue);
+            }
+
+            LOG.warn(warnLog);
         }
 
         private long getTotalElapsedTime() {
@@ -284,6 +315,16 @@ public class JSExecutionSupervisor {
             if (memoryCounter != null) {
                 memoryCounter.setThreadAllocatedMemoryEnabled(false);
             }
+        }
+
+        private boolean isTimeBasedWarnThresholdReached(long elapsedTime) {
+
+            return ((elapsedTime * 100) / timeoutInMillis) >= WARN_THRESHOLD;
+        }
+
+        private boolean isMemoryBasedWarnThresholdReached(long consumedMemory) {
+
+            return ((consumedMemory * 100) / memoryLimitInBytes) >= WARN_THRESHOLD;
         }
     }
 }
