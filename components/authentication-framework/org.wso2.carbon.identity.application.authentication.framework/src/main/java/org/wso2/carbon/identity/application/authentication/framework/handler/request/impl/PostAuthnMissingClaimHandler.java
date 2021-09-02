@@ -46,6 +46,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
@@ -321,6 +322,12 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                                 setUserAttributes(authenticatedUserAttributes);
                         return;
                     }
+                }
+                if (ErrorMessages.ERROR_CODE_READONLY_USER_STORE.getCode().
+                        equals(e.getErrorCode())) {
+                    context.getSequenceConfig().getAuthenticatedUser().
+                            setUserAttributes(authenticatedUserAttributes);
+                    return;
                 }
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
