@@ -102,9 +102,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             }
                         }
                     }
-                    if (this instanceof FederatedApplicationAuthenticator) {
-                        handlePostAuthentication(context);
-                    }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, null);
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
@@ -165,7 +162,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userRealm
                     .getUserStoreManager());
             eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            if (context.isRequestAuthenticated()) {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
+            } else {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            }
             Event event = new Event(IdentityEventConstants.Event.POST_AUTHENTICATION, eventProperties);
             identityEventService.handleEvent(event);
         } catch (UserStoreException e) {

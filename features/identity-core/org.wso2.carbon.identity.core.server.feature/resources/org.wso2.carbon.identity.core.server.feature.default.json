@@ -106,7 +106,7 @@
   "oauth.response_type.code_id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
   "oauth.response_type.code_id_token_token.enable": true,
   "oauth.response_type.code_id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
-  "oauth.response_type.device.enable": false,
+  "oauth.response_type.device.enable": true,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
   "oauth.response_type.none.enable": true,
@@ -143,9 +143,13 @@
   "oauth.grant_type.account_switch.enable": true,
   "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
   "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
-  "oauth.grant_type.device_code.enable": false,
+  "oauth.grant_type.device_code.enable": true,
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
+  "oauth.grant_type.device_code.key_length": "6",
+  "oauth.grant_type.device_code.expiry_time": "600000",
+  "oauth.grant_type.device_code.polling_interval": "5000",
+  "oauth.grant_type.device_code.key_set": "BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789",
 
   "oauth.dcrm.application_role_permission_required_to_view": true,
 
@@ -355,6 +359,9 @@
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
   "identity_mgt.user_claim_update.use_verify_claim": true,
+  "identity_mgt.user_claim_update.uniqueness.enable": false,
+  "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
+  "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
@@ -529,6 +536,7 @@
     "/oauth2/",
     "/scim2/",
     "/api/identity/media/v1.0/",
+    "/api/identity/typingdna/v1.0/",
     "/api/",
     "/myaccount/",
     "/console/",

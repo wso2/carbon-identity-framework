@@ -742,6 +742,17 @@
             <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
+        <!--
+            Configs related to OAuth2 Device Code Grant.
+            Supported versions: IS 5.12.0 onwards
+        -->
+        <DeviceCodeGrant>
+          <KeyLength>{{oauth.grant_type.device_code.key_length}}</KeyLength>
+          <ExpiryTime>{{oauth.grant_type.device_code.expiry_time}}</ExpiryTime>
+          <PollingInterval>{{oauth.grant_type.device_code.polling_interval}}</PollingInterval>
+          <KeySet>{{oauth.grant_type.device_code.key_set}}</KeySet>
+        </DeviceCodeGrant>
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
@@ -1468,6 +1479,15 @@
                 orderId="{{event.default_listener.is_introspection_data_provider.priority}}"
                 enable="{{event.default_listener.is_introspection_data_provider.enable}}">
         </EventListener>
+
+        {% if identity_mgt.user_claim_update.uniqueness.enable is defined %}
+            <EventListener id="unique_claim_user_operation_event_listener" type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                    name="org.wso2.carbon.identity.unique.claim.mgt.listener.UniqueClaimUserOperationEventListener"
+                    orderId="{{identity_mgt.user_claim_update.uniqueness.listener_priority}}"
+                    enable="{{identity_mgt.user_claim_update.uniqueness.enable}}">
+                    <Property name="ScopeWithinUserstore">{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</Property>
+            </EventListener>
+        {% endif %}
 
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
@@ -2388,6 +2408,10 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/typingdna/v1.0/(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
@@ -2580,11 +2604,14 @@
         <LongWaitTimeout>{{authentication.adaptive.long_wait.timout}}</LongWaitTimeout>
 
         {% if authentication.adaptive.allow_loops is defined %}
-            <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
+        <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
+            {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
+            <MemoryLimit>{{authentication.adaptive.execution_supervisor.memory_limit}}</MemoryLimit>
+            {% endif %}
         </ExecutionSupervisor>
     </AdaptiveAuth>
 

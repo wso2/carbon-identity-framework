@@ -59,6 +59,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
         .convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .triggerListnersOnUserStorePreDelete;
@@ -376,7 +377,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             triggerListnersOnUserStorePreUpdate(previousDomainName, domainName);
             // Update persisted domain name
             updatePersistedDomainName(previousDomainName, domainName, tenantId);
-
+            // Run post userstore name update listeners.
+            triggerListenersOnUserStorePostUpdate(previousDomainName, domainName);
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be updated.", e);
         } catch (UserStoreException e) {
