@@ -1116,7 +1116,7 @@ public class IdPManagementUIUtil {
 
         FederatedAuthenticatorConfig facebookAuthnConfig = new FederatedAuthenticatorConfig();
         facebookAuthnConfig.setName("FacebookAuthenticator");
-        facebookAuthnConfig.setDisplayName("facebook");
+        facebookAuthnConfig.setDisplayName("Facebook");
 
         if ("on".equals(paramMap.get("fbAuthEnabled"))) {
             facebookAuthnConfig.setEnabled(true);
@@ -1200,7 +1200,7 @@ public class IdPManagementUIUtil {
 
         FederatedAuthenticatorConfig oidcAuthnConfig = new FederatedAuthenticatorConfig();
         oidcAuthnConfig.setName("OpenIDConnectAuthenticator");
-        oidcAuthnConfig.setDisplayName("openidconnect");
+        oidcAuthnConfig.setDisplayName("OpenID Connect");
 
         if ("on".equals(paramMap.get("oidcEnabled"))) {
             oidcAuthnConfig.setEnabled(true);
@@ -1486,7 +1486,7 @@ public class IdPManagementUIUtil {
 
         FederatedAuthenticatorConfig saml2SSOAuthnConfig = new FederatedAuthenticatorConfig();
         saml2SSOAuthnConfig.setName("SAMLSSOAuthenticator");
-        saml2SSOAuthnConfig.setDisplayName("samlsso");
+        saml2SSOAuthnConfig.setDisplayName("SAML SSO");
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);
         }
