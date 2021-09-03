@@ -143,7 +143,7 @@ public class IdentityApplicationConstants {
          */
         public static class SAML2SSO {
 
-            public static final String NAME = "SAML SSO";
+            public static final String NAME = "samlsso";
             public static final String FED_AUTH_NAME = "SAMLSSOAuthenticator";
             public static final String IDP_ENTITY_ID = "IdPEntityId";
             public static final String SP_ENTITY_ID = "SPEntityId";
@@ -202,7 +202,7 @@ public class IdentityApplicationConstants {
          */
         public static class OIDC extends OAuth2 {
 
-            public static final String NAME = "OpenID Connect";
+            public static final String NAME = "openidconnect";
             public static final String USER_INFO_URL = "UserInfoUrl";
             public static final String OIDC_CHECK_SESSION_URL = "OIDCCheckSessionEPUrl";
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
@@ -236,7 +236,7 @@ public class IdentityApplicationConstants {
          */
         public static class Facebook {
 
-            public static final String NAME = "Facebook";
+            public static final String NAME = "facebook";
             public static final String CLIENT_ID = "ClientId";
             public static final String CLIENT_SECRET = "ClientSecret";
             public static final String SCOPE = "Scope";
