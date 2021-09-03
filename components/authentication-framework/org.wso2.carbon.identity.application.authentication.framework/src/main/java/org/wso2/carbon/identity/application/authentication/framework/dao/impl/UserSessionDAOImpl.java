@@ -51,9 +51,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
 
         try {
-            List<Application> applicationList = getApplicationForSessionID(sessionId);
+            List<Application> applicationList = getApplicationsForSessionID(sessionId);
             for (Application application : applicationList) {
-                getApplicationFromAppID(application);
+                generateApplicationFromAppID(application);
             }
 
             jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
@@ -92,17 +92,17 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
-    private void getApplicationFromAppID(Application application) throws SessionManagementServerException {
+    private void generateApplicationFromAppID(Application application) throws SessionManagementServerException {
 
-        Connection identityDBConnection = JDBCPersistenceManager.getInstance().
-                getDBConnection(false);
-        try {
-            PreparedStatement prepStmt = identityDBConnection.prepareStatement(SQLQueries.SQL_GET_APPLICATION);
+        try (Connection identityDBConnection = JDBCPersistenceManager.getInstance().
+                getDBConnection(false); PreparedStatement prepStmt
+                     = identityDBConnection.prepareStatement(SQLQueries.SQL_GET_APPLICATION);) {
             prepStmt.setString(1, application.getAppId());
-            ResultSet rs = prepStmt.executeQuery();
-            if (rs.next()) {
-                application.setAppName(rs.getString(1));
-                application.setResourceId(rs.getString(2));
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    application.setAppName(rs.getString(1));
+                    application.setResourceId(rs.getString(2));
+                }
             }
         } catch (SQLException e) {
             throw new SessionManagementServerException(
@@ -111,10 +111,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
     }
 
-    private List<Application> getApplicationForSessionID(String sessionId) throws DataAccessException {
+    private List<Application> getApplicationsForSessionID(String sessionId) throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APP_FOR_SESSION_ID,
+        return jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPS_FOR_SESSION_ID,
                 (resultSet, rowNumber) ->
                         new Application(resultSet.getString(1),
                                 null, resultSet.getString(2), null),
