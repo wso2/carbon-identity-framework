@@ -360,7 +360,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList = new ArrayList<Property>();
 
-        Property idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+        Property idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
                 OPENID_IDP_ENTITY_ID);
         propertiesList.add(idPEntityIdProp);
 
