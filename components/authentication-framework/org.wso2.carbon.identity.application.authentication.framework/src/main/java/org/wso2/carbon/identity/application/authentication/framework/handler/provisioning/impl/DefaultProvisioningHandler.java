@@ -165,9 +165,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                             Arrays.asList(existingUserClaimList));
 
                     // Claim mappings which do not come with the IDP claim mapping set but must not delete.
-                    Set<String> notToDeleteClaimSet = getNotToDeleteClaims();
+                    Set<String> indelibleClaimSet = getIndelibleClaims();
                     toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/") ||
-                            notToDeleteClaimSet.contains(claim.getClaimUri()) ||
+                            indelibleClaimSet.contains(claim.getClaimUri()) ||
                             userClaims.containsKey(claim.getClaimUri()));
 
                     List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
@@ -606,18 +606,18 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      *
      * @return Claims not to delete.
      */
-    private Set<String> getNotToDeleteClaims() {
+    private Set<String> getIndelibleClaims() {
 
-        OMElement notToDeleteClaimsConfig = IdentityConfigParser.getInstance().
-                getConfigElement(FrameworkConstants.Config.NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT);
-        if (notToDeleteClaimsConfig == null) {
+        OMElement indelibleClaimsConfig = IdentityConfigParser.getInstance().
+                getConfigElement(FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT);
+        if (indelibleClaimsConfig == null) {
             if (log.isDebugEnabled()) {
-                log.debug(FrameworkConstants.Config.NOT_TO_DELETE_CLAIMS_CONFIG_ELEMENT + " config not found.");
+                log.debug(FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT + " config not found.");
             }
             return Collections.emptySet();
         }
 
-        Iterator claimURIIdentifierIterator = notToDeleteClaimsConfig
+        Iterator claimURIIdentifierIterator = indelibleClaimsConfig
                 .getChildrenWithLocalName(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT);
         if (claimURIIdentifierIterator == null) {
             if (log.isDebugEnabled()) {
@@ -626,16 +626,16 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             return Collections.emptySet();
         }
 
-        Set<String> notToDeleteClaims = new HashSet<>();
+        Set<String> indelibleClaims = new HashSet<>();
 
         while (claimURIIdentifierIterator.hasNext()) {
             OMElement claimURIIdentifierConfig = (OMElement) claimURIIdentifierIterator.next();
             String claimURI = claimURIIdentifierConfig.getText();
             if (StringUtils.isNotBlank(claimURI)) {
-                notToDeleteClaims.add(claimURI.trim());
+                indelibleClaims.add(claimURI.trim());
             }
         }
 
-        return notToDeleteClaims;
+        return indelibleClaims;
     }
 }
