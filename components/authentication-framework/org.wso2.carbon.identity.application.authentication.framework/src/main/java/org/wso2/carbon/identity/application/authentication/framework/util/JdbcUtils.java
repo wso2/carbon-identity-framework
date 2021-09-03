@@ -55,9 +55,11 @@ public class JdbcUtils {
      */
     public static JdbcTemplate getNewTemplate(Database database) {
 
-        DataSource dataSource = IdentityDatabaseUtil.getDataSource();
+        DataSource dataSource;
         if (Database.SESSION.equals(database)) {
             dataSource = IdentityDatabaseUtil.getSessionDataSource();
+        } else {
+            dataSource = IdentityDatabaseUtil.getDataSource();
         }
         return new JdbcTemplate(dataSource);
     }

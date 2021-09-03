@@ -2547,8 +2547,8 @@ public class FrameworkUtils {
      */
     public static boolean isUserSessionMappingEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExists(
-                "IDN_AUTH_USER") && isTableExists("IDN_AUTH_USER_SESSION_MAPPING");
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExistsInSessionDB(
+                "IDN_AUTH_USER") && isTableExistsInSessionDB("IDN_AUTH_USER_SESSION_MAPPING");
     }
 
     /**
@@ -2590,6 +2590,49 @@ public class FrameworkUtils {
         }
         if (log.isDebugEnabled()) {
             log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the specified table exists in the Session database.
+     *
+     * @param tableName name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExistsInSessionDB(String tableName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Session database.");
+                    }
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                    return true;
+                }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Session database.");
+                }
+                return false;
+            }
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Session database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Session database.");
         }
         return false;
     }
