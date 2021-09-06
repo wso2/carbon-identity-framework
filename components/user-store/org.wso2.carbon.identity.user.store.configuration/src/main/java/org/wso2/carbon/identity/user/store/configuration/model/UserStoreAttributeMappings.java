@@ -90,10 +90,10 @@ public class UserStoreAttributeMappings {
     public void setUserStoreAttributeMappings(Map<String, Map<String, ChangedUserStoreAttributeDO>>
                                                       availableUserStoreAttrMappings) {
 
-        for (String userStoreType : availableUserStoreAttrMappings.keySet()) {
-            Map<String, UserStoreAttributeDO> tempMap = getModifiedAttributeMap(availableUserStoreAttrMappings
-                    .get(userStoreType));
-            this.userStoreAttrMappings.put(userStoreType, tempMap);
+        for (Map.Entry<String, Map<String, ChangedUserStoreAttributeDO>> entry :
+                availableUserStoreAttrMappings.entrySet()) {
+            Map<String, UserStoreAttributeDO> tempMap = getModifiedAttributeMap(entry.getValue());
+            this.userStoreAttrMappings.put(entry.getKey(), tempMap);
         }
     }
 
@@ -115,14 +115,13 @@ public class UserStoreAttributeMappings {
         Type type = new TypeToken<HashMap<String, UserStoreAttributeDO>>() {
         }.getType();
         Map<String, UserStoreAttributeDO> clonedAttrMap = gson.fromJson(serializedDefaultAttrMappings, type);
-        for (String claimId : changedUserStoreAttrMap.keySet()) {
-            if (!clonedAttrMap.containsKey(claimId)) {
+        for (Map.Entry<String, ChangedUserStoreAttributeDO> entry : changedUserStoreAttrMap.entrySet()) {
+            if (!clonedAttrMap.containsKey(entry.getKey())) {
                 continue;
             }
-            if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.UPDATE) {
-                UserStoreAttributeDO defaultUserStoreAttributeDO = clonedAttrMap.get(claimId);
-                UserStoreAttributeDO newUserStoreAttributeDO = changedUserStoreAttrMap.get(claimId)
-                        .getUsAttributeDO();
+            if (entry.getValue().getOperation() == UserStoreOperation.UPDATE) {
+                UserStoreAttributeDO defaultUserStoreAttributeDO = clonedAttrMap.get(entry.getKey());
+                UserStoreAttributeDO newUserStoreAttributeDO = entry.getValue().getUsAttributeDO();
                 if (StringUtils.isNotBlank(newUserStoreAttributeDO.getMappedAttribute())) {
                     defaultUserStoreAttributeDO.setMappedAttribute(newUserStoreAttributeDO
                             .getMappedAttribute());
@@ -130,9 +129,9 @@ public class UserStoreAttributeMappings {
                 if (StringUtils.isNotBlank(newUserStoreAttributeDO.getDisplayName())) {
                     defaultUserStoreAttributeDO.setDisplayName(newUserStoreAttributeDO.getDisplayName());
                 }
-                clonedAttrMap.put(claimId, defaultUserStoreAttributeDO);
-            } else if (changedUserStoreAttrMap.get(claimId).getOperation() == UserStoreOperation.DELETE) {
-                clonedAttrMap.remove(claimId);
+                clonedAttrMap.put(entry.getKey(), defaultUserStoreAttributeDO);
+            } else if (entry.getValue().getOperation() == UserStoreOperation.DELETE) {
+                clonedAttrMap.remove(entry.getKey());
             }
         }
         return clonedAttrMap;

@@ -42,7 +42,7 @@ public class ChangedUserStoreAttributeDO {
     /**
      * Set operation which should be performed on attribute {@literal userStoreAttributeDO}.
      *
-     * @param operation UserStoreOperation
+     * @param operation UserStoreOperation.
      */
     public void setOperation(String operation) {
 
@@ -54,9 +54,9 @@ public class ChangedUserStoreAttributeDO {
     }
 
     /**
-     * Get attribute attribute mappings
+     * Get attribute mappings.
      *
-     * @return UserStoreAttributeDO
+     * @return UserStoreAttributeDO.
      */
     public UserStoreAttributeDO getUsAttributeDO() {
 

@@ -124,8 +124,8 @@ public interface UserStoreConfigService {
     /**
      * Get all userstores of the given repository.
      *
-     * @return An array of {@link UserStoreDTO}
-     * @throws IdentityUserStoreServerException Throws an error when getting user store attribute mappings
+     * @return An array of {@link UserStoreDTO}.
+     * @throws IdentityUserStoreServerException Throws an error when getting user store attribute mappings.
      */
     default UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreServerException {
 
