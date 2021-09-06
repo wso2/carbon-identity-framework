@@ -1282,6 +1282,17 @@
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!-- Show authenticated user name in audit logs. -->
+    <Authentication>
+        <Audit>
+            {% if authentication.audit.username is defined %}
+            <UserNameEnableForAuditLogs>{{authentication.audit.username.UserNameEnableForAuditLogs}}</UserNameEnableForAuditLogs>
+            {% else %}
+            <UserNameEnableForAuditLogs>false</UserNameEnableForAuditLogs>
+            {% endif %}
+        </Audit>
+    </Authentication>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
