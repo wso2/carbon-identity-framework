@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import static org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl.SCOPE_LIST_PLACEHOLDER;
+
 /**
  * This class holds the SQL queries used by {@link UserSessionStore}.
  */
@@ -138,7 +140,8 @@ public class SQLQueries {
     public static final String SQL_GET_APPS_FOR_SESSION_ID = "SELECT SUBJECT, APP_ID FROM IDN_AUTH_SESSION_APP_INFO " +
             "WHERE SESSION_ID = ?";
 
-    public static final String SQL_GET_APPLICATION = "SELECT APP_NAME, UUID FROM SP_APP WHERE ID = ?";
+    public static final String SQL_GET_APPLICATION = "SELECT ID, APP_NAME, UUID FROM SP_APP WHERE ID IN (" +
+            SCOPE_LIST_PLACEHOLDER + ")";
 
     public static final String SQL_GET_SESSIONS_BY_USER = "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
             "WHERE USER_ID = (SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND " +

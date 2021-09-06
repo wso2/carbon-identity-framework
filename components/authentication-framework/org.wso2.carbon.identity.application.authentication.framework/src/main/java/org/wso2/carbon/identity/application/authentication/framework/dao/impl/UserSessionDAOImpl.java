@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -28,19 +30,24 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link UserSessionDAO}. This handles {@link UserSession} related DB operations.
  */
 public class UserSessionDAOImpl implements UserSessionDAO {
+
+    public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
 
     public UserSessionDAOImpl() {
     }
@@ -52,10 +59,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
-            for (Application application : applicationList) {
-                generateApplicationFromAppID(application);
-            }
-
+            generateApplicationFromAppID(applicationList);
             jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
                     -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
                     preparedStatement.setString(1, sessionId));
@@ -92,22 +96,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
-    private void generateApplicationFromAppID(Application application) throws SessionManagementServerException {
+    private void generateApplicationFromAppID(List<Application> applications) throws SessionManagementServerException {
 
-        try (Connection identityDBConnection = JDBCPersistenceManager.getInstance().
-                getDBConnection(false); PreparedStatement prepStmt
-                     = identityDBConnection.prepareStatement(SQLQueries.SQL_GET_APPLICATION);) {
-            prepStmt.setString(1, application.getAppId());
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                if (rs.next()) {
-                    application.setAppName(rs.getString(1));
-                    application.setResourceId(rs.getString(2));
+        Map<String, Application> appIdMap =
+                applications.stream().collect(Collectors.toMap(Application::getAppId, application -> application));
+        String placeholder = String.join(", ", Collections.nCopies(appIdMap.keySet().size(), "?"));
+        String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            int index = 1;
+            for (String appId : appIdMap.keySet()) {
+                ps.setString(index, appId);
+                index++;
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    appIdMap.get(rs.getString(1)).setAppName(rs.getString(2));
+                    appIdMap.get(rs.getString(1)).setResourceId(rs.getString(3));
                 }
             }
         } catch (SQLException e) {
             throw new SessionManagementServerException(
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_APP_DATA,
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_APP_DATA.getDescription(), e);
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
     }
 

@@ -2610,8 +2610,7 @@ public class FrameworkUtils {
                 tableName = tableName.toLowerCase();
             }
 
-            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]
-                    { "TABLE" })) {
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]{ "TABLE" })) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Table - " + tableName + " available in the Session database.");
