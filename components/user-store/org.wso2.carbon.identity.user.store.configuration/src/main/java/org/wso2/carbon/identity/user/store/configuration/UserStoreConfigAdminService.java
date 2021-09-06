@@ -49,6 +49,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreStateChange;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .validateForFederatedDomain;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_EXPRESSION;
 
 /**
  * User store config admin service.
@@ -59,7 +60,6 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
-    private static final String H2_INIT_EXPRESSION = ";init=";
 
     /**
      * Get details of current secondary user store configurations

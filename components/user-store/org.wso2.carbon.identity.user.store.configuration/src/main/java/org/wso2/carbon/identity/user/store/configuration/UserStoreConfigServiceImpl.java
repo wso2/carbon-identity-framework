@@ -22,6 +22,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
@@ -56,6 +57,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_EXPRESSION;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -86,6 +88,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                                   userStoreDTO.getDomainId() + " with file-based configuration.");
                     }
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
         } catch (UserStoreClientException e) {
@@ -114,6 +117,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     LOG.debug("Repository separation of user-stores has been disabled. Editing user-store " +
                               userStoreDTO.getDomainId() + " with file-based configuration.");
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -123,6 +127,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                               userStoreDTO.getRepositoryClass());
                 }
             } else {
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             }
@@ -475,4 +480,23 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         return UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
     }
 
+    /**
+     * Validate the userstore connection URL. Currently the init param is checked.
+     *
+     * @param userStoreDTO contains the userstore details.
+     * @throws IdentityUserStoreMgtException throws when the URL is invalid.
+     */
+    private void validateConnectionUrl(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        PropertyDTO[] propertyDTO = userStoreDTO.getProperties();
+        for (PropertyDTO propertyDTOValue : propertyDTO) {
+            if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
+                String connectionURL = propertyDTOValue.getValue();
+                if (connectionURL != null && connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
+                    throw new IdentityUserStoreMgtException("INIT expressions are not allowed in the connection " +
+                            "URL due to security reasons.");
+                }
+            }
+        }
+    }
 }
