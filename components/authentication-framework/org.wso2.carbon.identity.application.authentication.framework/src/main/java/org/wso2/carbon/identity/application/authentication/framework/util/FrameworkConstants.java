@@ -147,6 +147,9 @@ public abstract class FrameworkConstants {
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
+    // Idp to local role mapping thread local identifier.
+    public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
+
     // Maximum retry times for session data store.
     public static final int MAX_RETRY_TIME = 3;
 
