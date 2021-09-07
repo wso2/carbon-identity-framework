@@ -176,9 +176,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
-                ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
-                externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
+                ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
 
                 if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
@@ -198,7 +197,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
                     String username = getUsernameFederatedUser(stepConfig, sequenceConfig,
-                            externalIdPConfigName, context);
+                            externalIdPConfigName, context, localClaimValues, externalIdPConfig);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
@@ -283,9 +282,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
-                ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
-                externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
+                ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
                 Map<String, String> localClaimValues;
                 if (stepConfig.isSubjectAttributeStep()) {
@@ -297,8 +295,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 }
                 if (localClaimValues == null || localClaimValues.size() == 0) {
                     Map<ClaimMapping, String> userAttributes = stepConfig.getAuthenticatedUser().getUserAttributes();
-                    localClaimValues = FrameworkUtils.getClaimMappings
-                            (userAttributes, false);
+                    localClaimValues = FrameworkUtils.getClaimMappings(userAttributes, false);
                 }
 
                 if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
@@ -322,7 +319,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
                             username = getUsernameFederatedUser(stepConfig, sequenceConfig,
-                                    externalIdPConfigName, context);
+                                    externalIdPConfigName, context, localClaimValues, externalIdPConfig);
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
                                     username, request);
                             // Set the property to make sure the request is a returning one.
@@ -331,7 +328,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
                     }
                     if (StringUtils.isEmpty(username)) {
-                        username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName, context);
+                        username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName,
+                                context, localClaimValues, externalIdPConfig);
                     }
                     if (StringUtils.isNotBlank(associatedLocalUser)) {
                         // Check if the associated local account is locked.
@@ -373,18 +371,30 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     }
 
     private String getUsernameFederatedUser(StepConfig stepConfig, SequenceConfig sequenceConfig,
-                                            String externalIdPConfigName, AuthenticationContext context)
+                                            String externalIdPConfigName, AuthenticationContext context,
+                                            Map<String, String> localClaimValues, ExternalIdPConfig externalIdPConfig)
             throws PostAuthenticationFailedException {
 
         String username;
-        // If JIT provisioning enhanced feature is enabled set the federated ID as the federated username.
-        if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
-            username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
-                    externalIdPConfigName, context);
+        String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
+        if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
+            username = localClaimValues.get(userIdClaimUriInLocalDialect);
         } else {
-            username = sequenceConfig.getAuthenticatedUser().getUserName();
+            if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
+                username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
+                        externalIdPConfigName, context);
+            } else {
+                username = sequenceConfig.getAuthenticatedUser().getUserName();
+            }
         }
         return username;
+    }
+
+    private boolean isUserNameFoundFromUserIDClaimURI(Map<String, String> localClaimValues, String
+            userIdClaimUriInLocalDialect) {
+
+        return StringUtils.isNotBlank(userIdClaimUriInLocalDialect) && StringUtils.isNotBlank
+                (localClaimValues.get(userIdClaimUriInLocalDialect));
     }
 
     private String getFederatedUsername(String username, String idpName, AuthenticationContext context)
