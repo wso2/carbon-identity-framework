@@ -2853,5 +2853,13 @@
     <!-- Configuration for allowing users to introspect tokens from other tenants. -->
     <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
 
-
+    {% if stored_procedure_dao is defined %}
+    <!-- Stored Procedure supported DAO Implementation of Identity components.
+    To enable this, the corresponding Stored Procedure supported DAO extension has to be added to product.   -->
+    <StoredProcedureDAO>
+        {% for key,value in stored_procedure_dao.items() %}
+        <DAO name="{{key}}" enabled="{{value}}"/>
+        {% endfor %}
+    </StoredProcedureDAO>
+    {% endif %}
 </Server>
