@@ -26,22 +26,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -64,6 +59,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .Config.ALLOW_ASSOCIATING_TO_EXISTING_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
@@ -78,6 +75,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
+    private static Boolean allowAssociationToExistingUser = null;
     private SecureRandom random = new SecureRandom();
 
     public static DefaultProvisioningHandler getInstance() {
@@ -149,7 +147,19 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
-                if (!userClaims.isEmpty()) {
+                boolean associationExists = StringUtils.isNotEmpty(FrameworkUtils.getFederatedAssociationManager()
+                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal));
+                /*
+                The association for an existing user is only possible when the AllowAssociatingToExistingUser
+                is set to true (Default value is false) and the corresponding federated user has no association.
+                */
+                if (isAssociationToExistingUserAllowed() && !associationExists) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                    associationExists = true;
+                }
+
+                if (!userClaims.isEmpty() && associationExists) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
@@ -175,12 +185,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                             }
                         }
                     }
-                }
-                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-                if (StringUtils.isEmpty(associatedUserName)) {
-                    // Associate User
-                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                 }
             } else {
                 String password = generatePassword();
@@ -541,6 +545,20 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
 
         return deletingRoles;
+    }
+
+    /**
+     * Check whether the configuration that allows to associate the existing users is enabled or not.
+     *
+     * @return whether the association of the existing users with the federated users is allowed.
+     */
+    private Boolean isAssociationToExistingUserAllowed() {
+
+        if (allowAssociationToExistingUser == null) {
+            allowAssociationToExistingUser = Boolean.parseBoolean(
+                    IdentityUtil.getProperty(ALLOW_ASSOCIATING_TO_EXISTING_USER));
+        }
+        return allowAssociationToExistingUser;
     }
 
 }
