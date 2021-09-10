@@ -2618,8 +2618,8 @@ public class IdPManagementDAO {
                     // Check whether certificate decoding and certificate generation fails or not.
                     IdentityApplicationManagementUtil.getCertDataArray(identityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
-                    throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided."
-                            , ex);
+                    throw new IdentityProviderManagementClientException("Malformed Public Certificate file has been " +
+                            "provided.", ex);
                 }
             }
             JSONArray certificateInfoJsonArray = new JSONArray(identityProvider.getCertificateInfoArray());
@@ -2884,7 +2884,7 @@ public class IdPManagementDAO {
                 try {
                     IdentityApplicationManagementUtil.getCertDataArray(newIdentityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
-                    throw new IdentityProviderManagementException("Malformed Public Certificate file has been " +
+                    throw new IdentityProviderManagementClientException("Malformed Public Certificate file has been " +
                             "provided.", ex);
                 }
             }

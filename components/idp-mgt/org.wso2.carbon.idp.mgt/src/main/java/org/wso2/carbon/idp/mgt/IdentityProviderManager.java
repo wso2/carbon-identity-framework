@@ -2447,7 +2447,7 @@ public class IdentityProviderManager implements IdpManager {
                                             "An Identity Provider Entity ID has already been registered with the " +
                                                     "name '" + property.getValue() + "' for tenant '" + tenantDomain +
                                                     "'";
-                                    throw new IdentityProviderManagementException(msg);
+                                    throw new IdentityProviderManagementClientException(msg);
                                 }
                                 return true;
                             }
@@ -2505,7 +2505,7 @@ public class IdentityProviderManager implements IdpManager {
                                         String msg = "An Identity Provider Entity ID has already been registered " +
                                                 "with the name '" +
                                                 property.getValue() + "' for tenant '" + tenantDomain + "'";
-                                        throw new IdentityProviderManagementException(msg);
+                                        throw new IdentityProviderManagementClientException(msg);
                                     }
                                     return true;
                                 }
