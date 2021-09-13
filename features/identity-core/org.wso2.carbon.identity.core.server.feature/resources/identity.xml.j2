@@ -2858,7 +2858,7 @@
     To enable this, the corresponding Stored Procedure supported DAO extension has to be added to product.   -->
     <StoredProcedureDAO>
         {% for key,value in stored_procedure_dao.items() %}
-        <DAO name="{{key}}" enabled="{{value}}"/>
+        <DAO name="{{key}}" enable="{{value}}"/>
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}

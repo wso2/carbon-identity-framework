@@ -60,6 +60,7 @@ public class IdentityConfigParser {
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
+    private static Map<String, Boolean> storeProcedureBasedDAOConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
@@ -118,6 +119,11 @@ public class IdentityConfigParser {
     public List<String> getCookiesToInvalidateConfigurationHolder() {
 
         return cookiesToInvalidateConfigurationHolder;
+    }
+
+    public static Map<String, Boolean> getStoreProcedureBasedDAOConfigurationHolder() {
+
+        return storeProcedureBasedDAOConfigurationHolder;
     }
 
     /**
@@ -198,6 +204,7 @@ public class IdentityConfigParser {
             buildLegacyFeatureConfig();
             buildReverseProxyConfig();
             buildCookiesToInvalidateConfig();
+            buildStoreProcedureBasedDAOConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -208,6 +215,27 @@ public class IdentityConfigParser {
                 }
             } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
+            }
+        }
+    }
+
+    private void buildStoreProcedureBasedDAOConfig() {
+
+        OMElement daoConfig = this.getConfigElement(IdentityConstants.STORED_PROCEDURE_DAO_CONFIG);
+        if (daoConfig == null) {
+            return;
+        }
+        Iterator<OMElement> daos = daoConfig.getChildrenWithName(
+                new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.DAO_CONFIG));
+        if (daos == null) {
+            return;
+        }
+        while (daos.hasNext()) {
+            OMElement dao = daos.next();
+            String daoName = dao.getAttributeValue(new QName(IdentityConstants.DAO_NAME));
+            String enable = dao.getAttributeValue(new QName(IdentityConstants.DAO_ENABLE));
+            if (StringUtils.isNotBlank(daoName) && StringUtils.isNotBlank(enable)) {
+                storeProcedureBasedDAOConfigurationHolder.put(daoName, Boolean.parseBoolean(enable));
             }
         }
     }
