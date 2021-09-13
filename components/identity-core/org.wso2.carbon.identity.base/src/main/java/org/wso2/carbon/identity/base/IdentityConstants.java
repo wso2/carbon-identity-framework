@@ -125,6 +125,12 @@ public class IdentityConstants {
     public final static String COOKIE_SAME_SITE = "sameSite";
     public final static String COOKIES_TO_INVALIDATE_CONFIG = "CookiesToInvalidate";
 
+    // Store Procedure Based DAO Configuration Constants
+    public final static String STORED_PROCEDURE_DAO_CONFIG = "StoredProcedureDAO";
+    public final static String DAO_CONFIG = "DAO";
+    public final static String DAO_NAME = "name";
+    public final static String DAO_ENABLE = "enable";
+
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",
