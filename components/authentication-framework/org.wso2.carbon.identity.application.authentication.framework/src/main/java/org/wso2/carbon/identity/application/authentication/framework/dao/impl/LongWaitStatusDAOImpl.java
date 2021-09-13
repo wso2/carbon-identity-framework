@@ -43,7 +43,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
         String query = "INSERT INTO IDN_AUTH_WAIT_STATUS (TENANT_ID, LONG_WAIT_KEY, WAIT_STATUS, TIME_CREATED, " +
                 "EXPIRE_TIME) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setInt(1, tenantId);
@@ -73,7 +73,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
 
         String query = "DELETE FROM IDN_AUTH_WAIT_STATUS WHERE LONG_WAIT_KEY=?";
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setString(1, waitKey);
@@ -97,7 +97,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
 
         LongWaitStatus longWaitStatus = new LongWaitStatus();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setString(1, waitKey);
