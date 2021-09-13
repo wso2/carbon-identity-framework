@@ -81,6 +81,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -2617,8 +2618,8 @@ public class IdPManagementDAO {
                     // Check whether certificate decoding and certificate generation fails or not.
                     IdentityApplicationManagementUtil.getCertDataArray(identityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
-                    throw new IdentityProviderManagementException("Malformed Public Certificate file has been provided."
-                            , ex);
+                    throw new IdentityProviderManagementClientException("Malformed Public Certificate file has been " +
+                            "provided.", ex);
                 }
             }
             JSONArray certificateInfoJsonArray = new JSONArray(identityProvider.getCertificateInfoArray());
@@ -2883,7 +2884,7 @@ public class IdPManagementDAO {
                 try {
                     IdentityApplicationManagementUtil.getCertDataArray(newIdentityProvider.getCertificateInfoArray());
                 } catch (CertificateException ex) {
-                    throw new IdentityProviderManagementException("Malformed Public Certificate file has been " +
+                    throw new IdentityProviderManagementClientException("Malformed Public Certificate file has been " +
                             "provided.", ex);
                 }
             }
@@ -3807,42 +3808,88 @@ public class IdPManagementDAO {
      */
     private void deleteProvisioningConnectorConfigs(Connection conn, int idPId) throws SQLException {
 
-        PreparedStatement prepStmt = null;
+        String databaseProductName = conn.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains(MySQL)) {
+            ResultSet resultSetGetConfigId;
+            String sqlStmtGetConfigId = IdPManagementConstants.SQLQueries.GET_IDP_PROVISIONING_CONFIGS_ID;
+            try (PreparedStatement prepStmtGetConfigId = conn.prepareStatement(sqlStmtGetConfigId)) {
+                prepStmtGetConfigId.setInt(1, idPId);
+                resultSetGetConfigId = prepStmtGetConfigId.executeQuery();
+                while (resultSetGetConfigId.next()) {
+                    int id = resultSetGetConfigId.getInt("ID");
+                    deleteIdpProvConfigProperty(conn, id);
+                }
+            }
+        }
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_PROVISIONING_CONNECTORS;
 
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, idPId);
             prepStmt.executeUpdate();
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
     /**
-     * @param conn
-     * @param resourceId
-     * @throws SQLException
+     * @param conn                   Connection to the DB.
+     * @param provisioningConfigId   Provisioning Configuration Id of the IdP.
+     * @throws SQLException          Database Exception.
+     */
+    private void deleteIdpProvConfigProperty(Connection conn, int provisioningConfigId) throws SQLException {
+
+        String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_PROV_CONFIG_PROPERTY;
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, provisioningConfigId);
+            prepStmt.executeUpdate();
+        }
+    }
+
+    /**
+     * @param conn              Connection to the DB.
+     * @param tenantId          Tenant Id of the IdP.
+     * @param idPName           Name of the IdP.
+     * @param resourceId        Resource Id (UUID) of the IdP.
+     * @throws SQLException     Database Exception.
      */
     private void deleteIdP(Connection conn, int tenantId, String idPName, String resourceId) throws SQLException {
 
-        PreparedStatement prepStmt = null;
+        String databaseProductName = conn.getMetaData().getDatabaseProductName();
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_BY_RESOURCE_ID_SQL;
+        String sqlStmtGetIdpId = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME;
+        String sqlStmtIdpIdFromUUID = IdPManagementConstants.SQLQueries.GET_IDP_CONFIGS_ID_FROM_UUID;
+
         if (StringUtils.isBlank(resourceId)) {
             sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_SQL;
         }
 
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt);
+        PreparedStatement prepStmtGetIdpId = conn.prepareStatement(sqlStmtGetIdpId);
+            PreparedStatement prepStmtIdpIdFromUUID = conn.prepareStatement(sqlStmtIdpIdFromUUID)) {
             if (StringUtils.isBlank(resourceId)) {
+                if (databaseProductName.contains(MySQL)) {
+                    ResultSet resultSetGetIdpId = null;
+                    prepStmtGetIdpId.setInt(1, tenantId);
+                    prepStmtGetIdpId.setString(2, idPName);
+                    resultSetGetIdpId = prepStmtGetIdpId.executeQuery();
+                    while (resultSetGetIdpId.next()) {
+                        int id = resultSetGetIdpId.getInt("ID");
+                        deleteProvisioningConnectorConfigs(conn, id);
+                    }
+                }
                 prepStmt.setInt(1, tenantId);
                 prepStmt.setString(2, idPName);
             } else {
+                if (databaseProductName.contains(MySQL)) {
+                    ResultSet resultSetGetIdpId = null;
+                    prepStmtIdpIdFromUUID.setString(1, resourceId);
+                    resultSetGetIdpId = prepStmtIdpIdFromUUID.executeQuery();
+                    while (resultSetGetIdpId.next()) {
+                        int id = resultSetGetIdpId.getInt("ID");
+                        deleteProvisioningConnectorConfigs(conn, id);
+                    }
+                }
                 prepStmt.setString(1, resourceId);
             }
             prepStmt.executeUpdate();
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 

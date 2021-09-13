@@ -360,8 +360,15 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList = new ArrayList<Property>();
 
-        Property idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
-                OPENID_IDP_ENTITY_ID);
+        Property idPEntityIdProp;
+        // When the tenant qualified urls are enabled, we need to see the oauth2 token endpoint.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
+                    OPENID_IDP_ENTITY_ID);
+        } else {
+            idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+                    OPENID_IDP_ENTITY_ID);
+        }
         propertiesList.add(idPEntityIdProp);
 
         Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
@@ -2440,7 +2447,7 @@ public class IdentityProviderManager implements IdpManager {
                                             "An Identity Provider Entity ID has already been registered with the " +
                                                     "name '" + property.getValue() + "' for tenant '" + tenantDomain +
                                                     "'";
-                                    throw new IdentityProviderManagementException(msg);
+                                    throw new IdentityProviderManagementClientException(msg);
                                 }
                                 return true;
                             }
@@ -2498,7 +2505,7 @@ public class IdentityProviderManager implements IdpManager {
                                         String msg = "An Identity Provider Entity ID has already been registered " +
                                                 "with the name '" +
                                                 property.getValue() + "' for tenant '" + tenantDomain + "'";
-                                        throw new IdentityProviderManagementException(msg);
+                                        throw new IdentityProviderManagementClientException(msg);
                                     }
                                     return true;
                                 }

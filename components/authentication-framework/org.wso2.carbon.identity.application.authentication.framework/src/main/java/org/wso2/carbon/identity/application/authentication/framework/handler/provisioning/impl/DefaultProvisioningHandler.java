@@ -97,7 +97,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
 
-        handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain, null);
+        List<String> idpToLocalRoleMapping =
+                (List<String>) IdentityUtil.threadLocalProperties.get()
+                        .get(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
+        handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain, idpToLocalRoleMapping);
 
     }
 
