@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
@@ -55,9 +57,13 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
@@ -152,6 +158,28 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
                 if (!userClaims.isEmpty()) {
+                    /*
+                    In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
+                    To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
+                     */
+                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                    Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
+                            UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
+                    if (existingUserClaimList != null) {
+                        List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
+                                Arrays.asList(existingUserClaimList));
+
+                        // Claim mappings which do not come with the IDP claim mapping set but must not delete.
+                        Set<String> indelibleClaimSet = getIndelibleClaims();
+                        toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
+                                || indelibleClaimSet.contains(claim.getClaimUri()) ||
+                                userClaims.containsKey(claim.getClaimUri()));
+
+                        for (Claim claim : toBeDeletedFromExistingUserClaims) {
+                            toBeDeletedUserClaims.add(claim.getClaimUri());
+                        }
+                    }
+
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
@@ -160,7 +188,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
                     will be deleted.
                     */
-                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
                     if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
                         Claim[] userActiveClaims =
                                 userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
@@ -579,4 +606,51 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
     }
 
+    /**
+     * Claims which must not delete during existing claim mapping syncing process with idp claims.
+     *
+     * @return Claims not to delete.
+     */
+    private Set<String> getIndelibleClaims() {
+
+        OMElement jitProvisioningConfig = IdentityConfigParser.getInstance().
+                getConfigElement(FrameworkConstants.Config.JIT_PROVISIONING_CONFIG);
+        if (jitProvisioningConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.Config.JIT_PROVISIONING_CONFIG + " config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator indelibleClaimsConfig = jitProvisioningConfig.getChildrenWithLocalName
+                (FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT);
+        if (indelibleClaimsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT + " config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> indelibleClaims = new HashSet<>();
+        while (indelibleClaimsConfig.hasNext()) {
+            OMElement claimURIIdentifierIterator = (OMElement) indelibleClaimsConfig.next();
+            Iterator claimURIIdentifieConfig = claimURIIdentifierIterator
+                    .getChildrenWithLocalName(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT);
+            if (claimURIIdentifieConfig == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT + " config not found.");
+                }
+                return Collections.emptySet();
+            }
+
+            while (claimURIIdentifieConfig.hasNext()) {
+                OMElement claimURIIdentifierConfig = (OMElement) claimURIIdentifieConfig.next();
+                String claimURI = claimURIIdentifierConfig.getText();
+                if (StringUtils.isNotBlank(claimURI)) {
+                    indelibleClaims.add(claimURI.trim());
+                }
+            }
+        }
+        return indelibleClaims;
+    }
 }
