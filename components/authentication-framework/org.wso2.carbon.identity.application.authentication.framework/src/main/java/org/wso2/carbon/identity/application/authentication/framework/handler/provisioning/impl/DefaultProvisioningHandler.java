@@ -610,8 +610,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      */
     private Set<String> getIndelibleClaims() {
 
-        OMElement indelibleClaimsConfig = IdentityConfigParser.getInstance().
-                getConfigElement(FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT);
+        OMElement jitProvisioningConfig = IdentityConfigParser.getInstance().
+                getConfigElement(FrameworkConstants.Config.JIT_PROVISIONING_CONFIG);
+        if (jitProvisioningConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.Config.JIT_PROVISIONING_CONFIG + " config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator indelibleClaimsConfig = jitProvisioningConfig.getChildrenWithLocalName
+                (FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT);
         if (indelibleClaimsConfig == null) {
             if (log.isDebugEnabled()) {
                 log.debug(FrameworkConstants.Config.INCREDIBLE_CLAIMS_CONFIG_ELEMENT + " config not found.");
@@ -619,25 +628,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             return Collections.emptySet();
         }
 
-        Iterator claimURIIdentifierIterator = indelibleClaimsConfig
-                .getChildrenWithLocalName(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT);
-        if (claimURIIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT + " config not found.");
-            }
-            return Collections.emptySet();
-        }
-
         Set<String> indelibleClaims = new HashSet<>();
+        while (indelibleClaimsConfig.hasNext()) {
+            OMElement claimURIIdentifierIterator = (OMElement) indelibleClaimsConfig.next();
+            Iterator claimURIIdentifieConfig = claimURIIdentifierIterator
+                    .getChildrenWithLocalName(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT);
+            if (claimURIIdentifieConfig == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(FrameworkConstants.Config.CLAIM_URI_CONFIG_ELEMENT + " config not found.");
+                }
+                return Collections.emptySet();
+            }
 
-        while (claimURIIdentifierIterator.hasNext()) {
-            OMElement claimURIIdentifierConfig = (OMElement) claimURIIdentifierIterator.next();
-            String claimURI = claimURIIdentifierConfig.getText();
-            if (StringUtils.isNotBlank(claimURI)) {
-                indelibleClaims.add(claimURI.trim());
+            while (claimURIIdentifieConfig.hasNext()) {
+                OMElement claimURIIdentifierConfig = (OMElement) claimURIIdentifieConfig.next();
+                String claimURI = claimURIIdentifierConfig.getText();
+                if (StringUtils.isNotBlank(claimURI)) {
+                    indelibleClaims.add(claimURI.trim());
+                }
             }
         }
-
         return indelibleClaims;
     }
 }

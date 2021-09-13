@@ -216,6 +216,7 @@
     "http://wso2.org/claims/resourceType",
     "http://wso2.org/claims/roles",
     "http://wso2.org/claims/created",
-    "http://wso2.org/claims/modified"
+    "http://wso2.org/claims/modified",
+    "http://wso2.org/claims/groups"
   ]
 }
