@@ -36,6 +36,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -46,6 +47,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderClaimMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
@@ -236,6 +238,18 @@ public class IdPManagementServiceComponent {
                 addSuperTenantIdp();
             }
             bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
+
+            ServiceRegistration idpClaimMetadataMgtListener =
+                    bundleCtx.registerService(ClaimMetadataMgtListener.class.getName(),
+                            new IdentityProviderClaimMgtListener(), null);
+            if (idpClaimMetadataMgtListener != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Identity Provider Claim Metadata Management Listener registered.");
+                }
+            } else {
+                log.error("Identity Provider Management - Error while registering Identity Provider Claim Metadata " +
+                        "Management Listener.");
+            }
 
             buildFileBasedIdPList();
             cleanUpRemovedIdps();
