@@ -402,6 +402,41 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementServerException.class.getName());
     }
 
+    @Test(priority = 26)
+    public void testUpdateExistingSecretValue() throws Exception {
+
+        SecretType secretType = secretManager.addSecretType(getSampleSecretTypeAdd(SAMPLE_SECRET_TYPE_NAME1,
+                SAMPLE_SECRET_TYPE_DESCRIPTION1));
+        Secret secretAdd = getSampleSecretAdd(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secretAdd.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(secretType.getName(), secretAdd);
+        encryptSecret(SAMPLE_SECRET_VALUE2);
+        Secret secretUpdated = secretManager.updateSecretValue(secretType.getName(), SAMPLE_SECRET_NAME1,
+                SAMPLE_SECRET_VALUE2);
+
+        assertNotEquals("Created time should be different from the last updated time",
+                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+                "Existing id should be equal to the replaced id");
+    }
+
+    @Test(priority = 27)
+    public void testUpdateExistingSecretDescription() throws Exception {
+
+        SecretType secretType = secretManager.addSecretType(getSampleSecretTypeAdd(SAMPLE_SECRET_TYPE_NAME1,
+                SAMPLE_SECRET_TYPE_DESCRIPTION1));
+        Secret secretAdd = getSampleSecretAdd(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secretAdd.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(secretType.getName(), secretAdd);
+        Secret secretUpdated = secretManager.updateSecretDescription(secretType.getName(),
+                SAMPLE_SECRET_NAME1, SAMPLE_SECRET_TYPE_DESCRIPTION2);
+
+        assertNotEquals("Created time should be different from the last updated time",
+                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+                "Existing id should be equal to the replaced id");
+    }
+
     private void prepareConfigs() {
 
         SecretDAO secretDAO = new SecretDAOImpl();

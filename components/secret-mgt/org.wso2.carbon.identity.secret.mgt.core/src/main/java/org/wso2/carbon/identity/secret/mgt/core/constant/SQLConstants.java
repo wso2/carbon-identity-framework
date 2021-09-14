@@ -59,4 +59,11 @@ public class SQLConstants {
 
     public static final String UPDATE_SECRET_TYPE = "UPDATE IDN_SECRET_TYPE SET NAME = :NAME; ,DESCRIPTION = " +
             ":DESCRIPTION; WHERE ID = :ID;";
+
+    public static final String UPDATE_SECRET_VALUE = "UPDATE IDN_SECRET SET SECRET_VALUE = :SECRET_VALUE; , LAST_MODIFIED " +
+            "= :LAST_MODIFIED; WHERE ID = :ID;";
+
+    public static final String UPDATE_SECRET_DESCRIPTION = "UPDATE IDN_SECRET SET DESCRIPTION = :DESCRIPTION; , LAST_MODIFIED " +
+            "= :LAST_MODIFIED; WHERE ID = :ID;";
 }
+

@@ -37,9 +37,8 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_SECRET;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_INVALID_SECRET_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
@@ -51,6 +50,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_NAME_REQUIRED;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.generateUniqueID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
@@ -190,6 +190,35 @@ public class SecretManagerImpl implements SecretManager {
             log.debug(secret.getSecretName() + " secret replaced successfully.");
         }
         return secret;
+    }
+
+    @Override
+    public Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException {
+
+        validateSecretManagerEnabled();
+        Secret secret, updatedSecret;
+        secret = getSecret(secretTypeName, name);
+        try {
+            updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
+        } catch (CryptoException e) {
+            throw handleServerException(ERROR_CODE_UPDATE_SECRET, value, e);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(secret.getSecretName() + " secret value updated successfully.");
+        }
+        return updatedSecret;
+    }
+
+    @Override
+    public Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException {
+
+        validateSecretManagerEnabled();
+        Secret secret = getSecret(secretTypeName, name);
+        Secret updatedSecret = this.getSecretDAO().updateSecretDescription(secret, description);
+        if (log.isDebugEnabled()) {
+            log.debug(name + "secret description updated successfully.");
+        }
+        return updatedSecret;
     }
 
     @Override
@@ -437,7 +466,7 @@ public class SecretManagerImpl implements SecretManager {
         try {
             return encrypt(secretValue);
         } catch (CryptoException e) {
-            throw handleServerException(ERROR_CODE_GET_SECRET, name, e);
+            throw handleServerException(ERROR_CODE_ADD_SECRET, name, e);
         }
     }
 
