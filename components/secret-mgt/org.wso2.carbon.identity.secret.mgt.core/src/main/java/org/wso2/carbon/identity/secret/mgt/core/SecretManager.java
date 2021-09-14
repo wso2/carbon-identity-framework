@@ -125,8 +125,24 @@ public interface SecretManager {
      */
     void deleteSecretType(String secretTypeName) throws SecretManagementException;
 
+    /**
+     * Update value of a secret by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param name  Name of the {@link Secret}.
+     * @param value secret value to be updated.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
     Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException;
 
+    /**
+     * Delete description of a secret by name.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param name  Name of the {@link Secret}.
+     * @param description secret description to be updated.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
     Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException;
 
 }
