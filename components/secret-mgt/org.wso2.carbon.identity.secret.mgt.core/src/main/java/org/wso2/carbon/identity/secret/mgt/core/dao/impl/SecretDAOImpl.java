@@ -52,7 +52,9 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_TYPE_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_DESCRIPTION;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_TYPE;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_VALUE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_DESCRIPTION;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_ID;
@@ -71,6 +73,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_RETRIEVE_SECRET_TYPE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET_TYPE;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
@@ -271,6 +274,44 @@ public class SecretDAOImpl implements SecretDAO {
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_SECRET, "id = " + secretId, e);
         }
+    }
+
+    @Override
+    public Secret updateSecretValue(Secret secret, String value) throws SecretManagementException {
+
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(UPDATE_SECRET_VALUE, preparedStatement -> {
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, value);
+                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+            });
+            secret.setLastModified(currentTime.toInstant().toString());
+            secret.setSecretValue(value);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_UPDATE_SECRET, "value", e);
+        }
+        return secret;
+    }
+
+    @Override
+    public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
+
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(UPDATE_SECRET_DESCRIPTION, preparedStatement -> {
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, description);
+                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+            });
+            secret.setLastModified(currentTime.toInstant().toString());
+            secret.setDescription(description);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_UPDATE_SECRET, "description", e);
+        }
+        return secret;
     }
 
     @Override

@@ -134,6 +134,22 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
+    public Secret updateSecretValue(Secret secret, String value) throws SecretManagementException {
+
+        Secret updatedSecret = secretDAO.updateSecretValue(secret, value);
+        deleteSecretFromCache(secret);
+        return updatedSecret;
+    }
+
+    @Override
+    public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
+
+        Secret updatedSecret = secretDAO.updateSecretDescription(secret, description);
+        deleteSecretFromCache(secret);
+        return updatedSecret;
+    }
+
+    @Override
     public boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheById(secretId, tenantId);

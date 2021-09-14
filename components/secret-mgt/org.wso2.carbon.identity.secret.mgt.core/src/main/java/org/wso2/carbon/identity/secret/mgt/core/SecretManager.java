@@ -124,4 +124,9 @@ public interface SecretManager {
      * @throws SecretManagementException Configuration Management Exception.
      */
     void deleteSecretType(String secretTypeName) throws SecretManagementException;
+
+    Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException;
+
+    Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException;
+
 }

@@ -98,6 +98,24 @@ public interface SecretDAO {
     void replaceSecret(Secret secret) throws SecretManagementException;
 
     /**
+     * Update secret value.
+     *
+     * @param secret {@link Secret}.
+     * @param value secret value.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    Secret updateSecretValue(Secret secret, String value) throws SecretManagementException;
+
+    /**
+     * Update secret description.
+     *
+     * @param secret {@link Secret}.
+     * @param description secret description.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException;
+
+    /**
      * Validates whether a secrets exists with the given secret id in the tenant domain.
      *
      * @param secretId id of the secret.

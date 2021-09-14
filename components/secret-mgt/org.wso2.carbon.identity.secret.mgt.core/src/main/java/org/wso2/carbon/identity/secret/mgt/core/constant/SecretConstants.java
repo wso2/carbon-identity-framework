@@ -61,7 +61,8 @@ public class SecretConstants {
         ERROR_CODE_RETRIEVE_SECRET_TYPE("SECRETM_00020", "Error while getting the secret type: %s."),
         ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00021", "Secret type with the name: %s does not exists."),
         ERROR_CODE_DELETE_SECRET_TYPE("SECRETM_00022", "Error while deleting the secret type: %s."),
-        ERROR_CODE_UPDATE_SECRET_TYPE("SECRETM_00023", "Error while updating the secret type: %s.");
+        ERROR_CODE_UPDATE_SECRET_TYPE("SECRETM_00023", "Error while updating the secret type: %s."),
+        ERROR_CODE_UPDATE_SECRET("SECRETM_00024", "Error while updating the secret %s.");
 
         private final String code;
         private final String message;
