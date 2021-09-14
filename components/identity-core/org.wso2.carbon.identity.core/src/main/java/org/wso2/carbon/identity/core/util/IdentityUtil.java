@@ -62,15 +62,6 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import sun.security.provider.X509Factory;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -97,6 +88,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
@@ -1637,5 +1638,38 @@ public class IdentityUtil {
             log.debug(debugLog);
         }
         return userStoreManager;
+    }
+
+    /**
+     * Read configuration elements defined as lists from the identity.xml
+     *
+     * @param key Element Name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>t1</b><b>t2</b></a>},
+     *            the property name should be passed as "a.b" to get a list of b
+     * @return String list from the config element passed in as key.
+     */
+    public static List<String> getPropertyAsList(String key) {
+
+        List<String> propertyList = new ArrayList<>();
+        Object value = configuration.get(key);
+
+        if (value == null) {
+            return propertyList;
+        }
+        if (value instanceof List) {
+            List rawProps = (List) value;
+            for (Object rawProp: rawProps ) {
+                if (rawProp instanceof String) {
+                    propertyList.add((String) rawProp);
+                } else {
+                    propertyList.add(String.valueOf(rawProp));
+                }
+            }
+        } else if (value instanceof String) {
+            propertyList.add((String) value);
+        } else {
+            propertyList.add(String.valueOf(value));
+        }
+        return propertyList;
     }
 }

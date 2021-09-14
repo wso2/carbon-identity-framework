@@ -2632,6 +2632,22 @@
             <MemoryLimit>{{authentication.adaptive.execution_supervisor.memory_limit}}</MemoryLimit>
             {% endif %}
         </ExecutionSupervisor>
+
+        {% if authentication.adaptive.http_function_allowed_domains is defined %}
+        <HTTPFunctionAllowedDomains>
+            {% for domain in authentication.adaptive.http_function_allowed_domains %}
+            <Domain>{{domain}}</Domain>
+            {% endfor %}
+        </HTTPFunctionAllowedDomains>
+        {% endif %}
+
+        {% if authentication.adaptive.choreo_domains is defined %}
+        <ChoreoDomains>
+            {% for domain in authentication.adaptive.choreo_domains %}
+            <Domain>{{domain}}</Domain>
+            {% endfor %}
+        </ChoreoDomains>
+        {% endif %}
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
