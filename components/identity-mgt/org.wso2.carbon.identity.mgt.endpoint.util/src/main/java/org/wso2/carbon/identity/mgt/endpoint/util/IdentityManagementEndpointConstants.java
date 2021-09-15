@@ -100,6 +100,7 @@ public class IdentityManagementEndpointConstants {
     public static final String DEFAULT_USER_PORTAL_URL = "../myaccount";
     public static final String USER_PORTAL_URL = "/myaccount";
     public static final String My_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
 
     public static final String RELATIVE_PATH_START_CHAR = ".";
