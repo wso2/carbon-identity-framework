@@ -436,9 +436,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
+                /*
+                 For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision failure.
+                 Password is a different case where we have to keep for password provisioning.
+                 */
                 if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue)) &&
-                        (claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT) ||
-                                claimURI.equals(FrameworkConstants.PASSWORD))) {
+                        (claimURI.equals(FrameworkConstants.PASSWORD) ||
+                                claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT))) {
                     userClaims.put(claimURI, claimValue);
                 }
             }
