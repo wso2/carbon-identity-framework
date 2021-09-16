@@ -365,6 +365,10 @@
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
+  "sso_login.recaptcha.enabled": false,
+  "sso_login.recaptcha.enable_always": false,
+  "sso_login.recaptcha.max_attempts": "3",
+
   "sp_role_management.return_only_mapped_local_roles": false,
   "idp_role_management.return_only_mapped_local_roles": false,
   "idp_role_management.return_manually_added_local_roles": false,
