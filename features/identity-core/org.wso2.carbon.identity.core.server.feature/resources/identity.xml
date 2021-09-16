@@ -122,7 +122,7 @@
         -->
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
-        <!-- 
+        <!--
 		<OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
 	-->
 
@@ -941,6 +941,23 @@
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>
+
+    <!--This configuration is for enable/disable reCaptcha feature by default.
+    The default configuration is to disable the reCaptcha by default. These configuration can be overrided
+    tenant wise.-->
+    <SSOLogin>
+        <Recaptcha>
+            <!--This configuration is the default configuration for enabling reCaptcha in login flow.
+            Enabling this configuration will prompt reCaptcha after max failed attempts.-->
+            <Enabled>false</Enabled>
+
+            <!--Enabling this configuration will always prompt reCaptcha despite of max failed attempts.-->
+            <EnableAlways>false</EnableAlways>
+
+            <!--This configuration will set max failed attempts for reCaptcha.-->
+            <MaxAttempts>3</MaxAttempts>
+        </Recaptcha>
+    </SSOLogin>
 
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
