@@ -437,7 +437,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
                 if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue)) &&
-                        claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT)) {
+                        (claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT) ||
+                                claimURI.equals(FrameworkConstants.PASSWORD))) {
                     userClaims.put(claimURI, claimValue);
                 }
             }
