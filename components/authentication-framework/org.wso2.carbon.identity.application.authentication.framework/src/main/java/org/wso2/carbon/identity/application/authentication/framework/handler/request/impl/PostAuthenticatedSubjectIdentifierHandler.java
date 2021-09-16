@@ -150,8 +150,8 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         boolean isUseTenantDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
                 .isUseTenantDomainInLocalSubjectIdentifier();
 
-        boolean useUserIdForSubject = sequenceConfig.getApplicationConfig().isUseUserIdForSubject();
-        if (useUserIdForSubject) {
+        boolean useUserIdForDefaultSubject = sequenceConfig.getApplicationConfig().isUseUserIdForDefaultSubject();
+        if (useUserIdForDefaultSubject) {
             String authenticatedUserId = sequenceConfig.getAuthenticatedUser().getUserId();
 
             if (StringUtils.isNotEmpty(authenticatedUserId)) {

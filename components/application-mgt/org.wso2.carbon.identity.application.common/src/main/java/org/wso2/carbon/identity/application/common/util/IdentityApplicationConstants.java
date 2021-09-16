@@ -97,7 +97,7 @@ public class IdentityApplicationConstants {
 
     public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
-    public static final String USE_USER_ID_FOR_SUBJECT = "useUserIdForSubject";
+    public static final String USE_USER_ID_FOR_DEFAULT_SUBJECT = "useUserIdForDefaultSubject";
 
     /**
      * Config elements.

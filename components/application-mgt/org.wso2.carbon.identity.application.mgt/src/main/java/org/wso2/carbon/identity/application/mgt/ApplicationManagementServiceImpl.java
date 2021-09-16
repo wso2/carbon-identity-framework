@@ -1908,24 +1908,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
+        addUserIdAsDefaultSubject(serviceProvider);
+
+        validateApplicationConfigurations(serviceProvider, tenantDomain, username);
+    }
+
+    private void addUserIdAsDefaultSubject(ServiceProvider serviceProvider) {
         boolean containsUseUserIdForSubjectProp = false;
         ArrayList<ServiceProviderProperty> serviceProviderProperties
                 = new ArrayList<>(Arrays.asList(serviceProvider.getSpProperties()));
         for (ServiceProviderProperty prop: serviceProviderProperties) {
-            if (IdentityApplicationConstants.USE_USER_ID_FOR_SUBJECT.equals(prop.getName())) {
+            if (IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(prop.getName())) {
                 containsUseUserIdForSubjectProp = true;
                 break;
             }
         }
         if (!containsUseUserIdForSubjectProp) {
             ServiceProviderProperty useUserIdForSubject = new ServiceProviderProperty();
-            useUserIdForSubject.setName(IdentityApplicationConstants.USE_USER_ID_FOR_SUBJECT);
+            useUserIdForSubject.setName(IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT);
             useUserIdForSubject.setValue("true");
             serviceProviderProperties.add(useUserIdForSubject);
             serviceProvider.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
         }
-
-        validateApplicationConfigurations(serviceProvider, tenantDomain, username);
     }
 
     private <T> T doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username,

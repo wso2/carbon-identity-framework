@@ -615,7 +615,7 @@ public class DefaultStepHandler implements StepHandler {
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
 
-                if (context.getSubject().getUserName() == null) { // TODO this is probably incorrect?
+                if (context.getSubject().getUserName() == null) {
                     // Set subject identifier as the default username for federated users
                     String authenticatedSubjectIdentifier = context.getSubject().getAuthenticatedSubjectIdentifier();
                     context.getSubject().setUserName(authenticatedSubjectIdentifier);
