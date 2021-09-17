@@ -610,6 +610,19 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
     }
 
+    @Test(dataProvider = "updateIdPData")
+    public void testUpdateIdPByResourceId(String oldIdpName, Object newIdp) throws Exception {
+
+        addTestIdps();
+        IdentityProvider oldIdp = identityProviderManagementService.getIdPByName(oldIdpName);
+        IdentityProviderManager.getInstance()
+                .updateIdPByResourceId(oldIdp.getResourceId(), (IdentityProvider) newIdp, "carbon.super");
+        String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
+
+        Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+    }
+
     @DataProvider
     public Object[][] updateIdPExceptionData() {
 
