@@ -524,6 +524,7 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
+            <CIBARequestObjectValidator>org.wso2.carbon.identity.openidconnect.CIBARequestObjectValidatorImpl</CIBARequestObjectValidator>
             <RedirectToPostLogoutUriOnConsentDenial>true</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
