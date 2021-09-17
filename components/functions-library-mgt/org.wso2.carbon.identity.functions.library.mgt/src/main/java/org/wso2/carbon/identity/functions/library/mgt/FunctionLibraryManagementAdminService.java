@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,9 +28,6 @@ import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExcept
 import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryManagementConstants;
 
 import java.util.List;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 
 /**
  * Function library management admin service.
@@ -51,7 +47,6 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
 
         try {
             validateInputs(functionLibrary);
-            evaluateScript(functionLibrary);
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.createFunctionLibrary(functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
@@ -130,7 +125,6 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
 
         try {
             validateInputs(functionLibrary);
-            evaluateScript(functionLibrary);
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
@@ -154,31 +148,6 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
         } else if (StringUtils.isBlank(functionLibrary.getFunctionLibraryScript())) {
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
                     FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_SCRIPT);
-        }
-    }
-
-    /**
-     * Evaluate the function library script.
-     *
-     * @param functionLibrary Function Library
-     * @throws FunctionLibraryManagementException
-     */
-    private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
-
-        try {
-            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine("--no-java");
-            String head = "var module = { exports:{} }; \n" +
-                    "var exports = {}; \n" +
-                    "function require(name){};";
-            String code = functionLibrary.getFunctionLibraryScript();
-            code = head + code;
-            engine.eval(code);
-        } catch (ScriptException e) {
-            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
-                    " contains errors.", e);
-            throw FunctionLibraryExceptionManagementUtil.handleClientException(
-                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,
-                    functionLibrary.getFunctionLibraryName(), e);
         }
     }
 }

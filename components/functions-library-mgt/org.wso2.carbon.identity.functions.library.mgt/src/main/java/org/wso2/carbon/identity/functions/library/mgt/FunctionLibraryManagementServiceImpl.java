@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
@@ -30,9 +30,6 @@ import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExcept
 import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryManagementConstants;
 
 import java.util.List;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
 
@@ -67,7 +64,6 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             throws FunctionLibraryManagementException {
 
         validateInputs(functionLibrary);
-        evaluateScript(functionLibrary);
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
 
         if (functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
@@ -114,7 +110,6 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             throws FunctionLibraryManagementException {
 
         validateInputs(functionLibrary);
-        evaluateScript(functionLibrary);
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
 
         if (!functionLibrary.getFunctionLibraryName().equals(oldFunctionLibraryName) &&
@@ -156,31 +151,17 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
                     FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_SCRIPT);
         }
-    }
 
-    /**
-     * Evaluate the function library script.
-     *
-     * @param functionLibrary Function Library
-     * @throws FunctionLibraryManagementException
-     */
-    private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
-
-        try {
-            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine("--no-java");
-            String head = "var module = { exports:{} }; \n" +
-                    "var exports = {}; \n" +
-                    "function require(name){};";
-            String code = functionLibrary.getFunctionLibraryScript();
-            code = head + code;
-            engine.eval(code);
-        } catch (ScriptException e) {
-            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
-                    " contains errors.", e);
-            throw FunctionLibraryExceptionManagementUtil.handleClientException(
-                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,
-                    functionLibrary.getFunctionLibraryName(), e);
-
+        if (!IdentityApplicationManagementUtil.isLoopsInAdaptiveAuthScriptAllowed()) {
+            String script = functionLibrary.getFunctionLibraryScript();
+            if (log.isDebugEnabled()) {
+                log.debug("Loops are not allowed in the authentication script. Therefore checking whether loops " +
+                        "are present in the provided adaptive authentication function.");
+            }
+            if (IdentityApplicationManagementUtil.isLoopsPresentInAdaptiveAuthScript(script)) {
+                throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                        FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_LOOPS_IN_SCRIPT_LIBRARY_SCRIPT);
+            }
         }
     }
 }
