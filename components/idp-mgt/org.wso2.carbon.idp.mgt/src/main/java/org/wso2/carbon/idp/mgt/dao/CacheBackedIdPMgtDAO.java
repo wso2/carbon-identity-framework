@@ -281,11 +281,11 @@ public class CacheBackedIdPMgtDAO {
     /**
      * Get the updated IDP details using the resource ID.
      *
-     * @param resourceId   resource ID of the identity provider.
+     * @param resourceId   Resource ID of the identity provider.
      * @param tenantId     Tenant ID of the identity provider.
      * @param tenantDomain Tenant domain of the identity provider.
      * @return Updated identity provider with given resource ID.
-     * @throws IdentityProviderManagementException
+     * @throws IdentityProviderManagementException Error when getting Resident Identity Provider.
      */
     public IdentityProvider getUpdatedIdPByResourceId(String resourceId, int tenantId, String tenantDomain) throws
             IdentityProviderManagementException {
@@ -296,9 +296,9 @@ public class CacheBackedIdPMgtDAO {
 
         if (entry != null) {
             /*
-            Before updating an IDP we clear the cache. Therefore, if we get a cache hit again at this point, it should
-            be a reason of some other process done on the same IDP. Hence, we need to clear the cache before proceed
-            in order to generate a correct response.
+             * Before updating an IDP we clear the cache. Therefore, if we get a cache hit again at this point, it
+             * should be a reason of some other process done on the same IDP. Hence, we need to clear the cache before
+             * proceed in order to generate a correct response.
              */
             if (log.isDebugEnabled()) {
                 log.debug("Cache entry found for Identity Provider with resource ID: " + resourceId
@@ -311,14 +311,13 @@ public class CacheBackedIdPMgtDAO {
 
         identityProvider = idPMgtDAO.getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
 
-        if (identityProvider != null) {
-            addIdPCache(identityProvider, tenantDomain);
-        } else {
+        if (identityProvider == null) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("No IDP found with resource ID: %s in DB", resourceId));
             }
+            return null;
         }
-
+        addIdPCache(identityProvider, tenantDomain);
         return identityProvider;
     }
 
