@@ -81,6 +81,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
+    private static final String LOCAL_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
 
     public static DefaultProvisioningHandler getInstance() {
         if (instance == null) {
@@ -435,7 +436,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
-                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue))) {
+                /*
+                 For claimValues not mapped to local claim dialect uris, need to skip to prevent user provision failure.
+                 Password is a different case where we have to keep for password provisioning.
+                 */
+                if (!(StringUtils.isEmpty(claimURI) || StringUtils.isEmpty(claimValue)) &&
+                        (claimURI.equals(FrameworkConstants.PASSWORD) ||
+                                claimURI.contains(LOCAL_DEFAULT_CLAIM_DIALECT))) {
                     userClaims.put(claimURI, claimValue);
                 }
             }
