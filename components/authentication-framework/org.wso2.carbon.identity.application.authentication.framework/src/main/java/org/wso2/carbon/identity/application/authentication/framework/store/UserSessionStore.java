@@ -835,7 +835,7 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt
                      = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
@@ -858,7 +858,7 @@ public class UserSessionStore {
      */
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt
                      = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, sessionContextKey);
@@ -879,7 +879,7 @@ public class UserSessionStore {
     public boolean isExistingUser(String userId) throws UserSessionException {
 
         Boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
                 preparedStatement.setString(1, userId);
