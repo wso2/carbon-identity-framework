@@ -879,7 +879,7 @@ public class UserSessionStore {
     public boolean isExistingUser(String userId) throws UserSessionException {
 
         Boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
                 preparedStatement.setString(1, userId);
