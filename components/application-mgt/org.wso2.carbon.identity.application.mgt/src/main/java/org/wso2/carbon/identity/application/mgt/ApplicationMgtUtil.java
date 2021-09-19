@@ -905,9 +905,11 @@ public class ApplicationMgtUtil {
                                 JSONObject property = properties.optJSONObject(j);
                                 if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
                                         (String) property.get("name"))) {
-                                    String secret = (String) property.get("value");
-                                    String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
-                                    property.put("value", maskedSecret);
+                                    if (property.get("value") != null) {
+                                        String secret = property.get("value").toString();
+                                        String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
+                                        property.put("value", maskedSecret);
+                                    }
                                 }
                             }
                         }
