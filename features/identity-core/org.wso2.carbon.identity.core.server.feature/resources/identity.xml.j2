@@ -753,6 +753,14 @@
           <KeySet>{{oauth.grant_type.device_code.key_set}}</KeySet>
         </DeviceCodeGrant>
 
+        <!--
+            Config related to display name in Authorization Code Grant consent page.
+            Default value : false
+        -->
+        {% if oauth.show_display_name_in_consent_page is defined %}
+            <ShowDisplayNameInConsentPage>{{oauth.show_display_name_in_consent_page}}</ShowDisplayNameInConsentPage>
+        {% endif %}
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
