@@ -285,7 +285,7 @@ public class CacheBackedIdPMgtDAO {
      * @param tenantId     Tenant ID of the identity provider.
      * @param tenantDomain Tenant domain of the identity provider.
      * @return Updated identity provider with given resource ID.
-     * @throws IdentityProviderManagementException Error when getting the iIdentity Provider.
+     * @throws IdentityProviderManagementException Error when getting the identity provider.
      */
     public IdentityProvider getUpdatedIdPByResourceId(String resourceId, int tenantId, String tenantDomain) throws
             IdentityProviderManagementException {
