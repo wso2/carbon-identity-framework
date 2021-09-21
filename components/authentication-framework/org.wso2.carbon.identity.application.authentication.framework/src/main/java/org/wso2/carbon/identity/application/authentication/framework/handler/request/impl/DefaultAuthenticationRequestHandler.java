@@ -216,6 +216,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     protected boolean canConcludeFlow(AuthenticationContext context) {
 
+        if (context.isPassiveAuthenticate()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Can conclude the authentication flow for passive authentication request from the " +
+                        "application: " + context.getServiceProviderName());
+            }
+            return true;
+        }
         return LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context);
     }
 
