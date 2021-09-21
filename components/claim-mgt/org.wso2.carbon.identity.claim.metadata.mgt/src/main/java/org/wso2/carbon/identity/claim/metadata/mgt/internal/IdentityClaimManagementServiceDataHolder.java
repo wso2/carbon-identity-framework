@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
@@ -41,6 +42,7 @@ public class IdentityClaimManagementServiceDataHolder {
     private IdentityEventService identityEventService;
     private static Map<Integer, ClaimManagerListener> claimManagerListeners = new TreeMap<Integer,
             ClaimManagerListener>();
+    private ClaimConfigInitDAO claimConfigInitDAO;
 
     private IdentityClaimManagementServiceDataHolder() {
 
@@ -119,4 +121,13 @@ public class IdentityClaimManagementServiceDataHolder {
         this.identityEventService = identityEventService;
     }
 
+    public void setClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
+
+        this.claimConfigInitDAO = claimConfigInitDAO;
+    }
+
+    public ClaimConfigInitDAO getClaimConfigInitDAO() {
+
+        return claimConfigInitDAO;
+    }
 }

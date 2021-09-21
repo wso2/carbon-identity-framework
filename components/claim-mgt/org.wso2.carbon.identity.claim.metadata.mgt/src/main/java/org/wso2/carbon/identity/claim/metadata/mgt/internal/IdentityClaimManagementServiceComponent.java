@@ -23,6 +23,8 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.impl.DefaultClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataManagementAuditLogger;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantMgtListener;
@@ -57,6 +59,10 @@ public class IdentityClaimManagementServiceComponent {
 
             IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(bundleCtx);
 
+            if (IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO() == null) {
+                IdentityClaimManagementServiceDataHolder.getInstance()
+                        .setClaimConfigInitDAO(new DefaultClaimConfigInitDAO());
+            }
             ClaimMetadataStoreFactory claimMetadataStoreFactory = new ClaimMetadataStoreFactory();
             bundleCtx.registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
 
@@ -208,5 +214,37 @@ public class IdentityClaimManagementServiceComponent {
             log.debug("IdentityEventService set in Identity Claim Management bundle");
         }
     }
-}
 
+    @Reference(
+            name = "claim.config.init.dao",
+            service = ClaimConfigInitDAO.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimConfigInitDAO"
+    )
+    protected void setClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
+
+        ClaimConfigInitDAO existingDAO = IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO();
+        if (existingDAO != null) {
+            log.warn("Claim config init DAO implementation " + existingDAO.getClass().getName() +
+                    " is registered already and ClaimMetadataStoreFactory is created." +
+                    " So DAO Impl : " + claimConfigInitDAO.getClass().getName() + " will not be registered");
+        } else {
+            IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfigInitDAO(claimConfigInitDAO);
+            if (log.isDebugEnabled()) {
+                log.debug("Claim config init DAO implementation got registered: " +
+                        claimConfigInitDAO.getClass().getName());
+            }
+        }
+    }
+
+    protected void unsetClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfigInitDAO(new DefaultClaimConfigInitDAO());
+        if (log.isDebugEnabled()) {
+            log.debug("Claim config init DAO implementation: " + claimConfigInitDAO.getClass().getName() +
+                    " got removed and default Claim config init DAO implementation:" +
+                    DefaultClaimConfigInitDAO.class.getName() + " registered.");
+        }
+    }
+}
