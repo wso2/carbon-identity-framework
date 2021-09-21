@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 /**
@@ -28,8 +29,9 @@ public interface ClaimConfigInitDAO {
     /**
      * Initialize the claim configuration of tenant to the database.
      *
-     * @param claimConfig   Claim Configuration.
-     * @param tenantId      Tenant Id.
+     * @param claimConfig Claim Configuration.
+     * @param tenantId    Tenant Id.
+     * @throws ClaimMetadataException Claim Meta data Exception.
      */
-    void initClaimConfig(ClaimConfig claimConfig, int tenantId);
+    void initClaimConfig(ClaimConfig claimConfig, int tenantId) throws ClaimMetadataException;
 }
