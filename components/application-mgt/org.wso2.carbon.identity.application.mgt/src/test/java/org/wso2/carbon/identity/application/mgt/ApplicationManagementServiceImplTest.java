@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -602,6 +603,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         IdentityTenantUtil.setRealmService(testSessionRealmService);
         RegistryDataHolder.getInstance().setRealmService(testSessionRealmService);
         OSGiDataHolder.getInstance().setUserRealmService(testSessionRealmService);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(testSessionRealmService);
         ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.getInstance();
         setInstanceValue(testSessionRealmService, RealmService.class, ApplicationManagementServiceComponentHolder.class,
                 holder);
