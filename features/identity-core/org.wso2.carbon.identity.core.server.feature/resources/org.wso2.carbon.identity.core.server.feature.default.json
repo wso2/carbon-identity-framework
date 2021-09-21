@@ -788,6 +788,10 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
+  "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
+  "console.secrets_management.scopes.read": [ "internal_secret_mgt_view" ],
+  "console.secrets_management.scopes.update": [ "internal_secret_mgt_update" ],
+  "console.secrets_management.scopes.delete": [ "internal_secret_mgt_delete" ],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
