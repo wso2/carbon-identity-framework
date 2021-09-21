@@ -242,9 +242,9 @@ public class IdentityClaimManagementServiceComponent {
 
         IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfigInitDAO(new DefaultClaimConfigInitDAO());
         if (log.isDebugEnabled()) {
-            log.debug("Claim config init DAO implementation got removed: " + claimConfigInitDAO.getClass().getName());
+            log.debug("Claim config init DAO implementation: " + claimConfigInitDAO.getClass().getName() +
+                    " got removed and default Claim config init DAO implementation:" +
+                    DefaultClaimConfigInitDAO.class.getName() + " registered.");
         }
     }
-
 }
-

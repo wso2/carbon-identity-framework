@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.claim.ClaimKey;
+import org.wso2.carbon.user.core.claim.ClaimMapping;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.util.ArrayList;
@@ -53,27 +54,26 @@ public class DefaultClaimConfigInitDAO implements ClaimConfigInitDAO {
     @Override
     public void initClaimConfig(ClaimConfig claimConfig, int tenantId) {
 
-        // Adding local claim dialect
+        // Adding local claim dialect.
         try {
             claimDialectDAO.addClaimDialect(new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI), tenantId);
         } catch (ClaimMetadataException e) {
             log.error("Error while adding claim dialect " + ClaimConstants.LOCAL_CLAIM_DIALECT_URI, e);
         }
 
-
         if (claimConfig.getClaimMap() != null) {
 
-            // Get the primary domain name
+            // Get the primary domain name.
             String primaryDomainName = IdentityUtil.getPrimaryDomainName();
 
-            // Adding external dialects and claims
+            // Adding external dialects and claims.
             Set<String> claimDialectList = new HashSet<>();
 
-            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
+            for (Map.Entry<ClaimKey, ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
                 ClaimKey claimKey = entry.getKey();
-                org.wso2.carbon.user.core.claim.ClaimMapping claimMapping = entry.getValue();
+                ClaimMapping claimMapping = entry.getValue();
                 String claimDialectURI = claimMapping.getClaim().getDialectURI();
                 String claimURI = claimKey.getClaimUri();
 
@@ -110,7 +110,7 @@ public class DefaultClaimConfigInitDAO implements ClaimConfigInitDAO {
                 }
             }
 
-            // Add external claim dialects
+            // Add external claim dialects.
             for (String claimDialectURI : claimDialectList) {
 
                 ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
@@ -121,7 +121,7 @@ public class DefaultClaimConfigInitDAO implements ClaimConfigInitDAO {
                 }
             }
 
-            for (Map.Entry<ClaimKey, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaimMap()
+            for (Map.Entry<ClaimKey, ClaimMapping> entry : claimConfig.getClaimMap()
                     .entrySet()) {
 
                 ClaimKey claimKey = entry.getKey();
@@ -142,10 +142,9 @@ public class DefaultClaimConfigInitDAO implements ClaimConfigInitDAO {
                         ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
                         externalClaimDAO.addExternalClaim(externalClaim, tenantId);
                     } catch (ClaimMetadataException e) {
-                        log.error("Error while adding external claim " + claimURI + " to dialect " + claimDialectURI,
-                                e);
+                        log.error("Error while adding external claim " + claimURI + " to dialect " +
+                                        claimDialectURI, e);
                     }
-
                 }
             }
         }
