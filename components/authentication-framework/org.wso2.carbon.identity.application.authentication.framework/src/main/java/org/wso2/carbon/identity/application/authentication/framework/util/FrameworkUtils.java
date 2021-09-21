@@ -125,6 +125,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -194,6 +195,8 @@ public class FrameworkUtils {
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
     public static final String ROOT_DOMAIN = "/";
+
+    public static final String EMAIL_CLAIM = "http://wso2.org/claims/emailaddress";
 
     private FrameworkUtils() {
     }
@@ -2859,25 +2862,6 @@ public class FrameworkUtils {
     }
 
     /**
-     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
-     *
-     * @param loginIdentifier login identifier for multi attribute login
-     * @param tenantDomain    user tenant domain
-     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
-     * resolvedUserResult with FAIL status.
-     */
-    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
-                                                                              String tenantDomain) {
-
-        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
-        if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
-            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
-                    resolveUser(loginIdentifier, tenantDomain);
-        }
-        return resolvedUserResult;
-    }
-
-    /**
      * Validate the username when email username is enabled.
      *
      * @param username Username.
@@ -2894,6 +2878,102 @@ public class FrameworkUtils {
                 throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
         }
+    }
+
+    /**
+     * Check whether a tenant is valid and active.
+     *
+     * @param tenantDomain The domain name of the tenant.
+     * @return boolean stating the tenant is available or not.
+     */
+    public static boolean isTenantAvailable(String tenantDomain) {
+
+        RealmService realmService = FrameworkServiceComponent.getRealmService();
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            return realmService.getTenantManager().isTenantActive(tenantId);
+        } catch (UserStoreException | IdentityRuntimeException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant domain is invalid or inactive. Tenant domain: " + tenantDomain, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Get resolvedUserResult from multi-attribute login identifier if multi attribute login is enabled.
+     *
+     * @param loginIdentifier Login identifier for multi attribute login.
+     * @param tenantDomain    Tenant domain of the user.
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise, returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
+            String tenantDomain) {
+
+        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
+        if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService()
+                    .resolveUser(loginIdentifier, tenantDomain);
+        }
+        return resolvedUserResult;
+    }
+
+    /**
+     * Process multi-attribute login identification using the given username.
+     *
+     * @param userName The username given for multi-attribute login.
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise, returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String userName) {
+
+        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
+        String tenantDomain = MultitenantUtils.getTenantDomain(userName);
+
+        if (isTenantAvailable(tenantDomain)) {
+            resolvedUserResult = processMultiAttributeLoginIdentification(
+                    MultitenantUtils.getTenantAwareUsername(userName), tenantDomain);
+            if (resolvedUserResult != null && ResolvedUserResult.UserResolvedStatus.SUCCESS.equals(
+                    resolvedUserResult.getResolvedStatus())) {
+                return resolvedUserResult;
+            }
+        }
+
+        // If the email claim is set as a login attribute and the identifier is an email address, try
+        // login as email in super tenant.
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) && userName.indexOf('@') > -1
+                && isMultiAttributeLoginEnabled(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
+                && getMultiAttributeLoginEnabledClaims(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME).contains(
+                EMAIL_CLAIM)) {
+            resolvedUserResult = processMultiAttributeLoginIdentification(userName,
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        }
+
+        return resolvedUserResult;
+    }
+
+    /**
+     * Check whether the multi-attribute login is enabled for a given tenant.
+     *
+     * @param tenantDomain The domain name of the tenant.
+     * @return boolean stating multi-attribute login is enabled or not.
+     */
+    public static boolean isMultiAttributeLoginEnabled(String tenantDomain) {
+
+        return FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain);
+    }
+
+    /**
+     * Get the list of the claims which are enabled for multi-attribute login.
+     *
+     * @param tenantDomain The domain of the tenant.
+     * @return list of the multi-attribute login enabled claims.
+     */
+    public static List<String> getMultiAttributeLoginEnabledClaims(String tenantDomain) {
+
+        return FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService()
+                .getAllowedClaimsForTenant(tenantDomain);
     }
 
     private static String addUserId(String username, UserStoreManager userStoreManager) {

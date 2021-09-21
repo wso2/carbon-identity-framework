@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.multi.attribute.login.mgt;
 
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 
+import java.util.List;
+
 /**
  * This interface is used to implement a MultiAttributeLoginService component, which provides multi attribute login
  * feature
@@ -67,4 +69,14 @@ public interface MultiAttributeLoginService {
      */
     ResolvedUserResult resolveUser(String loginIdentifier, String tenantDomain, String hint);
 
+    /**
+     * This method is used to get list of claim URIs which are enabled for multi attribute login on given tenant domain.
+     *
+     * @param tenantDomain User tenant domain.
+     * @return Multi attribute login enabled claim URI list.
+     */
+    default List<String> getAllowedClaimsForTenant(String tenantDomain) {
+
+        return null;
+    }
 }
