@@ -22,8 +22,11 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Defines the session management service operations.
@@ -66,7 +69,21 @@ public interface UserSessionManagementService {
     }
 
     /**
-     * Terminate the session of the given id
+     * Get a specific session of the given user id.
+     *
+     * @param userId    unique id of the user
+     * @param sessionId unique id of the session
+     * @return user session object. In the default method, null is returned.
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default Optional<UserSession> getSessionBySessionId(String userId, String sessionId)
+            throws SessionManagementException {
+
+        return Optional.empty();
+    }
+
+    /**
+     * Terminate the session of the given id.
      *
      * @param userId    unique id of the user
      * @param sessionId unique id for the session
@@ -104,7 +121,7 @@ public interface UserSessionManagementService {
     }
 
     /**
-     * Terminate the session of the given id
+     * Terminate the session of the given id.
      *
      * @param user      user object
      * @param idpId     id of the user's identity provider
@@ -115,5 +132,21 @@ public interface UserSessionManagementService {
             SessionManagementException {
 
         return false;
+    }
+
+    /**
+     * Get active sessions that fulfill the criteria determined by the filter parameter value.
+     *
+     * @param tenantDomain context tenant domain
+     * @param filter       criteria to search for sessions
+     * @param limit        maximum number of sessions to be returned in the result set
+     * @param sortOrder    sort direction for results (ASC, DESC)
+     * @return list of session search results. In the default method, an empty list is returned.
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default List<UserSession> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+                                                  String sortOrder) throws SessionManagementException {
+
+        return Collections.emptyList();
     }
 }

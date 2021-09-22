@@ -26,10 +26,14 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtDBQueries;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -40,12 +44,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Class to store and retrieve user related data.
@@ -54,7 +63,7 @@ public class UserSessionStore {
 
     private static final Log log = LogFactory.getLog(UserSessionStore.class);
 
-    private static UserSessionStore instance = new UserSessionStore();
+    private static final UserSessionStore instance = new UserSessionStore();
     private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
             ".UserSessionMapping.DeleteChunkSize";
@@ -154,7 +163,7 @@ public class UserSessionStore {
         String userId = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
-                            .prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
                 preparedStatement.setString(1, userName);
                 preparedStatement.setInt(2, tenantId);
                 preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN :
@@ -198,7 +207,7 @@ public class UserSessionStore {
         String userId = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
-                            .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER)) {
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER)) {
                 preparedStatement.setString(1, userName);
                 preparedStatement.setInt(2, tenantId);
                 preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN :
@@ -236,7 +245,7 @@ public class UserSessionStore {
         List<String> userIds = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
-                            .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER_STORE)) {
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER_STORE)) {
                 preparedStatement.setString(1, userDomain.toUpperCase());
                 preparedStatement.setInt(2, tenantId);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -273,7 +282,7 @@ public class UserSessionStore {
         }
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
-                            .prepareStatement(SQLQueries.SQL_SELECT_IDP_ID_OF_IDP)) {
+                    .prepareStatement(SQLQueries.SQL_SELECT_IDP_ID_OF_IDP)) {
                 preparedStatement.setString(1, idPName);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (resultSet.next()) {
@@ -332,7 +341,7 @@ public class UserSessionStore {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
             try (PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_INSERT_USER_SESSION_STORE_OPERATION)) {
+                    .prepareStatement(SQLQueries.SQL_INSERT_USER_SESSION_STORE_OPERATION)) {
                 preparedStatement.setString(1, userId);
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.executeUpdate();
@@ -361,10 +370,10 @@ public class UserSessionStore {
      */
     public boolean isExistingMapping(String userId, String sessionId) throws UserSessionException {
 
-        Boolean isExisting = false;
+        boolean isExisting = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
                 preparedStatement.setString(1, userId);
                 preparedStatement.setString(2, sessionId);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -394,17 +403,17 @@ public class UserSessionStore {
 
         List<String> sessionIdList = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-             try (PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_SESSION_ID_OF_USER_ID)) {
-                 preparedStatement.setString(1, userId);
-                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                     while (resultSet.next()) {
-                         sessionIdList.add(resultSet.getString(1));
-                     }
-                 }
-             } catch (SQLException e1) {
-                 throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e1);
-             }
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_SESSION_ID_OF_USER_ID)) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        sessionIdList.add(resultSet.getString(1));
+                    }
+                }
+            } catch (SQLException e1) {
+                throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e1);
+            }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e);
         }
@@ -699,7 +708,7 @@ public class UserSessionStore {
     }
 
     /**
-     * Method to store session meta data as a batch
+     * Method to store session meta data as a batch.
      *
      * @param sessionId id of the authenticated session
      * @param metaData  map of metadata type and value of the session
@@ -836,8 +845,8 @@ public class UserSessionStore {
             throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt
-                     = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
+            PreparedStatement prepStmt
+                    = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
             prepStmt.setString(2, sessionContextKey);
             prepStmt.setString(3, authHistory.getIdpName());
@@ -859,8 +868,8 @@ public class UserSessionStore {
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt
-                     = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
+            PreparedStatement prepStmt
+                    = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, sessionContextKey);
             prepStmt.execute();
         } catch (SQLException e) {
@@ -872,13 +881,13 @@ public class UserSessionStore {
     /**
      * Method to check whether the user id is available in the IDN_AUTH_USER table.
      *
-     * @param userId    Id of the user
+     * @param userId Id of the user
      * @return the boolean decision
      * @throws UserSessionException if an error occurs when retrieving the mapping from the database
      */
     public boolean isExistingUser(String userId) throws UserSessionException {
 
-        Boolean isExisting = false;
+        boolean isExisting = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement preparedStatement = connection
                     .prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
@@ -946,5 +955,201 @@ public class UserSessionStore {
 
         // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
         return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
+    /**
+     * Method to search active sessions on the system.
+     *
+     * @param tenantId  context tenant id
+     * @param filter    filter expression nodes
+     * @param limit     limit
+     * @param sortOrder order direction (ASC, DESC)
+     * @return the list of sessions found
+     * @throws UserSessionException if an error occurs when retrieving the sessions from the database
+     */
+    public List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit,
+                                         String sortOrder) throws UserSessionException {
+
+        List<UserSession> results = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            String sqlOrder = StringUtils.isNotBlank(sortOrder) ? sortOrder : SessionMgtConstants.DESC;
+            String sqlQuery;
+
+            String sessionFilter = filterToSQL(filter.stream()
+                    .filter(n -> n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_SESSION_ID))
+                    .collect(Collectors.toList()), false);
+
+            String appFilter = filterToSQL(filter.stream()
+                    .filter(n -> n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_APPLICATION))
+                    .collect(Collectors.toList()), true);
+
+            String userFilter = filterToSQL(filter.stream()
+                    .filter(n -> n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_LOGIN_ID))
+                    .collect(Collectors.toList()), false);
+
+            String mainFilter = filterToSQL(filter.stream()
+                    .filter(n -> n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_IP_ADDRESS) ||
+                            n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_USER_AGENT) ||
+                            n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_LOGIN_TIME) ||
+                            n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_LAST_ACCESS_TIME) ||
+                            n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_TIME_CREATED_SINCE) ||
+                            n.getAttributeValue().equalsIgnoreCase(SessionMgtConstants.FLD_TIME_CREATED_UNTIL))
+                    .collect(Collectors.toList()), false);
+
+            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+                sqlQuery = MessageFormat.format(SessionMgtDBQueries.LOAD_SESSIONS_MYSQL, sessionFilter, appFilter,
+                        userFilter, mainFilter, sqlOrder, limit);
+            } else if (databaseProductName.contains("Oracle")) {
+                sqlQuery = MessageFormat.format(SessionMgtDBQueries.LOAD_SESSIONS_ORACLE, sessionFilter, appFilter,
+                        userFilter, mainFilter, sqlOrder, limit);
+            } else if (databaseProductName.contains("Microsoft")) {
+                sqlQuery = MessageFormat.format(SessionMgtDBQueries.LOAD_SESSIONS_MSSQL, sessionFilter, appFilter,
+                        userFilter, mainFilter, sqlOrder, limit);
+            } else if (databaseProductName.contains("PostgreSQL")) {
+                sqlQuery = MessageFormat.format(SessionMgtDBQueries.LOAD_SESSIONS_POSTGRESQL, sessionFilter, appFilter,
+                        userFilter, mainFilter, sqlOrder, limit);
+            } else if (databaseProductName.contains("DB2")) {
+                sqlQuery = MessageFormat.format(SessionMgtDBQueries.LOAD_SESSIONS_DB2, sessionFilter, appFilter,
+                        userFilter, mainFilter, sqlOrder, limit);
+            } else {
+                throw new UserSessionException("Error while loading sessions from DB: Database driver could not be " +
+                        "identified or not supported.");
+            }
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+                preparedStatement.setLong(1, System.currentTimeMillis() * 1000000);
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        results.add(parseSessionSearchResult(resultSet));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving sessions from the database.", e);
+        }
+        return results;
+    }
+
+    /**
+     * Transform a list of filter expressions into a SQL where clause.
+     *
+     * @param expressionNodes list of filter expressions
+     * @return SQL where clause
+     * @throws UserSessionException if an error occurs while parsing the filter criteria
+     */
+    public String filterToSQL(List<ExpressionNode> expressionNodes, boolean includeWhere) throws UserSessionException {
+
+        StringJoiner joiner = new StringJoiner(SessionMgtConstants.AND);
+        String sqlFilter = "";
+
+        for (ExpressionNode expressionNode : expressionNodes) {
+            String operation = expressionNode.getOperation();
+            String value = expressionNode.getValue();
+            String attribute = expressionNode.getAttributeValue();
+            StringBuilder filter = new StringBuilder();
+            boolean isString = true;
+
+            if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_APPLICATION)) {
+                attribute = SessionMgtConstants.COL_APPLICATION;
+                value = value.toLowerCase();
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_IP_ADDRESS)) {
+                attribute = SessionMgtConstants.COL_IP_ADDRESS;
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_LAST_ACCESS_TIME)) {
+                attribute = SessionMgtConstants.COL_LAST_ACCESS_TIME;
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_LOGIN_ID)) {
+                attribute = SessionMgtConstants.COL_LOGIN_ID;
+                value = value.toLowerCase();
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_LOGIN_TIME)) {
+                attribute = SessionMgtConstants.COL_LOGIN_TIME;
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_SESSION_ID)) {
+                attribute = SessionMgtConstants.COL_SESSION_ID;
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_USER_AGENT)) {
+                attribute = SessionMgtConstants.COL_USER_AGENT;
+                value = value.toLowerCase();
+            } else if (attribute.equalsIgnoreCase(SessionMgtConstants.FLD_TIME_CREATED_SINCE) ||
+                    attribute.equalsIgnoreCase(SessionMgtConstants.FLD_TIME_CREATED_UNTIL)) {
+                attribute = SessionMgtConstants.COL_TIME_CREATED;
+                isString = false;
+            } else {
+                String message = "Invalid filter attribute name. Filter attribute : " + attribute;
+                throw new UserSessionException(message);
+            }
+
+            if (operation.equalsIgnoreCase(SessionMgtConstants.EQ)) {
+                filter.append(attribute).append(" = ").append(isString ? "'" : "").append(value)
+                        .append(isString ? "'" : "");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.SW)) {
+                filter.append(attribute).append(" LIKE '").append(value.replace("_", "\\_"))
+                        .append(value.replace("%", "\\%")).append("%' ESCAPE '\\'");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.EW)) {
+                filter.append(attribute).append(" LIKE '%").append(value.replace("_", "\\_"))
+                        .append(value.replace("%", "\\%")).append("' ESCAPE '\\'");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.CO)) {
+                filter.append(attribute).append(" LIKE '%").append(value.replace("_", "\\_"))
+                        .append(value.replace("%", "\\%")).append("%' ESCAPE '\\'");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.LE)) {
+                filter.append(attribute).append(" <= ").append(isString ? "'" : "").append(value)
+                        .append(isString ? "'" : "");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.LT)) {
+                filter.append(attribute).append(" < ").append(isString ? "'" : "").append(value)
+                        .append(isString ? "'" : "");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.GE)) {
+                filter.append(attribute).append(" >= ").append(isString ? "'" : "").append(value)
+                        .append(isString ? "'" : "");
+            } else if (operation.equalsIgnoreCase(SessionMgtConstants.GT)) {
+                filter.append(attribute).append(" > ").append(isString ? "'" : "").append(value)
+                        .append(isString ? "'" : "");
+            } else {
+                String message = "Invalid filter value. filter: " + operation;
+                throw new UserSessionException(message);
+            }
+            joiner.add(filter.toString());
+        }
+        if (joiner.length() > 0) {
+            sqlFilter = includeWhere
+                    ? MessageFormat.format(SessionMgtConstants.WHERE, joiner.toString())
+                    : SessionMgtConstants.AND + joiner;
+        }
+        return sqlFilter;
+    }
+
+    /**
+     * Transform a result set record into a search result object.
+     *
+     * @param record result set object
+     * @return a SessionSearchResult object
+     * @throws SQLException if an error occurs while parsing the result set
+     */
+    private UserSession parseSessionSearchResult(ResultSet record) throws SQLException {
+
+        UserSession result = new UserSession();
+        List<Application> apps = Arrays.stream(record.getString(8).split(Pattern.quote("|")))
+                .map(this::parseApplication)
+                .collect(Collectors.toList());
+
+        result.setSessionId(record.getString(1));
+        result.setCreationTime(record.getLong(2));
+        result.setUserId(record.getString(3));
+        result.setIp(record.getString(4));
+        result.setLoginTime(record.getString(5));
+        result.setLastAccessTime(record.getString(6));
+        result.setUserAgent(record.getString(7));
+        result.setApplications(apps);
+
+        return result;
+    }
+
+    /**
+     * Parses application data into an application object.
+     *
+     * @param appInfo application data string
+     * @return an Application object
+     */
+    private Application parseApplication(String appInfo) {
+
+        String[] data = appInfo.split(":");
+        return new Application(data[2], data[1], data[0], data[3]);
     }
 }
