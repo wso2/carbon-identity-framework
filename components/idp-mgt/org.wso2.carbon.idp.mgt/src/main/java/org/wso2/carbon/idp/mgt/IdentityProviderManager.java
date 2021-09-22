@@ -2372,7 +2372,7 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
-        return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        return dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
     }
 
     private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
