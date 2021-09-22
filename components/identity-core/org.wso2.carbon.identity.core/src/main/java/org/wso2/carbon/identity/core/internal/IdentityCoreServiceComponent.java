@@ -168,14 +168,15 @@ public class IdentityCoreServiceComponent {
                 }
             }
 
+            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
+                    defaultKeyProviderService, null);
+
             // Register initialize service To guarantee the activation order. Component which is referring this
             // service will wait until this component activated.
             ctxt.getBundleContext().registerService(IdentityCoreInitializedEvent.class.getName(),
                     new IdentityCoreInitializedEventImpl(), null);
-
-
-            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
-                    defaultKeyProviderService, null);
+            // Note : DO NOT add any activation related code below this point (after core initialized event registration),
+            // to make sure the server doesn't start up if any activation failures
         } catch (MigrationClientException e) {
             // Throwing migration client exception to wait till migration client implementation bundle starts if
             // -Dmigrate option is used.

@@ -265,6 +265,9 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
+                        <ListenerManager-RequiredServices>
+                            org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService
+                        </ListenerManager-RequiredServices>
                     </instructions>
                 </configuration>
             </plugin>
