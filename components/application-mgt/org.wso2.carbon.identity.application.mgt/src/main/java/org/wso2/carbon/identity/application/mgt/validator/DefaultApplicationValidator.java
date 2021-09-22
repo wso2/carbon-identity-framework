@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
@@ -61,7 +62,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,7 +93,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
     public static final String IS_HANDLER = "IS_HANDLER";
-    private static final String CONF_ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
     private static final int MODE_ESCAPE = 2;
@@ -503,30 +502,16 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             return;
         }
 
-        if (!isLoopsInAdaptiveAuthScriptAllowed()) {
+        if (!IdentityApplicationManagementUtil.isLoopsInAdaptiveAuthScriptAllowed()) {
             if (log.isDebugEnabled()) {
                 log.debug("Loops are not allowed in the authentication script. " +
                         "Therefore checking whether loops are present in the provided script.");
             }
-            script = getCleanedScript(script);
-            Matcher matcher = loopPattern.matcher(script);
-            if (matcher.find()) {
+            if (IdentityApplicationManagementUtil.isLoopsPresentInAdaptiveAuthScript(script)) {
                 validationErrors.add("Loops are not allowed in the adaptive authentication script, " +
                         "but loops are available in the provided script.");
             }
         }
-    }
-
-    private boolean isLoopsInAdaptiveAuthScriptAllowed() {
-
-        String confAllowLoops = IdentityUtil.getProperty(CONF_ADAPTIVE_AUTH_ALLOW_LOOPS);
-
-        // By default allow loops.
-        if (StringUtils.isBlank(confAllowLoops)) {
-            return true;
-        }
-
-        return Boolean.parseBoolean(confAllowLoops);
     }
 
     private String getAdaptiveAuthScript(AuthenticationScriptConfig scriptConfig) {
@@ -542,46 +527,5 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
-    }
-
-    private String getCleanedScript(String script) {
-
-        StringBuilder cleanedScript = new StringBuilder();
-        int mode = MODE_DEFAULT;
-        for (int i = 0; i < script.length(); i++) {
-            String subString = script.substring(i, Math.min(i + 2, script.length()));
-            char c = script.charAt(i);
-            switch (mode) {
-                case MODE_DEFAULT: // Checks if start of a comment if not checks if start of a string.
-                    mode = subString.equals("/*") ? MODE_MULTI_LINE
-                            : (subString.equals("//") ? MODE_SINGLE_LINE
-                            : (((c == '"') || (c == '\'')) ? MODE_STRING : MODE_DEFAULT));
-                    break;
-                case MODE_STRING: // Checks if end of a string if not checks if a char is a escape character.
-                    mode = ((c == '"') || (c == '\'')) ? MODE_DEFAULT : ((c == '\\') ? MODE_ESCAPE : MODE_STRING);
-                    if (mode == MODE_DEFAULT) {
-                        continue;
-                    }
-                    break;
-                case MODE_ESCAPE: // Marks end of escape character.
-                    mode = MODE_STRING;
-                    break;
-                case MODE_SINGLE_LINE: // Checks to see if new line which marks end of a single line comment.
-                    mode = (c == '\n') ? MODE_DEFAULT : MODE_SINGLE_LINE;
-                    continue;
-                case MODE_MULTI_LINE: // Checks to see if end of a new line comment.
-                    mode = subString.equals("*/") ? MODE_DEFAULT : MODE_MULTI_LINE;
-                    if (mode == MODE_DEFAULT) {
-                        i += 1;
-                    }
-                    continue;
-            }
-            // If char is not part of a comment or part
-            // of a string then append to cleaned script.
-            if (mode < 2) {
-                cleanedScript.append(c);
-            }
-        }
-        return cleanedScript.toString();
     }
 }
