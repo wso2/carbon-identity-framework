@@ -351,15 +351,13 @@ public class DefaultSequenceHandlerUtils {
 
         String spStandardDialect = DefaultSequenceHandlerUtils.getSPStandardDialect(context);
         if (spStandardDialect != null && DefaultSequenceHandlerUtils.isLocalClaimDialect(context)) {
-            spRoleUri = DefaultSequenceHandlerUtils.getStandardRoleClaimURI(spStandardDialect,
-                    context.getTenantDomain());
-
+            spRoleUri =
+                    DefaultSequenceHandlerUtils.getStandardRoleClaimURI(spStandardDialect, context.getTenantDomain());
         } else if (spStandardDialect != null && !DefaultSequenceHandlerUtils.isLocalClaimDialect(context)) {
             String localClaim =
                     DefaultSequenceHandlerUtils.getSPMappedLocalRoleClaimURI(sequenceConfig.getApplicationConfig());
             spRoleUri = DefaultSequenceHandlerUtils.getStandardClaimURIFromLocal(spStandardDialect,
                     context.getTenantDomain(), localClaim);
-
         }
         return spRoleUri;
     }
