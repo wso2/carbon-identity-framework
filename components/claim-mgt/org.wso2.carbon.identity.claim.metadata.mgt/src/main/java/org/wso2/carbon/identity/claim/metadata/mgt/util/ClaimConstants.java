@@ -74,6 +74,8 @@ public class ClaimConstants {
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
         ERROR_CODE_INVALID_TENANT_DOMAIN("CMT-60001", "Invalid tenant domain: %s"),
         ERROR_CODE_EXISTING_CLAIM_DIALECT("CMT-60002", "Claim dialect: %s already exists"),
+        ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED("CMT-60003", "Claim property: %s has " +
+                "exceeded maximum character limit of: %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
