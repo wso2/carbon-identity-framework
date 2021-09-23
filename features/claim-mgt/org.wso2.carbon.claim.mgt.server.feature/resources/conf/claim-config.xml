@@ -1535,10 +1535,10 @@
 		</Dialect>
 		<Dialect dialectURI="http://wso2.org/oidc/claim">
 			<Claim>
-				<ClaimURI>sub</ClaimURI>
-				<DisplayName>Subject</DisplayName>
+				<ClaimURI>username</ClaimURI>
+				<DisplayName>Username</DisplayName>
 				<AttributeID>uid</AttributeID>
-				<Description>Identifier for the End-User at the Issuer</Description>
+				<Description>Username of the End-User</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
