@@ -66,6 +66,9 @@ public class SessionMgtConstants {
     public static final String GE = "ge";
     public static final String GT = "gt";
 
+    // session termination constant
+    public static final int DEFAULT_SESSION_TERMINATION_POOL_SIZE = 10;
+
     /**
      * Session management error messages.
      */
@@ -94,7 +97,13 @@ public class SessionMgtConstants {
                 "Session ID is not provided to perform session tasks."),
         ERROR_CODE_INVALID_DATA("USM-10011",
                 "Invalid data",
-                "Data validation has failed, %s.");
+                "Data validation has failed, %s."),
+        ERROR_CODE_INVALID_FILTER("USM-10012",
+                "Invalid Filter",
+                "Filter is empty."),
+        ERROR_CODE_NO_SESSIONS("USM-10013",
+                "Unable to locate sessions",
+                "No sessions available.");
 
         private final String code;
         private final String message;

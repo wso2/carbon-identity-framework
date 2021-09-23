@@ -149,4 +149,10 @@ public interface UserSessionManagementService {
 
         return Collections.emptyList();
     }
+
+    default boolean terminateFilteredSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+                                              String sortOrder) throws SessionManagementException {
+
+        return false;
+    }
 }
