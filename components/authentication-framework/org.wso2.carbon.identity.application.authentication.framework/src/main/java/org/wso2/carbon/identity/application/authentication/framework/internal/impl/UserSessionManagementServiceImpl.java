@@ -322,7 +322,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     /**
      * Submits a thread containing sessions, to be terminated, for execution.
      *
-     * @param sessionTerminationThread
+     * @param sessionTerminationThread  thread which carries out session termination
      */
     private void executeFilteredSessionTermination(SessionTerminationThread sessionTerminationThread) {
         String executorPoolSizeS = IdentityUtil.getProperty("SessionTermination.ExecutorPoolSize");

@@ -150,6 +150,17 @@ public interface UserSessionManagementService {
         return Collections.emptyList();
     }
 
+    /**
+     * Terminate active sessions that fulfill the criteria determined by the filter parameter value.
+     * This method depends on the getSessions methods based on filters.
+     *
+     * @param tenantDomain context tenant domain
+     * @param filter       criteria to search for sessions
+     * @param limit        maximum number of sessions to be returned in the result set
+     * @param sortOrder    sort direction for results (ASC, DESC)
+     * @return whether the session termination is a success or not. In default method, false is returned.
+     * @throws SessionManagementException if the session retrieval fails or if the retrieved session list is empty.
+     */
     default boolean terminateFilteredSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
                                               String sortOrder) throws SessionManagementException {
 
