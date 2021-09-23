@@ -33,12 +33,14 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.session.SessionTerminationThread;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -48,6 +50,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
@@ -56,6 +61,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_AUTHORIZE_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSIONS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_NO_SESSIONS;
 
 /**
  * This a service class used to manage user sessions.
@@ -287,6 +293,50 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (UserSessionException e) {
             throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, e.getMessage(), e);
         }
+    }
+
+    @Override
+    public boolean terminateFilteredSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+                                             String sortOrder) throws SessionManagementException {
+        List<UserSession> sessionResults = this.getSessions(tenantDomain, filter, limit, sortOrder);
+        List<String> sessionIdList = new ArrayList<>();
+        for (UserSession sessionResult : sessionResults) {
+            sessionIdList.add(sessionResult.getSessionId());
+        }
+
+        if (sessionIdList.isEmpty()) {
+            throw handleSessionManagementClientException(ERROR_CODE_NO_SESSIONS, null);
+        }
+
+        String jobId = UUIDGenerator.generateUUID();
+        Callable<Boolean> sessionTerminationThread = new SessionTerminationThread(
+                sessionManagementService, tenantDomain, jobId, sessionIdList);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminating all the active sessions selected based on the filter: '" + filter +
+                    "' for tenant domain: " + tenantDomain + ". JobId: " + jobId);
+        }
+        this.executeFilteredSessionTermination((SessionTerminationThread) sessionTerminationThread);
+        return true;
+    }
+
+    /**
+     * Submits a thread containing sessions, to be terminated, for execution.
+     *
+     * @param sessionTerminationThread  thread which carries out session termination
+     */
+    private void executeFilteredSessionTermination(SessionTerminationThread sessionTerminationThread) {
+        String executorPoolSizeS = IdentityUtil.getProperty("SessionTermination.ExecutorPoolSize");
+        int executorPoolSize = (
+                executorPoolSizeS != null ?
+                        Integer.parseInt(executorPoolSizeS) : SessionMgtConstants.DEFAULT_SESSION_TERMINATION_POOL_SIZE
+        );
+        ExecutorService executorService = Executors.newFixedThreadPool(executorPoolSize);
+        if (log.isDebugEnabled()) {
+            log.debug("Filtered list of sessions submitted for termination. JobId: "
+                    + sessionTerminationThread.getJobId() + " | Sessions List: "
+                    + sessionTerminationThread.getSessionIdList());
+        }
+        executorService.submit(sessionTerminationThread);
     }
 
     @Override
