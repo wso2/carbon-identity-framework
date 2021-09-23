@@ -111,7 +111,6 @@ public class AuthenticatedUser extends User {
             }
         }
 
-        this.authenticatedSubjectIdentifier = this.toFullQualifiedUsername();
     }
 
     public AuthenticatedUser(User user) {

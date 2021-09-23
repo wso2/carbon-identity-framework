@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -67,6 +69,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
     private boolean useUserstoreDomainInRole = false;
+    private boolean useUserIdForDefaultSubject = false;
 
     private static final Log log = LogFactory.getLog(ApplicationConfig.class);
 
@@ -150,6 +153,16 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 for (RoleMapping roleMapping : tempRoleMappings) {
                     this.roleMappings.put(roleMapping.getLocalRole().getLocalRoleName(),
                                           roleMapping.getRemoteRole());
+                }
+            }
+        }
+
+        ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
+        if (spProperties != null) {
+            for (ServiceProviderProperty prop: spProperties) {
+                if (IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(prop.getName())) {
+                    useUserIdForDefaultSubject = Boolean.parseBoolean(prop.getValue());
+                    break;
                 }
             }
         }
@@ -352,5 +365,9 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 }
             });
         }
+    }
+
+    public boolean isUseUserIdForDefaultSubject() {
+        return useUserIdForDefaultSubject;
     }
 }
