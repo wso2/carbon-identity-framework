@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -41,9 +42,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI;
@@ -70,6 +73,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
+    private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
 
 
     @Override
@@ -191,6 +195,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
                             .getClaimDialectURI(), localClaim.getClaimURI()));
         }
+        validateClaimProperties(localClaim.getClaimProperties());
 
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -217,6 +222,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
                             .getClaimDialectURI(), localClaim.getClaimURI()));
         }
+        validateClaimProperties(localClaim.getClaimProperties());
 
         // TODO : validate claim URI already exists?
 
@@ -458,6 +464,27 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             if (!isExistingLocalClaimURI(localClaim.getClaimURI(), IdentityTenantUtil.getTenantId(tenantDomain))) {
                 throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getCode(),
                         String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
+            }
+        }
+    }
+
+    /**
+     * Check whether the properties are valid.
+     *
+     * @param claimProperties List of claim properties.
+     * @throws ClaimMetadataClientException If any property is not valid.
+     */
+    private void validateClaimProperties(Map<String, String> claimProperties) throws ClaimMetadataClientException {
+
+        if (MapUtils.isEmpty(claimProperties)) {
+            return;
+        }
+        for (Map.Entry<String, String> property : claimProperties.entrySet()) {
+            String value = property.getValue();
+            if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
+                        String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(), property.getKey(),
+                                MAX_CLAIM_PROPERTY_LENGTH));
             }
         }
     }
