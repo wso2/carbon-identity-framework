@@ -875,6 +875,7 @@ public class DefaultStepHandler implements StepHandler {
         // alter the final URL if recaptcha is not enabled. This filters out the recaptcha params from the redirect
         // URL previously set by an authenticator and generates a query string to be appended to the new redirect URL.
         StringBuilder reCaptchaParamString = new StringBuilder("");
+        StringBuilder errorParamString = new StringBuilder("");
         String basicAuthRedirectUrl = ((CommonAuthResponseWrapper) response).getRedirectURL();
         if (StringUtils.isNotBlank(basicAuthRedirectUrl)) {
             List<NameValuePair> queryParameters = new URIBuilder(basicAuthRedirectUrl).getQueryParams();
@@ -888,6 +889,21 @@ public class DefaultStepHandler implements StepHandler {
             for (NameValuePair reCaptchaParam : reCaptchaParameters) {
                 reCaptchaParamString.append("&").append(reCaptchaParam.getName()).append("=")
                         .append(reCaptchaParam.getValue());
+            }
+
+            if (errorContext == null) {
+                List<NameValuePair> errorContextParams = queryParameters.stream()
+                        .filter(param -> FrameworkConstants.ERROR_CODE.equals(param.getName()) ||
+                                FrameworkConstants.LOCK_REASON.equals(param.getName()) ||
+                                FrameworkConstants.REMAINING_ATTEMPTS.equals(param.getName()) ||
+                                FrameworkConstants.FAILED_USERNAME.equals(param.getName()))
+                        .collect(Collectors.toList());
+                if (errorContextParams.size() > 0) {
+                    for (NameValuePair errorParams : errorContextParams) {
+                        errorParamString.append("&").append(errorParams.getName()).append("=")
+                                .append(errorParams.getValue());
+                    }
+                }
             }
         }
 
@@ -989,7 +1005,7 @@ public class DefaultStepHandler implements StepHandler {
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
-                        reCaptchaParamString.toString();
+                        reCaptchaParamString.toString() + errorParamString;
             }
         } else {
             String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
