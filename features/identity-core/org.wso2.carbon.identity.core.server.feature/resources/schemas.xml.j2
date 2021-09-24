@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+~ Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
+~
+~ WSO2 Inc. licenses this file to you under the Apache License,
+~ Version 2.0 (the "License"); you may not use this file except
+~ in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing,
+~ software distributed under the License is distributed on an
+~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+~ KIND, either express or implied.  See the License for the
+~ specific language governing permissions and limitations
+~ under the License.
+ -->
+
+<SchemaManager xmlns="http://wso2.org/projects/carbon/carbon.xml" xmlns:svns="http://org.wso2.securevault/configuration">
+    <DefaultSchema>
+        <Schemas>
+        {% if schemas.default_schema is defined %}
+            {% for schema in schemas.default_schema %}
+            <Schema id="{{schema.id}}">
+                {% for attribute in schema.attributes %}
+                <Attribute>{{attribute}}</Attribute>
+                {% endfor %}
+            </Schema>
+            {% endfor %}
+        {% endif %}
+            <Schema id="urn:ietf:params:scim:schemas:core:2.0">
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:id</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.created</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.lastModified</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.location</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.version</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:externalId</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager</Attribute>
+            </Schema>
+            <Schema id="urn:ietf:params:scim:schemas:core:2.0:User">
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:userName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.formatted</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.familyName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.givenName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.middleName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.honorificPrefix</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:name.honorificSuffix</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:displayName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:profileUrl</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:emails</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:emails.home</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:emails.work</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:emails.other</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:addresses</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:addresses.home</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:addresses.work</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:addresses.other</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.home</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.work</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.mobile</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.other</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.aim</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.gtalk</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.icq</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.xmpp</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.msn</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.skype</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.qq</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.yahoo</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.other</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:photos</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:photos.photo</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:photos.thumbnail</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:userType</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:title</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:preferredLanguage</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:locale</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:timezone</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:active</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:groups</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:roles.default</Attribute>
+            </Schema>
+            <Schema id="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:costCenter</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:division</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:department</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.value</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.$ref</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.displayName</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountDisabled</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountLocked</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountState</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:country</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:dateOfBirth</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:emailOTPDisabled</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedEmailOTPAttempts</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttempts</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttemptsBeforeSuccess</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginLockoutCount</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedPasswordRecoveryAttempts</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedSMSOTPAttempts</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedTOTPAttempts</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:forcePasswordReset</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isLiteUser</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastLogonTime</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastPasswordUpdateTime</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lockedReason</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:oneTimePassword</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingMobileNumber</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:phoneVerified</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredChannel</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:smsOTPDisabled</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:tenantAdminAskPassword</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value</Attribute>
+            </Schema>
+        </Schemas>
+    </DefaultSchema>
+
+    {% if schemas.add_to_default_schema is defined %}
+    <AddSchema>
+        <Schemas>
+            {% for schema in schemas.add_to_default_schema %}
+            <Schema id="{{schema.id}}">
+                {% for attribute in schema.attributes %}
+                <Attribute>{{attribute}}</Attribute>
+                {% endfor %}
+            </Schema>
+            {% endfor %}
+        </Schemas>
+    </AddSchema>
+    {% endif %}
+
+    {% if schemas.remove_from_default_schema is defined %}
+    <RemoveSchema>
+        <Schemas>
+            {% for schema in schemas.remove_from_default_schema %}
+            <Schema id="{{schema.id}}">
+                {% for attribute in schema.attributes %}
+                <Attribute>{{attribute}}</Attribute>
+                {% endfor %}
+            </Schema>
+            {% endfor %}
+        </Schemas>
+    </RemoveSchema>
+    {% endif %}
+</SchemaManager>
