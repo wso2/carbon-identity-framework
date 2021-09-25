@@ -49,7 +49,7 @@
 <script src="codemirror/addon/dialog/dialog.js"></script>
 <script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
-<script src="js/handlebars.min-v4.0.11.js"></script>
+<script src="js/handlebars.min-v4.7.7.js"></script>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>

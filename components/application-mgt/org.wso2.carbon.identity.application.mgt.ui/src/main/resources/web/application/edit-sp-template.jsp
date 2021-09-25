@@ -49,7 +49,7 @@
 <script src="codemirror/addon/dialog/dialog.js"></script>
 <script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
-<script src="js/handlebars.min-v4.0.11.js"></script>
+<script src="js/handlebars.min-v4.7.7.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.owasp.encoder.Encode" %>
