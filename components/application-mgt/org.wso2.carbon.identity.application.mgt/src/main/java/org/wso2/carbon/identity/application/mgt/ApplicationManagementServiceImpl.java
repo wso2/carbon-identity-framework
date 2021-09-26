@@ -2578,10 +2578,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 getApplicationName(application), TARGET_APPLICATION, null);
     }
 
-    private void handleApplicationRoleDeletion() {
-
-    }
-
     private void doPreDeleteChecks(String applicationName, String tenantDomain,
                                    String username) throws IdentityApplicationManagementException {
 
