@@ -2557,6 +2557,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
                 return;
             }
+        } catch (Exception e) {
+            log.error(String.format("Application: %s in tenant: %s might have partially deleted",
+                    resourceId, tenantDomain));
+            throw e;
         } finally {
             endTenantFlow();
         }
@@ -2572,6 +2576,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(), getAppId(application),
                 getApplicationName(application), TARGET_APPLICATION, null);
+    }
+
+    private void handleApplicationRoleDeletion() {
+
     }
 
     private void doPreDeleteChecks(String applicationName, String tenantDomain,
