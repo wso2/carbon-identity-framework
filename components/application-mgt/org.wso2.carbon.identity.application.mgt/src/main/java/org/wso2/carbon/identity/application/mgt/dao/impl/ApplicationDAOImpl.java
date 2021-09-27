@@ -249,7 +249,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
     private static final String AUDIT_FAIL = "Fail";
-    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
@@ -3526,9 +3526,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
              */
             log.error(String.format("Error occurred while trying to deleting service provider: %s in tenant: %s. " +
                     "Retrying again", appName, tenantId), e);
+            boolean isOperationFailed = true;
             for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
                 try {
+                    Thread.sleep(1000);
                     deleteServiceProvider(connection, appName, tenantId);
+                    isOperationFailed = false;
                     log.info(String.format("Service provider: %s in tenant: %s deleted in the retry attempt: %s",
                             appName, tenantId, attempt));
                     break;
@@ -3537,8 +3540,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             attempt, attempt, tenantId), exception);
                 }
             }
-            throw new IdentityApplicationManagementException(String.format("Error while deleting service " +
-                    "provider: %s in tenant: %s", appName, tenantId), e);
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("Error while deleting service " +
+                        "provider: %s in tenant: %s", appName, tenantId), e);
+            }
         }
     }
 
@@ -3761,9 +3766,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
              */
             log.error(String.format("Error occurred during the initial attempt to delete client with identifier: " +
                     "%s with auth type: %s", clientIdentifier, inboundAuthType), e);
+            boolean isOperationFailed = true;
             for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
                 try {
+                    Thread.sleep(1000);
                     deleteClient(clientIdentifier, inboundAuthType);
+                    isOperationFailed = false;
                     log.info(String.format("Successfully deleted application with identifier: %s with auth type: %s " +
                             "during the delete attempt: %s", clientIdentifier, inboundAuthType, attempt));
                     break;
@@ -3772,8 +3780,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             "with auth type: %s", attempt, clientIdentifier, inboundAuthType), exception);
                 }
             }
-            throw new IdentityApplicationManagementException(String.format("application with identifier: %s " +
-                    "with auth type: %s" + clientIdentifier, inboundAuthType), e);
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("application with identifier: %s " +
+                        "with auth type: %s" + clientIdentifier, inboundAuthType), e);
+            }
         }
     }
 

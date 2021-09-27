@@ -87,7 +87,7 @@ public class ApplicationMgtUtil {
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
     public static final String MASKING_CHARACTER = "*";
     public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
-    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -317,9 +317,12 @@ public class ApplicationMgtUtil {
              */
             log.error(String.format("Initial attempt to delete the role: %s failed for application: %s. " +
                     "Retrying again", roleName, applicationName), e);
+            boolean isOperationFailed = true;
             for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
                 try {
+                    Thread.sleep(1000);
                     userStoreManager.deleteRole(roleName);
+                    isOperationFailed = false;
                     log.info(String.format("Role: %s deleted for application: %s in the retry attempt: %s", roleName,
                             applicationName, attempt));
                     break;
@@ -328,8 +331,10 @@ public class ApplicationMgtUtil {
                             attempt, roleName, applicationName), exception);
                 }
             }
-            throw new IdentityApplicationManagementException(String.format("Error occurred while trying to " +
-                    "delete the application role: %s for application: %s", roleName, applicationName), e);
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("Error occurred while trying to " +
+                        "delete the application role: %s for application: %s", roleName, applicationName), e);
+            }
         }
     }
 
@@ -639,13 +644,16 @@ public class ApplicationMgtUtil {
              */
             log.error(String.format("Error occurred while trying to delete permissions for application: %s. Retrying " +
                     "again", applicationName), e);
+            boolean isOperationFailed = true;
             for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
                 try {
+                    Thread.sleep(1000);
                     boolean exist = tenantGovReg.resourceExists(applicationNode);
                     if (!exist) {
                         return;
                     }
                     tenantGovReg.delete(applicationNode);
+                    isOperationFailed = false;
                     log.info(String.format("Permissions deleted application: %s in the retry attempt: %s",
                             applicationName, attempt));
                     break;
@@ -654,8 +662,10 @@ public class ApplicationMgtUtil {
                             attempt, applicationName), exception);
                 }
             }
-            throw new IdentityApplicationManagementException("Error while deleting permissions for application: " +
-                    applicationName, e);
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException("Error while deleting permissions for application: " +
+                        applicationName, e);
+            }
         }
     }
 
