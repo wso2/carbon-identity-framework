@@ -217,5 +217,9 @@
   "identity_mgt.events.schemes.CentralLogger.subscriptions": [
     "PUBLISH_AUDIT_LOG",
     "PUBLISH_DIAGNOSTIC_LOG"
+  ],
+  "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.module_index": "34",
+  "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.subscriptions": [
+    "POST_DELETE_EXTERNAL_CLAIM"
   ]
 }
