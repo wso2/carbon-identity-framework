@@ -221,5 +221,9 @@
   "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.module_index": "34",
   "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.subscriptions": [
     "POST_DELETE_EXTERNAL_CLAIM"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.module_index": "35",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
+    "PRE_AUTHENTICATION"
   ]
 }

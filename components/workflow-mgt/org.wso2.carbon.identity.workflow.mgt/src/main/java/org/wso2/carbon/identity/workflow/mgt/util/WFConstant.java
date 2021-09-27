@@ -33,6 +33,8 @@ public class WFConstant {
     public static final String KEYSTORE_CARBON_CONFIG_PATH = "Security.KeyStore.Location";
     public static final String KEYSTORE_PASSWORD_CARBON_CONFIG_PATH = "Security.KeyStore.Password";
 
+    public static final String WORKFLOW_ENTITY_TYPE = "USER";
+    public static final String WORKFLOW_REQUEST_TYPE = "ADD_USER";
 
     public static final Set<Class> NUMERIC_CLASSES;
 
