@@ -184,5 +184,9 @@
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthentication.module_index": "31",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthentication.subscriptions": [
+    "PRE_AUTHENTICATION"
   ]
 }
