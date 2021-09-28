@@ -31,6 +31,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.MDC;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
@@ -114,6 +116,8 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.openidconnect.OpenIDConnectClaimFilter;
+import org.wso2.carbon.identity.openidconnect.OpenIDConnectClaimFilterImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -3133,5 +3137,36 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.
                     getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Return a filtered list of requested scope claims.
+     *
+     * @param scopes Requested scopes.
+     * @param tenantDomain tenant domain.
+     * @param claimMappings SpClaimMappings.
+     * @throws ClaimManagementException
+     */
+    public static List<ClaimMapping> getFilteredScopeClaims(Set<String> scopes, String tenantDomain,
+                                                            List<ClaimMapping> claimMappings)
+            throws ClaimManagementException {
+
+        OpenIDConnectClaimFilter filter = new OpenIDConnectClaimFilterImpl();
+        List<String> claimListOfScopes = filter.getClaimsFilteredByOIDCScopes(scopes, tenantDomain);
+        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
+        List<String> claimMappingListOfScopes = new ArrayList<>();
+        for (String claim : claimListOfScopes) {
+            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(
+                    claim);
+            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        }
+
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
+        for (ClaimMapping claim : claimMappings) {
+            if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
+                requestedScopeClaims.add(claim);
+            }
+        }
+        return requestedScopeClaims;
     }
 }

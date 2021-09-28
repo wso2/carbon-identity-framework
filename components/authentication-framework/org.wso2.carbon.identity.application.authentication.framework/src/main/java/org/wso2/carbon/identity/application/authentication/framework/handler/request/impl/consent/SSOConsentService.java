@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for SSOConsentService which handles consent during SSO.
@@ -42,6 +43,24 @@ public interface SSOConsentService {
             throws SSOConsentServiceException;
 
     /**
+     * Get consent required claims for a given service from a user considering existing user consents and requested
+     * scopes.
+     *
+     * @param serviceProvider   Service provider requesting consent.
+     * @param authenticatedUser Authenticated user requesting consent form.
+     * @param scopes            Requested scopes.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws SSOConsentServiceException If error occurs while building claim information.
+     */
+    default ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
+                                                                           AuthenticatedUser authenticatedUser,
+                                                                           Set<String> scopes)
+            throws SSOConsentServiceException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
+
+    /**
      * Get consent required claims for a given service from a user ignoring existing user consents.
      *
      * @param serviceProvider       Service provider requesting consent.
@@ -52,6 +71,24 @@ public interface SSOConsentService {
     ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
                                                                       AuthenticatedUser authenticatedUser)
             throws SSOConsentServiceException;
+
+    /**
+     * Get consent required claims for a given service from a user ignoring existing user consents  and considering
+     * requested scopes.
+     *
+     * @param serviceProvider   Service provider requesting consent.
+     * @param authenticatedUser Authenticated user requesting consent form.
+     * @param scopes            Requested scopes.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws SSOConsentServiceException If error occurs while building claim information.
+     */
+    default ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
+                                                                              AuthenticatedUser authenticatedUser,
+                                                                              Set<String> scopes)
+            throws SSOConsentServiceException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * Process the provided user consent and creates a consent receipt.
@@ -65,8 +102,9 @@ public interface SSOConsentService {
      */
     @Deprecated
     default void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
-                                      AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
+                                AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
             throws SSOConsentServiceException {
+
         processConsent(consentApprovedClaimIds, serviceProvider, authenticatedUser, consentClaimsData, false);
     }
 
