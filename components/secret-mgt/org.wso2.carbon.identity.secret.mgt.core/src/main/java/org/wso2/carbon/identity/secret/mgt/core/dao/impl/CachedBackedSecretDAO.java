@@ -169,7 +169,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
     public void replaceSecretType(SecretType secretType) throws SecretManagementException {
 
         secretDAO.replaceSecretType(secretType);
-
     }
 
     @Override
