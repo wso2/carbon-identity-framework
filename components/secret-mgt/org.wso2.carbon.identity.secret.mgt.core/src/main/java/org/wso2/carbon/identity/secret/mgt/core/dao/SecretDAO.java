@@ -154,7 +154,7 @@ public interface SecretDAO {
      * Delete {@link SecretType} by name.
      *
      * @param secretTypeName Name of the {@link SecretType}.
-     * @throws SecretManagementException secret Management Exception.
+     * @throws SecretManagementException Secret Management Exception.
      */
     void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException;
 }
