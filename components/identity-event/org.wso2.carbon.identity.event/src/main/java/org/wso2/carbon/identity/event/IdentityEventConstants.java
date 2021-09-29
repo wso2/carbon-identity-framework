@@ -80,6 +80,30 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_USER_LIST_OF_ROLE= "POST_UPDATE_USER_LIST_OF_ROLE";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
+
+        public static final String PRE_ADD_ROLE_EVENT = "PRE_ADD_ROLE_EVENT";
+        public static final String POST_ADD_ROLE_EVENT = "POST_ADD_ROLE_EVENT";
+        public static final String PRE_GET_ROLES_EVENT = "PRE_GET_ROLES_EVENT";
+        public static final String POST_GET_ROLES_EVENT = "POST_GET_ROLES_EVENT";
+        public static final String PRE_GET_ROLE_EVENT = "PRE_GET_ROLE_EVENT";
+        public static final String POST_GET_ROLE_EVENT = "POST_GET_ROLE_EVENT";
+        public static final String PRE_UPDATE_ROLE_NAME_EVENT = "PRE_UPDATE_ROLE_NAME_EVENT";
+        public static final String POST_UPDATE_ROLE_NAME_EVENT = "POST_UPDATE_ROLE_NAME_EVENT";
+        public static final String PRE_DELETE_ROLE_EVENT = "PRE_DELETE_ROLE_EVENT";
+        public static final String POST_DELETE_ROLE_EVENT = "POST_DELETE_ROLE_EVENT";
+        public static final String PRE_GET_USER_LIST_OF_ROLE_EVENT = "PRE_GET_USER_LIST_OF_ROLE_EVENT";
+        public static final String POST_GET_USER_LIST_OF_ROLE_EVENT = "POST_GET_USER_LIST_OF_ROLE_EVENT";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_EVENT = "PRE_UPDATE_USER_LIST_OF_ROLE_EVENT";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_EVENT = "POST_UPDATE_USER_LIST_OF_ROLE_EVENT";
+        public static final String PRE_GET_GROUP_LIST_OF_ROLES_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_EVENT";
+        public static final String POST_GET_GROUP_LIST_OF_ROLES_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_EVENT";
+        public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT = "POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_EVENT = "PRE_GET_PERMISSION_LIST_OF_ROLE_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_EVENT";
+        public static final String PRE_SET_PERMISSIONS_FOR_ROLE_EVENT = "PRE_SET_PERMISSIONS_FOR_ROLE_EVENT";
+        public static final String POST_SET_PERMISSIONS_FOR_ROLE_EVENT = "POST_SET_PERMISSIONS_FOR_ROLE_EVENT";
+
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
         public static final String PRE_ADD_NEW_PASSWORD = "PRE_ADD_NEW_PASSWORD";
         public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
@@ -184,6 +208,7 @@ public class IdentityEventConstants {
         public static final String MODULE = "module";
         public static final String USER_NAME = "user-name";
         public static final String ROLE_NAME = "role-name";
+        public static final String ROLE_ID = "role-id";
         public static final String USER_STORE_DOMAIN = "userstore-domain";
         public static final String CONFIRMATION_CODE = "confirmation-code";
         public static final String TEMPORARY_PASSWORD = "temporary-password";
@@ -196,6 +221,11 @@ public class IdentityEventConstants {
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String USER_CLAIMS = "USER_CLAIMS";
         public static final String ROLE_LIST = "ROLE_LIST";
+        public static final String NEW_USER_ID_LIST = "NEW_USER_ID_LIST";
+        public static final String DELETE_USER_ID_LIST = "DELETE_USER_ID_LIST";
+        public static final String GROUP_LIST = "GROUP_LIST";
+        public static final String NEW_GROUP_ID_LIST = "NEW_GROUP_ID_LIST";
+        public static final String DELETE_GROUP_ID_LIST = "DELETE_GROUP_ID_LIST";
         public static final String CREDENTIAL = "CREDENTIAL";
         public static final String CLAIM_URI = "CLAIM_URI";
         public static final String CLAIM_VALUE = "CLAIM_VALUE";
