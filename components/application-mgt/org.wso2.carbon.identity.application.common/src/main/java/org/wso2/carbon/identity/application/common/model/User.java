@@ -113,7 +113,10 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+
+        if (StringUtils.isNotEmpty(userStoreDomain)) {
+            this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+        }
         updateCaseSensitivity();
     }
 
