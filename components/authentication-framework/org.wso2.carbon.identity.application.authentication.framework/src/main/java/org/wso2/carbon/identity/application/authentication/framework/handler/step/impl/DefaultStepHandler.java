@@ -77,7 +77,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESIDENT_IDP;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
@@ -157,21 +156,7 @@ public class DefaultStepHandler implements StepHandler {
         // check passive authentication
         if (context.isPassiveAuthenticate()) {
             if (authenticatedStepIdps.isEmpty()) {
-                AuthenticatorConfig authenticatorConfig = getFlowHandlerConfigInStep(authConfigList);
-                if (authenticatedIdPs.keySet().size() > 0 && authenticatorConfig != null) {
-                    // During Passive authentication, if the authenticatedStepIdps empty and contain a flow handler in
-                    // the step. Then considering as authenticated.
-                    String authenticatedIdP = RESIDENT_IDP;
-                    if (authenticatedIdPs.get(authenticatedIdP) == null) {
-                        authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
-                    }
-                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
-                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatorConfig);
-                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
-                            .SUCCESS_COMPLETED);
-                } else {
-                    context.setRequestAuthenticated(false);
-                }
+                context.setRequestAuthenticated(false);
             } else {
                 String authenticatedIdP = authenticatedStepIdps.entrySet().iterator().next().getKey();
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
@@ -349,15 +334,6 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
         }
-    }
-
-    private AuthenticatorConfig getFlowHandlerConfigInStep(List<AuthenticatorConfig> authConfigList) {
-
-        if (authConfigList.size() > 0) {
-            return authConfigList.stream().filter(config -> (config.getApplicationAuthenticator()
-                    instanceof AuthenticationFlowHandler)).findFirst().orElse(null);
-        }
-        return null;
     }
 
     private void sendToMultiOptionPage(StepConfig stepConfig, HttpServletRequest request, AuthenticationContext context,
