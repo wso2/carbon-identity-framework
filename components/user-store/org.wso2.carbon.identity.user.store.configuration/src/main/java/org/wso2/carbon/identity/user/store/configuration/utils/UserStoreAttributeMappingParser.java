@@ -21,15 +21,12 @@ package org.wso2.carbon.identity.user.store.configuration.utils;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.configuration.model.ChangedUserStoreAttributeDO;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeDO;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -59,106 +56,80 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
  */
 public class UserStoreAttributeMappingParser {
 
-    private static final Map<String, Map<String, ChangedUserStoreAttributeDO>>
-            userStoreAttributeChanges = new HashMap<>();
-    private static final Log LOG = LogFactory.getLog(UserStoreAttributeMappingParser.class);
+    public Map<String, Map<String, ChangedUserStoreAttributeDO>> getUserStoresAttributeMappings()
+            throws IdentityUserStoreServerException {
 
-    private UserStoreAttributeMappingParser() {
-
-        init();
-    }
-
-    private static final class ParserHolder {
-
-        static final UserStoreAttributeMappingParser PARSER = new UserStoreAttributeMappingParser();
-    }
-
-    public static UserStoreAttributeMappingParser getInstance() {
-
-        return ParserHolder.PARSER;
-    }
-
-    private void init() {
-
+        Map<String, Map<String, ChangedUserStoreAttributeDO>> userStoreAttributeChanges = new HashMap<>();
         try {
             for (String fileName : getFileNames()) {
-                readChangeFiles(fileName);
+                readAttributeMappingFile(userStoreAttributeChanges, fileName);
             }
         } catch (IOException e) {
-            LOG.error(String.format("Error occurred while getting file names inside %s",
-                    getUserStoreAttributeMappingDirPath()), e);
+            throw new IdentityUserStoreServerException(
+                    String.format("Error occurred while reading user store attribute mapping file names inside %s.",
+                            getUserStoreAttributeMappingDirPath()), e);
         }
-    }
-
-    private void readChangeFiles(String attrMappingsFileName) {
-
-        File attributeMappingXml = new File(getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
-        if (attributeMappingXml.exists()) {
-            try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
-                if (inStream == null) {
-                    String message = String.format("Attribute mappings configuration file is not found at: %s/%s.",
-                            getUserStoreAttributeMappingDirPath(), attrMappingsFileName);
-                    throw new FileNotFoundException(message);
-                }
-                readConfigMappings(inStream);
-            } catch (FileNotFoundException e) {
-                LOG.error(String.format("Attribute mappings configuration file is not found at: %s/%s.",
-                        getUserStoreAttributeMappingDirPath(), attrMappingsFileName), e);
-            } catch (IOException e) {
-                LOG.error("Error occurred while closing input stream", e);
-            }
-        }
-    }
-
-    private void readConfigMappings(InputStream inStream) {
-
-        try {
-            StAXOMBuilder builder = new StAXOMBuilder(inStream);
-            Iterator iterator = builder.getDocumentElement().getChildElements();
-            String userStoreType = builder.getDocumentElement().getAttributeValue(new QName(USERSTORE_TYPE));
-            Map<String, ChangedUserStoreAttributeDO> attributeChangeDOMap = new HashMap<>();
-            if (iterator != null) {
-                while (iterator.hasNext()) {
-                    OMElement attributeElement = (OMElement) iterator.next();
-                    Iterator attributeIterator = attributeElement.getChildElements();
-                    ChangedUserStoreAttributeDO changedUserStoreAttributeDO = new ChangedUserStoreAttributeDO();
-                    UserStoreAttributeDO userStoreAttributeDO = new UserStoreAttributeDO();
-                    if (attributeIterator == null) {
-                        continue;
-                    }
-                    while (attributeIterator.hasNext()) {
-                        OMElement attributes = (OMElement) attributeIterator.next();
-                        String attributeQName = attributes.getQName().getLocalPart();
-                        if (StringUtils.equalsIgnoreCase(OPERATION, attributeQName)) {
-                            changedUserStoreAttributeDO.setOperation(attributes.getText());
-                        } else if (StringUtils.equalsIgnoreCase(ATTRIBUTE_ID, attributeQName)) {
-                            userStoreAttributeDO.setMappedAttribute(attributes.getText());
-                        } else if (StringUtils.equalsIgnoreCase(CLAIM_URI, attributeQName)) {
-                            userStoreAttributeDO.setClaimUri(attributes.getText());
-                            userStoreAttributeDO.setClaimId(Base64.getUrlEncoder().withoutPadding().
-                                    encodeToString(attributes.getText().getBytes(StandardCharsets.UTF_8)));
-                        } else if (StringUtils.equalsIgnoreCase(DISPLAY_NAME, attributeQName)) {
-                            userStoreAttributeDO.setDisplayName(attributes.getText());
-                        }
-                    }
-                    changedUserStoreAttributeDO.setUsAttributeDO(userStoreAttributeDO);
-                    attributeChangeDOMap.put(userStoreAttributeDO.getClaimId(), changedUserStoreAttributeDO);
-                }
-            }
-            userStoreAttributeChanges.put(userStoreType, attributeChangeDOMap);
-        } catch (XMLStreamException e) {
-            LOG.error("Error occurred while reading the xml file.", e);
-        }
-    }
-
-    /**
-     * Get attributes needs to be changed for available user store types.
-     *
-     * @return Map UserStoreAttributeChanges.
-     */
-    protected Map<String, Map<String, ChangedUserStoreAttributeDO>> getUserStoreAttributeChanges() {
-
         return userStoreAttributeChanges;
+    }
+
+    private void readAttributeMappingFile(
+            Map<String, Map<String, ChangedUserStoreAttributeDO>> userStoreAttributeChanges, String fileName)
+            throws IdentityUserStoreServerException {
+
+        File attributeMappingXml = new File(getUserStoreAttributeMappingDirPath(), fileName);
+        if (!attributeMappingXml.exists()) {
+            throw new IdentityUserStoreServerException(
+                    String.format("%s file cannot be found at %s/%s.", fileName,
+                            getUserStoreAttributeMappingDirPath(), fileName));
+        }
+        try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
+            buildAttributeMappings(inStream, userStoreAttributeChanges);
+        } catch (IOException e) {
+            throw new IdentityUserStoreServerException(
+                    String.format("Error occurred while reading %s.", fileName, e));
+        } catch (XMLStreamException e) {
+            throw new IdentityUserStoreServerException("Error occurred while handling xml files.", e);
+        }
+    }
+
+    private void buildAttributeMappings(InputStream inStream,
+                                        Map<String, Map<String, ChangedUserStoreAttributeDO>> userStoreAttributeChanges)
+            throws XMLStreamException {
+
+        StAXOMBuilder builder = new StAXOMBuilder(inStream);
+        Iterator iterator = builder.getDocumentElement().getChildElements();
+        String userStoreType = builder.getDocumentElement().getAttributeValue(new QName(USERSTORE_TYPE));
+        Map<String, ChangedUserStoreAttributeDO> attributeChangeDOMap = new HashMap<>();
+        if (iterator == null) {
+            return;
+        }
+        while (iterator.hasNext()) {
+            OMElement attributeElement = (OMElement) iterator.next();
+            Iterator attributeIterator = attributeElement.getChildElements();
+            ChangedUserStoreAttributeDO changedUserStoreAttributeDO = new ChangedUserStoreAttributeDO();
+            UserStoreAttributeDO userStoreAttributeDO = new UserStoreAttributeDO();
+            if (attributeIterator == null) {
+                continue;
+            }
+            while (attributeIterator.hasNext()) {
+                OMElement attributes = (OMElement) attributeIterator.next();
+                String attributeQName = attributes.getQName().getLocalPart();
+                if (StringUtils.equalsIgnoreCase(OPERATION, attributeQName)) {
+                    changedUserStoreAttributeDO.setOperation(attributes.getText());
+                } else if (StringUtils.equalsIgnoreCase(ATTRIBUTE_ID, attributeQName)) {
+                    userStoreAttributeDO.setMappedAttribute(attributes.getText());
+                } else if (StringUtils.equalsIgnoreCase(CLAIM_URI, attributeQName)) {
+                    userStoreAttributeDO.setClaimUri(attributes.getText());
+                    userStoreAttributeDO.setClaimId(Base64.getUrlEncoder().withoutPadding().
+                            encodeToString(attributes.getText().getBytes(StandardCharsets.UTF_8)));
+                } else if (StringUtils.equalsIgnoreCase(DISPLAY_NAME, attributeQName)) {
+                    userStoreAttributeDO.setDisplayName(attributes.getText());
+                }
+            }
+            changedUserStoreAttributeDO.setUsAttributeDO(userStoreAttributeDO);
+            attributeChangeDOMap.put(userStoreAttributeDO.getClaimId(), changedUserStoreAttributeDO);
+        }
+        userStoreAttributeChanges.put(userStoreType, attributeChangeDOMap);
     }
 
     private static String getUserStoreAttributeMappingDirPath() {

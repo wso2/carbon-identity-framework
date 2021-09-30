@@ -25,11 +25,15 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
+import org.wso2.carbon.identity.user.store.configuration.model.ChangedUserStoreAttributeDO;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeDO;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.user.store.configuration.utils.DefaultUserStoreAttributeMappingParser;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreAttributeMappingParser;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
@@ -475,9 +479,27 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     }
 
     @Override
-    public UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreServerException {
+    public UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreMgtException {
 
-        return UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
+        UserStoreAttributeMappings userStoreAttributeMappings =
+                UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
+        if (userStoreAttributeMappings == null) {
+            userStoreAttributeMappings = buildAttributeMappings();
+            UserStoreConfigListenersHolder.getInstance().setUserStoreAttributeMappings(userStoreAttributeMappings);
+        }
+        return userStoreAttributeMappings;
+    }
+
+    private UserStoreAttributeMappings buildAttributeMappings() throws IdentityUserStoreServerException {
+
+        UserStoreAttributeMappings userStoreAttributeMappings = new UserStoreAttributeMappings();
+        Map<String, UserStoreAttributeDO> defaultMappings =
+                new DefaultUserStoreAttributeMappingParser().getDefaultUserStoreAttributeMappings();
+        Map<String, Map<String, ChangedUserStoreAttributeDO>> mappings =
+                new UserStoreAttributeMappingParser().getUserStoresAttributeMappings();
+        userStoreAttributeMappings.setDefaultUserStoreAttributeMapping(defaultMappings);
+        userStoreAttributeMappings.setUserStoreAttributeMappings(mappings);
+        return userStoreAttributeMappings;
     }
 
     /**

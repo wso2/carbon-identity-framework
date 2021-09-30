@@ -22,14 +22,11 @@ import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeDO;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -54,107 +51,75 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
  */
 public class DefaultUserStoreAttributeMappingParser {
 
-    private static Map<String, UserStoreAttributeDO> defaultAttributes;
-    private static final Log LOG = LogFactory.getLog(DefaultUserStoreAttributeMappingParser.class);
-
-    private DefaultUserStoreAttributeMappingParser() {
-
-        init();
-    }
-
-    private static final class ParserHolder {
-
-        static final DefaultUserStoreAttributeMappingParser PARSER = new DefaultUserStoreAttributeMappingParser();
-    }
-
-    public static DefaultUserStoreAttributeMappingParser getInstance() {
-
-        return ParserHolder.PARSER;
-    }
-
-    private static void init() {
+    public Map<String, UserStoreAttributeDO> getDefaultUserStoreAttributeMappings()
+            throws IdentityUserStoreServerException {
 
         File attributeMappingXml = new File(CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
-
-        if (attributeMappingXml.exists()) {
-            try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
-                if (inStream == null) {
-                    String message = String.format("Claim-config configuration is not found at: %s/%s.",
-                            CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG);
-                    throw new FileNotFoundException(message);
-                }
-                buildDefaultAttributeMapping(inStream);
-            } catch (FileNotFoundException e) {
-                LOG.error(String.format("Claim-config configuration is not found at: %s/%s.",
-                        CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG), e);
-            } catch (IOException e) {
-                LOG.error("Error occurred while closing input stream.", e);
-            }
+        if (!attributeMappingXml.exists()) {
+            throw new IdentityUserStoreServerException(String.format("Claim-config.xml file is not available at %s/%s.",
+                    CarbonUtils.getCarbonConfigDirPath(), CLAIM_CONFIG));
+        }
+        try (InputStream inStream = new FileInputStream(attributeMappingXml)) {
+            return buildDefaultAttributeMappings(inStream);
+        } catch (IOException | XMLStreamException e) {
+            throw new IdentityUserStoreServerException("Error occurred while reading claim-config.xml.", e);
         }
     }
 
-    private static void buildDefaultAttributeMapping(InputStream inStream) {
+    private Map<String, UserStoreAttributeDO> buildDefaultAttributeMappings(InputStream inStream)
+            throws XMLStreamException, IdentityUserStoreServerException {
 
-        StAXOMBuilder builder;
-        OMElement localClaimElement = null;
-        try {
-            builder = new StAXOMBuilder(inStream);
-            Iterator iterator = builder.getDocumentElement().
-                    getFirstChildWithName(new QName(DIALECTS)).
-                    getChildrenWithLocalName(DIALECT);
-            if (iterator != null) {
-                // Select local claim attributes.
-                while (iterator.hasNext()) {
-                    localClaimElement = (OMElement) iterator.next();
-                    Iterator attributeIterator = localClaimElement.getAllAttributes();
-                    if (attributeIterator != null) {
-                        String attributeValue = ((OMAttribute) attributeIterator.next()).getAttributeValue();
-                        if (StringUtils.equalsIgnoreCase(LOCAL_DIALECT_URL, attributeValue)) {
-                            break;
-                        }
-                    }
-                }
-                if (localClaimElement == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Local claims cannot be found.");
-                    }
-                    return;
-                }
-                Iterator claimIterator = localClaimElement.getChildElements();
-                defaultAttributes = new HashMap<>();
-                while (claimIterator.hasNext()) {
-                    OMElement claimElement = (OMElement) claimIterator.next();
-                    Iterator attributeIterator = claimElement.getChildElements();
-                    UserStoreAttributeDO userStoreAttributeDO = new UserStoreAttributeDO();
-                    while (attributeIterator.hasNext()) {
-                        OMElement attributes = (OMElement) attributeIterator.next();
-                        String attributeQName = attributes.getQName().getLocalPart();
-                        if (StringUtils.equalsIgnoreCase(DISPLAY_NAME, attributeQName)) {
-                            userStoreAttributeDO.setDisplayName(attributes.getText());
-                        } else if (StringUtils.equalsIgnoreCase(ATTRIBUTE_ID, attributeQName)) {
-                            userStoreAttributeDO.setMappedAttribute(attributes.getText());
-                        } else if (StringUtils.equalsIgnoreCase(CLAIM_URI, attributeQName)) {
-                            userStoreAttributeDO.setClaimUri(attributes.getText());
-                            userStoreAttributeDO.setClaimId(Base64.getUrlEncoder().withoutPadding().
-                                    encodeToString(attributes.getText().getBytes(StandardCharsets.UTF_8)));
-                        }
-                    }
-                    defaultAttributes.put(userStoreAttributeDO.getClaimId(), userStoreAttributeDO);
+        StAXOMBuilder builder = new StAXOMBuilder(inStream);
+        Iterator iterator = builder.getDocumentElement().getFirstChildWithName(new QName(DIALECTS))
+                .getChildrenWithLocalName(DIALECT);
+        if (iterator == null) {
+            throw new IdentityUserStoreServerException("Claim-config.xml file is empty.");
+        }
+        OMElement localClaimElement = getLocalClaimElement(iterator);
+        if (localClaimElement == null) {
+            throw new IdentityUserStoreServerException("Local claims cannot be found in claim-config.xml file.");
+        }
+        Iterator claimIterator = localClaimElement.getChildElements();
+        return getDefaultAttributeMappings(claimIterator);
+    }
+
+    private static OMElement getLocalClaimElement(Iterator iterator) {
+
+        while (iterator.hasNext()) {
+            OMElement localClaimElement = (OMElement) iterator.next();
+            Iterator attributeIterator = localClaimElement.getAllAttributes();
+            if (attributeIterator != null) {
+                String attributeValue = ((OMAttribute) attributeIterator.next()).getAttributeValue();
+                if (StringUtils.equalsIgnoreCase(LOCAL_DIALECT_URL, attributeValue)) {
+                    return localClaimElement;
                 }
             }
-        } catch (XMLStreamException e) {
-            LOG.error("Error occurred while reading the claim-config.xml file.", e);
         }
+        return null;
     }
 
-    /**
-     * Get default user store attributes.
-     *
-     * @return Map defaultAttributes.
-     */
-    public Map<String, UserStoreAttributeDO> getDefaultAttributes() {
+    private Map<String, UserStoreAttributeDO> getDefaultAttributeMappings(Iterator claimIterator) {
 
-        return defaultAttributes;
+        Map<String, UserStoreAttributeDO> defaultAttributeMappings = new HashMap<>();
+        while (claimIterator.hasNext()) {
+            OMElement claimElement = (OMElement) claimIterator.next();
+            Iterator attributeIterator = claimElement.getChildElements();
+            UserStoreAttributeDO userStoreAttributeDO = new UserStoreAttributeDO();
+            while (attributeIterator.hasNext()) {
+                OMElement attributes = (OMElement) attributeIterator.next();
+                String attributeQName = attributes.getQName().getLocalPart();
+                if (StringUtils.equalsIgnoreCase(DISPLAY_NAME, attributeQName)) {
+                    userStoreAttributeDO.setDisplayName(attributes.getText());
+                } else if (StringUtils.equalsIgnoreCase(ATTRIBUTE_ID, attributeQName)) {
+                    userStoreAttributeDO.setMappedAttribute(attributes.getText());
+                } else if (StringUtils.equalsIgnoreCase(CLAIM_URI, attributeQName)) {
+                    userStoreAttributeDO.setClaimUri(attributes.getText());
+                    userStoreAttributeDO.setClaimId(Base64.getUrlEncoder().withoutPadding().
+                            encodeToString(attributes.getText().getBytes(StandardCharsets.UTF_8)));
+                }
+            }
+            defaultAttributeMappings.put(userStoreAttributeDO.getClaimId(), userStoreAttributeDO);
+        }
+        return defaultAttributeMappings;
     }
-
 }
