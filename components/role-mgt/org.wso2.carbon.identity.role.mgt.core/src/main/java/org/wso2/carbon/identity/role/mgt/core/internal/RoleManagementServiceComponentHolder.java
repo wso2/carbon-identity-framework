@@ -28,9 +28,7 @@ public class RoleManagementServiceComponentHolder {
 
     private static RoleManagementServiceComponentHolder instance = new
             RoleManagementServiceComponentHolder();
-
     private RealmService realmService;
-
     private IdentityEventService identityEventService;
 
     private RoleManagementServiceComponentHolder() {
