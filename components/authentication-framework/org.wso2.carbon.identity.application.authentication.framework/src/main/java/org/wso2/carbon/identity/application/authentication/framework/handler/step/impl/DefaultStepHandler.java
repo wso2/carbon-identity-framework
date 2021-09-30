@@ -985,6 +985,18 @@ public class DefaultStepHandler implements StepHandler {
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
+                } else if (IdentityCoreConstants.USER_INVALID_CREDENTIALS.equals(errorCode)) {
+                    retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
+                    String username = request.getParameter("username");
+                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
+                    if (domain != null) {
+                        username = IdentityUtil.addDomainToName(username, domain.toString());
+                    }
+                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                            (username, "UTF-8");
+                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
+                            reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
                     String username = request.getParameter("username");
