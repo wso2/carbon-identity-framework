@@ -240,7 +240,6 @@ public class IdentityClaimManagementServiceComponent {
 
         return IdentityClaimManagementServiceDataHolder.getClaimMetadataMgtListeners();
     }
-}
 
     @Reference(
             name = "claim.config.init.dao",
