@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -189,5 +190,46 @@ public class IdentityDatabaseUtil {
     public static void rollbackUserDBTransaction(Connection dbConnection) {
 
         UmPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+    }
+
+    /**
+     * Check whether the specified table exists in the Identity database.
+     *
+     * @param tableName The name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExists(String tableName) {
+
+        try (Connection connection = getDBConnection()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]{"TABLE"})) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Identity database.");
+                    }
+                    commitTransaction(connection);
+                    return true;
+                }
+                commitTransaction(connection);
+            } catch (SQLException e) {
+                rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
+            }
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
     }
 }
