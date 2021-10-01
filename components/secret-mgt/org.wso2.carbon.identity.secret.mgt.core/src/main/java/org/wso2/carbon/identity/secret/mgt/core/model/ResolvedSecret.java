@@ -31,5 +31,4 @@ public class ResolvedSecret extends Secret {
 
         return resolvedSecretValue;
     }
-
 }

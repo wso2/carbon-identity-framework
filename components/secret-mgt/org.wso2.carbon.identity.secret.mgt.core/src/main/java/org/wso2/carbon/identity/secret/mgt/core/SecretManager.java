@@ -61,7 +61,7 @@ public interface SecretManager {
      * This API is used to delete the given secret.
      *
      * @param secretTypeName Name of the {@link SecretType}.
-     * @param secretName     Request to delete the {@link Secret}.
+     * @param secretName     Name of the {@link Secret}
      * @throws SecretManagementException Secret management exception.
      */
     void deleteSecret(String secretTypeName, String secretName) throws SecretManagementException;
@@ -87,7 +87,7 @@ public interface SecretManager {
      * This function is used to replace a given secret.
      *
      * @param secretTypeName Name of the {@link SecretType}.
-     * @param secret         secret object.
+     * @param secret         Secret object.
      * @throws SecretManagementException Secret management exception.
      */
     Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException;
