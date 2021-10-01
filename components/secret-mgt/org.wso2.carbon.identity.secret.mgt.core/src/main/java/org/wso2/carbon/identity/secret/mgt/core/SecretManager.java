@@ -93,22 +93,6 @@ public interface SecretManager {
     Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException;
 
     /**
-     * Add {@link SecretType}.
-     *
-     * @param secretType {@link SecretType} to be added.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    SecretType addSecretType(SecretType secretType) throws SecretManagementException;
-
-    /**
-     * Replace {@link SecretType}.
-     *
-     * @param secretType {@link SecretType} to be replaced.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    SecretType replaceSecretType(SecretType secretType) throws SecretManagementException;
-
-    /**
      * Get {@link SecretType} by name.
      *
      * @param secretTypeName Name of the {@link SecretType}.
@@ -116,14 +100,6 @@ public interface SecretManager {
      * @throws SecretManagementException Secret Management Exception.
      */
     SecretType getSecretType(String secretTypeName) throws SecretManagementException;
-
-    /**
-     * Delete {@link SecretType} by name.
-     *
-     * @param secretTypeName Name of the {@link SecretType}.
-     * @throws SecretManagementException Configuration Management Exception.
-     */
-    void deleteSecretType(String secretTypeName) throws SecretManagementException;
 
     /**
      * Update value of a secret by name.
@@ -136,7 +112,16 @@ public interface SecretManager {
     Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException;
 
     /**
-     * Delete description of a secret by name.
+     * Update value of a secret by id.
+     *
+     * @param secretId  Id of the {@link Secret}.
+     * @param value Secret value to be updated.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
+    Secret updateSecretValueById(String secretId, String value) throws SecretManagementException;
+
+    /**
+     * Update description of a secret by name.
      *
      * @param secretTypeName Name of the {@link SecretType}.
      * @param name  Name of the {@link Secret}.
@@ -144,5 +129,14 @@ public interface SecretManager {
      * @throws SecretManagementException Configuration Management Exception.
      */
     Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException;
+
+    /**
+     * Update description of a secret by id.
+     *
+     * @param secretId  Id of the {@link Secret}.
+     * @param description secret description to be updated.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
+    Secret updateSecretDescriptionById(String secretId, String description) throws SecretManagementException;
 
 }
