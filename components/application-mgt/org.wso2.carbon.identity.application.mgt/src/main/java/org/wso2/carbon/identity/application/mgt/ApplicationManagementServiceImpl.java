@@ -2231,11 +2231,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
 
         for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
-                    username)) {
+            try {
+                if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
+                        username)) {
+                    log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
+                            "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                    break;
+                }
+            } catch (Throwable e) {
+                /*
+                 * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+                 * above issue.
+                 */
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
-                break;
             }
         }
 
