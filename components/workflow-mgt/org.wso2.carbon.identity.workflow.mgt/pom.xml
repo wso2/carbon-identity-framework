@@ -21,7 +21,7 @@
     <parent>
         <artifactId>identity-workflow-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.20.208-SNAPSHOT</version>
+        <version>5.20.212-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -50,6 +50,10 @@
         <dependency>
             <groupId>org.wso2.orbit.javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
     </dependencies>
 
@@ -90,6 +94,12 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.base; version="${carbon.base.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.event; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.event.handler; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.bean.context; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.handler; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
@@ -100,6 +110,7 @@
                             org.wso2.carbon.user.core.tenant; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}"
