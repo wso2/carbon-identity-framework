@@ -575,7 +575,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         assertEquals(removedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(removedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(removedCookie.getMaxAge(), 0);
-
     }
 
     @Test
