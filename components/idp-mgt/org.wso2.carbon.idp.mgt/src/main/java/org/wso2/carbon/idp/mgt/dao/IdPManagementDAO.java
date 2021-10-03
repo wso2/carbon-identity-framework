@@ -82,6 +82,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -3816,7 +3817,7 @@ public class IdPManagementDAO {
                 prepStmtGetConfigId.setInt(1, idPId);
                 resultSetGetConfigId = prepStmtGetConfigId.executeQuery();
                 while (resultSetGetConfigId.next()) {
-                    int id = resultSetGetConfigId.getInt("ID");
+                    int id = resultSetGetConfigId.getInt(ID);
                     deleteIdpProvConfigProperty(conn, id);
                 }
             }
@@ -3830,20 +3831,24 @@ public class IdPManagementDAO {
     }
 
     /**
-     * @param conn                   Connection to the DB.
+     * Delete IDP provisioning configuration property.
+     *
+     * @param connection             Connection to the DB.
      * @param provisioningConfigId   Provisioning Configuration Id of the IdP.
      * @throws SQLException          Database Exception.
      */
-    private void deleteIdpProvConfigProperty(Connection conn, int provisioningConfigId) throws SQLException {
+    private void deleteIdpProvConfigProperty(Connection connection, int provisioningConfigId) throws SQLException {
 
         String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_PROV_CONFIG_PROPERTY;
-        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
+        try (PreparedStatement prepStmt = connection.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, provisioningConfigId);
             prepStmt.executeUpdate();
         }
     }
 
     /**
+     * Delete Identity provider in the given tenant.
+     *
      * @param conn              Connection to the DB.
      * @param tenantId          Tenant Id of the IdP.
      * @param idPName           Name of the IdP.
@@ -3871,7 +3876,7 @@ public class IdPManagementDAO {
                     prepStmtGetIdpId.setString(2, idPName);
                     resultSetGetIdpId = prepStmtGetIdpId.executeQuery();
                     while (resultSetGetIdpId.next()) {
-                        int id = resultSetGetIdpId.getInt("ID");
+                        int id = resultSetGetIdpId.getInt(ID);
                         deleteProvisioningConnectorConfigs(conn, id);
                     }
                 }
@@ -3883,7 +3888,7 @@ public class IdPManagementDAO {
                     prepStmtIdpIdFromUUID.setString(1, resourceId);
                     resultSetGetIdpId = prepStmtIdpIdFromUUID.executeQuery();
                     while (resultSetGetIdpId.next()) {
-                        int id = resultSetGetIdpId.getInt("ID");
+                        int id = resultSetGetIdpId.getInt(ID);
                         deleteProvisioningConnectorConfigs(conn, id);
                     }
                 }

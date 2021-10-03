@@ -35,6 +35,7 @@ public class IdPManagementConstants {
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
+    public static final String ID = "ID";
     public static final String MySQL = "MySQL";
 
     public static final String RESIDENT_IDP = "LOCAL";
@@ -314,7 +315,7 @@ public class IdPManagementConstants {
         public static final String GET_IDP_CONFIGS_ID_FROM_UUID = "SELECT ID FROM IDP WHERE UUID=?";
 
         public static final String GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME =
-                "SELECT ID FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
+                "SELECT ID FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
         public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +
                 "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
