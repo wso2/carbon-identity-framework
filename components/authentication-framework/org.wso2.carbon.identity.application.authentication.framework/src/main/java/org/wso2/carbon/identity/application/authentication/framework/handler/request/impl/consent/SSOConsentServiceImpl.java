@@ -130,13 +130,22 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return getConsentRequiredClaims(serviceProvider, authenticatedUser, true, null);
     }
 
+    /**
+     * Get consent required claims for a given service from a user considering existing user consents.
+     *
+     * @param serviceProvider    Service provider requesting consent.
+     * @param authenticatedUser  Authenticated user requesting consent form.
+     * @param claimsListOfScopes Claims list of requested scopes.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws SSOConsentServiceException If error occurs while building claim information.
+     */
     @Override
     public ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
                                                                           AuthenticatedUser authenticatedUser,
-                                                                          Set<String> scopes)
+                                                                          List<String> claimsListOfScopes)
             throws SSOConsentServiceException {
 
-        return getConsentRequiredClaims(serviceProvider, authenticatedUser, true, scopes);
+        return getConsentRequiredClaims(serviceProvider, authenticatedUser, true, claimsListOfScopes);
     }
 
     /**
@@ -159,33 +168,34 @@ public class SSOConsentServiceImpl implements SSOConsentService {
      * Get consent required claims for a given service from a user ignoring existing user consents  and considering
      * requested scopes.
      *
-     * @param serviceProvider   Service provider requesting consent.
-     * @param authenticatedUser Authenticated user requesting consent form.
-     * @param scopes            Requested scopes.
+     * @param serviceProvider    Service provider requesting consent.
+     * @param authenticatedUser  Authenticated user requesting consent form.
+     * @param claimsListOfScopes Claims list of requested scopes.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws SSOConsentServiceException If error occurs while building claim information.
      */
     @Override
     public ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
                                                                              AuthenticatedUser authenticatedUser,
-                                                                             Set<String> scopes)
+                                                                             List<String> claimsListOfScopes)
             throws SSOConsentServiceException {
 
-        return getConsentRequiredClaims(serviceProvider, authenticatedUser, false, scopes);
+        return getConsentRequiredClaims(serviceProvider, authenticatedUser, false, claimsListOfScopes);
     }
 
     /**
      * Get consent required claims for a given service from a user.
      *
      * @param serviceProvider     Service provider requesting consent.
-     * @param authenticatedUser   Authenticated user requesting consent form.
+     * @param authenticatedUser   AuthSSOConsentServiceImplSSOConsentServiceImplenticated user requesting consent form.
      * @param useExistingConsents Use existing consent given by the user.
+     * @param claimsListOfScopes  Claims list of requested scopes.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.
      * @throws SSOConsentServiceException If error occurs while building claim information.
      */
     protected ConsentClaimsData getConsentRequiredClaims(ServiceProvider serviceProvider,
                                                          AuthenticatedUser authenticatedUser,
-                                                         boolean useExistingConsents, Set<String> scopes)
+                                                         boolean useExistingConsents, List<String> claimsListOfScopes)
             throws SSOConsentServiceException {
 
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
@@ -208,9 +218,9 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             }
             return new ConsentClaimsData();
         }
-        if (scopes != null) {
+        if (claimsListOfScopes != null) {
             try {
-                claimMappings = FrameworkUtils.getFilteredScopeClaims(scopes, spTenantDomain,
+                claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings)).toArray(new ClaimMapping[0]);
             } catch (ClaimManagementException e) {
                 throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");

@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -57,7 +56,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -104,16 +102,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         context.setProperty(FrameworkConstants.SP_STANDARD_DIALECT, spStandardDialect);
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
-        if (context.getRequestType() == "oidc") {
-            String[] spRequestedClaims = context.getAuthenticationRequest().getRequestQueryParam("scope")[0].split(" ");
-
-            try {
-                selectedRequestedClaims = FrameworkUtils.getFilteredScopeClaims(new HashSet<String>
-                        (Arrays.asList(spRequestedClaims)), context.getTenantDomain(), selectedRequestedClaims);
-            } catch (ClaimManagementException e) {
-                throw new FrameworkException("Error occurred while filtering claims of requested scopes");
-            }
-        }
         setMandatoryAndRequestedClaims(appConfig, selectedRequestedClaims);
         context.getSequenceConfig().setApplicationConfig(appConfig);
 

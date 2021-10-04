@@ -116,8 +116,6 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
-import org.wso2.carbon.identity.openidconnect.OpenIDConnectClaimFilter;
-import org.wso2.carbon.identity.openidconnect.OpenIDConnectClaimFilterImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -3142,17 +3140,14 @@ public class FrameworkUtils {
     /**
      * Return a filtered list of requested scope claims.
      *
-     * @param scopes Requested scopes.
-     * @param tenantDomain tenant domain.
-     * @param claimMappings SpClaimMappings.
+     * @param claimListOfScopes Claims list of requested scopes.
+     * @param claimMappings     SpClaimMappings.
      * @throws ClaimManagementException
      */
-    public static List<ClaimMapping> getFilteredScopeClaims(Set<String> scopes, String tenantDomain,
+    public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
                                                             List<ClaimMapping> claimMappings)
             throws ClaimManagementException {
 
-        OpenIDConnectClaimFilter filter = new OpenIDConnectClaimFilterImpl();
-        List<String> claimListOfScopes = filter.getClaimsFilteredByOIDCScopes(scopes, tenantDomain);
         ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
         for (String claim : claimListOfScopes) {
