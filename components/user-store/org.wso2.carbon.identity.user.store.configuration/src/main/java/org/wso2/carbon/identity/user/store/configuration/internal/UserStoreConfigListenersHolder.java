@@ -21,7 +21,6 @@ import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
-import org.wso2.carbon.identity.user.store.configuration.utils.AttributeMappingBuilder;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -94,10 +93,6 @@ public class UserStoreConfigListenersHolder {
      */
     public UserStoreAttributeMappings getUserStoreAttributeMappings() {
 
-        if (userStoreAttributeMappings == null) {
-            // Read user store attributes mappings from files.
-            AttributeMappingBuilder.getInstance().build();
-        }
         return userStoreAttributeMappings;
     }
 
