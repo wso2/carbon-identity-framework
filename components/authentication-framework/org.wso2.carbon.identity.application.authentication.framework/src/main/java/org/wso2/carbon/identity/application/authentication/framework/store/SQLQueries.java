@@ -155,6 +155,10 @@ public class SQLQueries {
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
+    // Get federated authentication session id using the idp session id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID = "SELECT SESSION_ID FROM " +
+            "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
+
     // Get federated authentication session details using the IDP session id.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
             "SELECT IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE FROM " +
