@@ -87,7 +87,7 @@ public interface SecretDAO {
      * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretByName(String name, String secretTypeId, int tenantId) throws SecretManagementException;
+    void deleteSecretByName(String name, String secretTypeName, int tenantId) throws SecretManagementException;
 
     /**
      * Replace {@link Secret} or create not exists.
@@ -126,22 +126,6 @@ public interface SecretDAO {
     boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException;
 
     /**
-     * Add {@link SecretType}.
-     *
-     * @param secretType {@link SecretType} to be added.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    void addSecretType(SecretType secretType) throws SecretManagementException;
-
-    /**
-     * Replace {@link SecretType}.
-     *
-     * @param secretType {@link SecretType} to be replaced.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    void replaceSecretType(SecretType secretType) throws SecretManagementException;
-
-    /**
      * Get {@link SecretType} by name.
      *
      * @param secretTypeName Name of the {@link SecretType}.
@@ -149,12 +133,4 @@ public interface SecretDAO {
      * @throws SecretManagementException Secret Management Exception.
      */
     SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException;
-
-    /**
-     * Delete {@link SecretType} by name.
-     *
-     * @param secretTypeName Name of the {@link SecretType}.
-     * @throws SecretManagementException secret Management Exception.
-     */
-    void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException;
 }

@@ -89,4 +89,18 @@ public class SecretConstants {
             return code + ":" + message;
         }
     }
+
+    public enum SecretTypes {
+        ADAPTIVE_AUTH("");
+
+        private final String secretTypeDescription;
+
+        SecretTypes(String secretTypeDescription) {
+            this.secretTypeDescription  =secretTypeDescription;
+        }
+
+        public String getSecretTypeDescription() {
+            return secretTypeDescription;
+        }
+    }
 }

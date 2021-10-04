@@ -208,7 +208,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, String secretTypeId, int tenantId) throws SecretManagementException {
+    public void deleteSecretByName(String name, String secretTypeName, int tenantId) throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
@@ -315,36 +315,6 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void addSecretType(SecretType secretType) throws SecretManagementException {
-
-        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            jdbcTemplate.executeInsert(SQLConstants.INSERT_SECRET_TYPE, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secretType.getId());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, secretType.getName());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secretType.getDescription());
-            }, secretType, false);
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_ADD_SECRET_TYPE, secretType.getName(), e);
-        }
-    }
-
-    @Override
-    public void replaceSecretType(SecretType secretType) throws SecretManagementException {
-
-        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            jdbcTemplate.executeInsert(UPDATE_SECRET_TYPE, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, secretType.getName());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secretType.getDescription());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secretType.getId());
-            }, secretType, false);
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_UPDATE_SECRET_TYPE, secretType.getName(), e);
-        }
-    }
-
-    @Override
     public SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
@@ -364,20 +334,6 @@ public class SecretDAOImpl implements SecretDAO {
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_RETRIEVE_SECRET_TYPE, secretTypeName, e);
         }
-    }
-
-    @Override
-    public void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException {
-
-        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            jdbcTemplate.executeUpdate(SQLConstants.DELETE_SECRET_TYPE_BY_NAME, (
-                    preparedStatement -> preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_NAME, secretTypeName)
-            ));
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_DELETE_SECRET_TYPE, secretTypeName, e);
-        }
-
     }
 
     private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) throws CryptoException {
