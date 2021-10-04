@@ -419,6 +419,8 @@ public class ApplicationMgtDBQueries {
     public static final String IS_APP_BY_TENANT_AND_UUID_DISCOVERABLE = "SELECT COUNT(UUID) FROM SP_APP WHERE " +
             "TENANT_ID = :TENANT_ID; AND UUID = :UUID; AND IS_DISCOVERABLE = '1'";
 
+    public static final String GET_TOTAL_SP_CLAIM_USAGES = "SELECT COUNT(*) FROM SP_CLAIM_MAPPING WHERE TENANT_ID = ?" +
+            " AND IDP_CLAIM = ?";
 }
 
 
