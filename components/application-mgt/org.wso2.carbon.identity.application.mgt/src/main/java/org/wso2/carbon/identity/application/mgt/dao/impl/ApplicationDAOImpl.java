@@ -249,6 +249,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
     private static final String AUDIT_FAIL = "Fail";
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
@@ -3489,9 +3490,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (log.isDebugEnabled()) {
             log.debug("Deleting Application " + appName);
         }
-
         // Now, delete the application
-        PreparedStatement deleteClientPrepStmt = null;
         try {
 
             // Delete the application certificate if there is any.
@@ -3501,13 +3500,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             int applicationID = getApplicationIDByName(appName, tenantID, connection);
             InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID, connection, tenantID);
             for (InboundAuthenticationRequestConfig client : clients.getInboundAuthenticationRequestConfigs()) {
-                deleteClient(client.getInboundAuthKey(), client.getInboundAuthType());
+                handleClientDeletion(client.getInboundAuthKey(), client.getInboundAuthType());
             }
-
-            deleteClientPrepStmt = connection.prepareStatement(REMOVE_APP_FROM_APPMGT_APP);
-            deleteClientPrepStmt.setString(1, appName);
-            deleteClientPrepStmt.setInt(2, tenantID);
-            deleteClientPrepStmt.execute();
+            handleDeleteServiceProvider(connection, appName, tenantID);
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
@@ -3515,8 +3510,53 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.error(errorMessege, e);
             throw new IdentityApplicationManagementException(errorMessege, e);
         } finally {
-            IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
             IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    private void handleDeleteServiceProvider(Connection connection, String appName, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        try {
+            deleteServiceProvider(connection, appName, tenantId);
+        } catch (IdentityApplicationManagementException e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Error occurred while trying to deleting service provider: %s in tenant: %s. " +
+                    "Retrying again", appName, tenantId), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    deleteServiceProvider(connection, appName, tenantId);
+                    isOperationFailed = false;
+                    log.info(String.format("Service provider: %s in tenant: %s deleted in the retry attempt: %s",
+                            appName, tenantId, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete service provider: %s in tenant: %s",
+                            attempt, attempt, tenantId), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("Error while deleting service " +
+                        "provider: %s in tenant: %s", appName, tenantId), e);
+            }
+        }
+    }
+
+    private void deleteServiceProvider(Connection connection, String appName, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        try (PreparedStatement deleteClientPrepStmt = connection.prepareStatement(REMOVE_APP_FROM_APPMGT_APP)) {
+            deleteClientPrepStmt.setString(1, appName);
+            deleteClientPrepStmt.setInt(2, tenantId);
+            deleteClientPrepStmt.execute();
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while deleting application: %s " +
+                    "in tenant: %s from SP_APP", appName, tenantId));
         }
     }
 
@@ -3545,7 +3585,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     connection, tenantID);
             for (InboundAuthenticationRequestConfig client : clients
                     .getInboundAuthenticationRequestConfigs()) {
-                deleteClient(client.getInboundAuthKey(), client.getInboundAuthType());
+                handleClientDeletion(client.getInboundAuthKey(), client.getInboundAuthType());
             }
 
             String applicationName = getApplicationName(applicationID, connection);
@@ -3704,6 +3744,46 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             new SAMLApplicationDAOImpl().removeServiceProviderConfiguration(clientIdentifier);
         } else if ("oauth2".equalsIgnoreCase(type)) {
             new OAuthApplicationDAOImpl().removeOAuthApplication(clientIdentifier);
+        }
+    }
+
+    /**
+     * Handle client deletion. Retry if an error occurred while deleting an client.
+     *
+     * @param clientIdentifier Client identifier.
+     * @param inboundAuthType  Inbound auth type.
+     * @throws IdentityApplicationManagementException If an error occurred while deleting the client.
+     */
+    private void handleClientDeletion(String clientIdentifier, String inboundAuthType)
+            throws IdentityApplicationManagementException {
+
+        try {
+            deleteClient(clientIdentifier, inboundAuthType);
+        } catch (Exception e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Error occurred during the initial attempt to delete client with identifier: " +
+                    "%s with auth type: %s", clientIdentifier, inboundAuthType), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    deleteClient(clientIdentifier, inboundAuthType);
+                    isOperationFailed = false;
+                    log.info(String.format("Successfully deleted application with identifier: %s with auth type: %s " +
+                            "during the delete attempt: %s", clientIdentifier, inboundAuthType, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete application with identifier: %s " +
+                            "with auth type: %s", attempt, clientIdentifier, inboundAuthType), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("application with identifier: %s " +
+                        "with auth type: %s" + clientIdentifier, inboundAuthType), e);
+            }
         }
     }
 

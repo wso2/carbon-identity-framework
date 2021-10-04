@@ -101,5 +101,4 @@ public class SecretUtils {
 
         return error.getMessage();
     }
-
 }
