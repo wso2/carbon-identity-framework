@@ -2557,42 +2557,13 @@ public class FrameworkUtils {
      *
      * @param tableName name of the table.
      * @return true if table exists.
+     *
+     * @deprecated Please use IdentityDatabaseUtil.isTableExists(String tableName) instead.
      */
+    @Deprecated
     public static boolean isTableExists(String tableName) {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-
-            DatabaseMetaData metaData = connection.getMetaData();
-            if (metaData.storesLowerCaseIdentifiers()) {
-                tableName = tableName.toLowerCase();
-            }
-
-            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
-                if (resultSet.next()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Table - " + tableName + " available in the Identity database.");
-                    }
-                    IdentityDatabaseUtil.commitTransaction(connection);
-                    return true;
-                }
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    log.debug("Table - " + tableName + " not available in the Identity database.");
-                }
-                return false;
-            }
-        } catch (SQLException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Table - " + tableName + " not available in the Identity database.");
-            }
-            return false;
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Table - " + tableName + " not available in the Identity database.");
-        }
-        return false;
+        return IdentityDatabaseUtil.isTableExists(tableName);
     }
 
     /**
