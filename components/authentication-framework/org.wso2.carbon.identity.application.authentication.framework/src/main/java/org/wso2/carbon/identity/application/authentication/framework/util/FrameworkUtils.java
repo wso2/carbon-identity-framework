@@ -2896,6 +2896,38 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering the service provider.
+     *
+     * @param username Username of the user.
+     * @param serviceProvider The service provider.
+     * @return preprocessed username
+     */
+    public static String preprocessUsername(String username, ServiceProvider serviceProvider) {
+
+        boolean isSaaSApp = serviceProvider.isSaasApp();
+        String appTenantDomain = serviceProvider.getOwner().getTenantDomain();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + appTenantDomain;
+            }
+        } else if (!username.endsWith(appTenantDomain)) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + appTenantDomain;
+        }
+        return username;
+    }
+
+    /**
      * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
      *
      * @param loginIdentifier login identifier for multi attribute login
@@ -2928,6 +2960,23 @@ public class FrameworkUtils {
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
                 context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
+                throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
+            }
+        }
+    }
+
+    /**
+     * Validate the username.
+     *
+     * @param username Username of the user.
+     * @throws InvalidCredentialsException when username is not valid.
+     */
+    public static void validateUsername(String username) throws InvalidCredentialsException {
+
+        // Validate username as an email when email username is enabled.
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+            if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
                 throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
         }
