@@ -113,9 +113,9 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, String secretTypeId, int tenantId) throws SecretManagementException {
+    public void deleteSecretByName(String name, String secretTypeName, int tenantId) throws SecretManagementException {
 
-        secretDAO.deleteSecretByName(name, secretTypeId, tenantId);
+        secretDAO.deleteSecretByName(name, secretTypeName, tenantId);
         deleteCacheBySecretName(name, tenantId);
     }
 
@@ -157,31 +157,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
             return true;
         }
         return secretDAO.isExistingSecret(secretId, tenantId);
-    }
-
-    @Override
-    public void addSecretType(SecretType secretType) throws SecretManagementException {
-
-        secretDAO.addSecretType(secretType);
-    }
-
-    @Override
-    public void replaceSecretType(SecretType secretType) throws SecretManagementException {
-
-        secretDAO.replaceSecretType(secretType);
-
-    }
-
-    @Override
-    public SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException {
-
-        return secretDAO.getSecretTypeByName(secretTypeName);
-    }
-
-    @Override
-    public void deleteSecretTypeByName(String secretTypeName) throws SecretManagementException {
-
-        secretDAO.deleteSecretTypeByName(secretTypeName);
     }
 
     private Secret getSecretFromCacheById(String secretId, int tenantId) {

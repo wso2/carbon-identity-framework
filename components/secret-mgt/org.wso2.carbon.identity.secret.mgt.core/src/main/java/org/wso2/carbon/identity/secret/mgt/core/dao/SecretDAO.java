@@ -69,7 +69,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @return A list of {@link Secret} for the tenant
      */
-    List getSecrets(SecretType secretTypeId, int tenantId) throws SecretManagementException;
+    List getSecrets(SecretType secretType, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.
@@ -124,13 +124,4 @@ public interface SecretDAO {
      * @throws SecretManagementException if an error occurs while validating the secretId.
      */
     boolean isExistingSecret(String secretId, int tenantId) throws SecretManagementException;
-
-    /**
-     * Get {@link SecretType} by name.
-     *
-     * @param secretTypeName Name of the {@link SecretType}.
-     * @return {@link SecretType} for the given name.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    SecretType getSecretTypeByName(String secretTypeName) throws SecretManagementException;
 }

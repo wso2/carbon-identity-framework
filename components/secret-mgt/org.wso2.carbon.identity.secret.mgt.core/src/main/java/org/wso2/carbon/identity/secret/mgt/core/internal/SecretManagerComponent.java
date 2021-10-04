@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import java.util.Comparator;
 
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_SECRET;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_TABLE_SECRET_TYPE;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -102,6 +101,6 @@ public class SecretManagerComponent {
 
     private boolean isSecretManagementEnabled() {
 
-        return FrameworkUtils.isTableExists(DB_TABLE_SECRET) && FrameworkUtils.isTableExists(DB_TABLE_SECRET_TYPE);
+        return FrameworkUtils.isTableExists(DB_TABLE_SECRET);
     }
 }
