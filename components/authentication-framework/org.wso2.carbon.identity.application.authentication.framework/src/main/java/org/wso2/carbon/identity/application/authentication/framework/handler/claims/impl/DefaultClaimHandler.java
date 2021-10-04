@@ -376,6 +376,10 @@ public class DefaultClaimHandler implements ClaimHandler {
         try {
             localToIdPClaimMap = getClaimMappings(idPStandardDialect,
                                                   remoteClaims.keySet(), context.getTenantDomain(), true);
+
+            if ("http://wso2.org/oidc/claim".equalsIgnoreCase(idPStandardDialect)) {
+                localToIdPClaimMap.put("http://wso2.org/claims/username", "sub");
+            }
         } catch (Exception e) {
             throw new FrameworkException("Error occurred while getting claim mappings for " +
                                          "received remote claims from " +
