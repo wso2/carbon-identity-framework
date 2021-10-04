@@ -2244,7 +2244,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                  * above issue.
                  */
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
-                        "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                        "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain +
+                        " due to:" + e);
             }
         }
 
