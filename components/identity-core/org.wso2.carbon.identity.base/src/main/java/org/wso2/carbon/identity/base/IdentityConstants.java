@@ -156,6 +156,8 @@ public class IdentityConstants {
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
 
+    public static final String TAGS = "Tags";
+
     private IdentityConstants() {
     }
 
