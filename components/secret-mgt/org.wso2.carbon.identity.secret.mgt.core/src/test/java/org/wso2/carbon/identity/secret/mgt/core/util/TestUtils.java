@@ -83,7 +83,7 @@ public class TestUtils {
         }
     }
 
-    public static Secret getSampleSecretAdd(String name, String value) {
+    public static Secret getSampleSecret(String name, String value) {
 
         Secret secretAdd = new Secret();
         secretAdd.setSecretName(name);
@@ -91,7 +91,7 @@ public class TestUtils {
         return secretAdd;
     }
 
-    public static SecretType getSampleSecretTypeAdd (String name, String description) {
+    public static SecretType getSampleSecretType (String name, String description) {
 
         SecretType secretType = new SecretType();
         secretType.setName(name);

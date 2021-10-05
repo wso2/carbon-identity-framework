@@ -253,7 +253,9 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public SecretType getSecretType(String secretTypeName) {
+    public SecretType getSecretType(String secretTypeName) throws SecretManagementException {
+
+        validateSecretType(secretTypeName);
 
         SecretType secretType = new SecretType();
         secretType.setName(secretTypeName);
