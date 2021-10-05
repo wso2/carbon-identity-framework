@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -28,8 +29,10 @@ import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Application management service abstract class.
@@ -130,6 +133,14 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      */
     public abstract void deleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Delete Applications by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract void deleteApplications(int tenantId) throws IdentityApplicationManagementException;
 
     /**
      * Get Identity Provider
@@ -356,6 +367,20 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
      * Get custom inbound authenticator configurations.
      *
      * @return custom inbound authenticator configs maps.
@@ -381,6 +406,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public String getAuthenticationTemplatesJSON() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+    }
+
+    /**
+     * Get system applications defined for the server.
+     *
+     * @return system applications set.
+     */
+    public Set<String> getSystemApplications() {
+
+        return Collections.emptySet();
     }
 
 }

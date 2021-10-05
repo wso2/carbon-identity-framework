@@ -16,12 +16,21 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 
 /**
  * This interface used to expose claim metadata management functionalities as an OSGi Service.
@@ -155,10 +164,47 @@ public interface ClaimMetadataManagementService {
     /**
      * Remove all claims of a given tenant.
      *
-     * @param tenantId Id of the tenant
-     * @throws ClaimMetadataException
+     * @param tenantId The id of the tenant.
+     * @throws ClaimMetadataException throws when an error occurs in removing claims.
      */
     default void removeAllClaims(int tenantId) throws ClaimMetadataException {
 
+    }
+
+    /**
+     * Update attribute mappings for local claims in bulk.
+     *
+     * @param localClaimList    list of local claims.
+     * @param tenantDomain      tenant domain name.
+     * @param userStoreDomain   user store domain name.
+     * @throws ClaimMetadataException if error occurs while updating local claims.
+     */
+    default void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
+            throws ClaimMetadataException {
+    }
+
+    /**
+     * To validate claim mapping attributes of local claims.
+     *
+     * @param localClaimList List of Local claims
+     * @param tenantDomain  Tenant domain
+     * @throws ClaimMetadataException If an error occurred while validating local claims.
+     */
+    default void validateClaimAttributeMapping(List<LocalClaim> localClaimList, String tenantDomain)
+            throws ClaimMetadataException {
+    }
+
+    /**
+     * Get masking regex pattern configured for specified local claim and tenant.
+     *
+     * @param localClaimURI Local claim URI
+     * @param tenantDomain  Tenant domain
+     * @return Masking regex pattern.
+     * @throws ClaimMetadataException If an error occurred while retrieving local claims.
+     */
+    default String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        return null;
     }
 }

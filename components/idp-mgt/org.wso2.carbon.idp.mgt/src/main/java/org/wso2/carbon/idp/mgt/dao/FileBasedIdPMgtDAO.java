@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.idp.mgt.dao;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -97,4 +99,27 @@ public class FileBasedIdPMgtDAO {
         return null;
     }
 
+    /**
+     * Retrieves the first matching IDP for the given metadata property.
+     * Intended to ony be used to retrieve IDP name based on a unique metadata property.
+     *
+     * @param property IDP metadata property name.
+     * @param value Value associated with given Property.
+     * @return Identity Provider name.
+     */
+    public String getIdPNameByMetadataProperty(String property, String value) {
+
+        Map<String, IdentityProvider> identityProviders = IdPManagementServiceComponent.getFileBasedIdPs();
+        for (Entry<String, IdentityProvider> entry : identityProviders.entrySet()) {
+            IdentityProviderProperty[] identityProviderProperties = entry.getValue().getIdpProperties();
+            if (!ArrayUtils.isEmpty(identityProviderProperties)) {
+                for (IdentityProviderProperty prop : identityProviderProperties) {
+                    if (prop != null && property.equals(prop.getName()) && value.equals(prop.getValue())) {
+                        return entry.getValue().getIdentityProviderName();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 }

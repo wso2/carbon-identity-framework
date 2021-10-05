@@ -21,8 +21,11 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.text.MessageFormat" %>
@@ -32,8 +35,6 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -107,7 +108,13 @@
         selectedRoles =
                 addSelectedRoleLists(selectedRoles, (Map<String, Boolean>) session.getAttribute("checkedRolesMap"));
         addDeletedRoleLists(deletedList, (Map<String, Boolean>) session.getAttribute("checkedRolesMap"));
-
+    
+        UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+        
+        if (deletedList.contains(userRealmInfo.getEveryOneRole())) {
+            deletedList.remove(userRealmInfo.getEveryOneRole());
+        }
+        
         if (viewUsers) {
             client.addRemoveRolesOfUser(username, null,
                                         deletedList.toArray(new String[deletedList.size()]));

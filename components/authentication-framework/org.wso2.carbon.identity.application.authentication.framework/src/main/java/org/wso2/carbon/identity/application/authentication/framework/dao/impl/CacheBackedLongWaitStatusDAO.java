@@ -27,6 +27,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.LongW
 
 import java.sql.Timestamp;
 
+/**
+ * Long wait status DAO backed by a cache.
+ */
 public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
 
     private LongWaitStatusDAO waitStatusDAO;

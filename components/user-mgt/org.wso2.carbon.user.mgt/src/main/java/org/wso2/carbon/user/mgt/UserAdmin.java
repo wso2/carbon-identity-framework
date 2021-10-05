@@ -19,6 +19,7 @@
 package org.wso2.carbon.user.mgt;
 
 import org.apache.axis2.AxisFault;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,8 +30,10 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealmService;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.common.ClaimValue;
 import org.wso2.carbon.user.mgt.common.FlaggedName;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
@@ -48,7 +51,6 @@ import java.util.List;
 public class UserAdmin {
 
     private static final Log log = LogFactory.getLog(UserAdmin.class);
-
 
     public UserAdmin() {
 
@@ -269,25 +271,25 @@ public class UserAdmin {
 
     private void addUserRole(String roleName, String[] userList, String[] permissions, boolean isSharedRole, boolean
             isInternalRole) throws UserAdminException {
-        String result = null;
 
         if (permissions == null) {
             permissions = new String[0];
         }
 
-        try {
-            UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (!isAllowedRoleName(roleName, realm)) {
-                throw new UserAdminException("Role name is reserved by the system");
+        UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+        if (!isAllowedRoleName(roleName, realm)) {
+            throw new UserAdminException("Role name is reserved by the system.");
+        }
+        if (!isInternalRole) {
+            if (getUserAdminProxy().isRoleAndGroupSeparationEnabled()) {
+                if (ArrayUtils.isNotEmpty(permissions)) {
+                    addInternalSystemRole(roleName, permissions);
+                    permissions = new String[0];
+                }
             }
-            if (!isInternalRole) {
-                getUserAdminProxy().addRole(roleName, userList, permissions, isSharedRole);
-            } else {
-                getUserAdminProxy().addInternalRole(roleName, userList, permissions);
-
-            }
-        } catch (UserAdminException e) {
-            throw e;
+            getUserAdminProxy().addRole(roleName, userList, permissions, isSharedRole);
+        } else {
+            getUserAdminProxy().addInternalRole(roleName, userList, permissions);
         }
     }
 
@@ -299,6 +301,16 @@ public class UserAdmin {
      */
     public void addInternalRole(String roleName, String[] userList, String[] permissions)
             throws UserAdminException {
+
+        /* Block the role names with the prefix 'system_' as it is used for the special roles created by the system in
+        order to maintain the backward compatibility. */
+        if (getUserAdminProxy().isRoleAndGroupSeparationEnabled() && StringUtils
+                .startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
+            String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not allowed"
+                            + " to be created from externally in the system.", roleName,
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
+            throw new UserAdminException(errorMessage);
+        }
         addUserRole(roleName, userList, permissions, false, true);
     }
 
@@ -341,10 +353,15 @@ public class UserAdmin {
      * @see org.wso2.carbon.user.mgt.TestClass#deleteRole(java.lang.String)
      */
     public void deleteRole(String roleName) throws UserAdminException {
-        try {
-            getUserAdminProxy().deleteRole(roleName);
-        } catch (UserAdminException e) {
-            throw e;
+
+        getUserAdminProxy().deleteRole(roleName);
+        if (getUserAdminProxy().isRoleAndGroupSeparationEnabled()) {
+            String internalSystemRoleName =
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                            .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
+            if (getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
+                getUserAdminProxy().deleteRole(appendInternalDomain(internalSystemRoleName));
+            }
         }
     }
 
@@ -460,8 +477,17 @@ public class UserAdmin {
      * @throws UserAdminException
      */
     public UIPermissionNode getRolePermissions(String roleName) throws UserAdminException {
+
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return getUserAdminProxy().getRolePermissions(roleName, tenantId);
+
+        if (!getUserAdminProxy().isRoleAndGroupSeparationEnabled() || isInternalRole(roleName)) {
+            return getUserAdminProxy().getRolePermissions(roleName, tenantId);
+        } else {
+            List<String> roles = getUserAdminProxy()
+                    .getHybridRoleListOfGroup(UserCoreUtil.removeDomainFromName(roleName),
+                            UserCoreUtil.extractDomainFromName(roleName));
+            return getUserAdminProxy().getRolePermissions(roles, tenantId);
+        }
     }
 
     /**
@@ -469,14 +495,53 @@ public class UserAdmin {
      * @param rawResources
      * @throws UserAdminException
      */
-    public void setRoleUIPermission(String roleName, String[] rawResources)
-            throws UserAdminException {
+    public void setRoleUIPermission(String roleName, String[] rawResources) throws UserAdminException {
 
-        try {
+        if (!getUserAdminProxy().isRoleAndGroupSeparationEnabled() || isInternalRole(roleName)) {
             getUserAdminProxy().setRoleUIPermission(roleName, rawResources);
-        } catch (UserAdminException e) {
-            throw e;
+        } else {
+            addInternalSystemRole(roleName, rawResources);
         }
+    }
+
+    /**
+     * Adding an internal system role in order to maintain the backward compatibility with the role and group
+     * separation feature.
+     *
+     * @param roleName     External role name.
+     * @param rawResources rawResources.
+     * @throws UserAdminException UserAdminException.
+     */
+    private void addInternalSystemRole(String roleName, String[] rawResources) throws UserAdminException {
+
+        String internalSystemRoleName =
+                UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                        .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
+        if (getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
+            getUserAdminProxy().setRoleUIPermission(appendInternalDomain(internalSystemRoleName), rawResources);
+        } else {
+            getUserAdminProxy().addInternalRole(internalSystemRoleName, new String[0], rawResources);
+            getUserAdminProxy().updateGroupListOfHybridRole(internalSystemRoleName, null, new String[] { roleName });
+        }
+    }
+
+    private String appendInternalDomain(String roleName) {
+
+        if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
+        }
+        return roleName;
+    }
+
+    private boolean isInternalRole(String roleName) {
+
+        String domain = UserCoreUtil.extractDomainFromName(roleName);
+        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) || UserCoreConstants.WORKFLOW_DOMAIN
+                .equalsIgnoreCase(domain) || UserCoreConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)
+                || UserCoreConstants.SYSTEM_DOMAIN_NAME.equalsIgnoreCase(domain)) {
+            return true;
+        }
+        return false;
     }
 
     /**

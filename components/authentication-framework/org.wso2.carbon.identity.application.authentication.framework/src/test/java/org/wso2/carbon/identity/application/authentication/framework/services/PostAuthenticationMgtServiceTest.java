@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.util.UUID;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,11 +51,11 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
 
     private PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
     private TestPostHandlerWithRedirect testPostHandlerWithRedirect = new TestPostHandlerWithRedirect();
-    private static String FIRST_REDIRECT_TRIGGERED = "firstRedirectTriggered";
-    private static String SECOND_REDIRECT_TRIGGERED = "secondRedirectTriggered";
-    private static String ADMIN_USERNAME = "admin";
-    private static String SPECIAL_USER = "specialUser";
-    private static String DUMMY_EXTERNAL_ENDPOINT = "https://localhost/somecontext";
+    private static final String FIRST_REDIRECT_TRIGGERED = "firstRedirectTriggered";
+    private static final String SECOND_REDIRECT_TRIGGERED = "secondRedirectTriggered";
+    private static final String ADMIN_USERNAME = "admin";
+    private static final String SPECIAL_USER = "specialUser";
+    private static final String DUMMY_EXTERNAL_ENDPOINT = "https://localhost/somecontext";
 
     @BeforeMethod
     void setup() {
@@ -181,7 +182,8 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
 
         @Override
         public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
-                                                 AuthenticationContext context) throws PostAuthenticationFailedException {
+                                                 AuthenticationContext context)
+                throws PostAuthenticationFailedException {
 
             // If not authenticated just return.
             if (context.getSequenceConfig().getAuthenticatedUser() == null) {

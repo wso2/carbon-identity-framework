@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET;
+import static org.wso2.carbon.identity.template.mgt.handler.impl.WSTrustConnectorValidator.removeWSTrustTemplate;
+import static org.wso2.carbon.identity.template.mgt.handler.impl.WSTrustConnectorValidator.validateWSTrustTemplateAvailability;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
 
 /**
@@ -48,6 +50,7 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
     @Override
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
+        validateWSTrustTemplateAvailability(templateId);
         return TemplateManagerDataHolder.getInstance().getFileBasedTemplates().get(templateId);
     }
 
@@ -68,12 +71,12 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
             offset = DEFAULT_SEARCH_OFFSET;
         }
 
-        return TemplateManagerDataHolder.getInstance().getFileBasedTemplates().entrySet().stream()
+        return removeWSTrustTemplate(TemplateManagerDataHolder.getInstance().getFileBasedTemplates().entrySet().stream()
                 .filter(entry -> StringUtils.equals(entry.getValue().getTemplateType().toString(), (templateType)))
                 .skip(offset)
                 .limit(limit)
                 .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     /**

@@ -61,6 +61,18 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
+    /**
+     * Additional actions before deleting all IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+        
+        return true;
+    }
+
     public boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
         return true;
@@ -68,6 +80,18 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
 
 
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
+    /**
+     * Additional actions after deleting IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
         return true;
     }
 

@@ -46,14 +46,19 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Default implementation of step based sequence handler.
+ */
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
@@ -138,12 +143,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         context.setRequestAuthenticated(true);
                     } else {
                         context.getSequenceConfig().setCompleted(true);
-                        resetAuthenticationContext(context);
+                        FrameworkUtils.resetAuthenticationContext(context);
                         continue;
                     }
                 }
 
-                resetAuthenticationContext(context);
+                FrameworkUtils.resetAuthenticationContext(context);
             }
 
             // if no further steps exists
@@ -318,6 +323,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        /*
+                        Do claim mapping inorder to get subject claim uri requested. This is done only if the
+                        step is not a subject attribute step. Because it is already done in the previous flow if
+                        the step is a subject attribute step.
+                        */
+                        handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
                 }
@@ -327,9 +340,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // if we found the mapped subject - then we do not need to worry about
                         // finding attributes.
 
-                        // if no requested claims are selected, send all local mapped claim values or idp claim values
-                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
-                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
+                        // if no requested claims are selected and sp claim dialect is not a standard dialect,
+                        // send all local mapped claim values or idp claim values
+                        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+                        if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
+                                !isSPStandardClaimDialect(context.getRequestType())) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
@@ -345,11 +360,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             } else {
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        /*
+                        Do claim mapping inorder to get subject claim uri requested. This is done only if the
+                        step is not a subject attribute step. Because it is already done in the previous flow if
+                        the step is a subject attribute step.
+                        */
+                        handleClaimMappings(stepConfig, context, null, false);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
+                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getLoggableUserId());
                         log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
                                 .getTenantDomain());
                     }
@@ -371,7 +394,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
-        if (!authenticatedUserAttributes.isEmpty() &&  sequenceConfig.getAuthenticatedUser() != null) {
+        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()
+                && sequenceConfig.getAuthenticatedUser() != null) {
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+        }
+        if (!authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
@@ -387,6 +414,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
     }
 
+    private boolean isSPStandardClaimDialect(String clientType) {
+
+        return (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType));
+    }
+
     private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
             mappedAttrs) throws FrameworkException {
 
@@ -394,7 +429,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         String[] roles = DefaultSequenceHandlerUtils.getRolesFromSPMappedClaims(context, sequenceConfig, mappedAttrs,
                 spRoleUri);
         if (!ArrayUtils.isEmpty(roles)) {
-            mappedAttrs.put(spRoleUri, getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles)));
+            String standardRoleClaimUri = DefaultSequenceHandlerUtils.getStandardRoleClaimUri(context,
+                    spRoleUri, sequenceConfig);
+            String spMappedAttributes = getServiceProviderMappedUserRoles(sequenceConfig, Arrays.asList(roles));
+            mappedAttrs.put(spRoleUri, spMappedAttributes);
+            mappedAttrs.put(standardRoleClaimUri, spMappedAttributes);
         }
     }
 
@@ -423,7 +462,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      * @return Role Claim Uri as String.
      * @throws FrameworkException
      */
-    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context) throws FrameworkException {
+    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context)
+            throws FrameworkException {
 
         String idpRoleClaimUri = getIdpRoleClaimUri(context.getExternalIdP());
         return FrameworkUtils.getMappedIdpRoleClaimUri(idpRoleClaimUri, stepConfig, context);
@@ -507,28 +547,27 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
             IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
+            Map<String, String> localUnfilteredClaimsForNullValues =
+                    (Map<String, String>) context
+                            .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES);
+            if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
+                extAttributesValueMap.putAll(localUnfilteredClaimsForNullValues);
+            }
+            List<String> idpToLocalRoleMapping = new ArrayList<String>(
+                    context.getExternalIdP().getRoleMappings().values());
 
-            FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
-                    extAttributesValueMap, userStoreDomain, context.getTenantDomain());
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING,
+                    idpToLocalRoleMapping);
+            FrameworkUtils.getProvisioningHandler()
+                    .handle(mappedRoles, subjectIdentifier, extAttributesValueMap, userStoreDomain,
+                            context.getTenantDomain());
 
         } catch (FrameworkException e) {
             log.error("User provisioning failed!", e);
         } finally {
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
         }
-    }
-
-    /*
-       TODO: This needs to be refactored so that there is a separate context object for each authentication step, rather than resetting.
-        */
-    protected void resetAuthenticationContext(AuthenticationContext context) throws FrameworkException {
-        context.setSubject(null);
-        context.setStateInfo(null);
-        context.setExternalIdP(null);
-        context.setAuthenticatorProperties(new HashMap<String, String>());
-        context.setRetryCount(0);
-        context.setRetrying(false);
-        context.setCurrentAuthenticator(null);
     }
 
     /**

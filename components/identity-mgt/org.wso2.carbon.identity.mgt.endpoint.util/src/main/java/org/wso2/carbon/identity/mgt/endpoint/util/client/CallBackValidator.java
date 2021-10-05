@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvide
 import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceStub;
 
 import java.io.UnsupportedEncodingException;
@@ -63,8 +64,14 @@ public class CallBackValidator {
         }
 
         IdentityProvider residentIdP;
+
+        // Build the service URL of idp management admin service
+        StringBuilder builder = new StringBuilder();
+        String serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
+                .append(IdentityManagementEndpointConstants.ServiceEndpoints.IDENTITY_PROVIDER_MANAGEMENT_SERVICE)
+                .toString().replaceAll("(?<!(http:|https:))//", "/");
         try {
-            IdentityProviderMgtServiceStub idPMgtStub = new IdentityProviderMgtServiceStub();
+            IdentityProviderMgtServiceStub idPMgtStub = new IdentityProviderMgtServiceStub(serviceURL);
             ServiceClient idpClient = idPMgtStub._getServiceClient();
             IdentityManagementEndpointUtil.authenticate(idpClient);
             residentIdP = idPMgtStub.getResidentIdP();

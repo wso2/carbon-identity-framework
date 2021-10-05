@@ -33,11 +33,6 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
 
-
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
-<script type="text/javascript" src="../admin/js/main.js"></script>
-
 <%
 
     WorkflowAdminServiceClient client;
@@ -138,9 +133,9 @@
             topPage="true"
             request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript">
 
         function doCancel() {

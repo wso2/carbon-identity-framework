@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -30,7 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  * This cache keeps the information about the authentication result from the framework.
  */
 public class AuthenticationResultCache extends
-        BaseCache<AuthenticationResultCacheKey, AuthenticationResultCacheEntry> {
+        AuthenticationBaseCache<AuthenticationResultCacheKey, AuthenticationResultCacheEntry> {
 
     private static Log log = LogFactory.getLog(AuthenticationResultCache.class);
 

@@ -23,9 +23,12 @@ import java.lang.ref.WeakReference;
 
 /**
  * A non-serializable object to be carried across the authentication context.
- * Authentication context is a serializable object. Some objects should not be serialized as they are valid only to the current request.
+ * Authentication context is a serializable object. Some objects should not be serialized as they are valid only to
+ * the current request.
  * e.g. HTTP Request object.
  * The data is held only for the lifetime of the current request. After that GC will remove the data freely.
+ *
+ * @param <T> type of object to wrap
  */
 public class TransientObjectWrapper<T> implements Serializable {
 

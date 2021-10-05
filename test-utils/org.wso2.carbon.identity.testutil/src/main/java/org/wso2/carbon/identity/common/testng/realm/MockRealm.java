@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.common.testng.realm;
 
+import org.wso2.carbon.identity.common.testng.MockInitialContextFactory;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserRealm;
@@ -25,10 +26,13 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
+import org.wso2.carbon.user.core.hybrid.HybridRoleManager;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
 
 import java.util.Map;
+
+import javax.sql.DataSource;
 
 /**
  * Simple user realm for testing.
@@ -37,17 +41,28 @@ public class MockRealm implements UserRealm {
 
     private RealmConfiguration realmConfiguration;
     private AuthorizationManager authorizationManager = new MockAuthorizationManager();
-    private UserStoreManager userStoreManager = new MockUserStoreManager();
+    private UserStoreManager userStoreManager;
     private int tenantId;
     private MockClaimManager claimManager;
+
+    private static final String UM_DB_JNDI_NAME = "jdbc/WSO2UMDB";
+    private static final String UM_DB_SQL_FILE = "dbScripts/um.sql";
 
     @Override
     public void init(RealmConfiguration realmConfiguration, Map<String, ClaimMapping> claimMappingMap,
             Map<String, ProfileConfiguration> map1, int tenantId) throws UserStoreException {
         this.realmConfiguration = realmConfiguration;
         this.tenantId = tenantId;
+
+        DataSource dataSource = MockInitialContextFactory
+                .initializeDatasource(UM_DB_JNDI_NAME, this.getClass(), new String[]{UM_DB_SQL_FILE});
+        userStoreManager = new MockUserStoreManager(dataSource);
         ((MockUserStoreManager)this.userStoreManager).setRealmConfiguration(this.realmConfiguration);
         claimManager = new MockClaimManager(claimMappingMap);
+        ((MockUserStoreManager)this.userStoreManager).setClaimManager(this.claimManager);
+
+        HybridRoleManager hybridRoleManager = new MockHybridRoleManager(dataSource, tenantId, realmConfiguration, this);
+        ((MockUserStoreManager)this.userStoreManager).setHybridRoleManager(hybridRoleManager);
     }
 
     @Override

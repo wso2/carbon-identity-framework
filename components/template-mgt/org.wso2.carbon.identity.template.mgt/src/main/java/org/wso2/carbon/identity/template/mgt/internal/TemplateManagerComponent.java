@@ -228,6 +228,10 @@ public class TemplateManagerComponent {
             properties.put(TemplateMgtConstants.PROPERTY_DISPLAY_ORDER, Integer.toString(templateObj.getInt
                     (TemplateMgtConstants.DISPLAY_ORDER)));
         }
+        if (StringUtils.isNotEmpty(templateObj.getString(TemplateMgtConstants.TEMPLATE_GROUP))) {
+            properties.put(TemplateMgtConstants.PROPERTY_TEMPLATE_GROUP,
+                    templateObj.getString(TemplateMgtConstants.TEMPLATE_GROUP));
+        }
         return properties;
     }
 

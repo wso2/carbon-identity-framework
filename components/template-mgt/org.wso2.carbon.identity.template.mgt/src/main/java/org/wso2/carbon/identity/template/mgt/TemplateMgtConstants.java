@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 public class TemplateMgtConstants {
 
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String H2 = "H2";
@@ -43,6 +44,9 @@ public class TemplateMgtConstants {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String DEFAULT_RESPONSE_CONTENT_TYPE = APPLICATION_JSON;
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
+    public static final String FORBIDDEN = "Forbidden";
+    public static final String FORBIDDEN_ERROR_CODE = "403";
+    public static final String FORBIDDEN_ERROR_MESSAGE= "Template-mgt API is restricted";
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
@@ -70,7 +74,9 @@ public class TemplateMgtConstants {
     public static final String TYPES = "types";
     public static final String CATEGORY = "category";
     public static final String DISPLAY_ORDER = "displayOrder";
+    public static final String TEMPLATE_GROUP = "templateGroup";
     public static final String PROPERTY_DISPLAY_ORDER = "display-order";
+    public static final String PROPERTY_TEMPLATE_GROUP = "template-group";
     public static final String APPLICATION = "application";
 
     public enum TemplateType {
@@ -112,7 +118,8 @@ public class TemplateMgtConstants {
         ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant %s."),
         ERROR_CODE_INVALID_TEMPLATE_ID("TMM_00022", "Invalid template id: %s."),
         ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT("TMM_00023", "Limit value cannot be negative."),
-        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative.");
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative."),
+        ERROR_CODE_DELETE_READONLY_TEMPLATE("TMM_60001", "Cannot delete read-only template: %s");
 
         private final String code;
         private final String message;

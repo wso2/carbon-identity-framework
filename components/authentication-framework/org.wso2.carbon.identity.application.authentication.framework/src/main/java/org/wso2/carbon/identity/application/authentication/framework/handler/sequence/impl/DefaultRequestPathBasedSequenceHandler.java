@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,9 +46,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Default request path based sequence handler.
+ */
 public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
@@ -132,7 +137,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                             authenticatedIdPData.getIdpName()));
 
                 } catch (InvalidCredentialsException e) {
-                    if(log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("A login attempt was failed due to invalid credentials", e);
                     }
                     context.setRequestAuthenticated(false);
@@ -208,7 +213,8 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
                               sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
+                    log.debug("Authenticated User Tenant Domain: "
+                            + sequenceConfig.getAuthenticatedUser().getTenantDomain());
                 }
             }
         }
@@ -241,7 +247,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             if (spToLocalClaimMapping != null && !spToLocalClaimMapping.isEmpty()) {
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
+                    if (IdentityUtil.getLocalGroupsClaimURI().equals(entry.getValue())) {
                         return entry.getKey();
                     }
                 }
@@ -249,7 +255,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         if (spRoleClaimUri == null) {
-            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = IdentityUtil.getLocalGroupsClaimURI();
             if (log.isDebugEnabled()) {
                 String serviceProvider = appConfig.getApplicationName();
                 log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +

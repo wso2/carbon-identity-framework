@@ -22,10 +22,7 @@
 <suite name="identity-base-test-suite">
     <test name="identity-base-test-all">
         <classes>
-            <class name="org.wso2.carbon.identity.base.IdentityBaseUtilTest" />
             <class name="org.wso2.carbon.identity.base.IdentityValidationUtilTest" />
-            <class name="org.wso2.carbon.identity.base.SignInPolicyTest" />
-            <class name="org.wso2.carbon.identity.base.InMemoryPasswordCallbackHandlerTest" />
         </classes>
     </test>
 </suite>

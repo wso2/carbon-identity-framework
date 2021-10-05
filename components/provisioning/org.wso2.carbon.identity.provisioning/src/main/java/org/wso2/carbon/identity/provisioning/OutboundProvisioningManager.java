@@ -19,14 +19,11 @@
 package org.wso2.carbon.identity.provisioning;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -56,7 +53,6 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -69,8 +65,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  *
@@ -123,57 +117,29 @@ public class OutboundProvisioningManager {
      * @throws UserStoreException
      */
     private Map<String, RuntimeProvisioningConfig> getOutboundProvisioningConnectors(
-            ServiceProvider serviceProvider, String tenantDomainName) throws IdentityProvisioningException {
+            ServiceProvider serviceProvider, String tenantDomain) throws IdentityProvisioningException {
 
         Map<String, RuntimeProvisioningConfig> connectors = new HashMap<>();
 
-        // maintain the provisioning connector cache in the super tenant.
-        // at the time of provisioning there may not be an authenticated user in the system -
-        // specially in the case of in-bound provisioning.
+        ServiceProviderProvisioningConnectorCacheKey key;
+        ServiceProviderProvisioningConnectorCacheEntry entry;
 
-        String tenantDomain = null;
-        int tenantId = -1234;
-        ServiceProviderProvisioningConnectorCacheKey key = null;
-        ServiceProviderProvisioningConnectorCacheEntry entry = null;
+        // Reading from the cache.
+        if (serviceProvider != null && tenantDomain != null) {
+            key = new ServiceProviderProvisioningConnectorCacheKey(serviceProvider.getApplicationName());
 
-        if (CarbonContext.getThreadLocalCarbonContext() != null) {
-            tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        }
+            entry = ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key, tenantDomain);
 
-        try {
-
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                    .getThreadLocalCarbonContext();
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            // reading from the cache
-            if (serviceProvider != null && tenantDomain != null) {
-                key = new ServiceProviderProvisioningConnectorCacheKey(serviceProvider.getApplicationName(), tenantDomain);
-
-                entry = ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key);
-
-                // cache hit
-                if (entry != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Provisioning cache HIT for " + serviceProvider + " of "
-                                + tenantDomainName);
-                    }
-                    return entry.getConnectors();
+            // cache hit
+            if (entry != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Provisioning cache HIT for " + serviceProvider + " of "
+                            + tenantDomain);
                 }
-            } else {
-                throw new IdentityProvisioningException("Error reading service provider from cache.");
+                return entry.getConnectors();
             }
-
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-
-            if (tenantDomain != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            }
+        } else {
+            throw new IdentityProvisioningException("Error reading service provider from cache.");
         }
 
         // NOW build the Map
@@ -229,7 +195,7 @@ public class OutboundProvisioningManager {
                         }
 
                         connector = getOutboundProvisioningConnector(fIdP,
-                                                                     registeredConnectorFactories, tenantDomainName,
+                                                                     registeredConnectorFactories, tenantDomain,
                                                                      enableJitProvisioning);
                         // add to the provisioning connectors list. there will be one item for each
                         // provisioning identity provider found in the out-bound provisioning
@@ -252,23 +218,9 @@ public class OutboundProvisioningManager {
             }
         }
 
-        try {
-
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                    .getThreadLocalCarbonContext();
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-
-            entry = new ServiceProviderProvisioningConnectorCacheEntry();
-            entry.setConnectors(connectors);
-            ServiceProviderProvisioningConnectorCache.getInstance().addToCache(key, entry);
-
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-        }
+        entry = new ServiceProviderProvisioningConnectorCacheEntry();
+        entry.setConnectors(connectors);
+        ServiceProviderProvisioningConnectorCache.getInstance().addToCache(key, entry, tenantDomain);
 
         if (log.isDebugEnabled()) {
             log.debug("Entry added successfully ");

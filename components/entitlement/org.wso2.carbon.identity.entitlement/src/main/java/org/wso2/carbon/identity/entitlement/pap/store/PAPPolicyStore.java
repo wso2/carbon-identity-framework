@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.entitlement.pap.store;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -207,7 +208,7 @@ public class PAPPolicyStore {
                 }
             }
 
-            if (policy.getPolicy() != null && policy.getPolicy().trim().length() > 0) {
+            if (StringUtils.isNotBlank(policy.getPolicy())) {
                 resource.setContent(policy.getPolicy());
                 newPolicy = true;
                 PolicyAttributeBuilder policyAttributeBuilder = new PolicyAttributeBuilder(policy.getPolicy());

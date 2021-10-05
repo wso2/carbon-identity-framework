@@ -40,6 +40,34 @@ public interface FederatedAssociationManager {
             throws FederatedAssociationManagerException;
 
     /**
+     * Associate the given user with the given IdP and the federated user id.
+     *
+     * @param user            Local user.
+     * @param idpId           Identity provider uuid.
+     * @param federatedUserId Federated user id.
+     * @throws FederatedAssociationManagerException while creating the federated association.
+     */
+    default void createFederatedAssociationWithIdpResourceId(User user, String idpId, String federatedUserId)
+            throws FederatedAssociationManagerException {
+
+    }
+
+    /**
+     * Get associated local user for the given federated user.
+     *
+     * @param tenantDomain      Tenant domain.
+     * @param idpId             UUID of the IDP.
+     * @param federatedUserId   UUID of the federated user.
+     * @return  Associated local user name.
+     * @throws FederatedAssociationManagerException
+     */
+    default User getAssociatedLocalUser(String tenantDomain, String idpId, String federatedUserId)
+            throws FederatedAssociationManagerException {
+
+        return null;
+    }
+
+    /**
      * Return the username of the local user associated with the given federated identifier.
      *
      * @param tenantDomain    Tenant domain.

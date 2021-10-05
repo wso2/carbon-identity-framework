@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.user.store.configuration.utils.AttributeMappingBuilder;
+import org.wso2.carbon.user.core.hash.HashProviderFactory;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,7 +41,9 @@ public class UserStoreConfigListenersHolder {
     private Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactory = new HashMap<>();
     private UserStoreConfigService userStoreConfigService;
     private Set<String> allowedUserstores = null;
-
+    private ConfigurationContextService configurationContextService;
+    private Map<String, HashProviderFactory> hashProviderFactoryMap;
+    private UserStoreAttributeMappings userStoreAttributeMappings;
 
     private UserStoreConfigListenersHolder() {
 
@@ -81,4 +87,75 @@ public class UserStoreConfigListenersHolder {
         this.allowedUserstores = allowedUserstores;
     }
 
+    /**
+     * Get all user store attribute mappings.
+     *
+     * @return UserStoreAttributeMappings.
+     */
+    public UserStoreAttributeMappings getUserStoreAttributeMappings() {
+
+        if (userStoreAttributeMappings == null) {
+            // Read user store attributes mappings from files.
+            AttributeMappingBuilder.getInstance().build();
+        }
+        return userStoreAttributeMappings;
+    }
+
+    /**
+     * Set attribute mappings of all user stores.
+     *
+     * @param userStoreAttributeMappings Attribute mappings of user stores.
+     */
+    public void setUserStoreAttributeMappings(UserStoreAttributeMappings userStoreAttributeMappings) {
+
+        this.userStoreAttributeMappings = userStoreAttributeMappings;
+    }
+
+    public ConfigurationContextService getConfigurationContextService() {
+
+        return configurationContextService;
+    }
+
+    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        this.configurationContextService = configurationContextService;
+    }
+
+    /**
+     * Set each HashProviderFactory to the HashProviderFactory collection.
+     *
+     * @param hashProviderFactory Instance of HashProviderFactory.
+     */
+    public void setHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        if (hashProviderFactoryMap == null) {
+            hashProviderFactoryMap = new HashMap<>();
+        }
+        hashProviderFactoryMap.put(hashProviderFactory.getAlgorithm(), hashProviderFactory);
+    }
+
+    /**
+     * Get the HashProviderFactory from HashProviderFactory collection.
+     *
+     * @param algorithm Algorithm name for respective instance of HashProviderFactory.
+     * @return The HashProviderFactory instance which has the given algorithm as the type.
+     * The method will return NULL if there were no matching HashProviderFactory to the given algorithm.
+     */
+    public HashProviderFactory getHashProviderFactory(String algorithm) {
+
+        if (hashProviderFactoryMap == null) {
+            return null;
+        }
+        return hashProviderFactoryMap.get(algorithm);
+    }
+
+    /**
+     * Remove HashProviderFactory from HashProviderFactory collection.
+     *
+     * @param hashProviderFactory Instance of HashProviderFactory.
+     */
+    public void unbindHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        hashProviderFactoryMap.remove(hashProviderFactory.getAlgorithm());
+    }
 }

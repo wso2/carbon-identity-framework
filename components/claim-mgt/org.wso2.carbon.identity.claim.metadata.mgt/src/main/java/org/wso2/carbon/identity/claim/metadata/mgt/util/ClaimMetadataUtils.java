@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public class ClaimMetadataUtils {
 
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
+
     private ClaimMetadataUtils() {
     }
 

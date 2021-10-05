@@ -31,9 +31,11 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
+import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.sql.Connection;
@@ -75,8 +77,10 @@ public class ConfigurationManagerComponent {
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
 
-            bundleContext.registerService(ConfigurationDAO.class.getName(), new ConfigurationDAOImpl(),
-                    null);
+            ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();
+            bundleContext.registerService(ConfigurationDAO.class.getName(), configurationDAO, null);
+            bundleContext.registerService(ConfigurationDAO.class.getName(),
+                    new CachedBackedConfigurationDAO(configurationDAO), null);
 
             ConfigurationManagerConfigurationHolder configurationManagerConfigurationHolder =
                     new ConfigurationManagerConfigurationHolder();
@@ -140,6 +144,27 @@ public class ConfigurationManagerComponent {
             log.debug("Purpose DAO is unregistered in ConfigurationManager service.");
         }
         this.configurationDAOs.remove(configurationDAO);
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Setting the Realm Service");
+        }
+        ConfigurationManagerComponentDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Unsetting the Realm Service");
+        }
+        ConfigurationManagerComponentDataHolder.getInstance().setRealmService(null);
     }
 
     private void setUseCreatedTime() throws DataAccessException {

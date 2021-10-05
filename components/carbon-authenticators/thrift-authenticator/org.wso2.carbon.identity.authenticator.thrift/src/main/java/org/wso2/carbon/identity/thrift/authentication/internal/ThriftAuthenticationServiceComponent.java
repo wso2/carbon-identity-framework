@@ -50,7 +50,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 @Component(
-         name = "org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticationServiceComponent", 
+         name = "org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticationServiceComponent",
          immediate = true)
 public class ThriftAuthenticationServiceComponent {
 
@@ -130,10 +130,10 @@ public class ThriftAuthenticationServiceComponent {
     }
 
     @Reference(
-             name = "http.service", 
-             service = org.osgi.service.http.HttpService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+             name = "http.service",
+             service = org.osgi.service.http.HttpService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetHttpService")
     protected void setHttpService(HttpService httpService) {
         setHttpServiceInstance(httpService);
@@ -144,10 +144,10 @@ public class ThriftAuthenticationServiceComponent {
     }
 
     @Reference(
-             name = "org.wso2.carbon.user.core", 
-             service = org.wso2.carbon.user.core.service.RealmService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+             name = "org.wso2.carbon.user.core",
+             service = org.wso2.carbon.user.core.service.RealmService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         setRealmServiceInstance(realmService);
@@ -158,10 +158,10 @@ public class ThriftAuthenticationServiceComponent {
     }
 
     @Reference(
-             name = "configuration.context", 
-             service = org.wso2.carbon.utils.ConfigurationContextService.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
+             name = "configuration.context",
+             service = org.wso2.carbon.utils.ConfigurationContextService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
              unbind = "unsetConfigurationContext")
     protected void setConfigurationContext(ConfigurationContextService configurationContext) {
         this.configurationContext = configurationContext;
@@ -184,9 +184,9 @@ public class ThriftAuthenticationServiceComponent {
             TCompactProtocol.Factory outProtFactory = new TCompactProtocol.Factory();
             getHttpServiceInstance().registerServlet("/thriftAuthenticator", new AuthenticatorServlet(authServiceProcessor, inProtFactory, outProtFactory), new Hashtable(), getHttpServiceInstance().createDefaultHttpContext());
         } catch (ServletException e) {
-            log.error("Unable to start Thrift Authenticator Service." + e);
+            log.error("Unable to start Thrift Authenticator Service.", e);
         } catch (NamespaceException e) {
-            log.error("Unable to start Thrift Authenticator Service" + e);
+            log.error("Unable to start Thrift Authenticator Service", e);
         }
     }
 
@@ -237,7 +237,7 @@ public class ThriftAuthenticationServiceComponent {
                 clientTimeout = Integer.parseInt(clientTimeoutElement.getText());
             } catch (Throwable e) {
                 String msg = "Error, in Thrift Auth Client Timeout, hence using the default timeout: " + ThriftAuthenticationConstants.DEFAULT_CLIENT_TIMEOUT + "ms";
-                log.error(msg + e);
+                log.error(msg, e);
                 clientTimeout = ThriftAuthenticationConstants.DEFAULT_CLIENT_TIMEOUT;
             }
         } else {

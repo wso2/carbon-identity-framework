@@ -199,7 +199,8 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
             throws DefaultAuthSeqMgtException {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(sequenceName);
+            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance()
+                    .getValueFromCache(sequenceName, tenantDomain);
             if (entry != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Default authentication sequence of tenant: " + tenantDomain +
@@ -315,7 +316,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
             DefaultAuthSeqMgtCacheEntry entry = new DefaultAuthSeqMgtCacheEntry(sequence);
-            DefaultAuthSeqMgtCache.getInstance().addToCache(sequence.getName(), entry);
+            DefaultAuthSeqMgtCache.getInstance().addToCache(sequence.getName(), entry, tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Default authentication sequence for tenant: " + tenantDomain + " is added to cache.");
             }
@@ -325,7 +326,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
     private void removeDefaultAuthSeqFromCache(String sequenceName, String tenantDomain) {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCache.getInstance().clearCacheEntry(sequenceName);
+            DefaultAuthSeqMgtCache.getInstance().clearCacheEntry(sequenceName, tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("Default authentication sequence for tenant: " + tenantDomain + " is removed from cache.");
             }
@@ -335,7 +336,8 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
     private DefaultAuthenticationSequence getDefaultAuthSeqFromCache(String sequenceName, String tenantDomain) {
 
         if (DefaultAuthSeqMgtCache.getInstance().isEnabled()) {
-            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance().getValueFromCache(sequenceName);
+            DefaultAuthSeqMgtCacheEntry entry = DefaultAuthSeqMgtCache.getInstance()
+                    .getValueFromCache(sequenceName, tenantDomain);
             if (entry != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Default authentication sequence of tenant: " + tenantDomain +
@@ -608,7 +610,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
     private void clearServiceProviderCache(String tenantDomain) {
 
-        IdentityServiceProviderCache.getInstance().clear();
+        IdentityServiceProviderCache.getInstance().clear(tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug("Clearing ServiceProviderCache of tenant: " + tenantDomain);
         }

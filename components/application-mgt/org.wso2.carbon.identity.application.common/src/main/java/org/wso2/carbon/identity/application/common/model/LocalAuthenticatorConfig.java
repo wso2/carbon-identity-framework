@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -56,6 +58,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
+    @XmlElement(name = "Tags")
+    protected String[] tags;
+
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
      * <Properties></Properties> </LocalAuthenticatorConfig>
@@ -82,6 +87,9 @@ public class LocalAuthenticatorConfig implements Serializable {
                 if (member.getText() != null && member.getText().trim().length() > 0) {
                     localAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
                 }
+            } else if (IdentityConstants.TAGS.equals(member.getLocalName())) {
+                String[] tagList = StringUtils.split(member.getText(), ",");
+                localAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(member.getLocalName())) {
 
                 Iterator<?> propertiesIter = member.getChildElements();
@@ -193,5 +201,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
+    }
+
+    /**
+     * Get the tag list of the Local authenticator.
+     *
+     * @return String[]
+     */
+    public String[] getTags() {
+
+        return tags;
+    }
+
+    /**
+     * Set the tag list for Local authenticator config.
+     *
+     * @param tagList tag list of the authenticator.
+     */
+    public void setTags(String[] tagList) {
+
+        tags = tagList;
     }
 }

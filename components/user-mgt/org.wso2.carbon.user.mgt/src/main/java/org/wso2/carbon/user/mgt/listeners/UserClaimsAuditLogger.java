@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+
 /**
  * User operation listener which takes the claim changes and logs into "Audit" log.
  * The claim values available with config found in "identity.xml" under key
@@ -56,6 +58,15 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private String[] loggableClaimURIs;
     private static final String DEFAULT = "default";
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/role";
+
+    @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !isLegacyAuditLogsDisabled();
+        }
+        return false;
+    }
 
     @Override
     public int getExecutionOrderId() {

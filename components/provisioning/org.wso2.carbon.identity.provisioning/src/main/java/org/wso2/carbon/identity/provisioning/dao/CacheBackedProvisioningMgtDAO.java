@@ -68,7 +68,7 @@ public class CacheBackedProvisioningMgtDAO {
 
 
         ProvisioningEntityCacheKey cacheKey = new ProvisioningEntityCacheKey(identityProviderName, connectorType,
-                provisioningEntity, tenantDomain);
+                provisioningEntity);
         ProvisioningEntityCacheEntry entry = new ProvisioningEntityCacheEntry();
 
         ProvisioningEntity cachedProvisioningEntity = new ProvisioningEntity(provisioningEntity.getEntityType(),
@@ -76,7 +76,7 @@ public class CacheBackedProvisioningMgtDAO {
         ProvisionedIdentifier provisionedIdentifier = provisioningEntity.getIdentifier();
         cachedProvisioningEntity.setIdentifier(provisionedIdentifier);
         entry.setProvisioningEntity(cachedProvisioningEntity);
-        provisioningEntityCache.addToCache(cacheKey, entry);
+        provisioningEntityCache.addToCache(cacheKey, entry, tenantDomain);
 
     }
 
@@ -92,8 +92,8 @@ public class CacheBackedProvisioningMgtDAO {
             throws IdentityApplicationManagementException {
 
         ProvisioningEntityCacheKey cacheKey = new ProvisioningEntityCacheKey(identityProviderName, connectorType,
-                provisioningEntity, tenantDomain);
-        ProvisioningEntityCacheEntry entry = provisioningEntityCache.getValueFromCache(cacheKey);
+                provisioningEntity);
+        ProvisioningEntityCacheEntry entry = provisioningEntityCache.getValueFromCache(cacheKey, tenantDomain);
 
         if (entry != null) {
             if (log.isDebugEnabled()) {
@@ -132,7 +132,7 @@ public class CacheBackedProvisioningMgtDAO {
 
                 entry = new ProvisioningEntityCacheEntry();
                 entry.setProvisioningEntity(cachedProvisioningEntity);
-                provisioningEntityCache.addToCache(cacheKey, entry);
+                provisioningEntityCache.addToCache(cacheKey, entry, tenantDomain);
 
                 return provisionedIdentifier;
             } else {
@@ -161,8 +161,8 @@ public class CacheBackedProvisioningMgtDAO {
             throws IdentityApplicationManagementException {
 
         ProvisioningEntityCacheKey cacheKey = new ProvisioningEntityCacheKey(identityProviderName, connectorType,
-                provisioningEntity, tenantDomain);
-        ProvisioningEntityCacheEntry entry = provisioningEntityCache.getValueFromCache(cacheKey);
+                provisioningEntity);
+        ProvisioningEntityCacheEntry entry = provisioningEntityCache.getValueFromCache(cacheKey, tenantDomain);
         if (entry != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache entry found for Provisioning Entity : " +
@@ -172,7 +172,7 @@ public class CacheBackedProvisioningMgtDAO {
                         "&& provisioningEntityName=" + provisioningEntity.getEntityName() +
                         ". Hence remove from cache");
             }
-            provisioningEntityCache.clearCacheEntry(cacheKey);
+            provisioningEntityCache.clearCacheEntry(cacheKey, tenantDomain);
         }
 
         provisioningMgtDAO.deleteProvisioningEntity(identityProviderName, connectorType, provisioningEntity, tenantId);

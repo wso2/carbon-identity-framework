@@ -18,10 +18,14 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -35,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -65,6 +70,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -79,6 +85,9 @@ public class ApplicationMgtUtil {
     // Does not allow leading and trailing whitespaces.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$";
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
+    public static final String MASKING_CHARACTER = "*";
+    public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -100,6 +109,25 @@ public class ApplicationMgtUtil {
             }
         }
         return permissionSet;
+    }
+
+    /**
+     * Check whether validate roles is enabled via ApplicationMgt.EnableRoleValidation configuration in the
+     * identity.xml.
+     *
+     * @return True if the config is set to true or if the config is not specified in the identity.xml.
+     */
+    public static boolean validateRoles() {
+
+        String allowRoleValidationProperty = IdentityUtil.getProperty(ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY);
+        if (StringUtils.isBlank(allowRoleValidationProperty)) {
+            /*
+            This means the configuration does not exist in the identity.xml. In that case, true needs to be
+            returned to preserve backward compatibility.
+             */
+            return true;
+        }
+        return Boolean.parseBoolean(allowRoleValidationProperty);
     }
 
     public static boolean isUserAuthorized(String applicationName, String username, int applicationID)
@@ -125,6 +153,14 @@ public class ApplicationMgtUtil {
     public static boolean isUserAuthorized(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Validating user with application roles is disabled. Therefore, " +
+                        "user: %s will be authorized for application: %s", username, applicationName));
+            }
+            return true;
+        }
         String applicationRoleName = getAppRoleName(applicationName);
         try {
             if (log.isDebugEnabled()) {
@@ -160,6 +196,14 @@ public class ApplicationMgtUtil {
     public static void createAppRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating user with application roles is disabled. Therefore, the application " +
+                        "role will not be created for application: " + applicationName);
+            }
+            return;
+        }
         String roleName = getAppRoleName(applicationName);
         String[] usernames = {username};
         UserStoreManager userStoreManager = null;
@@ -254,15 +298,43 @@ public class ApplicationMgtUtil {
     public static void deleteAppRole(String applicationName) throws IdentityApplicationManagementException {
 
         String roleName = getAppRoleName(applicationName);
-
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting application role : " + roleName);
+        }
+        UserStoreManager userStoreManager;
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("Deleting application role : " + roleName);
-            }
-            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
-                    .deleteRole(roleName);
+            userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error while creating application", e);
+            throw new IdentityApplicationManagementException(String.format("Error while getting the userstoreManager " +
+                    "to delete the application role: %s for application: %s", roleName, applicationName), e);
+        }
+        try {
+            userStoreManager.deleteRole(roleName);
+        } catch (Exception e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Initial attempt to delete the role: %s failed for application: %s. " +
+                    "Retrying again", roleName, applicationName), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    userStoreManager.deleteRole(roleName);
+                    isOperationFailed = false;
+                    log.info(String.format("Role: %s deleted for application: %s in the retry attempt: %s", roleName,
+                            applicationName, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete role: %s for application: %s",
+                            attempt, roleName, applicationName), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("Error occurred while trying to " +
+                        "delete the application role: %s for application: %s", roleName, applicationName), e);
+            }
         }
     }
 
@@ -559,16 +631,41 @@ public class ApplicationMgtUtil {
         String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
-
         try {
             boolean exist = tenantGovReg.resourceExists(applicationNode);
-
-            if (exist) {
-                tenantGovReg.delete(applicationNode);
+            if (!exist) {
+                return;
             }
-
-        } catch (RegistryException e) {
-            throw new IdentityApplicationManagementException("Error while storing permissions", e);
+            tenantGovReg.delete(applicationNode);
+        } catch (Exception e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Error occurred while trying to delete permissions for application: %s. Retrying " +
+                    "again", applicationName), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    boolean exist = tenantGovReg.resourceExists(applicationNode);
+                    if (!exist) {
+                        return;
+                    }
+                    tenantGovReg.delete(applicationNode);
+                    isOperationFailed = false;
+                    log.info(String.format("Permissions deleted application: %s in the retry attempt: %s",
+                            applicationName, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete permission for application: %s",
+                            attempt, applicationName), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException("Error while deleting permissions for application: " +
+                        applicationName, e);
+            }
         }
     }
 
@@ -685,14 +782,22 @@ public class ApplicationMgtUtil {
                 }
                 boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
                 if (!isUserExist) {
-                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
-                            "application: " +
-                            serviceProvider.getApplicationName() + " as user is not existing.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Owner does not exist for application: " + serviceProvider.getApplicationName() +
+                                ". Hence making the tenant admin the owner of the application.");
+                    }
+                    // Since the SP owner does not exist, set the tenant admin user as the owner.
+                    User owner = new User();
+                    owner.setUserName(realm.getRealmConfiguration().getAdminUserName());
+                    owner.setUserStoreDomain(realm.getRealmConfiguration().
+                            getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    owner.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    serviceProvider.setOwner(owner);
                 }
             } else {
                 return false;
             }
-        } catch (UserStoreException | IdentityApplicationManagementException e) {
+        } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
                     "application: " +
                     serviceProvider.getApplicationName(), e);
@@ -773,6 +878,103 @@ public class ApplicationMgtUtil {
         }
 
         return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
+    }
+
+    /**
+     * Get the application id from service provider object.
+     *
+     * @param serviceProvider Service provider object.
+     * @return Id of the service provider.
+     */
+    public static String getAppId(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null) {
+            return serviceProvider.getApplicationResourceId();
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Get the application name from service provider object.
+     *
+     * @param serviceProvider Service provider object.
+     * @return Name of the service provider.
+     */
+    public static String getApplicationName(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null) {
+            return serviceProvider.getApplicationName();
+        }
+        return "Undefined";
+    }
+
+    /**
+     * Get the initiator id.
+     *
+     * @param userName     Username of the initiator.
+     * @param tenantDomain Tenant domain of the initiator.
+     * @return User id of the initiator.
+     */
+    public static String getInitiatorId(String userName, String tenantDomain) {
+
+        String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        if (userId == null) {
+            String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
+            String username = UserCoreUtil.removeDomainFromName(userName);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            try {
+                userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+            } catch (IdentityException e) {
+               log.error("Error occurred while resolving Id for the user: " + username);
+            }
+        }
+        return userId;
+    }
+
+    /**
+     * Build the service provider JSON string masking the sensitive information.
+     *
+     * @param serviceProvider Service provider object.
+     * @return JSON string of the service provider object.
+     */
+    public static String buildSPData(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            return StringUtils.EMPTY;
+        }
+        try {
+            JSONObject serviceProviderJSONObject =
+                    new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
+            JSONObject inboundAuthenticationConfig =
+                    serviceProviderJSONObject.optJSONObject("inboundAuthenticationConfig");
+            if (inboundAuthenticationConfig != null) {
+                JSONArray inboundAuthenticationRequestConfigsArray =
+                        inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
+                if (inboundAuthenticationRequestConfigsArray != null) {
+                    for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
+                        JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
+                        JSONArray properties = requestConfig.optJSONArray("properties");
+                        if (properties != null) {
+                            for (int j = 0; j < properties.length(); j++) {
+                                JSONObject property = properties.optJSONObject(j);
+                                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
+                                        (String) property.get("name"))) {
+                                    if (property.get("value") != null) {
+                                        String secret = property.get("value").toString();
+                                        String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
+                                        property.put("value", maskedSecret);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return serviceProviderJSONObject.toString();
+        } catch (JsonProcessingException e) {
+            log.error("Error while converting service provider object to json.");
+        }
+        return StringUtils.EMPTY;
     }
 
 }

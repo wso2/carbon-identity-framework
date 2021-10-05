@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -30,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -37,34 +37,37 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request
-        .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
 
+/**
+ * Post authentication handler for missing claims.
+ */
 public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthnMissingClaimHandler.class);
-    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile PostAuthnMissingClaimHandler instance;
 
     public static PostAuthnMissingClaimHandler getInstance() {
@@ -113,7 +116,15 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     context);
             return flowStatus;
         } else {
-            handlePostAuthenticationForMissingClaimsResponse(request, response, context);
+            try {
+                handlePostAuthenticationForMissingClaimsResponse(request, response, context);
+            } catch (PostAuthenticationFailedException e) {
+                if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
+                    PostAuthnHandlerFlowStatus flowStatus =
+                            handlePostAuthenticationForMissingClaimsRequest(request, response, context);
+                    return flowStatus;
+                }
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
             }
@@ -122,7 +133,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
     }
 
-    private boolean isPostAuthRequestTriggered(AuthenticationContext context) {
+    protected boolean isPostAuthRequestTriggered(AuthenticationContext context) {
 
         Object object = context.getProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED);
         boolean postAuthRequestTriggered = false;
@@ -132,7 +143,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return postAuthRequestTriggered;
     }
 
-    private PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
+    protected PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
                                                                                        HttpServletResponse response,
                                                                                        AuthenticationContext context)
             throws PostAuthenticationFailedException {
@@ -167,6 +178,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
+                if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
+                    uriBuilder.addParameter("errorMessage",
+                            context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR).toString());
+                    context.removeProperty(POST_AUTH_MISSING_CLAIMS_ERROR);
+                }
                 response.sendRedirect(uriBuilder.build().toString());
                 context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
 
@@ -189,7 +205,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         }
     }
 
-    private void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
+    protected void handlePostAuthenticationForMissingClaimsResponse(HttpServletRequest request, HttpServletResponse
             response, AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (log.isDebugEnabled()) {
@@ -218,7 +234,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
             if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
 
-                String localClaimURI = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                String localClaimURI
+                        = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
                 claims.put(localClaimURI, entry.getValue()[0]);
 
                 if (spToCarbonClaimMappingObject != null) {
@@ -253,7 +270,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                                 .getTenantDomain(), stepConfig.getAuthenticatedIdP(), subject);
                         if (StringUtils.isNotBlank(associatedID)) {
                             String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER
+                                            + context.getTenantDomain());
                             UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedID));
                             user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
                                     fullQualifiedAssociatedUserId);
@@ -285,25 +303,46 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Updating user profile of user : " + user.getUserName());
+                    log.debug("Updating user profile of user : " + user.getLoggableUserId());
                 }
 
                 UserRealm realm = getUserRealm(user.getTenantDomain());
-                UserStoreManager userStoreManager =
-                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
+                AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
 
-                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
+                userStoreManager.setUserClaimValuesWithID(user.getUserId(), localIdpClaims, null);
             } catch (UserStoreException e) {
+                if (e instanceof UserStoreClientException) {
+                    context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
+                    /*
+                    When the attribute update is disabled for JIT provisioned users, the mandatory claim update
+                    request will be identified through the error code and handled it.
+                     */
+                    if (ERROR_CODE_INVALID_ATTRIBUTE_UPDATE.equals(e.getErrorCode())) {
+                        context.getSequenceConfig().getAuthenticatedUser().
+                                setUserAttributes(authenticatedUserAttributes);
+                        return;
+                    }
+                }
+                if (ErrorMessages.ERROR_CODE_READONLY_USER_STORE.getCode().
+                        equals(e.getErrorCode())) {
+                    context.getSequenceConfig().getAuthenticatedUser().
+                            setUserAttributes(authenticatedUserAttributes);
+                    return;
+                }
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);
+            } catch (UserIdNotFoundException e) {
+                throw new PostAuthenticationFailedException(
+                        "User id not found",
+                        "User id not found for local user. Could not update profile", e);
             }
         }
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
     }
 
 
-    private UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
+    protected UserRealm getUserRealm(String tenantDomain) throws PostAuthenticationFailedException {
 
         UserRealm realm;
         try {
@@ -317,7 +356,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return realm;
     }
 
-    private AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
+    protected AuthenticatedUser getAuthenticatedUser(AuthenticationContext authenticationContext) {
 
         AuthenticatedUser user = authenticationContext.getSequenceConfig().getAuthenticatedUser();
         return user;

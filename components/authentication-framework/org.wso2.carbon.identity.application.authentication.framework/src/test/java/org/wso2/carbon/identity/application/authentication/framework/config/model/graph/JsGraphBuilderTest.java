@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import org.mockito.Mock;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -53,7 +55,6 @@ import static org.testng.Assert.assertTrue;
 @Test
 public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
-    protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 
     @Mock
@@ -70,6 +71,14 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         initMocks(this);
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.init();
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+    }
+
+    @AfterTest
+    public void teardown() {
+
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
     }
 
     @Test
@@ -145,8 +154,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.filterOptions(options, stepConfig);
-        assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter, "Authentication options after " +
-            "filtering mismatches expected. " + options.toString());
+        assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter,
+                "Authentication options after filtering mismatches expected. " + options);
     }
 
     @DataProvider
@@ -365,7 +374,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
                 {singleParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "foo", "xyz"},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user"},
-                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator","domain", "localhost"}
+                {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator", "domain",
+                        "localhost"}
         };
     }
 }

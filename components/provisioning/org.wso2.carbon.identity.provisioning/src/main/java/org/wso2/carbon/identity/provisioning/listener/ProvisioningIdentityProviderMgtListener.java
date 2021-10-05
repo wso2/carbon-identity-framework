@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.provisioning.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
@@ -36,7 +35,6 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
 
@@ -54,6 +52,19 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
             throw new IdentityProviderManagementException("Error when provisioning IDP deletion", e);
         }
         return true;
+    }
+
+    /**
+     * Clear Provisioning Connector Cache before deleting IDPs.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs.
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+        return super.doPreDeleteIdPs(tenantDomain);
     }
 
     @Override
@@ -76,74 +87,67 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
     public void destroyConnector(String identityProviderName, String tenantDomain)
             throws IdentityProvisioningException {
 
+        ProvisioningConnectorCacheKey cacheKey =
+                new ProvisioningConnectorCacheKey(identityProviderName);
+        ProvisioningConnectorCacheEntry entry =
+                ProvisioningConnectorCache.getInstance().getValueFromCache(cacheKey, tenantDomain);
+
+        if (entry != null) {
+            ProvisioningConnectorCache.getInstance().clearCacheEntry(cacheKey, tenantDomain);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Provisioning cached entry removed for idp " + identityProviderName);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Provisioning cached entry not found for idp " + identityProviderName);
+            }
+        }
+
+        int tenantId;
+
         try {
+            RealmService realmService = ProvisioningServiceDataHolder.getInstance().getRealmService();
+            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityProvisioningException
+                    ("Error occurred while retrieving tenant id from tenant domain", e);
+        }
 
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                    .getThreadLocalCarbonContext();
-            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        try {
+            List<String> serviceProviders = provisioningManagementDAO.getSPNamesOfProvisioningConnectorsByIDP
+                    (identityProviderName, tenantId);
 
-            ProvisioningConnectorCacheKey cacheKey = new ProvisioningConnectorCacheKey(identityProviderName, tenantDomain);
-            ProvisioningConnectorCacheEntry entry = ProvisioningConnectorCache.getInstance().getValueFromCache(cacheKey);
+            for (String serviceProvider : serviceProviders) {
 
-            if (entry != null) {
-                ProvisioningConnectorCache.getInstance().clearCacheEntry(cacheKey);
+                ServiceProviderProvisioningConnectorCacheKey key = new ServiceProviderProvisioningConnectorCacheKey
+                        (serviceProvider);
+                ServiceProviderProvisioningConnectorCacheEntry cacheEntry =
+                        ServiceProviderProvisioningConnectorCache.getInstance()
+                                .getValueFromCache(key, tenantDomain);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Provisioning cached entry removed for idp " + identityProviderName);
-                }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Provisioning cached entry not found for idp " + identityProviderName);
-                }
-            }
+                if (cacheEntry != null) {
+                    ServiceProviderProvisioningConnectorCache.getInstance().clearCacheEntry(key, tenantDomain);
 
-            int tenantId;
-
-            try {
-                RealmService realmService = ProvisioningServiceDataHolder.getInstance().getRealmService();
-                tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            } catch (UserStoreException e) {
-                throw new IdentityProvisioningException
-                        ("Error occurred while retrieving tenant id from tenant domain", e);
-            }
-
-            try {
-                List<String> serviceProviders = provisioningManagementDAO.getSPNamesOfProvisioningConnectorsByIDP
-                        (identityProviderName, tenantId);
-
-                for (String serviceProvider : serviceProviders) {
-
-                    ServiceProviderProvisioningConnectorCacheKey key = new ServiceProviderProvisioningConnectorCacheKey
-                            (serviceProvider, tenantDomain);
-                    ServiceProviderProvisioningConnectorCacheEntry cacheEntry =
-                            ServiceProviderProvisioningConnectorCache.getInstance().getValueFromCache(key);
-
-                    if (cacheEntry != null) {
-                        ServiceProviderProvisioningConnectorCache.getInstance().clearCacheEntry(key);
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Service Provider '" + serviceProvider +
-                                    "' Provisioning cached entry removed for idp " + identityProviderName);
-                        }
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Service Provider '" + serviceProvider +
-                                    "' Provisioning cached entry not found for idp " + identityProviderName);
-                        }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Service Provider '" + serviceProvider +
+                                "' Provisioning cached entry removed for idp " + identityProviderName);
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Service Provider '" + serviceProvider +
+                                "' Provisioning cached entry not found for idp " + identityProviderName);
                     }
                 }
-            } catch (IdentityApplicationManagementException e) {
-                throw new IdentityProvisioningException("Error occurred while removing cache entry from the " +
-                        "service provider provisioning connector cache", e);
             }
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityProvisioningException("Error occurred while removing cache entry from the " +
+                    "service provider provisioning connector cache", e);
         }
     }
 
-    public int getDefaultOrderId(){
+    public int getDefaultOrderId() {
+
         return 20;
     }
 }

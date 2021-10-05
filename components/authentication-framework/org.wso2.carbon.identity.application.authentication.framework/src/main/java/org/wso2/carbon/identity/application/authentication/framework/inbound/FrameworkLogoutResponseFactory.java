@@ -22,11 +22,14 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Framework logout factory.
+ */
 public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
     public boolean canHandle(IdentityResponse identityResponse) {
-        if(identityResponse instanceof FrameworkLogoutResponse) {
+        if (identityResponse instanceof FrameworkLogoutResponse) {
             return true;
         }
         return false;
@@ -45,7 +48,7 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
     public void create(
             HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
 
-        FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
+        FrameworkLogoutResponse response = (FrameworkLogoutResponse) identityResponse;
 
         builder.setStatusCode(HttpServletResponse.SC_FOUND);
         builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,

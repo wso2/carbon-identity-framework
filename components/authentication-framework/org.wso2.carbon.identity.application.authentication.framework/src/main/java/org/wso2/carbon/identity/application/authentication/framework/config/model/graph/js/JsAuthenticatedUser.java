@@ -23,14 +23,17 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.List;
 
 /**
  * Javascript wrapper for Java level AuthenticatedUser.
@@ -124,6 +127,13 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
+            case FrameworkConstants.JSAttributes.JS_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new JsRuntimeClaims(getContext(), step, idp);
+                } else {
+                    // Represent step independent user
+                    return new JsRuntimeClaims(getContext(), getWrapped());
+                }
             default:
                 return super.getMember(name);
         }
@@ -138,9 +148,6 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 break;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
                 getWrapped().setUserStoreDomain((String) value);
-                break;
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                getWrapped().setTenantDomain((String) value);
                 break;
             default:
                 super.setMember(name, value);
@@ -175,12 +182,15 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             int usersTenantId = IdentityTenantUtil.getTenantId(getWrapped().getTenantDomain());
 
             try {
-                String usernameWithDomain = UserCoreUtil.addDomainToName(getWrapped().getUserName(), getWrapped()
-                    .getUserStoreDomain());
                 UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-                return userRealm.getUserStoreManager().getRoleListOfUser(usernameWithDomain);
+                List<String> roleListOfUser =
+                        ((AbstractUserStoreManager) userRealm.getUserStoreManager())
+                                .getRoleListOfUserWithID(getWrapped().getUserId());
+                return roleListOfUser.toArray(new String[0]);
             } catch (UserStoreException e) {
                 LOG.error("Error when getting role list of user: " + getWrapped(), e);
+            } catch (UserIdNotFoundException e) {
+                LOG.error("User id is not available for user: " + getWrapped().getLoggableUserId(), e);
             }
         }
         return ArrayUtils.EMPTY_STRING_ARRAY;

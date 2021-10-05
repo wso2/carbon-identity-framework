@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
-import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import java.util.ArrayList;
@@ -147,20 +146,6 @@ public class IdentityEventServiceComponent {
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
-    }
-
-    protected void unsetIdpManager(IdpManager idpManager) {
-        IdentityEventServiceDataHolder.getInstance().setIdpManager(null);
-    }
-
-    @Reference(
-             name = "IdentityProviderManager", 
-             service = org.wso2.carbon.idp.mgt.IdpManager.class, 
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetIdpManager")
-    protected void setIdpManager(IdpManager idpManager) {
-        IdentityEventServiceDataHolder.getInstance().setIdpManager(idpManager);
     }
 }
 

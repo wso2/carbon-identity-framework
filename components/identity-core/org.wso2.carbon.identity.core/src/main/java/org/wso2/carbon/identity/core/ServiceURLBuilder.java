@@ -71,6 +71,18 @@ public interface ServiceURLBuilder {
      */
     ServiceURLBuilder addFragmentParameter(String key, String value);
 
+
+    /**
+     * Returns {@link ServiceURLBuilder} with tenant domain set for the context.
+     *
+     * @param tenantDomain Tenant domain
+     * @return {@link ServiceURLBuilder}.
+     */
+    default ServiceURLBuilder setTenant(String tenantDomain) {
+
+        return this;
+    }
+
     /**
      * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
      * root and the tenant domain (appended if required).

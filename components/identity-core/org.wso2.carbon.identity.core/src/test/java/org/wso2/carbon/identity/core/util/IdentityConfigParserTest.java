@@ -72,6 +72,12 @@ public class IdentityConfigParserTest {
                 "holder should not be null/empty");
     }
 
+    @Test(dependsOnMethods = "testGetInstance")
+    public void testGetReverseProxyConfigurationHolder() throws Exception {
+        assertTrue(MapUtils.isNotEmpty(IdentityConfigParser.getReverseProxyConfigurationHolder()), "Reverse " +
+                "Proxy config holder should not be null/empty");
+    }
+
     @DataProvider(name = "ConfigElementValues")
     public Object[][] getConfigElement() {
         return new Object[][]{

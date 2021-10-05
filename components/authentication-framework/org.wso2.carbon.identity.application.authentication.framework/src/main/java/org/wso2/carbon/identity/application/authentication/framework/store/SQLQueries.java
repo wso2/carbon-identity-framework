@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import static org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl.SCOPE_LIST_PLACEHOLDER;
+
 /**
  * This class holds the SQL queries used by {@link UserSessionStore}.
  */
@@ -72,11 +74,42 @@ public class SQLQueries {
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
 
+    public static final String SQL_SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
+
     // Retrieve application id given the name and the tenant id.
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
 
-    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO =
-            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?,?,?,?)";
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO KEY(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) VALUES(?, ?, ?, ?)";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
+                    "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "ON (T.SESSION_ID = S.SESSION_ID AND " +
+                    "T.SUBJECT = S.SUBJECT AND " +
+                    "T.APP_ID = S.APP_ID AND " +
+                    "T.INBOUND_AUTH_TYPE = S.INBOUND_AUTH_TYPE ) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "VALUES (S.SESSION_ID,S.SUBJECT,S.APP_ID,S.INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES " +
+                    "(?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "SESSION_ID= VALUES(SESSION_ID), SUBJECT= VALUES(SUBJECT), APP_ID = VALUES(APP_ID), " +
+                    "INBOUND_AUTH_TYPE = VALUES(INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?, ?, ?, ?) " +
+                    "ON CONFLICT(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) DO UPDATE SET " +
+                    "SESSION_ID = EXCLUDED.SESSION_ID, SUBJECT = EXCLUDED.SUBJECT, APP_ID = EXCLUDED.APP_ID, " +
+                    "INBOUND_AUTH_TYPE = EXCLUDED.INBOUND_AUTH_TYPE;";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO USING dual ON " +
+                    "(SESSION_ID = ? AND SUBJECT = ? AND APP_ID = ? AND INBOUND_AUTH_TYPE = ?) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID, SUBJECT, APP_ID, INBOUND_AUTH_TYPE) " +
+                    "VALUES (?, ?, ?, ?)";
 
     public static final String SQL_CHECK_IDN_AUTH_SESSION_APP_INFO =
             "SELECT 1 FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +
@@ -104,9 +137,11 @@ public class SQLQueries {
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
 
     // Retrieve data for the Application model.
-    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME, APP_ID FROM " +
-            "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
-            "SESSION_ID = ?";
+    public static final String SQL_GET_APPS_FOR_SESSION_ID = "SELECT SUBJECT, APP_ID FROM IDN_AUTH_SESSION_APP_INFO " +
+            "WHERE SESSION_ID = ?";
+
+    public static final String SQL_GET_APPLICATION = "SELECT ID, APP_NAME, UUID FROM SP_APP WHERE ID IN (" +
+            SCOPE_LIST_PLACEHOLDER + ")";
 
     public static final String SQL_GET_SESSIONS_BY_USER = "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
             "WHERE USER_ID = (SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND " +
@@ -120,7 +155,25 @@ public class SQLQueries {
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
+    // Get federated authentication session id using the idp session id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID = "SELECT SESSION_ID FROM " +
+            "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
+
+    // Get federated authentication session details using the IDP session id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
+            "SELECT IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE FROM " +
+                    "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
+
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
             + " WHERE SESSION_ID=?";
+
+    public static final String SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT =
+            "SELECT COUNT( DISTINCT IDN_AUTH_SESSION_META_DATA.SESSION_ID) " +
+                    "FROM IDN_AUTH_SESSION_META_DATA INNER JOIN IDN_AUTH_USER_SESSION_MAPPING " +
+                    "ON IDN_AUTH_SESSION_META_DATA.SESSION_ID = IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID " +
+                    "INNER JOIN IDN_AUTH_SESSION_STORE " +
+                    "ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_SESSION_STORE.SESSION_ID " +
+                    "WHERE IDN_AUTH_SESSION_META_DATA.PROPERTY_TYPE = ? AND IDN_AUTH_SESSION_META_DATA.VALUE " +
+                    "BETWEEN ? AND ? AND IDN_AUTH_SESSION_STORE.TENANT_ID = ? ";
 }

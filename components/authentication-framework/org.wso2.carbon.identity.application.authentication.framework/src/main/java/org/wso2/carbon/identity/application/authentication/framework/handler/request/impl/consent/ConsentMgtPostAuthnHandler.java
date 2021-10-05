@@ -46,10 +46,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -67,7 +66,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final String HTTP_WSO2_ORG_OIDC_CLAIM = "http://wso2.org/oidc/claim";
-    private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+    private static final String HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY
+            = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     private static final String HTTP_AXSCHEMA_ORG = "http://axschema.org";
     private static final String URN_SCIM_SCHEMAS_CORE_1_0 = "urn:scim:schemas:core:1.0";
     private static final String CONSENT_PROMPTED = "consentPrompted";
@@ -77,7 +77,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String CONSENT_CLAIM_META_DATA = "consentClaimMetaData";
     private static final String REQUEST_TYPE_OAUTH2 = "oauth2";
     private static final String SP_NAME_DEFAULT = "DEFAULT";
-    private static final Log log = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
+    private static final String USER_CONSENT_INPUT = "consent";
+    private static final String USER_CONSENT_APPROVE = "approve";
+    private static final String LOGIN_ENDPOINT = "login.do";
+    private static final String CONSENT_ENDPOINT = "consent.do";
+    private static final Log LOG = LogFactory.getLog(ConsentMgtPostAuthnHandler.class);
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
@@ -123,12 +127,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private boolean isDebugEnabled() {
 
-        return log.isDebugEnabled();
+        return LOG.isDebugEnabled();
     }
 
     private void logDebug(String message) {
 
-        log.debug(message);
+        LOG.debug(message);
     }
 
     protected PostAuthnHandlerFlowStatus handlePreConsent(HttpServletRequest request, HttpServletResponse response,
@@ -136,6 +140,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             throws PostAuthenticationFailedException {
 
         String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        Map<String, String> claimMappings = context.getSequenceConfig().getApplicationConfig().getClaimMappings();
 
         // Due to: https://github.com/wso2/product-is/issues/2317.
         // Should be removed once the issue is fixed
@@ -158,10 +163,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 logDebug(message);
             }
 
-            if (isNotEmpty(consentClaimsData.getClaimsWithConsent())) {
-                removeClaimsWithoutConsent(context, consentClaimsData);
-            }
-
+            removeClaimsWithoutConsent(context, consentClaimsData);
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData.setRequestedClaims(
+                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                            authenticatedUser.getUserAttributes(), claimMappings));
             if (hasConsentForRequiredClaims(consentClaimsData)) {
 
                 if (isDebugEnabled()) {
@@ -214,11 +220,42 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private void removeClaimsWithoutConsent(AuthenticationContext context, ConsentClaimsData consentClaimsData)
             throws PostAuthenticationFailedException {
 
-        List<ClaimMetaData> claimsWithConsent = consentClaimsData.getClaimsWithConsent();
-        List<String> claimsURIsWithConsent = getClaimsFromMetaData(claimsWithConsent);
-        Set<String> claimsWithoutConsent = getClaimsWithoutConsent(claimsURIsWithConsent, context);
+        List<ClaimMetaData> approvedAndNewlyRequestedConsents = consentClaimsData.getClaimsWithConsent();
+        approvedAndNewlyRequestedConsents.addAll(consentClaimsData.getRequestedClaims());
+        approvedAndNewlyRequestedConsents.addAll(consentClaimsData.getMandatoryClaims());
+        List<String> claimsURIsOfApprovedAndNewlyRequestedConsents =
+                getClaimsFromMetaData(approvedAndNewlyRequestedConsents);
+        List<String> claimsWithoutConsent =
+                getClaimsWithoutConsent(claimsURIsOfApprovedAndNewlyRequestedConsents, context);
         String spStandardDialect = getStandardDialect(context);
-        removeUserClaimsFromContext(context, new ArrayList<>(claimsWithoutConsent), spStandardDialect);
+        removeUserClaimsFromContext(context, claimsWithoutConsent, spStandardDialect);
+    }
+
+    /**
+     * Filter out the requested claims with the user attributes.
+     *
+     * @param requestedClaims List of requested claims metadata.
+     * @param userAttributes  Authenticated users' attributes.
+     * @param claimMappings   Claim mappings of the application.
+     * @return Filtered claims with user attributes.
+     */
+    private List<ClaimMetaData> removeConsentRequestedNullUserAttributes(List<ClaimMetaData> requestedClaims,
+                                                                         Map<ClaimMapping, String> userAttributes,
+                                                                         Map<String, String> claimMappings) {
+
+        List<ClaimMetaData> filteredRequestedClaims = new ArrayList<>();
+        if (requestedClaims != null && userAttributes != null && claimMappings != null) {
+            for (ClaimMetaData claimMetaData : requestedClaims) {
+                for (Map.Entry<ClaimMapping, String> attribute : userAttributes.entrySet()) {
+                    if (claimMetaData.getClaimUri()
+                            .equals(claimMappings.get(attribute.getKey().getLocalClaim().getClaimUri()))) {
+                        filteredRequestedClaims.add(claimMetaData);
+                        break;
+                    }
+                }
+            }
+        }
+        return filteredRequestedClaims;
     }
 
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
@@ -238,16 +275,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spTenantDomain;
     }
 
-    private Set<String> getClaimsWithoutConsent(List<String> claimWithConsent, AuthenticationContext context)
+    private List<String> getClaimsWithoutConsent(List<String> approvedAndNewlyRequestedConsents,
+                                                 AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
-        List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
-        Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
-
-        consentClaims.removeAll(claimWithConsent);
-        consentClaims.removeAll(mandatoryClaims);
-        return consentClaims;
+        List<String> claimsWithoutConsent = getSPRequestedLocalClaims(context);
+        claimsWithoutConsent.removeAll(approvedAndNewlyRequestedConsents);
+        return claimsWithoutConsent;
     }
 
     private String buildConsentClaimString(List<ClaimMetaData> consentClaimsData) {
@@ -259,21 +293,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return joiner.toString();
     }
 
-    private Set<String> getUniqueLocalClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
-
-        return Stream.concat(requestedClaims.stream(), mandatoryClaims.stream()).collect
-                (Collectors.toSet());
-    }
-
     protected PostAuthnHandlerFlowStatus handlePostConsent(HttpServletRequest request, HttpServletResponse response,
                                                            AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        final String USER_CONSENT_INPUT = "consent";
-        final String USER_CONSENT_APPROVE = "approve";
-
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+        Map<String, String> claimMappings = applicationConfig.getClaimMappings();
         ServiceProvider serviceProvider = getServiceProvider(context);
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
             if (isDebugEnabled()) {
@@ -285,13 +311,16 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             }
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
-
+            // Remove the claims which dont have values given by the user.
+            consentClaimsData.setRequestedClaims(
+                    removeConsentRequestedNullUserAttributes(consentClaimsData.getRequestedClaims(),
+                    authenticatedUser.getUserAttributes(), claimMappings));
             try {
 
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
                 getSSOConsentService().processConsent(claimIdsWithConsent, serviceProvider, authenticatedUser,
                                                  consentClaimsData);
-                removeDisapprovedClaims(context, userConsent);
+                removeDisapprovedClaims(context, authenticatedUser);
             } catch (SSOConsentDisabledException e) {
                 String error = "Authentication Failure: Consent management is disabled for SSO.";
                 String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
@@ -356,11 +385,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return userConsent.getApprovedClaims().stream().map(ClaimMetaData::getId).collect(Collectors.toList());
     }
 
-    private void removeDisapprovedClaims(AuthenticationContext context, UserConsent userConsent) {
+    private void removeDisapprovedClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser)
+            throws SSOConsentServiceException, PostAuthenticationFailedException {
 
         String spStandardDialect = getStandardDialect(context);
-        List<String> disapprovedClaims = getClaimsFromMetaData(userConsent.getDisapprovedClaims());
-
+        List<String> claimWithConsent = getClaimsFromMetaData(getSSOConsentService().
+                getClaimsWithConsents(getServiceProvider(context), authenticatedUser));
+        List<String> disapprovedClaims = getClaimsWithoutConsent(claimWithConsent, context);
         if (isDebugEnabled()) {
             String message = "Removing disapproved claims: %s in the dialect: %s by user: %s for service provider: %s" +
                              " in tenant domain: %s.";
@@ -569,13 +600,10 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private URIBuilder getUriBuilder(AuthenticationContext context, String requestedLocalClaims, String
             mandatoryLocalClaims) throws URISyntaxException {
 
-        final String LOGIN_ENDPOINT = "login.do";
-        final String CONSENT_ENDPOINT = "consent.do";
-
-        String CONSENT_ENDPOINT_URL = ConfigurationFacade.getInstance()
+        String consentEndpointUrl = ConfigurationFacade.getInstance()
                 .getAuthenticationEndpointURL().replace(LOGIN_ENDPOINT, CONSENT_ENDPOINT);
         URIBuilder uriBuilder;
-        uriBuilder = new URIBuilder(CONSENT_ENDPOINT_URL);
+        uriBuilder = new URIBuilder(consentEndpointUrl);
 
         if (isNotBlank(requestedLocalClaims)) {
             if (isDebugEnabled()) {

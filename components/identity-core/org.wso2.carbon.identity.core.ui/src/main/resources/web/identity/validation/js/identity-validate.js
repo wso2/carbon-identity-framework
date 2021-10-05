@@ -76,7 +76,11 @@ function getPattern(pattern) {
             regex = /^(([^:/?#]+):)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?([^#])?/;
             break;
         case "invalid-username-search":
-            regex = /.*[&<>"]+.*/;
+            if (disallowedCharacterRegEx !== "null") {
+                regex = new RegExp(disallowedCharacterRegEx.replaceAll("&quot;","\""))
+            } else {
+                regex = /.*[&<>"]+.*/;
+            }
             break;
         default:
             regex = new RegExp(pattern);

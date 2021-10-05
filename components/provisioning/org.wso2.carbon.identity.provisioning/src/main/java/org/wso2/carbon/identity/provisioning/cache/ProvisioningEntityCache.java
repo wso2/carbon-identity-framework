@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.provisioning.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 
 public class ProvisioningEntityCache extends BaseCache<ProvisioningEntityCacheKey, ProvisioningEntityCacheEntry> {

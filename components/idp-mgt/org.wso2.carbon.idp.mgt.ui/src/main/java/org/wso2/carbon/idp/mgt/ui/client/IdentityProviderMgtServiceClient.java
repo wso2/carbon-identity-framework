@@ -22,6 +22,7 @@ import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig;
@@ -362,9 +363,9 @@ public class IdentityProviderMgtServiceClient {
             if (provisioningConnectorConfigs != null && provisioningConnectorConfigs.length > 0
                     && provisioningConnectorConfigs[0] != null) {
                 for (ProvisioningConnectorConfig config : provisioningConnectorConfigs) {
-                    if (!(("spml").equals(config.getName()) || ("scim").equals(config.getName())
-                            || ("salesforce").equals(config.getName()) ||
-                            ("googleapps").equals(config.getName()))) {
+                    if (!(StringUtils.equals("scim", config.getName()) ||
+                            StringUtils.equals("salesforce", config.getName()) ||
+                            StringUtils.equals("googleapps" , config.getName()))) {
                         provisioningConnectors.put(config.getName(), config);
                     }
 

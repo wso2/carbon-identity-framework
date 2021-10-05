@@ -26,11 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
-        .SessionManagementClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
-        .SessionManagementServerException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
@@ -39,14 +37,18 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 
 /**
  * This a service class used to manage user sessions.
@@ -64,9 +66,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
+                        userStoreDomain + " in tenant: " + tenantDomain);
+            }
             terminateSessionsByUserId(userId);
         } catch (SessionManagementException e) {
-            throw new UserSessionException("Error while terminating sessions of user.", e);
+            throw new UserSessionException("Error while terminating sessions of user:" + username +
+                    " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
         }
     }
 
@@ -92,8 +99,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
+                    log.debug("Provided user store manager for the user: " + username + " of userstore domain: " +
+                            userStoreDomain + ", is not an instance of the AbstractUserStore manager");
                 }
                 throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
@@ -128,7 +135,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
     private void validate(String username, String userStoreDomain, String tenantDomain) throws UserSessionException {
 
-        if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) || StringUtils.isBlank(tenantDomain)) {
+        if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain)
+                || StringUtils.isBlank(tenantDomain)) {
             throw new UserSessionException("Username, userstore domain or tenant domain cannot be empty");
         }
 
@@ -176,8 +184,27 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     null);
         }
         List<String> sessionIdList = getSessionIdListByUserId(userId);
+
+        boolean isSessionPreservingAtPasswordUpdateEnabled =
+                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+        String currentSessionId = "";
+        boolean isSessionTerminationSkipped = false;
+        if (isSessionPreservingAtPasswordUpdateEnabled) {
+            if (IdentityUtil.threadLocalProperties.get().get(CURRENT_SESSION_IDENTIFIER) != null) {
+                currentSessionId = (String) IdentityUtil.threadLocalProperties.get().get(CURRENT_SESSION_IDENTIFIER);
+            }
+            // Remove current sessionId from the list so that its termination is bypassed.
+            if (sessionIdList.remove(currentSessionId)) {
+                isSessionTerminationSkipped = true;
+            }
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of user: " + userId + ".");
+            if (isSessionTerminationSkipped) {
+                log.debug("Terminating the active sessions of user: " + userId + "except the current session.");
+            } else {
+                log.debug("Terminating all the active sessions of user: " + userId + ".");
+            }
         }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
@@ -220,7 +247,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
+            log.debug("Retrieving all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         return getActiveSessionList(getSessionIdListByUser(user, idpId));
@@ -235,7 +262,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
+            log.debug("Terminating all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
         terminateSessionsOfUser(sessionIdList);
@@ -261,7 +288,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (isUserSessionMappingExist(user, idpId, sessionId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
-                        user.getUserName() + " of user store domain: " + user.getUserStoreDomain() + ".");
+                        user.getLoggableUserId() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
@@ -305,8 +332,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug("Retrieving the list of sessions owned by the user: " + user.getUserName() + " of user " +
-                        "store domain: " + user.getUserStoreDomain() + ".");
+                log.debug("Retrieving the list of sessions owned by the user: " + user.getLoggableUserId()
+                        + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             return UserSessionStore.getInstance().getSessionId(user, idpId);
         } catch (UserSessionException e) {
@@ -327,7 +354,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
             if (sessionId != null) {
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                        FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
                     UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDTO.getSession(sessionId);

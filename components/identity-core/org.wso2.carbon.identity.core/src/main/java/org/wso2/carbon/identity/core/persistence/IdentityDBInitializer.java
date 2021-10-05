@@ -64,6 +64,8 @@ public class IdentityDBInitializer {
                     type = "derby";
                 } else if (databaseProductName.matches("(?i).*mysql.*")) {
                     type = "mysql";
+                } else if (databaseProductName.matches("(?i).*mariadb.*")) {
+                    type = "mariadb";
                 } else if (databaseProductName.matches("(?i).*oracle.*")) {
                     type = "oracle";
                 } else if (databaseProductName.matches("(?i).*microsoft.*")) {

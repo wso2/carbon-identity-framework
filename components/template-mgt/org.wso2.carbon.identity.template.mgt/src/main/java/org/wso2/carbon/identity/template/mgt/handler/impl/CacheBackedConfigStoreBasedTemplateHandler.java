@@ -20,12 +20,17 @@ package org.wso2.carbon.identity.template.mgt.handler.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCache;
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCacheEntry;
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCacheKey;
+import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
+import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
 import java.util.List;
@@ -69,7 +74,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
         ConfigStoreBasedTemplateCacheKey cacheKey = new ConfigStoreBasedTemplateCacheKey(templateId);
-        ConfigStoreBasedTemplateCacheEntry entry = configStoreBasedTemplateCache.getValueFromCache(cacheKey);
+        ConfigStoreBasedTemplateCacheEntry entry = configStoreBasedTemplateCache.getValueFromCache(cacheKey,
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
 
         if (entry != null) {
             if (log.isDebugEnabled()) {
@@ -89,7 +95,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
             if (log.isDebugEnabled()) {
                 log.debug("Entry fetched from Config store for Template " + templateId + ". Updating cache");
             }
-            configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template));
+            configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template),
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Entry for Template with id " + templateId + " not found in cache or config store");
@@ -126,6 +133,17 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
         if (log.isDebugEnabled()) {
             log.debug("Removing entry for Template with id " + templateId + " from cache");
         }
+        boolean isReadWriteTemplate = isReadWriteTemplate(templateId);
+        if (!isReadWriteTemplate) {
+            String error = String.format(
+                    TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_READONLY_TEMPLATE.getMessage(),
+                    templateId);
+            if (log.isDebugEnabled()) {
+                log.debug(error);
+            }
+            throw new TemplateManagementClientException(error,
+                    TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_READONLY_TEMPLATE.getCode());
+        }
         clearTemplateCache(templateId);
         configStoreBasedTemplateHandler.deleteTemplateById(templateId);
     }
@@ -159,11 +177,37 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
                 log.debug("Removing entry for Template with id " + templateId + " from cache.");
             }
             ConfigStoreBasedTemplateCacheKey cacheKey = new ConfigStoreBasedTemplateCacheKey(templateId);
-            configStoreBasedTemplateCache.clearCacheEntry(cacheKey);
+            configStoreBasedTemplateCache.clearCacheEntry(cacheKey,
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Entry for Template with id " + templateId + " not found in cache or DB");
             }
         }
+    }
+
+    /**
+     * Checks whether the given template is a ReadWriteTemplate.
+     *
+     * @param templateId Template Id.
+     * @return TRUE if the given template id belongs to a ReadWriteTemplate template.
+     */
+    private boolean isReadWriteTemplate(String templateId) {
+
+        List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
+                TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
+        for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
+            Template template = null;
+            try {
+                template = readOnlyTemplateHandler.getTemplateById(templateId);
+            } catch (TemplateManagementException exception) {
+                continue;
+            }
+            // Having a template in readOnlyTemplateHandler implies that the id belongs to a read-only template.
+            if (template != null) {
+                return false;
+            }
+        }
+        return true;
     }
 }

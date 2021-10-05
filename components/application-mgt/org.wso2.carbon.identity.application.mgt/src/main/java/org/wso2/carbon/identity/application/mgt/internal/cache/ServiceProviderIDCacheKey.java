@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for Service provider, when it is loaded with Application ID.
@@ -59,10 +59,7 @@ public class ServiceProviderIDCacheKey extends CacheKey {
 
         ServiceProviderIDCacheKey that = (ServiceProviderIDCacheKey) o;
 
-        if (!serviceProviderKey.equals(that.serviceProviderKey)) {
-            return false;
-        }
-        return tenantDomain.equals(that.tenantDomain);
+        return serviceProviderKey.equals(that.serviceProviderKey);
     }
 
     @Override
@@ -70,7 +67,6 @@ public class ServiceProviderIDCacheKey extends CacheKey {
 
         int result = super.hashCode();
         result = 31 * result + serviceProviderKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -35,10 +34,10 @@ import java.util.Map;
  * authentication request sent from a servlet.
  */
 public class AuthenticationContextCache extends
-        BaseCache<AuthenticationContextCacheKey, AuthenticationContextCacheEntry> {
+        AuthenticationBaseCache<AuthenticationContextCacheKey, AuthenticationContextCacheEntry> {
 
     private static final String AUTHENTICATION_CONTEXT_CACHE_NAME = "AuthenticationContextCache";
-    private static Log log = LogFactory.getLog(AuthenticationContextCache.class);
+    private static final Log log = LogFactory.getLog(AuthenticationContextCache.class);
     private static volatile AuthenticationContextCache instance;
     private boolean isTemporarySessionDataPersistEnabled = false;
 

@@ -71,6 +71,9 @@
         <TrustManagerType>SunX509</TrustManagerType>
     </Security>
 
+    <!--This configuration is to resolve the internal service URL for internal API calls.-->
+    <ServerHostName>localhost</ServerHostName>
+
     <Identity>
         <IssuerPolicy>SelfAndManaged</IssuerPolicy>
         <TokenValidationPolicy>CertValidate</TokenValidationPolicy>
@@ -945,6 +948,7 @@
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>

@@ -15,7 +15,7 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key used to access Applications basic information.
@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.common.cache.CacheKey;
 public class ApplicationBasicInfoResourceIdCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -731159352431745665L;
-    private String resourceId;
+    private final String resourceId;
 
     public ApplicationBasicInfoResourceIdCacheKey(String resourceId) {
 
@@ -50,7 +50,7 @@ public class ApplicationBasicInfoResourceIdCacheKey extends CacheKey {
         }
 
         ApplicationBasicInfoResourceIdCacheKey that = (ApplicationBasicInfoResourceIdCacheKey) o;
-        return resourceId.equalsIgnoreCase(that.resourceId) && tenantDomain.equals(that.tenantDomain);
+        return resourceId.equalsIgnoreCase(that.resourceId);
     }
 
     @Override
@@ -58,7 +58,6 @@ public class ApplicationBasicInfoResourceIdCacheKey extends CacheKey {
 
         int result = super.hashCode();
         result = 31 * result + resourceId.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

@@ -1,4 +1,4 @@
-package org.wso2.carbon.idp.mgt.util;/*
+/*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
@@ -16,13 +16,15 @@ package org.wso2.carbon.idp.mgt.util;/*
  * under the License.
  */
 
+package org.wso2.carbon.idp.mgt.util;
+
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
 
 /**
- * This interface provides functionality to convert a string to federatedAuthenticatorConfig and vise versa
+ * This interface provides functionality to convert a string to federatedAuthenticatorConfig and vise versa.
  */
 public interface MetadataConverter {
 
@@ -39,7 +41,15 @@ public interface MetadataConverter {
 
     void deleteMetadataString(int tenantId, String idPName)throws IdentityProviderManagementException;
 
-    default boolean canDelete(int tenantId, String idPName) throws IdentityProviderManagementException{
+
+    /**
+     * @param tenantId ID of the Tenant.
+     * @param idPName Name of the Identity Provider.
+     * @return A boolean by checking the conditions. Default is false.
+     * @throws IdentityProviderManagementException If any error occurred during the checking.
+     */
+    default boolean canDelete(int tenantId, String idPName) throws IdentityProviderManagementException {
+
         return false;
     }
 }

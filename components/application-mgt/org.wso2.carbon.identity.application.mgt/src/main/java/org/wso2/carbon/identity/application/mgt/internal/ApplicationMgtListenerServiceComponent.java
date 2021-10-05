@@ -24,6 +24,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +43,7 @@ public class ApplicationMgtListenerServiceComponent {
 
     private static List<ApplicationMgtListener> applicationMgtListeners = new ArrayList<>();
     private static List<ApplicationResourceManagementListener> applicationResourceMgtListeners = new ArrayList<>();
+    private static List<ApplicationValidator> applicationValidators = new ArrayList<>();
 
     @Reference(
             name = "application.mgt.event.listener.service",
@@ -90,9 +92,36 @@ public class ApplicationMgtListenerServiceComponent {
         return applicationResourceMgtListeners;
     }
 
+
+    @Reference(
+            name = "application.validator.service",
+            service = ApplicationValidator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationValidator"
+    )
+    protected synchronized void setApplicationValidator(ApplicationValidator listener) {
+
+        applicationValidators.add(listener);
+        applicationValidators.sort(applicationValidatorComparator);
+    }
+
+    protected synchronized void unsetApplicationValidator(ApplicationValidator listener) {
+
+        applicationValidators.remove(listener);
+    }
+
+    public static Collection<ApplicationValidator> getApplicationValidators() {
+
+        return applicationValidators;
+    }
+
     private static Comparator<ApplicationMgtListener> appMgtListenerComparator =
             Comparator.comparingInt(ApplicationMgtListener::getExecutionOrderId);
 
     private static Comparator<ApplicationResourceManagementListener> appResourceMgtListenerComparator =
             Comparator.comparingInt(ApplicationResourceManagementListener::getExecutionOrderId);
+
+    private static Comparator<ApplicationValidator> applicationValidatorComparator =
+            Comparator.comparingInt(ApplicationValidator::getOrderId);
 }

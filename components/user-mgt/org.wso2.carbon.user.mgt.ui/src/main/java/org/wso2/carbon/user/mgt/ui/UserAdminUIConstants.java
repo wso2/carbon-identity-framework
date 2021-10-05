@@ -109,6 +109,8 @@ public class UserAdminUIConstants {
     public static final String SHARED_ROLE_ENABLED = "shared.role.enabled";
     public static final String SELECT = "Select";
 
+    public static final String CONFIG_DISALLOWED_CHARACTER_REGEX = "UserIdentifier.DisallowedCharacters";
+
     private UserAdminUIConstants(){
 
     }

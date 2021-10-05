@@ -225,6 +225,7 @@ public class IdentityCoreServiceComponent {
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
         defaultKeystoreManagerExtension.setRealmService(realmService);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
     /**
@@ -233,6 +234,7 @@ public class IdentityCoreServiceComponent {
     protected void unsetRealmService(RealmService realmService) {
         defaultKeystoreManagerExtension.setRealmService(null);
         IdentityTenantUtil.setRealmService(null);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(null);
     }
 
     @Reference(

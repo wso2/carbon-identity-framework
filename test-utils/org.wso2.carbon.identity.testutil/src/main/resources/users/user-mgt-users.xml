@@ -29,8 +29,7 @@
             <MaxUserNameListLength>500</MaxUserNameListLength>
             <Property name="dataSource">jdbc/UM_TEST_DB</Property>
         </Configuration>
-        <UserStoreManager
-                class="org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager">
+        <UserStoreManager class="org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager">
             <Property name="PasswordJavaRegEx">[\S]{5,30}$</Property>
             <Property name="PasswordJavaScriptRegEx">[\\S]{5,30}</Property>
             <Property name="SelectUserSQL">SELECT * FROM UM_USER WHERE UM_USER_NAME=? AND UM_TENANT_ID=?</Property>
@@ -42,6 +41,7 @@
             <Property name="IsUsersOfRoleListing">true</Property>
             <Property name="MaxUserNameListLength">100</Property>
             <Property name="CaseInsensitiveUsername">true</Property>
+            <Property name="UserIDEnabled">true</Property>
             <!-- writing sqls follow-->
             <Property name="AddRoleSQL">INSERT INTO UM_ROLE (UM_ROLE_NAME, UM_TENANT_ID) VALUES (?, ?)</Property>
             <Property name="TenantManager">org.wso2.carbon.user.core.tenant.JDBCTenantManager</Property>

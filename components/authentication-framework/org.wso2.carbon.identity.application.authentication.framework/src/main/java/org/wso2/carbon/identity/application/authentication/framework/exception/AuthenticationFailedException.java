@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception;
 
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ * Authentication failed exception.
+ */
 public class AuthenticationFailedException extends IdentityException {
 
     private static final long serialVersionUID = -8680141408172156343L;
@@ -39,6 +41,7 @@ public class AuthenticationFailedException extends IdentityException {
     }
 
     public AuthenticationFailedException(String message, Throwable cause) {
+
         super(message, cause);
     }
 
@@ -46,6 +49,28 @@ public class AuthenticationFailedException extends IdentityException {
 
         super(message, cause);
         this.user = user;
+    }
+
+    public AuthenticationFailedException(String errorCode, String message, User user, Throwable cause) {
+
+        super(errorCode, message, cause);
+        this.user = user;
+    }
+
+    public AuthenticationFailedException(String errorCode, String message, User user) {
+
+        super(errorCode, message);
+        this.user = user;
+    }
+
+    public AuthenticationFailedException(String errorCode, String message) {
+
+        super(errorCode, message);
+    }
+
+    public AuthenticationFailedException(String errorCode, String message, Throwable cause) {
+
+        super(errorCode, message, cause);
     }
 
     public User getUser() {

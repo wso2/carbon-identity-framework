@@ -45,6 +45,7 @@ public class StepConfig implements Serializable {
     private boolean completed;
     private boolean multiOption;
     private boolean retrying;
+    private boolean forced;
 
     public StepConfig() {
     }
@@ -223,6 +224,16 @@ public class StepConfig implements Serializable {
 
     public void setRetrying(boolean retrying) {
         this.retrying = retrying;
+    }
+
+    public boolean isForced() {
+
+        return forced;
+    }
+
+    public void setForced(boolean forced) {
+
+        this.forced = forced;
     }
 
     /**

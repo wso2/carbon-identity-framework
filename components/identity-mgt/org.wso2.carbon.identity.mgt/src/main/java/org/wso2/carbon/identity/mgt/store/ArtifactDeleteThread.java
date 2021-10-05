@@ -71,7 +71,7 @@ public class ArtifactDeleteThread implements Runnable {
             collection = (Collection) registry.get(secretKeyPath.toLowerCase());
         } catch (RegistryException e) {
             log.error(
-                    "Error while deleting the old confirmation code. Unable to find data collection in registry." + e);
+                    "Error while deleting the old confirmation code. Unable to find data collection in registry.", e);
         }
 
         //Introduced property to fix resource not being introduced deleted when special characters are present.
@@ -129,7 +129,7 @@ public class ArtifactDeleteThread implements Runnable {
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error while deleting the old confirmation code \n" + e);
+            log.error("Error while deleting the old confirmation code", e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
