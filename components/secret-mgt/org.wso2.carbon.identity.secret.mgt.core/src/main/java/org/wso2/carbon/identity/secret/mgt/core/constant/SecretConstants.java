@@ -86,7 +86,8 @@ public class SecretConstants {
     }
 
     public enum SecretTypes {
-        ADAPTIVE_AUTH("");
+        ADAPTIVE_AUTH("Secret type to uniquely identify secrets relevant to " +
+                "callChoreo adaptive auth function");
 
         private final String secretTypeDescription;
 
