@@ -438,6 +438,8 @@ public class IdPManagementConstants {
         public static final String GET_IDP_NAME_BY_METADATA = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
                 "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.VALUE = ? AND " +
                 "IDP_METADATA.TENANT_ID = ?";
+        public static final String GET_TOTAL_IDP_CLAIM_USAGES = "SELECT COUNT(*) FROM IDP_CLAIM_MAPPING WHERE " +
+                "TENANT_ID = ? AND LOCAL_CLAIM = ?";
     }
 
     public enum ErrorMessage {

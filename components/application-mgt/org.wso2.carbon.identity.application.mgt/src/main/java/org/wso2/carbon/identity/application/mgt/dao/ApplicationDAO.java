@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -263,5 +264,20 @@ public interface ApplicationDAO {
     default void clearApplicationFromCache(ServiceProvider serviceProvider, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+    }
+
+    /**
+     * Method that checks whether a claim is associated with any service provider.
+     *
+     * @param dbConnection  Optional DB connection.
+     * @param claimUri      Claim URI.
+     * @param tenantId      ID of the tenant.
+     * @return  True if claim is referred by a service provider.
+     * @throws IdentityApplicationManagementException   Error when obtaining claim references.
+     */
+    default boolean isClaimReferredByAnySp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return false;
     }
 }

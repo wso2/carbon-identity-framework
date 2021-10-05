@@ -455,7 +455,6 @@ public class SecretDAOImpl implements SecretDAO {
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getId());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
-
             });
         } catch (DataAccessException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {

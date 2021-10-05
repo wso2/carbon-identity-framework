@@ -562,12 +562,19 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // Check whether the authentication flow includes a SAML federated IdP and
             // store the saml index with the session context key for the single logout.
             if (context.getAuthenticationStepHistory() != null) {
+                UserSessionStore userSessionStore = UserSessionStore.getInstance();
                 for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey,
-                                    authHistory);
+                            if (userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug(String.format("Federated auth session with the id: %s already exists",
+                                            authHistory.getIdpSessionIndex()));
+                                }
+                                continue;
+                            }
+                            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
                                     + "of the authenticated user to the database", e);

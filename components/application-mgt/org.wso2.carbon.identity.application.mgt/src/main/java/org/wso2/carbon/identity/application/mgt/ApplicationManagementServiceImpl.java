@@ -2231,11 +2231,27 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
 
         for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
-                    username)) {
+            try {
+                if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
+                        username)) {
+                    log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
+                            "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                    break;
+                }
+            } catch (Throwable e) {
+                /*
+                 * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+                 * above issue.
+                 */
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
-                        "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
-                break;
+                        "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain +
+                        " due to: " + e);
+                deleteApplicationByResourceId(resourceId, tenantDomain, username);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed the application created with id: " + resourceId + " of tenantDomain: "
+                            + tenantDomain);
+                }
+                throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
 
@@ -2557,6 +2573,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
                 return;
             }
+        } catch (Exception e) {
+            log.error(String.format("Application: %s in tenant: %s might have partially deleted",
+                    resourceId, tenantDomain));
+            throw e;
         } finally {
             endTenantFlow();
         }
