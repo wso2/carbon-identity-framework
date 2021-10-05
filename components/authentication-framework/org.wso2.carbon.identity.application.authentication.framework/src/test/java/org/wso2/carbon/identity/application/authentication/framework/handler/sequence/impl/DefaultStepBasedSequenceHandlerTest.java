@@ -91,7 +91,6 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
         IdentityTenantUtil.class, IdentityUtil.class})
-
 public class DefaultStepBasedSequenceHandlerTest {
 
     private static final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";

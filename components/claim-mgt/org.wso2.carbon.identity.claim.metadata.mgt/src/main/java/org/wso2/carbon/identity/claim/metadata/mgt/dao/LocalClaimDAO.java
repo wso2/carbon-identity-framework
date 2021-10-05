@@ -224,7 +224,7 @@ public class LocalClaimDAO extends ClaimDAO {
     /**
      * Update attribute claim mappings related to tenant id and domain.
      *
-     * @param localClaimList  list of local claims.
+     * @param localClaimList  List of local claims.
      * @param tenantId        Tenant Id.
      * @param userStoreDomain Domain name.
      * @throws ClaimMetadataException If an error occurred while updating local claims.
