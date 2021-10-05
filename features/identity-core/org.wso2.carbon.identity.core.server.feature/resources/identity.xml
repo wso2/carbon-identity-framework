@@ -614,6 +614,17 @@
         Default value : false
         -->
         <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
+
+        <!--
+            This config will remove any optional claims from introspection response. Before setting the response to the
+            introspection endpoint claims configured below will be removed.
+        -->
+        <!--
+        <IntrospectionResponse>
+            <UnsupportedClaim></UnsupportedClaim>
+            <UnsupportedClaim></UnsupportedClaim>
+        </IntrospectionResponse>
+         -->
     </OAuth>
 
     <MultifactorAuthentication>
