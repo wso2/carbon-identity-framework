@@ -19,12 +19,16 @@ package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -42,6 +46,7 @@ public class IdentityClaimManagementServiceDataHolder {
     private IdentityEventService identityEventService;
     private static Map<Integer, ClaimManagerListener> claimManagerListeners = new TreeMap<Integer,
             ClaimManagerListener>();
+    private static List<ClaimMetadataMgtListener> claimMetadataMgtListeners = new ArrayList<>();
     private ClaimConfigInitDAO claimConfigInitDAO;
 
     private IdentityClaimManagementServiceDataHolder() {
@@ -120,6 +125,27 @@ public class IdentityClaimManagementServiceDataHolder {
 
         this.identityEventService = identityEventService;
     }
+
+    public static synchronized List<ClaimMetadataMgtListener> getClaimMetadataMgtListeners() {
+
+        return claimMetadataMgtListeners;
+    }
+
+    public synchronized void addClaimMetadataMgtListener(ClaimMetadataMgtListener claimMetadataMgtListener) {
+
+        claimMetadataMgtListeners.add(claimMetadataMgtListener);
+        claimMetadataMgtListeners.sort(claimMetadataMgtListenerComparator);
+    }
+
+    public synchronized void removeClaimMetadataMgtListener(ClaimMetadataMgtListener claimMetadataMgtListener) {
+
+        if (claimMetadataMgtListener != null) {
+            claimMetadataMgtListeners.remove(claimMetadataMgtListener);
+        }
+    }
+
+    private static Comparator<ClaimMetadataMgtListener> claimMetadataMgtListenerComparator =
+            Comparator.comparingInt(ClaimMetadataMgtListener::getExecutionOrderId);
 
     public void setClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
 

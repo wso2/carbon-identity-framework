@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.impl.DefaultClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataManagementAuditLogger;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
@@ -43,6 +44,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+
+import java.util.Collection;
 
 @SuppressWarnings("unused")
 @Component(
@@ -213,6 +216,29 @@ public class IdentityClaimManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("IdentityEventService set in Identity Claim Management bundle");
         }
+    }
+
+    @Reference(
+            name = "claim.metadata.mgt.event.listener.service",
+            service = ClaimMetadataMgtListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeClaimMetadataMgtListenerService"
+    )
+    protected void addClaimMetadataMgtListenerService(ClaimMetadataMgtListener claimMetadataMgtListenerService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().addClaimMetadataMgtListener(
+                claimMetadataMgtListenerService);
+    }
+
+    protected void removeClaimMetadataMgtListenerService(ClaimMetadataMgtListener claimMetadataMgtListener) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().removeClaimMetadataMgtListener(claimMetadataMgtListener);
+    }
+
+    public static Collection<ClaimMetadataMgtListener> getClaimMetadataMgtListeners() {
+
+        return IdentityClaimManagementServiceDataHolder.getClaimMetadataMgtListeners();
     }
 
     @Reference(

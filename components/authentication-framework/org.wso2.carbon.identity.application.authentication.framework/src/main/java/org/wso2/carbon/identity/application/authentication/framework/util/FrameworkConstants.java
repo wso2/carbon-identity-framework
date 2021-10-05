@@ -141,7 +141,6 @@ public abstract class FrameworkConstants {
     public static final String BACK_TO_FIRST_STEP = "BACK_TO_FIRST_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
-    public static final String TAGS = "Tags";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
