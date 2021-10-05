@@ -2246,6 +2246,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain +
                         " due to: " + e);
+                deleteApplicationByResourceId(resourceId, tenantDomain, username);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed the application created with id: " + resourceId + " of tenantDomain: "
+                            + tenantDomain);
+                }
+                throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
 
