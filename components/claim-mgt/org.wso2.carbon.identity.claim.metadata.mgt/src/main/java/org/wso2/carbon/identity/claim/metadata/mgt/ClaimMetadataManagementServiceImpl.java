@@ -508,12 +508,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throws ClaimMetadataException {
 
         return this.externalClaimDAO.getExternalClaims(externalClaimDialectURI, tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(externalClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(externalClaimURI)).findFirst().isPresent();
     }
 
     private boolean isExistingLocalClaimURI(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(localClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI)).findFirst().isPresent();
     }
 }
