@@ -41,11 +41,13 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_INVALID_SECRET_ID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_GET_REQUEST_INVALID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_MANAGER_NOT_ENABLED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS;
@@ -113,10 +115,10 @@ public class SecretManagerImpl implements SecretManager {
         List secretList = this.getSecretDAO().getSecrets(secretType, getTenantId());
         if (secretList == null) {
             if (log.isDebugEnabled()) {
-                log.debug("No secret found the secretTypeName: " + secretTypeName + "for the tenant: " + getTenantDomain());
+                log.debug("No secret found for the secretTypeName: " + secretTypeName + "for the tenant: " + getTenantDomain());
             }
             throw handleClientException(
-                    SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
+                    ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
         }
         if (log.isDebugEnabled()) {
             log.debug("All secrets of tenant: " + getTenantDomain() + " are retrieved successfully.");
@@ -136,7 +138,7 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the secretId: " + secretId);
             }
-            throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
         if (log.isDebugEnabled()) {
             log.debug("Secret: " + secret.getSecretId() + " is retrieved successfully.");
@@ -156,7 +158,7 @@ public class SecretManagerImpl implements SecretManager {
                 log.debug("Secret: " + secretName + " is deleted successfully.");
             }
         } else {
-            throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName);
+            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName);
         }
     }
 
@@ -173,7 +175,7 @@ public class SecretManagerImpl implements SecretManager {
                 log.debug("Secret id: " + secretId + " in tenant: " + getTenantDomain() + " deleted successfully.");
             }
         } else {
-            throw handleClientException(SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
     }
 
@@ -266,7 +268,7 @@ public class SecretManagerImpl implements SecretManager {
      * Validate that secret type and secret name is non-empty.
      *
      * @param secretTypeName Name of the {@link SecretType}.
-     * @param secretName The secret name.
+     * @param secretName     The secret name.
      * @throws SecretManagementException If secret validation fails.
      */
     private void validateSecretRetrieveRequest(String secretTypeName, String secretName) throws SecretManagementException {
@@ -298,7 +300,7 @@ public class SecretManagerImpl implements SecretManager {
      * Set tenant domain if they are not set to the secret object.
      *
      * @param secretTypeName Name of the {@link SecretType}.
-     * @param secretName The secret name.
+     * @param secretName     The secret name.
      * @throws SecretManagementException If secret validation fails.
      */
     private void validateSecretDeleteRequest(String secretTypeName, String secretName)
@@ -308,7 +310,7 @@ public class SecretManagerImpl implements SecretManager {
 
         if (StringUtils.isEmpty(secretName)) {
             if (log.isDebugEnabled()) {
-                log.debug("Error identifying the secret with secret name: " + secretName + " and secret type:"
+                log.debug("Error identifying the secret with secret name: " + secretName + " and secret type: "
                         + secretTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED, null);

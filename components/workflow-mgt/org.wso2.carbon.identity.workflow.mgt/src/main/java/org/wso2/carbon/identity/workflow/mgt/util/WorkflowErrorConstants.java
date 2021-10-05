@@ -29,7 +29,10 @@ public class WorkflowErrorConstants {
     public enum ErrorMessages {
 
         // Generic error messages.
-        ERROR_CODE_USER_WF_ALREADY_EXISTS("WFM-10001", "There is a pending workflow already defined for the user.");
+        ERROR_CODE_USER_WF_ALREADY_EXISTS("WFM-10001",
+                "There is a pending workflow already defined for the user."),
+        ERROR_CODE_USER_ACCOUNT_PENDING_APPROVAL("WFM-10002",
+                "The user authentication failed due to pending approval of the user: %s");
         private final String code;
         private final String message;
 

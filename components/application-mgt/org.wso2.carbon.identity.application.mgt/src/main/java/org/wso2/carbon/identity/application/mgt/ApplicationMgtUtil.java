@@ -87,6 +87,7 @@ public class ApplicationMgtUtil {
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
     public static final String MASKING_CHARACTER = "*";
     public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -297,15 +298,43 @@ public class ApplicationMgtUtil {
     public static void deleteAppRole(String applicationName) throws IdentityApplicationManagementException {
 
         String roleName = getAppRoleName(applicationName);
-
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting application role : " + roleName);
+        }
+        UserStoreManager userStoreManager;
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("Deleting application role : " + roleName);
-            }
-            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
-                    .deleteRole(roleName);
+            userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error while creating application", e);
+            throw new IdentityApplicationManagementException(String.format("Error while getting the userstoreManager " +
+                    "to delete the application role: %s for application: %s", roleName, applicationName), e);
+        }
+        try {
+            userStoreManager.deleteRole(roleName);
+        } catch (Exception e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Initial attempt to delete the role: %s failed for application: %s. " +
+                    "Retrying again", roleName, applicationName), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    userStoreManager.deleteRole(roleName);
+                    isOperationFailed = false;
+                    log.info(String.format("Role: %s deleted for application: %s in the retry attempt: %s", roleName,
+                            applicationName, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete role: %s for application: %s",
+                            attempt, roleName, applicationName), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException(String.format("Error occurred while trying to " +
+                        "delete the application role: %s for application: %s", roleName, applicationName), e);
+            }
         }
     }
 
@@ -602,16 +631,41 @@ public class ApplicationMgtUtil {
         String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
-
         try {
             boolean exist = tenantGovReg.resourceExists(applicationNode);
-
-            if (exist) {
-                tenantGovReg.delete(applicationNode);
+            if (!exist) {
+                return;
             }
-
-        } catch (RegistryException e) {
-            throw new IdentityApplicationManagementException("Error while storing permissions", e);
+            tenantGovReg.delete(applicationNode);
+        } catch (Exception e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            log.error(String.format("Error occurred while trying to delete permissions for application: %s. Retrying " +
+                    "again", applicationName), e);
+            boolean isOperationFailed = true;
+            for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(1000);
+                    boolean exist = tenantGovReg.resourceExists(applicationNode);
+                    if (!exist) {
+                        return;
+                    }
+                    tenantGovReg.delete(applicationNode);
+                    isOperationFailed = false;
+                    log.info(String.format("Permissions deleted application: %s in the retry attempt: %s",
+                            applicationName, attempt));
+                    break;
+                } catch (Exception exception) {
+                    log.error(String.format("Retry attempt: %s failed to delete permission for application: %s",
+                            attempt, applicationName), exception);
+                }
+            }
+            if (isOperationFailed) {
+                throw new IdentityApplicationManagementException("Error while deleting permissions for application: " +
+                        applicationName, e);
+            }
         }
     }
 

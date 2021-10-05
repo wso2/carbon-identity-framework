@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -101,6 +101,6 @@ public class SecretManagerComponent {
 
     private boolean isSecretManagementEnabled() {
 
-        return FrameworkUtils.isTableExists(DB_TABLE_SECRET);
+        return IdentityDatabaseUtil.isTableExists(DB_TABLE_SECRET);
     }
 }

@@ -2557,6 +2557,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
                 return;
             }
+        } catch (Exception e) {
+            log.error(String.format("Application: %s in tenant: %s might have partially deleted",
+                    resourceId, tenantDomain));
+            throw e;
         } finally {
             endTenantFlow();
         }
