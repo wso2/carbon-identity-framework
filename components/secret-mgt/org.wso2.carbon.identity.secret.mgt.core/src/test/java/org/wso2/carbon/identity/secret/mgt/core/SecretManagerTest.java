@@ -79,7 +79,8 @@ public class SecretManagerTest extends PowerMockTestCase {
     private static final String SAMPLE_SECRET_ID = "ab123456";
     private static final String ENCRYPTED_VALUE1 = "dummy_encrypted1";
 
-    private static final String SAMPLE_SECRET_TYPE_NAME1 = "sample-secret-type1";
+    private static final String SAMPLE_SECRET_TYPE_NAME1 = "ADAPTIVE_AUTH";
+    private static final String SAMPLE_SECRET_TYPE_NAME2 = "sample-secret-type";
     private static final String SAMPLE_SECRET_DESCRIPTION1 = "sample-description1";
     private static final String SAMPLE_SECRET_DESCRIPTION2 = "sample-description2";
 
@@ -117,7 +118,7 @@ public class SecretManagerTest extends PowerMockTestCase {
     @Test(priority = 5, expectedExceptions = SecretManagementClientException.class)
     public void testGetNonExistingSecretType() throws Exception {
 
-        secretManager.getSecretType(SAMPLE_SECRET_TYPE_NAME1);
+        secretManager.getSecretType(SAMPLE_SECRET_TYPE_NAME2);
 
         org.junit.Assert.fail("Expected: " + SecretManagementClientException.class.getName());
     }
