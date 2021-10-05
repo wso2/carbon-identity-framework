@@ -91,11 +91,12 @@ public class TestUtils {
         return secretAdd;
     }
 
-    public static SecretType getSampleSecretType (String name, String description) {
+    public static Secret getSampleSecret(String name, String value, String description) {
 
-        SecretType secretType = new SecretType();
-        secretType.setName(name);
-        secretType.setDescription(description);
-        return secretType;
+        Secret secretAdd = new Secret();
+        secretAdd.setSecretName(name);
+        secretAdd.setSecretValue(value);
+        secretAdd.setDescription(description);
+        return secretAdd;
     }
 }

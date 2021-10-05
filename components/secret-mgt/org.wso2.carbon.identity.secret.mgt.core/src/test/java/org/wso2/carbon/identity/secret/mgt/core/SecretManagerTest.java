@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServer
 import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 import org.wso2.carbon.identity.secret.mgt.core.util.TestUtils;
 
@@ -333,10 +332,25 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal to the replaced id");
     }
 
+    @Test(priority = 26)
+    public void testUpdateExistingSecretValueById() throws Exception {
+
+        Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secretAdd.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
+        encryptSecret(SAMPLE_SECRET_VALUE2);
+        Secret secretUpdated = secretManager.updateSecretValueById(secretCreated.getSecretId(), SAMPLE_SECRET_VALUE2);
+
+        assertNotEquals("Created time should be different from the last updated time",
+                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+                "Existing id should be equal to the replaced id");
+    }
+
     @Test(priority = 27)
     public void testUpdateExistingSecretDescription() throws Exception {
 
-        Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1, SAMPLE_SECRET_DESCRIPTION1);
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
         Secret secretUpdated = secretManager.updateSecretDescription(SAMPLE_SECRET_TYPE_NAME1,
@@ -344,6 +358,25 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertNotEquals("Secret description should be different from the previous description",
+                secretCreated.getDescription(), secretUpdated.getDescription());
+        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+                "Existing id should be equal to the replaced id");
+    }
+
+    @Test(priority = 27)
+    public void testUpdateExistingSecretDescriptionById() throws Exception {
+
+        Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1, SAMPLE_SECRET_DESCRIPTION1);
+        encryptSecret(secretAdd.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
+        Secret secretUpdated = secretManager.updateSecretDescriptionById(secretCreated.getSecretId(),
+                SAMPLE_SECRET_DESCRIPTION2);
+
+        assertNotEquals("Created time should be different from the last updated time",
+                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertNotEquals("Secret description should be different from the previous description",
+                secretCreated.getDescription(), secretUpdated.getDescription());
         assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
