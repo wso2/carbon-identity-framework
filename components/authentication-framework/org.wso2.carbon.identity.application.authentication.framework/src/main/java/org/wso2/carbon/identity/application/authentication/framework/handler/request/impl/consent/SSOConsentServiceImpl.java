@@ -187,7 +187,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
      * Get consent required claims for a given service from a user.
      *
      * @param serviceProvider     Service provider requesting consent.
-     * @param authenticatedUser   AuthSSOConsentServiceImplSSOConsentServiceImplenticated user requesting consent form.
+     * @param authenticatedUser   Authenticated user requesting consent form.
      * @param useExistingConsents Use existing consent given by the user.
      * @param claimsListOfScopes  Claims list of requested scopes.
      * @return ConsentClaimsData which contains mandatory and required claims for consent.

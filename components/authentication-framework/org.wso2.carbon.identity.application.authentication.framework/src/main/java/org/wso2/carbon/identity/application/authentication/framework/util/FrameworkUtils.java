@@ -3155,7 +3155,6 @@ public class FrameworkUtils {
                     claim);
             claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
         }
-
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
