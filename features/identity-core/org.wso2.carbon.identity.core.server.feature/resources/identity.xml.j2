@@ -794,6 +794,18 @@
         <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
         {% endif %}
 
+        <Introspection>
+            <!--
+                This config will remove any optional claims from introspection response. Before setting the response to the
+                introspection endpoint claims configured below will be removed.
+            -->
+            <FilteredClaims>
+                {% for claim in oauth.introspection.filtered_claims %}
+                <FilteredClaim>{{claim}}</FilteredClaim>
+                {% endfor %}
+            </FilteredClaims>
+        </Introspection>
+
         <PublishPasswordGrantLogin>{{analytics.publish_password_grant_logins}}</PublishPasswordGrantLogin>
 
         <!--
@@ -849,16 +861,6 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
-
-        <!--
-            This config will remove any optional claims from introspection response. Before setting the response to the
-            introspection endpoint claims configured below will be removed.
-        -->
-        <IntrospectionResponse>
-            {% for claim in oauth.introspection_response.unsupported_claims %}
-            <UnsupportedClaim>{{claim}}</UnsupportedClaim>
-            {% endfor %}
-        </IntrospectionResponse>
     </OAuth>
 
     <MultifactorAuthentication>
