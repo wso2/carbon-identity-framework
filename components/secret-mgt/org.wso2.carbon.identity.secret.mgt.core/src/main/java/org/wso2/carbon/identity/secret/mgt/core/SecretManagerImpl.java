@@ -38,21 +38,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_DAO;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_INVALID_SECRET_ID;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_GET_REQUEST_INVALID;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_MANAGER_NOT_ENABLED;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_NAME_REQUIRED;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.*;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.*;
 
 /**
@@ -196,6 +182,8 @@ public class SecretManagerImpl implements SecretManager {
     public Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretValue(value);
+
         Secret secret, updatedSecret;
         secret = getSecret(secretTypeName, name);
         try {
@@ -213,6 +201,8 @@ public class SecretManagerImpl implements SecretManager {
     public Secret updateSecretValueById(String secretId, String value) throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretValue(value);
+
         Secret secret, updatedSecret;
         secret = getSecretById(secretId);
         try {
@@ -230,6 +220,8 @@ public class SecretManagerImpl implements SecretManager {
     public Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretDescription(description);
+
         Secret secret = getSecret(secretTypeName, name);
         Secret updatedSecret = this.getSecretDAO().updateSecretDescription(secret, description);
         if (log.isDebugEnabled()) {
@@ -242,6 +234,8 @@ public class SecretManagerImpl implements SecretManager {
     public Secret updateSecretDescriptionById(String secretId, String description) throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretDescription(description);
+
         Secret secret = getSecretById(secretId);
         Secret updatedSecret = this.getSecretDAO().updateSecretDescription(secret, description);
         if (log.isDebugEnabled()) {
@@ -346,6 +340,8 @@ public class SecretManagerImpl implements SecretManager {
         }
 
         validateSecretName(secret.getSecretName());
+        validateSecretValue(secret.getSecretValue());
+        validateSecretDescription(secret.getDescription());
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
             secret.setTenantDomain(getTenantDomain());
@@ -494,13 +490,47 @@ public class SecretManagerImpl implements SecretManager {
         }
     }
 
+    /**
+     * Validate secret name against a regex pattern.
+     * @param secretName Name of the secret.
+     * @throws SecretManagementClientException
+     */
     private void validateSecretName(String secretName) throws SecretManagementClientException {
         if(!isSecretNameRegexValid(secretName)) {
-            String message = "The secret name does not conform to " + getSecretNameRegex() + " pattern";
             if(log.isDebugEnabled()) {
-                log.debug(message);
+                log.debug("Secret name does not conform to " + getSecretNameRegex() + " pattern");
             }
-            throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, message);
+            throw handleClientException(ERROR_CODE_INVALID_SECRET_NAME, getSecretNameRegex());
+        }
+    }
+
+    /**
+     * Validate secret value against a regex pattern.
+     * @param secretValue Value of the secret.
+     * @throws SecretManagementClientException
+     */
+    private void validateSecretValue(String secretValue) throws SecretManagementClientException {
+        if(!isSecretValueRegexValid(secretValue)) {
+            if(log.isDebugEnabled()) {
+                log.debug("Secret value does not conform to " + getSecretValueRegex() + " pattern");
+            }
+            throw handleClientException(ERROR_CODE_INVALID_SECRET_VALUE, getSecretValueRegex());
+        }
+    }
+
+    /**
+     * Validate secret description against a regex pattern.
+     * @param description Description of the secret.
+     * @throws SecretManagementClientException
+     */
+    private void validateSecretDescription(String description) throws SecretManagementClientException {
+        if(description != null && !isSecretDescriptionRegexValid(description)) {
+            if(log.isDebugEnabled()) {
+                log.debug("Secret description does not conform to "
+                        + getSecretDescriptionRegex() + " pattern");
+            }
+            throw handleClientException(ERROR_CODE_INVALID_SECRET_DESCRIPTION,
+                    getSecretDescriptionRegex());
         }
     }
 }

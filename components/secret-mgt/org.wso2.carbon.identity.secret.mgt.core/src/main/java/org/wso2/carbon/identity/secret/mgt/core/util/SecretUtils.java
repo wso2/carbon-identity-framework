@@ -31,6 +31,8 @@ public class SecretUtils {
 
     private static final Log log = LogFactory.getLog(SecretUtils.class);
     private static final String SECRET_NAME_REGEX = "^[a-zA-Z][^\\s]{0,63}$";
+    private static final String SECRET_VALUE_REGEX = "^.{1,2048}$";
+    private static final String SECRET_DESCRIPTION_REGEX = "^.{0,1023}$";
 
     /**
      * This method can be used to generate a SecretManagementClientException from
@@ -115,11 +117,43 @@ public class SecretUtils {
     }
 
     /**
-     * Get the secret name regex pattern.
+     * Validate secret value according to the regex.
      *
-     * @return
+     * @return valid or not
+     */
+    public static boolean isSecretValueRegexValid(String secretValue) {
+        Pattern regexPattern = Pattern.compile(SECRET_VALUE_REGEX);
+        return regexPattern.matcher(secretValue).matches();
+    }
+
+    /**
+     * Validate secret description according to the regex.
+     *
+     * @return valid or not
+     */
+    public static boolean isSecretDescriptionRegexValid(String description) {
+        Pattern regexPattern = Pattern.compile(SECRET_DESCRIPTION_REGEX);
+        return regexPattern.matcher(description).matches();
+    }
+
+    /**
+     * Get the secret name regex pattern.
      */
     public static String getSecretNameRegex() {
         return SECRET_NAME_REGEX;
+    }
+
+    /**
+     * Get the secret value regex pattern.
+     */
+    public static String getSecretValueRegex() {
+        return SECRET_VALUE_REGEX;
+    }
+
+    /**
+     * Get the secret description regex pattern.
+     */
+    public static String getSecretDescriptionRegex() {
+        return SECRET_DESCRIPTION_REGEX;
     }
 }
