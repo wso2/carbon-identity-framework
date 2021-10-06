@@ -101,7 +101,7 @@ public interface SSOConsentService {
      */
     @Deprecated
     default void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
-                                    AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
+                                      AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
             throws SSOConsentServiceException {
         processConsent(consentApprovedClaimIds, serviceProvider, authenticatedUser, consentClaimsData, false);
     }
