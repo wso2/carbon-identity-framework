@@ -4292,4 +4292,49 @@ public class IdPManagementDAO {
             }
         }
     }
+
+    /**
+     * Method that checks whether a claim is associated with any identity provider.
+     *
+     * @param dbConnection  Optional DB connection.
+     * @param claimUri      Claim URI.
+     * @param tenantId      ID of the tenant.
+     * @return  True if claim is referred by an identity provider.
+     * @throws IdentityProviderManagementException   Error when obtaining claim references.
+     */
+    public boolean isClaimReferredByAnyIdp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityProviderManagementException {
+
+        boolean dbConnInitialized = true;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        boolean isClaimReferred = false;
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        } else {
+            dbConnInitialized = false;
+        }
+
+        try {
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_TOTAL_IDP_CLAIM_USAGES;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, claimUri);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                isClaimReferred = rs.getInt(1) > 0;
+            }
+            return isClaimReferred;
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving IDP usages of the claim "
+                    + claimUri, e);
+        } finally {
+            if (dbConnInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
+    }
 }

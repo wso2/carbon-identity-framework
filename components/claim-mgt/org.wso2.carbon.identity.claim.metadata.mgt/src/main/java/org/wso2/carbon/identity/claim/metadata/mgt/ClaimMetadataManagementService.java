@@ -174,10 +174,10 @@ public interface ClaimMetadataManagementService {
     /**
      * Update attribute mappings for local claims in bulk.
      *
-     * @param localClaimList    list of local claims.
-     * @param tenantDomain      tenant domain name.
-     * @param userStoreDomain   user store domain name.
-     * @throws ClaimMetadataException if error occurs while updating local claims.
+     * @param localClaimList    List of local claims.
+     * @param tenantDomain      Tenant domain name.
+     * @param userStoreDomain   User store domain name.
+     * @throws ClaimMetadataException If error occurs while updating local claims.
      */
     default void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
             throws ClaimMetadataException {
@@ -186,8 +186,8 @@ public interface ClaimMetadataManagementService {
     /**
      * To validate claim mapping attributes of local claims.
      *
-     * @param localClaimList List of Local claims
-     * @param tenantDomain  Tenant domain
+     * @param localClaimList    List of Local claims
+     * @param tenantDomain      Tenant domain
      * @throws ClaimMetadataException If an error occurred while validating local claims.
      */
     default void validateClaimAttributeMapping(List<LocalClaim> localClaimList, String tenantDomain)

@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -41,6 +43,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -274,10 +277,22 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteLocalClaim(tenantId, localClaimURI);
+        Collection<ClaimMetadataMgtListener> listeners =
+                IdentityClaimManagementServiceComponent.getClaimMetadataMgtListeners();
+        for (ClaimMetadataMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteClaim(localClaimURI, tenantDomain)) {
+                return;
+            }
+        }
 
         this.localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteLocalClaim(tenantId, localClaimURI);
+        for (ClaimMetadataMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteClaim(localClaimURI, tenantDomain)) {
+                return;
+            }
+        }
     }
 
     @Override
@@ -493,12 +508,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throws ClaimMetadataException {
 
         return this.externalClaimDAO.getExternalClaims(externalClaimDialectURI, tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(externalClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(externalClaimURI)).findFirst().isPresent();
     }
 
     private boolean isExistingLocalClaimURI(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(localClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI)).findFirst().isPresent();
     }
 }

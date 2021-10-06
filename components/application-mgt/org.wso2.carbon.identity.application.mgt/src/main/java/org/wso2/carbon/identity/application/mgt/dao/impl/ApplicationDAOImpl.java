@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
@@ -5012,6 +5013,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     "basic information for resourceId: " + resourceId + " in tenantDomain: " + tenantDomain, e);
         }
         return count > 0;
+    }
+
+    @Override
+    public boolean isClaimReferredByAnySp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        boolean dbConnInitialized = true;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        boolean isClaimReferred = false;
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        } else {
+            dbConnInitialized = false;
+        }
+
+        try {
+            String sqlStmt = ApplicationMgtDBQueries.GET_TOTAL_SP_CLAIM_USAGES;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, claimUri);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                isClaimReferred = rs.getInt(1) > 0;
+            }
+            return isClaimReferred;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error occurred while retrieving application usages of " +
+                    "the claim " + claimUri, e);
+        } finally {
+            if (dbConnInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
     }
 
     private List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String

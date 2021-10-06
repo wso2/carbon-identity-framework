@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.common.model;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class LocalAuthenticatorConfig implements Serializable {
                 if (member.getText() != null && member.getText().trim().length() > 0) {
                     localAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
                 }
-            } else if ("Tags".equals(member.getLocalName())) {
+            } else if (IdentityConstants.TAGS.equals(member.getLocalName())) {
                 String[] tagList = StringUtils.split(member.getText(), ",");
                 localAuthenticatorConfig.setTags(tagList);
             } else if ("Properties".equals(member.getLocalName())) {

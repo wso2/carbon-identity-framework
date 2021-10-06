@@ -851,6 +851,32 @@ public class UserSessionStore {
     }
 
     /**
+     * Check whether there is already existing federated auth session with the given session index.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    public boolean hasExistingFederatedAuthSession(String idpSessionIndex) throws UserSessionException {
+
+        boolean isExisting = false;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt
+                     = connection.prepareStatement(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID)) {
+            prepStmt.setString(1, idpSessionIndex);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    isExisting = true;
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error occurred while checking for an federated auth session " +
+                    "with session index: " + idpSessionIndex, e);
+        }
+        return isExisting;
+    }
+
+    /**
      * Remove federated authentication session details of a given session context key.
      *
      * @param sessionContextKey Session Context Key.
