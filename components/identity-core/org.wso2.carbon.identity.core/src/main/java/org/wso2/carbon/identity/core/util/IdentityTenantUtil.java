@@ -169,7 +169,11 @@ public class IdentityTenantUtil {
         return registryService;
     }
 
+    /**
+     * This method sets the registry service to tenant util.
+     */
     public static void setRegistryService(RegistryService registryService) {
+
         IdentityTenantUtil.registryService = registryService;
     }
 
