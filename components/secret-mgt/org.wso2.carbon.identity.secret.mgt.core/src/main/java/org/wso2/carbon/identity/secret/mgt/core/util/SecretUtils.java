@@ -25,10 +25,12 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClient
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServerException;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class SecretUtils {
 
     private static final Log log = LogFactory.getLog(SecretUtils.class);
+    private static final String SECRET_NAME_REGEX = "^[a-zA-Z][^\\s]{0,63}$";
 
     /**
      * This method can be used to generate a SecretManagementClientException from
@@ -100,5 +102,24 @@ public class SecretUtils {
     private static String populateMessageWithData(SecretConstants.ErrorMessages error) {
 
         return error.getMessage();
+    }
+
+    /**
+     * Validate secret name according to the regex.
+     *
+     * @return valid or not
+     */
+    public static boolean isSecretNameRegexValid(String secretName) {
+        Pattern regexPattern = Pattern.compile(SECRET_NAME_REGEX);
+        return regexPattern.matcher(secretName).matches();
+    }
+
+    /**
+     * Get the secret name regex pattern.
+     *
+     * @return
+     */
+    public static String getSecretNameRegex() {
+        return SECRET_NAME_REGEX;
     }
 }

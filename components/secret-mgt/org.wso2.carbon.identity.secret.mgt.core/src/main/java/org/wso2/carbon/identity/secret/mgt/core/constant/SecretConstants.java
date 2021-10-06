@@ -55,7 +55,6 @@ public class SecretConstants {
         ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00016", "Secret management feature is not enabled"),
 
         ERROR_CODE_SECRET_TYPE_NAME_REQUIRED("SECRETM_00017", "Secret type name: %s validation failed."),
-        ERROR_CODE_RETRIEVE_SECRET_TYPE("SECRETM_00020", "Error while getting the secret type: %s."),
         ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00021", "Secret type with the name: %s does not exists."),
         ERROR_CODE_UPDATE_SECRET("SECRETM_00024", "Error while updating the secret %s.");
 

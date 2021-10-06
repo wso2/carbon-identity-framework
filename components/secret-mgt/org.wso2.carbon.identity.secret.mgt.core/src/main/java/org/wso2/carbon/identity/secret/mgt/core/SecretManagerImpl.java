@@ -53,9 +53,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_TYPE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
-import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.generateUniqueID;
-import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
-import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.*;
 
 /**
  * Secret Manager service implementation.
@@ -346,6 +344,9 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
         }
+
+        validateSecretName(secret.getSecretName());
+
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
             secret.setTenantDomain(getTenantDomain());
         }
@@ -490,6 +491,16 @@ public class SecretManagerImpl implements SecretManager {
                 log.debug("Invalid secret type: " + secretTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, null);
+        }
+    }
+
+    private void validateSecretName(String secretName) throws SecretManagementClientException {
+        if(!isSecretNameRegexValid(secretName)) {
+            String message = "The secret name does not conform to " + getSecretNameRegex() + " pattern";
+            if(log.isDebugEnabled()) {
+                log.debug(message);
+            }
+            throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, message);
         }
     }
 }
