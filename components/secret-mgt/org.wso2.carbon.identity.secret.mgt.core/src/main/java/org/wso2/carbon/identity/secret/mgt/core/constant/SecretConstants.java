@@ -25,12 +25,11 @@ public class SecretConstants {
 
     public static final String DB_SCHEMA_COLUMN_NAME_ID = "ID";
     public static final String DB_SCHEMA_COLUMN_NAME_SECRET_VALUE = "SECRET_VALUE";
-    public static final String DB_SCHEMA_COLUMN_NAME_NAME = "NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_SECRET_NAME = "SECRET_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED = "LAST_MODIFIED";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
-    public static final String DB_SCHEMA_COLUMN_NAME_TYPE = "TYPE";
+    public static final String DB_SCHEMA_COLUMN_NAME_TYPE = "TYPE_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_DESCRIPTION = "DESCRIPTION";
     public static final String DB_TABLE_SECRET = "IDN_SECRET";
 

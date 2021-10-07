@@ -57,7 +57,6 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_DESCRIPTION;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_SECRET_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_SECRET_VALUE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
@@ -140,7 +139,7 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
-                                        .setSecretType(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
+                                        .setSecretType(resultSet.getString(DB_SCHEMA_COLUMN_NAME_TYPE))
                                         .setDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION));
                         return secretRawDataCollectorBuilder.build();
                     },
