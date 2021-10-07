@@ -32,4 +32,9 @@ public class IdentityUserStoreServerException extends IdentityUserStoreMgtExcept
 
         super(errorCode, message);
     }
+
+    public IdentityUserStoreServerException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
 }

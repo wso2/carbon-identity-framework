@@ -18,19 +18,18 @@
 
 package org.wso2.carbon.identity.user.store.configuration.model;
 
-import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.UserStoreOperation;
 
 /**
  * To keep attribute mapping details which should be changed.
  */
-public class ChangedUserStoreAttributeDO {
+public class ChangedUserStoreAttribute {
 
     private UserStoreOperation operation;
-    private UserStoreAttributeDO userStoreAttributeDO;
+    private UserStoreAttribute userStoreAttribute;
 
     /**
-     * Get operation which should be performed on the attribute {@literal userStoreAttributeDO}.
+     * Get operation which should be performed on the attribute {@literal userStoreAttribute}.
      *
      * @return UserStoreOperation enum {@link UserStoreOperation}.
      */
@@ -40,37 +39,33 @@ public class ChangedUserStoreAttributeDO {
     }
 
     /**
-     * Set operation which should be performed on attribute {@literal userStoreAttributeDO}.
+     * Set operation which should be performed on attribute {@literal userStoreAttribute}.
      *
      * @param operation UserStoreOperation.
      */
-    public void setOperation(String operation) {
+    public void setOperation(UserStoreOperation operation) {
 
-        if (StringUtils.equalsIgnoreCase(UserStoreOperation.UPDATE.toString(), operation)) {
-            this.operation = UserStoreOperation.UPDATE;
-        } else if (StringUtils.equalsIgnoreCase(UserStoreOperation.DELETE.toString(), operation)) {
-            this.operation = UserStoreOperation.DELETE;
-        }
+        this.operation = operation;
     }
 
     /**
      * Get attribute mappings.
      *
-     * @return UserStoreAttributeDO.
+     * @return UserStoreAttribute.
      */
-    public UserStoreAttributeDO getUsAttributeDO() {
+    public UserStoreAttribute getUsAttribute() {
 
-        return userStoreAttributeDO;
+        return userStoreAttribute;
     }
 
     /**
      * Set attribute details need to be changed.
      *
-     * @param userStoreAttributeDO Attribute details.
+     * @param userStoreAttribute Attribute details.
      */
-    public void setUsAttributeDO(UserStoreAttributeDO userStoreAttributeDO) {
+    public void setUsAttribute(UserStoreAttribute userStoreAttribute) {
 
-        this.userStoreAttributeDO = userStoreAttributeDO;
+        this.userStoreAttribute = userStoreAttribute;
     }
 }
 

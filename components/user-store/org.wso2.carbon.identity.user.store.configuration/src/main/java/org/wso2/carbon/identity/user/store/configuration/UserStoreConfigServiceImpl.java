@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfi
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
@@ -475,7 +474,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     }
 
     @Override
-    public UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreServerException {
+    public UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreMgtException {
 
         return UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
     }
