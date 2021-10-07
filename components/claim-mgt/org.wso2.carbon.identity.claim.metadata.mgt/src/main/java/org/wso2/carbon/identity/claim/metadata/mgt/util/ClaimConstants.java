@@ -69,6 +69,10 @@ public class ClaimConstants {
                 "Local claim URI : %s already exists."),
         ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI("100012",
                 "Local claim URI : %s does not exist."),
+        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION("10013",
+                "Unable to delete claim as it is referred by an application"),
+        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP("10014",
+                "Unable to delete claim as it is referred by an IDP"),
 
         // Client errors.
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
