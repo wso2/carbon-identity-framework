@@ -486,7 +486,7 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret type: " + secretTypeName + ".");
             }
-            throw handleClientException(ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, null);
+            throw handleClientException(ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, secretTypeName);
         }
     }
 
