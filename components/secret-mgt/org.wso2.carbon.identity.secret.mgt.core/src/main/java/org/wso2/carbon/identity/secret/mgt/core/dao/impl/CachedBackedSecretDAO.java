@@ -65,7 +65,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
                         + "%d", name, tenantId);
                 log.debug(message);
             }
-            return secret;
         } else {
             if (log.isDebugEnabled()) {
                 String message = String.format("Cache miss for secret by it's name. Secret name: %s, Tenant id: " +
@@ -87,7 +86,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
                 String message = String.format("Cache hit for secret by it's id. Secret id: %s", secretId);
                 log.debug(message);
             }
-            return secret;
         } else {
             if (log.isDebugEnabled()) {
                 String message = String.format("Cache miss for secret by it's id. Secret id: %s", secretId);
