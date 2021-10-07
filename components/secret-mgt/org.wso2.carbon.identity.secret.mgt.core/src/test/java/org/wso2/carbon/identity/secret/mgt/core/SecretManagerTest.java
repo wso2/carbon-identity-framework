@@ -173,6 +173,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
         Secret secretUpdated = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE2);
+        secretUpdated.setSecretId(secretCreated.getSecretId());
         encryptSecret(secretUpdated.getSecretValue());
         Secret secretReplaced = secretManager.replaceSecret(SAMPLE_SECRET_TYPE_NAME1, secretUpdated);
 
@@ -384,7 +385,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal to the replaced id");
     }
 
-    @Test(priority = 23)
+    @Test(priority = 23, expectedExceptions = SecretManagementClientException.class)
     public void testAddSecretWithInvalidSecretNameRegexContainsSpaces() throws Exception {
 
         Secret secretAdd = getSampleSecret(SAMPLE_INVALID_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -393,7 +394,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 24)
+    @Test(priority = 24, expectedExceptions = SecretManagementClientException.class)
     public void testAddSecretWithInvalidSecretNameRegexStartsWithNumeric() throws Exception {
 
         Secret secretAdd = getSampleSecret(SAMPLE_INVALID_SECRET_NAME2, SAMPLE_SECRET_VALUE1);

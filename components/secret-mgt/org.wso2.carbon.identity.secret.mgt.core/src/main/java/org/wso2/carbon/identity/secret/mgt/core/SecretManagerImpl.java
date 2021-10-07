@@ -328,6 +328,9 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretCreateRequest(String secretTypeName, Secret secret) throws SecretManagementException {
 
         validateSecretType(secretTypeName);
+        validateSecretName(secret.getSecretName());
+        validateSecretValue(secret.getSecretValue());
+        validateSecretDescription(secret.getDescription());
 
         if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getSecretValue())) {
             throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
@@ -338,10 +341,6 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
         }
-
-        validateSecretName(secret.getSecretName());
-        validateSecretValue(secret.getSecretValue());
-        validateSecretDescription(secret.getDescription());
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
             secret.setTenantDomain(getTenantDomain());
