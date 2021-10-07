@@ -1755,6 +1755,9 @@
                 {% if resource.cross_tenant is defined %}
                 cross-tenant="{{resource.cross_tenant}}"
                 {% endif %}
+                {% if resource.cross_access_allowed_tenants is defined %}
+                cross-access-allowed-tenants="{{resource.cross_access_allowed_tenants}}"
+                {% endif %}
                 >
             {% for permission in resource.permissions %}
             <Permissions>{{permission}}</Permissions>
