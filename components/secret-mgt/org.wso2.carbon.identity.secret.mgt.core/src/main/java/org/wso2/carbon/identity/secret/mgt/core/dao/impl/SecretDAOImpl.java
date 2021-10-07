@@ -360,7 +360,6 @@ public class SecretDAOImpl implements SecretDAO {
 
                 updateSecretMetadata(template, secret, secretType, currentTime);
                 return getCreatedTimeInResponse(secret, secretType.getName());
-
             });
             secret.setLastModified(currentTime.toInstant().toString());
             if (createdTime != null) {

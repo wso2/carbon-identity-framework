@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -382,7 +383,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     @Override
     public String[] getTags() {
 
-        String tags = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.TAGS);
+        String tags = getAuthenticatorConfig().getParameterMap().get(IdentityConstants.TAGS);
         String[] tagsArray = StringUtils.split(tags, ",");
         if (ArrayUtils.isNotEmpty(tagsArray)) {
             for (int i = 0; i < tagsArray.length; i++) {

@@ -829,6 +829,16 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
 
+        {% if oauth.enable_system_level_internal_scope_management is defined %}
+        <!--
+        Configuration to maintain backward compatibility to manage the internal scope - permission  binding per tenant.
+        By default value will be true. That means the internal scope - permission binding will be maintained in the system level.
+        If the value is changed to false, then internal scope - permission will be maintained per tenant.
+        This configuration can be changed only during the fresh setup or initial migration. Changing in the middle of running setup will break the system.
+        -->
+        <EnableSystemLevelInternalSystemScopeManagement>{{oauth.enable_system_level_internal_scope_management}}</EnableSystemLevelInternalSystemScopeManagement>
+        {% endif %}
+
         {% if oauth.allowed_scopes is defined %}
         <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
         <AllowedScopes>
@@ -1744,6 +1754,9 @@
                 http-method="{{resource.http_method}}"
                 {% if resource.cross_tenant is defined %}
                 cross-tenant="{{resource.cross_tenant}}"
+                {% endif %}
+                {% if resource.cross_access_allowed_tenants is defined %}
+                cross-access-allowed-tenants="{{resource.cross_access_allowed_tenants}}"
                 {% endif %}
                 >
             {% for permission in resource.permissions %}

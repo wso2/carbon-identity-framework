@@ -103,6 +103,7 @@ public abstract class FrameworkConstants {
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
+    public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
 
     public static final String REQUEST_PARAM_SP = "sp";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
@@ -141,7 +142,6 @@ public abstract class FrameworkConstants {
     public static final String BACK_TO_FIRST_STEP = "BACK_TO_FIRST_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
-    public static final String TAGS = "Tags";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
