@@ -29,7 +29,6 @@ import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.tools.ant.util.FileUtils;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
@@ -146,7 +145,7 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
 
                         File file = new File(absolutePath);
                         if (file.exists()) {
-                            FileUtils.delete(file);
+                            file.delete();
                         }
                     }
                     return;
