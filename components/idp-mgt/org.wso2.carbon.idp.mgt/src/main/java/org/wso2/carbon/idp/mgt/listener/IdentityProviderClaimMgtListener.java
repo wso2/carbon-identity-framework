@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.idp.mgt.listener;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.AbstractClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP;
 
 /**
  * Internal implementation of {@link AbstractClaimMetadataMgtListener} to listen to claim CRUD events.
@@ -43,7 +46,8 @@ public class IdentityProviderClaimMgtListener extends AbstractClaimMetadataMgtLi
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             if (idPManagementDAO.isClaimReferredByAnyIdp(null, claimUri, tenantId)) {
-                throw new ClaimMetadataException("Unable to delete claim as it is referred by an IDP.");
+                throw new ClaimMetadataClientException(ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP.getCode(),
+                        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP.getMessage());
             }
         } catch (IdentityProviderManagementException e) {
             throw new ClaimMetadataException("Error when deleting claim.", e);
