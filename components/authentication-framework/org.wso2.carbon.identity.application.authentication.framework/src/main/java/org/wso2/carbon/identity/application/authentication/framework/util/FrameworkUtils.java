@@ -3161,7 +3161,7 @@ public class FrameworkUtils {
      * Return a filtered list of requested scope claims.
      *
      * @param claimListOfScopes Claims list of requested scopes.
-     * @param claimMappings     SpClaimMappings.
+     * @param claimMappings     Claim mappings list of service provider.
      * @throws ClaimManagementException
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
@@ -3171,8 +3171,7 @@ public class FrameworkUtils {
         ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
         for (String claim : claimListOfScopes) {
-            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(
-                    claim);
+            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
             claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
         }
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
