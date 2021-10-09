@@ -51,15 +51,16 @@ public class SecretConstants {
         ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS("SECRETM_00013", "Secret with the id: %s does not exists."),
         ERROR_CODE_INVALID_SECRET_ID("SECRETM_00014", "Invalid secret id: %s."),
         ERROR_CODE_DELETE_SECRET("SECRETM_00015", "Error while deleting the secret: %s."),
-        ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00016", "Secret management feature is not enabled"),
+        ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS("SECRETM_00016", "Secret %s does not exists."),
+        ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00017", "Secret management feature is not enabled"),
 
-        ERROR_CODE_SECRET_TYPE_NAME_REQUIRED("SECRETM_00017", "Secret type name: %s validation failed."),
-        ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00018", "Secret type with the name: %s does not exists."),
-        ERROR_CODE_UPDATE_SECRET("SECRETM_00019", "Error while updating the secret %s."),
+        ERROR_CODE_SECRET_TYPE_NAME_REQUIRED("SECRETM_00018", "Secret type name: %s validation failed."),
+        ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00019", "Secret type with the name: %s does not exists."),
+        ERROR_CODE_UPDATE_SECRET("SECRETM_00020", "Error while updating the secret %s."),
 
-        ERROR_CODE_INVALID_SECRET_NAME("SECRETM_00020", "Secret name does not conform to %s pattern"),
-        ERROR_CODE_INVALID_SECRET_VALUE("SECRETM_00021", "Secret value does not conform to %s pattern"),
-        ERROR_CODE_INVALID_SECRET_DESCRIPTION("SECRETM_00022", "Secret description does not conform to %s pattern");
+        ERROR_CODE_INVALID_SECRET_NAME("SECRETM_00021", "Secret name does not conform to %s pattern"),
+        ERROR_CODE_INVALID_SECRET_VALUE("SECRETM_00022", "Secret value does not conform to %s pattern"),
+        ERROR_CODE_INVALID_SECRET_DESCRIPTION("SECRETM_00023", "Secret description does not conform to %s pattern");
 
         private final String code;
         private final String message;

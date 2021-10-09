@@ -199,8 +199,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
         Secret secretRetrieved = secretManager.getSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_NAME1);
 
-        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(), "Existing id should be equal " +
-                "to the retrieved id");
+        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(),
+                "Existing id should be equal " + "to the retrieved id");
     }
 
     @Test(priority = 9)
@@ -209,16 +209,16 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
-        Secret secretRetrieved = secretManager.getSecretById(secretCreated.getSecretId());
+        Secret secretRetrieved = secretManager.getSecretById(SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId());
 
-        assertEquals(secretCreated.getSecretName(), secretRetrieved.getSecretName(), "Existing id should be" +
-                " equal to the retrieved id");
+        assertEquals(secretCreated.getSecretName(), secretRetrieved.getSecretName(),
+                "Existing id should be equal to the retrieved id");
     }
 
     @Test(priority = 10, expectedExceptions = SecretManagementClientException.class)
     public void testGetNonExistingSecretById() throws Exception {
 
-        secretManager.getSecretById( SAMPLE_SECRET_ID);
+        secretManager.getSecretById(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_ID);
 
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
@@ -248,7 +248,7 @@ public class SecretManagerTest extends PowerMockTestCase {
     @Test(priority = 13, expectedExceptions = SecretManagementClientException.class)
     public void testDeleteNonExistingSecretById() throws Exception {
 
-        secretManager.deleteSecretById(SAMPLE_SECRET_ID);
+        secretManager.deleteSecretById(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_ID);
 
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
@@ -259,7 +259,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secretAdd.getSecretValue());
         Secret secret = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
-        secretManager.deleteSecretById(secret.getSecretId());
+        secretManager.deleteSecretById(SAMPLE_SECRET_TYPE_NAME1, secret.getSecretId());
         secretManager.getSecret(SAMPLE_SECRET_TYPE_NAME1, secret.getSecretName());
 
         fail("Expected: " + SecretManagementClientException.class.getName());
@@ -277,8 +277,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secret2 = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd2);
 
         Secrets secrets = secretManager.getSecrets(SAMPLE_SECRET_TYPE_NAME1);
-        Assert.assertEquals(2, secrets.getSecrets().size(), "Retrieved secret count should be equal to the " +
-                "added value");
+        Assert.assertEquals(2, secrets.getSecrets().size(),
+                "Retrieved secret count should be equal to the added value");
         Assert.assertEquals(secret1.getSecretName(), secrets.getSecrets().get(0).getSecretName(),
                 "Created secret name should be equal to the retrieved secret name");
         Assert.assertEquals(secret2.getSecretName(), secrets.getSecrets().get(1).getSecretName(),
@@ -300,12 +300,13 @@ public class SecretManagerTest extends PowerMockTestCase {
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
         decryptSecret(ENCRYPTED_VALUE1);
-        ResolvedSecret secretRetrieved = secretResolveManager.getResolvedSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_NAME1);
+        ResolvedSecret secretRetrieved = secretResolveManager
+                .getResolvedSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_NAME1);
 
-        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(), "Existing id should be equal " +
-                "to the retrieved id");
-        assertEquals(SAMPLE_SECRET_VALUE1, secretRetrieved.getResolvedSecretValue(), "Existing id should be equal " +
-                "to the retrieved id");
+        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(),
+                "Existing id should be equal to the retrieved id");
+        assertEquals(SAMPLE_SECRET_VALUE1, secretRetrieved.getResolvedSecretValue(),
+                "Existing id should be equal to the retrieved id");
     }
 
     @Test(priority = 18, expectedExceptions = SecretManagementServerException.class)
@@ -343,7 +344,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
         encryptSecret(SAMPLE_SECRET_VALUE2);
-        Secret secretUpdated = secretManager.updateSecretValueById(secretCreated.getSecretId(), SAMPLE_SECRET_VALUE2);
+        Secret secretUpdated = secretManager
+                .updateSecretValueById(SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId(), SAMPLE_SECRET_VALUE2);
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
@@ -374,8 +376,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretAdd = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1, SAMPLE_SECRET_DESCRIPTION1);
         encryptSecret(secretAdd.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretAdd);
-        Secret secretUpdated = secretManager.updateSecretDescriptionById(secretCreated.getSecretId(),
-                SAMPLE_SECRET_DESCRIPTION2);
+        Secret secretUpdated = secretManager.updateSecretDescriptionById(SAMPLE_SECRET_TYPE_NAME1,
+                secretCreated.getSecretId(), SAMPLE_SECRET_DESCRIPTION2);
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());

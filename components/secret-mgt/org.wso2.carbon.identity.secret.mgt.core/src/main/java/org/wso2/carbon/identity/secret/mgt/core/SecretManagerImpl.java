@@ -71,7 +71,8 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret getSecret(String secretTypeName, String secretName) throws SecretManagementException {
+    public Secret getSecret(String secretTypeName, String secretName)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
         validateSecretRetrieveRequest(secretTypeName, secretName);
@@ -99,24 +100,29 @@ public class SecretManagerImpl implements SecretManager {
         List secretList = this.getSecretDAO().getSecrets(secretType, getTenantId());
         if (secretList == null) {
             if (log.isDebugEnabled()) {
-                log.debug("No secret found for the secretTypeName: " + secretTypeName + "for the tenant: " + getTenantDomain());
+                log.debug("No secret found for the secretTypeName: "
+                        + secretTypeName + "for the tenant: " + getTenantDomain());
             }
             throw handleClientException(
                     ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
         }
         if (log.isDebugEnabled()) {
-            log.debug("All secrets of tenant: " + getTenantDomain() + " are retrieved successfully.");
+            log.debug("All secrets of tenant: " + getTenantDomain()
+                    + " are retrieved successfully.");
         }
         return new Secrets(secretList);
     }
 
     @Override
-    public Secret getSecretById(String secretId) throws SecretManagementException {
+    public Secret getSecretById(String secretTypeName, String secretId)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
+        validateSecretType(secretTypeName);
+
         Secret secret = this.getSecretDAO().getSecretById(secretId, getTenantId());
         if (secret == null) {
             if (log.isDebugEnabled()) {
@@ -131,44 +137,51 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public void deleteSecret(String secretTypeName, String secretName) throws SecretManagementException {
+    public void deleteSecret(String secretTypeName, String secretName)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretType(secretTypeName);
         validateSecretDeleteRequest(secretTypeName, secretName);
         SecretType secretType = getSecretType(secretTypeName);
         if (isSecretExist(secretTypeName, secretName)) {
-            this.getSecretDAO().deleteSecretByName(secretName, secretType.getName(), getTenantId());
+            this.getSecretDAO().deleteSecretByName(secretName,
+                    secretType.getName(), getTenantId());
             if (log.isDebugEnabled()) {
                 log.debug("Secret: " + secretName + " is deleted successfully.");
             }
         } else {
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName);
+            throw handleClientException(ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretName);
         }
     }
 
     @Override
-    public void deleteSecretById(String secretId) throws SecretManagementException {
+    public void deleteSecretById(String secretTypeName, String secretId)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
             throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
-        if (isSecretExistById(secretId)) {
+        validateSecretType(secretTypeName);
+        if (isSecretExistById(secretTypeName, secretId)) {
             this.getSecretDAO().deleteSecretById(secretId, getTenantId());
             if (log.isDebugEnabled()) {
-                log.debug("Secret id: " + secretId + " in tenant: " + getTenantDomain() + " deleted successfully.");
+                log.debug("Secret id: " + secretId + " in tenant: "
+                        + getTenantDomain() + " deleted successfully.");
             }
         } else {
-            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretId);
         }
     }
 
     @Override
-    public Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException {
+    public Secret replaceSecret(String secretTypeName, Secret secret)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
         validateSecretReplaceRequest(secretTypeName, secret);
-        secret.setSecretName(getSecretById(secret.getSecretId()).getSecretName());
+        secret.setSecretName(getSecretById(secretTypeName, secret.getSecretId()).getSecretName());
         secret.setSecretType(secretTypeName);
         secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().replaceSecret(secret);
@@ -179,9 +192,11 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException {
+    public Secret updateSecretValue(String secretTypeName, String name, String value)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretType(secretTypeName);
         validateSecretValue(value);
 
         Secret secret, updatedSecret;
@@ -198,13 +213,15 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret updateSecretValueById(String secretId, String value) throws SecretManagementException {
+    public Secret updateSecretValueById(String secretTypeName, String secretId, String value)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretType(secretTypeName);
         validateSecretValue(value);
 
         Secret secret, updatedSecret;
-        secret = getSecretById(secretId);
+        secret = getSecretById(secretTypeName, secretId);
         try {
             updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
         } catch (CryptoException e) {
@@ -217,9 +234,11 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException {
+    public Secret updateSecretDescription(String secretTypeName, String name, String description)
+            throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretType(secretTypeName);
         validateSecretDescription(description);
 
         Secret secret = getSecret(secretTypeName, name);
@@ -231,12 +250,15 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret updateSecretDescriptionById(String secretId, String description) throws SecretManagementException {
+    public Secret updateSecretDescriptionById(
+            String secretTypeName, String secretId, String description
+    ) throws SecretManagementException {
 
         validateSecretManagerEnabled();
+        validateSecretType(secretTypeName);
         validateSecretDescription(description);
 
-        Secret secret = getSecretById(secretId);
+        Secret secret = getSecretById(secretTypeName, secretId);
         Secret updatedSecret = this.getSecretDAO().updateSecretDescription(secret, description);
         if (log.isDebugEnabled()) {
             log.debug(secretId + "secret description updated successfully.");
@@ -265,7 +287,8 @@ public class SecretManagerImpl implements SecretManager {
      * @param secretName     The secret name.
      * @throws SecretManagementException If secret validation fails.
      */
-    private void validateSecretRetrieveRequest(String secretTypeName, String secretName) throws SecretManagementException {
+    private void validateSecretRetrieveRequest(String secretTypeName, String secretName)
+            throws SecretManagementException {
 
         validateSecretType(secretTypeName);
 
@@ -273,17 +296,6 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret identifier with secretName: " + secretName
                         + " and secretTypeName: " + secretName + ".");
-            }
-            throw handleClientException(ERROR_CODE_SECRET_GET_REQUEST_INVALID, null);
-        }
-    }
-
-    private void validateSecretsRetrieveRequest(String secretTypeName)
-            throws SecretManagementException {
-
-        if (StringUtils.isEmpty(secretTypeName)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid secret identifier with secretTypeName: " + secretTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_SECRET_GET_REQUEST_INVALID, null);
         }
@@ -300,11 +312,10 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretDeleteRequest(String secretTypeName, String secretName)
             throws SecretManagementException {
 
-        validateSecretType(secretTypeName);
-
         if (StringUtils.isEmpty(secretName)) {
             if (log.isDebugEnabled()) {
-                log.debug("Error identifying the secret with secret name: " + secretName + " and secret type: "
+                log.debug("Error identifying the secret with secret name: "
+                        + secretName + " and secret type: "
                         + secretTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED, null);
@@ -325,14 +336,16 @@ public class SecretManagerImpl implements SecretManager {
      * @param secret The secret to be added.
      * @throws SecretManagementException If secret validation fails.
      */
-    private void validateSecretCreateRequest(String secretTypeName, Secret secret) throws SecretManagementException {
+    private void validateSecretCreateRequest(String secretTypeName, Secret secret)
+            throws SecretManagementException {
 
         validateSecretType(secretTypeName);
         validateSecretName(secret.getSecretName());
         validateSecretValue(secret.getSecretValue());
         validateSecretDescription(secret.getDescription());
 
-        if (StringUtils.isEmpty(secret.getSecretName()) || StringUtils.isEmpty(secret.getSecretValue())) {
+        if (StringUtils.isEmpty(secret.getSecretName()) ||
+                StringUtils.isEmpty(secret.getSecretValue())) {
             throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
         }
         if (isSecretExist(secretTypeName, secret.getSecretName())) {
@@ -359,11 +372,12 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretType(secretTypeName);
 
-        if (StringUtils.isEmpty(secret.getSecretId()) || StringUtils.isEmpty(secret.getSecretValue())) {
+        if (StringUtils.isEmpty(secret.getSecretId()) ||
+                StringUtils.isEmpty(secret.getSecretValue())) {
             throw handleClientException(ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
         }
 
-        if (!isSecretExistById(secret.getSecretId())) {
+        if (!isSecretExistById(secretTypeName, secret.getSecretId())) {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the id: " + secret.getSecretId() + " does not exists.");
             }
@@ -414,7 +428,8 @@ public class SecretManagerImpl implements SecretManager {
      * @return true if exists.
      * @throws SecretManagementException
      */
-    private boolean isSecretExist(String secretTypeName, String secretName) throws SecretManagementException {
+    private boolean isSecretExist(String secretTypeName, String secretName)
+            throws SecretManagementException {
 
         try {
             getSecret(secretTypeName, secretName);
@@ -430,16 +445,18 @@ public class SecretManagerImpl implements SecretManager {
     /**
      * Check whether a secret already exists with the secret id.
      *
+     * @param secretTypeName Type of the secret.
      * @param secretId Id of the secret.
      * @return true if exists.
      * @throws SecretManagementException
      */
-    private boolean isSecretExistById(String secretId) throws SecretManagementException {
+    private boolean isSecretExistById(String secretTypeName, String secretId)
+            throws SecretManagementException {
 
         try {
-            getSecretById(secretId);
+            getSecretById(secretTypeName, secretId);
         } catch (SecretManagementClientException e) {
-            if (ERROR_CODE_SECRET_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 return false;
             }
             throw e;
@@ -447,7 +464,8 @@ public class SecretManagerImpl implements SecretManager {
         return true;
     }
 
-    private String getEncryptedSecret(String secretValue, String name) throws SecretManagementServerException {
+    private String getEncryptedSecret(String secretValue, String name)
+            throws SecretManagementServerException {
 
         try {
             return encrypt(secretValue);
@@ -497,7 +515,8 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretName(String secretName) throws SecretManagementClientException {
         if(!isSecretNameRegexValid(secretName)) {
             if(log.isDebugEnabled()) {
-                log.debug("Secret name does not conform to " + getSecretNameRegex() + " pattern");
+                log.debug("Secret name does not conform to "
+                        + getSecretNameRegex() + " pattern");
             }
             throw handleClientException(ERROR_CODE_INVALID_SECRET_NAME, getSecretNameRegex());
         }
@@ -511,7 +530,8 @@ public class SecretManagerImpl implements SecretManager {
     private void validateSecretValue(String secretValue) throws SecretManagementClientException {
         if(!isSecretValueRegexValid(secretValue)) {
             if(log.isDebugEnabled()) {
-                log.debug("Secret value does not conform to " + getSecretValueRegex() + " pattern");
+                log.debug("Secret value does not conform to "
+                        + getSecretValueRegex() + " pattern");
             }
             throw handleClientException(ERROR_CODE_INVALID_SECRET_VALUE, getSecretValueRegex());
         }
@@ -522,7 +542,8 @@ public class SecretManagerImpl implements SecretManager {
      * @param description Description of the secret.
      * @throws SecretManagementClientException
      */
-    private void validateSecretDescription(String description) throws SecretManagementClientException {
+    private void validateSecretDescription(String description)
+            throws SecretManagementClientException {
         if(description != null && !isSecretDescriptionRegexValid(description)) {
             if(log.isDebugEnabled()) {
                 log.debug("Secret description does not conform to "
