@@ -381,7 +381,7 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the id: " + secret.getSecretId() + " does not exists.");
             }
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secret.getSecretId());
+            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secret.getSecretId());
         }
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
