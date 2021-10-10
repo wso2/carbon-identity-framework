@@ -142,7 +142,8 @@
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime",
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId",
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail",
-            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile"
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value"
           ]
         },
         {
