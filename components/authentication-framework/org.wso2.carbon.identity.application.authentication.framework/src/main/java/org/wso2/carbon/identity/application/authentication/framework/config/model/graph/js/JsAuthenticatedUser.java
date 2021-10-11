@@ -112,7 +112,7 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 try {
                     userId = getWrapped().getUserId();
                 } catch (UserIdNotFoundException e) {
-                    LOG.error("Error while retrieving user Id of user : " + getWrapped(), e);
+                    LOG.error("Error while retrieving user Id of user : " + getWrapped().getLoggableUserId(), e);
                 }
                 return userId;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
