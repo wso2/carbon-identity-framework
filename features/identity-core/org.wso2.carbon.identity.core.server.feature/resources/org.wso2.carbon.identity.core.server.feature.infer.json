@@ -161,7 +161,8 @@
             "urn:ietf:params:scim:schemas:core:2.0:User:addresses.work",
             "urn:ietf:params:scim:schemas:core:2.0:User:addresses.other",
             "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers",
-            "urn:ietf:params:scim:schemas:core:2.0:User:photos"
+            "urn:ietf:params:scim:schemas:core:2.0:User:photos",
+            "urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default"
           ]
         }
       ],
