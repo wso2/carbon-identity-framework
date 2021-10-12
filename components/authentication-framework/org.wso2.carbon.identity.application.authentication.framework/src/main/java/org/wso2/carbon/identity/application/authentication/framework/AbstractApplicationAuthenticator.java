@@ -101,7 +101,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             }
                         }
                     }
-                    if (this instanceof FederatedApplicationAuthenticator) {
+                    if (this instanceof FederatedApplicationAuthenticator &&
+                            context.getExternalIdP().isProvisioningEnabled()) {
                         handlePostAuthentication(context);
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
