@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.provisioning;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
@@ -779,8 +780,9 @@ public class OutboundProvisioningManager {
             return true;
         }
 
-        if (provisioningEntity.getAttributes() != null) {
-            String userName = getUserName(provisioningEntity.getAttributes());
+        if (provisioningEntity.getAttributes() != null &&
+                StringUtils.isNotBlank(provisioningEntity.getEntityName())) {
+            String userName = provisioningEntity.getEntityName();
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
 
             List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
