@@ -565,22 +565,22 @@
         -->
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
-<!--        <Introspection>-->
-<!--            &lt;!&ndash;-->
-<!--            By enabling this property UMA permission information for the RPT can be retrieved through introspection response-->
-<!--    -->
-<!--            Default value : false-->
-<!--            Supported versions : IS 5.8.0 onwards-->
-<!--            &ndash;&gt;-->
+        <Introspection>
+            <!--
+            By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+            -->
 <!--            <EnableDataProviders>false</EnableDataProviders>-->
-<!--            &lt;!&ndash;-->
-<!--                This config will remove any optional claims from introspection response. Before setting the response to-->
-<!--                the introspection endpoint claims configured below will be removed.-->
-<!--            &ndash;&gt;-->
+            <!--
+                This config will remove any optional claims from introspection response. Before setting the response to
+                the introspection endpoint claims configured below will be removed.
+            -->
 <!--            <FilteredClaims>-->
 <!--                <FilteredClaim></FilteredClaims>-->
 <!--            </FilteredClaims>-->
-<!--        </Introspection>-->
+        </Introspection>
 
         <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
 
@@ -621,7 +621,6 @@
         Default value : false
         -->
         <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
-
     </OAuth>
 
     <MultifactorAuthentication>
