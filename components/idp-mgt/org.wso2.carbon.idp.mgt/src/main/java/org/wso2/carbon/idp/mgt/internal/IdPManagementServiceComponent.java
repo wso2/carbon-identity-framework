@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -497,5 +498,22 @@ public class IdPManagementServiceComponent {
     protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
 
         IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "secret.storage.service",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    protected void setSecretManager(SecretManager secretManager) {
+
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+    }
+
+    protected void unsetSecretManager(SecretManager secretManager) {
+
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(null);
     }
 }

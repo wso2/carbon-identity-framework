@@ -25,6 +25,8 @@
             <class name="org.wso2.carbon.idp.mgt.dao.IdPManagementDAOTest"/>
             <class name="org.wso2.carbon.idp.mgt.IdentityProviderManagementServiceTest"/>
             <class name="org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLoggerTest"/>
+            <class name="org.wso2.carbon.idp.mgt.secretprocessor.PlainTextPersistenceProcessorTest"/>
+            <class name="org.wso2.carbon.idp.mgt.secretprocessor.SecretManagerPersistenceProcessorTest"/>
         </classes>
     </test>
 </suite>

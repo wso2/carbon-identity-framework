@@ -136,6 +136,15 @@ public interface SecretManager {
     Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException;
 
     /**
+     * Update value of a secret by the secret id.
+     *
+     * @param secretId Id representing the secret.
+     * @param value    Secret value to be updated.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    Secret updateSecretValueById(String secretId, String value) throws SecretManagementException;
+
+    /**
      * Delete description of a secret by name.
      *
      * @param secretTypeName Name of the {@link SecretType}.

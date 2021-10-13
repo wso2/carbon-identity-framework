@@ -45,12 +45,16 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdPSecretConfiguration;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
+import org.wso2.carbon.idp.mgt.secretprocessor.SecretManagerPersistenceProcessor;
+import org.wso2.carbon.idp.mgt.secretprocessor.SecretPersistenceProcessor;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.utils.DBUtils;
@@ -89,6 +93,13 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 public class IdPManagementDAO {
 
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
+
+    private SecretPersistenceProcessor persistenceProcessor;
+
+    public IdPManagementDAO() {
+
+        persistenceProcessor = IdPSecretConfiguration.getInstance().getPersistenceProcessor();
+    }
 
     /**
      * @param dbConnection
@@ -639,7 +650,7 @@ public class IdPManagementDAO {
 
                             // Get federated authenticators.
                             identityProvider.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
-                                    dbConnection, idPName, identityProvider, tenantId));
+                                    dbConnection, idPName, identityProvider, tenantId, true));
 
                             if (defaultAuthenticatorName != null &&
                                     identityProvider.getFederatedAuthenticatorConfigs() != null) {
@@ -886,16 +897,20 @@ public class IdPManagementDAO {
     }
 
     /**
-     * @param dbConnection
-     * @param idPName
-     * @param tenantId
-     * @return
-     * @throws IdentityProviderManagementException
-     * @throws SQLException
+     * Get federated authenticators of an identity provider.
+     *
+     * @param dbConnection    Database connection.
+     * @param idPName         Identity provider name.
+     * @param federatedIdp    Identity provider object.
+     * @param tenantId        Tenant id.
+     * @param plainTextSecret If true, the secrets of the federated authenticators will be retrieved in plain text.
+     * @return Federated authenticators of the given identity provider.
+     * @throws IdentityProviderManagementException Error when getting federated authenticators.
+     * @throws SQLException                        Database error.
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
-            Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementException, SQLException {
+            Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId,
+            boolean plainTextSecret) throws IdentityProviderManagementException, SQLException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -938,10 +953,26 @@ public class IdPManagementDAO {
                 prepStmt2.setInt(1, authnId);
                 proprs = prepStmt2.executeQuery();
                 Set<Property> properties = new HashSet<Property>();
+
+                ArrayList<String> federatedAuthenticatorConfidentialPropertyNames = new ArrayList<>();
+                if (plainTextSecret) {
+                    federatedAuthenticatorConfidentialPropertyNames =
+                            getFederatedAuthenticatorConfidentialPropertyNames(authnConfig.getName());
+                }
+
                 while (proprs.next()) {
                     Property property = new Property();
-                    property.setName(proprs.getString("PROPERTY_KEY"));
-                    property.setValue(proprs.getString("PROPERTY_VALUE"));
+
+                    String propertyName = proprs.getString("PROPERTY_KEY");
+                    String propertyValue = proprs.getString("PROPERTY_VALUE");
+                    if (StringUtils.isNotBlank(propertyValue) && plainTextSecret) {
+                        if (federatedAuthenticatorConfidentialPropertyNames.contains(propertyName)) {
+                            propertyValue = persistenceProcessor.getPreprocessedSecret(propertyValue);
+                        }
+                    }
+
+                    property.setName(propertyName);
+                    property.setValue(propertyValue);
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(proprs.getString("IS_SECRET"))) {
                         property.setConfidential(true);
                     }
@@ -961,7 +992,6 @@ public class IdPManagementDAO {
 
     /**
      * @param newFederatedAuthenticatorConfigs
-     * @param oldFederatedAuthenticatorConfigs
      * @param dbConnection
      * @param idpId
      * @param tenantId
@@ -970,10 +1000,20 @@ public class IdPManagementDAO {
      */
     private void updateFederatedAuthenticatorConfigs(
             FederatedAuthenticatorConfig[] newFederatedAuthenticatorConfigs,
-            FederatedAuthenticatorConfig[] oldFederatedAuthenticatorConfigs,
             Connection dbConnection, int idpId, int tenantId, boolean isResidentIdP)
             throws IdentityProviderManagementException, SQLException {
 
+        /*
+        The persistence and processing of secrets of the federated authenticators depends on the implemented
+        SecretPersistenceProcessor.
+        E.g. If SecretManagerPersistenceProcessor implementation is used, secrets will be stored in the secret store.
+        Therefore when updating/ deleting secrets of federated authenticators, it may require to perform db operations
+        in multiple tables. To perform such actions, it is required to retrieve the federated authenticator
+        configuration data (such as the secret reference id instead of the actual secret value) persisted in the db
+        for the identity provider.
+         */
+        FederatedAuthenticatorConfig[] oldFederatedAuthenticatorConfigs = getIDP(dbConnection, null, idpId, null,
+                tenantId, IdentityTenantUtil.getTenantDomain(tenantId), false).getFederatedAuthenticatorConfigs();
         Map<String, FederatedAuthenticatorConfig> oldFedAuthnConfigMap = new HashMap<>();
         if (oldFederatedAuthenticatorConfigs != null && oldFederatedAuthenticatorConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthnConfig : oldFederatedAuthenticatorConfigs) {
@@ -1073,15 +1113,23 @@ public class IdPManagementDAO {
                 }
             }
 
+            String authnConfigName = newFederatedAuthenticatorConfig.getName();
+            ArrayList<String> federatedAuthenticatorConfidentialPropertyNames =
+                    getFederatedAuthenticatorConfidentialPropertyNames(authnConfigName);
+
             if (CollectionUtils.isNotEmpty(unUpdatedProperties)) {
-                deleteFederatedConfigProperties(dbConnection, authnId, tenantId, unUpdatedProperties);
+                deleteFederatedConfigProperties(dbConnection, authnId, tenantId, oldFederatedAuthenticatorConfig,
+                        federatedAuthenticatorConfidentialPropertyNames, unUpdatedProperties);
             }
             if (CollectionUtils.isNotEmpty(singleValuedProperties)) {
-                updateSingleValuedFederatedConfigProperties(dbConnection, authnId, tenantId, singleValuedProperties);
+                updateSingleValuedFederatedConfigProperties(dbConnection, authnId, tenantId, idpId, authnConfigName,
+                        oldFederatedAuthenticatorConfig, federatedAuthenticatorConfidentialPropertyNames,
+                        singleValuedProperties);
             }
             if (CollectionUtils.isNotEmpty(multiValuedProperties)) {
                 updateMultiValuedFederatedConfigProperties(dbConnection, oldFederatedAuthenticatorConfig
-                        .getProperties(), authnId, tenantId, multiValuedProperties);
+                        .getProperties(), authnId, tenantId, federatedAuthenticatorConfidentialPropertyNames,
+                        multiValuedProperties);
             }
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt1);
@@ -1121,25 +1169,34 @@ public class IdPManagementDAO {
             } else {
                 prepStmt1.setString(3, IdPManagementConstants.IS_FALSE_VALUE);
             }
-            prepStmt1.setString(4, authnConfig.getName());
+            String authnConfigName = authnConfig.getName();
+            prepStmt1.setString(4, authnConfigName);
             prepStmt1.setString(5, authnConfig.getDisplayName());
             prepStmt1.execute();
 
-            int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
+            int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfigName);
 
             sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_PROP_SQL;
 
             if (authnConfig.getProperties() == null) {
                 authnConfig.setProperties(new Property[0]);
             }
+
+            ArrayList<String> confidentialPropertyNames = getFederatedAuthenticatorConfidentialPropertyNames
+                    (authnConfigName);
+
             for (Property property : authnConfig.getProperties()) {
 
                 prepStmt2 = dbConnection.prepareStatement(sqlStmt);
                 prepStmt2.setInt(1, authnId);
                 prepStmt2.setInt(2, tenantId);
-                prepStmt2.setString(3, property.getName());
-                prepStmt2.setString(4, property.getValue());
-                if (property.isConfidential()) {
+
+                String propertyName = property.getName();
+                String propertyValue = getProcessedSecret(idpId, authnConfigName, propertyName, property.getValue(),
+                        confidentialPropertyNames);
+                prepStmt2.setString(3, propertyName);
+                prepStmt2.setString(4, propertyValue);
+                if (confidentialPropertyNames.contains(propertyName)) {
                     prepStmt2.setString(5, IdPManagementConstants.IS_TRUE_VALUE);
                 } else {
                     prepStmt2.setString(5, IdPManagementConstants.IS_FALSE_VALUE);
@@ -1153,6 +1210,43 @@ public class IdPManagementDAO {
         }
     }
 
+    private String getProcessedSecret(int idpId, String authnConfigName, String propertyName, String propertyValue,
+                                      ArrayList<String> confidentialPropertyNames)
+            throws IdentityProviderManagementException {
+
+        if (StringUtils.isNotBlank(propertyValue)) {
+            for (String confidentialPropertyName : confidentialPropertyNames) {
+                if (StringUtils.equals(propertyName, confidentialPropertyName)) {
+                    propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName, propertyName, propertyValue);
+                    break;
+                }
+            }
+        }
+        return propertyValue;
+    }
+
+    private ArrayList<String> getFederatedAuthenticatorConfidentialPropertyNames(String authnConfigName) throws
+            IdentityProviderManagementException {
+
+        FederatedAuthenticatorConfig[] federatedAuthenticators = IdentityProviderManager.getInstance()
+                .getAllFederatedAuthenticators();
+
+        ArrayList<String> confidentialPropertyNames = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(federatedAuthenticators)) {
+            for (FederatedAuthenticatorConfig authenticatorConfig : federatedAuthenticators) {
+                if (StringUtils.equals(authenticatorConfig.getName(), authnConfigName)) {
+                    for (Property property : authenticatorConfig.getProperties()) {
+                        if (property.isConfidential()) {
+                            confidentialPropertyNames.add(property.getName());
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return confidentialPropertyNames;
+    }
+
     private void deleteFederatedAuthenticatorConfig(FederatedAuthenticatorConfig authnConfig,
                                                     Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException, SQLException {
@@ -1163,11 +1257,32 @@ public class IdPManagementDAO {
             prepStmt.setString(2, authnConfig.getName());
             prepStmt.execute();
         }
+
+        deleteFederatedAuthenticatorSecrets(authnConfig);
+    }
+
+    private void deleteFederatedAuthenticatorSecrets(FederatedAuthenticatorConfig authnConfig) throws
+            IdentityProviderManagementException {
+
+        ArrayList<String> federatedAuthenticatorConfidentialPropertyNames =
+                getFederatedAuthenticatorConfidentialPropertyNames(authnConfig.getName());
+        for (Property property : authnConfig.getProperties()) {
+            for (String confidentialPropertyName : federatedAuthenticatorConfidentialPropertyNames) {
+                if (StringUtils.isNotBlank(property.getValue()) &&
+                        StringUtils.equals(property.getName(), confidentialPropertyName)) {
+                    persistenceProcessor.deleteSecret(property.getValue());
+                    break;
+                }
+            }
+        }
     }
 
     private void updateSingleValuedFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId,
-                                                             List<Property> singleValuedProperties) throws
-            SQLException {
+                                                             int idpId, String authnConfigName,
+                                                             FederatedAuthenticatorConfig federatedAuthenticatorConfig,
+                                                             ArrayList<String> confidentialPropertyNames,
+                                                             List<Property> singleValuedProperties)
+            throws SQLException, IdentityProviderManagementException {
 
         PreparedStatement prepStmt2 = null;
         PreparedStatement prepStmt3 = null;
@@ -1176,16 +1291,42 @@ public class IdPManagementDAO {
         try {
             for (Property property : singleValuedProperties) {
 
+                boolean isConfidentialProperty = false;
                 sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_PROP_SQL;
                 prepStmt2 = dbConnection.prepareStatement(sqlStmt);
-                prepStmt2.setString(1, property.getValue());
-                if (property.isConfidential()) {
+
+                String propertyName = property.getName();
+                String propertyValue = property.getValue();
+
+                if (StringUtils.isNotBlank(propertyValue)) {
+                    for (String confidentialPropertyName : confidentialPropertyNames) {
+                        if (StringUtils.equals(propertyName, confidentialPropertyName)) {
+                            isConfidentialProperty = true;
+                            for (Property prop : federatedAuthenticatorConfig.getProperties()) {
+                                if (StringUtils.equals(prop.getName(), confidentialPropertyName)) {
+                                    String secretId = prop.getValue();
+                                    if (StringUtils.isNotBlank(secretId)) {
+                                        propertyValue = persistenceProcessor.updateSecret(secretId,
+                                                propertyValue);
+                                    } else {
+                                        propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName,
+                                                propertyName, propertyValue);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                prepStmt2.setString(1, propertyValue);
+                if (confidentialPropertyNames.contains(property.getName())) {
                     prepStmt2.setString(2, IdPManagementConstants.IS_TRUE_VALUE);
                 } else {
                     prepStmt2.setString(2, IdPManagementConstants.IS_FALSE_VALUE);
                 }
                 prepStmt2.setInt(3, authnId);
-                prepStmt2.setString(4, property.getName());
+                prepStmt2.setString(4, propertyName);
                 int rows = prepStmt2.executeUpdate();
 
                 if (rows == 0) {
@@ -1194,9 +1335,15 @@ public class IdPManagementDAO {
                     prepStmt3 = dbConnection.prepareStatement(sqlStmt);
                     prepStmt3.setInt(1, authnId);
                     prepStmt3.setInt(2, tenantId);
-                    prepStmt3.setString(3, property.getName());
-                    prepStmt3.setString(4, property.getValue());
-                    if (property.isConfidential()) {
+                    prepStmt3.setString(3, propertyName);
+
+                    if (StringUtils.isNotBlank(propertyValue) && isConfidentialProperty) {
+                        propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName, propertyName,
+                                propertyValue);
+                    }
+
+                    prepStmt3.setString(4, propertyValue);
+                    if (confidentialPropertyNames.contains(property.getName())) {
                         prepStmt3.setString(5, IdPManagementConstants.IS_TRUE_VALUE);
                     } else {
                         prepStmt3.setString(5, IdPManagementConstants.IS_FALSE_VALUE);
@@ -1213,8 +1360,8 @@ public class IdPManagementDAO {
     }
 
     private void updateMultiValuedFederatedConfigProperties(Connection dbConnection, Property[]
-            oldFederatedAuthenticatorConfigProperties, int authnId, int tenantId, List<Property>
-                                                                    multiValuedProperties) throws SQLException {
+            oldFederatedAuthenticatorConfigProperties, int authnId, int tenantId, ArrayList<String>
+            confidentialPropertyNames, List<Property> multiValuedProperties) throws SQLException {
 
         PreparedStatement deleteOldValuePrepStmt = null;
         PreparedStatement addNewPropsPrepStmt = null;
@@ -1229,6 +1376,7 @@ public class IdPManagementDAO {
                     deleteOldValuePrepStmt.setInt(2, tenantId);
                     deleteOldValuePrepStmt.setInt(3, authnId);
                     deleteOldValuePrepStmt.executeUpdate();
+                    updateMultiValuedFederatedConfigSecret(property.getName(), confidentialPropertyNames);
                 }
             }
 
@@ -1238,8 +1386,9 @@ public class IdPManagementDAO {
                 addNewPropsPrepStmt.setInt(1, authnId);
                 addNewPropsPrepStmt.setInt(2, tenantId);
                 addNewPropsPrepStmt.setString(3, property.getName());
+                updateMultiValuedFederatedConfigSecret(property.getName(), confidentialPropertyNames);
                 addNewPropsPrepStmt.setString(4, property.getValue());
-                if (property.isConfidential()) {
+                if (confidentialPropertyNames.contains(property.getName())) {
                     addNewPropsPrepStmt.setString(5, IdPManagementConstants.IS_TRUE_VALUE);
                 } else {
                     addNewPropsPrepStmt.setString(5, IdPManagementConstants.IS_FALSE_VALUE);
@@ -1255,8 +1404,24 @@ public class IdPManagementDAO {
 
     }
 
-    private void deleteFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId, List<Property>
-            properties) throws SQLException {
+    private void updateMultiValuedFederatedConfigSecret(String propertyName, ArrayList<String>
+                                                                federatedAuthenticatorConfidentialPropertyNames) {
+
+        if (persistenceProcessor instanceof SecretManagerPersistenceProcessor) {
+            for (String confidentialPropertyName : federatedAuthenticatorConfidentialPropertyNames) {
+                if (StringUtils.equals(propertyName, confidentialPropertyName)) {
+                    log.warn(String.format("Secret persistence processor capability is not implemented for " +
+                            "multi valued federated authenticator property: %s", propertyName));
+                }
+            }
+        }
+    }
+
+    private void deleteFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId,
+                                                 FederatedAuthenticatorConfig oldFederatedAuthenticatorConfig,
+                                                 ArrayList<String> federatedAuthenticatorConfidentialPropertyNames,
+                                                 List<Property> properties) throws SQLException,
+            IdentityProviderManagementException {
 
         if (CollectionUtils.isEmpty(properties)) {
             return;
@@ -1267,14 +1432,32 @@ public class IdPManagementDAO {
         try {
             deletePrepStmt = dbConnection.prepareStatement(sqlStmt);
             for (Property property : properties) {
-                deletePrepStmt.setString(1, property.getName());
+                String propertyName = property.getName();
+                deletePrepStmt.setString(1, propertyName);
                 deletePrepStmt.setInt(2, tenantId);
                 deletePrepStmt.setInt(3, authnId);
                 deletePrepStmt.addBatch();
+
+                deleteFederatedAuthenticatorSecrets(propertyName, oldFederatedAuthenticatorConfig,
+                        federatedAuthenticatorConfidentialPropertyNames);
             }
             deletePrepStmt.executeBatch();
         } finally {
             IdentityDatabaseUtil.closeStatement(deletePrepStmt);
+        }
+    }
+
+    private void deleteFederatedAuthenticatorSecrets(String propertyName, FederatedAuthenticatorConfig
+            federatedAuthenticatorConfig, ArrayList<String> federatedAuthenticatorConfidentialPropertyNames)
+            throws IdentityProviderManagementException {
+
+        if (federatedAuthenticatorConfidentialPropertyNames.contains(propertyName)) {
+            for (Property prop : federatedAuthenticatorConfig.getProperties()) {
+                if (StringUtils.isNotBlank(prop.getValue()) && StringUtils.equals(prop.getName(), propertyName)) {
+                    persistenceProcessor.deleteSecret(prop.getValue());
+                    break;
+                }
+            }
         }
     }
 
@@ -1900,7 +2083,24 @@ public class IdPManagementDAO {
     public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId,
                                          String tenantDomain) throws IdentityProviderManagementException {
 
-        return getIDP(dbConnection, idPName, -1, null, tenantId, tenantDomain);
+        return getIDP(dbConnection, idPName, -1, null, tenantId, tenantDomain, true);
+    }
+
+    /**
+     * Retrieves an identity provider from name.
+     *
+     * @param dbConnection    Database connection.
+     * @param idPName         Identity provider name.
+     * @param tenantId        Tenant ID of the identity provider.
+     * @param tenantDomain    Tenant Domain of the identity provider.
+     * @param plainTextSecret If true, the secrets of the federated authenticators will be retrieved in plain text.
+     * @return An identity provider with given name.
+     * @throws IdentityProviderManagementException Error while retrieving the identity provider.
+     */
+    public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId, String tenantDomain,
+                                         boolean plainTextSecret) throws IdentityProviderManagementException {
+
+        return getIDP(dbConnection, idPName, -1, null, tenantId, tenantDomain, plainTextSecret);
     }
 
     /**
@@ -1916,7 +2116,7 @@ public class IdPManagementDAO {
     public IdentityProvider getIDPbyId(Connection dbConnection, int idpId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
-        return getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain);
+        return getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain, true);
 
     }
 
@@ -1933,7 +2133,25 @@ public class IdPManagementDAO {
     public IdentityProvider getIDPbyResourceId(Connection dbConnection, String resourceId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
-        return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain);
+        return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain, true);
+    }
+
+    /**
+     * Retrieves an identity provider.
+     *
+     * @param dbConnection    Database connection.
+     * @param resourceId      UUID of the identity provider.
+     * @param tenantId        Tenant ID of the identity provider.
+     * @param tenantDomain    Tenant domain of the identity provider.
+     * @param plainTextSecret If true, the secrets of the federated authenticators will be retrieved in plain text.
+     * @return An identity provider.
+     * @throws IdentityProviderManagementException Error while retrieving the identity provider.
+     */
+    public IdentityProvider getIDPbyResourceId(Connection dbConnection, String resourceId, int tenantId,
+                                               String tenantDomain, boolean plainTextSecret) throws
+            IdentityProviderManagementException {
+
+        return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain, plainTextSecret);
     }
 
     /**
@@ -1966,16 +2184,21 @@ public class IdPManagementDAO {
     }
 
     /**
-     * @param dbConnection
-     * @param idPName
-     * @param idpId
-     * @param tenantId
-     * @param tenantDomain
-     * @return
-     * @throws IdentityProviderManagementException
+     * Retrieves an identity provider.
+     *
+     * @param dbConnection    Database connection.
+     * @param idPName         Identity provider name.
+     * @param idpId           Identity provider ID.
+     * @param resourceId      UUID of the identity provider.
+     * @param tenantId        Tenant ID of the identity provider.
+     * @param tenantDomain    Tenant domain of the identity provider.
+     * @param plainTextSecret If true, the secrets of the federated authenticators will be retrieved in plain text.
+     * @return An identity provider.
+     * @throws IdentityProviderManagementException Error while retrieving the identity provider.
      */
     private IdentityProvider getIDP(Connection dbConnection, String idPName, int idpId, String resourceId, int
-                                            tenantId, String tenantDomain) throws IdentityProviderManagementException {
+                                            tenantId, String tenantDomain, boolean plainTextSecret)
+            throws IdentityProviderManagementException {
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
@@ -2086,7 +2309,7 @@ public class IdPManagementDAO {
 
                 // get federated authenticators.
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
-                        dbConnection, idPName, federatedIdp, tenantId));
+                        dbConnection, idPName, federatedIdp, tenantId, plainTextSecret));
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
                     federatedIdp.setDefaultAuthenticatorConfig(IdentityApplicationManagementUtil
@@ -2325,7 +2548,7 @@ public class IdPManagementDAO {
 
                 // get federated authenticators.
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
-                        dbConnection, idPName, federatedIdp, tenantId));
+                        dbConnection, idPName, federatedIdp, tenantId, true));
 
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
@@ -2483,7 +2706,7 @@ public class IdPManagementDAO {
 
                 // get federated authenticators.
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
-                        dbConnection, idPName, federatedIdp, tenantId));
+                        dbConnection, idPName, federatedIdp, tenantId, true));
 
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
@@ -2988,8 +3211,7 @@ public class IdPManagementDAO {
                         .equals(newIdentityProvider.getIdentityProviderName());
                 // update federated authenticators.
                 updateFederatedAuthenticatorConfigs(
-                        newIdentityProvider.getFederatedAuthenticatorConfigs(),
-                        currentIdentityProvider.getFederatedAuthenticatorConfigs(), dbConnection,
+                        newIdentityProvider.getFederatedAuthenticatorConfigs(), dbConnection,
                         idpId, tenantId, isResidentIdP);
 
                 // update claim configuration.
@@ -3080,14 +3302,16 @@ public class IdPManagementDAO {
     public void deleteIdP(String idPName, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs;
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
             IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId,
-                    tenantDomain);
+                    tenantDomain, false);
             if (identityProvider == null) {
                 String msg = "Trying to delete non-existent Identity Provider: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
             }
+            federatedAuthenticatorConfigs = identityProvider.getFederatedAuthenticatorConfigs();
             deleteIdP(dbConnection, tenantId, idPName, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
@@ -3096,6 +3320,9 @@ public class IdPManagementDAO {
                     + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
+        }
+        if (federatedAuthenticatorConfigs != null) {
+            deleteIdPFederatedAuthenticatorSecrets(federatedAuthenticatorConfigs);
         }
     }
 
@@ -3127,14 +3354,16 @@ public class IdPManagementDAO {
     public void deleteIdPByResourceId(String resourceId, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs;
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
             IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
-                    tenantDomain);
+                    tenantDomain, false);
             if (identityProvider == null) {
                 String msg = "Trying to delete non-existent Identity Provider with resource ID: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
+            federatedAuthenticatorConfigs = identityProvider.getFederatedAuthenticatorConfigs();
             deleteIdP(dbConnection, tenantId, null, resourceId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
@@ -3144,15 +3373,35 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
+        if (federatedAuthenticatorConfigs != null) {
+            deleteIdPFederatedAuthenticatorSecrets(federatedAuthenticatorConfigs);
+        }
+    }
+
+    private void deleteIdPFederatedAuthenticatorSecrets(FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs)
+            throws IdentityProviderManagementException {
+
+        for (FederatedAuthenticatorConfig federatedAuthenticatorConfig : federatedAuthenticatorConfigs) {
+            ArrayList<String> federatedAuthenticatorConfidentialPropertyNames =
+                    getFederatedAuthenticatorConfidentialPropertyNames(federatedAuthenticatorConfig.getName());
+            Property[] federatedAuthenticatorConfigProperties = federatedAuthenticatorConfig.getProperties();
+            for (Property property : federatedAuthenticatorConfigProperties) {
+                if (StringUtils.isNotBlank(property.getValue()) &&
+                        federatedAuthenticatorConfidentialPropertyNames.contains(property.getName())) {
+                    persistenceProcessor.deleteSecret(property.getValue());
+                }
+            }
+        }
     }
 
     public void forceDeleteIdP(String idPName,
                                int tenantId,
                                String tenantDomain) throws IdentityProviderManagementException {
 
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs;
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
-            IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
+            IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId, tenantDomain, false);
             if (identityProvider == null) {
                 String msg = "Trying to force delete non-existent Identity Provider: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
@@ -3169,6 +3418,7 @@ public class IdPManagementDAO {
                         idPName, tenantDomain));
             }
             deleteIdpSpProvisioningAssociations(dbConnection, tenantId, idPName);
+            federatedAuthenticatorConfigs = identityProvider.getFederatedAuthenticatorConfigs();
             deleteIdP(dbConnection, tenantId, idPName, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
@@ -3179,20 +3429,25 @@ public class IdPManagementDAO {
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
+        if (federatedAuthenticatorConfigs != null) {
+            deleteIdPFederatedAuthenticatorSecrets(federatedAuthenticatorConfigs);
+        }
     }
 
     public void forceDeleteIdPByResourceId(String resourceId, int tenantId, String tenantDomain) throws
             IdentityProviderManagementException {
 
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs;
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
             IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
-                    tenantDomain);
+                    tenantDomain, false);
             if (identityProvider == null) {
                 String msg = "Trying to force delete non-existent Identity Provider with resource ID: %s in " +
                         "tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
+            federatedAuthenticatorConfigs = identityProvider.getFederatedAuthenticatorConfigs();
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Deleting SP Authentication Associations for IDP:%s of tenantDomain:%s",
                         identityProvider.getIdentityProviderName(), tenantDomain));
@@ -3214,6 +3469,9 @@ public class IdPManagementDAO {
                             resourceId, tenantDomain), e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
+        }
+        if (federatedAuthenticatorConfigs != null) {
+            deleteIdPFederatedAuthenticatorSecrets(federatedAuthenticatorConfigs);
         }
     }
 

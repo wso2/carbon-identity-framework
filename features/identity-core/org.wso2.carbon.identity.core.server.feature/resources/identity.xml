@@ -2041,4 +2041,7 @@
     <!--    By setting false localization code will be stored inside the http://wso2.org/claims/local-->
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
 
+    <!-- Process the identity provider secrets before storing it in database. e.g. encrypting -->
+    <IdentityProviderSecretPersistenceProcessor>org.wso2.carbon.idp.mgt.secretprocessor.PlainTextPersistenceProcessor</IdentityProviderSecretPersistenceProcessor>
+
 </Server>

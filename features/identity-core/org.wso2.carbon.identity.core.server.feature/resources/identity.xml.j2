@@ -2924,4 +2924,8 @@
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}
+
+    <!-- Process the identity provider secrets before storing it in database. e.g. encrypting -->
+    <IdentityProviderSecretPersistenceProcessor>{{idp.secret_persistence_processor}}</IdentityProviderSecretPersistenceProcessor>
+
 </Server>

@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -52,6 +53,7 @@ public class IdpMgtServiceComponentHolder {
     private RegistryService registryService;
     private RoleManagementService roleManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private SecretManager secretManager;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -150,5 +152,25 @@ public class IdpMgtServiceComponentHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get SecretManager instance.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
+
+        return secretManager;
+    }
+
+    /**
+     * Set SecretManager instance.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
+
+        this.secretManager = secretManager;
     }
 }

@@ -197,18 +197,15 @@ public class SecretManagerImpl implements SecretManager {
     @Override
     public Secret updateSecretValue(String secretTypeName, String name, String value) throws SecretManagementException {
 
-        validateSecretManagerEnabled();
-        Secret secret, updatedSecret;
-        secret = getSecret(secretTypeName, name);
-        try {
-            updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
-        } catch (CryptoException e) {
-            throw handleServerException(ERROR_CODE_UPDATE_SECRET, value, e);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug(secret.getSecretName() + " secret value updated successfully.");
-        }
-        return updatedSecret;
+        Secret secret = getSecret(secretTypeName, name);
+        return updateSecretValue(value, secret);
+    }
+
+    @Override
+    public Secret updateSecretValueById(String secretId, String value) throws SecretManagementException {
+
+        Secret secret = getSecretById(secretId);
+        return updateSecretValue(value, secret);
     }
 
     @Override
@@ -599,5 +596,20 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, secretType.getName());
         }
+    }
+
+    private Secret updateSecretValue(String value, Secret secret) throws SecretManagementException {
+
+        validateSecretManagerEnabled();
+        Secret updatedSecret;
+        try {
+            updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
+        } catch (CryptoException e) {
+            throw handleServerException(ERROR_CODE_UPDATE_SECRET, value, e);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(secret.getSecretName() + " secret value updated successfully.");
+        }
+        return updatedSecret;
     }
 }
