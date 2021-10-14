@@ -149,6 +149,14 @@ public class SQLQueries {
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
+    // Check federated authentication session existence using the idp session id.
+    public static final String SQL_CHECK_FEDERATED_AUTH_SESSION_INFO = "SELECT 1 FROM " +
+            "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID=?";
+
+    // Update federated authentication session id using the idp session id.
+    public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO = "UPDATE IDN_FED_AUTH_SESSION_MAPPING SET " +
+            "SESSION_ID=? WHERE IDP_SESSION_ID=?";
+
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
             + " WHERE SESSION_ID=?";

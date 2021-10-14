@@ -770,8 +770,41 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_FEDERATED_AUTH_SESSION_INFO,
+                        (resultSet, rowNumber) -> resultSet.getInt(1),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, authHistory.getIdpSessionIndex());
+                        });
+                if (recordCount == null) {
+                    storeFederatedAuthSessionInfoIfNotExist(sessionContextKey, authHistory);
+                } else {
+                    updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new UserSessionException("Error while storing federated auth session information of the session" +
+                    " index: " + sessionContextKey, e);
+        }
+    }
+
+    /**
+     * Store session details if not exist of a given session context key to map the session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    private void storeFederatedAuthSessionInfoIfNotExist(String sessionContextKey, AuthHistory authHistory)
+            throws UserSessionException {
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
+             PreparedStatement prepStmt = connection
+                     .prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
             prepStmt.setString(2, sessionContextKey);
             prepStmt.setString(3, authHistory.getIdpName());
@@ -781,6 +814,29 @@ public class UserSessionStore {
         } catch (SQLException e) {
             throw new UserSessionException("Error while adding session details of the session index:"
                     + sessionContextKey + ", IdP:" + authHistory.getIdpName(), e);
+        }
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    private void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory) throws
+            UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO, preparedStatement -> {
+                preparedStatement.setString(1, sessionContextKey);
+                preparedStatement.setString(2, authHistory.getIdpSessionIndex());
+            });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while updating " + sessionContextKey + " of session: " +
+                    authHistory.getIdpSessionIndex() + " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
     }
 
