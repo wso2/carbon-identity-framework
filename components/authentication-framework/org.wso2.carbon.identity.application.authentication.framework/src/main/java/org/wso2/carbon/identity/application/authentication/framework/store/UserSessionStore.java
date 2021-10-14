@@ -851,6 +851,29 @@ public class UserSessionStore {
     }
 
     /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    public void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory) throws
+            UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO, preparedStatement -> {
+                preparedStatement.setString(1, sessionContextKey);
+                preparedStatement.setString(2, authHistory.getIdpSessionIndex());
+            });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while updating " + sessionContextKey + " of session:" +
+                    authHistory.getIdpSessionIndex() + " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
+        }
+    }
+
+    /**
      * Check whether there is already existing federated auth session with the given session index.
      *
      * @param idpSessionIndex IDP session index.
