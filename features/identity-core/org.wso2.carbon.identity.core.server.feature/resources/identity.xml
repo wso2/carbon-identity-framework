@@ -578,7 +578,7 @@
                 the introspection endpoint claims configured below will be removed.
             -->
 <!--            <FilteredClaims>-->
-<!--                <FilteredClaim></FilteredClaims>-->
+<!--                <FilteredClaim></FilteredClaim>-->
 <!--            </FilteredClaims>-->
         </Introspection>
 
