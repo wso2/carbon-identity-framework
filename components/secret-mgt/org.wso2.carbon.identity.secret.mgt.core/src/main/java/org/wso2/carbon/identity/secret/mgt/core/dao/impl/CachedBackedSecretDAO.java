@@ -25,10 +25,10 @@ import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByIdCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCache;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretCacheEntry;
+import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.util.List;
 
@@ -56,7 +56,8 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, SecretType secretType, int tenantId) throws SecretManagementException {
+    public Secret getSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(name, tenantId);
         if (secret != null) {
@@ -98,7 +99,8 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(SecretType secretType, int tenantId) throws SecretManagementException {
+    public List getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
         return secretDAO.getSecrets(secretType, tenantId);
     }
@@ -111,9 +113,10 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, String secretTypeName, int tenantId) throws SecretManagementException {
+    public void deleteSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
-        secretDAO.deleteSecretByName(name, secretTypeName, tenantId);
+        secretDAO.deleteSecretByName(name, secretType, tenantId);
         deleteCacheBySecretName(name, tenantId);
     }
 

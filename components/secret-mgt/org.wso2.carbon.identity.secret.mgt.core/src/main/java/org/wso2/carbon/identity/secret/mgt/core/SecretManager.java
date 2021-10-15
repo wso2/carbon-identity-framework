@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
 /**
@@ -31,119 +31,120 @@ public interface SecretManager {
     /**
      * This API is used to create the given secret.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secret         The {@link Secret}.
      * @return Returns {@link Secret} created.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret addSecret(String secretTypeName, Secret secret) throws SecretManagementException;
+    Secret addSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
      * This API is used to retrieve the given secret.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretName     Name of the {@link Secret}.
      * @return Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getSecret(String secretTypeName, String secretName) throws SecretManagementException;
+    Secret getSecret(String secretType, String secretName) throws SecretManagementException;
 
     /**
      * Get all the secrets of the current tenant.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @return {@link Secrets} object with all the tenant secrets.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secrets getSecrets(String secretTypeName) throws SecretManagementException;
+    Secrets getSecrets(String secretType) throws SecretManagementException;
 
     /**
      * This API is used to delete the given secret.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretName     Name of the {@link Secret}
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteSecret(String secretTypeName, String secretName) throws SecretManagementException;
+    void deleteSecret(String secretType, String secretName) throws SecretManagementException;
 
     /**
      * This function is used to get a secret by the secret id.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretId Id representing the secret.
      * @return the secret object corresponding to the secret id.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getSecretById(String secretTypeName, String secretId) throws SecretManagementException;
+    Secret getSecretById(String secretType, String secretId) throws SecretManagementException;
 
     /**
      * This function is used to delete the given secret id.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretId Request to delete the {@link Secret}.
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteSecretById(String secretTypeName, String secretId) throws SecretManagementException;
+    void deleteSecretById(String secretType, String secretId) throws SecretManagementException;
 
     /**
      * This function is used to replace a given secret.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secret         Secret object.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException;
+    Secret replaceSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
-     * Get {@link SecretType} by name.
+     * Get secret type by name.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
-     * @return {@link SecretType} for the given name.
+     * @param secretType Name of the secret type.
+     * @return {@link Enum<SecretConstants.SecretTypes>} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    SecretType getSecretType(String secretTypeName) throws SecretManagementException;
+    Enum<SecretConstants.SecretTypes> getSecretType(String secretType)
+            throws SecretManagementException;
 
     /**
      * Update value of a secret by name.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param name  Name of the {@link Secret}.
      * @param value secret value to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretValue(String secretTypeName, String name, String value)
+    Secret updateSecretValue(String secretType, String name, String value)
             throws SecretManagementException;
 
     /**
      * Update value of a secret by id.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretId  Id of the {@link Secret}.
      * @param value Secret value to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretValueById(String secretTypeName, String secretId, String value)
+    Secret updateSecretValueById(String secretType, String secretId, String value)
             throws SecretManagementException;
 
     /**
      * Update description of a secret by name.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param name  Name of the {@link Secret}.
      * @param description secret description to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretDescription(String secretTypeName, String name, String description)
+    Secret updateSecretDescription(String secretType, String name, String description)
             throws SecretManagementException;
 
     /**
      * Update description of a secret by id.
      *
-     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretType Name of the secret type.
      * @param secretId  Id of the {@link Secret}.
      * @param description secret description to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretDescriptionById(String secretTypeName, String secretId, String description)
+    Secret updateSecretDescriptionById(String secretType, String secretId, String description)
             throws SecretManagementException;
 }

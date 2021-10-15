@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.secret.mgt.core.util;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.nio.file.Paths;
 import java.sql.Connection;

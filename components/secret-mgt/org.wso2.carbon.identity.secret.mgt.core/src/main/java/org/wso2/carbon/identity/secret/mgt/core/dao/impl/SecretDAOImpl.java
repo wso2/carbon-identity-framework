@@ -31,10 +31,10 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants;
+import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
@@ -86,8 +86,8 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, SecretType secretType, int tenantId) throws
-            SecretManagementException {
+    public Secret getSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
@@ -106,11 +106,11 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
                                         .setDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION))
-                                        .setSecretType(secretType.getName());
+                                        .setSecretType(secretType.name());
                         return secretRawDataCollectorBuilder.build();
                     }, preparedStatement -> {
                         preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, name);
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getName());
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.name());
                         preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
 
@@ -156,7 +156,8 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(SecretType secretType, int tenantId) throws SecretManagementException {
+    public List getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
@@ -173,12 +174,12 @@ public class SecretDAOImpl implements SecretDAO {
                         secret.setSecretName(secretName);
                         secret.setLastModified(secretLastModified);
                         secret.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        secret.setSecretType(secretType.getName());
+                        secret.setSecretType(secretType.name());
                         secret.setDescription(description);
                         return secret;
                     })),
                     preparedStatement -> {
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getName());
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.name());
                         preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
                     });
         } catch (DataAccessException e) {
@@ -201,13 +202,14 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, String secretTypeName, int tenantId) throws SecretManagementException {
+    public void deleteSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+            throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_SECRET, preparedStatement -> {
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, name);
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeName);
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.name());
                 preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
             });
         } catch (DataAccessException e) {
@@ -218,8 +220,7 @@ public class SecretDAOImpl implements SecretDAO {
     @Override
     public void addSecret(Secret secret) throws SecretManagementException {
 
-        SecretType secretType = new SecretType();
-        secretType.setName(secret.getSecretType());
+        String secretType = secret.getSecretType();
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
 
@@ -239,14 +240,14 @@ public class SecretDAOImpl implements SecretDAO {
                             preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, currentTime, calendar);
 
                             preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
-                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getName());
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType);
                             preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
                         }, secret, false);
                 return null;
             });
             secret.setLastModified(currentTime.toInstant().toString());
             secret.setCreatedTime(currentTime.toInstant().toString());
-            secret.setSecretType(secretType.getName());
+            secret.setSecretType(secretType);
 
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_ADD_SECRET, secret.getSecretName(), e);
@@ -351,21 +352,19 @@ public class SecretDAOImpl implements SecretDAO {
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
 
-        SecretType secretType = new SecretType();
-        secretType.setName(secret.getSecretType());
+        Enum<SecretConstants.SecretTypes> secretTypeEnum = SecretConstants.SecretTypes.valueOf(secret.getSecretType());
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
 
-                updateSecretMetadata(template, secret, secretType, currentTime);
-                return getCreatedTimeInResponse(secret, secretType.getName());
+                updateSecretMetadata(template, secret, secretTypeEnum, currentTime);
+                return getCreatedTimeInResponse(secret, secretTypeEnum.name());
             });
             secret.setLastModified(currentTime.toInstant().toString());
             if (createdTime != null) {
                 secret.setCreatedTime(createdTime.toInstant().toString());
             }
-            secret.setSecretType(secretType.getName());
         } catch (TransactionException e) {
             if (e.getCause() instanceof SecretManagementException) {
                 throw (SecretManagementException) e.getCause();
@@ -374,15 +373,15 @@ public class SecretDAOImpl implements SecretDAO {
         }
     }
 
-    private void updateSecretMetadata(NamedTemplate<Timestamp> template, Secret secret, SecretType secretType, Timestamp currentTime)
+    private void updateSecretMetadata(NamedTemplate<Timestamp> template, Secret secret,
+                                      Enum<SecretConstants.SecretTypes> secretType, Timestamp currentTime)
             throws SecretManagementException, DataAccessException {
 
         try {
             template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, secret.getSecretName());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secret.getSecretValue());
                 preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getName());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.name());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
             });
