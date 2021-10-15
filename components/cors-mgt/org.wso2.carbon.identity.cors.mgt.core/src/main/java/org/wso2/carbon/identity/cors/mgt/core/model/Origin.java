@@ -74,40 +74,42 @@ public class Origin {
                     ERROR_CODE_NULL_ORIGIN.getCode());
         }
 
-        // Parse URI value.
-        URI uri;
-        try {
-            uri = new URI(origin);
-        } catch (URISyntaxException e) {
-            throw new CORSManagementServiceClientException(
-                    String.format(ERROR_CODE_INVALID_URI.getMessage(), origin),
-                    ERROR_CODE_INVALID_URI.getCode());
+        if (!StringUtils.equals(origin, "null")) {
+            // Parse URI value.
+            URI uri;
+            try {
+                uri = new URI(origin);
+            } catch (URISyntaxException e) {
+                throw new CORSManagementServiceClientException(
+                        String.format(ERROR_CODE_INVALID_URI.getMessage(), origin),
+                        ERROR_CODE_INVALID_URI.getCode());
+            }
+
+            scheme = uri.getScheme();
+            host = uri.getHost();
+            port = uri.getPort();
+
+            if (scheme == null) {
+                throw new CORSManagementServiceClientException(
+                        String.format(ERROR_CODE_MISSING_SCHEME.getMessage(), origin),
+                        ERROR_CODE_MISSING_SCHEME.getCode());
+            }
+
+            // Canonicalise scheme and host.
+            scheme = scheme.toLowerCase(Locale.ENGLISH);
+
+            if (host == null) {
+                throw new CORSManagementServiceClientException(
+                        String.format(ERROR_CODE_MISSING_HOST.getMessage(), origin),
+                        ERROR_CODE_MISSING_HOST.getCode());
+            }
+
+            // Apply the IDNA to ASCII algorithm [RFC3490] to /host/.
+            host = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED | IDN.USE_STD3_ASCII_RULES);
+
+            // Convert to lower case.
+            host = host.toLowerCase(Locale.ENGLISH);
         }
-
-        scheme = uri.getScheme();
-        host = uri.getHost();
-        port = uri.getPort();
-
-        if (scheme == null) {
-            throw new CORSManagementServiceClientException(
-                    String.format(ERROR_CODE_MISSING_SCHEME.getMessage(), origin),
-                    ERROR_CODE_MISSING_SCHEME.getCode());
-        }
-
-        // Canonicalise scheme and host.
-        scheme = scheme.toLowerCase(Locale.ENGLISH);
-
-        if (host == null) {
-            throw new CORSManagementServiceClientException(
-                    String.format(ERROR_CODE_MISSING_HOST.getMessage(), origin),
-                    ERROR_CODE_MISSING_HOST.getCode());
-        }
-
-        // Apply the IDNA to ASCII algorithm [RFC3490] to /host/.
-        host = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED | IDN.USE_STD3_ASCII_RULES);
-
-        // Convert to lower case.
-        host = host.toLowerCase(Locale.ENGLISH);
     }
 
     /**
