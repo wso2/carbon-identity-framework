@@ -672,7 +672,7 @@ public class DefaultStepHandler implements StepHandler {
             String parameterName = FEDERATED_IDP_SESSION_ID + idpName;
             AuthHistory authHistory = new AuthHistory(authenticator.getName(), idpName);
 
-            if (context.getParameters().containsKey(parameterName)) {
+            if (context.getParameters() != null && context.getParameters().containsKey(parameterName)) {
                 Object idpSessionIndexParamValue = context.getParameter(parameterName);
                 if (idpSessionIndexParamValue != null) {
                     idpSessionIndex = idpSessionIndexParamValue.toString();

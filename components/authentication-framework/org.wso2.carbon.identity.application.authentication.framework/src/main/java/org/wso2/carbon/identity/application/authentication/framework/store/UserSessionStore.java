@@ -835,15 +835,20 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+             try (PreparedStatement prepStmt
                      = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
-            prepStmt.setString(1, authHistory.getIdpSessionIndex());
-            prepStmt.setString(2, sessionContextKey);
-            prepStmt.setString(3, authHistory.getIdpName());
-            prepStmt.setString(4, authHistory.getAuthenticatorName());
-            prepStmt.setString(5, authHistory.getRequestType());
-            prepStmt.execute();
+                prepStmt.setString(1, authHistory.getIdpSessionIndex());
+                prepStmt.setString(2, sessionContextKey);
+                prepStmt.setString(3, authHistory.getIdpName());
+                prepStmt.setString(4, authHistory.getAuthenticatorName());
+                prepStmt.setString(5, authHistory.getRequestType());
+                prepStmt.execute();
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new UserSessionException("Error while adding session details of the session index:"
+                        + sessionContextKey + ", IdP:" + authHistory.getIdpName(), e1);
+            }
         } catch (SQLException e) {
             throw new UserSessionException("Error while adding session details of the session index:"
                     + sessionContextKey + ", IdP:" + authHistory.getIdpName(), e);
@@ -907,11 +912,16 @@ public class UserSessionStore {
      */
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+             try (PreparedStatement prepStmt
                      = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
-            prepStmt.setString(1, sessionContextKey);
-            prepStmt.execute();
+                prepStmt.setString(1, sessionContextKey);
+                prepStmt.execute();
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new UserSessionException("Error while removing federated authentication session details of " +
+                        "the session index:" + sessionContextKey, e1);
+            }
         } catch (SQLException e) {
             throw new UserSessionException("Error while removing federated authentication session details of " +
                     "the session index:" + sessionContextKey, e);

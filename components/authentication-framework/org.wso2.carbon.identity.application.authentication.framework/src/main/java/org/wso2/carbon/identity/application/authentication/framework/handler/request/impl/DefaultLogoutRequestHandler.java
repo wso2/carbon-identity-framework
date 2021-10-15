@@ -127,7 +127,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         // Remove federated authentication session details from the database.
         if (sessionContext != null && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
-                sessionContext.getSessionAuthHistory().getHistory() != null) {
+                sessionContext.getSessionAuthHistory() != null &&
+                        sessionContext.getSessionAuthHistory().getHistory() != null) {
             for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
                 if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
                     try {
