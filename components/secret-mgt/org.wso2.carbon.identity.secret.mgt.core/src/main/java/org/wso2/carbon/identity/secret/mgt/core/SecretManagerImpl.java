@@ -130,6 +130,14 @@ public class SecretManagerImpl implements SecretManager {
             }
             throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
+
+        if (!secret.getSecretType().equals(secretTypeName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid secret type for the secretId: " + secretId);
+            }
+            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretId);
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Secret: " + secret.getSecretId() + " is retrieved successfully.");
         }
