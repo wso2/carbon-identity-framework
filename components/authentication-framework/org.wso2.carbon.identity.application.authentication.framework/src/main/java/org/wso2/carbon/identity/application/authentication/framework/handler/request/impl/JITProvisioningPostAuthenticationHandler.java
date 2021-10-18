@@ -320,7 +320,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                     String username = associatedLocalUser;
                     String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
-                    if (StringUtils.isEmpty(associatedLocalUser) &&
+                    if (StringUtils.isEmpty(username) &&
                             isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
                         username = localClaimValues.get(userIdClaimUriInLocalDialect);
                     }

@@ -67,6 +67,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
         .InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
@@ -162,6 +163,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (!userClaims.isEmpty() && associationExists) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
+
+                    //Delete any user who is not the associated user and have same userID in federated IDP local claim.
+                    userStoreManager.getRealmConfiguration().getUserStoreProperty("UserIDEnabled");
+                    String[] usersWithUserId = userStoreManager.getUserList(USERID_CLAIM, userClaims.get(USERID_CLAIM),
+                            UserCoreConstants.DEFAULT_PROFILE);
+                    for (String user : usersWithUserId) {
+                        if (!username.equals(user)) {
+                            userStoreManager.deleteUser(user);
+                        }
+                    }
+
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
