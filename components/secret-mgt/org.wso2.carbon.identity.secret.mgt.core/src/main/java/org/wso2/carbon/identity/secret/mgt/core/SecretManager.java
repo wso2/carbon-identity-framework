@@ -95,6 +95,15 @@ public interface SecretManager {
     Secret replaceSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
+     * This function is used to replace a given secret.
+     *
+     * @param secretType Name of the secret type.
+     * @param secret         Secret object.
+     * @throws SecretManagementException Secret management exception.
+     */
+    Secret replaceSecretById(String secretType, Secret secret) throws SecretManagementException;
+
+    /**
      * Get secret type by name.
      *
      * @param secretType Name of the secret type.

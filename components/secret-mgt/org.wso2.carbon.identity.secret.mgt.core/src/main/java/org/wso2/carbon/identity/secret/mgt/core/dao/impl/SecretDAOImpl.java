@@ -156,7 +156,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+    public List<Secret> getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
             throws SecretManagementException {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
@@ -351,6 +351,32 @@ public class SecretDAOImpl implements SecretDAO {
     public void replaceSecret(Secret secret) throws SecretManagementException {
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+        Enum<SecretConstants.SecretTypes> secretType = SecretConstants.SecretTypes.valueOf(secret.getSecretType());
+
+        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
+        try {
+            Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
+
+                updateSecretMetadata(template, secret, secretType, currentTime);
+                return getCreatedTimeInResponse(secret, secretType.name());
+            });
+            secret.setLastModified(currentTime.toInstant().toString());
+            if (createdTime != null) {
+                secret.setCreatedTime(createdTime.toInstant().toString());
+            }
+            secret.setSecretType(secretType.name());
+        } catch (TransactionException e) {
+            if (e.getCause() instanceof SecretManagementException) {
+                throw (SecretManagementException) e.getCause();
+            }
+            throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretName(), e);
+        }
+    }
+
+    @Override
+    public void replaceSecretById(Secret secret, int tenantId) throws SecretManagementException {
+
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
 
         Enum<SecretConstants.SecretTypes> secretTypeEnum = SecretConstants.SecretTypes.valueOf(secret.getSecretType());
 
@@ -358,7 +384,7 @@ public class SecretDAOImpl implements SecretDAO {
         try {
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
 
-                updateSecretMetadata(template, secret, secretTypeEnum, currentTime);
+                updateSecretMetadataById(template, secret, secretTypeEnum, currentTime);
                 return getCreatedTimeInResponse(secret, secretTypeEnum.name());
             });
             secret.setLastModified(currentTime.toInstant().toString());
@@ -369,7 +395,7 @@ public class SecretDAOImpl implements SecretDAO {
             if (e.getCause() instanceof SecretManagementException) {
                 throw (SecretManagementException) e.getCause();
             }
-            throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretName(), e);
+            throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretId(), e);
         }
     }
 
@@ -388,6 +414,27 @@ public class SecretDAOImpl implements SecretDAO {
         } catch (DataAccessException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
                 throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName(), e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private void updateSecretMetadataById(NamedTemplate<Timestamp> template, Secret secret,
+                                      Enum<SecretConstants.SecretTypes> secretType, Timestamp currentTime)
+            throws SecretManagementException, DataAccessException {
+
+        try {
+            template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secret.getSecretValue());
+                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.name());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
+                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
+            });
+        } catch (DataAccessException e) {
+            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretId(), e);
             } else {
                 throw e;
             }

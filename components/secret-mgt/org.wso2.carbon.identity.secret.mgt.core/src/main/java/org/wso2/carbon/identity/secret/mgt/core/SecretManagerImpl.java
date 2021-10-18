@@ -178,17 +178,32 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public Secret replaceSecret(String secretType, Secret secret)
-            throws SecretManagementException {
+    public Secret replaceSecret(String secretTypeName, Secret secret) throws SecretManagementException {
 
         validateSecretManagerEnabled();
-        validateSecretReplaceRequest(secretType, secret);
-//        secret.setSecretName(getSecretById(secretType, secret.getSecretId()).getSecretName());
-        secret.setSecretType(secretType);
+        validateSecretReplaceRequest(secretTypeName, secret);
+        String secretId = retrieveOrGenerateSecretId(secretTypeName, secret.getSecretName());
+        secret.setSecretId(secretId);
+        secret.setSecretType(secretTypeName);
         secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
         this.getSecretDAO().replaceSecret(secret);
         if (log.isDebugEnabled()) {
             log.debug(secret.getSecretName() + " secret replaced successfully.");
+        }
+        return secret;
+    }
+
+    @Override
+    public Secret replaceSecretById(String secretType, Secret secret)
+            throws SecretManagementException {
+
+        validateSecretManagerEnabled();
+        validateSecretReplaceRequestById(secretType, secret);
+        secret.setSecretType(secretType);
+        secret.setSecretValue(getEncryptedSecret(secret.getSecretValue(), secret.getSecretName()));
+        this.getSecretDAO().replaceSecretById(secret, getTenantId());
+        if (log.isDebugEnabled()) {
+            log.debug(secret.getSecretId() + " secret replaced successfully.");
         }
         return secret;
     }
@@ -369,7 +384,35 @@ public class SecretManagerImpl implements SecretManager {
      * @param secret The secret to be replaced.
      * @throws SecretManagementException If secret validation fails.
      */
-    private void validateSecretReplaceRequest(String secretType, Secret secret)
+    private void validateSecretReplaceRequest(String secretTypeName, Secret secret)
+            throws SecretManagementException {
+
+        if (StringUtils.isEmpty(secretTypeName) || StringUtils.isEmpty(secret.getSecretName()) ||
+                StringUtils.isEmpty(secret.getSecretValue())) {
+            throw handleClientException(ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
+        }
+
+        if (!isSecretExist(secretTypeName, secret.getSecretName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A secret with the name: " + secret.getSecretName() + " does not exists.");
+            }
+            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secret.getSecretName());
+        }
+
+        if (StringUtils.isEmpty(secret.getTenantDomain())) {
+            secret.setTenantDomain(getTenantDomain());
+        }
+    }
+
+    /**
+     * Validate that secret type and secret id is non empty. Validate the secret existence.
+     * Set tenant domain if it is not set to the secret object.
+     *
+     * @param secretType Type of the secret.
+     * @param secret The secret to be replaced.
+     * @throws SecretManagementException If secret validation fails.
+     */
+    private void validateSecretReplaceRequestById(String secretType, Secret secret)
             throws SecretManagementException {
 
         validateSecretType(secretType);
@@ -464,6 +507,21 @@ public class SecretManagerImpl implements SecretManager {
             throw e;
         }
         return true;
+    }
+
+    private String retrieveOrGenerateSecretId(String secretTypeName, String secretName)
+            throws SecretManagementException {
+
+        String secretId;
+        if (isSecretExist(secretTypeName, secretName)) {
+            secretId = getSecret(secretTypeName, secretName).getSecretId();
+        } else {
+            secretId = generateUniqueID();
+            if (log.isDebugEnabled()) {
+                log.debug("Secret id generated: " + secretId);
+            }
+        }
+        return secretId;
     }
 
     private String getEncryptedSecret(String secretValue, String name)

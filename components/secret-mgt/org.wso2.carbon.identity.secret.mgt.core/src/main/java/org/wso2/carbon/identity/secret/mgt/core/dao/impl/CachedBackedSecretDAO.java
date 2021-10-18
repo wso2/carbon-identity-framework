@@ -108,16 +108,16 @@ public class CachedBackedSecretDAO implements SecretDAO {
     @Override
     public void deleteSecretById(String secretId, int tenantId) throws SecretManagementException {
 
-        secretDAO.deleteSecretById(secretId, tenantId);
         deleteCacheBySecretId(secretId, tenantId);
+        secretDAO.deleteSecretById(secretId, tenantId);
     }
 
     @Override
     public void deleteSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
             throws SecretManagementException {
 
-        secretDAO.deleteSecretByName(name, secretType, tenantId);
         deleteCacheBySecretName(name, tenantId);
+        secretDAO.deleteSecretByName(name, secretType, tenantId);
     }
 
     @Override
@@ -130,23 +130,32 @@ public class CachedBackedSecretDAO implements SecretDAO {
     @Override
     public void replaceSecret(Secret secret) throws SecretManagementException {
 
-        secretDAO.replaceSecret(secret);
         deleteSecretFromCache(secret);
+        secretDAO.replaceSecret(secret);
+    }
+
+    @Override
+    public void replaceSecretById(Secret secret, int tenantId) throws SecretManagementException {
+
+        Secret secretRetrieved = getSecretById(secret.getSecretId(), tenantId);
+        secret.setSecretName(secretRetrieved.getSecretName());
+        deleteSecretFromCache(secret);
+        secretDAO.replaceSecretById(secret, tenantId);
     }
 
     @Override
     public Secret updateSecretValue(Secret secret, String value) throws SecretManagementException {
 
-        Secret updatedSecret = secretDAO.updateSecretValue(secret, value);
         deleteSecretFromCache(secret);
+        Secret updatedSecret = secretDAO.updateSecretValue(secret, value);
         return updatedSecret;
     }
 
     @Override
     public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
 
-        Secret updatedSecret = secretDAO.updateSecretDescription(secret, description);
         deleteSecretFromCache(secret);
+        Secret updatedSecret = secretDAO.updateSecretDescription(secret, description);
         return updatedSecret;
     }
 
