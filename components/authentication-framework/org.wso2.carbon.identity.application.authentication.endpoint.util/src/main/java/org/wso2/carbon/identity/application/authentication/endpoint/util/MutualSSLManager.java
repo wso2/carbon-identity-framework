@@ -90,7 +90,6 @@ public class MutualSSLManager {
     private static boolean initialized = false;
 
     public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-
     public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     private MutualSSLManager() {
