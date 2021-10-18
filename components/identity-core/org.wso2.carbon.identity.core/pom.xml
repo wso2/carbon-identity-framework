@@ -207,6 +207,9 @@
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
+                        <ListenerManager-RequiredServices>
+                            org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent
+                        </ListenerManager-RequiredServices>
                     </instructions>
                 </configuration>
             </plugin>
