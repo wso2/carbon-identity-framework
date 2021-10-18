@@ -356,7 +356,7 @@ public class MutualSSLManager {
             SSLContext sslContext = SSLContext.getInstance(protocol);
 
             if (hostNameVerificationEnabled) {
-                if (System.getProperty(HOST_NAME_VERIFIER).equals(DEFAULT_AND_LOCALHOST)) {
+                if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
                     HostnameVerifier hv = new HostnameVerifier() {
                         @Override
                         public boolean verify(String urlHostName, SSLSession session) {
