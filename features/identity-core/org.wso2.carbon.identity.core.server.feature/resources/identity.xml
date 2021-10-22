@@ -149,6 +149,14 @@
     </OpenID>
 
     <OAuth>
+        <!--
+             Configs related to DPoP implementation.
+        -->
+        <DPoPConfig>
+            <Enable>true</Enable>
+            <HeaderValidity>60</HeaderValidity>
+        </DPoPConfig>
+
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -369,6 +377,8 @@
         <TokenValidators>
             <TokenValidator type="bearer" class="org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator"/>
             <TokenValidator type="jwt" class="org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator"/>
+            <!--If oauth.dpop.enable is true, DPoPTokenValidator is enabled -->
+            <TokenValidator type="dpop" class="org.wso2.carbon.identity.dpop.validators.DPoPTokenValidator"/>
         </TokenValidators>
 
         <!-- Scope validators list. The validators registered here wil be executed during token validation. -->
