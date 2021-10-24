@@ -477,7 +477,10 @@ public class SecretManagerImpl implements SecretManager {
             throws SecretManagementException {
 
         try {
-            getSecret(secretType, secretName);
+            Secret secret = getSecret(secretType, secretName);
+            if (!secretType.equals(secret.getSecretType())) {
+                throw handleClientException(ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_NAME, secretName);
+            }
         } catch (SecretManagementClientException e) {
             if (ERROR_CODE_SECRET_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 return false;
@@ -499,7 +502,10 @@ public class SecretManagerImpl implements SecretManager {
             throws SecretManagementException {
 
         try {
-            getSecretById(secretType, secretId);
+            Secret secret = getSecretById(secretType, secretId);
+            if (!secretType.equals(secret.getSecretType())) {
+                throw handleClientException(ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_ID, secretId);
+            }
         } catch (SecretManagementClientException e) {
             if (ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 return false;

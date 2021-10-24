@@ -42,11 +42,12 @@ public class SecretConstants {
         ERROR_CODE_GET_SECRET("SECRETM_00005", "Error while getting the secret : %s."),
         ERROR_CODE_SECRET_ALREADY_EXISTS("SECRETM_00006", "Secret with the name: %s already exists."),
         ERROR_CODE_ADD_SECRET("SECRETM_00007", "Error while adding the secret : %s."),
-        ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED("SECRETM_00008", "Secret delete request validation failed. " +
-                "Invalid secret delete request."),
+        ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED("SECRETM_00008", "Secret delete request " +
+                "validation failed. Invalid secret delete request."),
         ERROR_CODE_SECRET_DOES_NOT_EXISTS("SECRETM_00009", "Secret with the name: %s does not exists."),
         ERROR_CODE_SECRETS_DOES_NOT_EXISTS("SECRETM_00010", "Secrets does not exists."),
-        ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID("SECRETM_00011", "Secret replace request validation failed."),
+        ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID("SECRETM_00011", "Secret replace request " +
+                "validation failed."),
         ERROR_CODE_REPLACE_SECRET("SECRETM_00012", "Error while replacing the secret : %s."),
         ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS("SECRETM_00013", "Secret with the id: %s does not exists."),
         ERROR_CODE_INVALID_SECRET_ID("SECRETM_00014", "Invalid secret id: %s."),
@@ -55,12 +56,18 @@ public class SecretConstants {
         ERROR_CODE_SECRET_MANAGER_NOT_ENABLED("SECRETM_00017", "Secret management feature is not enabled"),
 
         ERROR_CODE_SECRET_TYPE_NAME_REQUIRED("SECRETM_00018", "Secret type name: %s validation failed."),
-        ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00019", "Secret type with the name: %s does not exists."),
+        ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS("SECRETM_00019", "Secret type with the name: %s " +
+                "does not exists."),
         ERROR_CODE_UPDATE_SECRET("SECRETM_00020", "Error while updating the secret %s."),
 
         ERROR_CODE_INVALID_SECRET_NAME("SECRETM_00021", "Secret name does not conform to %s pattern"),
         ERROR_CODE_INVALID_SECRET_VALUE("SECRETM_00022", "Secret value does not conform to %s pattern"),
-        ERROR_CODE_INVALID_SECRET_DESCRIPTION("SECRETM_00023", "Secret description does not conform to %s pattern");
+        ERROR_CODE_INVALID_SECRET_DESCRIPTION("SECRETM_00023", "Secret description does not conform to " +
+                "%s pattern"),
+        ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_NAME("SECRETM_00024", "Invalid secret type for " +
+                "the secret with the name: %s."),
+        ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_ID("SECRETM_00025", "Invalid secret type for " +
+                "the secret with id: %s.");
 
         private final String code;
         private final String message;
