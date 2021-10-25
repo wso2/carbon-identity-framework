@@ -801,7 +801,7 @@
             -->
             <FilteredClaims>
                 {% for claim in oauth.introspection.filtered_claims %}
-                <FilteredClaim>{{claim.claim_name}}</FilteredClaim>
+                <FilteredClaim>{{claim}}</FilteredClaim>
                 {% endfor %}
             </FilteredClaims>
         </Introspection>
