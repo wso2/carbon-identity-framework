@@ -192,6 +192,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
                     String username = sequenceConfig.getAuthenticatedUser().getUserName();
+                    String sanitizedUserName = UserCoreUtil.removeDomainFromName(
+                            MultitenantUtils.getTenantAwareUsername(username));
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                         try {
@@ -202,7 +204,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             UserRealm realm = getUserRealm(context.getTenantDomain());
                             UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
                                     .getProvisioningUserStoreId(), realm, username);
-                            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
+                            sanitizedUserName = UserCoreUtil.removeDomainFromName(
                                     MultitenantUtils.getTenantAwareUsername(username));
                             if (userStoreManager.isExistingUser(sanitizedUserName)) {
                                 // Logging the error because the thrown exception is handled in the UI.
@@ -216,7 +218,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getCode(), e);
                         }
                     }
-                    callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
+                    callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                    handleConsents(request, stepConfig, context.getTenantDomain());
                 }
@@ -319,12 +321,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
 
                     String username = associatedLocalUser;
-                    String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
-                    if (StringUtils.isEmpty(username) &&
-                            isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
-                        username = localClaimValues.get(userIdClaimUriInLocalDialect);
-                    }
-
                     // If associatedLocalUser is null, that means relevant association not exist already.
                     if (StringUtils.isEmpty(associatedLocalUser) && !isUserCreated) {
                         if (log.isDebugEnabled()) {
@@ -348,7 +344,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         }
                     }
                     if (StringUtils.isEmpty(username)) {
-                        username = sequenceConfig.getAuthenticatedUser().getUserName();
+                        username = UserCoreUtil.removeDomainFromName(MultitenantUtils.getTenantAwareUsername(
+                                sequenceConfig.getAuthenticatedUser().getUserName()));
                         isUserCreated = true;
                     }
                     if (log.isDebugEnabled()) {

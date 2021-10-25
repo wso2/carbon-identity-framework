@@ -111,7 +111,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                     realmService, tenantDomain);
-            String username = MultitenantUtils.getTenantAwareUsername(subject);
 
             String userStoreDomain;
             UserStoreManager userStoreManager;
@@ -132,7 +131,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
                 userStoreManager = getUserStoreManager(realm, userStoreDomain);
             }
-            username = UserCoreUtil.removeDomainFromName(username);
+            String username = UserCoreUtil.removeDomainFromName(subject);
 
             if (log.isDebugEnabled()) {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
