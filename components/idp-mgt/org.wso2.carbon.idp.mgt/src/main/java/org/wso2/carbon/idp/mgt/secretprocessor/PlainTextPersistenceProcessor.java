@@ -24,7 +24,7 @@ package org.wso2.carbon.idp.mgt.secretprocessor;
 public class PlainTextPersistenceProcessor implements SecretPersistenceProcessor {
 
     @Override
-    public String addSecret(int idpId, String name, String propertyName, String secretValue) {
+    public String addSecret(int idpId, String name, String propertyName, String secretValue, String secretType) {
 
         return secretValue;
     }

@@ -32,6 +32,7 @@ public class PlainTextPersistenceProcessorTest {
     private static final String NEW_SECRET_VALUE = "newSecretValue";
     private static final String AUTHENTICATOR_NAME = "authenticatorName";
     private static final String PROPERTY_NAME = "propertyName";
+    private static final String SECRET_TYPE = "FEDERATED_AUTHENTICATOR";
 
     private PlainTextPersistenceProcessor plainTextPersistenceProcessor = new PlainTextPersistenceProcessor();
 
@@ -39,7 +40,7 @@ public class PlainTextPersistenceProcessorTest {
     public void testAddSecret() {
 
         assertEquals(plainTextPersistenceProcessor.addSecret(1, AUTHENTICATOR_NAME, PROPERTY_NAME,
-                SECRET_VALUE), SECRET_VALUE);
+                SECRET_VALUE, SECRET_TYPE), SECRET_VALUE);
     }
 
     @Test

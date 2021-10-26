@@ -34,6 +34,7 @@ public class SecretManagerPersistenceProcessorTest extends PowerMockTestCase {
     private static final String ENCRYPTED_SECRET_VALUE = "encryptedSecretValue";
     private static final String AUTHENTICATOR_NAME = "authenticatorName";
     private static final String PROPERTY_NAME = "propertyName";
+    private static final String SECRET_TYPE = "FEDERATED_AUTHENTICATOR";
 
     private SecretManagerPersistenceProcessor secretManagerPersistenceProcessor = new SecretManagerPersistenceProcessor();
 
@@ -64,8 +65,8 @@ public class SecretManagerPersistenceProcessorTest extends PowerMockTestCase {
         Mockito.when(mockedSecretManager.addSecret(anyString(), anyObject())).thenReturn(mockedSecret);
         Mockito.when(mockedSecret.getSecretId()).thenReturn(SECRET_ID);
 
-        assertEquals(secretManagerPersistenceProcessor.addSecret(1, AUTHENTICATOR_NAME, PROPERTY_NAME, SECRET_VALUE),
-                SECRET_ID);
+        assertEquals(secretManagerPersistenceProcessor.addSecret(1, AUTHENTICATOR_NAME, PROPERTY_NAME, SECRET_VALUE,
+                SECRET_TYPE), SECRET_ID);
     }
 
     @Test(expectedExceptions = IdentityProviderManagementServerException.class)
@@ -74,7 +75,7 @@ public class SecretManagerPersistenceProcessorTest extends PowerMockTestCase {
         Mockito.when(mockedSecretManager.addSecret(anyString(), anyObject()))
                 .thenThrow(new SecretManagementException());
 
-        secretManagerPersistenceProcessor.addSecret(1, AUTHENTICATOR_NAME, PROPERTY_NAME, SECRET_VALUE);
+        secretManagerPersistenceProcessor.addSecret(1, AUTHENTICATOR_NAME, PROPERTY_NAME, SECRET_VALUE, SECRET_TYPE);
     }
 
     @Test

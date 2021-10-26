@@ -39,10 +39,9 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 public class SecretManagerPersistenceProcessor implements SecretPersistenceProcessor {
 
     private static final Log log = LogFactory.getLog(SecretManagerPersistenceProcessor.class);
-    private static final String secretTypeName = "FED_AUTH";
 
     @Override
-    public String addSecret(int idpId, String name, String propertyName, String secretValue)
+    public String addSecret(int idpId, String name, String propertyName, String secretValue, String secretType)
             throws IdentityProviderManagementServerException {
 
         String secretName = name + "_" + idpId + "_" + propertyName;
@@ -55,7 +54,7 @@ public class SecretManagerPersistenceProcessor implements SecretPersistenceProce
 
         try {
             Secret encryptedSecret = IdpMgtServiceComponentHolder.getInstance().getSecretManager()
-                    .addSecret(secretTypeName, secret);
+                    .addSecret(secretType, secret);
             return encryptedSecret.getSecretId();
         } catch (SecretManagementException e) {
             String errorMessage = String.format("Server encountered an error while persisting %s value of %s " +

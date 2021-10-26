@@ -93,6 +93,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 public class IdPManagementDAO {
 
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
+    private static final String secretType = "FEDERATED_AUTHENTICATOR";
 
     private SecretPersistenceProcessor persistenceProcessor;
 
@@ -1217,7 +1218,8 @@ public class IdPManagementDAO {
         if (StringUtils.isNotBlank(propertyValue)) {
             for (String confidentialPropertyName : confidentialPropertyNames) {
                 if (StringUtils.equals(propertyName, confidentialPropertyName)) {
-                    propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName, propertyName, propertyValue);
+                    propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName, propertyName, propertyValue,
+                            secretType);
                     break;
                 }
             }
@@ -1310,7 +1312,7 @@ public class IdPManagementDAO {
                                                 propertyValue);
                                     } else {
                                         propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName,
-                                                propertyName, propertyValue);
+                                                propertyName, propertyValue, secretType);
                                     }
                                     break;
                                 }
@@ -1339,7 +1341,7 @@ public class IdPManagementDAO {
 
                     if (StringUtils.isNotBlank(propertyValue) && isConfidentialProperty) {
                         propertyValue = persistenceProcessor.addSecret(idpId, authnConfigName, propertyName,
-                                propertyValue);
+                                propertyValue, secretType);
                     }
 
                     prepStmt3.setString(4, propertyValue);

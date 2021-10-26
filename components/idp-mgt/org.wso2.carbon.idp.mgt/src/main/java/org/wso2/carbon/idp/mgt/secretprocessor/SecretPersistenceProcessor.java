@@ -27,7 +27,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
  */
 public interface SecretPersistenceProcessor {
 
-    String addSecret(int idpId, String name, String propertyName, String secretValue) throws
+    String addSecret(int idpId, String name, String propertyName, String secretValue, String secretType) throws
             IdentityProviderManagementServerException;
 
     String getPreprocessedSecret(String secretId) throws IdentityProviderManagementServerException;
