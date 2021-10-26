@@ -479,6 +479,39 @@ public class IdentityUtil {
             throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
         }
 
+        StringBuilder serverUrl = getServerUrlWithPort(hostName);
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
+    }
+
+    /**
+     * Returns the Management console URL for the endpoint with the proxy context and the web context root.
+     *
+     * @param endpoint            Endpoint that needs to be called.
+     * @param addProxyContextPath Flag that defines to add the proxy context path.
+     * @param addWebContextRoot   Flag that defines to add the web context root.
+     * @return Full path for the endpoint.
+     * @throws IdentityRuntimeException When an exception is occurred.
+     */
+    public static String getMgtConsoleURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+            throws IdentityRuntimeException {
+
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(
+                IdentityCoreConstants.MGT_CONSOLE_HOST_NAME);
+
+        if (StringUtils.isBlank(hostName)) {
+            hostName = NetworkUtils.getMgtHostName();
+        }
+
+        StringBuilder serverUrl = getServerUrlWithPort(hostName);
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
+    }
+
+    private static StringBuilder getServerUrlWithPort(String hostName) {
+
         String mgtTransport = CarbonUtils.getManagementTransport();
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
                 getServerConfigContext().getAxisConfiguration();
@@ -494,9 +527,7 @@ public class IdentityUtil {
         if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
             serverUrl.append(":").append(mgtTransportPort);
         }
-
-        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
-        return serverUrl.toString();
+        return serverUrl;
     }
 
     private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
