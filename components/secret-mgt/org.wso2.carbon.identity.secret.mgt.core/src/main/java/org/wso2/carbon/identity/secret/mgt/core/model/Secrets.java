@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.secret.mgt.core.model;
 
 import java.util.List;
 
+/**
+ * A model class representing a secret list.
+ */
 public class Secrets {
 
     private List<Secret> secrets;

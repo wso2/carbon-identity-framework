@@ -23,6 +23,8 @@ package org.wso2.carbon.identity.secret.mgt.core.cache;
  */
 public class SecretByIdCacheKey extends SecretCacheKey {
 
+    private static final long serialVersionUID = -8977919444443747515L;
+
     public SecretByIdCacheKey(String secretId) {
 
         super(secretId);

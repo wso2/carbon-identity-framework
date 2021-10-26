@@ -33,6 +33,9 @@ public class SecretConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_DESCRIPTION = "DESCRIPTION";
     public static final String DB_TABLE_SECRET = "IDN_SECRET";
 
+    /**
+     * Enum to store error codes and descriptions.
+     */
     public enum ErrorMessages {
         ERROR_CODE_UNEXPECTED("SECRETM_00001", "Unexpected Error"),
         ERROR_CODE_GET_DAO("SECRETM_00002", "No %s are registered."),
@@ -95,6 +98,9 @@ public class SecretConstants {
         }
     }
 
+    /**
+     * Enum to store secret types.
+     */
     public enum SecretTypes {
         ADAPTIVE_AUTH("Secret type to uniquely identify secrets relevant to " +
                 "callChoreo adaptive auth function");
@@ -102,7 +108,7 @@ public class SecretConstants {
         private final String secretTypeDescription;
 
         SecretTypes(String secretTypeDescription) {
-            this.secretTypeDescription  =secretTypeDescription;
+            this.secretTypeDescription  = secretTypeDescription;
         }
 
         public String getSecretTypeDescription() {

@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
  */
 public class SecretCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = -3584890880106484504L;
     private Secret secret;
 
     public SecretCacheEntry(Secret secret) {

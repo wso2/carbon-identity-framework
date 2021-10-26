@@ -45,23 +45,23 @@ import org.wso2.carbon.identity.secret.mgt.core.util.TestUtils;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Collections;
+
 import javax.sql.DataSource;
 
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.getSampleSecret;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.spyConnection;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
 
 @PrepareForTest({PrivilegedCarbonContext.class, IdentityDatabaseUtil.class, IdentityUtil.class,
         IdentityTenantUtil.class, CryptoUtil.class})
@@ -190,7 +190,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretReplaced.getCreatedTime(), secretReplaced.getLastModified());
-        assertEquals( secretCreated.getSecretId(), secretReplaced.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretReplaced.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 
@@ -207,7 +207,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretReplaced.getCreatedTime(), secretReplaced.getLastModified());
-        assertEquals( secretCreated.getSecretId(), secretReplaced.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretReplaced.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 
@@ -359,7 +359,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
-        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 
@@ -375,7 +375,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
-        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 
@@ -392,7 +392,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
         assertNotEquals("Secret description should be different from the previous description",
                 secretCreated.getDescription(), secretUpdated.getDescription());
-        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 
@@ -409,7 +409,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
         assertNotEquals("Secret description should be different from the previous description",
                 secretCreated.getDescription(), secretUpdated.getDescription());
-        assertEquals( secretCreated.getSecretId(), secretUpdated.getSecretId(),
+        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
                 "Existing id should be equal to the replaced id");
     }
 

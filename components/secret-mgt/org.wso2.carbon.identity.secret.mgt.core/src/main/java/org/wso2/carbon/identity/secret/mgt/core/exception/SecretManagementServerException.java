@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.exception;
 
+/**
+ * This class is used to define the server side errors which needs to be handled.
+ */
 public class SecretManagementServerException extends SecretManagementException {
 
     public SecretManagementServerException() {

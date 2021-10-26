@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.model;
 
+import java.io.Serializable;
+
 /**
  * A model class representing a secret.
  */
-public class Secret {
+public class Secret implements Serializable {
 
+    private static final long serialVersionUID = -5164612232633594502L;
     private String secretId;
     private String tenantDomain;
     private String secretName;

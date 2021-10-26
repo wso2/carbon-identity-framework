@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
 
+/**
+ * Secret Resolve Manager service implementation.
+ */
 public class SecretResolveManagerImpl implements SecretResolveManager {
 
     private final SecretManager secretManager;

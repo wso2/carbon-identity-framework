@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.model;
 
+/**
+ * A model class representing a resolved secret.
+ */
 public class ResolvedSecret extends Secret {
 
+    private static final long serialVersionUID = -4975074811044717044L;
     private String resolvedSecretValue;
 
     public void setResolvedSecretValue(String resolvedSecretValue) {

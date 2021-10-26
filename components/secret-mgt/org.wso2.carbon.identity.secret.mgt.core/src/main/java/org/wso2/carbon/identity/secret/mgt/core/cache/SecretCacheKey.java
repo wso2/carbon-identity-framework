@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
  */
 public abstract class SecretCacheKey extends CacheKey {
 
+    private static final long serialVersionUID = -1359621955063663940L;
     private final String cacheKey;
 
     public SecretCacheKey(String cacheKey) {

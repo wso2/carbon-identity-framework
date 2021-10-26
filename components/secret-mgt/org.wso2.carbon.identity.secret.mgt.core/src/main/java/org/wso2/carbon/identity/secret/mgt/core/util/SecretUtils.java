@@ -27,6 +27,9 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServer
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/**
+ * Secret manager utils.
+ */
 public class SecretUtils {
 
     private static final Log log = LogFactory.getLog(SecretUtils.class);

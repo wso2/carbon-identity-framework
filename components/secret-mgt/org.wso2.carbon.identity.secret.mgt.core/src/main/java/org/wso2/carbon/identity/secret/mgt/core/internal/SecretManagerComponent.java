@@ -87,7 +87,8 @@ public class SecretManagerComponent {
             }
 
             SecretManagerComponentDataHolder.getInstance().getSecretDAOS().add(secretDAO);
-            SecretManagerComponentDataHolder.getInstance().getSecretDAOS().sort(Comparator.comparingInt(SecretDAO::getPriority));
+            SecretManagerComponentDataHolder.getInstance().getSecretDAOS()
+                    .sort(Comparator.comparingInt(SecretDAO::getPriority));
         }
     }
 

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
-import java.util.List;
-
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -37,8 +35,18 @@ import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentD
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.*;
-import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.*;
+import java.util.List;
+
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.generateUniqueID;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.getSecretDescriptionRegex;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.getSecretNameRegex;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.getSecretValueRegex;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.isSecretDescriptionRegexValid;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.isSecretNameRegexValid;
+import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.isSecretValueRegexValid;
 
 /**
  * Secret Manager service implementation.
@@ -81,7 +89,7 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the secretName: " + secretName);
             }
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretName, null);
         }
         if (log.isDebugEnabled()) {
             log.debug("Secret: " + secretName + " is retrieved successfully.");
@@ -103,7 +111,7 @@ public class SecretManagerImpl implements SecretManager {
                         + secretType + "for the tenant: " + getTenantDomain());
             }
             throw handleClientException(
-                    ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
+                    ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS, null);
         }
         if (log.isDebugEnabled()) {
             log.debug("All secrets of tenant: " + getTenantDomain()
@@ -118,7 +126,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
-            throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
         validateSecretType(secretType);
 
@@ -127,14 +135,14 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("No secret found for the secretId: " + secretId);
             }
-            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secretId);
         }
 
         if (!secret.getSecretType().equals(secretType)) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret type for the secretId: " + secretId);
             }
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS, secretId);
         }
 
         if (log.isDebugEnabled()) {
@@ -163,7 +171,7 @@ public class SecretManagerImpl implements SecretManager {
 
         validateSecretManagerEnabled();
         if (StringUtils.isBlank(secretId)) {
-            throw handleClientException(ERROR_CODE_INVALID_SECRET_ID, secretId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_ID, secretId);
         }
         validateSecretType(secretType);
         if (isSecretExistById(secretType, secretId)) {
@@ -173,7 +181,7 @@ public class SecretManagerImpl implements SecretManager {
                         + getTenantDomain() + " deleted successfully.");
             }
         } else {
-            throw handleClientException(ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretId);
         }
     }
 
@@ -221,7 +229,7 @@ public class SecretManagerImpl implements SecretManager {
         try {
             updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
         } catch (CryptoException e) {
-            throw handleServerException(ERROR_CODE_UPDATE_SECRET, value, e);
+            throw handleServerException(ErrorMessages.ERROR_CODE_UPDATE_SECRET, value, e);
         }
         if (log.isDebugEnabled()) {
             log.debug(secret.getSecretName() + " secret value updated successfully.");
@@ -242,7 +250,7 @@ public class SecretManagerImpl implements SecretManager {
         try {
             updatedSecret = this.getSecretDAO().updateSecretValue(secret, encrypt(value));
         } catch (CryptoException e) {
-            throw handleServerException(ERROR_CODE_UPDATE_SECRET, value, e);
+            throw handleServerException(ErrorMessages.ERROR_CODE_UPDATE_SECRET, value, e);
         }
         if (log.isDebugEnabled()) {
             log.debug(secret.getSecretName() + " secret value updated successfully.");
@@ -314,7 +322,7 @@ public class SecretManagerImpl implements SecretManager {
                 log.debug("Invalid secret identifier with secretName: " + secretName
                         + " and secretType: " + secretName + ".");
             }
-            throw handleClientException(ERROR_CODE_SECRET_GET_REQUEST_INVALID, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_GET_REQUEST_INVALID, null);
         }
     }
 
@@ -335,14 +343,14 @@ public class SecretManagerImpl implements SecretManager {
                         + secretName + " and secret type: "
                         + secretType + ".");
             }
-            throw handleClientException(ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_DELETE_REQUEST_REQUIRED, null);
         }
 
         if (!isSecretExist(secretType, secretName)) {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the name: " + secretName + " does not exists.");
             }
-            throw handleClientException(ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretName);
+            throw handleClientException(ErrorMessages.ERROR_CODE_DELETE_SECRET_DOES_NOT_EXISTS, secretName);
         }
     }
 
@@ -363,13 +371,13 @@ public class SecretManagerImpl implements SecretManager {
 
         if (StringUtils.isEmpty(secret.getSecretName()) ||
                 StringUtils.isEmpty(secret.getSecretValue())) {
-            throw handleClientException(ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_ADD_REQUEST_INVALID, null);
         }
         if (isSecretExist(secretType, secret.getSecretName())) {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the name: " + secret.getSecretName() + " does exists.");
             }
-            throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretName());
         }
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
@@ -389,14 +397,14 @@ public class SecretManagerImpl implements SecretManager {
 
         if (StringUtils.isEmpty(secretTypeName) || StringUtils.isEmpty(secret.getSecretName()) ||
                 StringUtils.isEmpty(secret.getSecretValue())) {
-            throw handleClientException(ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
         }
 
         if (!isSecretExist(secretTypeName, secret.getSecretName())) {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the name: " + secret.getSecretName() + " does not exists.");
             }
-            throw handleClientException(ERROR_CODE_SECRET_DOES_NOT_EXISTS, secret.getSecretName());
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS, secret.getSecretName());
         }
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
@@ -419,14 +427,14 @@ public class SecretManagerImpl implements SecretManager {
 
         if (StringUtils.isEmpty(secret.getSecretId()) ||
                 StringUtils.isEmpty(secret.getSecretValue())) {
-            throw handleClientException(ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID, null);
         }
 
         if (!isSecretExistById(secretType, secret.getSecretId())) {
             if (log.isDebugEnabled()) {
                 log.debug("A secret with the id: " + secret.getSecretId() + " does not exists.");
             }
-            throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secret.getSecretId());
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secret.getSecretId());
         }
 
         if (StringUtils.isEmpty(secret.getTenantDomain())) {
@@ -444,14 +452,14 @@ public class SecretManagerImpl implements SecretManager {
         if (!this.secretDAOS.isEmpty()) {
             return secretDAOS.get(secretDAOS.size() - 1);
         } else {
-            throw handleServerException(ERROR_CODE_GET_DAO, "secretDAOs");
+            throw handleServerException(ErrorMessages.ERROR_CODE_GET_DAO, "secretDAOs");
         }
     }
 
     private void validateSecretManagerEnabled() throws SecretManagementServerException {
 
         if (!SecretManagerComponentDataHolder.getInstance().isSecretManagementEnabled()) {
-            throw handleServerException(ERROR_CODE_SECRET_MANAGER_NOT_ENABLED);
+            throw handleServerException(ErrorMessages.ERROR_CODE_SECRET_MANAGER_NOT_ENABLED);
         }
     }
 
@@ -479,10 +487,11 @@ public class SecretManagerImpl implements SecretManager {
         try {
             Secret secret = getSecret(secretType, secretName);
             if (!secretType.equals(secret.getSecretType())) {
-                throw handleClientException(ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_NAME, secretName);
+                throw handleClientException(
+                        ErrorMessages.ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_NAME, secretName);
             }
         } catch (SecretManagementClientException e) {
-            if (ERROR_CODE_SECRET_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+            if (ErrorMessages.ERROR_CODE_SECRET_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 return false;
             }
             throw e;
@@ -504,10 +513,10 @@ public class SecretManagerImpl implements SecretManager {
         try {
             Secret secret = getSecretById(secretType, secretId);
             if (!secretType.equals(secret.getSecretType())) {
-                throw handleClientException(ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_ID, secretId);
+                throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_TYPE_FOR_THE_SECRET_ID, secretId);
             }
         } catch (SecretManagementClientException e) {
-            if (ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+            if (ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 return false;
             }
             throw e;
@@ -536,7 +545,7 @@ public class SecretManagerImpl implements SecretManager {
         try {
             return encrypt(secretValue);
         } catch (CryptoException e) {
-            throw handleServerException(ERROR_CODE_ADD_SECRET, name, e);
+            throw handleServerException(ErrorMessages.ERROR_CODE_ADD_SECRET, name, e);
         }
     }
 
@@ -564,12 +573,12 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret type name: " + secretType + ".");
             }
-            throw handleClientException(ERROR_CODE_SECRET_TYPE_NAME_REQUIRED, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_TYPE_NAME_REQUIRED, null);
         } else if (!EnumUtils.isValidEnum(SecretConstants.SecretTypes.class, secretType)) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret type: " + secretType + ".");
             }
-            throw handleClientException(ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, secretType);
+            throw handleClientException(ErrorMessages.ERROR_CODE_SECRET_TYPE_DOES_NOT_EXISTS, secretType);
         }
     }
 
@@ -579,12 +588,12 @@ public class SecretManagerImpl implements SecretManager {
      * @throws SecretManagementClientException
      */
     private void validateSecretName(String secretName) throws SecretManagementClientException {
-        if(!isSecretNameRegexValid(secretName)) {
-            if(log.isDebugEnabled()) {
+        if (!isSecretNameRegexValid(secretName)) {
+            if (log.isDebugEnabled()) {
                 log.debug("Secret name does not conform to "
                         + getSecretNameRegex() + " pattern");
             }
-            throw handleClientException(ERROR_CODE_INVALID_SECRET_NAME, getSecretNameRegex());
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_NAME, getSecretNameRegex());
         }
     }
 
@@ -594,12 +603,12 @@ public class SecretManagerImpl implements SecretManager {
      * @throws SecretManagementClientException
      */
     private void validateSecretValue(String secretValue) throws SecretManagementClientException {
-        if(!isSecretValueRegexValid(secretValue)) {
-            if(log.isDebugEnabled()) {
+        if (!isSecretValueRegexValid(secretValue)) {
+            if (log.isDebugEnabled()) {
                 log.debug("Secret value does not conform to "
                         + getSecretValueRegex() + " pattern");
             }
-            throw handleClientException(ERROR_CODE_INVALID_SECRET_VALUE, getSecretValueRegex());
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_VALUE, getSecretValueRegex());
         }
     }
 
@@ -610,12 +619,12 @@ public class SecretManagerImpl implements SecretManager {
      */
     private void validateSecretDescription(String description)
             throws SecretManagementClientException {
-        if(description != null && !isSecretDescriptionRegexValid(description)) {
-            if(log.isDebugEnabled()) {
+        if (description != null && !isSecretDescriptionRegexValid(description)) {
+            if (log.isDebugEnabled()) {
                 log.debug("Secret description does not conform to "
                         + getSecretDescriptionRegex() + " pattern");
             }
-            throw handleClientException(ERROR_CODE_INVALID_SECRET_DESCRIPTION,
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_SECRET_DESCRIPTION,
                     getSecretDescriptionRegex());
         }
     }

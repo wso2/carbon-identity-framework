@@ -86,6 +86,9 @@ public class SecretRawDataCollector {
         return description;
     }
 
+    /**
+     * Collector class builder.
+     */
     public static class SecretRawDataCollectorBuilder {
 
         private int tenantId;

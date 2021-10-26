@@ -102,7 +102,8 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME))
                                         .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE))
-                                        .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
+                                        .setLastModified(resultSet.getTimestamp(
+                                                DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
                                         .setDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION))
@@ -136,7 +137,8 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME))
                                         .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE))
-                                        .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
+                                        .setLastModified(resultSet.getTimestamp(
+                                                DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
                                         .setSecretType(resultSet.getString(DB_SCHEMA_COLUMN_NAME_TYPE))
@@ -310,7 +312,8 @@ public class SecretDAOImpl implements SecretDAO {
         return secret;
     }
 
-    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors) throws CryptoException {
+    private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors)
+            throws CryptoException {
 
         Secret secret = new Secret();
         secretRawDataCollectors.forEach(secretRawDataCollector -> {
@@ -366,8 +369,9 @@ public class SecretDAOImpl implements SecretDAO {
             }
             secret.setSecretType(secretType.name());
         } catch (TransactionException e) {
-            if (e.getCause() instanceof SecretManagementException) {
-                throw (SecretManagementException) e.getCause();
+            Throwable cause = e.getCause();
+            if (cause instanceof SecretManagementException) {
+                throw (SecretManagementException) cause;
             }
             throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretName(), e);
         }
@@ -392,8 +396,9 @@ public class SecretDAOImpl implements SecretDAO {
                 secret.setCreatedTime(createdTime.toInstant().toString());
             }
         } catch (TransactionException e) {
-            if (e.getCause() instanceof SecretManagementException) {
-                throw (SecretManagementException) e.getCause();
+            Throwable cause = e.getCause();
+            if (cause instanceof SecretManagementException) {
+                throw (SecretManagementException) cause;
             }
             throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretId(), e);
         }

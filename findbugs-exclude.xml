@@ -31,4 +31,20 @@
         <Class name="org.wso2.carbon.identity.role.mgt.core.dao.RoleDAOImpl" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl" />
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretRawDataCollector" />
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretRawDataCollector$SecretRawDataCollectorBuilder" />
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretRawDataCollector$SecretRawDataCollectorBuilder" />
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
