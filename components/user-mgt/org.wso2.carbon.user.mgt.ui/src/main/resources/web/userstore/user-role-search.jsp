@@ -287,7 +287,7 @@
             if (doValidateForm($("#id_search")[0], '<fmt:message key="error.input.validation.msg"/>')) {
                 var category = $("input[name=radio_user_role]:checked").val();
                 $.ajax({
-                    url: "<%=IdentityUtil.getServerURL("/userandrolemgtservice", true, true)%>?category=" + category
+                    url: "<%=IdentityUtil.getMgtConsoleURL("/userandrolemgtservice", true, true)%>?category=" + category
                     + "&pageNumber=" + pageNumber,
                     type: "POST",
                     data: $("#id_search").serialize(),
