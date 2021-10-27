@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -73,7 +74,9 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -200,6 +203,27 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             externalIdPConfigName, context, localClaimValues, externalIdPConfig);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
+                        try {
+                            /*
+                            Checks whether the provided user is already existing in the system. If so an exception
+                            will be thrown.
+                            */
+                            UserRealm realm = getUserRealm(context.getTenantDomain());
+                            UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
+                                    .getProvisioningUserStoreId(), realm, username);
+                            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
+                                    MultitenantUtils.getTenantAwareUsername(username));
+                            if (userStoreManager.isExistingUser(sanitizedUserName)) {
+                                // Logging the error because the thrown exception is handled in the UI.
+                                log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
+                                        + ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage());
+                                handleExceptions(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
+                                        "provided.username.already.exists", null);
+                            }
+                        } catch (UserStoreException e) {
+                            handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
+                                    "error.user.existence", e);
+                        }
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
@@ -996,4 +1020,56 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return localClaimValues;
     }
 
+    private UserRealm getUserRealm(String tenantDomain) throws UserStoreException {
+
+        RealmService realmService = FrameworkServiceComponent.getRealmService();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return (UserRealm) realmService.getTenantUserRealm(tenantId);
+    }
+
+    private UserStoreManager getUserStoreManager(String provisioningUserStoreId, UserRealm realm, String username)
+            throws UserStoreException {
+
+        String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm, username);
+
+        UserStoreManager userStoreManager;
+        try {
+            if (userStoreDomain != null && !userStoreDomain.isEmpty()) {
+                userStoreManager = realm.getUserStoreManager().getSecondaryUserStoreManager(
+                        userStoreDomain);
+            } else {
+                userStoreManager = realm.getUserStoreManager();
+            }
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new UserStoreException(ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getMessage(), e);
+        }
+
+        if (userStoreManager == null) {
+            throw new UserStoreException(ErrorMessages.ERROR_INVALID_USER_STORE.getMessage(), null);
+        }
+        return userStoreManager;
+    }
+
+    private String getUserStoreDomain(String provisioningUserStoreId, UserRealm realm, String subject)
+            throws UserStoreException {
+
+        String userStoreDomain;
+        if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                .equalsIgnoreCase(provisioningUserStoreId)) {
+            userStoreDomain = UserCoreUtil.extractDomainFromName(subject);
+        } else {
+            userStoreDomain = provisioningUserStoreId;
+        }
+
+        try {
+            if (userStoreDomain != null
+                    && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+                throw new UserStoreException(String.format(ErrorMessages.ERROR_INVALID_USER_STORE_DOMAIN
+                                .getMessage(), userStoreDomain), null);
+            }
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
+        return userStoreDomain;
+    }
 }
