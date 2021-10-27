@@ -54,7 +54,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderRequestFactory.
  */
-
 public class SessionExtenderRequestFactoryTest {
 
     @Mock

@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.user.store.configuration;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
 
 import java.util.Set;
 
@@ -122,12 +121,12 @@ public interface UserStoreConfigService {
             throws IdentityUserStoreMgtException;
 
     /**
-     * Get all userstores of the given repository.
+     * Get userstore attribute mappings.
      *
-     * @return An array of {@link UserStoreDTO}.
-     * @throws IdentityUserStoreServerException Throws an error when getting user store attribute mappings.
+     * @return Userstore attribute mappings.
+     * @throws IdentityUserStoreMgtException Throws an error when getting user store attribute mappings.
      */
-    default UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreServerException {
+    default UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreMgtException {
 
         // Implement the method.
         return null;

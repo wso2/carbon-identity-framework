@@ -61,6 +61,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
 
 /**
  * Post authentication handler for missing claims.
@@ -182,6 +183,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     uriBuilder.addParameter("errorMessage",
                             context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR).toString());
                     context.removeProperty(POST_AUTH_MISSING_CLAIMS_ERROR);
+                }
+                if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR_CODE) != null) {
+                    uriBuilder.addParameter("errorCode",
+                            context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR_CODE).toString());
+                    context.removeProperty(POST_AUTH_MISSING_CLAIMS_ERROR_CODE);
                 }
                 response.sendRedirect(uriBuilder.build().toString());
                 context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
@@ -313,6 +319,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (UserStoreException e) {
                 if (e instanceof UserStoreClientException) {
                     context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
+                    if (StringUtils.isNotBlank(e.getErrorCode())) {
+                        context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR_CODE, e.getErrorCode());
+                    }
                     /*
                     When the attribute update is disabled for JIT provisioned users, the mandatory claim update
                     request will be identified through the error code and handled it.

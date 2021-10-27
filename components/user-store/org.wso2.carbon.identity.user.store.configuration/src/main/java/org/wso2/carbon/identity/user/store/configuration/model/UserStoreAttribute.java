@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.user.store.configuration.model;
 /**
  * Data object to hold user store attribute.
  */
-public class UserStoreAttributeDO {
+public class UserStoreAttribute {
 
     private String claimUri;
     private String claimId;

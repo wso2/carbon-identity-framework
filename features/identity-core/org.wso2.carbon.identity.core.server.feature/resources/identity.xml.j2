@@ -179,6 +179,10 @@
     </RemoteFetch>
 
     <OAuth>
+        <DPoP>
+        	<Enable>{{oauth.dpop.enable}}</Enable>
+        	<HeaderValidity>{{oauth.dpop.header_validity_period}}</HeaderValidity>
+        </DPoP>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -513,6 +517,9 @@
         {% if oauth.token_validator.jwt.enable %}
             <TokenValidator type="jwt" class="{{oauth.token_validator.jwt.class}}"/>
         {% endif %}
+        {% if oauth.dpop.enable %}
+            <TokenValidator type="dpop" class="{{oauth.dpop.token_validator_class}}"/>
+        {% endif %}
         {% for token_validator in oauth.custom_token_validator %}
             <TokenValidator type="{{token_validator.type}}" class="{{token_validator.class}}" />
         {% endfor %}
@@ -840,6 +847,16 @@
         Default value: true
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
+
+        {% if oauth.enable_system_level_internal_scope_management is defined %}
+        <!--
+        Configuration to maintain backward compatibility to manage the internal scope - permission  binding per tenant.
+        By default value will be true. That means the internal scope - permission binding will be maintained in the system level.
+        If the value is changed to false, then internal scope - permission will be maintained per tenant.
+        This configuration can be changed only during the fresh setup or initial migration. Changing in the middle of running setup will break the system.
+        -->
+        <EnableSystemLevelInternalSystemScopeManagement>{{oauth.enable_system_level_internal_scope_management}}</EnableSystemLevelInternalSystemScopeManagement>
+        {% endif %}
 
         {% if oauth.allowed_scopes is defined %}
         <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
@@ -1424,6 +1441,12 @@
                        enable="{{event.default_listener.oauth_listener.enable}}">
             <Property name="Log.Token">false</Property>
         </EventListener>
+        <EventListener id="dpop_listener"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.dpop.listener.OauthDPoPInterceptorHandlerProxy"
+                       orderId="{{oauth.dpop.dpop_listener.priority}}"
+                       enable="{{oauth.dpop.dpop_listener.enable}}">
+        </EventListener>
         <EventListener id="mutual_tls_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.MutualTLSClientAuthenticator"
@@ -1756,6 +1779,9 @@
                 http-method="{{resource.http_method}}"
                 {% if resource.cross_tenant is defined %}
                 cross-tenant="{{resource.cross_tenant}}"
+                {% endif %}
+                {% if resource.cross_access_allowed_tenants is defined %}
+                cross-access-allowed-tenants="{{resource.cross_access_allowed_tenants}}"
                 {% endif %}
                 >
             {% for permission in resource.permissions %}

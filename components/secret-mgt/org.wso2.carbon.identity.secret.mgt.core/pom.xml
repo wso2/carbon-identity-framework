@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org).
+  ~ Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>secret-mgt</artifactId>
-        <version>5.20.217-SNAPSHOT</version>
+        <version>5.20.245-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>

@@ -575,7 +575,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         assertEquals(removedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(removedCookie.getPath(), ROOT_DOMAIN);
         assertEquals(removedCookie.getMaxAge(), 0);
-
     }
 
     @Test
@@ -637,7 +636,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), "Dummy-Path");
         assertEquals(storedCookie.getMaxAge(), age);
-
     }
 
     @Test
@@ -773,6 +771,5 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
                 authenticationContext, DUMMY_CACHE_KEY);
         assertEquals(sessionContext, context);
-
     }
 }

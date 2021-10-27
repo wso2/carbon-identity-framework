@@ -213,8 +213,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
-        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
-                ApplicationAuthenticationService(), null);
+
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
@@ -356,6 +355,11 @@ public class FrameworkServiceComponent {
         if (FrameworkServiceDataHolder.getInstance().getSessionSerializer() == null) {
             FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
         }
+
+        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
+                ApplicationAuthenticationService(), null);
+        // Note : DO NOT add any activation related code below this point,
+        // to make sure the server doesn't start up if any activation failures
     }
 
     private void setAdaptiveAuthExecutionSupervisor() {
