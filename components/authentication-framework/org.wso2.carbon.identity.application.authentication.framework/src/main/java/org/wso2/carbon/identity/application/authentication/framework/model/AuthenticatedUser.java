@@ -177,11 +177,11 @@ public class AuthenticatedUser extends User {
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
             } catch (UserSessionException e) {
-                log.error("Error while resolving the user id from username");
+                log.error("Error while resolving the user id from username for local user.");
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("User id could not be resolved for user: " + toFullQualifiedUsername());
+                log.debug("User id could not be resolved for local user: " + toFullQualifiedUsername());
             }
         }
         return userId;
@@ -217,11 +217,11 @@ public class AuthenticatedUser extends User {
                             .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
                 }
             } catch (UserSessionException e) {
-                log.error("Error while resolving the user id from username.");
+                log.error("Error while resolving the user id from username for federated user.");
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("User id could not be resolved for user: " + toFullQualifiedUsername());
+                log.debug("User id could not be resolved for federated user: " + toFullQualifiedUsername());
             }
         }
         return userId;
