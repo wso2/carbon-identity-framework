@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
-import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
@@ -104,14 +103,13 @@ public interface SecretManager {
     Secret replaceSecretById(String secretType, Secret secret) throws SecretManagementException;
 
     /**
-     * Get secret type by name.
+     * This function is used to add a new secret type.
      *
      * @param secretType Name of the secret type.
-     * @return {@link Enum<SecretConstants.SecretTypes>} for the given name.
-     * @throws SecretManagementException Secret Management Exception.
+     * @return true if the secret added.
+     * @throws SecretManagementException Configuration Management Exception.
      */
-    Enum<SecretConstants.SecretTypes> getSecretType(String secretType)
-            throws SecretManagementException;
+    boolean addSecretType(String secretType) throws SecretManagementException;
 
     /**
      * Update value of a secret by name.

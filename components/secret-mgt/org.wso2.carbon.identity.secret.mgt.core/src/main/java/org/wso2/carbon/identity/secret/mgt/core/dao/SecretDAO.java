@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.secret.mgt.core.dao;
 
-import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 
@@ -48,16 +47,18 @@ public interface SecretDAO {
      * Returns {@link Secret} by name.
      *
      * @param name     Name of the {@link Secret}.
+     * @param secretType Type of the {@link Secret}.
      * @param tenantId Tenant id of the {@link Secret}.
-     * @return {@link Enum<SecretConstants.SecretTypes>} for the given name.
+     * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
-    Secret getSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
-            throws SecretManagementException;
+    Secret getSecretByName(String name, String secretType, int tenantId) throws SecretManagementException;
 
     /**
      * Returns {@link Secret} by id.
      *
+     * @param secretId Id of the {@link Secret}.
+     * @param tenantId Tenant id of the {@link Secret}.
      * @return {@link Secret} for the given name.
      * @throws SecretManagementException Secret Management Exception.
      */
@@ -69,8 +70,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @return A list of {@link Secret} for the tenant
      */
-    List<Secret> getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
-            throws SecretManagementException;
+    List<Secret> getSecrets(String secretType, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.
@@ -89,8 +89,7 @@ public interface SecretDAO {
      * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
-            throws SecretManagementException;
+    void deleteSecretByName(String name, String secretType, int tenantId) throws SecretManagementException;
 
     /**
      * Replace {@link Secret} or create not exists.

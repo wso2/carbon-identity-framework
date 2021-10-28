@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByIdCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCache;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretByNameCacheKey;
 import org.wso2.carbon.identity.secret.mgt.core.cache.SecretCacheEntry;
-import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
@@ -56,7 +55,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public Secret getSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+    public Secret getSecretByName(String name, String secretType, int tenantId)
             throws SecretManagementException {
 
         Secret secret = getSecretFromCacheByName(name, tenantId);
@@ -99,7 +98,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public List getSecrets(Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+    public List<Secret> getSecrets(String secretType, int tenantId)
             throws SecretManagementException {
 
         return secretDAO.getSecrets(secretType, tenantId);
@@ -113,7 +112,7 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void deleteSecretByName(String name, Enum<SecretConstants.SecretTypes> secretType, int tenantId)
+    public void deleteSecretByName(String name, String secretType, int tenantId)
             throws SecretManagementException {
 
         deleteCacheBySecretName(name, tenantId);
@@ -147,16 +146,14 @@ public class CachedBackedSecretDAO implements SecretDAO {
     public Secret updateSecretValue(Secret secret, String value) throws SecretManagementException {
 
         deleteSecretFromCache(secret);
-        Secret updatedSecret = secretDAO.updateSecretValue(secret, value);
-        return updatedSecret;
+        return secretDAO.updateSecretValue(secret, value);
     }
 
     @Override
     public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
 
         deleteSecretFromCache(secret);
-        Secret updatedSecret = secretDAO.updateSecretDescription(secret, description);
-        return updatedSecret;
+        return secretDAO.updateSecretDescription(secret, description);
     }
 
     @Override

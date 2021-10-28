@@ -97,22 +97,4 @@ public class SecretConstants {
             return code + ":" + message;
         }
     }
-
-    /**
-     * Enum to store secret types.
-     */
-    public enum SecretTypes {
-        ADAPTIVE_AUTH("Secret type to uniquely identify secrets relevant to " +
-                "callChoreo adaptive auth function");
-
-        private final String secretTypeDescription;
-
-        SecretTypes(String secretTypeDescription) {
-            this.secretTypeDescription  = secretTypeDescription;
-        }
-
-        public String getSecretTypeDescription() {
-            return secretTypeDescription;
-        }
-    }
 }
