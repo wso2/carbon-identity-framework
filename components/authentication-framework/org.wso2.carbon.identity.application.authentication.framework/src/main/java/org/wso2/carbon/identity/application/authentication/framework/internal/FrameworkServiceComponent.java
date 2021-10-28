@@ -103,6 +103,8 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -137,6 +139,7 @@ public class FrameworkServiceComponent {
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
+    private static final String SECRET_TYPE = "adaptive-auth";
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
@@ -345,9 +348,7 @@ public class FrameworkServiceComponent {
             log.debug("Application Authentication Framework bundle is activated");
         }
 
-        /**
-         * Load and reade the require.js file in resources.
-         */
+        // Load and reade the require.js file in resources.
         this.loadCodeForRequire();
 
         // Set user session mapping enabled.
@@ -355,6 +356,13 @@ public class FrameworkServiceComponent {
                 .isUserSessionMappingEnabled());
         if (FrameworkServiceDataHolder.getInstance().getSessionSerializer() == null) {
             FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        }
+
+        // Register adaptive-auth secret type.
+        try {
+            FrameworkServiceDataHolder.getInstance().getSecretManager().addSecretType(SECRET_TYPE);
+        } catch (SecretManagementException e) {
+            log.error("Server encountered an error while adding secret type: " + SECRET_TYPE, e);
         }
     }
 
@@ -920,5 +928,23 @@ public class FrameworkServiceComponent {
     protected void unsetSessionContextListener(SessionContextMgtListener sessionListener) {
 
         FrameworkServiceDataHolder.getInstance().removeSessionContextMgtListener(sessionListener.getInboundType());
+    }
+
+    @Reference(
+            name = "secret.manager.component",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    protected void setSecretManager(SecretManager secretManager) {
+        if (log.isDebugEnabled()) {
+            log.debug("SecretManager is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setSecretManager(secretManager);
+    }
+
+    protected void unsetSecretManager(SecretManager secretManager) {
+        FrameworkServiceDataHolder.getInstance().setSecretManager(null);
     }
 }

@@ -106,10 +106,9 @@ public interface SecretManager {
      * This function is used to add a new secret type.
      *
      * @param secretType Name of the secret type.
-     * @return true if the secret added.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    boolean addSecretType(String secretType) throws SecretManagementException;
+    void addSecretType(String secretType) throws SecretManagementException;
 
     /**
      * Update value of a secret by name.

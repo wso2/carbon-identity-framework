@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentD
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secrets;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,7 +59,7 @@ public class SecretManagerImpl implements SecretManager {
     public SecretManagerImpl() {
 
         this.secretDAOS = SecretManagerComponentDataHolder.getInstance().getSecretDAOS();
-        this.secretTypes = new HashSet<String>();
+        this.secretTypes = SecretManagerComponentDataHolder.getInstance().getSecretTypes();
     }
 
     @Override
@@ -291,7 +290,7 @@ public class SecretManagerImpl implements SecretManager {
     }
 
     @Override
-    public boolean addSecretType(String secretType) throws SecretManagementException {
+    public void addSecretType(String secretType) throws SecretManagementException {
         if (StringUtils.isEmpty(secretType)) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid secret type name: " + secretType + ".");
@@ -303,12 +302,8 @@ public class SecretManagerImpl implements SecretManager {
             if (log.isDebugEnabled()) {
                 log.debug("Secret type: " + secretType + " Added successfully.");
             }
-            return true;
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Secret type: " + secretType + " already exists.");
-            }
-            return false;
+            log.error("Secret type: " + secretType + " already exists.");
         }
     }
 

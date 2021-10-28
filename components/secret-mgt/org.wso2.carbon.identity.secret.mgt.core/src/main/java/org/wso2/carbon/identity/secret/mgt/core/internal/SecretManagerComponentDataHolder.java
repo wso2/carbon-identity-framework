@@ -22,7 +22,9 @@ import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A class to keep the data of the secret manager component.
@@ -34,6 +36,7 @@ public class SecretManagerComponentDataHolder {
     private boolean secretManagementEnabled;
     private RealmService realmService;
     private List<SecretDAO> secretDAOS = new ArrayList<>();
+    private final Set<String> secretTypes = new HashSet<>();
 
     public static SecretManagerComponentDataHolder getInstance() {
 
@@ -68,5 +71,10 @@ public class SecretManagerComponentDataHolder {
     public void setSecretDAOS(List<SecretDAO> secretDAOS) {
 
         this.secretDAOS = secretDAOS;
+    }
+
+    public Set<String> getSecretTypes() {
+
+        return secretTypes;
     }
 }
