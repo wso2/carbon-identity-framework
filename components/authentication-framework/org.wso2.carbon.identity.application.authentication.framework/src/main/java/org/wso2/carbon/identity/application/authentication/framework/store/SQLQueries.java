@@ -159,7 +159,11 @@ public class SQLQueries {
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID = "SELECT SESSION_ID FROM " +
             "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
 
-    // Get federated authentication session details using the IDP session id.
+    // Update federated authentication session id using the idp session id.
+    public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO = "UPDATE IDN_FED_AUTH_SESSION_MAPPING SET " +
+            "SESSION_ID=? WHERE IDP_SESSION_ID=?";
+
+    // Get federated authentication session details if there is an already existing session.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
             "SELECT IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE FROM " +
                     "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";

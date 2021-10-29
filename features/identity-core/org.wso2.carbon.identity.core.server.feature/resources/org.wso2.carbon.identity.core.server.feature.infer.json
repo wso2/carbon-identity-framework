@@ -142,7 +142,8 @@
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime",
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId",
             "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail",
-            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile"
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value"
           ]
         },
         {
@@ -151,6 +152,18 @@
             "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
             "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
           ]
+        },
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0:User",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses.home",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses.work",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses.other",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers",
+            "urn:ietf:params:scim:schemas:core:2.0:User:photos",
+            "urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default"
+          ]
         }
       ],
       "schemas.add_to_default_schema": [
@@ -158,7 +171,21 @@
           "id": "urn:ietf:params:scim:schemas:core:2.0:User",
           "attributes": [
             "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
-            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#home.country",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#home.formatted",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.country",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.formatted",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.locality",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.postalCode",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.region",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#work.streetAddress",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.country",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.formatted",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.locality",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.postalCode",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.region",
+            "urn:ietf:params:scim:schemas:core:2.0:User:addresses#other.streetAddress"
           ]
         }
       ]

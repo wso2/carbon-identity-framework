@@ -107,6 +107,14 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 return getWrapped().getAuthenticatedSubjectIdentifier();
             case FrameworkConstants.JSAttributes.JS_USERNAME:
                 return getWrapped().getUserName();
+            case FrameworkConstants.JSAttributes.JS_UNIQUE_ID:
+                Object userId = null;
+                try {
+                    userId = getWrapped().getUserId();
+                } catch (UserIdNotFoundException e) {
+                    LOG.error("Error while retrieving user Id of user : " + getWrapped().getLoggableUserId(), e);
+                }
+                return userId;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
                 return getWrapped().getUserStoreDomain();
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:

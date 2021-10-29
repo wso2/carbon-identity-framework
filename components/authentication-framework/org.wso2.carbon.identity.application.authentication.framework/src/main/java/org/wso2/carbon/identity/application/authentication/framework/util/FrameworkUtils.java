@@ -31,6 +31,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.MDC;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
@@ -3153,5 +3155,31 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.
                     getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Return a filtered list of requested scope claims.
+     *
+     * @param claimListOfScopes Claims list of requested scopes.
+     * @param claimMappings     Claim mappings list of service provider.
+     * @throws ClaimManagementException
+     */
+    public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
+                                                            List<ClaimMapping> claimMappings)
+            throws ClaimManagementException {
+
+        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
+        List<String> claimMappingListOfScopes = new ArrayList<>();
+        for (String claim : claimListOfScopes) {
+            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
+            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        }
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
+        for (ClaimMapping claim : claimMappings) {
+            if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
+                requestedScopeClaims.add(claim);
+            }
+        }
+        return requestedScopeClaims;
     }
 }

@@ -481,10 +481,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * Get resourceId for the {@link Resource}.
      *
-     * @param tenantId          Tenant Id of the {@link Resource}.
-     * @param resourceTypeId    Type Id of the {@link Resource}.
-     * @param resourceName      Name of the {@link Resource}.
+     * @param tenantId              Tenant Id of the {@link Resource}.
+     * @param resourceTypeId        Type Id of the {@link Resource}.
+     * @param resourceName          Name of the {@link Resource}.
      * @return resourceId for the given resource.
+     * @throws TransactionException Transaction Exception.
      */
     private String getResourceId(int tenantId, String resourceTypeId, String resourceName) throws TransactionException {
 

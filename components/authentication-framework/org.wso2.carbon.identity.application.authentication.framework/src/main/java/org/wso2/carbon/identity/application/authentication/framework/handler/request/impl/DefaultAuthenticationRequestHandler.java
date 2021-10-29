@@ -567,14 +567,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            if (userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
+                            if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
+                                userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                            } else {
                                 if (log.isDebugEnabled()) {
                                     log.debug(String.format("Federated auth session with the id: %s already exists",
                                             authHistory.getIdpSessionIndex()));
                                 }
-                                continue;
+                                userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
                             }
-                            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
                                     + "of the authenticated user to the database", e);

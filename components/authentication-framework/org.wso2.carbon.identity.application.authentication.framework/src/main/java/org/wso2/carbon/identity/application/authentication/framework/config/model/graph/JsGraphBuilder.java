@@ -581,6 +581,12 @@ public class JsGraphBuilder {
         }
 
         StepConfig stepConfig = graph.getStepMap().get(stepId);
+        if (stepConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("The stepConfig of the step ID : " + stepId + " is null");
+            }
+            return;
+        }
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
         StepConfig clonedStepConfig = new StepConfig(stepConfig);
         StepConfig stepConfigFromContext = null;

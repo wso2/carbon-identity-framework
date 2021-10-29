@@ -438,6 +438,7 @@ public abstract class FrameworkConstants {
 
         public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "identifier";
         public static final String JS_USERNAME = "username";
+        public static final String JS_UNIQUE_ID = "uniqueId";
         public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
         public static final String JS_TENANT_DOMAIN = "tenantDomain";
         public static final String JS_SERVICE_PROVIDER_NAME = "serviceProviderName";
