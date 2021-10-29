@@ -203,8 +203,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
-                    String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                            MultitenantUtils.getTenantAwareUsername(username));
+                    String sanitizedUserName = removeEmailDomainFromName(UserCoreUtil.removeDomainFromName(
+                            MultitenantUtils.getTenantAwareUsername(username)));
                     callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                    handleConsents(request, stepConfig, context.getTenantDomain());
@@ -366,7 +366,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 + " coming from " + externalIdPConfig.getIdPName()
                                 + " do have a local account, with the username " + username);
                     }
-                    callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
+                    String sanitizedUserName = removeEmailDomainFromName(username);
+                    callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, localClaimValues,
                             stepConfig);
                 }
             }
@@ -1000,4 +1001,17 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return localClaimValues;
     }
 
+    /**
+     * Remove email domain from the username.
+     *
+     * @param username        Tenant domain.
+     * @return email domain removed username.
+     */
+    private String removeEmailDomainFromName(String username) {
+
+        if (username.contains("@") && !(MultitenantUtils.isEmailUserName())) {
+            username = username.substring(0, username.indexOf("@"));
+        }
+        return username;
+    }
 }
