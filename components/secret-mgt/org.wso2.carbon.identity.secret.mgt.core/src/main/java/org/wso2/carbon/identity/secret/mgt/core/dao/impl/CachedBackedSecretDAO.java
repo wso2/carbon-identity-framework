@@ -98,25 +98,17 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public List<Secret> getSecrets(String secretType, int tenantId)
+    public List<Secret> listSecrets(String secretType, int tenantId)
             throws SecretManagementException {
 
-        return secretDAO.getSecrets(secretType, tenantId);
+        return secretDAO.listSecrets(secretType, tenantId);
     }
 
     @Override
-    public void deleteSecretById(String secretId, int tenantId) throws SecretManagementException {
+    public void deleteSecret(String secretId, int tenantId) throws SecretManagementException {
 
         deleteCacheBySecretId(secretId, tenantId);
-        secretDAO.deleteSecretById(secretId, tenantId);
-    }
-
-    @Override
-    public void deleteSecretByName(String name, String secretType, int tenantId)
-            throws SecretManagementException {
-
-        deleteCacheBySecretName(name, tenantId);
-        secretDAO.deleteSecretByName(name, secretType, tenantId);
+        secretDAO.deleteSecret(secretId, tenantId);
     }
 
     @Override
@@ -127,19 +119,12 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void replaceSecret(Secret secret) throws SecretManagementException {
-
-        deleteSecretFromCache(secret);
-        secretDAO.replaceSecret(secret);
-    }
-
-    @Override
-    public void replaceSecretById(Secret secret, int tenantId) throws SecretManagementException {
+    public void replaceSecret(Secret secret, int tenantId) throws SecretManagementException {
 
         Secret secretRetrieved = getSecretById(secret.getSecretId(), tenantId);
         secret.setSecretName(secretRetrieved.getSecretName());
         deleteSecretFromCache(secret);
-        secretDAO.replaceSecretById(secret, tenantId);
+        secretDAO.replaceSecret(secret, tenantId);
     }
 
     @Override
@@ -235,15 +220,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
     private void deleteCacheBySecretId(String secretId, int tenantId) throws SecretManagementException {
 
         Secret secret = getSecretFromCacheById(secretId, tenantId);
-        if (secret == null) {
-            return;
-        }
-        deleteSecretFromCache(secret);
-    }
-
-    private void deleteCacheBySecretName(String secretName, int tenantId) throws SecretManagementException {
-
-        Secret secret = getSecretFromCacheByName(secretName, tenantId);
         if (secret == null) {
             return;
         }

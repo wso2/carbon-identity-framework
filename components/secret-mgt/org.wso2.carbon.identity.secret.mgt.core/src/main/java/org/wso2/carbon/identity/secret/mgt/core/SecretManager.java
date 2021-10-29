@@ -38,6 +38,15 @@ public interface SecretManager {
     Secret addSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
+     * Get all the secrets of the current tenant.
+     *
+     * @param secretType Name of the secret type.
+     * @return {@link Secrets} object with all the tenant secrets.
+     * @throws SecretManagementException Secret Management Exception.
+     */
+    Secrets listSecrets(String secretType) throws SecretManagementException;
+
+    /**
      * This API is used to retrieve the given secret.
      *
      * @param secretType Name of the secret type.
@@ -45,25 +54,7 @@ public interface SecretManager {
      * @return Returns {@link Secret} requested.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getSecret(String secretType, String secretName) throws SecretManagementException;
-
-    /**
-     * Get all the secrets of the current tenant.
-     *
-     * @param secretType Name of the secret type.
-     * @return {@link Secrets} object with all the tenant secrets.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    Secrets getSecrets(String secretType) throws SecretManagementException;
-
-    /**
-     * This API is used to delete the given secret.
-     *
-     * @param secretType Name of the secret type.
-     * @param secretName     Name of the {@link Secret}
-     * @throws SecretManagementException Secret management exception.
-     */
-    void deleteSecret(String secretType, String secretName) throws SecretManagementException;
+    Secret getSecretByName(String secretType, String secretName) throws SecretManagementException;
 
     /**
      * This function is used to get a secret by the secret id.
@@ -73,7 +64,7 @@ public interface SecretManager {
      * @return the secret object corresponding to the secret id.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret getSecretById(String secretType, String secretId) throws SecretManagementException;
+    Secret getSecret(String secretType, String secretId) throws SecretManagementException;
 
     /**
      * This function is used to delete the given secret id.
@@ -82,7 +73,7 @@ public interface SecretManager {
      * @param secretId Request to delete the {@link Secret}.
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteSecretById(String secretType, String secretId) throws SecretManagementException;
+    void deleteSecret(String secretType, String secretId) throws SecretManagementException;
 
     /**
      * This function is used to replace a given secret.
@@ -94,34 +85,6 @@ public interface SecretManager {
     Secret replaceSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
-     * This function is used to replace a given secret.
-     *
-     * @param secretType Name of the secret type.
-     * @param secret         Secret object.
-     * @throws SecretManagementException Secret management exception.
-     */
-    Secret replaceSecretById(String secretType, Secret secret) throws SecretManagementException;
-
-    /**
-     * This function is used to add a new secret type.
-     *
-     * @param secretType Name of the secret type.
-     * @throws SecretManagementException Configuration Management Exception.
-     */
-    void addSecretType(String secretType) throws SecretManagementException;
-
-    /**
-     * Update value of a secret by name.
-     *
-     * @param secretType Name of the secret type.
-     * @param name  Name of the {@link Secret}.
-     * @param value secret value to be updated.
-     * @throws SecretManagementException Configuration Management Exception.
-     */
-    Secret updateSecretValue(String secretType, String name, String value)
-            throws SecretManagementException;
-
-    /**
      * Update value of a secret by id.
      *
      * @param secretType Name of the secret type.
@@ -129,18 +92,7 @@ public interface SecretManager {
      * @param value Secret value to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretValueById(String secretType, String secretId, String value)
-            throws SecretManagementException;
-
-    /**
-     * Update description of a secret by name.
-     *
-     * @param secretType Name of the secret type.
-     * @param name  Name of the {@link Secret}.
-     * @param description secret description to be updated.
-     * @throws SecretManagementException Configuration Management Exception.
-     */
-    Secret updateSecretDescription(String secretType, String name, String description)
+    Secret updateSecretValue(String secretType, String secretId, String value)
             throws SecretManagementException;
 
     /**
@@ -151,6 +103,14 @@ public interface SecretManager {
      * @param description secret description to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretDescriptionById(String secretType, String secretId, String description)
+    Secret updateSecretDescription(String secretType, String secretId, String description)
             throws SecretManagementException;
+
+    /**
+     * This function is used to add a new secret type.
+     *
+     * @param secretType Name of the secret type.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
+    void addSecretType(String secretType) throws SecretManagementException;
 }

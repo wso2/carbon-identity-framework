@@ -44,7 +44,7 @@ public class SecretResolveManagerImpl implements SecretResolveManager {
     @Override
     public ResolvedSecret getResolvedSecret(String secretTypeName, String secretName) throws SecretManagementException {
 
-        Secret secret = secretManager.getSecret(secretTypeName, secretName);
+        Secret secret = secretManager.getSecretByName(secretTypeName, secretName);
         return getResolvedSecret(secret);
     }
 

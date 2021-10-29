@@ -70,7 +70,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @return A list of {@link Secret} for the tenant
      */
-    List<Secret> getSecrets(String secretType, int tenantId) throws SecretManagementException;
+    List<Secret> listSecrets(String secretType, int tenantId) throws SecretManagementException;
 
     /**
      * Delete {@link Secret} by the given secretName.
@@ -79,25 +79,7 @@ public interface SecretDAO {
      * @param tenantId Tenant id of the {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void deleteSecretById(String secretId, int tenantId) throws SecretManagementException;
-
-    /**
-     * Delete {@link Secret} by the given secretName.
-     *
-     * @param name     Name of the {@link Secret}.
-     * @param secretType Type of the secret.
-     * @param tenantId Tenant id of the {@link Secret}.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    void deleteSecretByName(String name, String secretType, int tenantId) throws SecretManagementException;
-
-    /**
-     * Replace {@link Secret} or create not exists.
-     *
-     * @param secret {@link Secret} to be added.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    void replaceSecret(Secret secret) throws SecretManagementException;
+    void deleteSecret(String secretId, int tenantId) throws SecretManagementException;
 
     /**
      * Replace {@link Secret} or create not exists.
@@ -106,7 +88,7 @@ public interface SecretDAO {
      * @param tenantId Id of the tenant.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void replaceSecretById(Secret secret, int tenantId) throws SecretManagementException;
+    void replaceSecret(Secret secret, int tenantId) throws SecretManagementException;
 
     /**
      * Update secret value.
