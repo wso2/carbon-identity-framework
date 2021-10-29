@@ -801,6 +801,18 @@
         <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
         {% endif %}
 
+        <Introspection>
+            <!--
+                This config will remove any optional claims from introspection response. Before setting the response to the
+                introspection endpoint claims configured below will be removed.
+            -->
+            <FilteredClaims>
+                {% for claim in oauth.introspection.filtered_claims %}
+                <FilteredClaim>{{claim}}</FilteredClaim>
+                {% endfor %}
+            </FilteredClaims>
+        </Introspection>
+
         <PublishPasswordGrantLogin>{{analytics.publish_password_grant_logins}}</PublishPasswordGrantLogin>
 
         <!--
@@ -1428,6 +1440,12 @@
                        orderId="{{event.default_listener.oauth_listener.priority}}"
                        enable="{{event.default_listener.oauth_listener.enable}}">
             <Property name="Log.Token">false</Property>
+        </EventListener>
+        <EventListener id="dpop_listener"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.dpop.listener.OauthDPoPInterceptorHandlerProxy"
+                       orderId="{{oauth.dpop.dpop_listener.priority}}"
+                       enable="{{oauth.dpop.dpop_listener.enable}}">
         </EventListener>
         <EventListener id="mutual_tls_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"

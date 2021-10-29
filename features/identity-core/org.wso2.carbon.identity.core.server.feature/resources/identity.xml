@@ -152,10 +152,10 @@
         <!--
              Configs related to DPoP implementation.
         -->
-        <DPoPConfig>
+        <DPoP>
             <Enable>true</Enable>
             <HeaderValidity>60</HeaderValidity>
-        </DPoPConfig>
+        </DPoP>
 
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
@@ -575,15 +575,22 @@
         -->
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
-        <!--
-        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+        <Introspection>
+            <!--
+            By enabling this property UMA permission information for the RPT can be retrieved through introspection response
 
-        Default value : false
-        Supported versions : IS 5.8.0 onwards
-        -->
-        <!--Introspection>
-            <EnableDataProviders>false</EnableDataProviders>
-        </Introspection-->
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+            -->
+<!--            <EnableDataProviders>false</EnableDataProviders>-->
+            <!--
+                This config will remove any optional claims from introspection response. Before setting the response to
+                the introspection endpoint claims configured below will be removed.
+            -->
+<!--            <FilteredClaims>-->
+<!--                <FilteredClaim></FilteredClaim>-->
+<!--            </FilteredClaims>-->
+        </Introspection>
 
         <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
 
@@ -1044,6 +1051,12 @@
                        name="org.wso2.carbon.identity.data.publisher.oauth.listener.OAuthTokenIssuanceLogPublisher"
                        orderId="12" enable="false">
             <Property name="Log.Token">false</Property>
+        </EventListener>
+        <EventListener id="dpop_listener"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.dpop.listener.OauthDPoPInterceptorHandlerProxy"
+                       orderId="13"
+                       enable="true">
         </EventListener>
         <EventListener id="mutual_tls_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
