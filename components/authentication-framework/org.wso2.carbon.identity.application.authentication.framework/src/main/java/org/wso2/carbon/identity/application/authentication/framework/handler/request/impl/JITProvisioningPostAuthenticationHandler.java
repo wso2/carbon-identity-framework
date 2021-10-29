@@ -1002,10 +1002,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     }
 
     /**
-     * Remove email domain from the username.
+     * Remove email domain from the username only if EnableEmailUserName configuration is set to false.
      *
-     * @param username        Tenant domain.
-     * @return email domain removed username.
+     * @param username        Username.
+     * @return Username without email domain.
      */
     private String removeEmailDomainFromName(String username) {
 
