@@ -20,6 +20,8 @@ package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -28,6 +30,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -73,7 +76,8 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
 /**
  * Unit tests for IdPManagementDAO.
  */
-@PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class})
+@PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class,
+        ApplicationAuthenticatorService.class})
 public class IdPManagementDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "test";
@@ -81,6 +85,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     private static final Integer SAMPLE_TENANT_ID2 = 1;
     private static final String TENANT_DOMAIN = "carbon.super";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+
+    @Mock
+    private ApplicationAuthenticatorService mockedApplicationAuthenticatorService;
 
     private IdPManagementDAO idPManagementDAO;
 
@@ -1578,6 +1585,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+
+        mockStatic(ApplicationAuthenticatorService.class);
+        Mockito.when(ApplicationAuthenticatorService.getInstance()).thenReturn(mockedApplicationAuthenticatorService);
+        List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
+        federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
+        Mockito.when(mockedApplicationAuthenticatorService.getFederatedAuthenticators()).
+                thenReturn(federatedAuthenticatorConfigs);
     }
 
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {
