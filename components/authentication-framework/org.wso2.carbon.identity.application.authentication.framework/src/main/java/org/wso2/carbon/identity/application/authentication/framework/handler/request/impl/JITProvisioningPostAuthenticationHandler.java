@@ -192,8 +192,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 .put(FrameworkConstants.PASSWORD, request.getParameter(FrameworkConstants.PASSWORD));
                     }
                     String username = sequenceConfig.getAuthenticatedUser().getUserName();
-                    String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                            MultitenantUtils.getTenantAwareUsername(username));
+                    String sanitizedUserName = removeEmailDomainFromName(username);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                         try {
@@ -204,8 +203,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             UserRealm realm = getUserRealm(context.getTenantDomain());
                             UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
                                     .getProvisioningUserStoreId(), realm, username);
-                            sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                                    MultitenantUtils.getTenantAwareUsername(username));
+                            sanitizedUserName = removeEmailDomainFromName(UserCoreUtil.removeDomainFromName(
+                                    MultitenantUtils.getTenantAwareUsername(username)));
                             if (userStoreManager.isExistingUser(sanitizedUserName)) {
                                 // Logging the error because the thrown exception is handled in the UI.
                                 log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
@@ -353,7 +352,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 + externalIdPConfig.getIdPName() + " do have a local account, with the username "
                                 + username);
                     }
-                    callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
+                    String sanitizedUserName = removeEmailDomainFromName(username);
+                    callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, localClaimValues,
                             stepConfig);
                 }
             }
@@ -896,5 +896,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_DOMAIN.getCode(), e);
         }
         return userStoreDomain;
+    }
+
+    /**
+     * Remove email domain from the username only if EnableEmailUserName configuration is set to false.
+     *
+     * @param username        Username.
+     * @return Username without email domain.
+     */
+    private String removeEmailDomainFromName(String username) {
+
+        if (username.contains("@") && !(MultitenantUtils.isEmailUserName())) {
+            username = username.substring(0, username.indexOf("@"));
+        }
+        return username;
     }
 }
