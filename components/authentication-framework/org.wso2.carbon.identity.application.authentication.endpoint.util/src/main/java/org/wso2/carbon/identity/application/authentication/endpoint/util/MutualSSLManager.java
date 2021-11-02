@@ -46,6 +46,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -60,6 +61,7 @@ public class MutualSSLManager {
     private static Properties prop;
     private static String carbonLogin = "";
     private static String usernameHeaderName = "";
+    private final static String[] LOCALHOSTS = { "::1", "127.0.0.1", "localhost", "localhost.localdomain" };
 
     /**
      * Default keystore type of the client
@@ -86,6 +88,9 @@ public class MutualSSLManager {
     private static char[] keyStorePassword;
     private static SSLSocketFactory sslSocketFactory;
     private static boolean initialized = false;
+
+    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
+    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     private MutualSSLManager() {
 
@@ -351,6 +356,16 @@ public class MutualSSLManager {
             SSLContext sslContext = SSLContext.getInstance(protocol);
 
             if (hostNameVerificationEnabled) {
+                if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+                    HostnameVerifier hv = new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String urlHostName, SSLSession session) {
+
+                            return Arrays.asList(LOCALHOSTS).contains(urlHostName);
+                        }
+                    };
+                    HttpsURLConnection.setDefaultHostnameVerifier(hv);
+                }
                 sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
                 sslSocketFactory = sslContext.getSocketFactory();
 
