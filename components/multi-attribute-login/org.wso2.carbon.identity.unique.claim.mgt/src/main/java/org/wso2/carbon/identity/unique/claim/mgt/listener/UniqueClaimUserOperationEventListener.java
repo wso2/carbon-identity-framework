@@ -37,6 +37,7 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -220,5 +221,21 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential,
+                                                UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        Claim[] claims = userStoreManager.getUserClaimValues(userName, null);
+        Map<String, String> claimMap = new HashMap<>();
+        for (Claim claim : claims) {
+            claimMap.put(claim.getClaimUri(), claim.getValue());
+        }
+        checkClaimUniqueness(userName, claimMap, null, userStoreManager, newCredential);
+        return true;
     }
 }
