@@ -357,14 +357,14 @@ public class MutualSSLManager {
 
             if (hostNameVerificationEnabled) {
                 if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
-                    HostnameVerifier hv = new HostnameVerifier() {
+                    HostnameVerifier hostnameVerifier = new HostnameVerifier() {
                         @Override
                         public boolean verify(String urlHostName, SSLSession session) {
 
                             return Arrays.asList(LOCALHOSTS).contains(urlHostName);
                         }
                     };
-                    HttpsURLConnection.setDefaultHostnameVerifier(hv);
+                    HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
                 }
                 sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
                 sslSocketFactory = sslContext.getSocketFactory();
