@@ -849,5 +849,5 @@
   "cors.tag_requests": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
-  "idp.secret_persistence_processor": "org.wso2.carbon.idp.mgt.secretprocessor.PlainTextPersistenceProcessor"
+  "idp.secret_persistence_processor.enable": false
 }

@@ -90,6 +90,9 @@ public class IdPManagementConstants {
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
 
+    public static final String IDP_SECRET_PERSISTENCE_PROCESSOR_ENABLE = "IdentityProviderSecretPersistenceProcessor." +
+            "Enable";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

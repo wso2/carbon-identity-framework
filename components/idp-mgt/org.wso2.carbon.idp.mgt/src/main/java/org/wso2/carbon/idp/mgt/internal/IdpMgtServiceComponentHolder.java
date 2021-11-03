@@ -29,6 +29,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
+import org.wso2.carbon.idp.mgt.secretprocessor.PersistenceProcessor;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -54,6 +55,7 @@ public class IdpMgtServiceComponentHolder {
     private RoleManagementService roleManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private SecretManager secretManager;
+    private PersistenceProcessor persistenceProcessor;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -172,5 +174,25 @@ public class IdpMgtServiceComponentHolder {
     public void setSecretManager(SecretManager secretManager) {
 
         this.secretManager = secretManager;
+    }
+
+    /**
+     * Get PersistenceProcessor instance.
+     *
+     * @return PersistenceProcessor instance.
+     */
+    public PersistenceProcessor getPersistenceProcessor() {
+
+        return persistenceProcessor;
+    }
+
+    /**
+     * Set PersistenceProcessor instance.
+     *
+     * @param persistenceProcessor PersistenceProcessor instance.
+     */
+    public void setPersistenceProcessor(PersistenceProcessor persistenceProcessor) {
+
+        this.persistenceProcessor = persistenceProcessor;
     }
 }

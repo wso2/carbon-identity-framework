@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.IdPSecretConfiguration;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -53,8 +52,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
+import org.wso2.carbon.idp.mgt.secretprocessor.PersistenceProcessor;
 import org.wso2.carbon.idp.mgt.secretprocessor.SecretManagerPersistenceProcessor;
-import org.wso2.carbon.idp.mgt.secretprocessor.SecretPersistenceProcessor;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.utils.DBUtils;
@@ -95,11 +94,11 @@ public class IdPManagementDAO {
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
     private static final String secretType = "FEDERATED_AUTHENTICATOR";
 
-    private SecretPersistenceProcessor persistenceProcessor;
+    private PersistenceProcessor persistenceProcessor;
 
     public IdPManagementDAO() {
 
-        persistenceProcessor = IdPSecretConfiguration.getInstance().getPersistenceProcessor();
+        persistenceProcessor = IdpMgtServiceComponentHolder.getInstance().getPersistenceProcessor();
     }
 
     /**
@@ -1006,7 +1005,7 @@ public class IdPManagementDAO {
 
         /*
         The persistence and processing of secrets of the federated authenticators depends on the implemented
-        SecretPersistenceProcessor.
+        PersistenceProcessor.
         E.g. If SecretManagerPersistenceProcessor implementation is used, secrets will be stored in the secret store.
         Therefore when updating/ deleting secrets of federated authenticators, it may require to perform db operations
         in multiple tables. To perform such actions, it is required to retrieve the federated authenticator
@@ -2150,7 +2149,7 @@ public class IdPManagementDAO {
      * @param tenantDomain    Tenant domain of the identity provider.
      * @param plainTextSecret If true, the secrets of the federated authenticators will be retrieved in plain text
      *                        even if they might be saved in an encrypted format depending on the configured
-     *                        {@link SecretPersistenceProcessor}.
+     *                        {@link PersistenceProcessor}.
      * @return An identity provider.
      * @throws IdentityProviderManagementException Error while retrieving the identity provider.
      */

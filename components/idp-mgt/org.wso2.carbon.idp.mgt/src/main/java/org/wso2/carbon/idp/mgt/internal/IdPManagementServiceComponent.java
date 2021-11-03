@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt.internal;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -48,11 +49,13 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderClaimMgtListener;
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderClaimMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
+import org.wso2.carbon.idp.mgt.secretprocessor.PlainTextPersistenceProcessor;
+import org.wso2.carbon.idp.mgt.secretprocessor.SecretManagerPersistenceProcessor;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -73,6 +76,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IDP_SECRET_PERSISTENCE_PROCESSOR_ENABLE;
 
 @Component(
         name = "idp.mgt.dscomponent",
@@ -231,6 +236,15 @@ public class IdPManagementServiceComponent {
             }
             setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
 
+            if (!isEnableIdPSecretPersistenceProcessor()) {
+                IdpMgtServiceComponentHolder.getInstance().setPersistenceProcessor(new PlainTextPersistenceProcessor());
+            } else {
+                if (IdpMgtServiceComponentHolder.getInstance().getPersistenceProcessor() == null) {
+                    IdpMgtServiceComponentHolder.getInstance().setPersistenceProcessor
+                            (new SecretManagerPersistenceProcessor());
+                }
+            }
+
             CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
             if (dao.getIdPByName(null,
                     IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
@@ -262,6 +276,17 @@ public class IdPManagementServiceComponent {
             log.error("Error while activating Identity Provider Management bundle", e);
 
         }
+    }
+
+    private boolean isEnableIdPSecretPersistenceProcessor() {
+
+        String identityProviderSecretPersistenceProcessorConfig = IdentityUtil.getProperty(
+                IDP_SECRET_PERSISTENCE_PROCESSOR_ENABLE);
+
+        if (StringUtils.isNotBlank(identityProviderSecretPersistenceProcessorConfig)) {
+            return Boolean.parseBoolean(identityProviderSecretPersistenceProcessorConfig);
+        }
+        return false;
     }
 
     /**

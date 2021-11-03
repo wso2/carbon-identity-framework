@@ -33,10 +33,10 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS;
 
 /**
- * An implementation of SecretPersistenceProcessor which uses the SecretManager to store the identity provider
+ * An implementation of PersistenceProcessor which uses the SecretManager to store the identity provider
  * secrets in an encrypted format in the IDN_SECRET table.
  */
-public class SecretManagerPersistenceProcessor implements SecretPersistenceProcessor {
+public class SecretManagerPersistenceProcessor implements PersistenceProcessor {
 
     private static final Log log = LogFactory.getLog(SecretManagerPersistenceProcessor.class);
 

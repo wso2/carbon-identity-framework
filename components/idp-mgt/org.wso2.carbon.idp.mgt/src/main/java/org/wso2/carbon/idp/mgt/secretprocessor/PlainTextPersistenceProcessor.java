@@ -21,7 +21,7 @@ package org.wso2.carbon.idp.mgt.secretprocessor;
 /**
  * PlainTextPersistenceProcessor stores identity provider related secrets in plain text in the database.
  */
-public class PlainTextPersistenceProcessor implements SecretPersistenceProcessor {
+public class PlainTextPersistenceProcessor implements PersistenceProcessor {
 
     @Override
     public String addSecret(int idpId, String name, String propertyName, String secretValue, String secretType) {

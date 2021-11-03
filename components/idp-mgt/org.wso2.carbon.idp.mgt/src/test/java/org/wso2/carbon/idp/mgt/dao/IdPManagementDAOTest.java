@@ -30,7 +30,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -49,7 +48,10 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.secretprocessor.PersistenceProcessor;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 
 import java.nio.file.Paths;
@@ -77,7 +79,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
  * Unit tests for IdPManagementDAO.
  */
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class,
-        ApplicationAuthenticatorService.class})
+        IdentityProviderManager.class, IdpMgtServiceComponentHolder.class})
 public class IdPManagementDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "test";
@@ -87,7 +89,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     @Mock
-    private ApplicationAuthenticatorService mockedApplicationAuthenticatorService;
+    private IdentityProviderManager mockedIdentityProviderManager;
+
+    @Mock
+    private IdpMgtServiceComponentHolder mockedIdPMgtServiceComponentHolder;
+
+    @Mock
+    private PersistenceProcessor mockedPersistenceProcessor;
 
     private IdPManagementDAO idPManagementDAO;
 
@@ -132,6 +140,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     @BeforeMethod
     public void setup() throws Exception {
 
+        mockStatic(IdpMgtServiceComponentHolder.class);
+        when(IdpMgtServiceComponentHolder.getInstance()).thenReturn(mockedIdPMgtServiceComponentHolder);
+        when(mockedIdPMgtServiceComponentHolder.getPersistenceProcessor()).thenReturn(mockedPersistenceProcessor);
         idPManagementDAO = new IdPManagementDAO();
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
         mockStatic(IdentityTenantUtil.class);
@@ -1586,12 +1597,12 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
 
-        mockStatic(ApplicationAuthenticatorService.class);
-        Mockito.when(ApplicationAuthenticatorService.getInstance()).thenReturn(mockedApplicationAuthenticatorService);
-        List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
-        federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
-        Mockito.when(mockedApplicationAuthenticatorService.getFederatedAuthenticators()).
-                thenReturn(federatedAuthenticatorConfigs);
+        mockStatic(IdentityProviderManager.class);
+        Mockito.when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = new FederatedAuthenticatorConfig[]
+                {federatedAuthenticatorConfig};
+        Mockito.when(mockedIdentityProviderManager.getAllFederatedAuthenticators()).thenReturn
+                (federatedAuthenticatorConfigs);
     }
 
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {

@@ -21,11 +21,11 @@ package org.wso2.carbon.idp.mgt.secretprocessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 
 /**
- * SecretPersistenceProcessor implementations are used to process identity provider related secrets just before
+ * PersistenceProcessor implementations are used to process identity provider related secrets just before
  * storing them in the database.
  * E.g. to encrypt secrets before storing them in the database.
  */
-public interface SecretPersistenceProcessor {
+public interface PersistenceProcessor {
 
     String addSecret(int idpId, String name, String propertyName, String secretValue, String secretType) throws
             IdentityProviderManagementServerException;
