@@ -19,15 +19,11 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -41,8 +37,9 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,29 +53,14 @@ import static org.mockito.Mockito.mock;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
-@WithRealmService
+@WithRealmService(injectToSingletons =
+        {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
 
-    @BeforeTest
-    public void init() {
-
-        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
-        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
-    }
-
-    @AfterTest
-    public void teardown() {
-
-        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
-    }
-
     public void testExceptionRetry() throws Exception {
-
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);

@@ -22,15 +22,12 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
@@ -43,6 +40,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -67,20 +66,24 @@ import static org.testng.Assert.assertTrue;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
-@WithRealmService
+@WithRealmService(injectToSingletons =
+        {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
-    @BeforeTest
-    public void init() {
+    public static String customFunction1(JsAuthenticationContext context) {
 
-        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
-        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+        return "testResult1";
     }
 
-    @AfterTest
-    public void teardown() {
+    public static Boolean customBoolean(JsAuthenticationContext context) {
 
-        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+        return true;
+    }
+
+    public static Boolean customBoolean2(JsAuthenticationContext context, String value) {
+
+        return true;
     }
 
     @Test
@@ -93,7 +96,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                         ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
 
-        AuthenticationContext context = processSequenceWithAcr(new String[] { "acr1" });
+        AuthenticationContext context = processSequenceWithAcr(new String[]{"acr1"});
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertEquals(3, authHistories.size());
@@ -125,22 +128,22 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         String script =
                 "var onLoginRequest = function(context) {\n" +
-                "    var myBool = getTrueFunction2(context, 'a');\n" +
-                "    Log.info(\"My Bool Value \"+myBool);\n" +
-                "    if(myBool) {\n" +
-                "        Log.info(\"My Bool Is Selected \"+myBool);\n" +
-                "        executeStep(1, {\n" +
-                "            onSuccess : function(context) {\n" +
-                "                executeStep(3);\n" +
-                "            }\n" +
-                "        });\n" +
-                "        executeStep(2);\n" +
-                "    }  else {\n" +
-                "        Log.info(\"My Bool Not Selected \"+myBool);\n" +
-                "        executeStep(1);\n" +
-                "        executeStep(3);\n" +
-                "    }\n" +
-                "};";
+                        "    var myBool = getTrueFunction2(context, 'a');\n" +
+                        "    Log.info(\"My Bool Value \"+myBool);\n" +
+                        "    if(myBool) {\n" +
+                        "        Log.info(\"My Bool Is Selected \"+myBool);\n" +
+                        "        executeStep(1, {\n" +
+                        "            onSuccess : function(context) {\n" +
+                        "                executeStep(3);\n" +
+                        "            }\n" +
+                        "        });\n" +
+                        "        executeStep(2);\n" +
+                        "    }  else {\n" +
+                        "        Log.info(\"My Bool Not Selected \"+myBool);\n" +
+                        "        executeStep(1);\n" +
+                        "        executeStep(3);\n" +
+                        "    }\n" +
+                        "};";
         sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().setContent(script);
 
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);
@@ -259,6 +262,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     private AuthenticationContext processSequenceWithAcr(String[] acrArray)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException,
             XMLStreamException {
+
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
         return processAndGetAuthenticationContext(acrArray, sp1);
@@ -266,6 +270,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     private AuthenticationContext processAndGetAuthenticationContext(String[] acrArray, ServiceProvider sp1)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
+
         AuthenticationContext context = getAuthenticationContext(sp1);
         if (acrArray != null) {
             for (String acr : acrArray) {
@@ -288,29 +293,36 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         return context;
     }
 
-    public static String customFunction1(JsAuthenticationContext context) {
-        return "testResult1";
-    }
+    private void addMockAttributes(HttpServletRequest request) {
 
-    public static Boolean customBoolean(JsAuthenticationContext context) {
-        return true;
-    }
+        Map<String, Object> attributes = new HashMap<>();
+        Mockito.doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
 
-    public static Boolean customBoolean2(JsAuthenticationContext context, String value) {
-        return true;
+                String key = (String) invocation.getArguments()[0];
+                Object value = invocation.getArguments()[1];
+                attributes.put(key, value);
+                return null;
+            }
+        }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
+
+        // Mock getAttribute
+        Mockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+
+                String key = (String) invocation.getArguments()[0];
+                Object value = attributes.get(key);
+                return value;
+            }
+        }).when(request).getAttribute(Mockito.anyString());
     }
 
     @FunctionalInterface
     public interface CustomFunctionInterface2 extends Serializable {
 
         String customFunction2(JsAuthenticationContext context, String param1, String param2);
-    }
-
-    public class CustomFunctionImpl2 implements CustomFunctionInterface2 {
-
-        public String customFunction2(JsAuthenticationContext context, String param1, String param2) {
-            return "testResult2";
-        }
     }
 
     public static class MockFailingAuthenticator extends MockAuthenticator {
@@ -332,6 +344,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     public static class MockFallbackAuthenticator extends MockAuthenticator {
 
         public MockFallbackAuthenticator(String name) {
+
             super(name);
         }
 
@@ -344,26 +357,11 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         }
     }
 
-    private void addMockAttributes(HttpServletRequest request) {
-        Map<String, Object> attributes = new HashMap<>();
-        Mockito.doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                String key = (String) invocation.getArguments()[0];
-                Object value = invocation.getArguments()[1];
-                attributes.put(key, value);
-                return null;
-            }
-        }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
+    public class CustomFunctionImpl2 implements CustomFunctionInterface2 {
 
-        // Mock getAttribute
-        Mockito.doAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                String key = (String) invocation.getArguments()[0];
-                Object value = attributes.get(key);
-                return value;
-            }
-        }).when(request).getAttribute(Mockito.anyString());
+        public String customFunction2(JsAuthenticationContext context, String param1, String param2) {
+
+            return "testResult2";
+        }
     }
 }
