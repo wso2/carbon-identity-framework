@@ -204,8 +204,6 @@
   "oauth.dpop.enable": false,
   "oauth.dpop.header_validity_period": "60s",
   "oauth.dpop.token_validator_class": "org.wso2.carbon.identity.dpop.validators.DPoPTokenValidator",
-  "oauth.dpop.dpop_listener.priority": "13",
-  "oauth.dpop.dpop_listener.enable": false,
 
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",

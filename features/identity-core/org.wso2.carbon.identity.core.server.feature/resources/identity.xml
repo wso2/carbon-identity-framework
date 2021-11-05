@@ -152,10 +152,10 @@
         <!--
              Configs related to DPoP implementation.
         -->
-        <DPoP>
+        <DPoPConfig>
             <Enable>true</Enable>
             <HeaderValidity>60</HeaderValidity>
-        </DPoP>
+        </DPoPConfig>
 
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
@@ -1051,12 +1051,6 @@
                        name="org.wso2.carbon.identity.data.publisher.oauth.listener.OAuthTokenIssuanceLogPublisher"
                        orderId="12" enable="false">
             <Property name="Log.Token">false</Property>
-        </EventListener>
-        <EventListener id="dpop_listener"
-                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.dpop.listener.OauthDPoPInterceptorHandlerProxy"
-                       orderId="13"
-                       enable="true">
         </EventListener>
         <EventListener id="mutual_tls_authenticator"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
