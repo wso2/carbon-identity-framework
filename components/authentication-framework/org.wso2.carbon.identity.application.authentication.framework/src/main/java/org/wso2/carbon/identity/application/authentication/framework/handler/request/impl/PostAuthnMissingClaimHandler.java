@@ -32,11 +32,16 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
@@ -52,16 +57,15 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.*;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
 /**
  * Post authentication handler for missing claims.
@@ -151,6 +155,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
 
+
         if (StringUtils.isNotBlank(missingClaims[0])) {
 
             if (log.isDebugEnabled()) {
@@ -162,6 +167,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 ClaimManager claimManager = getUserRealm(context.getTenantDomain()).getClaimManager();
                 Map<String, String> missingClaimMap = FrameworkUtils.getMissingClaimsMap(context);
 
+
                 for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
@@ -171,10 +177,36 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     }
                 }
 
+                List<LocalClaim> localClaims = getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
+                Map<String, String> displayName = new HashMap<>();
+
+                for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
+                    for (LocalClaim localClaim : localClaims){
+                        if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
+                            displayName.put(entry.getValue(), localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                            break;
+                        }
+                    }
+                }
+
+                StringBuilder displayNameString = new StringBuilder();
+                StringBuilder displayNameValuesString = new StringBuilder();
+
+                for (Map.Entry<String, String> claimDisplay : displayName.entrySet()) {
+                    displayNameString.append(claimDisplay.getKey());
+                    displayNameValuesString.append(claimDisplay.getValue());
+                    displayNameString.append(",");
+                    displayNameValuesString.append(",");
+                }
+
+                String[] displayNames = {displayNameString.toString(), displayNameValuesString.toString()};
+
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims[0]);
+                uriBuilder.addParameter(FrameworkConstants.DISPLAY_NAMES,
+                        displayNames[1]);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
@@ -204,6 +236,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (org.wso2.carbon.user.api.UserStoreException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim from claim URI.", e);
+            } catch (ClaimMetadataException e) {
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while retrieving claim metadata.", e);
             }
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
@@ -369,5 +404,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser user = authenticationContext.getSequenceConfig().getAuthenticatedUser();
         return user;
+    }
+
+    private ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return FrameworkServiceDataHolder.getInstance().getClaimMetadataManagementService();
     }
 }

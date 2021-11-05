@@ -101,6 +101,7 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD_PROVISION_REDIRECTION_TRIGGERED = "passwordProvisioningRedirectionTriggered";
     public static final String CHANGING_USERNAME_ALLOWED = "changingUserNameAllowed";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
