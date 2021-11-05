@@ -22,7 +22,6 @@
     "oauth.oidc.token_validation.id_token_validity": "s",
     "oauth.oidc.token_validation.logout_token_validity": "s",
     "oauth.timestamp_skew": "s",
-    "oauth.dpop.header_validity_period": "s",
 
     "saml.slo.retry_interval": "ms",
     "saml.response.validity": "m",
