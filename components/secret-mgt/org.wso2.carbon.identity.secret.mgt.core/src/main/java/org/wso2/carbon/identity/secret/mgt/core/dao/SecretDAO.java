@@ -39,9 +39,10 @@ public interface SecretDAO {
      * Add {@link Secret}.
      *
      * @param secret {@link Secret} to be added.
+     * @return {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void addSecret(Secret secret) throws SecretManagementException;
+    Secret addSecret(Secret secret) throws SecretManagementException;
 
     /**
      * Returns {@link Secret} by name.
@@ -82,13 +83,14 @@ public interface SecretDAO {
     void deleteSecret(String secretId, int tenantId) throws SecretManagementException;
 
     /**
-     * Replace {@link Secret} or create not exists.
+     * Replace {@link Secret}.
      *
      * @param secret {@link Secret} to be added.
      * @param tenantId Id of the tenant.
+     * @return {@link Secret}.
      * @throws SecretManagementException Secret Management Exception.
      */
-    void replaceSecret(Secret secret, int tenantId) throws SecretManagementException;
+    Secret updateSecret(Secret secret, int tenantId) throws SecretManagementException;
 
     /**
      * Update secret value.
@@ -98,15 +100,6 @@ public interface SecretDAO {
      * @throws SecretManagementException Secret Management Exception.
      */
     Secret updateSecretValue(Secret secret, String value) throws SecretManagementException;
-
-    /**
-     * Update secret description.
-     *
-     * @param secret {@link Secret}.
-     * @param description secret description.
-     * @throws SecretManagementException Secret Management Exception.
-     */
-    Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException;
 
     /**
      * Validates whether a secrets exists with the given secret id in the tenant domain.

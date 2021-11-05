@@ -46,11 +46,9 @@ import static java.time.ZoneOffset.UTC;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRETS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_NAME;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_CREATED_TIME_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_NAME_BY_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_DESCRIPTION;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_VALUE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_DESCRIPTION;
@@ -63,9 +61,9 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_DELETE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_GET_SECRET;
-import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_REPLACE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRETS_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
@@ -203,7 +201,7 @@ public class SecretDAOImpl implements SecretDAO {
     }
 
     @Override
-    public void addSecret(Secret secret) throws SecretManagementException {
+    public Secret addSecret(Secret secret) throws SecretManagementException {
 
         String secretType = secret.getSecretType();
 
@@ -233,7 +231,7 @@ public class SecretDAOImpl implements SecretDAO {
             secret.setLastModified(currentTime.toInstant().toString());
             secret.setCreatedTime(currentTime.toInstant().toString());
             secret.setSecretType(secretType);
-
+            return secret;
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_ADD_SECRET, secret.getSecretName(), e);
         }
@@ -276,25 +274,6 @@ public class SecretDAOImpl implements SecretDAO {
         return secret;
     }
 
-    @Override
-    public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
-
-        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
-        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
-        try {
-            jdbcTemplate.executeUpdate(UPDATE_SECRET_DESCRIPTION, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, description);
-                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
-            });
-            secret.setLastModified(currentTime.toInstant().toString());
-            secret.setDescription(description);
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_UPDATE_SECRET, "description", e);
-        }
-        return secret;
-    }
-
     private Secret buildSecretFromRawData(List<SecretRawDataCollector> secretRawDataCollectors)
             throws CryptoException {
 
@@ -317,60 +296,44 @@ public class SecretDAOImpl implements SecretDAO {
         return secret;
     }
 
-    private Timestamp getCreatedTimeInResponse(Secret secret, String secretTypeName) throws TransactionException {
-
-        NamedJdbcTemplate jdbcTemplate = getNewTemplate();
-        return jdbcTemplate.withTransaction(template ->
-                template.fetchSingleRecord(GET_SECRET_CREATED_TIME_BY_NAME,
-                        (resultSet, rowNumber) -> resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, calendar),
-                        preparedStatement -> {
-                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, secret.getSecretName());
-                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeName);
-                            preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
-                                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-                        }
-                )
-        );
-    }
-
     @Override
-    public void replaceSecret(Secret secret, int tenantId) throws SecretManagementException {
+    public Secret updateSecret(Secret secret, int tenantId) throws SecretManagementException {
 
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
-
         String secretType = secret.getSecretType();
-
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
-            Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
+            jdbcTemplate.withTransaction(template -> {
 
-                updateSecretMetadataById(template, secret, secretType, currentTime);
-                return getCreatedTimeInResponse(secret, secretType);
+                updateSecretMetadata(template, secret, secretType, currentTime);
+                return null;
             });
             secret.setLastModified(currentTime.toInstant().toString());
-            if (createdTime != null) {
-                secret.setCreatedTime(createdTime.toInstant().toString());
-            }
+            return secret;
         } catch (TransactionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SecretManagementException) {
                 throw (SecretManagementException) cause;
             }
-            throw handleServerException(ERROR_CODE_REPLACE_SECRET, secret.getSecretId(), e);
+            throw handleServerException(ERROR_CODE_UPDATE_SECRET, secret.getSecretId(), e);
         }
     }
 
-    private void updateSecretMetadataById(NamedTemplate<Timestamp> template, Secret secret, String secretType,
+    private void updateSecretMetadata(NamedTemplate<Object> template, Secret secret, String secretType,
                                           Timestamp currentTime) throws SecretManagementException, DataAccessException {
 
         try {
-            template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
+            int updatedId = template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secret.getSecretValue());
                 preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType);
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
             });
+
+            if (updatedId == 0) {
+                throw handleClientException(ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS, secret.getSecretId(), null);
+            }
         } catch (DataAccessException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
                 throw handleClientException(ERROR_CODE_SECRET_ALREADY_EXISTS, secret.getSecretId(), e);

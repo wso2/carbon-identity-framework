@@ -115,6 +115,7 @@ public class SecretUtils {
      * @return valid or not
      */
     public static boolean isSecretNameRegexValid(String secretName) {
+
         Pattern regexPattern = Pattern.compile(SECRET_NAME_REGEX);
         return regexPattern.matcher(secretName).matches();
     }
@@ -125,6 +126,7 @@ public class SecretUtils {
      * @return valid or not
      */
     public static boolean isSecretValueRegexValid(String secretValue) {
+
         Pattern regexPattern = Pattern.compile(SECRET_VALUE_REGEX);
         return regexPattern.matcher(secretValue).matches();
     }
@@ -135,6 +137,7 @@ public class SecretUtils {
      * @return valid or not
      */
     public static boolean isSecretDescriptionRegexValid(String description) {
+
         Pattern regexPattern = Pattern.compile(SECRET_DESCRIPTION_REGEX);
         return regexPattern.matcher(description).matches();
     }
@@ -143,6 +146,7 @@ public class SecretUtils {
      * Get the secret name regex pattern.
      */
     public static String getSecretNameRegex() {
+
         return SECRET_NAME_REGEX;
     }
 
@@ -150,6 +154,7 @@ public class SecretUtils {
      * Get the secret value regex pattern.
      */
     public static String getSecretValueRegex() {
+
         return SECRET_VALUE_REGEX;
     }
 
@@ -157,6 +162,7 @@ public class SecretUtils {
      * Get the secret description regex pattern.
      */
     public static String getSecretDescriptionRegex() {
+
         return SECRET_DESCRIPTION_REGEX;
     }
 }

@@ -76,13 +76,13 @@ public interface SecretManager {
     void deleteSecret(String secretType, String secretId) throws SecretManagementException;
 
     /**
-     * This function is used to replace a given secret.
+     * This function is used to update a given secret.
      *
      * @param secretType Name of the secret type.
-     * @param secret         Secret object.
+     * @param secret Secret object.
      * @throws SecretManagementException Secret management exception.
      */
-    Secret replaceSecret(String secretType, Secret secret) throws SecretManagementException;
+    Secret updateSecret(String secretType, Secret secret) throws SecretManagementException;
 
     /**
      * Update value of a secret by id.
@@ -92,19 +92,7 @@ public interface SecretManager {
      * @param value Secret value to be updated.
      * @throws SecretManagementException Configuration Management Exception.
      */
-    Secret updateSecretValue(String secretType, String secretId, String value)
-            throws SecretManagementException;
-
-    /**
-     * Update description of a secret by id.
-     *
-     * @param secretType Name of the secret type.
-     * @param secretId  Id of the {@link Secret}.
-     * @param description secret description to be updated.
-     * @throws SecretManagementException Configuration Management Exception.
-     */
-    Secret updateSecretDescription(String secretType, String secretId, String description)
-            throws SecretManagementException;
+    Secret updateSecretValue(String secretType, String secretId, String value) throws SecretManagementException;
 
     /**
      * This function is used to add a new secret type.

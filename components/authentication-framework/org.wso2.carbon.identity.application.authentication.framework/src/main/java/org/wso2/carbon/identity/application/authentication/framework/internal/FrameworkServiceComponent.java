@@ -139,7 +139,7 @@ public class FrameworkServiceComponent {
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
-    private static final String SECRET_TYPE = "adaptive-auth";
+    private static final String SECRET_TYPE_ADAPTIVE_AUTH = "adaptive-auth";
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
@@ -359,9 +359,9 @@ public class FrameworkServiceComponent {
 
         // Register adaptive-auth secret type.
         try {
-            FrameworkServiceDataHolder.getInstance().getSecretManager().addSecretType(SECRET_TYPE);
+            FrameworkServiceDataHolder.getInstance().getSecretManager().addSecretType(SECRET_TYPE_ADAPTIVE_AUTH);
         } catch (SecretManagementException e) {
-            log.error("Server encountered an error while adding secret type: " + SECRET_TYPE, e);
+            log.error("Server encountered an error while adding secret type: " + SECRET_TYPE_ADAPTIVE_AUTH, e);
         }
         
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new

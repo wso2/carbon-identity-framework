@@ -49,7 +49,7 @@ public class SecretConstants {
                 "validation failed. Invalid secret delete request."),
         ERROR_CODE_SECRET_DOES_NOT_EXISTS("SECRETM_00009", "Secret with the name: %s does not exists."),
         ERROR_CODE_SECRETS_DOES_NOT_EXISTS("SECRETM_00010", "Secrets does not exists."),
-        ERROR_CODE_SECRET_REPLACE_REQUEST_INVALID("SECRETM_00011", "Secret replace request " +
+        ERROR_CODE_SECRET_UPDATE_REQUEST_INVALID("SECRETM_00011", "Secret update request " +
                 "validation failed."),
         ERROR_CODE_REPLACE_SECRET("SECRETM_00012", "Error while replacing the secret : %s."),
         ERROR_CODE_SECRET_ID_DOES_NOT_EXISTS("SECRETM_00013", "Secret with the id: %s does not exists."),

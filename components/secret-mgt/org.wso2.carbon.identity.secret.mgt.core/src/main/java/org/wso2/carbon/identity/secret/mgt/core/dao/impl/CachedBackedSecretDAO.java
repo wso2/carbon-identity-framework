@@ -112,19 +112,21 @@ public class CachedBackedSecretDAO implements SecretDAO {
     }
 
     @Override
-    public void addSecret(Secret secret) throws SecretManagementException {
+    public Secret addSecret(Secret secret) throws SecretManagementException {
 
         secretDAO.addSecret(secret);
         addSecretToCache(secret);
+        return secret;
     }
 
     @Override
-    public void replaceSecret(Secret secret, int tenantId) throws SecretManagementException {
+    public Secret updateSecret(Secret secret, int tenantId) throws SecretManagementException {
 
         Secret secretRetrieved = getSecretById(secret.getSecretId(), tenantId);
         secret.setSecretName(secretRetrieved.getSecretName());
         deleteSecretFromCache(secret);
-        secretDAO.replaceSecret(secret, tenantId);
+        secretDAO.updateSecret(secret, tenantId);
+        return secret;
     }
 
     @Override
@@ -132,13 +134,6 @@ public class CachedBackedSecretDAO implements SecretDAO {
 
         deleteSecretFromCache(secret);
         return secretDAO.updateSecretValue(secret, value);
-    }
-
-    @Override
-    public Secret updateSecretDescription(Secret secret, String description) throws SecretManagementException {
-
-        deleteSecretFromCache(secret);
-        return secretDAO.updateSecretDescription(secret, description);
     }
 
     @Override

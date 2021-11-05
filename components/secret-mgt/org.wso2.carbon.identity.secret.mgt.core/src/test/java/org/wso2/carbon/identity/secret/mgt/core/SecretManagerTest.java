@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementServerException;
 import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
@@ -80,11 +81,10 @@ public class SecretManagerTest extends PowerMockTestCase {
     private static final String SAMPLE_INVALID_SECRET_VALUE = "";
     private static final String SAMPLE_SECRET_ID = "ab123456";
     private static final String ENCRYPTED_VALUE1 = "dummy_encrypted1";
-
-    private static final String SAMPLE_SECRET_TYPE_NAME1 = "adaptive-auth";
-    private static final String SAMPLE_INVALID_SECRET_TYPE = "sample-secret-type";
     private static final String SAMPLE_SECRET_DESCRIPTION1 = "sample-description1";
     private static final String SAMPLE_SECRET_DESCRIPTION2 = "sample-description2";
+
+    private static final String SAMPLE_SECRET_TYPE_NAME1 = "adaptive-auth";
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -127,15 +127,17 @@ public class SecretManagerTest extends PowerMockTestCase {
         assertEquals(secret.getSecretName(), secretResponse.getSecretName());
     }
 
-    @Test(priority = 2, expectedExceptions = SecretManagementClientException.class)
+    @Test(priority = 2, expectedExceptions = SecretManagementServerException.class)
     public void testAddDuplicateSecret() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secret.getSecretValue());
         secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        Secret secretDuplicate = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secretDuplicate.getSecretValue());
+        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secretDuplicate);
 
-        fail("Expected: " + SecretManagementClientException.class.getName());
+        fail("Expected: " + SecretManagementServerException.class.getName());
     }
 
     @Test(priority = 3, expectedExceptions = SecretManagementServerException.class)
@@ -148,27 +150,26 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementServerException.class.getName());
     }
 
-    @Test(priority = 4, expectedExceptions = SecretManagementClientException.class)
-    public void testReplaceNonExistingSecretById() throws Exception {
+    @Test(priority = 4, expectedExceptions = SecretManagementServerException.class)
+    public void testUpdateNonExistingSecretById() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         secret.setSecretId(SAMPLE_SECRET_ID);
         encryptSecret(secret.getSecretValue());
-        secretManager.replaceSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        secretManager.updateSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
 
-        fail("Expected: " + SecretManagementClientException.class.getName());
+        fail("Expected: " + SecretManagementServerException.class.getName());
     }
 
     @Test(priority = 5)
-    public void testReplaceExistingSecretById() throws Exception {
+    public void testUpdateExistingSecretById() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secret.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        Secret secretUpdated = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE2);
-        secretUpdated.setSecretId(secretCreated.getSecretId());
-        encryptSecret(secretUpdated.getSecretValue());
-        Secret secretReplaced = secretManager.replaceSecret(SAMPLE_SECRET_TYPE_NAME1, secretUpdated);
+        secretCreated.setSecretValue(SAMPLE_SECRET_VALUE2);
+        encryptSecret(secretCreated.getSecretValue());
+        Secret secretReplaced = secretManager.updateSecret(SAMPLE_SECRET_TYPE_NAME1, secretCreated);
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretReplaced.getCreatedTime(), secretReplaced.getLastModified());
@@ -176,7 +177,23 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal to the replaced id");
     }
 
-    @Test(priority = 6, expectedExceptions = SecretManagementClientException.class)
+    @Test(priority = 6)
+    public void testUpdateExistingSecretValueById() throws Exception {
+
+        Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secret.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        encryptSecret(SAMPLE_SECRET_VALUE2);
+        Secret secretUpdated = secretManager
+                .updateSecretValue(SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId(), SAMPLE_SECRET_VALUE2);
+
+        assertNotEquals("Created time should be different from the last updated time",
+                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
+        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
+                "Existing id should be equal to the replaced id");
+    }
+
+    @Test(priority = 7, expectedExceptions = SecretManagementClientException.class)
     public void testGetNonExistingSecret() throws Exception {
 
         secretManager.getSecretByName(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_NAME1);
@@ -184,7 +201,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 7)
+    @Test(priority = 8)
     public void testGetExistingSecret() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -196,7 +213,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal " + "to the retrieved id");
     }
 
-    @Test(priority = 8)
+    @Test(priority = 9)
     public void testGetExistingSecretById() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -204,11 +221,11 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
         Secret secretRetrieved = secretManager.getSecret(SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId());
 
-        assertEquals(secretCreated.getSecretName(), secretRetrieved.getSecretName(),
+        assertEquals(secretCreated.getSecretId(), secretRetrieved.getSecretId(),
                 "Existing id should be equal to the retrieved id");
     }
 
-    @Test(priority = 9, expectedExceptions = SecretManagementClientException.class)
+    @Test(priority = 10, expectedExceptions = SecretManagementClientException.class)
     public void testGetNonExistingSecretById() throws Exception {
 
         secretManager.getSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_ID);
@@ -216,15 +233,17 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 10, expectedExceptions = SecretManagementClientException.class)
-    public void testDeleteNonExistingSecretById() throws Exception {
+    @Test(priority = 11)
+    public void testDeleteNonExistingSecretById() {
 
-        secretManager.deleteSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_ID);
-
-        fail("Expected: " + SecretManagementClientException.class.getName());
+        try {
+            secretManager.deleteSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_ID);
+        } catch (SecretManagementException e) {
+            fail("Expected not to through any exception.");
+        }
     }
 
-    @Test(priority = 11, expectedExceptions = SecretManagementClientException.class)
+    @Test(priority = 12, expectedExceptions = SecretManagementClientException.class)
     public void testDeleteExistingSecretById() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -236,7 +255,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 12)
+    @Test(priority = 13)
     public void testListSecrets() throws Exception {
 
         Secret secret1 = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -256,7 +275,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Created secret name should be equal to the retrieved secret name");
     }
 
-    @Test(priority = 13, expectedExceptions = SecretManagementClientException.class)
+    @Test(priority = 14, expectedExceptions = SecretManagementClientException.class)
     public void testGetNonExistingSecretResolved() throws Exception {
 
         secretResolveManager.getResolvedSecret(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_NAME1);
@@ -264,7 +283,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 14)
+    @Test(priority = 15)
     public void testGetExistingSecretResolved() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -280,7 +299,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal to the retrieved id");
     }
 
-    @Test(priority = 15, expectedExceptions = SecretManagementServerException.class)
+    @Test(priority = 16, expectedExceptions = SecretManagementServerException.class)
     public void testGetResolvedSecretWithDecryptError() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
@@ -292,30 +311,68 @@ public class SecretManagerTest extends PowerMockTestCase {
         fail("Expected: " + SecretManagementServerException.class.getName());
     }
 
-    @Test(priority = 16)
-    public void testUpdateExistingSecretValueById() throws Exception {
+    @Test(priority = 17, expectedExceptions = SecretManagementClientException.class)
+    public void testAddSecretWithInvalidSecretNameRegexContainsSpaces() throws Exception {
+
+        Secret secret = getSampleSecret(SAMPLE_INVALID_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secret.getSecretValue());
+        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        fail("Expected: " + SecretManagementClientException.class.getName());
+    }
+
+    @Test(priority = 18, expectedExceptions = SecretManagementClientException.class)
+    public void testAddSecretWithInvalidSecretNameRegexStartsWithNumeric() throws Exception {
+
+        Secret secret = getSampleSecret(SAMPLE_INVALID_SECRET_NAME2, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secret.getSecretValue());
+        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        fail("Expected: " + SecretManagementClientException.class.getName());
+    }
+
+    @Test(priority = 19, expectedExceptions = SecretManagementClientException.class)
+    public void testAddSecretWithInvalidSecretValueRegex() throws Exception {
+
+        Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_INVALID_SECRET_VALUE);
+        encryptSecret(secret.getSecretValue());
+        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        fail("Expected: " + SecretManagementClientException.class.getName());
+    }
+
+    @Test(priority = 20, expectedExceptions = SecretManagementClientException.class)
+    public void testUpdateSecretByIdWithInvalidSecretValueRegex() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secret.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        encryptSecret(SAMPLE_SECRET_VALUE2);
-        Secret secretUpdated = secretManager
-                .updateSecretValue(SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId(), SAMPLE_SECRET_VALUE2);
+        secret.setSecretValue(SAMPLE_INVALID_SECRET_VALUE);
+        encryptSecret(secret.getSecretValue());
+        secret.setSecretId(secretCreated.getSecretId());
+        secretManager.updateSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
 
-        assertNotEquals("Created time should be different from the last updated time",
-                secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
-        assertEquals(secretCreated.getSecretId(), secretUpdated.getSecretId(),
-                "Existing id should be equal to the replaced id");
+        fail("Expected: " + SecretManagementClientException.class.getName());
     }
 
-    @Test(priority = 17)
+    @Test(priority = 21, expectedExceptions = SecretManagementClientException.class)
+    public void testUpdateSecretValueByIdWithInvalidSecretValueRegex() throws Exception {
+
+        Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
+        encryptSecret(secret.getSecretValue());
+        Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
+        secretManager.updateSecretValue(SAMPLE_SECRET_TYPE_NAME1,
+                secretCreated.getSecretId(), SAMPLE_INVALID_SECRET_VALUE);
+
+        fail("Expected: " + SecretManagementClientException.class.getName());
+    }
+
+    @Test(priority = 22)
     public void testUpdateExistingSecretDescriptionById() throws Exception {
 
         Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1, SAMPLE_SECRET_DESCRIPTION1);
         encryptSecret(secret.getSecretValue());
         Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        Secret secretUpdated = secretManager.updateSecretDescription(SAMPLE_SECRET_TYPE_NAME1,
-                secretCreated.getSecretId(), SAMPLE_SECRET_DESCRIPTION2);
+        secret.setDescription(SAMPLE_SECRET_DESCRIPTION2);
+        secret.setSecretId(secretCreated.getSecretId());
+        Secret secretUpdated = secretManager.updateSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
 
         assertNotEquals("Created time should be different from the last updated time",
                 secretUpdated.getCreatedTime(), secretUpdated.getLastModified());
@@ -325,47 +382,7 @@ public class SecretManagerTest extends PowerMockTestCase {
                 "Existing id should be equal to the replaced id");
     }
 
-    @Test(priority = 18, expectedExceptions = SecretManagementClientException.class)
-    public void testAddSecretWithInvalidSecretNameRegexContainsSpaces() throws Exception {
-
-        Secret secret = getSampleSecret(SAMPLE_INVALID_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
-        encryptSecret(secret.getSecretValue());
-        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        fail("Expected: " + SecretManagementClientException.class.getName());
-    }
-
-    @Test(priority = 19, expectedExceptions = SecretManagementClientException.class)
-    public void testAddSecretWithInvalidSecretNameRegexStartsWithNumeric() throws Exception {
-
-        Secret secret = getSampleSecret(SAMPLE_INVALID_SECRET_NAME2, SAMPLE_SECRET_VALUE1);
-        encryptSecret(secret.getSecretValue());
-        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        fail("Expected: " + SecretManagementClientException.class.getName());
-    }
-
-    @Test(priority = 20, expectedExceptions = SecretManagementClientException.class)
-    public void testAddSecretWithInvalidSecretValueRegex() throws Exception {
-
-        Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_INVALID_SECRET_VALUE);
-        encryptSecret(secret.getSecretValue());
-        secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        fail("Expected: " + SecretManagementClientException.class.getName());
-    }
-
-    @Test(priority = 21, expectedExceptions = SecretManagementClientException.class)
-    public void testUpdateSecretByIdWithInvalidSecretValueRegex() throws Exception {
-
-        Secret secret = getSampleSecret(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
-        encryptSecret(secret.getSecretValue());
-        Secret secretCreated = secretManager.addSecret(SAMPLE_SECRET_TYPE_NAME1, secret);
-        encryptSecret(SAMPLE_INVALID_SECRET_VALUE);
-        secretManager.updateSecretValue(
-                SAMPLE_SECRET_TYPE_NAME1, secretCreated.getSecretId(), SAMPLE_INVALID_SECRET_VALUE);
-
-        fail("Expected: " + SecretManagementClientException.class.getName());
-    }
-
-    private void prepareConfigs() {
+    private void prepareConfigs() throws SecretManagementException {
 
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
@@ -373,6 +390,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         mockIdentityTenantUtility();
         secretManager = new SecretManagerImpl();
         secretResolveManager = new SecretResolveManagerImpl();
+        secretManager.addSecretType(SAMPLE_SECRET_TYPE_NAME1);
     }
 
     private void mockCarbonContextForTenant() {
