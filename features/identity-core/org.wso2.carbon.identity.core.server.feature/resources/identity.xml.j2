@@ -179,10 +179,6 @@
     </RemoteFetch>
 
     <OAuth>
-        <DPoP>
-        	<Enable>{{oauth.dpop.enable}}</Enable>
-        	<HeaderValidity>{{oauth.dpop.header_validity_period}}</HeaderValidity>
-        </DPoP>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -516,9 +512,6 @@
         {% endif %}
         {% if oauth.token_validator.jwt.enable %}
             <TokenValidator type="jwt" class="{{oauth.token_validator.jwt.class}}"/>
-        {% endif %}
-        {% if oauth.dpop.enable %}
-            <TokenValidator type="dpop" class="{{oauth.dpop.token_validator_class}}"/>
         {% endif %}
         {% for token_validator in oauth.custom_token_validator %}
             <TokenValidator type="{{token_validator.type}}" class="{{token_validator.class}}" />
