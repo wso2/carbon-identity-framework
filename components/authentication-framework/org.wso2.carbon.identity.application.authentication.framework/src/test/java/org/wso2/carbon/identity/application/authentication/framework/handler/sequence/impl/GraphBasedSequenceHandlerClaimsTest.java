@@ -63,13 +63,6 @@ public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandl
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-//
-//        FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
-//        PowerMockito.when(mockUserStoreManager.getUserClaimValues(anyString(),
-//                eq(new String[]{"http://wso2.org/claims/lastname"}),
-//                anyString())).thenReturn(Collections.singletonMap("http://wso2.org/claims/lastname",
-//                "lastNameValue"));
-
         graphBasedSequenceHandler.handle(req, resp, context);
 
         Assert.assertEquals(context.getRuntimeClaim("http://wso2.org/custom/claim1"), "value1");
