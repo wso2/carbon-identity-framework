@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.KeyProviderService;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.identity.core.ServiceURLBuilderFactory;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
+import org.wso2.carbon.identity.core.migrate.MigrationClientStartupObserver;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -147,6 +149,8 @@ public class IdentityCoreServiceComponent {
                 } else {
                     log.info("Executing Migration client : " + migrationClient.getClass().getName());
                     migrationClient.execute();
+                    ctxt.getBundleContext().registerService(ServerStartupObserver.class.getName(),
+                            new MigrationClientStartupObserver(migrationClient), null) ;
                 }
             }
 
