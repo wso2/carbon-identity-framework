@@ -59,12 +59,16 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.*;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
 /**
@@ -155,7 +159,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
 
-
         if (StringUtils.isNotBlank(missingClaims[0])) {
 
             if (log.isDebugEnabled()) {
@@ -167,7 +170,6 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 ClaimManager claimManager = getUserRealm(context.getTenantDomain()).getClaimManager();
                 Map<String, String> missingClaimMap = FrameworkUtils.getMissingClaimsMap(context);
 
-
                 for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
@@ -178,28 +180,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 }
 
                 List<LocalClaim> localClaims = getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
-                Map<String, String> displayName = new HashMap<>();
-
-                for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
-                    for (LocalClaim localClaim : localClaims){
-                        if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
-                            displayName.put(entry.getValue(), localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
-                            break;
-                        }
-                    }
-                }
-
-                StringBuilder displayNameString = new StringBuilder();
-                StringBuilder displayNameValuesString = new StringBuilder();
-
-                for (Map.Entry<String, String> claimDisplay : displayName.entrySet()) {
-                    displayNameString.append(claimDisplay.getKey());
-                    displayNameValuesString.append(claimDisplay.getValue());
-                    displayNameString.append(",");
-                    displayNameValuesString.append(",");
-                }
-
-                String[] displayNames = {displayNameString.toString(), displayNameValuesString.toString()};
+                String[] displayNames = FrameworkUtils.getMissingClaimsDisplayNames(missingClaimMap,localClaims);;
 
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());

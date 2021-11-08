@@ -102,7 +102,9 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -141,19 +143,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
@@ -170,6 +161,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
@@ -2271,19 +2263,49 @@ public class FrameworkUtils {
      */
     public static String[] getMissingClaims(AuthenticationContext context) {
 
-        StringBuilder missingClaimsString = new StringBuilder();
-        StringBuilder missingClaimValuesString = new StringBuilder();
+        StringJoiner missingClaimsString = new StringJoiner(",");
+        StringJoiner missingClaimValuesString = new StringJoiner(",");
 
         Map<String, String> missingClaims = getMissingClaimsMap(context);
 
         for (Map.Entry<String, String> entry : missingClaims.entrySet()) {
-            missingClaimsString.append(entry.getKey());
-            missingClaimValuesString.append(entry.getValue());
-            missingClaimsString.append(",");
-            missingClaimValuesString.append(",");
+            missingClaimsString.add(entry.getKey());
+            missingClaimValuesString.add(entry.getValue());
         }
 
         return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
+    }
+
+    /**
+     * To get display names of missing mandatory claims from SP side.
+     *
+     * @param missingClaimMap mandatory claim's URIs.
+     * @param localClaims all claims
+     * @return set of display names of missing claims
+     */
+
+    public static String[] getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
+
+        Map<String, String> displayName = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
+            for (LocalClaim localClaim : localClaims){
+                if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
+                    displayName.put(entry.getValue(), localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                    break;
+                }
+            }
+        }
+
+        StringJoiner displayNameString = new StringJoiner(",");
+        StringJoiner displayNameValuesString = new StringJoiner(",");
+
+        for (Map.Entry<String, String> claimDisplay : displayName.entrySet()) {
+            displayNameString.add(claimDisplay.getKey());
+            displayNameValuesString.add(claimDisplay.getValue());
+        }
+
+        return new String[]{displayNameString.toString(), displayNameValuesString.toString()};
     }
 
     /**
@@ -3182,4 +3204,5 @@ public class FrameworkUtils {
         }
         return requestedScopeClaims;
     }
+
 }
