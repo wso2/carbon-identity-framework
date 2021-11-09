@@ -724,7 +724,9 @@ public class DefaultStepHandler implements StepHandler {
                 if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
                         equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
-                        !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode())) {
+                        !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE
+                        .equals(errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
                     }
