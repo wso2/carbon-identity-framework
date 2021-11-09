@@ -23,9 +23,19 @@ package org.wso2.carbon.identity.core.migrate;
 public interface MigrationClient {
 
     /**
-     * Execute migration procedure.
+     * Execute migration procedure during the startup(before identity core is initialized).
      *
      * @throws MigrationClientException
      */
     void execute() throws MigrationClientException;
+
+    /**
+     * Execute migration procedure after the startup. Using this method makes sure that all the components
+     * are activated before running the migration steps.
+     *
+     * @throws MigrationClientException Migration Client Exception.
+     */
+    default void executeAfterStartup() throws MigrationClientException {
+
+    }
 }
