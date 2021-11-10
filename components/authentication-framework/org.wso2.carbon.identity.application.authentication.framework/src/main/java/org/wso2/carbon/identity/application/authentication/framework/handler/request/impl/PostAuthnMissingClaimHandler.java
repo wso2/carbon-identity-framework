@@ -187,7 +187,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims[0]);
                 uriBuilder.addParameter(FrameworkConstants.DISPLAY_NAMES,
-                        displayNames[1]);
+                        displayNames[0]);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,

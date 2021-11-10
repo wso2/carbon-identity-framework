@@ -2286,26 +2286,17 @@ public class FrameworkUtils {
 
     public static String[] getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
 
-        Map<String, String> displayName = new HashMap<>();
-
+        StringJoiner displayNameMappingString = new StringJoiner(",");
         for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
             for (LocalClaim localClaim : localClaims){
                 if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
-                    displayName.put(entry.getValue(), localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                    displayNameMappingString.add(entry.getKey() +"|"+localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
                     break;
                 }
             }
         }
 
-        StringJoiner displayNameString = new StringJoiner(",");
-        StringJoiner displayNameValuesString = new StringJoiner(",");
-
-        for (Map.Entry<String, String> claimDisplay : displayName.entrySet()) {
-            displayNameString.add(claimDisplay.getKey());
-            displayNameValuesString.add(claimDisplay.getValue());
-        }
-
-        return new String[]{displayNameString.toString(), displayNameValuesString.toString()};
+        return new String[]{displayNameMappingString.toString()};
     }
 
     /**
@@ -3204,5 +3195,4 @@ public class FrameworkUtils {
         }
         return requestedScopeClaims;
     }
-
 }
