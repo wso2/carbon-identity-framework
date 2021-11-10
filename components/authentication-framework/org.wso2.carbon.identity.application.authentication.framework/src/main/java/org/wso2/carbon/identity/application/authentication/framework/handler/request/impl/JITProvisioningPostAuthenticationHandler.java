@@ -73,7 +73,6 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -203,7 +202,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
-                    String sanitizedUserName = removeEmailDomainFromName(username);
+                    String sanitizedUserName = removeEmailDomainFromName(
+                            MultitenantUtils.getTenantAwareUsername(username));
                     callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                    handleConsents(request, stepConfig, context.getTenantDomain());
