@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -33,18 +34,12 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.Sub
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
-import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.File;
 import java.io.Serializable;
@@ -57,21 +52,20 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.*",
-        "javax.naming.*", "javax.sql.*"})
-@PrepareForTest({AbstractUserStoreManager.class, IdentityTenantUtil.class})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
+
+    private static final Log logger = LogFactory.getLog(GraphBasedSequenceHandlerAbstractTest.class);
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME
             = "application-authentication-GraphStepHandlerTest.xml";
+    protected static final String AUTHENTICATING_TENANT_ID = "AUTHENTICATING_TENANT_ID";
+    protected static final String AUTHENTICATING_USER = "AUTHENTICATING_USER";
+    protected static final String TEST_USER_1_ID = "4b4414e1-916b-4475-aaee-6b0751c29ff6";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
     protected JsGraphBuilderFactory graphBuilderFactory;
@@ -102,35 +96,10 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         System.setProperty("carbon.home", file.toString());
         resetAuthenticators();
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("foo.com");
-
-        RealmService mockRealmService = mock(RealmService.class);
-        FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
-        IdentityCoreServiceDataHolder.getInstance().setRealmService(mockRealmService);
-
         CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO = mock(CacheBackedIdPMgtDAO.class);
         Field daoField = IdentityProviderManager.class.getDeclaredField("dao");
         daoField.setAccessible(true);
         daoField.set(IdentityProviderManager.getInstance(), cacheBackedIdPMgtDAO);
-
-        TenantManager tenantManager = mock(TenantManager.class);
-        when(tenantManager.getTenantId(anyString())).thenReturn(1);
-        when(mockRealmService.getTenantManager()).thenReturn(tenantManager);
-        IdentityTenantUtil.setRealmService(mockRealmService);
-        UserRealm mockUserRealm = mock(UserRealm.class);
-        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
-        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-        when(mockUserStoreManager.getUserIDFromUserName(anyString()))
-                .thenReturn("59d2c583-eafc-412a-a32e-bc409f3bd4e6");
-
-        UserStoreManager mockSecUserStoreManager = mock(UserStoreManager.class);
-        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
-        when(mockSecUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
-        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockSecUserStoreManager);
-        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME))
-                .thenReturn("false");
 
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);
@@ -147,26 +116,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
     }
 
-    protected static class MockSubjectCallback implements SubjectCallback, Serializable {
-
-        private static final long serialVersionUID = 597048141496121100L;
-
-        @Override
-        public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
-
-            AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
-            result.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
-            result.getUserAttributes().put(ClaimMapping
-                            .build("http://wso2.org/claims/givenname", "http://wso2.org/claims/givenname", "Test",
-                                    false),
-                    "Test");
-            result.getUserAttributes().put(ClaimMapping
-                            .build("http://wso2.org/claims/lastname", "http://wso2.org/claims/lastname", "Test", false),
-                    "User");
-            return result;
-        }
-    }
-
     protected HttpServletRequest createMockHttpServletRequest() {
 
         HttpServletRequest req = mock(HttpServletRequest.class);
@@ -177,5 +126,57 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         doAnswer(m -> attributes.get(m.getArgumentAt(0, String.class))).when(req).getAttribute(anyString());
 
         return req;
+    }
+
+    protected static class MockSubjectCallback implements SubjectCallback, Serializable {
+
+        private static final long serialVersionUID = 597048141496121100L;
+
+        @Override
+        public AuthenticatedUser getAuthenticatedUser(AuthenticationContext context) {
+
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            if (realmService == null) {
+                return createDefaultUser();
+            }
+
+            Integer tenantId = (Integer) context.getProperties().get(AUTHENTICATING_TENANT_ID);
+            String userId = (String) context.getProperties().get(AUTHENTICATING_USER);
+            if (userId == null) {
+                return createDefaultUser();
+            }
+            if (tenantId == null) {
+                tenantId = MultitenantConstants.SUPER_TENANT_ID;
+            }
+            try {
+                UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+                AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
+                Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(userId, null, null);
+                AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(userId);
+                result.setUserId(userId);
+                claimValues.entrySet().stream().forEach(
+                        (k) -> result.getUserAttributes().put(
+                                ClaimMapping.build(k.getKey(), k.getKey(), "", false), k.getValue()));
+                return result;
+            } catch (UserStoreException e) {
+                logger.error("There has been an issue creating the test(Mock) user from Mock user store." +
+                        " The default User will be injected to the Authenticator instead.", e);
+                return createDefaultUser();
+            }
+        }
+
+        private AuthenticatedUser createDefaultUser() {
+
+            AuthenticatedUser result = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier("test_user");
+            result.setUserId(TEST_USER_1_ID);
+            result.getUserAttributes().put(ClaimMapping
+                            .build("http://wso2.org/claims/givenname", "http://wso2.org/claims/givenname", "Test",
+                                    false),
+                    "Test");
+            result.getUserAttributes().put(ClaimMapping
+                            .build("http://wso2.org/claims/lastname", "http://wso2.org/claims/lastname", "Test", false),
+                    "User");
+            return result;
+        }
     }
 }
