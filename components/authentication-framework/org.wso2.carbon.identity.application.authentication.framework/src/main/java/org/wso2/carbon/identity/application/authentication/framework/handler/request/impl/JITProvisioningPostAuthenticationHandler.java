@@ -203,8 +203,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
-                    String sanitizedUserName = removeEmailDomainFromName(UserCoreUtil.removeDomainFromName(
-                            MultitenantUtils.getTenantAwareUsername(username)));
+                    String sanitizedUserName = removeEmailDomainFromName(username);
                     callDefaultProvisioningHandler(sanitizedUserName, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                    handleConsents(request, stepConfig, context.getTenantDomain());
