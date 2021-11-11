@@ -63,6 +63,12 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_CHECKING_ACCOUNT_DISABLE_STATUS("80020",
                 "Error while checking the account disable status for the user %s"),
         ERROR_WHILE_GETTING_FEDERATED_USERNAME("80020", "Error while getting the federated username"),
+        USER_ALREADY_EXISTS_ERROR("80021", "Provided username is already exists."),
+        ERROR_WHILE_CHECKING_USERNAME_EXISTENCE("80022", "Error while checking the username existence."),
+        ERROR_WHILE_GETTING_USER_STORE_DOMAIN("80023", "Error occurred while getting the user store domain."),
+        ERROR_INVALID_USER_STORE_DOMAIN("80024", "Specified user store domain %s is not valid."),
+        ERROR_WHILE_GETTING_USER_STORE_MANAGER("80025", "Error occurred while getting the user store manager."),
+        ERROR_INVALID_USER_STORE("80026", "Specified user store is invalid."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");
