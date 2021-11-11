@@ -102,7 +102,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -143,8 +142,21 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
@@ -197,7 +209,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To add authentication request cache entry to cache
+     * To add authentication request cache entry to cache.
      *
      * @param key          cache entry key
      * @param authReqEntry AuthenticationReqCache Entry.
@@ -208,7 +220,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache request from cache
+     * To get authentication cache request from cache.
      *
      * @param key Key of the cache entry
      * @return
@@ -233,7 +245,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Builds the wrapper, wrapping incoming request and information take from cache entry
+     * Builds the wrapper, wrapping incoming request and information take from cache entry.
      *
      * @param request    Original request coming to authentication framework
      * @param cacheEntry Cache entry from the cache, which is added from calling servlets
@@ -720,7 +732,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Remove the auth cookie in the tenanted path
+     * Remove the auth cookie in the tenanted path.
      *
      * @param req    HTTP request
      * @param resp   HTTP response
@@ -962,7 +974,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache result from cache
+     * To get authentication cache result from cache.
      * @param key
      * @return
      */
@@ -1188,7 +1200,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super
+     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super.
      *
      * @return tenant domain
      */
@@ -1534,7 +1546,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * when getting query params through this, only configured params will be appended as query params
+     * when getting query params through this, only configured params will be appended as query params.
      * The required params can be configured from application-authenticators.xml
      *
      * @param request
@@ -1812,7 +1824,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Starts the tenant flow for the given tenant domain
+     * Starts the tenant flow for the given tenant domain.
      *
      * @param tenantDomain tenant domain
      */
@@ -1839,14 +1851,14 @@ public class FrameworkUtils {
     }
 
     /**
-     * Ends the tenant flow
+     * Ends the tenant flow.
      */
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
     /**
-     * create a nano time stamp relative to Unix Epoch
+     * create a nano time stamp relative to Unix Epoch.
      */
     public static long getCurrentStandardNano() {
 
@@ -1859,7 +1871,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param to the URL (URL may already contain query params)
+     * Append a query param to the URL (URL may already contain query params).
      */
     public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
         String queryAppendedUrl = url;
@@ -1885,7 +1897,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -1917,7 +1929,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -2156,7 +2168,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the mapped URI for the IDP role mapping
+     * Get the mapped URI for the IDP role mapping.
      * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
      * @param stepConfig Relevant stepConfig
      * @param context Relevant authentication context
@@ -2284,19 +2296,21 @@ public class FrameworkUtils {
      * @return set of display names of missing claims
      */
 
-    public static String[] getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
+    private static String
+    getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
 
         StringJoiner displayNameMappingString = new StringJoiner(",");
         for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
-            for (LocalClaim localClaim : localClaims){
+            for (LocalClaim localClaim : localClaims) {
                 if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
-                    displayNameMappingString.add(entry.getKey() +"|"+localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                    displayNameMappingString.
+                            add(entry.getKey() + "|" + localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
                     break;
                 }
             }
         }
 
-        return new String[]{displayNameMappingString.toString()};
+        return displayNameMappingString.toString();
     }
 
     /**
@@ -2500,7 +2514,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the configurations of a tenant from cache or database
+     * Get the configurations of a tenant from cache or database.
      *
      * @param tenantDomain Domain name of the tenant
      * @return Configurations belong to the tenant

@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -55,21 +54,22 @@ import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_CODE_INVALID_ATTRIBUTE_UPDATE;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
+
 
 /**
  * Post authentication handler for missing claims.
@@ -179,15 +179,22 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     }
                 }
 
-                List<LocalClaim> localClaims = getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
-                String[] displayNames = FrameworkUtils.getMissingClaimsDisplayNames(missingClaimMap,localClaims);;
+                List<LocalClaim> localClaims =
+                        getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
+                Class<FrameworkUtils> claimDisplay = FrameworkUtils.class;
+                Object obj = claimDisplay.newInstance();
+                Method displayName = claimDisplay.
+                        getDeclaredMethod("getMissingClaimsDisplayNames", Map.class, List.class);
+                displayName.setAccessible(true);
+                String displayNames = (String) displayName.invoke(obj, missingClaimMap, localClaims);
+
 
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims[0]);
                 uriBuilder.addParameter(FrameworkConstants.DISPLAY_NAMES,
-                        displayNames[0]);
+                        displayNames);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
@@ -220,7 +227,12 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim metadata.", e);
+            } catch (InvocationTargetException | IllegalAccessException
+                    | NoSuchMethodException | InstantiationException e) {
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while trying to create new instance and to access claim metadata", e);
             }
+
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
