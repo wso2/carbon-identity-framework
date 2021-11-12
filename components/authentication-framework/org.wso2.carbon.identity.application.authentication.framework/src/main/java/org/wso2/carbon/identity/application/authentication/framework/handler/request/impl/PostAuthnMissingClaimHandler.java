@@ -202,8 +202,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
                 List<LocalClaim> localClaims =
                         getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
-                PostAuthnMissingClaimHandler displayName = new PostAuthnMissingClaimHandler();
-                String displayNames = displayName.getMissingClaimsDisplayNames(missingClaimMap, localClaims);
+                String displayNames = getMissingClaimsDisplayNames(missingClaimMap, localClaims);
 
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
