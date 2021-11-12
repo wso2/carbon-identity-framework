@@ -103,7 +103,6 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -173,7 +172,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
@@ -2286,31 +2284,6 @@ public class FrameworkUtils {
         }
 
         return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
-    }
-
-    /**
-     * To get display names of missing mandatory claims from SP side.
-     *
-     * @param missingClaimMap mandatory claim's URIs.
-     * @param localClaims all claims
-     * @return set of display names of missing claims
-     */
-
-    private static String
-    getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
-
-        StringJoiner displayNameMappingString = new StringJoiner(",");
-        for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
-            for (LocalClaim localClaim : localClaims) {
-                if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
-                    displayNameMappingString.
-                            add(entry.getKey() + "|" + localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
-                    break;
-                }
-            }
-        }
-
-        return displayNameMappingString.toString();
     }
 
     /**

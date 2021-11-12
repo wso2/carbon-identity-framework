@@ -54,12 +54,11 @@ import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,7 +68,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
-
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
 /**
  * Post authentication handler for missing claims.
@@ -152,6 +151,28 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return postAuthRequestTriggered;
     }
 
+    /**
+     * To get display names of missing mandatory claims from SP side.
+     *
+     * @param missingClaimMap Mandatory claim's URIs.
+     * @param localClaims All claims.
+     * @return set of display names of missing claims.
+     */
+    private String getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
+
+        StringJoiner displayNameMappingString = new StringJoiner(",");
+        for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
+            for (LocalClaim localClaim : localClaims) {
+                if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
+                    displayNameMappingString.
+                            add(entry.getKey() + "|" + localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                    break;
+                }
+            }
+        }
+        return displayNameMappingString.toString();
+    }
+
     protected PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
                                                                                        HttpServletResponse response,
                                                                                        AuthenticationContext context)
@@ -181,13 +202,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
                 List<LocalClaim> localClaims =
                         getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
-                Class<FrameworkUtils> claimDisplay = FrameworkUtils.class;
-                Object obj = claimDisplay.newInstance();
-                Method displayName = claimDisplay.
-                        getDeclaredMethod("getMissingClaimsDisplayNames", Map.class, List.class);
-                displayName.setAccessible(true);
-                String displayNames = (String) displayName.invoke(obj, missingClaimMap, localClaims);
-
+                PostAuthnMissingClaimHandler displayName = new PostAuthnMissingClaimHandler();
+                String displayNames = displayName.getMissingClaimsDisplayNames(missingClaimMap, localClaims);
 
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
@@ -227,12 +243,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim metadata.", e);
-            } catch (InvocationTargetException | IllegalAccessException
-                    | NoSuchMethodException | InstantiationException e) {
-                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
-                        "Error while trying to create new instance and to access claim metadata", e);
             }
-
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
