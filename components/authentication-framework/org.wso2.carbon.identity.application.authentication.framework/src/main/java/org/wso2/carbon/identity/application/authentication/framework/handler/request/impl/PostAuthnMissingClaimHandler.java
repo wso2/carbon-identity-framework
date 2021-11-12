@@ -155,7 +155,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
      * To get display names of missing mandatory claims from SP side.
      *
      * @param missingClaimMap Mandatory claim's URIs.
-     * @param localClaims All claims.
+     * @param localClaims     All claims.
      * @return set of display names of missing claims.
      */
     private String getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
@@ -174,8 +174,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
     }
 
     protected PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
-                                                                                       HttpServletResponse response,
-                                                                                       AuthenticationContext context)
+                                                                                         HttpServletResponse response,
+                                                                                         AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
