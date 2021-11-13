@@ -1167,6 +1167,11 @@
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
         <!--Whether to notify the user if the user account is locked/disabled-->
         <NotifyUserAccountStatus>{{identity_mgt.recovery.notify_user_account_status}}</NotifyUserAccountStatus>
+        <!--
+            The purpose of this property is whether to show the password recovery errors to the users. This has been
+            introduced to stop username enumeration in password recovery flow.
+        -->
+        <NotifyPasswordRecoveryError>{{identity_mgt.recovery.notify_password_recovery_error}}</NotifyPasswordRecoveryError>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
