@@ -891,6 +891,10 @@
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>
 
+    <SCIM2MultiAttributeFiltering>
+        <UsePagination>false</UsePagination>
+    </SCIM2MultiAttributeFiltering>
+
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
 
