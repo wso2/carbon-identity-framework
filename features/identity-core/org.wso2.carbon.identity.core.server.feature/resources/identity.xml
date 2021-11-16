@@ -523,6 +523,12 @@
             -->
             <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
             <RedirectToPostLogoutUriOnConsentDenial>true</RedirectToPostLogoutUriOnConsentDenial>
+            <!--
+            By default, AllowAdditionalParamsFromPostLogoutRedirectURI is true. Hence IS sends additional query params
+            in post logout redirect URI after OIDC logout.
+            Disable this config if additional params are not needed post logout redirect URL.
+            -->
+            <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
         </OpenIDConnect>
 
         <!--
