@@ -57,7 +57,7 @@ public class BrandingPreferenceRetrievalClient {
      * @param tenant Tenant Domain.
      * @param type Resource Type. ex: ORG, APP, etc.
      * @param name Resource Name. ex: Console, My Account, etc.
-     * @param locale ISO language code of the resource. @see {@link http://www.lingoes.net/en/translator/langcode.htm}}
+     * @param locale ISO language code of the resource. ex: en-US, pt-BR, etc.
      * @return A JSON Object containing branding preferences.
      * @throws BrandingPreferenceRetrievalClientException
      */
