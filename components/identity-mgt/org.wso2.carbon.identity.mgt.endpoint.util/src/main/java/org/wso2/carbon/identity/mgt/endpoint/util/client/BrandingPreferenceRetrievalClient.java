@@ -72,33 +72,26 @@ public class BrandingPreferenceRetrievalClient {
                 URIBuilder uriBuilder = new URIBuilder(uri);
 
                 if (StringUtils.isNotBlank(type)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Appending resource type to the preferences endpoint URI : " + type);
-                    }
-
                     uriBuilder.addParameter(RESOURCE_TYPE_URL_SEARCH_PARAM, type);
                 }
 
                 if (StringUtils.isNotBlank(name)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Appending resource name to the preferences endpoint URI : " + name);
-                    }
-
                     uriBuilder.addParameter(RESOURCE_NAME_URL_SEARCH_PARAM, name);
                 }
 
                 if (StringUtils.isNotBlank(locale)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Appending resource locale to the preferences endpoint URI : " + locale);
-                    }
-
                     uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
                 }
-            } catch (URISyntaxException e) {
-                String msg = "Error while building the branding preference endpoint URI with params for : "
-                        + tenant + ". Falling back to default endpoint URI: " + uri;
 
                 if (log.isDebugEnabled()) {
+                    log.debug("Preferences endpoint URI for tenant " + tenant
+                            + " was constructed with params - type : "
+                            + type + ", name :" + name + ", locale :" + locale);
+                }
+            } catch (URISyntaxException e) {
+                if (log.isDebugEnabled()) {
+                    String msg = "Error while building the branding preference endpoint URI with params for : "
+                            + tenant + ". Falling back to default endpoint URI: " + uri;
                     log.debug(msg, e);
                 }
             }

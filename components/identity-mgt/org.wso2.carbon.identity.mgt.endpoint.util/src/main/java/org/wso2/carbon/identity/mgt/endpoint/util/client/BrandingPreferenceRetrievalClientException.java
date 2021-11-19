@@ -34,7 +34,7 @@ public class BrandingPreferenceRetrievalClientException extends Exception {
     /**
      * Client Exception with error message.
      *
-     * @param message Error message
+     * @param message Error message.
      */
     public BrandingPreferenceRetrievalClientException(String message) {
 
