@@ -725,7 +725,9 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
-            <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
+            {% if oauth.oidc.extensions.ciba_request_object_validator is defined %}
+                <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
+            {% endif %}
             <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
