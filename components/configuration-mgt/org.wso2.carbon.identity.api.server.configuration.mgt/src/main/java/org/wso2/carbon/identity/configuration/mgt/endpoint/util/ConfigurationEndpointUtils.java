@@ -215,7 +215,7 @@ public class ConfigurationEndpointUtils {
             ref = MDC.get(ConfigurationConstants.CORRELATION_ID_MDC).toString();
         } else {
             ref = UUID.randomUUID().toString();
-
+            MDC.put(ConfigurationConstants.CORRELATION_ID_MDC, ref);
         }
         return ref;
     }
