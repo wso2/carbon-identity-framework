@@ -3072,32 +3072,10 @@
 
         var authnContextClasses = $("#authnContextCls").val();
             var currentColumnId = $("#currentColumnId").val();
-            if(selectedAuthnContextClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
-                $('#authnContextClsTblRow').remove();
-                
+            if(selectedAuthnContextClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>' ||
+                selectedAuthnContextClass == '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>'){
 
-                var row = '<tr id="authnContextClsTblRow">' +
-                        '    <td></td>' +
-                        '    <td>' +
-                        '        <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
-                        '            <tbody id="authnContextClsTableBody">' +
-                        '            </tbody>' +
-                        '        </table>' +
-                        '        <input type="hidden" id="authnContextCls" name="AuthnContextClassRef" value="">' +
-                        '        <input type="hidden" id="currentColumnId" value="0">' +
-                        '    </td>' +
-                        '</tr>';
-                $('#authnCtxClsInputRow').after(row);
-                var currentColId = $("#currentColumnId").val();
-                $("#authnContextCls").val(selectedAuthnContextClass);
-               var row =
-                        '<tr id="authnCtxCls_' + parseInt(currentColId) + '">' +
-                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
-                        '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColId) + '\');return false;"'+
-                        'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
-
-                $('#authnContextClsTable tbody').append(row);
-                
+                currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
             } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
                 $("#authnContextCls").val(selectedAuthnContextClass);
                var row =
@@ -3107,10 +3085,10 @@
                         'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
                 $('#authnContextClsTable tbody').append(row);
-                
+
             } else {
                 var isExist = false;
-                
+                var isUnspecified = false;
                 $.each(authnContextClasses.split(","), function (index, value) {
                     if (value === selectedAuthnContextClass) {
                         isExist = true;
@@ -3122,11 +3100,17 @@
                         CARBON.showWarningDialog("Custom AuthnContextClassRef is Selected", null, null);
                         return false;
                     }
+                    if(value ==  '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>'){
+                        isUnspecified = true;
+                    }
                 });
                 if (isExist) {
                     return false;
                 }
-
+                if(isUnspecified){
+                currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
+                }
+                else{
                 $("#authnContextCls").val(authnContextClasses + "," + selectedAuthnContextClass);
                 var row =
                         '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
@@ -3135,9 +3119,10 @@
                          'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
                 $('#authnContextClsTable tr:last').after(row);
-               
+                }
+
             }
-           
+
             $("#currentColumnId").val(parseInt(currentColumnId) + 1);
     }
 
@@ -3146,7 +3131,8 @@
             var authnContextClasses = $("#authnContextCls").val();
             var newAuthnContextClasses = "";
             var isDeleting = true;
-            if(selectedAuthnContextClass != '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>' && authnContextClasses === selectedAuthnContextClass ){
+            if(selectedAuthnContextClass != '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>' && authnContextClasses === selectedAuthnContextClass &&
+                selectedAuthnContextClass != '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
                 isDeleting = false;
                 CARBON.showWarningDialog("AuthnContextClassRef Cannot be null", null, null);
             }
@@ -3164,11 +3150,12 @@
             }
             $('#' + columnId).remove();
             $("#authnContextCls").val(newAuthnContextClasses);
-            
-            if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+
+            if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>' ||
+                selectedAuthnContextClass === '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED %>'){
                 var password_protected_transport_asDefault = '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT%>';
                 $("#authnContextCls").val(password_protected_transport_asDefault);
-                
+
                 var row =
                         '<tr id="authnCtxCls_0">' +
                         '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + password_protected_transport_asDefault +
@@ -3179,6 +3166,35 @@
                 $("#currentColumnId").val(1);
             }
             }
+        }
+
+        function cleanAndGenerateNewAuthnTable(selectedAuthnContextClass){
+
+            $('#authnContextClsTblRow').remove();
+
+                var row = '<tr id="authnContextClsTblRow">' +
+                        '    <td></td>' +
+                        '    <td>' +
+                        '        <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
+                        '            <tbody id="authnContextClsTableBody">' +
+                        '            </tbody>' +
+                        '        </table>' +
+                        '        <input type="hidden" id="authnContextCls" name="AuthnContextClassRef" value="">' +
+                        '        <input type="hidden" id="currentColumnId" value="0">' +
+                        '    </td>' +
+                        '</tr>';
+                $('#authnCtxClsInputRow').after(row);
+                var currentColumnId = $("#currentColumnId").val();
+
+                $("#authnContextCls").val(selectedAuthnContextClass);
+               var row =
+                        '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
+                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
+                        '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"'+
+                        'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+
+                $('#authnContextClsTable tbody').append(row);
+                return currentColumnId;
         }
 </script>
 
@@ -4486,7 +4502,7 @@
                                                     authnContextClass = authenticationContextClass;
                                                 }
                                                 String[] authnContextClassList = authnContextClass.split(",");
-                                                for(String authenticationContextCls : authnContextClassList){ 
+                                                for(String authenticationContextCls : authnContextClassList){
                                                     if(StringUtils.isNotEmpty(authenticationContextCls)){
                                             %>
                                             <tr id="authnCtxCls_<%=authnCtxClsColumnId%>">
@@ -4512,11 +4528,11 @@
                                         <input type="hidden" id="authnContextCls" name="AuthnContextClassRef"
                                                value="<%=authnContextClassList.length > 0 ?
          Encode.forHtmlAttribute(authnContextClass) : ""%>">
-                                        
+
                                         <input type="hidden" id="currentColumnId" value="<%=authnCtxClsColumnId%>">
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Authenticatin Context Comparison Level -->
 
                                 <tr>
