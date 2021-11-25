@@ -23,6 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -277,7 +278,7 @@ public class DefaultApplicationValidatorTest {
         serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutBoundAuthenticationConfig);
 
         ApplicationValidator validator = new DefaultApplicationValidator();
-        Assert.assertTrue(validator.validateApplication(serviceProvider, "carbon.super", "admin").
-                contains("Configuring MFA is not allowed as proxy mode is enabled for the federated IDP: OIDC_IDP"));
+        Assert.assertThrows(IdentityApplicationManagementClientException.class, () ->
+                validator.validateApplication(serviceProvider, "carbon.super", "admin"));
     }
 }

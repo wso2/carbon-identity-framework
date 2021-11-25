@@ -85,7 +85,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String FEDERATED_IDP_NOT_AVAILABLE =
             "Federated Identity Provider %s is not available in the server.";
     private static final String PROXY_MODE_ENABLED = "Configuring MFA is not allowed as proxy mode is enabled " +
-            "for the federated IDP: %s";
+            "for the federated IDP";
     private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server " +
             "for tenantDomain:%s.";
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server " +
@@ -252,7 +252,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         AtomicBoolean isAuthenticatorIncluded = new AtomicBoolean(false);
 
-        validateConfiguring2FA(validationMsg, tenantDomain, authenticationSteps);
+        validateConfiguring2FAWithProxyModeEnabledFIDP(validationMsg, tenantDomain, authenticationSteps);
         for (AuthenticationStep authenticationStep : authenticationSteps) {
             for (IdentityProvider idp : authenticationStep.getFederatedIdentityProviders()) {
                 validateFederatedIdp(idp, isAuthenticatorIncluded, validationMsg, tenantDomain);
@@ -316,8 +316,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      * @param tenantDomain        Tenant domain.
      * @param authenticationSteps Authentication Steps.
      */
-    private void validateConfiguring2FA(List<String> validationMsg, String tenantDomain,
-                                        AuthenticationStep[] authenticationSteps) {
+    private void validateConfiguring2FAWithProxyModeEnabledFIDP(List<String> validationMsg, String tenantDomain,
+                                                                AuthenticationStep[] authenticationSteps)
+            throws IdentityApplicationManagementClientException {
 
         int proxyModeEnabledFIDPStepOrder = 0;
         StringBuilder proxyModeEnabledFIDP = new StringBuilder();
@@ -329,15 +330,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             return;
         }
         for (AuthenticationStep authenticationStep : authenticationSteps) {
-            if (validationMsg.contains(String.format(PROXY_MODE_ENABLED, proxyModeEnabledFIDP))) {
-                return;
-            }
             proxyModeEnabledFIDPStepOrder = getProxyModeEnabledFIDPStepOrder(authenticationStep, proxyModeEnabledFIDP,
                     tenantDomain, validationMsg, proxyModeEnabledFIDPStepOrder);
-            if (isValidMFAWithLocalAuthenticators(authenticationStep, proxyModeEnabledFIDPStepOrder,
-                    validationMsg, proxyModeEnabledFIDP)) {
-                return;
-            }
+            validMFAWithLocalAuthenticators(authenticationStep, proxyModeEnabledFIDPStepOrder);
         }
     }
 
@@ -379,32 +374,30 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      */
     private int getProxyModeEnabledFIDPStepOrder(AuthenticationStep authenticationStep,
                                                  StringBuilder proxyModeEnabledFIDP, String tenantDomain,
-                                                 List<String> validationMsg, int proxyModeEnabledFIDPStepOrder) {
+                                                 List<String> validationMsg, int proxyModeEnabledFIDPStepOrder)
+            throws IdentityApplicationManagementClientException {
 
-        boolean isProxyModeEnabledFIdpStepConfigured = false;
+        boolean isProxyModeEnabledFIdpStepConfigured;
         for (IdentityProvider fedIdp : authenticationStep.getFederatedIdentityProviders()) {
             for (FederatedAuthenticatorConfig federatedAuth : fedIdp.getFederatedAuthenticatorConfigs()) {
-                FederatedAuthenticatorConfig federatedAuthenticatorConfig =
-                        ApplicationAuthenticatorService.getInstance().getFederatedAuthenticatorByName(
-                                federatedAuth.getName());
-                if (federatedAuthenticatorConfig == null) {
-                    return proxyModeEnabledFIDPStepOrder;
-                }
-                List<String> federatedAuthTagList = Arrays.asList(federatedAuthenticatorConfig.getTags());
                 isProxyModeEnabledFIdpStepConfigured =
                         isProxyModeEnabledFIdpStepConfigured(federatedAuth, fedIdp, tenantDomain, validationMsg);
                 if (isProxyModeEnabledFIdpStepConfigured) {
                     proxyModeEnabledFIDP.append(fedIdp.getIdentityProviderName());
-                    proxyModeEnabledFIDPStepOrder = authenticationStep.getStepOrder();
-                    break;
+                    return authenticationStep.getStepOrder();
                 }
-                if (isMFAWithProxyModeEnabledFIDP(proxyModeEnabledFIDPStepOrder, authenticationStep,
-                        federatedAuthTagList, validationMsg, proxyModeEnabledFIDP)) {
-                    break;
+                FederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                        ApplicationAuthenticatorService.getInstance().getFederatedAuthenticatorByName(
+                                federatedAuth.getName());
+                if (federatedAuthenticatorConfig != null && federatedAuthenticatorConfig.getTags() != null) {
+                    List<String> federatedAuthTagList = Arrays.asList(federatedAuthenticatorConfig.getTags());
+                    if (proxyModeEnabledFIDPStepOrder != 0 &&
+                            authenticationStep.getStepOrder() > proxyModeEnabledFIDPStepOrder &&
+                            federatedAuthTagList.contains("MFA")) {
+                        String code = IdentityApplicationConstants.Error.INVALID_REQUEST.getCode();
+                        throw new IdentityApplicationManagementClientException(code, PROXY_MODE_ENABLED);
+                    }
                 }
-            }
-            if (isProxyModeEnabledFIdpStepConfigured) {
-                break;
             }
         }
         return proxyModeEnabledFIDPStepOrder;
@@ -416,50 +409,24 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      *
      * @param authenticationStep            Authentication step.
      * @param proxyModeEnabledFIDPStepOrder Proxy mode enabled federated IDP's step order number.
-     * @return Validity of configuring MFA step when proxy mode enabled federated IDP
-     * has been already added toa prior step.
      */
-    private boolean isValidMFAWithLocalAuthenticators(AuthenticationStep authenticationStep,
-                                                      int proxyModeEnabledFIDPStepOrder, List<String> validationMsg,
-                                                      StringBuilder proxyModeEnabledFIDP) {
+    private void validMFAWithLocalAuthenticators(AuthenticationStep authenticationStep,
+                                                 int proxyModeEnabledFIDPStepOrder)
+            throws IdentityApplicationManagementClientException {
 
-        boolean isValidToConfigureMFAWithLocalAuthenticators = false;
         for (LocalAuthenticatorConfig localAuth : authenticationStep.getLocalAuthenticatorConfigs()) {
             LocalAuthenticatorConfig localAuthenticatorConfig = ApplicationAuthenticatorService.
                     getInstance().getLocalAuthenticatorByName(localAuth.getName());
-            List<String> localAuthTagList = Arrays.asList(localAuthenticatorConfig.getTags());
-            if (isMFAWithProxyModeEnabledFIDP(proxyModeEnabledFIDPStepOrder, authenticationStep,
-                    localAuthTagList, validationMsg, proxyModeEnabledFIDP)) {
-                isValidToConfigureMFAWithLocalAuthenticators = true;
+            if (localAuthenticatorConfig != null && localAuthenticatorConfig.getTags() != null) {
+                List<String> localAuthTagList = Arrays.asList(localAuthenticatorConfig.getTags());
+                if (proxyModeEnabledFIDPStepOrder != 0 &&
+                        authenticationStep.getStepOrder() > proxyModeEnabledFIDPStepOrder &&
+                        localAuthTagList.contains("MFA")) {
+                    String code = IdentityApplicationConstants.Error.INVALID_REQUEST.getCode();
+                    throw new IdentityApplicationManagementClientException(code, PROXY_MODE_ENABLED);
+                }
             }
         }
-        return isValidToConfigureMFAWithLocalAuthenticators;
-    }
-
-    /**
-     * Check whether configuring MFA with federated IDP and 2FA is valid and if it is not
-     * set a validation error message.
-     *
-     * @param proxyModeEnabledFIDPStepOrder Proxy mode enabled federated IDP step order Id.
-     * @param authenticationStep            Authentication step.
-     * @param authTagList                   Auth tag list for the configured auth steps.
-     * @param validationMsg                 Validation error message.
-     * @param proxyModeEnabledFIDP          Proxy mode enabled federated IDP name.
-     * @return Whether configuring MFA with federated IDP and 2FA is valid.
-     */
-    private boolean isMFAWithProxyModeEnabledFIDP(int proxyModeEnabledFIDPStepOrder,
-                                                  AuthenticationStep authenticationStep,
-                                                  List<String> authTagList, List<String> validationMsg,
-                                                  StringBuilder proxyModeEnabledFIDP) {
-
-        boolean isMFAWithProxyModeEnabledFIDP = false;
-        if (proxyModeEnabledFIDPStepOrder != 0 &&
-                authenticationStep.getStepOrder() > proxyModeEnabledFIDPStepOrder &&
-                authTagList.contains("MFA")) {
-            validationMsg.add(String.format(PROXY_MODE_ENABLED, proxyModeEnabledFIDP));
-            isMFAWithProxyModeEnabledFIDP = true;
-        }
-        return isMFAWithProxyModeEnabledFIDP;
     }
 
     private boolean isJitProvisioningEnabled(IdentityProvider fedIdp, String tenantDomain,
@@ -471,8 +438,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     getIdPByName(fedIdp.getIdentityProviderName(), tenantDomain, false)
                     .getJustInTimeProvisioningConfig().isProvisioningEnabled();
         } catch (IdentityProviderManagementException e) {
-            String errorMsg = String.format(FEDERATED_IDP_NOT_AVAILABLE,
-                    fedIdp.getIdentityProviderName());
+            String errorMsg = String.format(FEDERATED_IDP_NOT_AVAILABLE, fedIdp.getIdentityProviderName());
             validationMsg.add(errorMsg);
         }
         return isJITProvisioningEnabled;
