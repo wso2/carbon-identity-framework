@@ -125,6 +125,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                             handlePostAuthenticationForMissingClaimsRequest(request, response, context);
                     return flowStatus;
                 }
+                throw e;
             }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
@@ -237,11 +238,30 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
         }
 
+        boolean doMandatoryClaimsExist = false;
+        for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
+            if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
+                doMandatoryClaimsExist = true;
+                break;
+            }
+        }
+
+        if (!doMandatoryClaimsExist) {
+            // Check whether mandatory claims exist in the request. If not throw error.
+            throw new PostAuthenticationFailedException("Mandatory missing claims are not found", "Mandatory missing " +
+                    "claims are not found in the request for the session with context identifier: " +
+                    context.getContextIdentifier());
+        }
+
         for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
             if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
 
                 String localClaimURI
                         = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                if (StringUtils.isBlank(entry.getValue()[0])) {
+                    throw new PostAuthenticationFailedException("Mandatory claim value is empty", "Mandatory " +
+                            "claim value for the claim URI: " + localClaimURI + " is not found");
+                }
                 claims.put(localClaimURI, entry.getValue()[0]);
 
                 if (spToCarbonClaimMappingObject != null) {
