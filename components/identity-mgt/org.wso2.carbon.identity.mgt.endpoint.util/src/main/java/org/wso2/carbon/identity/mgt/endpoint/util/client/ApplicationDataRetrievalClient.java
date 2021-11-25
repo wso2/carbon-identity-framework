@@ -99,43 +99,6 @@ public class ApplicationDataRetrievalClient {
     }
 
     /**
-     * Gets the access url configured for the given application.
-     *
-     * @param tenant tenant domain of the application
-     * @param applicationId UUID of the application
-     * @return the access url configured for the given application
-     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured
-     */
-    public String getApplicationAccessURLForUUID(String tenant, String applicationId)
-            throws ApplicationDataRetrievalClientException {
-
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            HttpGet request =
-                    new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
-            setAuthorizationHeader(request);
-
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    return jsonResponse.getString(ACCESS_URL_KEY);
-                }
-            } finally {
-                request.releaseConnection();
-            }
-        } catch (IOException | JSONException e) {
-            //JSONException may occur if the application don't have an access URL configured
-            String msg = "Error while getting access URL of " + applicationId + " in tenant : " + tenant;
-            if (log.isDebugEnabled()) {
-                log.debug(msg, e);
-            }
-            throw new ApplicationDataRetrievalClientException(msg, e);
-        }
-        return StringUtils.EMPTY;
-    }
-
-    /**
      * Gets the application name for given UUID.
      *
      * @param tenant tenant domain of the application
@@ -173,7 +136,7 @@ public class ApplicationDataRetrievalClient {
     }
 
     /**
-     * Gets the application UUID for the given application.
+     * Gets the application ID for the given application.
      *
      * @param tenant          tenant domain of the application
      * @param applicationName name of the application
