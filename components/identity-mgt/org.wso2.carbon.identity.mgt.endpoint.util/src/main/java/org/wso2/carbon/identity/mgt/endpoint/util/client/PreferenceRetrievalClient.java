@@ -56,7 +56,7 @@ public class PreferenceRetrievalClient {
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
-    private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROP = "SelfRegistration.LockOnCreation";
+    private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
@@ -88,7 +88,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean checkSelfRegistrationLockOnCreation(String tenant) throws PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_SIGN_UP_LOCK_ON_CREATION_PROP);
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY);
     }
 
     /**
