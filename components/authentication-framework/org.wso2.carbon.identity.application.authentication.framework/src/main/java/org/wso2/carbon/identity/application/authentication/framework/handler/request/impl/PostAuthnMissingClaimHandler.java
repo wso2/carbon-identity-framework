@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,7 +52,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -125,6 +128,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                             handlePostAuthenticationForMissingClaimsRequest(request, response, context);
                     return flowStatus;
                 }
+                throw e;
             }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
@@ -237,11 +241,31 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
         }
 
+        boolean doMandatoryClaimsExist = false;
+        for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
+            if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
+                doMandatoryClaimsExist = true;
+                break;
+            }
+        }
+
+        if (!doMandatoryClaimsExist) {
+            // Check whether mandatory claims exist in the request. If not throw error.
+            throw new PostAuthenticationFailedException("Mandatory missing claims are not found", "Mandatory missing " +
+                    "claims are not found in the request for the session with context identifier: " +
+                    context.getContextIdentifier());
+        }
+
+        List<String> missingClaims = new ArrayList<>();
         for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
             if (entry.getKey().startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
 
                 String localClaimURI
                         = entry.getKey().substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                if (StringUtils.isBlank(entry.getValue()[0])) {
+                    missingClaims.add(localClaimURI);
+                    continue;
+                }
                 claims.put(localClaimURI, entry.getValue()[0]);
 
                 if (spToCarbonClaimMappingObject != null) {
@@ -251,6 +275,14 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     claimsForContext.put(localClaimURI, entry.getValue()[0]);
                 }
             }
+        }
+        if (CollectionUtils.isNotEmpty(missingClaims)) {
+            String missingClaimURIs = StringUtils.join(missingClaims, ",");
+            if (log.isDebugEnabled()) {
+                log.debug("Claim values for the mandatory claims: " + missingClaimURIs + " are empty");
+            }
+            throw new PostAuthenticationFailedException("Mandatory claim is not found", "Claim " +
+                    "values for the claim URIs: " + missingClaimURIs + " are empty");
         }
 
         Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claimsForContext);
