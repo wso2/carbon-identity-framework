@@ -51,6 +51,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1668,9 +1669,10 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         String customAuthenticationContextClass = "";
+        String[] authnContextClassList = authenticationContextClass.split(",");
 
-        if (IdentityApplicationConstants.Authenticator.SAML2SSO.
-                CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
+        if (Arrays.asList(authnContextClassList).contains(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
             customAuthenticationContextClass = paramMap.get(IdentityApplicationConstants.
                     Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
         }
