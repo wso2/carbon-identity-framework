@@ -210,12 +210,9 @@ public class ConfigurationEndpointUtils {
      * @return correlation-id
      */
     public static String getCorrelation() {
-        String ref;
+        String ref = null;
         if (isCorrelationIDPresent()) {
             ref = MDC.get(ConfigurationConstants.CORRELATION_ID_MDC).toString();
-        } else {
-            ref = UUID.randomUUID().toString();
-            MDC.put(ConfigurationConstants.CORRELATION_ID_MDC, ref);
         }
         return ref;
     }
