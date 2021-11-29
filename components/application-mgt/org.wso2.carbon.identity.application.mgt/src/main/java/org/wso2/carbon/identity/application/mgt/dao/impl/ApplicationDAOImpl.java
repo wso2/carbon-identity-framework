@@ -110,6 +110,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
@@ -467,9 +469,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
             ServiceProviderProperty[] spProperties = application.getSpProperties();
-            if (spProperties != null) {
-                addServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
-            }
+            List<ServiceProviderProperty> serviceProviderProperties = new ArrayList<>(Arrays.asList(spProperties));
+
+            ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(application);
+            serviceProviderProperties.add(isManagementAppProperty);
+
+            addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
+
 
             if (log.isDebugEnabled()) {
                 log.debug("Application Stored successfully with applicationId: " + applicationId +
@@ -2114,6 +2120,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
+            serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2163,6 +2170,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private boolean getIsManagementApp(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        if (StringUtils.EMPTY.equals(value)) {
+            return true;
+        }
+        return Boolean.parseBoolean(value);
     }
 
     private String getTemplateId(List<ServiceProviderProperty> propertyList) {
@@ -4564,7 +4584,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty templateIdProperty = buildTemplateIdProperty(sp);
         spPropertyMap.put(templateIdProperty.getName(), templateIdProperty);
 
+        ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(sp);
+        spPropertyMap.put(isManagementAppProperty.getName(), isManagementAppProperty);
+
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
+    }
+
+    private ServiceProviderProperty buildIsManagementAppProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isManagementAppProperty = new ServiceProviderProperty();
+        isManagementAppProperty.setName(IS_MANAGEMENT_APP_SP_PROPERTY_NAME);
+        isManagementAppProperty.setDisplayName(IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME);
+        isManagementAppProperty.setValue(String.valueOf(sp.isManagementApp()));
+        return isManagementAppProperty;
     }
 
     private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
