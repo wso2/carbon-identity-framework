@@ -18,8 +18,6 @@
 package org.wso2.carbon.identity.application.common.util;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.util.Base64;
-import org.apache.axiom.util.base64.Base64Utils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -58,6 +56,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -416,7 +415,7 @@ public class IdentityApplicationManagementUtil {
         if (encodedCert != null) {
             MessageDigest digestValue = null;
             digestValue = MessageDigest.getInstance("SHA-1");
-            byte[] der = Base64.decode(encodedCert);
+            byte[] der = Base64.getDecoder().decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
             String publicCertThumbprint = hexify(digestInBytes);
@@ -438,7 +437,7 @@ public class IdentityApplicationManagementUtil {
     public static Certificate decodeCertificate(String encodedCert) throws CertificateException {
 
         if (encodedCert != null) {
-            byte[] bytes = Base64.decode(encodedCert);
+            byte[] bytes = Base64.getDecoder().decode(encodedCert);
             CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
             X509Certificate cert = (X509Certificate) factory
                     .generateCertificate(new ByteArrayInputStream(bytes));
@@ -547,7 +546,7 @@ public class IdentityApplicationManagementUtil {
 
     private static CertData createCertData(String encodedCert) throws CertificateException {
 
-        byte[] bytes = Base64.decode(encodedCert);
+        byte[] bytes = Base64.getDecoder().decode(encodedCert);
         CertificateFactory factory = CertificateFactory.getInstance(IdentityApplicationConstants.CERTIFICATE_TYPE);
         X509Certificate cert = (X509Certificate) factory
                 .generateCertificate(new ByteArrayInputStream(bytes));
@@ -599,7 +598,7 @@ public class IdentityApplicationManagementUtil {
         certData.setVersion(cert.getVersion());
         certData.setNotAfter(formatter.format(cert.getNotAfter()));
         certData.setNotBefore(formatter.format(cert.getNotBefore()));
-        certData.setPublicKey(Base64.encode(cert.getPublicKey().getEncoded()));
+        certData.setPublicKey(Base64.getEncoder().encodeToString(cert.getPublicKey().getEncoded()));
         return certData;
     }
 
@@ -743,16 +742,19 @@ public class IdentityApplicationManagementUtil {
 
         }
 
-        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + new Date().getTime() + 3000 + ",\"iat\":"
+        long expiryTime = new Date().getTime() + 3000;
+        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + expiryTime + ",\"iat\":"
                 + new Date().getTime() + "," + jsonObj + "}";
-        String jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"HS256\"}";
+        String jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
 
         if (oauthConsumerSecret == null) {
-            jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
+            jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
         }
 
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes(StandardCharsets.UTF_8));
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedHeader = Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtHeader.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedBody = Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtBody.getBytes(StandardCharsets.UTF_8));
 
         if (log.isDebugEnabled()) {
             log.debug("JWT Header :" + jwtHeader);
@@ -784,11 +786,11 @@ public class IdentityApplicationManagementUtil {
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
-            Mac mac = Mac.getInstance("HmacSHA1");
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(signingKey);
             byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
-            result = Base64Utils.encode(rawHmac);
+            result = Base64.getUrlEncoder().withoutPadding().encodeToString(rawHmac);
         } catch (NoSuchAlgorithmException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to create the HMAC Signature", e);
