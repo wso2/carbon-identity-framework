@@ -23,11 +23,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.utils.AuditLog;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -39,6 +42,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
@@ -48,6 +52,7 @@ public class LoggerUtils {
 
     private static final Log log = LogFactory.getLog(LoggerUtils.class);
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
+    private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
 
     /**
@@ -84,6 +89,42 @@ public class LoggerUtils {
             }
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
+            log.error(errorLog, e);
+        }
+    }
+
+    /**
+     * Trigger Diagnostic Log Event.
+     *
+     * @param componentId       Component ID.
+     * @param input             Input parameters.
+     * @param resultStatus      Result status.
+     * @param resultMessage     Result message.
+     * @param actionId          Action ID.
+     * @param configurations    System/application level configurations.
+     */
+    public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
+                                                 String resultMessage, String actionId,
+                                                 Map<String, Object> configurations) {
+
+        try {
+            Map<String, Object> diagnosticLogProperties = new HashMap<>();
+            String id = UUID.randomUUID().toString();
+            Instant recordedAt = parseDateTime(Instant.now().toString());
+            String requestId = MDC.get(CORRELATION_ID_MDC);
+            String flowId = MDC.get(FLOW_ID_MDC);
+            DiagnosticLog diagnosticLog = new DiagnosticLog(id, recordedAt, requestId, flowId, resultStatus,
+                    resultMessage, actionId, componentId, input, configurations);
+            IdentityEventService eventMgtService =
+                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
+            int tenantId =
+                    IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.TENANT_ID, tenantId);
+            Event diagnosticLogEvent = new Event(PUBLISH_DIAGNOSTIC_LOG, diagnosticLogProperties);
+            eventMgtService.handleEvent(diagnosticLogEvent);
+        } catch (IdentityEventException e) {
+            String errorLog = "Error occurred when firing the diagnostic log event.";
             log.error(errorLog, e);
         }
     }
