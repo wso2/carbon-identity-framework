@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.utils.AuditLog;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.time.DateTimeException;
@@ -127,6 +128,22 @@ public class LoggerUtils {
             String errorLog = "Error occurred when firing the diagnostic log event.";
             log.error(errorLog, e);
         }
+    }
+
+    /**
+     * Checks whether diagnostic logs are enabled.
+     *
+     * @return false if DiagnosticLogMode is NONE, true otherwise.
+     */
+    public static boolean isDiagnosticLogsEnabled() {
+
+        int tenantId = IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        CarbonConstants.DiagnosticLogMode diagnosticLogMode = CarbonUtils.getDiagnosticLogMode(tenantId);
+
+        if (CarbonConstants.DiagnosticLogMode.NONE.equals(diagnosticLogMode)) {
+            return false;
+        }
+        return true;
     }
 
     /**
