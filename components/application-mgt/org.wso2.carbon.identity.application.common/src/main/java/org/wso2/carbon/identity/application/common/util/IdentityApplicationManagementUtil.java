@@ -743,16 +743,19 @@ public class IdentityApplicationManagementUtil {
 
         }
 
-        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + new Date().getTime() + 3000 + ",\"iat\":"
+        long expiryTime = new Date().getTime() + 3000;
+        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + expiryTime + ",\"iat\":"
                 + new Date().getTime() + "," + jsonObj + "}";
-        String jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"HS256\"}";
+        String jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
 
         if (oauthConsumerSecret == null) {
-            jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
+            jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
         }
 
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes(StandardCharsets.UTF_8));
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedHeader = java.util.Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtHeader.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedBody = java.util.Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtBody.getBytes(StandardCharsets.UTF_8));
 
         if (log.isDebugEnabled()) {
             log.debug("JWT Header :" + jwtHeader);
@@ -766,13 +769,36 @@ public class IdentityApplicationManagementUtil {
         } else {
             String signedAssertion;
             try {
-                signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
+                signedAssertion = calculateHmacSha256(oauthConsumerSecret, assertion);
                 return assertion + "." + signedAssertion;
             } catch (SignatureException e) {
                 log.error("Error while signing the assertion", e);
                 return assertion + ".";
             }
         }
+    }
+
+    private static String calculateHmacSha256(String key, String value) throws SignatureException {
+
+        String result;
+        try {
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(signingKey);
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            result = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(rawHmac);
+        } catch (NoSuchAlgorithmException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Invalid algorithm provided while calculating HMAC signature.", e);
+        } catch (InvalidKeyException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Failed to calculate HMAC signature.", e);
+        }
+        return result;
     }
 
     /**
