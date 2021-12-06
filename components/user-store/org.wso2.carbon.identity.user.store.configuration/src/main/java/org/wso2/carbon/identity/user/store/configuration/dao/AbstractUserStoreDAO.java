@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.user.api.RealmConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,29 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
         for (UserStorePersistanceDTO userStorePersistanceDTO : userStorePersistanceDTOS) {
             userStoreDTOs.add(userStorePersistanceDTO.getUserStoreDTO());
         }
-        return userStoreDTOs.toArray(new UserStoreDTO[userStoreDTOs.size()]);
+        return userStoreDTOs.toArray(new UserStoreDTO[0]);
+    }
+
+    @Override
+    public RealmConfiguration[] getUserStoreRealms() throws IdentityUserStoreMgtException {
+
+        UserStorePersistanceDTO[] userStorePersistanceDTOS = doGetAllUserStores();
+        List<RealmConfiguration> realmConfigurations = new ArrayList<>();
+        for (UserStorePersistanceDTO userStorePersistanceDTO : userStorePersistanceDTOS) {
+            realmConfigurations.add(userStorePersistanceDTO.getRealmConfiguration());
+        }
+        return realmConfigurations.toArray(new RealmConfiguration[0]);
+    }
+
+    @Override
+    public RealmConfiguration[] getUserStoreRealmsForTenant(int tenantId) throws IdentityUserStoreMgtException {
+
+        UserStorePersistanceDTO[] userStorePersistanceDTOS = doGetUserStoresForTenant(tenantId);
+        List<RealmConfiguration> realmConfigurations = new ArrayList<>();
+        for (UserStorePersistanceDTO userStorePersistanceDTO : userStorePersistanceDTOS) {
+            realmConfigurations.add(userStorePersistanceDTO.getRealmConfiguration());
+        }
+        return realmConfigurations.toArray(new RealmConfiguration[0]);
     }
 
     protected abstract void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO)
@@ -113,6 +136,9 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
     protected abstract UserStorePersistanceDTO doGetUserStore(String domain) throws IdentityUserStoreMgtException;
 
     protected abstract UserStorePersistanceDTO[] doGetAllUserStores() throws IdentityUserStoreMgtException;
+
+    protected abstract UserStorePersistanceDTO[] doGetUserStoresForTenant(int tenantId)
+            throws IdentityUserStoreMgtException;
 
     private String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName)
             throws IdentityUserStoreMgtException {

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.store.configuration.dto;
 
+import org.wso2.carbon.user.api.RealmConfiguration;
+
 /**
  * This object is used to persist user store properties.
  */
@@ -25,6 +27,7 @@ public class UserStorePersistanceDTO {
 
     UserStoreDTO userStoreDTO;
     String userStoreProperties;
+    private RealmConfiguration realmConfiguration;
 
     public UserStoreDTO getUserStoreDTO() {
 
@@ -44,5 +47,15 @@ public class UserStorePersistanceDTO {
     public void setUserStoreProperties(String userStoreProperties) {
 
         this.userStoreProperties = userStoreProperties;
+    }
+
+    public void setUserStoreRealmConfiguration(RealmConfiguration realmConfiguration) {
+
+        this.realmConfiguration = realmConfiguration;
+    }
+
+    public RealmConfiguration getRealmConfiguration() {
+
+        return realmConfiguration;
     }
 }

@@ -259,6 +259,12 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             return new UserStoreDTO[0];
         } else {
             do {
+                if (secondaryRealmConfiguration.getRepositoryClassName() != null &&
+                        secondaryRealmConfiguration.getRepositoryClassName().
+                                equalsIgnoreCase(DatabaseBasedUserStoreDAOFactory.class.toString())) {
+                    secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
+                    continue;
+                }
                 Map<String, String> userStoreProperties = secondaryRealmConfiguration.getUserStoreProperties();
                 String uuid = userStoreProperties.get(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT);
                 if (uuid == null) {
@@ -440,12 +446,19 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                     userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
                 userStorePersistanceDTO.setUserStoreDTO(userStoreDTO);
+                userStorePersistanceDTO.setUserStoreRealmConfiguration(secondaryRealmConfiguration);
                 userStorePersistanceDAOList.add(userStorePersistanceDTO);
                 secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
 
             } while (secondaryRealmConfiguration != null);
         }
         return userStorePersistanceDAOList.toArray(new UserStorePersistanceDTO[userStorePersistanceDAOList.size()]);
+    }
+
+    @Override
+    protected UserStorePersistanceDTO[] doGetUserStoresForTenant(int tenantId) throws IdentityUserStoreMgtException {
+
+        return new UserStorePersistanceDTO[0];
     }
 
     private UserStoreDTO getUserStoreDTO(RealmConfiguration secondaryRealmConfiguration, Map<String, String>

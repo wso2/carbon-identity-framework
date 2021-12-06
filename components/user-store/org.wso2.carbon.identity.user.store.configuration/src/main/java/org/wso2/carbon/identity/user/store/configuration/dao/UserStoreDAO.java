@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.store.configuration.dao;
 
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
+import org.wso2.carbon.user.api.RealmConfiguration;
 
 /**
  * This interface performs CRUD operations for {@link UserStoreDTO}
@@ -80,4 +81,21 @@ public interface UserStoreDAO {
      * @return an array of {@link UserStoreDTO}
      */
     UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException;
+
+    /**
+     * Get all user store realms.
+     *
+     * @return an array of RealmConfigurations.
+     * @throws IdentityUserStoreMgtException if an exception occurred.
+     */
+    RealmConfiguration[] getUserStoreRealms() throws IdentityUserStoreMgtException;
+
+    /**
+     * Get all user store realms for a provided tenant.
+     *
+     * @param tenantId id of the tenant.
+     * @return an array of RealmConfigurations.
+     * @throws IdentityUserStoreMgtException if an exception occurred.
+     */
+    RealmConfiguration[] getUserStoreRealmsForTenant(int tenantId) throws IdentityUserStoreMgtException;
 }

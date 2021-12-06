@@ -29,7 +29,17 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
+import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreConfigConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -37,6 +47,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * UserStore config component for deployer.
+ */
 @Component(
         name = "identity.user.store.org.wso2.carbon.identity.user.store.configuration.component",
         immediate = true
@@ -45,6 +58,7 @@ public class UserStoreConfigComponent {
     private static final Log log = LogFactory.getLog(UserStoreConfigComponent.class);
     private static RealmService realmService = null;
     private static ServerConfigurationService serverConfigurationService = null;
+    private static AbstractUserStoreDAOFactory dbBasedUserStoreDAOFactory = null;
 
     public static RealmService getRealmService() {
         return realmService;
@@ -142,11 +156,45 @@ public class UserStoreConfigComponent {
         UserStoreConfigComponent.serverConfigurationService = null;
     }
 
+    @Reference(
+            name = "database.based.user.store.config.service",
+            service = AbstractUserStoreDAOFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDatabaseBasedUserStoreDAOFactory"
+    )
+    protected void setDatabaseBasedUserStoreDAOFactory(AbstractUserStoreDAOFactory abstractUserStoreDAOFactory) {
+
+        if (abstractUserStoreDAOFactory.getClass().getSimpleName()
+                .equalsIgnoreCase(DatabaseBasedUserStoreDAOFactory.class.toString())) {
+            UserStoreConfigComponent.dbBasedUserStoreDAOFactory = abstractUserStoreDAOFactory;
+            if (log.isDebugEnabled()) {
+                log.debug("DatabaseBasedUserStoreDAOFactory is set to User Store Deployer bundle.");
+            }
+        }
+    }
+
+    protected void unsetDatabaseBasedUserStoreDAOFactory(AbstractUserStoreDAOFactory abstractUserStoreDAOFactory) {
+
+        UserStoreConfigComponent.dbBasedUserStoreDAOFactory = null;
+        if (log.isDebugEnabled()) {
+            log.debug("DatabaseBasedUserStoreDAOFactory is unset from User Store Deployer bundle.");
+        }
+    }
+
     /**
      * This method invoked when the bundle get activated, it touches the super-tenants user store
      * configuration with latest time stamp. This invokes undeploy and deploy method
      */
     private void triggerDeployerForSuperTenantSecondaryUserStores() {
+
+        triggerDeployerForSuperTenantFileBasedUserStores();
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+            deployDatabaseBasedUserStoresForSuperTenant();
+        }
+    }
+
+    private void triggerDeployerForSuperTenantFileBasedUserStores() {
 
         String repositoryPath = CarbonUtils.getCarbonRepository();
         int repoLength = repositoryPath.length();
@@ -184,6 +232,56 @@ public class UserStoreConfigComponent {
                 }
             }
         }
+    }
+
+    private void deployDatabaseBasedUserStoresForSuperTenant() {
+
+        RealmConfiguration[] userStores = new RealmConfiguration[0];
+        try {
+            userStores = UserStoreConfigComponent.dbBasedUserStoreDAOFactory.getInstance().getUserStoreRealms();
+        } catch (IdentityUserStoreMgtException e) {
+            log.error("Error occurred while getting the user store realms", e);
+        }
+        for (RealmConfiguration realmConfiguration : userStores) {
+            UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            AbstractUserStoreManager primaryUSM;
+            try {
+                primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
+                primaryUSM.addSecondaryUserStoreManager(realmConfiguration, userRealm);
+                setSecondaryUserStoreToChain(userRealm.getRealmConfiguration(), realmConfiguration);
+            } catch (UserStoreException e) {
+                log.error("Error occurred while trying to add set the secondary user stores", e);
+            }
+        }
+    }
+
+    /**
+     * Set secondary user store at the very end of chain.
+     *
+     * @param parent : primary user store
+     * @param child  : secondary user store
+     */
+    private void setSecondaryUserStoreToChain(RealmConfiguration parent, RealmConfiguration child) {
+
+        String parentDomain = parent.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        String addingDomain = child.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+
+        if (parentDomain == null) {
+            return;
+        }
+
+        while (parent.getSecondaryRealmConfig() != null) {
+            if (parentDomain.equals(addingDomain)) {
+                return;
+            }
+            parent = parent.getSecondaryRealmConfig();
+            parentDomain = parent.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME);
+        }
+
+        if (parentDomain.equals(addingDomain)) {
+            return;
+        }
+        parent.setSecondaryRealmConfig(child);
     }
 
     private boolean isValidExtension(String ext) {

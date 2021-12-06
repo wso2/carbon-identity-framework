@@ -924,7 +924,7 @@ public class SecondaryUserStoreConfigurationUtil {
         // Support for user stores based on different repositories is
         // disabled as the feature has on going improvements.
         // https://github.com/wso2/product-is/issues/5673
-        return false;
+        return true;
     }
 
     /**
