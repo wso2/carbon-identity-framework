@@ -135,7 +135,8 @@ public class User implements Serializable {
      * @param userName
      */
     public void setUserName(String userName) {
-        this.userName = userName;
+
+        this.userName = StringUtils.isBlank(userName) ? StringUtils.EMPTY : userName.toLowerCase();
     }
 
     public boolean equals(Object o) {

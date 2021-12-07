@@ -86,7 +86,8 @@ public class AuthenticatedUser extends User {
                 log.debug("Null user id is found while copying the AuthenticateUser instance.");
             }
         }
-        this.userName = authenticatedUser.getUserName();
+        this.userName = StringUtils.isBlank(authenticatedUser.getUserName()) ?
+                StringUtils.EMPTY : authenticatedUser.getUserName().toLowerCase();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
         if (authenticatedUser.getUserAttributes() != null) {
             this.userAttributes.putAll(authenticatedUser.getUserAttributes());
@@ -101,7 +102,7 @@ public class AuthenticatedUser extends User {
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
 
         this.userId = user.getUserID();
-        this.userName = user.getUsername();
+        this.userName = StringUtils.isBlank(user.getUsername()) ? StringUtils.EMPTY : user.getUsername().toLowerCase();
         this.tenantDomain = user.getTenantDomain();
         this.userStoreDomain = user.getUserStoreDomain();
         this.isFederatedUser = false;
@@ -115,7 +116,7 @@ public class AuthenticatedUser extends User {
 
     public AuthenticatedUser(User user) {
 
-        this.userName = user.getUserName();
+        this.userName = StringUtils.isBlank(user.getUserName()) ? StringUtils.EMPTY : user.getUserName().toLowerCase();
         this.tenantDomain = user.getTenantDomain();
         this.userStoreDomain = user.getUserStoreDomain();
     }
