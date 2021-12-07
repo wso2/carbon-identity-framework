@@ -120,4 +120,19 @@ public class Constants {
 
         }
     }
+
+    public static class ErrorToi18nMappingConstants {
+
+        public static final String INVALID_CALLBACK_CALLBACK_NOT_MATCH = "invalid_callback_callback.not.match";
+        public static final String INVALID_CALLBACK_CALLBACK_NOT_MATCH_I18N_KEY = "callback.not.match";
+        public static final String INVALID_CLIENT_APP_NOT_FOUND = "invalid_client_application.not.found";
+        public static final String INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY = "application.not.found";
+        public static final String INVALID_REQUEST_INVALID_REDIRECT_URI = "invalid_request_invalid.redirect.uri";
+        public static final String INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY = "invalid.redirect.uri";
+        public static final String INCORRECT_ERROR_MAPPING_KEY = "incorrect.error.mapping";
+
+        private ErrorToi18nMappingConstants() {
+
+        }
+    }
 }
