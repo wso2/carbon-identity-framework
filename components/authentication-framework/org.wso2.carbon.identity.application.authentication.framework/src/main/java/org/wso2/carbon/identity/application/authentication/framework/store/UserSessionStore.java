@@ -26,6 +26,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
@@ -261,6 +262,38 @@ public class UserSessionStore {
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e);
+        }
+        return idPId;
+    }
+
+    /**
+     * Retrieve IDP ID from the IDP table using IDP name and tenant ID.
+     *
+     * @param idpName   IDP name.
+     * @param tenantId  Tenant ID.
+     * @return          IDP ID.
+     * @throws UserSessionException
+     */
+    public int getIdPId(String idpName, int tenantId) throws UserSessionException {
+
+        int idPId = -1;
+        if (idpName.equals(FrameworkConstants.LOCAL_IDP_NAME)) {
+            return idPId;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_IDP_WITH_TENANT)) {
+                preparedStatement.setString(1, idpName);
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        idPId = resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving the IdP id of: " + idpName + " and tenant ID: " +
+                    tenantId, e);
         }
         return idPId;
     }
