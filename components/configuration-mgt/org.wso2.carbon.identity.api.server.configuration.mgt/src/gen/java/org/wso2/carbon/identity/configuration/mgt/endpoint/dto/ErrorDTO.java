@@ -23,7 +23,8 @@ public class ErrorDTO  {
   
   private String description = null;
 
-  
+  private String ref = null;
+
   /**
    **/
   @ApiModelProperty(value = "")
@@ -59,7 +60,13 @@ public class ErrorDTO  {
     this.description = description;
   }
 
-  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("traceId")
+  public String getRef() {return ref;}
+  public void setRef(String ref) {this.ref = ref;}
+
 
   @Override
   public String toString()  {
@@ -69,6 +76,9 @@ public class ErrorDTO  {
     sb.append("  code: ").append(code).append("\n");
     sb.append("  message: ").append(message).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    if (!ref.isEmpty()) {
+      sb.append("  traceId: ").append(ref).append("\n");
+    }
     sb.append("}\n");
     return sb.toString();
   }

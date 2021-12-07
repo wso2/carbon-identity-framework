@@ -890,6 +890,9 @@ definitions:
       description:
         type: string
         example: "Some error description"
+      traceId:
+        type: string
+        example: e0fbcfeb-3617-43c4-8dd0-7b7d38e13047
 
   #-----------------------------------------------------
   # Resources object
