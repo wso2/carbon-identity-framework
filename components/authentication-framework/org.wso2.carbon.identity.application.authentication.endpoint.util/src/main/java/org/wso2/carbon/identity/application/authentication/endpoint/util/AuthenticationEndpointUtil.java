@@ -197,9 +197,9 @@ public class AuthenticationEndpointUtil {
     /**
      * Retrieve the key mapped to the corresponding error code and sub error code combination.
      *
-     * @param errorCode error code
-     * @param subErrorCode sub error code or error message context
-     * @return mapped key for the error code and sub error code combination
+     * @param errorCode error code.
+     * @param subErrorCode sub error code or error message context.
+     * @return mapped key for the error code and sub error code combination.
      */
     public static String getErrorCodeToi18nMapping(String errorCode, String subErrorCode) {
 
