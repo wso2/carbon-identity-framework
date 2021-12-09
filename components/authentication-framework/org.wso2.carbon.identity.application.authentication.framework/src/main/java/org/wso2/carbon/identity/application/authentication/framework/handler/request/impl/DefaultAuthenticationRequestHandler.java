@@ -57,8 +57,11 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.model.UserMgtContext;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -597,6 +600,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             request.setAttribute("sessionDataKey", context.getCallerSessionKey());
             addAuthenticationResultToRequest(request, authenticationResult);
         } else {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            AbstractUserStoreManager userStoreManager;
+            try {
+                userStoreManager = (AbstractUserStoreManager) realmService
+                        .getTenantUserRealm(IdentityTenantUtil.getTenantId(authenticatedUserTenantDomain))
+                        .getUserStoreManager();
+            } catch (UserStoreException e) {
+                throw new FrameworkException("Error while fetching user store manager details of the authenticated " +
+                        "user from the database", e);
+            }
+            if (!IdentityUtil.isUseCaseSensitiveUsernameForCacheKeys(userStoreManager)) {
+                AuthenticatedUser user = authenticationResult.getSubject();
+                user.setUserName(user.getUserName().toLowerCase());
+                authenticationResult.setSubject(user);
+            }
             FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
         }
         /*
