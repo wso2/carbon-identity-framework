@@ -24,6 +24,7 @@ import org.apache.cxf.jaxrs.ext.search.SearchCondition;
 import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
+import org.apache.log4j.MDC;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -64,6 +65,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -193,12 +195,35 @@ public class ConfigurationEndpointUtils {
         return attributeDTO;
     }
 
+    /**
+     * Check whether correlation id present in the log MDC
+     *
+     * @return whether the correlation id is present
+     */
+    public static boolean isCorrelationIDPresent() {
+        return MDC.get(ConfigurationConstants.CORRELATION_ID_MDC) != null;
+    }
+
+    /**
+     * Get correlation id of current thread
+     *
+     * @return correlation-id
+     */
+    public static String getCorrelation() {
+        String ref = null;
+        if (isCorrelationIDPresent()) {
+            ref = MDC.get(ConfigurationConstants.CORRELATION_ID_MDC).toString();
+        }
+        return ref;
+    }
+
     private static ErrorDTO getErrorDTO(String message, String description, String code) {
 
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setCode(code);
         errorDTO.setMessage(message);
         errorDTO.setDescription(description);
+        errorDTO.setRef(getCorrelation());
         return errorDTO;
     }
 

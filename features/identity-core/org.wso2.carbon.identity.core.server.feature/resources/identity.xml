@@ -149,14 +149,6 @@
     </OpenID>
 
     <OAuth>
-        <!--
-             Configs related to DPoP implementation.
-        -->
-        <DPoPConfig>
-            <Enable>true</Enable>
-            <HeaderValidity>60</HeaderValidity>
-        </DPoPConfig>
-
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -377,8 +369,6 @@
         <TokenValidators>
             <TokenValidator type="bearer" class="org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator"/>
             <TokenValidator type="jwt" class="org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator"/>
-            <!--If oauth.dpop.enable is true, DPoPTokenValidator is enabled -->
-            <TokenValidator type="dpop" class="org.wso2.carbon.identity.dpop.validators.DPoPTokenValidator"/>
         </TokenValidators>
 
         <!-- Scope validators list. The validators registered here wil be executed during token validation. -->
@@ -532,7 +522,19 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
+            <!--
+                CIBA Request Object validator implementation.
+                Default value: org.wso2.carbon.identity.openidconnect.CIBARequestObjectValidatorImpl
+                Supported versions: IS 5.12.0 onwards
+            -->
+            <!-- <CIBARequestObjectValidator>org.wso2.carbon.identity.openidconnect.CIBARequestObjectValidatorImpl</CIBARequestObjectValidator> -->
             <RedirectToPostLogoutUriOnConsentDenial>true</RedirectToPostLogoutUriOnConsentDenial>
+            <!--
+            By default, AllowAdditionalParamsFromPostLogoutRedirectURI is true. Hence IS sends additional query params
+            in post logout redirect URI after OIDC logout.
+            Disable this config if additional params are not needed post logout redirect URL.
+            -->
+            <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
         </OpenIDConnect>
 
         <!--
@@ -575,15 +577,22 @@
         -->
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
-        <!--
-        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+        <Introspection>
+            <!--
+            By enabling this property UMA permission information for the RPT can be retrieved through introspection response
 
-        Default value : false
-        Supported versions : IS 5.8.0 onwards
-        -->
-        <!--Introspection>
-            <EnableDataProviders>false</EnableDataProviders>
-        </Introspection-->
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+            -->
+<!--            <EnableDataProviders>false</EnableDataProviders>-->
+            <!--
+                This config will remove any optional claims from introspection response. Before setting the response to
+                the introspection endpoint claims configured below will be removed.
+            -->
+<!--            <FilteredClaims>-->
+<!--                <FilteredClaim></FilteredClaim>-->
+<!--            </FilteredClaims>-->
+        </Introspection>
 
         <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
 
@@ -1273,6 +1282,20 @@
         <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
             <Scopes>internal_secret_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>

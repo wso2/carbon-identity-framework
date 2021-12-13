@@ -18,13 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -34,6 +31,8 @@ import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -50,22 +49,12 @@ import static org.testng.Assert.assertNotNull;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
-@WithRealmService
+@WithRealmService(initUserStoreManager = true,
+        injectToSingletons = {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class},
+        tenantDomain = "foo.com")
+@WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 @WithAxisConfiguration
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
-
-    @BeforeTest
-    public void init() {
-
-        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
-        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
-    }
-
-    @AfterTest
-    public void teardown() {
-
-        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
-    }
 
     @Test(dataProvider = "staticAcrDataProvider")
     public void testHandleStaticJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount) throws
@@ -102,6 +91,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @DataProvider(name = "staticAcrDataProvider")
     public Object[][] getStaticAcrRolesData() {
+
         return new Object[][]{
                 {"js-sp-1.xml", new String[]{"acr1"}, 1},
                 {"js-sp-1.xml", new String[]{"acr2"}, 2},
@@ -111,6 +101,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @Test(expectedExceptions = FrameworkException.class)
     public void testHandleIncorrectJavascriptAcr() throws Exception {
+
         ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -131,6 +122,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @Test(expectedExceptions = FrameworkException.class)
     public void testHandleIncorrectFunctionJavascriptAcr() throws Exception {
+
         ServiceProvider sp1 = getTestServiceProvider("incorrect-function-js-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);

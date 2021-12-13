@@ -17,12 +17,28 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -32,10 +48,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
 /**
  * Test class for DefaultApplicationValidator.
  */
+@PrepareForTest({ApplicationManagementService.class, ApplicationAuthenticatorService.class,
+        IdentityProviderManager.class, IdentityProvider.class})
 public class DefaultApplicationValidatorTest {
+
+    @Mock
+    LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
+
+    @Mock
+    private IdentityProviderManager mockedIdentityProviderManager;
 
     @DataProvider(name = "validateAdaptiveAuthScriptDataProvider")
     public Object[][] validateAdaptiveAuthScriptDataProvider() {
@@ -171,5 +202,83 @@ public class DefaultApplicationValidatorTest {
                     "there should not be any validation messages. Validation messages: " +
                     String.join("|", validationErrors));
         }
+    }
+
+    @Test
+    public void testValidateApplication() throws IdentityApplicationManagementException,
+            IdentityProviderManagementException {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setDiscoverable(false);
+        serviceProvider.setInboundAuthenticationConfig(null);
+        serviceProvider.setRequestPathAuthenticatorConfigs(null);
+        serviceProvider.setOutboundProvisioningConfig(null);
+        serviceProvider.setClaimConfig(null);
+        serviceProvider.setPermissionAndRoleConfig(null);
+
+        mockStatic(ApplicationManagementService.class);
+        ApplicationManagementService applicationManagementService =
+                mock(ApplicationManagementService.class);
+        when(ApplicationManagementService.getInstance()).thenReturn(applicationManagementService);
+        when(applicationManagementService.getAllLocalAuthenticators(anyString())).thenReturn(null);
+
+        RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs = new RequestPathAuthenticatorConfig[0];
+        when(applicationManagementService.getAllRequestPathAuthenticators(anyString())).
+                thenReturn(requestPathAuthenticatorConfigs);
+
+        AuthenticationStep authenticationStep1 = new AuthenticationStep();
+        authenticationStep1.setStepOrder(1);
+        IdentityProvider federatedIdentityProvider = new IdentityProvider();
+        federatedIdentityProvider.setIdentityProviderName("OIDC_IDP");
+        IdentityProvider[] federatedIdentityProviders = new IdentityProvider[]{federatedIdentityProvider};
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setName("FederatedIDP");
+        federatedAuthenticatorConfig.setTags(new String[]{"OIDC"});
+
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
+                new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig};
+        federatedIdentityProvider.setFederatedAuthenticatorConfigs(federatedAuthenticatorConfigs);
+        authenticationStep1.setFederatedIdentityProviders(federatedIdentityProviders);
+
+        mockStatic(ApplicationAuthenticatorService.class);
+        ApplicationAuthenticatorService applicationAuthenticatorService =
+                mock(ApplicationAuthenticatorService.class);
+        when(ApplicationAuthenticatorService.getInstance()).thenReturn(applicationAuthenticatorService);
+
+        mockStatic(IdentityProviderManager.class);
+        when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
+
+        IdentityProvider identityProvider = new IdentityProvider();
+        doReturn(identityProvider).when(mockedIdentityProviderManager).
+                getIdPByName(anyString(), anyString(), anyBoolean());
+        JustInTimeProvisioningConfig justInTimeProvisioningConfig = new JustInTimeProvisioningConfig();
+        justInTimeProvisioningConfig.setProvisioningEnabled(false);
+        identityProvider.setJustInTimeProvisioningConfig(justInTimeProvisioningConfig);
+
+       doReturn(federatedAuthenticatorConfig).when(applicationAuthenticatorService).
+               getFederatedAuthenticatorByName(anyString());
+
+        AuthenticationStep authenticationStep2 = new AuthenticationStep();
+        authenticationStep2.setStepOrder(2);
+        LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+        localAuthenticatorConfig.setName("TOTP");
+        localAuthenticatorConfig.setTags(new String[]{"MFA"});
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs =
+                new LocalAuthenticatorConfig[]{localAuthenticatorConfig};
+        authenticationStep2.setLocalAuthenticatorConfigs(localAuthenticatorConfigs);
+
+        doReturn(localAuthenticatorConfig).when(applicationAuthenticatorService).
+                getLocalAuthenticatorByName(anyString());
+        when(applicationManagementService.getAllLocalAuthenticators(anyString())).
+                thenReturn(localAuthenticatorConfigs);
+
+        AuthenticationStep[] authenticationSteps = new AuthenticationStep[]{authenticationStep1, authenticationStep2};
+        when(localAndOutBoundAuthenticationConfig.getAuthenticationSteps()).thenReturn(authenticationSteps);
+        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutBoundAuthenticationConfig);
+
+        ApplicationValidator validator = new DefaultApplicationValidator();
+        Assert.assertThrows(IdentityApplicationManagementClientException.class, () ->
+                validator.validateApplication(serviceProvider, "carbon.super", "admin"));
     }
 }

@@ -50,12 +50,14 @@ public class ApplicationDataRetrievalClient {
     private static final String APPLICATION_API_RELATIVE_PATH = "/api/server/v1/applications";
     private static final String APP_FILTER = "?filter=name+eq+";
     private static final String APPLICATIONS_KEY = "applications";
+    private static final String APP_NAME = "name";
     private static final String ACCESS_URL_KEY = "accessUrl";
+    private static final String APP_ID = "id";
 
     /**
      * Gets the access url configured for the given application.
      *
-     * @param tenant          tenant domain of the application
+     * @param tenant tenant domain of the application
      * @param applicationName name of the application
      * @return the access url configured for the given application
      * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured
@@ -88,6 +90,87 @@ public class ApplicationDataRetrievalClient {
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationName + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Gets the application name for given UUID.
+     *
+     * @param tenant tenant domain of the application
+     * @param applicationId UUID of the application
+     * @return the access url configured for the given application
+     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured
+     */
+    public String getApplicationName(String tenant, String applicationId)
+            throws ApplicationDataRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            HttpGet request =
+                    new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
+            setAuthorizationHeader(request);
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    return jsonResponse.getString(APP_NAME);
+                }
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException | JSONException e) {
+            //JSONException may occur if the application don't have an access URL configured
+            String msg = "Error while getting application name for " + applicationId + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Gets the application ID for the given application.
+     *
+     * @param tenant          tenant domain of the application
+     * @param applicationName name of the application
+     * @return the application UUID for the given application
+     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured
+     */
+    public String getApplicationID(String tenant, String applicationName)
+            throws ApplicationDataRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            HttpGet request =
+                    new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
+                            Encode.forUriComponent(applicationName));
+            setAuthorizationHeader(request);
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                    if (applications.length() != 1) {
+                        return StringUtils.EMPTY;
+                    }
+
+                    JSONObject application = (JSONObject) applications.get(0);
+                    return application.getString(APP_ID);
+                }
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException | JSONException e) {
+            //JSONException may occur if the application don't have an access URL configured
+            String msg = "Error while getting application ID for " + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }

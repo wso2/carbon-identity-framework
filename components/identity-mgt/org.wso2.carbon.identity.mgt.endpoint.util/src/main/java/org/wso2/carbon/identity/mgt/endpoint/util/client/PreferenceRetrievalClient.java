@@ -56,6 +56,7 @@ public class PreferenceRetrievalClient {
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
+    private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
@@ -63,6 +64,8 @@ public class PreferenceRetrievalClient {
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_VALUE = "value";
+    private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
+    private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
 
     /**
      * Check self registration is enabled or not.
@@ -74,6 +77,18 @@ public class PreferenceRetrievalClient {
     public boolean checkSelfRegistration(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_REGISTRATION_PROPERTY);
+    }
+
+    /**
+     * Check lock on self registration is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if lock on self registration enabled.
+     * @throws PreferenceRetrievalClientException
+     */
+    public boolean checkSelfRegistrationLockOnCreation(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY);
     }
 
     /**
@@ -140,6 +155,18 @@ public class PreferenceRetrievalClient {
     }
 
     /**
+     * Check typingDNA authentication is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return returns true if typingDNA enabled.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkTypingDNA(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, TYPING_DNA_CONNECTOR, TYPING_DNA_PROPERTY, false);
+    }
+
+    /**
      * Check for preference in the given tenant.
      *
      * @param tenant        tenant domain name.
@@ -149,6 +176,22 @@ public class PreferenceRetrievalClient {
      * @throws PreferenceRetrievalClientException
      */
     public boolean checkPreference(String tenant, String connectorName, String propertyName)
+            throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, connectorName, propertyName, true);
+    }
+
+    /**
+     * Check for preference in the given tenant.
+     *
+     * @param tenant        Tenant domain name.
+     * @param connectorName Name of the connector.
+     * @param propertyName  Property name to check.
+     * @param defaultValue  Default value to be returned if there is any error.
+     * @return returns true if the property is enabled.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
@@ -171,15 +214,16 @@ public class PreferenceRetrievalClient {
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     JSONObject connector = (JSONObject) jsonResponse.get(0);
                     JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
-                    for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
+                    for (int itemIndex = 0, totalObject = responseProperties.length();
+                         itemIndex < totalObject; itemIndex++) {
                         JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME),
-                                propertyName)) {
+                        if (StringUtils.equalsIgnoreCase(
+                                responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
                             return Boolean.valueOf(config.getString(PROPERTY_VALUE));
                         }
                     }
                 }
-                return true;
+                return defaultValue;
             } finally {
                 post.releaseConnection();
             }

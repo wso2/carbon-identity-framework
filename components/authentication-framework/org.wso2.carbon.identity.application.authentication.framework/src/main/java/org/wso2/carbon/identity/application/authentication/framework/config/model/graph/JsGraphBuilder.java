@@ -989,6 +989,10 @@ public class JsGraphBuilder {
     private void startScriptExecutionMonitor(String identifier, AuthenticationContext context,
                                              JSExecutionMonitorData previousExecutionResult) {
 
+        JSExecutionSupervisor jsExecutionSupervisor = getJSExecutionSupervisor();
+        if (jsExecutionSupervisor == null) {
+            return;
+        }
         getJSExecutionSupervisor().monitor(identifier, context.getServiceProviderName()
                 , context.getTenantDomain(), previousExecutionResult.getElapsedTime(),
                 previousExecutionResult.getConsumedMemory());
@@ -1001,6 +1005,10 @@ public class JsGraphBuilder {
 
     private JSExecutionMonitorData endScriptExecutionMonitor(String identifier) {
 
+        JSExecutionSupervisor executionSupervisor = getJSExecutionSupervisor();
+        if (executionSupervisor == null) {
+            return new JSExecutionMonitorData(0, 0);
+        }
         return getJSExecutionSupervisor().completed(identifier);
     }
 

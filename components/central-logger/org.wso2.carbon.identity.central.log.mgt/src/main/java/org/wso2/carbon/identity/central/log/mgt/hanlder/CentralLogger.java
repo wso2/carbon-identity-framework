@@ -48,7 +48,9 @@ public class CentralLogger extends AbstractEventHandler {
                 }
                 break;
             case PUBLISH_DIAGNOSTIC_LOG:
-                // TODO add the diagnostic log publishing method
+                CarbonUtils.publishDiagnosticLog(eventProperties);
+                break;
+            default:
                 break;
         }
     }
