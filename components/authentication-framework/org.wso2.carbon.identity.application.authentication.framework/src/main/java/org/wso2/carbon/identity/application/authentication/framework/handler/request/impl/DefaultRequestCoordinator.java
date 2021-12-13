@@ -323,7 +323,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     .sendToRetryPage(request, responseWrapper, context, "Authentication attempt failed.",
                             e.getErrorCode());
         } catch (Throwable e) {
-            log.error("Exception in Authentication Framework", e);
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
@@ -332,6 +331,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
                         "suspicious.authentication.attempts.description");
             } else {
+                log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
