@@ -1668,20 +1668,17 @@ public class IdPManagementUIUtil {
         property.setValue(authenticationContextClass);
         properties.add(property);
 
-        String customAuthenticationContextClass = "";
-        String[] authnContextClassList = authenticationContextClass.split(",");
+        String[] authnContextClassList = StringUtils.split(authenticationContextClass, ",");
 
         if (Arrays.asList(authnContextClassList).contains(
             IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
-            customAuthenticationContextClass = paramMap.get(IdentityApplicationConstants.
+            property = new Property();
+            property.setName(IdentityApplicationConstants.
                     Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+            property.setValue(paramMap.get(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS));
+            properties.add(property);
         }
-
-        property = new Property();
-        property.setName(IdentityApplicationConstants.
-                Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
-        property.setValue(customAuthenticationContextClass);
-        properties.add(property);
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);

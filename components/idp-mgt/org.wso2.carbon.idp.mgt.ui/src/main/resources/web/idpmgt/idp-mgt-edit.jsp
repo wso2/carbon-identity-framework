@@ -3051,30 +3051,15 @@
 
     function onClickAddAuthnContextClass(){
         var selectedAuthnContextClass = $('#authentication_context_class_dropdown option:selected').val();
-
-          if (!$("#authnContextClsTblRow").length) {
-                var row = '<tr id="authnContextClsTblRow">' +
-                        '    <td></td>' +
-                        '    <td>' +
-                        '        <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
-                        '            <tbody id="authnContextClsTableBody">' +
-                        '            </tbody>' +
-                        '        </table>' +
-                        '        <input type="hidden" id="authnContextCls" name="AuthnContextClassRef" value="">' +
-                        '        <input type="hidden" id="currentColumnId" value="0">' +
-                        '    </td>' +
-                        '</tr>';
-                $('#authnCtxClsInputRow').after(row);
-            }
-
         var authnContextClasses = $("#authnContextCls").val();
-            var currentColumnId = $("#currentColumnId").val();
-            if (selectedAuthnContextClass == '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
-
+        var currentColumnId = $("#currentColumnId").val();
+        if (selectedAuthnContextClass == '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
                 currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
-            } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
+                jQuery('#custom_authentication_context_class').val("");
+                jQuery('#custom_authentication_context_class').attr('disabled', true);
+        } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
                 $("#authnContextCls").val(selectedAuthnContextClass);
-               var row =
+                var row =
                         '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
                         '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
                         '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"'+
@@ -3108,7 +3093,7 @@
                    return false;
                 }
                 else {
-                $("#authnContextCls").val(authnContextClasses + "," + selectedAuthnContextClass);
+                $("#authnContextCls").val(newAuthnContextClass);
                 var row =
                         '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
                         '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
@@ -3126,12 +3111,9 @@
 
             var authnContextClasses = $("#authnContextCls").val();
             var newAuthnContextClasses = "";
-            var isDeleting = true;
             if (selectedAuthnContextClass != '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>' && authnContextClasses === selectedAuthnContextClass) {
-                isDeleting = false;
                 CARBON.showWarningDialog("AuthnContextClassRef Cannot be null", null, null);
-            }
-            if (isDeleting) {
+            } else {
             if (authnContextClasses != null && authnContextClasses.trim().length > 0) {
                 $.each(authnContextClasses.split(","), function (index, value) {
                     if (value != selectedAuthnContextClass) {
@@ -4424,7 +4406,7 @@
                                             if(authenticationContextClass != null){
                                                     authContext = authenticationContextClass;
                                             }
-                                            String[] authnContextClassList = authContext.split(",");
+                                            String[] authnContextClassList = StringUtils.split(authContext, ",");
                                             if(Arrays.asList(authnContextClassList).contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)){
                                                 isCustomNotInclude = false;
                                             }
