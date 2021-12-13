@@ -295,8 +295,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
             } catch (UserStoreException e) {
                 throw new PostAuthenticationFailedException(
-                        "Error while handling missing mandatory claims",
-                        "Error while updating claims for local user. Could not update profile", e);
+                        e.getMessage(), "Error while updating claims for local user. Could not update profile", e);
             }
         }
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
