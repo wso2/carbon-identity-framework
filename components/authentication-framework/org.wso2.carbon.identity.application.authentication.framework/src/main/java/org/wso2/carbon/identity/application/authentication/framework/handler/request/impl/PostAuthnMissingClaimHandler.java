@@ -34,10 +34,14 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
@@ -56,6 +60,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -65,6 +70,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR_CODE;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 
 /**
  * Post authentication handler for missing claims.
@@ -148,9 +154,31 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
         return postAuthRequestTriggered;
     }
 
+    /**
+     * To get display names of missing mandatory claims from SP side.
+     *
+     * @param missingClaimMap Mandatory claim's URIs.
+     * @param localClaims     All claims.
+     * @return set of display names of missing claims.
+     */
+    private String getMissingClaimsDisplayNames(Map<String, String> missingClaimMap, List<LocalClaim> localClaims) {
+
+        StringJoiner displayNameMappingString = new StringJoiner(",");
+        for (Map.Entry<String, String> entry : missingClaimMap.entrySet()) {
+            for (LocalClaim localClaim : localClaims) {
+                if (entry.getValue().equalsIgnoreCase(localClaim.getClaimURI())) {
+                    displayNameMappingString.
+                            add(entry.getKey() + "|" + localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY));
+                    break;
+                }
+            }
+        }
+        return displayNameMappingString.toString();
+    }
+
     protected PostAuthnHandlerFlowStatus handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request,
-                                                                                       HttpServletResponse response,
-                                                                                       AuthenticationContext context)
+                                                                                         HttpServletResponse response,
+                                                                                         AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
@@ -175,10 +203,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     }
                 }
 
+                List<LocalClaim> localClaims =
+                        getClaimMetadataManagementService().getLocalClaims(context.getTenantDomain());
+                String displayNames = getMissingClaimsDisplayNames(missingClaimMap, localClaims);
+
                 URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
                         .getAuthenticationEndpointMissingClaimsURL());
                 uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS,
                         missingClaims[0]);
+                uriBuilder.addParameter(FrameworkConstants.DISPLAY_NAMES,
+                        displayNames);
                 uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
@@ -208,6 +242,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (org.wso2.carbon.user.api.UserStoreException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim from claim URI.", e);
+            } catch (ClaimMetadataException e) {
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while retrieving claim metadata.", e);
             }
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {
@@ -401,5 +438,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         AuthenticatedUser user = authenticationContext.getSequenceConfig().getAuthenticatedUser();
         return user;
+    }
+
+    private ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return FrameworkServiceDataHolder.getInstance().getClaimMetadataManagementService();
     }
 }
