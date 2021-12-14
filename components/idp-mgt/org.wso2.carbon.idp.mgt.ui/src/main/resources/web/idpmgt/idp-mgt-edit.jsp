@@ -1614,13 +1614,6 @@
         var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
         var $authentication_context_class_dropdown = jQuery('#authentication_context_class_dropdown');
         var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
-
-        jQuery('#authentication_context_class_dropdown').change(function () {
-            var selectedClass = $("#authentication_context_class_dropdown").val();
-            if (selectedClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
-                jQuery('#custom_authentication_context_class').removeAttr('disabled');
-             }
-        });
     })
 
     function selectJWKS(certDataNotNull) {
@@ -3058,6 +3051,9 @@
                 jQuery('#custom_authentication_context_class').val("");
                 jQuery('#custom_authentication_context_class').attr('disabled', true);
         } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
+                if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+                    jQuery('#custom_authentication_context_class').removeAttr('disabled');
+                }
                 $("#authnContextCls").val(selectedAuthnContextClass);
                 var row =
                         '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
@@ -3066,8 +3062,7 @@
                         'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
                 $('#authnContextClsTable tbody').append(row);
-
-            } else {
+        } else {
                 var isExist = false;
                 var isUnspecified = false;
                 $.each(authnContextClasses.split(","), function (index, value) {
@@ -3084,27 +3079,28 @@
                     return false;
                 }
                 if (isUnspecified) {
-                currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
-                }
-                else {
-                var newAuthnContextClass = authnContextClasses + "," + selectedAuthnContextClass;
-                if(newAuthnContextClass.length > 255){
-                   CARBON.showWarningDialog("Exceed the Selection Limit", null, null);
-                   return false;
-                }
-                else {
-                $("#authnContextCls").val(newAuthnContextClass);
-                var row =
-                        '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
-                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
-                        '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"' +
-                         'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+                    currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
+                } else {
+                    var newAuthnContextClass = authnContextClasses + "," + selectedAuthnContextClass;
+                    if(newAuthnContextClass.length > 255){
+                        CARBON.showWarningDialog("Exceed the Selection Limit", null, null);
+                        return false;
+                    } else {
+                        if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+                            jQuery('#custom_authentication_context_class').removeAttr('disabled');
+                        }
+                        $("#authnContextCls").val(newAuthnContextClass);
+                        var row =
+                            '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
+                            '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
+                            '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"' +
+                            'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
-                $('#authnContextClsTable tr:last').after(row);
+                        $('#authnContextClsTable tr:last').after(row);
+                    }
                 }
-                }
-            }
-            $("#currentColumnId").val(parseInt(currentColumnId) + 1);
+        }
+        $("#currentColumnId").val(parseInt(currentColumnId) + 1);
     }
 
     function removeAuthnContextClass(selectedAuthnContextClass, columnId) {
