@@ -3051,7 +3051,7 @@
                 jQuery('#custom_authentication_context_class').val("");
                 jQuery('#custom_authentication_context_class').attr('disabled', true);
         } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
-                if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+                if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
                     jQuery('#custom_authentication_context_class').removeAttr('disabled');
                 }
                 $("#authnContextCls").val(selectedAuthnContextClass);
@@ -3081,11 +3081,11 @@
                     currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
                 } else {
                     var newAuthnContextClass = authnContextClasses + "," + selectedAuthnContextClass;
-                    if(newAuthnContextClass.length > 255){
+                    if (newAuthnContextClass.length > 255) {
                         CARBON.showWarningDialog("Exceed the Selection Limit", null, null);
                         return false;
                     } else {
-                        if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+                        if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
                             jQuery('#custom_authentication_context_class').removeAttr('disabled');
                         }
                         $("#authnContextCls").val(newAuthnContextClass);
@@ -3168,7 +3168,7 @@
                 'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
         $('#authnContextClsTable tbody').append(row);
-        if(selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
+        if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
             jQuery('#custom_authentication_context_class').removeAttr('disabled');
         }
         return currentColumnId;
