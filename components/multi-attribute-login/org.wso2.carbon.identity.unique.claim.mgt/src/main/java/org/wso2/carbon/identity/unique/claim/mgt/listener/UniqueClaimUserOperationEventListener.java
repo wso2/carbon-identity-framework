@@ -174,7 +174,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             errorMessage = "The value defined for " + duplicateClaim.get(0) + " is already in use by different user!";
         } else {
             String claimList = String.join(", ", duplicateClaim);
-            errorMessage = "The values defined for " + claimList + " are already in use by a different users!";
+            errorMessage = "The values defined for " + claimList + " are already in use by different users!";
         }
         throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
     }
