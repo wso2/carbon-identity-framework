@@ -3068,10 +3068,9 @@
                 $.each(authnContextClasses.split(","), function (index, value) {
                     if (value === selectedAuthnContextClass) {
                         isExist = true;
-                        CARBON.showWarningDialog("Selected AuthnContextClassRef is already exists", null, null);
+                        CARBON.showWarningDialog("Selected AuthnContextClassRef already exists", null, null);
                         return false;
-                    }
-                    if (value ==  '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
+                    } else if (value ==  '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
                         isUnspecified = true;
                     }
                 });
