@@ -320,8 +320,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
             FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, context, "Authentication attempt failed.",
-                            e.getErrorCode());
+                    .sendToRetryPage(request, responseWrapper, context, "authentication.attempt.failed",
+                        "authorization.failed");
         } catch (Throwable e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
