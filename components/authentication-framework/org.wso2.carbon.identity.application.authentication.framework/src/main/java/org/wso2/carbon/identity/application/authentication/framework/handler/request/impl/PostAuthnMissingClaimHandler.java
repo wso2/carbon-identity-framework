@@ -408,8 +408,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     return;
                 }
                 throw new PostAuthenticationFailedException(
-                        "Error while handling missing mandatory claims",
-                        "Error while updating claims for local user. Could not update profile", e);
+                        e.getMessage(), "Error while updating claims for local user. Could not update profile", e);
             } catch (UserIdNotFoundException e) {
                 throw new PostAuthenticationFailedException(
                         "User id not found",
