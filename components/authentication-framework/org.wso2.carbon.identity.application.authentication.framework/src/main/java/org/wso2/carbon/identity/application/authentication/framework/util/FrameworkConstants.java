@@ -500,6 +500,8 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+        public static final String SUBJECT_IDENTIFIER = "subjectIdentifier";
+        public static final String SUBJECT_ATTRIBUTE_STEP = "subjectAttributeStep";
     }
 
     /**

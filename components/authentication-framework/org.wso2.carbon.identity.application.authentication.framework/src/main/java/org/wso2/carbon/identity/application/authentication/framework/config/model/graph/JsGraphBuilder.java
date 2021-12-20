@@ -380,6 +380,14 @@ public class JsGraphBuilder {
     private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER))) {
+            setCurrentSubjectIdentifierToFalse();
+            stepConfig.setSubjectIdentifierStep(true);
+        }
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_STEP))) {
+            setCurrentSubjectAttributeStepToFalse();
+            stepConfig.setSubjectAttributeStep(true);
+        }
     }
 
     /**
@@ -1010,6 +1018,24 @@ public class JsGraphBuilder {
             return new JSExecutionMonitorData(0, 0);
         }
         return getJSExecutionSupervisor().completed(identifier);
+    }
+
+    private void setCurrentSubjectIdentifierToFalse() {
+
+        stepNamedMap.forEach((integer, stepConfig) -> {
+            if (stepConfig.isSubjectIdentifierStep()) {
+                stepConfig.setSubjectIdentifierStep(false);
+            }
+        });
+    }
+
+    private void setCurrentSubjectAttributeStepToFalse() {
+
+        stepNamedMap.forEach((integer, stepConfig) -> {
+            if (stepConfig.isSubjectIdentifierStep()) {
+                stepConfig.setSubjectAttributeStep(false);
+            }
+        });
     }
 
     /**
