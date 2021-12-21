@@ -869,6 +869,7 @@ function htmlEncode(value) {
 jQuery('#includeAuthnCtxReq').click(function () {
     jQuery('#authentication_context_class_dropdown').attr('disabled', true);
     jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+    jQuery('#addAuthenticationContextClassBtn').attr('disabled', true);
 });
 
 
@@ -886,11 +887,13 @@ jQuery('#logoutRequestSigned').click(function () {
 jQuery('#includeAuthnCtxNo').click(function () {
     jQuery('#authentication_context_class_dropdown').attr('disabled', true);
     jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+    jQuery('#addAuthenticationContextClassBtn').attr('disabled', true);
 });
 
 jQuery('#includeAuthnCtxYes').click(function () {
     jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
     jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
+    jQuery('#addAuthenticationContextClassBtn').removeAttr('disabled');
 });
 
 jQuery('#authnRequestSigned').click(function () {
