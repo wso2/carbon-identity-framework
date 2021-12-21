@@ -129,6 +129,12 @@ public class Constants {
         public static final String INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY = "application.not.found";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI = "invalid_request_invalid.redirect.uri";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY = "invalid.redirect.uri";
+        public static final String AUTHORIZATION_FAILED_AUTHENTICATION_ATTEMPT_FAILED = "authorization.failed_authentication.attempt.failed";
+        public static final String AUTHORIZATION_FAILED_AUTHENTICATION_ATTEMPT_FAILED_I18N_KEY = "authentication.attempt.failed";
+        public static final String SOMETHING_WENT_WRONG_CONTACT_ADMIN_MISCONFIGURATION_ERROR = "something.went.wrong.contact.admin_misconfiguration.error";
+        public static final String SOMETHING_WENT_WRONG_CONTACT_ADMIN_MISCONFIGURATION_ERROR_I18N_KEY = "something.went.wrong.contact.admin";
+        public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_SUSPICIOUS_AUTHENTICATION_ATTEMPTS = "suspicious.authentication.attempts.description_suspicious.authentication.attempts";
+        public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_I18N_KEY = "suspicious.authentication.attempts.description";
         public static final String INCORRECT_ERROR_MAPPING_KEY = "incorrect.error.mapping";
 
         private ErrorToi18nMappingConstants() {

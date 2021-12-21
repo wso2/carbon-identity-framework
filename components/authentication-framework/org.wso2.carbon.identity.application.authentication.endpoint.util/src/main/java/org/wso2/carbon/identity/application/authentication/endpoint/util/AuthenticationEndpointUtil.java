@@ -211,6 +211,12 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI:
                 return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHORIZATION_FAILED_AUTHENTICATION_ATTEMPT_FAILED:
+                return Constants.ErrorToi18nMappingConstants.AUTHORIZATION_FAILED_AUTHENTICATION_ATTEMPT_FAILED_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.SOMETHING_WENT_WRONG_CONTACT_ADMIN_MISCONFIGURATION_ERROR:
+                return Constants.ErrorToi18nMappingConstants.SOMETHING_WENT_WRONG_CONTACT_ADMIN_MISCONFIGURATION_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_SUSPICIOUS_AUTHENTICATION_ATTEMPTS:
+                return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
