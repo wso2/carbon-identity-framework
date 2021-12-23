@@ -380,11 +380,11 @@ public class JsGraphBuilder {
     private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
-        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER))) {
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
             setCurrentSubjectIdentifierToFalse();
             stepConfig.setSubjectIdentifierStep(true);
         }
-        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_STEP))) {
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
             setCurrentSubjectAttributeStepToFalse();
             stepConfig.setSubjectAttributeStep(true);
         }
