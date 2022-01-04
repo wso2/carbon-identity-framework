@@ -47,8 +47,7 @@ import java.util.Map;
 
 public class SelfRegisterApi {
 
-    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
-            .UserInfoRecovery.USER_API_RELATIVE_PATH);
+    String basePath;
     private ApiClient apiClient;
 
     public SelfRegisterApi() {
@@ -57,6 +56,12 @@ public class SelfRegisterApi {
 
     public SelfRegisterApi(ApiClient apiClient) {
         this.apiClient = apiClient;
+        try {
+            basePath = IdentityManagementEndpointUtil.getBasePath(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
+                        IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH, false);
+        } catch (ApiException e) {
+            throw new RuntimeException("Error occurred while building URL in tenant qualified mode.", e);
+        }
     }
 
     public ApiClient getApiClient() {
@@ -258,7 +263,7 @@ public class SelfRegisterApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+            basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                     IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         }
 
