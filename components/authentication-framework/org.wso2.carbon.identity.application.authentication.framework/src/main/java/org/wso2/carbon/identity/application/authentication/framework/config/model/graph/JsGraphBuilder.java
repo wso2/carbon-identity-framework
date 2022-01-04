@@ -381,12 +381,10 @@ public class JsGraphBuilder {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
-            setCurrentSubjectIdentifierToFalse();
-            stepConfig.setSubjectIdentifierStep(true);
+            setCurrentStepAsSubjectIdentifier(stepConfig);
         }
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
-            setCurrentSubjectAttributeStepToFalse();
-            stepConfig.setSubjectAttributeStep(true);
+            setCurrentStepAsSubjectAttribute(stepConfig);
         }
     }
 
@@ -1020,22 +1018,22 @@ public class JsGraphBuilder {
         return getJSExecutionSupervisor().completed(identifier);
     }
 
-    private void setCurrentSubjectIdentifierToFalse() {
-
-        stepNamedMap.forEach((integer, stepConfig) -> {
-            if (stepConfig.isSubjectIdentifierStep()) {
-                stepConfig.setSubjectIdentifierStep(false);
+    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
+        stepNamedMap.forEach((integer, config) -> { // remove existing subject identifier step
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectIdentifierStep(false);
             }
         });
+        stepConfig.setSubjectIdentifierStep(true);
     }
 
-    private void setCurrentSubjectAttributeStepToFalse() {
-
-        stepNamedMap.forEach((integer, stepConfig) -> {
-            if (stepConfig.isSubjectIdentifierStep()) {
-                stepConfig.setSubjectAttributeStep(false);
+    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
+        stepNamedMap.forEach((integer, config) -> { // remove existing subject attribute step
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectAttributeStep(false);
             }
         });
+        stepConfig.setSubjectAttributeStep(true);
     }
 
     /**
