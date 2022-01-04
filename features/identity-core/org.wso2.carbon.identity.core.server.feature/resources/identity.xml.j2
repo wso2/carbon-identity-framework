@@ -2551,7 +2551,15 @@
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/fileupload(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/entitlement/pap/policy/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage</Permissions>
+        </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
