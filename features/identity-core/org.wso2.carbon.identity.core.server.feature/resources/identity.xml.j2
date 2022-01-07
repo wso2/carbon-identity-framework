@@ -1561,7 +1561,7 @@
             </EventListener>
         {% endif %}
 
-        <!-- Custom Audit Loggers-->
+        <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
                        type="{{listener.type}}"
