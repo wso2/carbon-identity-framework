@@ -14,178 +14,178 @@
  * limitations under the License.
  */
 function checkDefault(obj) {
-    if (jQuery(obj).attr('id') == 'openIdDefault') {
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
+    if (jQuery(obj).prop('id') == 'openIdDefault') {
+        jQuery('#saml2SSODefault').prop( "checked", false );
+        jQuery('#oidcDefault').prop( "checked", false );
+        jQuery('#passiveSTSDefault').prop( "checked", false );
+        jQuery('#fbAuthDefault').prop( "checked", false );
+        if (jQuery('#saml2SSOEnabled').prop('checked')) {
+            jQuery('#saml2SSODefault').prop( "disabled", false );
         }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
+        if (jQuery('#oidcEnabled').prop('checked')) {
+            jQuery('#oidcDefault').prop( "disabled", false );
         }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
+        if (jQuery('#passiveSTSEnabled').prop('checked')) {
+            jQuery('#passiveSTSDefault').prop( "disabled", false );
         }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
+        if (jQuery('#fbAuthEnabled').prop('checked')) {
+            jQuery('#fbAuthDefault').prop( "disabled", false );
         }
 
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
+            jQuery(defId).prop( "checked", false );
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#' + id).prop('checked')) {
+                jQuery(defId).prop( "disabled", false );
             }
         }
-        jQuery('#openIdDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'saml2SSODefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
+        jQuery('#openIdDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'saml2SSODefault') {
+        jQuery('#openIdDefault').prop( "checked", false );
+        jQuery('#oidcDefault').prop( "checked", false );
+        jQuery('#passiveSTSDefault').prop( "checked", false );
+        jQuery('#fbAuthDefault').prop( "checked", false );
+        if (jQuery('#openIdEnabled').prop('checked')) {
+            jQuery('#openIdDefault').prop( "disabled", false );
         }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
+        if (jQuery('#oidcEnabled').prop('checked')) {
+            jQuery('#oidcDefault').prop( "disabled", false );
         }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
+        if (jQuery('#passiveSTSEnabled').prop('checked')) {
+            jQuery('#passiveSTSDefault').prop( "disabled", false );
         }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
+        if (jQuery('#fbAuthEnabled').prop('checked')) {
+            jQuery('#fbAuthDefault').prop( "disabled", false );
         }
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
+            jQuery(defId).prop( "checked", false );
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#' + id).prop('checked')) {
+                jQuery(defId).prop( "disabled", false );
             }
         }
-        jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'oidcDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
+        jQuery('#saml2SSODefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'oidcDefault') {
+        jQuery('#openIdDefault').prop( "checked", false );
+        jQuery('#saml2SSODefault').prop( "checked", false );
+        jQuery('#passiveSTSDefault').prop( "checked", false );
+        jQuery('#fbAuthDefault').prop( "checked", false );
+        if (jQuery('#openIdEnabled').prop('checked')) {
+            jQuery('#openIdDefault').prop( "disabled", false );
         }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
+        if (jQuery('#saml2SSOEnabled').prop('checked')) {
+            jQuery('#saml2SSODefault').prop( "disabled", false );
         }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
+        if (jQuery('#passiveSTSEnabled').prop('checked')) {
+            jQuery('#passiveSTSDefault').prop( "disabled", false );
         }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
+        if (jQuery('#fbAuthEnabled').prop('checked')) {
+            jQuery('#fbAuthDefault').prop( "disabled", false );
         }
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
+            jQuery(defId).prop( "checked", false );
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#' + id).prop('checked')) {
+                jQuery(defId).prop( "disabled", false );
             }
         }
-        jQuery('#oidcDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'passiveSTSDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
+        jQuery('#oidcDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'passiveSTSDefault') {
+        jQuery('#openIdDefault').prop( "checked", false );
+        jQuery('#saml2SSODefault').prop( "checked", false );
+        jQuery('#oidcDefault').prop( "checked", false );
+        jQuery('#fbAuthDefault').prop( "checked", false );
+        if (jQuery('#openIdEnabled').prop('checked')) {
+            jQuery('#openIdDefault').prop( "disabled", false );
         }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
+        if (jQuery('#saml2SSOEnabled').prop('checked')) {
+            jQuery('#saml2SSODefault').prop( "disabled", false );
         }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
+        if (jQuery('#oidcEnabled').prop('checked')) {
+            jQuery('#oidcDefault').prop( "disabled", false );
         }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
+        if (jQuery('#fbAuthEnabled').prop('checked')) {
+            jQuery('#fbAuthDefault').prop( "disabled", false );
         }
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
+            jQuery(defId).prop( "checked", false );
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#' + id).prop('checked')) {
+                jQuery(defId).prop( "disabled", false );
             }
         }
-        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'fbAuthDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
+        jQuery('#passiveSTSDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'fbAuthDefault') {
+        jQuery('#openIdDefault').prop( "checked", false );
+        jQuery('#saml2SSODefault').prop( "checked", false );
+        jQuery('#oidcDefault').prop( "checked", false );
+        jQuery('#passiveSTSDefault').prop( "checked", false );
+        if (jQuery('#openIdEnabled').prop('checked')) {
+            jQuery('#openIdDefault').prop( "disabled", false );
         }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
+        if (jQuery('#saml2SSOEnabled').prop('checked')) {
+            jQuery('#saml2SSODefault').prop( "disabled", false );
         }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
+        if (jQuery('#oidcEnabled').prop('checked')) {
+            jQuery('#oidcDefault').prop( "disabled", false );
         }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
+        if (jQuery('#passiveSTSEnabled').prop('checked')) {
+            jQuery('#passiveSTSDefault').prop( "disabled", false );
         }
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
+            jQuery(defId).prop( "checked", false );
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#' + id).prop('checked')) {
+                jQuery(defId).prop( "disabled", false );
             }
         }
-        jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+        jQuery('#fbAuthDefault').prop( "disabled", true );
     } else {
         for (id in getEnabledCustomAuth()) {
             var defId = id.replace("_Enabled", "_Default");
-            if (jQuery(obj).attr('id') == defId) {
-                jQuery('#openIdDefault').removeAttr('checked');
-                jQuery('#saml2SSODefault').removeAttr('checked');
-                jQuery('#oidcDefault').removeAttr('checked');
-                jQuery('#passiveSTSDefault').removeAttr('checked');
-                jQuery('#fbAuthDefault').removeAttr('checked');
+            if (jQuery(obj).prop('id') == defId) {
+                jQuery('#openIdDefault').prop( "checked", false );
+                jQuery('#saml2SSODefault').prop( "checked", false );
+                jQuery('#oidcDefault').prop( "checked", false );
+                jQuery('#passiveSTSDefault').prop( "checked", false );
+                jQuery('#fbAuthDefault').prop( "checked", false );
 
-                if (jQuery('#openIdEnabled').attr('checked')) {
-                    jQuery('#openIdDefault').removeAttr('disabled');
+                if (jQuery('#openIdEnabled').prop('checked')) {
+                    jQuery('#openIdDefault').prop( "disabled", false );
                 }
-                if (jQuery('#saml2SSOEnabled').attr('checked')) {
-                    jQuery('#saml2SSODefault').removeAttr('disabled');
+                if (jQuery('#saml2SSOEnabled').prop('checked')) {
+                    jQuery('#saml2SSODefault').prop( "disabled", false );
                 }
-                if (jQuery('#oidcEnabled').attr('checked')) {
-                    jQuery('#oidcDefault').removeAttr('disabled');
+                if (jQuery('#oidcEnabled').prop('checked')) {
+                    jQuery('#oidcDefault').prop( "disabled", false );
                 }
-                if (jQuery('#passiveSTSEnabled').attr('checked')) {
-                    jQuery('#passiveSTSDefault').removeAttr('disabled');
+                if (jQuery('#passiveSTSEnabled').prop('checked')) {
+                    jQuery('#passiveSTSDefault').prop( "disabled", false );
                 }
-                if (jQuery('#fbAuthEnabled').attr('checked')) {
-                    jQuery('#fbAuthDefault').removeAttr('disabled');
+                if (jQuery('#fbAuthEnabled').prop('checked')) {
+                    jQuery('#fbAuthDefault').prop( "disabled", false );
                 }
 
                 for (idE in getEnabledCustomAuth()) {
                     var defIdE = idE.replace("_Enabled", "_Default");
 
-                    if (jQuery(obj).attr('id') == defIdE) {
+                    if (jQuery(obj).prop('id') == defIdE) {
                         //Nothing do
                     }
                     else {
-                        jQuery('#' + defIdE).removeAttr('checked');
-                        if (jQuery('#' + idE).attr('checked')) {
-                            jQuery('#' + defIdE).removeAttr('disabled');
+                        jQuery('#' + defIdE).prop( "checked", false );
+                        if (jQuery('#' + idE).prop('checked')) {
+                            jQuery('#' + defIdE).prop( "disabled", false );
                         }
                     }
                 }
 
-                jQuery('#' + defId).attr('disabled', 'disabled');
+                jQuery('#' + defId).prop( "disabled", true );
             }
         }
     }
@@ -220,7 +220,7 @@ function deleteRows() {
 }
 
 function checkEnabledLogo(obj, name) {
-    if (jQuery(obj).attr('checked')) {
+    if (jQuery(obj).prop('checked')) {
         jQuery('#custom_auth_head_enable_logo_' + name).show();
     } else {
         jQuery('#custom_auth_head_enable_logo_' + name).hide();
@@ -241,7 +241,7 @@ function getEnabledCustomAuth() {
 function isCustomAuthEnabled() {
     var enable = false;
     for (id in getEnabledCustomAuth()) {
-        if (jQuery('#' + id).attr('checked')) {
+        if (jQuery('#' + id).prop('checked')) {
             enable = true;
         }
     }
@@ -255,7 +255,7 @@ function isOtherCustomAuthEnabled(selectedId) {
         if (id == selectedId) {
             //other than selected
         } else {
-            if (jQuery('#' + id).attr('checked')) {
+            if (jQuery('#' + id).prop('checked')) {
                 enable = true;
             }
         }
@@ -266,187 +266,187 @@ function isOtherCustomAuthEnabled(selectedId) {
 
 function checkEnabled(obj) {
 
-    if (jQuery(obj).attr('checked')) {
-        if (jQuery(obj).attr('id') == 'openIdEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#openIdDefault').attr('checked', 'checked');
-                jQuery('#openIdDefault').attr('disabled', 'disabled');
+    if (jQuery(obj).prop('checked')) {
+        if (jQuery(obj).prop('id') == 'openIdEnabled') {
+            if (!jQuery('#saml2SSOEnabled').prop('checked') && !jQuery('#oidcEnabled').prop('checked') && !jQuery('#passiveSTSEnabled').prop('checked') && !jQuery('#fbAuthEnabled').prop('checked') && !isCustomAuthEnabled()) {
+                jQuery('#openIdDefault').prop( "checked", true );
+                jQuery('#openIdDefault').prop( "disabled", true );
 
 
             } else {
-                jQuery('#openIdDefault').removeAttr('disabled');
+                jQuery('#openIdDefault').prop( "disabled", false );
             }
 
             jQuery('#openid_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
-            if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#saml2SSODefault').attr('checked', 'checked');
-                jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).prop('id') == 'saml2SSOEnabled') {
+            if (!jQuery('#openIdEnabled').prop('checked') && !jQuery('#oidcEnabled').prop('checked') && !jQuery('#passiveSTSEnabled').prop('checked') && !jQuery('#fbAuthEnabled').prop('checked') && !isCustomAuthEnabled()) {
+                jQuery('#saml2SSODefault').prop( "checked", true );
+                jQuery('#saml2SSODefault').prop( "disabled", true );
             } else {
-                jQuery('#saml2SSODefault').removeAttr('disabled');
+                jQuery('#saml2SSODefault').prop( "disabled", false );
             }
             jQuery('#sampl2sso_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
-            if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#oidcDefault').attr('checked', 'checked');
-                jQuery('#oidcDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).prop('id') == 'oidcEnabled') {
+            if (!jQuery('#openIdEnabled').prop('checked') && !jQuery('#saml2SSOEnabled').prop('checked') && !jQuery('#passiveSTSEnabled').prop('checked') && !jQuery('#fbAuthEnabled').prop('checked') && !isCustomAuthEnabled()) {
+                jQuery('#oidcDefault').prop( "checked", true );
+                jQuery('#oidcDefault').prop( "disabled", true );
             } else {
-                jQuery('#oidcDefault').removeAttr('disabled');
+                jQuery('#oidcDefault').prop( "disabled", false );
             }
             jQuery('#oAuth2_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#passiveSTSDefault').attr('checked', 'checked');
-                jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).prop('id') == 'passiveSTSEnabled') {
+            if (!jQuery('#saml2SSOEnabled').prop('checked') && !jQuery('#oidcEnabled').prop('checked') && !jQuery('#openIdEnabled').prop('checked') && !jQuery('#fbAuthEnabled').prop('checked') && !isCustomAuthEnabled()) {
+                jQuery('#passiveSTSDefault').prop( "checked", true );
+                jQuery('#passiveSTSDefault').prop( "disabled", true );
             } else {
-                jQuery('#passiveSTSDefault').removeAttr('disabled');
+                jQuery('#passiveSTSDefault').prop( "disabled", false );
             }
             jQuery('#wsfederation_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#fbAuthDefault').attr('checked', 'checked');
-                jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).prop('id') == 'fbAuthEnabled') {
+            if (!jQuery('#saml2SSOEnabled').prop('checked') && !jQuery('#oidcEnabled').prop('checked') && !jQuery('#passiveSTSEnabled').prop('checked') && !jQuery('#openIdEnabled').prop('checked') && !isCustomAuthEnabled()) {
+                jQuery('#fbAuthDefault').prop( "checked", true );
+                jQuery('#fbAuthDefault').prop( "disabled", true );
             } else {
-                jQuery('#fbAuthDefault').removeAttr('disabled');
+                jQuery('#fbAuthDefault').prop( "disabled", false );
             }
             jQuery('#fecebook_enable_logo').show();
         } else {
             for (id in getEnabledCustomAuth()) {
-                if (jQuery(obj).attr('id') == id) {
+                if (jQuery(obj).prop('id') == id) {
                     var defId = '#' + id.replace("_Enabled", "_Default");
-                    if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isOtherCustomAuthEnabled(id)) {
-                        jQuery(defId).attr('checked', 'checked');
-                        jQuery(defId).attr('disabled', 'disabled');
+                    if (!jQuery('#saml2SSOEnabled').prop('checked') && !jQuery('#oidcEnabled').prop('checked') && !jQuery('#passiveSTSEnabled').prop('checked') && !jQuery('#openIdEnabled').prop('checked') && !jQuery('#fbAuthEnabled').prop('checked') && !isOtherCustomAuthEnabled(id)) {
+                        jQuery(defId).prop( "checked", true );
+                        jQuery(defId).prop( "disabled", true );
                     } else {
-                        jQuery(defId).removeAttr('disabled');
+                        jQuery(defId).prop( "disabled", false );
                     }
                 }
             }
         }
     } else {
-        if (jQuery(obj).attr('id') == 'openIdEnabled') {
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                jQuery('#passiveSTSEnabled').attr('checked') ||
-                jQuery('#oidcEnabled').attr('checked') ||
-                jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+        if (jQuery(obj).prop('id') == 'openIdEnabled') {
+            if (jQuery('#saml2SSOEnabled').prop('checked') ||
+                jQuery('#passiveSTSEnabled').prop('checked') ||
+                jQuery('#oidcEnabled').prop('checked') ||
+                jQuery('#fbAuthEnabled').prop('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#openIdDefault').attr('checked')) {
-                    jQuery('#openIdEnabled').attr('checked', 'checked');
+                if (jQuery('#openIdDefault').prop('checked')) {
+                    jQuery('#openIdEnabled').prop( "checked", true );
                     CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#openIdDefault').attr('disabled', 'disabled');
-                    jQuery('#openIdDefault').removeAttr('checked');
+                    jQuery('#openIdDefault').prop( "disabled", true );
+                    jQuery('#openIdDefault').prop( "checked", false );
                     jQuery('#openid_enable_logo').hide();
                 }
             } else {
-                jQuery('#openIdDefault').attr('disabled', 'disabled');
-                jQuery('#openIdDefault').removeAttr('checked');
+                jQuery('#openIdDefault').prop( "disabled", true );
+                jQuery('#openIdDefault').prop( "checked", false );
                 jQuery('#openid_enable_logo').hide();
             }
 
 
-        } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
+        } else if (jQuery(obj).prop('id') == 'saml2SSOEnabled') {
 
-            if (jQuery('#openIdEnabled').attr('checked') ||
-                jQuery('#passiveSTSEnabled').attr('checked') ||
-                jQuery('#oidcEnabled').attr('checked') ||
-                jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+            if (jQuery('#openIdEnabled').prop('checked') ||
+                jQuery('#passiveSTSEnabled').prop('checked') ||
+                jQuery('#oidcEnabled').prop('checked') ||
+                jQuery('#fbAuthEnabled').prop('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#saml2SSODefault').attr('checked')) {
-                    jQuery('#saml2SSOEnabled').attr('checked', 'checked');
+                if (jQuery('#saml2SSODefault').prop('checked')) {
+                    jQuery('#saml2SSOEnabled').prop( "checked", true );
                     CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-                    jQuery('#saml2SSODefault').removeAttr('checked');
+                    jQuery('#saml2SSODefault').prop( "disabled", true );
+                    jQuery('#saml2SSODefault').prop( "checked", false );
                     jQuery('#sampl2sso_enable_logo').hide();
                 }
             } else {
-                jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-                jQuery('#saml2SSODefault').removeAttr('checked');
+                jQuery('#saml2SSODefault').prop( "disabled", true );
+                jQuery('#saml2SSODefault').prop( "checked", false );
                 jQuery('#sampl2sso_enable_logo').hide();
             }
 
-        } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
+        } else if (jQuery(obj).prop('id') == 'oidcEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                jQuery('#passiveSTSEnabled').attr('checked') ||
-                jQuery('#openIdEnabled').attr('checked') ||
-                jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+            if (jQuery('#saml2SSOEnabled').prop('checked') ||
+                jQuery('#passiveSTSEnabled').prop('checked') ||
+                jQuery('#openIdEnabled').prop('checked') ||
+                jQuery('#fbAuthEnabled').prop('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#oidcDefault').attr('checked')) {
-                    jQuery('#oidcEnabled').attr('checked', 'checked');
+                if (jQuery('#oidcDefault').prop('checked')) {
+                    jQuery('#oidcEnabled').prop( "checked", true );
                     CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#oidcDefault').attr('disabled', 'disabled');
-                    jQuery('#oidcDefault').removeAttr('checked');
+                    jQuery('#oidcDefault').prop( "disabled", true );
+                    jQuery('#oidcDefault').prop( "checked", false );
                     jQuery('#oAuth2_enable_logo').hide();
                 }
             } else {
-                jQuery('#oidcDefault').attr('disabled', 'disabled');
-                jQuery('#oidcDefault').removeAttr('checked');
+                jQuery('#oidcDefault').prop( "disabled", true );
+                jQuery('#oidcDefault').prop( "checked", false );
                 jQuery('#oAuth2_enable_logo').hide();
             }
-        } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
+        } else if (jQuery(obj).prop('id') == 'passiveSTSEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                jQuery('#oidcEnabled').attr('checked') ||
-                jQuery('#openIdEnabled').attr('checked') ||
-                jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+            if (jQuery('#saml2SSOEnabled').prop('checked') ||
+                jQuery('#oidcEnabled').prop('checked') ||
+                jQuery('#openIdEnabled').prop('checked') ||
+                jQuery('#fbAuthEnabled').prop('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#passiveSTSDefault').attr('checked')) {
-                    jQuery('#passiveSTSEnabled').attr('checked', 'checked');
+                if (jQuery('#passiveSTSDefault').prop('checked')) {
+                    jQuery('#passiveSTSEnabled').prop( "checked", true );
                     CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-                    jQuery('#passiveSTSDefault').removeAttr('checked');
+                    jQuery('#passiveSTSDefault').prop( "disabled", true );
+                    jQuery('#passiveSTSDefault').prop( "checked", false );
                     jQuery('#wsfederation_enable_logo').hide();
                 }
             } else {
-                jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-                jQuery('#passiveSTSDefault').removeAttr('checked');
+                jQuery('#passiveSTSDefault').prop( "disabled", true );
+                jQuery('#passiveSTSDefault').prop( "checked", false );
                 jQuery('#wsfederation_enable_logo').hide();
             }
 
-        } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
+        } else if (jQuery(obj).prop('id') == 'fbAuthEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                jQuery('#oidcEnabled').attr('checked') ||
-                jQuery('#openIdEnabled').attr('checked') ||
-                jQuery('#passiveSTSEnabled').attr('checked') || isCustomAuthEnabled()) {
+            if (jQuery('#saml2SSOEnabled').prop('checked') ||
+                jQuery('#oidcEnabled').prop('checked') ||
+                jQuery('#openIdEnabled').prop('checked') ||
+                jQuery('#passiveSTSEnabled').prop('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#fbAuthDefault').attr('checked')) {
-                    jQuery('#fbAuthEnabled').attr('checked', 'checked');
+                if (jQuery('#fbAuthDefault').prop('checked')) {
+                    jQuery('#fbAuthEnabled').prop( "checked", true );
                     CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-                    jQuery('#fbAuthDefault').removeAttr('checked');
+                    jQuery('#fbAuthDefault').prop( "disabled", true );
+                    jQuery('#fbAuthDefault').prop( "checked", false );
                     jQuery('#fecebook_enable_logo').hide();
                 }
             } else {
-                jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-                jQuery('#fbAuthDefault').removeAttr('checked');
+                jQuery('#fbAuthDefault').prop( "disabled", true );
+                jQuery('#fbAuthDefault').prop( "checked", false );
                 jQuery('#fecebook_enable_logo').hide();
             }
         } else {
             for (id in getEnabledCustomAuth()) {
-                if (jQuery(obj).attr('id') == id) {
+                if (jQuery(obj).prop('id') == id) {
                     var defId = '#' + id.replace("_Enabled", "_Default");
-                    if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                        jQuery('#oidcEnabled').attr('checked') ||
-                        jQuery('#passiveSTSEnabled').attr('checked') ||
-                        jQuery('#openIdEnabled').attr('checked') ||
-                        jQuery('#fbAuthEnabled').attr('checked') || isOtherCustomAuthEnabled(id)) {
+                    if (jQuery('#saml2SSOEnabled').prop('checked') ||
+                        jQuery('#oidcEnabled').prop('checked') ||
+                        jQuery('#passiveSTSEnabled').prop('checked') ||
+                        jQuery('#openIdEnabled').prop('checked') ||
+                        jQuery('#fbAuthEnabled').prop('checked') || isOtherCustomAuthEnabled(id)) {
 
-                        if (jQuery(defId).attr('checked')) {
-                            jQuery('#' + id).attr('checked', 'checked');
+                        if (jQuery(defId).prop('checked')) {
+                            jQuery('#' + id).prop( "checked", true );
                             CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                         } else {
-                            jQuery(defId).attr('disabled', 'disabled');
-                            jQuery(defId).removeAttr('checked');
+                            jQuery(defId).prop( "disabled", true );
+                            jQuery(defId).prop( "checked", false );
                         }
                     } else {
-                        jQuery(defId).attr('disabled', 'disabled');
-                        jQuery(defId).removeAttr('checked');
+                        jQuery(defId).prop( "disabled", true );
+                        jQuery(defId).prop( "checked", false );
                     }
                 }
             }
@@ -458,100 +458,100 @@ function checkEnabled(obj) {
 
 function checkProvEnabled(obj) {
 
-    if (jQuery(obj).attr('checked')) {
-        if (jQuery(obj).attr('id') == 'googleProvEnabled') {
+    if (jQuery(obj).prop('checked')) {
+        if (jQuery(obj).prop('id') == 'googleProvEnabled') {
 
-            if (!jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
+            if (!jQuery('#sfProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked')) {
 
-                jQuery('#googleProvDefault').attr('checked', 'checked');
-                jQuery('#googleProvDefault').attr('disabled', 'disabled');
+                jQuery('#googleProvDefault').prop( "checked", true );
+                jQuery('#googleProvDefault').prop( "disabled", true );
             } else {
-                jQuery('#googleProvDefault').removeAttr('disabled');
+                jQuery('#googleProvDefault').prop( "disabled", false );
             }
 
             jQuery('#google_enable_logo').show();
 
-        } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
+        } else if (jQuery(obj).prop('id') == 'sfProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
+            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked')) {
 
-                jQuery('#sfProvDefault').attr('checked', 'checked');
-                jQuery('#sfProvDefault').attr('disabled', 'disabled');
+                jQuery('#sfProvDefault').prop( "checked", true );
+                jQuery('#sfProvDefault').prop( "disabled", true );
             } else {
-                jQuery('#sfProvDefault').removeAttr('disabled');
+                jQuery('#sfProvDefault').prop( "disabled", false );
             }
 
             jQuery('#sf_enable_logo').show();
 
-        } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
+        } else if (jQuery(obj).prop('id') == 'scimProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked')) {
+            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#sfProvEnabled').prop('checked')) {
 
-                jQuery('#scimProvDefault').attr('checked', 'checked');
-                jQuery('#scimProvDefault').attr('disabled', 'disabled');
+                jQuery('#scimProvDefault').prop( "checked", true );
+                jQuery('#scimProvDefault').prop( "disabled", true );
             } else {
-                jQuery('#scimProvDefault').removeAttr('disabled');
+                jQuery('#scimProvDefault').prop( "disabled", false );
             }
 
             jQuery('#scim_enable_logo').show();
 
         }
     } else {
-        if (jQuery(obj).attr('id') == 'googleProvEnabled') {
+        if (jQuery(obj).prop('id') == 'googleProvEnabled') {
 
-            if (jQuery('#sfProvEnabled').attr('checked') ||
+            if (jQuery('#sfProvEnabled').prop('checked') ||
 
-                jQuery('#scimProvEnabled').attr('checked')) {
+                jQuery('#scimProvEnabled').prop('checked')) {
 
-                if (jQuery('#googleProvDefault').attr('checked')) {
-                    //jQuery('#googleProvEnabled').attr('checked','checked');
+                if (jQuery('#googleProvDefault').prop('checked')) {
+                    //jQuery('#googleProvEnabled').prop('checked','checked');
                     // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#googleProvDefault').attr('disabled', 'disabled');
-                    jQuery('#googleProvDefault').removeAttr('checked');
+                    jQuery('#googleProvDefault').prop( "disabled", true );
+                    jQuery('#googleProvDefault').prop( "checked", false );
                     jQuery('#google_enable_logo').hide();
                 }
             } else {
-                jQuery('#googleProvDefault').attr('disabled', 'disabled');
-                jQuery('#googleProvDefault').removeAttr('checked');
+                jQuery('#googleProvDefault').prop( "disabled", true );
+                jQuery('#googleProvDefault').prop( "checked", false );
                 jQuery('#google_enable_logo').hide();
             }
 
-        } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
+        } else if (jQuery(obj).prop('id') == 'sfProvEnabled') {
 
-            if (jQuery('#googleProvEnabled').attr('checked') ||
-                jQuery('#scimProvEnabled').attr('checked')) {
+            if (jQuery('#googleProvEnabled').prop('checked') ||
+                jQuery('#scimProvEnabled').prop('checked')) {
 
-                if (jQuery('#sfProvDefault').attr('checked')) {
-                    // jQuery('#sfProvEnabled').attr('checked','checked');
+                if (jQuery('#sfProvDefault').prop('checked')) {
+                    // jQuery('#sfProvEnabled').prop('checked','checked');
                     // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#sfProvDefault').attr('disabled', 'disabled');
-                    jQuery('#sfProvDefault').removeAttr('checked');
+                    jQuery('#sfProvDefault').prop( "disabled", true );
+                    jQuery('#sfProvDefault').prop( "checked", false );
                     jQuery('#sf_enable_logo').hide();
                 }
             } else {
-                jQuery('#sfProvDefault').attr('disabled', 'disabled');
-                jQuery('#sfProvDefault').removeAttr('checked');
+                jQuery('#sfProvDefault').prop( "disabled", true );
+                jQuery('#sfProvDefault').prop( "checked", false );
                 jQuery('#sf_enable_logo').hide();
             }
 
-        } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
+        } else if (jQuery(obj).prop('id') == 'scimProvEnabled') {
 
-            if (jQuery('#sfProvEnabled').attr('checked') ||
-                jQuery('#googleProvEnabled').attr('checked')) {
+            if (jQuery('#sfProvEnabled').prop('checked') ||
+                jQuery('#googleProvEnabled').prop('checked')) {
 
-                if (jQuery('#scimProvDefault').attr('checked')) {
-                    // jQuery('#scimProvEnabled').attr('checked','checked');
+                if (jQuery('#scimProvDefault').prop('checked')) {
+                    // jQuery('#scimProvEnabled').prop('checked','checked');
                     // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
                 } else {
-                    jQuery('#scimProvDefault').attr('disabled', 'disabled');
-                    jQuery('#scimProvDefault').removeAttr('checked');
+                    jQuery('#scimProvDefault').prop( "disabled", true );
+                    jQuery('#scimProvDefault').prop( "checked", false );
                     jQuery('#scim_enable_logo').hide();
                 }
             } else {
-                jQuery('#scimProvDefault').attr('disabled', 'disabled');
-                jQuery('#scimProvDefault').removeAttr('checked');
+                jQuery('#scimProvDefault').prop( "disabled", true );
+                jQuery('#scimProvDefault').prop( "checked", false );
                 jQuery('#scim_enable_logo').hide();
             }
 
@@ -560,36 +560,36 @@ function checkProvEnabled(obj) {
 }
 
 function checkProvDefault(obj) {
-    if (jQuery(obj).attr('id') == 'googleProvDefault') {
-        jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        if (jQuery('#sfProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
+    if (jQuery(obj).prop('id') == 'googleProvDefault') {
+        jQuery('#sfProvDefault').prop( "checked", false );
+        jQuery('#scimProvDefault').prop( "checked", false );
+        if (jQuery('#sfProvEnabled').prop('checked')) {
+            jQuery('#sfProvDefault').prop( "disabled", false );
         }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
+        if (jQuery('#scimProvEnabled').prop('checked')) {
+            jQuery('#scimProvDefault').prop( "disabled", false );
         }
-        jQuery('#googleProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'sfProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
+        jQuery('#googleProvDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'sfProvDefault') {
+        jQuery('#googleProvDefault').prop( "checked", false );
+        jQuery('#scimProvDefault').prop( "checked", false );
+        if (jQuery('#googleProvEnabled').prop('checked')) {
+            jQuery('#googleProvDefault').prop( "disabled", false );
         }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
+        if (jQuery('#scimProvEnabled').prop('checked')) {
+            jQuery('#scimProvDefault').prop( "disabled", false );
         }
-        jQuery('#sfProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'scimProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#sfProvDefault').removeAttr('checked');
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
+        jQuery('#sfProvDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'scimProvDefault') {
+        jQuery('#googleProvDefault').prop( "checked", false );
+        jQuery('#sfProvDefault').prop( "checked", false );
+        if (jQuery('#googleProvEnabled').prop('checked')) {
+            jQuery('#googleProvDefault').prop( "disabled", false );
         }
-        if (jQuery('#sfProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
+        if (jQuery('#sfProvEnabled').prop('checked')) {
+            jQuery('#sfProvDefault').prop( "disabled", false );
         }
-        jQuery('#scimProvDefault').attr('disabled', 'disabled');
+        jQuery('#scimProvDefault').prop( "disabled", true );
     }
 }
 
@@ -626,7 +626,7 @@ function doValidation() {
         return false;
     }
 
-    if (jQuery('#openIdEnabled').attr('checked')) {
+    if (jQuery('#openIdEnabled').prop('checked')) {
 
         if ($('#openIdUrl').val() == "") {
             CARBON.showWarningDialog('OpenID Server URL cannot be empty');
@@ -634,7 +634,7 @@ function doValidation() {
         }
     }
 
-    if (jQuery('#saml2SSOEnabled').attr('checked')) {
+    if (jQuery('#saml2SSOEnabled').prop('checked')) {
 
         if ($('#meta_data_saml').val() == "") {
 
@@ -656,7 +656,7 @@ function doValidation() {
 
     }
 
-    if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').attr('checked') ) {
+    if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').prop('checked') ) {
         if ($('#spEntityId').val() == "") {
             CARBON.showWarningDialog('Service Provider Entity ID cannot be empty');
             return false;
@@ -664,7 +664,7 @@ function doValidation() {
 
     }
 
-    if (jQuery('#oidcEnabled').attr('checked')) {
+    if (jQuery('#oidcEnabled').prop('checked')) {
 
         if ($('#authzUrl').val() == "") {
             CARBON.showWarningDialog('OAuth2/OpenId  Authorization Endpoint URL cannot be empty');
@@ -688,7 +688,7 @@ function doValidation() {
 
     }
 
-    if (jQuery('#passiveSTSEnabled').attr('checked')) {
+    if (jQuery('#passiveSTSEnabled').prop('checked')) {
 
         if ($('#passiveSTSRealm').val() == "") {
             CARBON.showWarningDialog('Passive STS Realm cannot be empty');
@@ -701,7 +701,7 @@ function doValidation() {
         }
     }
 
-    if (jQuery('#fbAuthEnabled').attr('checked')) {
+    if (jQuery('#fbAuthEnabled').prop('checked')) {
 
         if ($('#fbClientId').val() == "") {
             CARBON.showWarningDialog('Facebook Client Id cannot be empty');
@@ -715,7 +715,7 @@ function doValidation() {
     }
 
 
-    if (jQuery('#googleProvEnabled').attr('checked')) {
+    if (jQuery('#googleProvEnabled').prop('checked')) {
 
         if ($('#google_prov_domain_name').val() == "") {
             CARBON.showWarningDialog('Google Domain cannot be empty');
@@ -764,7 +764,7 @@ function doValidation() {
 
     }
 
-    if (jQuery('#sfProvEnabled').attr('checked')) {
+    if (jQuery('#sfProvEnabled').prop('checked')) {
 
         if ($('#sf-api-version').val() == "") {
             CARBON.showWarningDialog('Salesforce Provisioning Configuration API version cannot be empty');
@@ -803,7 +803,7 @@ function doValidation() {
     }
 
 
-    if (jQuery('#scimProvEnabled').attr('checked')) {
+    if (jQuery('#scimProvEnabled').prop('checked')) {
 
         if ($('#scim-username').val() == "") {
             CARBON.showWarningDialog('Scim Configuration username cannot be empty');
@@ -867,8 +867,8 @@ function htmlEncode(value) {
 }
 
 jQuery('#includeAuthnCtxReq').click(function () {
-    jQuery('#authentication_context_class_dropdown').attr('disabled', true);
-    jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+    jQuery('#authentication_context_class_dropdown').prop('disabled', true);
+    jQuery('#auth_context_comparison_level_dropdown').prop('disabled', true);
     jQuery('#addAuthenticationContextClassBtn').attr('disabled', true);
 });
 
@@ -876,34 +876,34 @@ jQuery('#includeAuthnCtxReq').click(function () {
 jQuery('#logoutRequestSigned').click(function () {
     if (jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked") ||
         (jQuery("#enableArtifactBinding").is(":checked") && jQuery("#artifactResolveReqSigned").is(":checked"))) {
-        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#signature_algorithem_dropdown').prop( "disabled", false );
+        jQuery('#digest_algorithem_dropdown').prop( "disabled", false );
     } else {
-        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+        jQuery('#signature_algorithem_dropdown').prop('disabled', true);
+        jQuery('#digest_algorithem_dropdown').prop('disabled', true);
     }
 });
 
 jQuery('#includeAuthnCtxNo').click(function () {
-    jQuery('#authentication_context_class_dropdown').attr('disabled', true);
-    jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+    jQuery('#authentication_context_class_dropdown').prop('disabled', true);
+    jQuery('#auth_context_comparison_level_dropdown').prop('disabled', true);
     jQuery('#addAuthenticationContextClassBtn').attr('disabled', true);
 });
 
 jQuery('#includeAuthnCtxYes').click(function () {
-    jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
-    jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
+    jQuery('#authentication_context_class_dropdown').prop( "disabled", false );
+    jQuery('#auth_context_comparison_level_dropdown').prop( "disabled", false );
     jQuery('#addAuthenticationContextClassBtn').removeAttr('disabled');
 });
 
 jQuery('#authnRequestSigned').click(function () {
     if (jQuery(this).is(":checked") || jQuery("#logoutRequestSigned").is(":checked") ||
         (jQuery("#enableArtifactBinding").is(":checked") && jQuery("#artifactResolveReqSigned").is(":checked"))) {
-        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#signature_algorithem_dropdown').prop( "disabled", false );
+        jQuery('#digest_algorithem_dropdown').prop( "disabled", false );
     } else {
-        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+        jQuery('#signature_algorithem_dropdown').prop('disabled', true);
+        jQuery('#digest_algorithem_dropdown').prop('disabled', true);
     }
 });
 
@@ -930,16 +930,16 @@ jQuery('#roleMappingDeleteLink').click(function () {
     document.forms['idp-mgt-edit-form'].appendChild(input);
 });
 jQuery('#provision_disabled').click(function () {
-    jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
-    $('input[name=choose_jit_type_group]').attr('disabled', 'disabled');
+    jQuery('#provision_static_dropdown').prop( "disabled", true );
+    $('input[name=choose_jit_type_group]').prop( "disabled", true );
 });
 jQuery('#provision_static').click(function () {
-    jQuery('#provision_static_dropdown').removeAttr('disabled');
-    $('input[name=choose_jit_type_group]').removeAttr('disabled');
+    jQuery('#provision_static_dropdown').prop( "disabled", false );
+    $('input[name=choose_jit_type_group]').prop( "disabled", false );
 });
 
 jQuery('#password_provisioning').click(function () {
-    jQuery('#modify_username').removeAttr('disabled');
+    jQuery('#modify_username').prop( "disabled", false );
 });
 
 
@@ -1002,11 +1002,11 @@ jQuery('#roleAddLink').click(function () {
 jQuery('#artifactResolveReqSigned').click(function() {
     if (jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked") ||
         jQuery("#logoutRequestSigned").is(":checked")) {
-        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#signature_algorithem_dropdown').prop( "disabled", false );
+        jQuery('#digest_algorithem_dropdown').prop( "disabled", false );
     } else {
-        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+        jQuery('#signature_algorithem_dropdown').prop('disabled', true);
+        jQuery('#digest_algorithem_dropdown').prop('disabled', true);
     }
 });
 
@@ -1014,14 +1014,14 @@ jQuery('#enableArtifactBinding').click(function() {
     if ((jQuery(this).is(":checked") && jQuery("#artifactResolveReqSigned").is(":checked")) ||
         jQuery("#authnRequestSigned").is(":checked") ||
         jQuery("#logoutRequestSigned").is(":checked")) {
-        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#signature_algorithem_dropdown').prop( "disabled", false );
+        jQuery('#digest_algorithem_dropdown').prop( "disabled", false );
     } else if (!jQuery(this).is(":checked") && (jQuery("#authnRequestSigned").is(":checked") ||
         jQuery("#logoutRequestSigned").is(":checked"))) {
-        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#signature_algorithem_dropdown').prop( "disabled", false );
+        jQuery('#digest_algorithem_dropdown').prop( "disabled", false );
     } else {
-        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+        jQuery('#signature_algorithem_dropdown').prop('disabled', true);
+        jQuery('#digest_algorithem_dropdown').prop('disabled', true);
     }
 });
