@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.INFORMIX;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MARIA_DB;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MICROSOFT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MY_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.POSTGRE_SQL;
@@ -52,7 +53,7 @@ public class JdbcUtils {
      */
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL);
+        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIA_DB);
     }
 
     /**
@@ -75,6 +76,17 @@ public class JdbcUtils {
     public static boolean isMySQLDB() throws DataAccessException {
 
         return isDBTypeOf(MY_SQL);
+    }
+
+    /**
+     * Check if the DB is Maria DB.
+     *
+     * @return true if DB is Maria DB.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isMariaDB() throws DataAccessException {
+
+        return isDBTypeOf(MARIA_DB);
     }
 
     /**

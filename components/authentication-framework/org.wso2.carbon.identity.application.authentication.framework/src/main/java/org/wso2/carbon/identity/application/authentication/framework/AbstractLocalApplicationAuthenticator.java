@@ -40,11 +40,14 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 
 /**
  * This is the super class to fire the account lock event for all authenticators which are not federated
@@ -85,7 +88,9 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                             String redirectUrl = getRedirectUrlOnAccountLock(context, response);
                             response.sendRedirect(redirectUrl);
                         } catch (IOException e1) {
-                            throw new AuthenticationFailedException(" Error while redirecting to the retry page ", e1);
+                            throw new AuthenticationFailedException(
+                                    ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                                    " Error while redirecting to the retry page ", e1);
                         }
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     }
@@ -267,9 +272,11 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                 eventService.handleEvent(event);
 
             } catch (UserStoreException e) {
-                throw new AuthenticationFailedException(" Error in accessing user store ", e);
+                throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                        " Error in accessing user store ", e);
             } catch (IdentityEventException e) {
-                throw new AuthenticationFailedException(" Error while firing the events ", e);
+                throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                        " Error while firing the events ", e);
             }
         }
     }

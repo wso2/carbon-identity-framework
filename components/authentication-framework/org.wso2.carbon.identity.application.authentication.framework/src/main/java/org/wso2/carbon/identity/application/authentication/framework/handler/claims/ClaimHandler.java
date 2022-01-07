@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 
 import java.util.Map;
 
+/**
+ * Claim handler interface.
+ */
 public interface ClaimHandler {
 
     /**

@@ -26,7 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -37,21 +39,30 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Authentication framework data holder.
+ */
 public class FrameworkServiceDataHolder {
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
@@ -62,12 +73,12 @@ public class FrameworkServiceDataHolder {
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-    private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
-    private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
+    private List<IdentityProcessor> identityProcessors = new ArrayList<>();
+    private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsGraphBuilderFactory JsGraphBuilderFactory;
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -83,6 +94,13 @@ public class FrameworkServiceDataHolder {
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
+    private ServerSessionManagementService serverSessionManagementService;
+    private MultiAttributeLoginService multiAttributeLoginService;
+    private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
+    private SessionSerializer sessionSerializer;
+
+    private AccountLockService accountLockService;
+    private JSExecutionSupervisor jsExecutionSupervisor;
 
     private FrameworkServiceDataHolder() {
 
@@ -203,15 +221,24 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
-    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+    public JsGraphBuilderFactory getJsGraphBuilderFactory() {
 
-        return JsGraphBuilderFactory;
+        return jsGraphBuilderFactory;
     }
 
-    public void setJsGraphBuilderFactory(
-            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
 
-        JsGraphBuilderFactory = jsGraphBuilderFactory;
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
+
+    public MultiAttributeLoginService getMultiAttributeLoginService() {
+
+        return multiAttributeLoginService;
+    }
+
+    public void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLoginService) {
+
+        this.multiAttributeLoginService = multiAttributeLoginService;
     }
 
     /**
@@ -503,5 +530,59 @@ public class FrameworkServiceDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    public ServerSessionManagementService getServerSessionManagementService() {
+
+        return serverSessionManagementService;
+    }
+
+    public void setServerSessionManagementService(
+            ServerSessionManagementService sessionManagementService) {
+
+        this.serverSessionManagementService = sessionManagementService;
+    }
+
+    public JSExecutionSupervisor getJsExecutionSupervisor() {
+
+        return jsExecutionSupervisor;
+    }
+
+    public void setJsExecutionSupervisor(JSExecutionSupervisor jsExecutionSupervisor) {
+
+        this.jsExecutionSupervisor = jsExecutionSupervisor;
+    }
+
+    public SessionContextMgtListener getSessionContextMgtListener(String inboundType) {
+
+        return sessionContextMgtListeners.get(inboundType);
+    }
+
+    public void setSessionContextMgtListener(String inboundType, SessionContextMgtListener sessionContextMgtListener) {
+
+        sessionContextMgtListeners.put(inboundType, sessionContextMgtListener);
+    }
+
+    public void removeSessionContextMgtListener(String inboundType) {
+
+        sessionContextMgtListeners.remove(inboundType);
+    }
+
+    public SessionSerializer getSessionSerializer() {
+        return sessionSerializer;
+    }
+
+    public void setAccountLockService(AccountLockService accountLockService) {
+
+        this.accountLockService = accountLockService;
+    }
+
+    public AccountLockService getAccountLockService() {
+
+        return accountLockService;
+    }
+
+    public void setSessionSerializer(SessionSerializer sessionSerializer) {
+        this.sessionSerializer = sessionSerializer;
     }
 }

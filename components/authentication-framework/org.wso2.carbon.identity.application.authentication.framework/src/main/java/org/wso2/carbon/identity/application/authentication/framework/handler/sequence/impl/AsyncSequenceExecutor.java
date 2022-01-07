@@ -27,12 +27,16 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Asynchronous authentication sequence executor.
+ */
 public class AsyncSequenceExecutor {
 
     private static final Log log = LogFactory.getLog(AsyncSequenceExecutor.class);
@@ -52,7 +56,8 @@ public class AsyncSequenceExecutor {
         executorService = Executors.newFixedThreadPool(poolSize);
     }
 
-    public void exec(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext) throws FrameworkException {
+    public void exec(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext)
+            throws FrameworkException {
 
         if (returnFunction == null) {
             throw new FrameworkException("Can not execute the async process, as no callback function registered on " +
@@ -87,9 +92,12 @@ public class AsyncSequenceExecutor {
         public void run() {
 
             try {
+                FrameworkUtils.startTenantFlow(asyncProcess.authenticationContext.getTenantDomain());
                 asyncProcess.call();
             } catch (FrameworkException e) {
                 log.error("Error while calling async process. ", e);
+            } finally {
+                FrameworkUtils.endTenantFlow();
             }
         }
     }
@@ -115,6 +123,7 @@ public class AsyncSequenceExecutor {
             LongWaitStatusStoreService longWaitStatusStoreService =
                     FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
             try {
+                FrameworkUtils.startTenantFlow(authenticationContext.getTenantDomain());
                 LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(authenticationContext
                         .getContextIdentifier());
                 if (longWaitStatus == null) {
@@ -126,6 +135,8 @@ public class AsyncSequenceExecutor {
                 returnFunction.accept(authenticationContext, data, result);
             } catch (FrameworkException e) {
                 log.error("Error while resuming from the wait. ", e);
+            } finally {
+                FrameworkUtils.endTenantFlow();
             }
         }
     }
@@ -136,7 +147,8 @@ public class AsyncSequenceExecutor {
         private AsyncReturn returnFunction;
         private AuthenticationContext authenticationContext;
 
-        public ObservingAsyncProcess(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext) {
+        public ObservingAsyncProcess(AsyncCaller caller, AsyncReturn returnFunction,
+                                     AuthenticationContext authenticationContext) {
 
             this.caller = caller;
             this.returnFunction = returnFunction;

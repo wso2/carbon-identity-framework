@@ -73,6 +73,8 @@ public class ApplicationBean {
     public static final String LOCAL_IDP = "wso2carbon-local-idp";
     public static final String DUMB = "dumb";
 
+    private static final String LOGOUT_RETURN_URL = "logoutReturnUrl";
+
     private ServiceProvider serviceProvider;
     private IdentityProvider[] federatedIdentityProviders;
     private Map<String, IdentityProvider> federatedIdentityProvidersMap = new HashMap<>();
@@ -88,7 +90,7 @@ public class ApplicationBean {
     private String oauthAppName;
     private String oauthConsumerSecret;
     private String attrConsumServiceIndex;
-    private String wstrustEp;
+    private List<String> wstrustEp = new ArrayList<String>(0);
     private String passivests;
     private String passiveSTSWReply;
     private String openid;
@@ -124,7 +126,7 @@ public class ApplicationBean {
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
-        wstrustEp = null;
+        wstrustEp = new ArrayList<String>(0);
         passivests = null;
         passiveSTSWReply = null;
         openid = null;
@@ -819,19 +821,31 @@ public class ApplicationBean {
      * @return
      */
     public String getWstrustSP() {
-        if (wstrustEp != null) {
+        List<String> wsTrustEps = getAllWsTrustSPs();
+        if (CollectionUtils.isNotEmpty(wsTrustEps)) {
+            return getAllWsTrustSPs().get(0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return
+     */
+    public List<String> getAllWsTrustSPs() {
+        if (CollectionUtils.isNotEmpty(wstrustEp)) {
             return wstrustEp;
+        } else {
+            wstrustEp = new ArrayList<>(0);
         }
 
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
+        InboundAuthenticationRequestConfig[] authRequests = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("wstrust".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-                    wstrustEp = authRequest[i].getInboundAuthKey();
-                    break;
-                }
-            }
+        if (authRequests != null) {
+            Arrays.stream(authRequests).filter(authRequest ->
+                    (authRequest.getInboundAuthType() != null && !authRequest.getInboundAuthType().isEmpty()
+                            && "wstrust".equalsIgnoreCase(authRequest.getInboundAuthType())))
+                    .forEach(authRequest -> wstrustEp.add(authRequest.getInboundAuthKey()));
         }
 
         return wstrustEp;
@@ -1142,6 +1156,27 @@ public class ApplicationBean {
         String imageUrl = request.getParameter("imageURL");
         serviceProvider.setImageUrl(imageUrl);
 
+        String logoutReturnUrl = request.getParameter(LOGOUT_RETURN_URL);
+        if (StringUtils.isNotBlank(logoutReturnUrl)) {
+            boolean logoutReturnUrlDefined = false;
+            if (serviceProvider.getSpProperties() != null) {
+                for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+                    if (property.getName() != null && LOGOUT_RETURN_URL.equals(property.getName())) {
+                        property.setValue(logoutReturnUrl);
+                        logoutReturnUrlDefined = true;
+                        break;
+                    }
+                }
+            }
+            if (!logoutReturnUrlDefined) {
+                ServiceProviderProperty property = new ServiceProviderProperty();
+                property.setName(LOGOUT_RETURN_URL);
+                property.setDisplayName("Logout Return URL");
+                property.setValue(logoutReturnUrl);
+                serviceProvider.addSpProperties(property);
+            }
+        }
+
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
             serviceProvider
@@ -1273,11 +1308,13 @@ public class ApplicationBean {
             authRequestList.add(opicAuthenticationRequest);
         }
 
-        if (wstrustEp != null) {
-            InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
-            opicAuthenticationRequest.setInboundAuthKey(wstrustEp);
-            opicAuthenticationRequest.setInboundAuthType("wstrust");
-            authRequestList.add(opicAuthenticationRequest);
+        if (CollectionUtils.isNotEmpty(wstrustEp)) {
+            wstrustEp.forEach(entry -> {
+                InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
+                opicAuthenticationRequest.setInboundAuthKey(entry);
+                opicAuthenticationRequest.setInboundAuthType("wstrust");
+                authRequestList.add(opicAuthenticationRequest);
+            });
         }
 
         String passiveSTSRealm = request.getParameter("passiveSTSRealm");
@@ -1554,7 +1591,19 @@ public class ApplicationBean {
      * @param wstrustEp
      */
     public void setWstrustEp(String wstrustEp) {
-        this.wstrustEp = wstrustEp;
+        if (CollectionUtils.isEmpty(this.wstrustEp)) {
+            this.wstrustEp = new ArrayList<String>(0);
+        }
+
+        this.wstrustEp.clear();
+        this.wstrustEp.add(wstrustEp);
+    }
+
+    /**
+     * @param wstrustEps
+     */
+    public void setWstrustEp(List<String> wstrustEps) {
+        this.wstrustEp = wstrustEps;
     }
 
     /**
@@ -1576,6 +1625,57 @@ public class ApplicationBean {
      */
     public void setOpenid(String openid) {
         this.openid = openid;
+    }
+
+    /**
+     * @param wstrustEp
+     */
+    public void addWstrustEp(String wstrustEp) {
+        if (wstrustEp != null && !wstrustEp.isEmpty()) {
+            if (this.wstrustEp == null) {
+                this.wstrustEp = new ArrayList<String>(0);
+            }
+            this.wstrustEp.add(wstrustEp);
+        }
+    }
+
+    /**
+     * @param wstrustEp
+     */
+    public void removeWstrustEp(String wstrustEp) {
+        if (wstrustEp != null && !wstrustEp.isEmpty()) {
+            if (this.wstrustEp != null && !this.wstrustEp.isEmpty()) {
+                if (this.wstrustEp.stream().anyMatch(entry -> wstrustEp.equalsIgnoreCase(entry))) {
+                    this.wstrustEp.remove(wstrustEp);
+
+                    InboundAuthenticationRequestConfig[] authRequestConfigs = serviceProvider
+                            .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+
+                    if (authRequestConfigs != null && authRequestConfigs.length > 0) {
+                        List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                                new ArrayList<InboundAuthenticationRequestConfig>();
+                        for (InboundAuthenticationRequestConfig authRequestConfig : authRequestConfigs) {
+                            if ("wstrust".equalsIgnoreCase(authRequestConfig.getInboundAuthType()) &&
+                                wstrustEp.equalsIgnoreCase(authRequestConfig.getInboundAuthKey())) {
+                                continue;
+                            }
+                            tempAuthRequest.add(authRequestConfig);
+                        }
+                        if (CollectionUtils.isNotEmpty(tempAuthRequest)) {
+                            serviceProvider
+                                    .getInboundAuthenticationConfig()
+                                    .setInboundAuthenticationRequestConfigs(
+                                            tempAuthRequest
+                                                    .toArray(new InboundAuthenticationRequestConfig[tempAuthRequest
+                                                            .size()]));
+                        } else {
+                            serviceProvider.getInboundAuthenticationConfig()
+                                    .setInboundAuthenticationRequestConfigs(null);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

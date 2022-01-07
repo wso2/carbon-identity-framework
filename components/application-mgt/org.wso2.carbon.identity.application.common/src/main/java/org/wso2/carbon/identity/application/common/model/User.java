@@ -113,7 +113,10 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+
+        if (StringUtils.isNotEmpty(userStoreDomain)) {
+            this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+        }
         updateCaseSensitivity();
     }
 
@@ -193,7 +196,7 @@ public class User implements Serializable {
             if (StringUtils.isNotEmpty(userStoreDomain)) {
                 user.setUserStoreDomain(userStoreDomain);
             } else {
-                user.setTenantDomain(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                user.setUserStoreDomain(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
             }
         }
         return user;
@@ -223,6 +226,11 @@ public class User implements Serializable {
             }
         }
         return username;
+    }
+
+    public String getLoggableUserId() {
+
+        return toFullQualifiedUsername();
     }
 
     /**

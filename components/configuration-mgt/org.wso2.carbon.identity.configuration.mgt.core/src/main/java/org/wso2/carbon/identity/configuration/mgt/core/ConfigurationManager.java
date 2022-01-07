@@ -16,7 +16,9 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
+import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.NotImplementedException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
@@ -40,8 +42,21 @@ public interface ConfigurationManager {
      * @param searchCondition {@link Condition} representing a search filter for resources.
      * @return {@link Resources} object with a collection of resources matching to the given {@link Condition}.
      * @throws ConfigurationManagementException Configuration Management Exception.
+     * @deprecated use {@link ConfigurationManager#getTenantResources(String, Condition)} method.
      */
+    @Deprecated
     Resources getTenantResources(Condition searchCondition) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to get resources from a specific tenant filtered with the {@link Condition}.
+     *
+     * @param tenantDomain    Tenant domain.
+     * @param searchCondition {@link Condition} representing a search filter for resources.
+     * @return {@link Resources} object with a collection of resources matching to the given {@link Condition}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    Resources getTenantResources(String tenantDomain, Condition searchCondition) throws
+            ConfigurationManagementException;
 
     /**
      * This API is used to store a new {@link ResourceType}.
@@ -106,6 +121,19 @@ public interface ConfigurationManager {
     Resource addResource(String resourceTypeName, ResourceAdd resourceAdd) throws ConfigurationManagementException;
 
     /**
+     * This API is used to create the given resource including a file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resource         The {@link Resource}.
+     * @return 201 created. Returns {@link Resource} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    default Resource addResource(String resourceTypeName, Resource resource) throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
+
+    /**
      * This API is used to replace the given resource or create if not exists.
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
@@ -114,6 +142,20 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     Resource replaceResource(String resourceTypeName, ResourceAdd resourceAdd) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to replace the given resource inclduing the file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resource         The  {@link Resource}.
+     * @return 201 created. Returns {@link Resource} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    default Resource replaceResource(String resourceTypeName, Resource resource)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to retrieve the given resource.
@@ -218,10 +260,11 @@ public interface ConfigurationManager {
             throws ConfigurationManagementException;
 
     /**
-     * This API is used to get all files for the given {@link ResourceType}
+     * This API is used to get all files for the given resource type
      *
-     * @param resourceTypeName Name of the {@link ResourceType}.
-     * @return 200 ok. Returns a list of {@link ResourceFile} for the {@link ResourceType}.
+     * @param resourceTypeName Name of the resource type.
+     * @param tenantId         Tenant id.
+     * @return List of resource file for the resource type.
      * @throws ConfigurationManagementException Resource management exception.
      */
     List<ResourceFile> getFiles(String resourceTypeName, int tenantId)

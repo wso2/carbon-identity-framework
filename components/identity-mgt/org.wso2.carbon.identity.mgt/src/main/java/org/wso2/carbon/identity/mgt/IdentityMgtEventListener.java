@@ -517,10 +517,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                 UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
-            if (credential == null || StringUtils.isBlank(credential.toString())) {
-                log.error("Identity Management listener is disabled");
-                throw new UserStoreException(PASSWORD_INVALID + ASK_PASSWORD_FEATURE_IS_DISABLED);
-            }
             return true;
         }
 

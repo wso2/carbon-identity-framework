@@ -111,6 +111,14 @@ public class ClaimAdminClient {
             role.setClaimUri("http://wso2.org/claims/role");
             mapping.setClaim(role);
             newClaims[i] = mapping;
+
+            // If role group separation is enabled, we need to send the roles claim also as UI might need that.
+            ClaimMappingDTO rolesMapping = new ClaimMappingDTO();
+            ClaimDTO roles = new ClaimDTO();
+            roles.setClaimUri("http://wso2.org/claims/roles");
+            rolesMapping.setClaim(roles);
+            newClaims[i] = rolesMapping;
+
             claims.setClaimMappings(newClaims);
             return claims;
         } catch (Exception e) {

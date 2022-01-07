@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
@@ -41,12 +42,13 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
-import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
@@ -54,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.impl.Lo
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
+import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
@@ -70,13 +73,21 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
+import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavaSessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -90,7 +101,10 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -101,6 +115,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.servlet.Servlet;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
@@ -198,11 +213,22 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
-        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
-                ApplicationAuthenticationService(), null);
+
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
+        bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
+                new SessionExtenderRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
+                new SessionExtenderResponseFactory(), null);
+        bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
+
+        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
+        bundleContext.registerService(ServerSessionManagementService.class.getName(),
+                serverSessionManagementService, null);
+        dataHolder.setServerSessionManagementService(serverSessionManagementService);
+        setAdaptiveAuthExecutionSupervisor();
+
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -215,7 +241,8 @@ public class FrameworkServiceComponent {
                         "enabled.");
             }
         }
-        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator
+                = new AuthenticationMethodNameTranslatorImpl();
         authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
         bundleContext
                 .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
@@ -273,7 +300,10 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
         dataHolder.setSSOConsentService(ssoConsentService);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
-
+        JITProvisioningIdentityProviderMgtListener jitProvisioningIDPMgtListener =
+                new JITProvisioningIdentityProviderMgtListener();
+        bundleContext.registerService(IdentityProviderMgtListener.class.getName(),
+                jitProvisioningIDPMgtListener, null);
         bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
@@ -309,6 +339,7 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -321,6 +352,58 @@ public class FrameworkServiceComponent {
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
+        if (FrameworkServiceDataHolder.getInstance().getSessionSerializer() == null) {
+            FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+        }
+
+        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
+                ApplicationAuthenticationService(), null);
+        // Note : DO NOT add any activation related code below this point,
+        // to make sure the server doesn't start up if any activation failures
+    }
+
+    private void setAdaptiveAuthExecutionSupervisor() {
+
+        String threadCountString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_THREAD_COUNT);
+        int threadCount = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT;
+        if (StringUtils.isNotBlank(threadCountString)) {
+            try {
+                threadCount = Integer.parseInt(threadCountString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor thread count config: "
+                        + threadCountString + ", setting thread count to default value: " + threadCount, e);
+            }
+        }
+
+        String timeoutString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT);
+        long timeoutInMillis = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT;
+        if (StringUtils.isNotBlank(timeoutString)) {
+            try {
+                timeoutInMillis = Long.parseLong(timeoutString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor timeout config: "
+                        + timeoutString + ", setting timeout to default value: " + timeoutInMillis, e);
+            }
+        }
+
+        String memoryLimitString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT);
+        long memoryLimitInBytes = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT;
+        if (StringUtils.isNotBlank(memoryLimitString)) {
+            try {
+                memoryLimitInBytes = Long.parseLong(memoryLimitString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor memory limit config: "
+                        + memoryLimitString + ", memory consumption will not be monitored.", e);
+            }
+        }
+
+
+
+        FrameworkServiceDataHolder.getInstance()
+                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis, memoryLimitInBytes));
     }
 
     @Deactivate
@@ -332,6 +415,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
         SessionDataStore.getInstance().stopService();
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
     }
 
     @Reference(
@@ -408,6 +492,7 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setName(authenticator.getName());
             localAuthenticatorConfig.setProperties(configProperties);
             localAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            localAuthenticatorConfig.setTags(authenticator.getTags());
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
@@ -416,12 +501,14 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setName(authenticator.getName());
             federatedAuthenticatorConfig.setProperties(configProperties);
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            federatedAuthenticatorConfig.setTags(authenticator.getTags());
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
             reqPathAuthenticatorConfig.setName(authenticator.getName());
             reqPathAuthenticatorConfig.setProperties(configProperties);
             reqPathAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            reqPathAuthenticatorConfig.setTags(authenticator.getTags());
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
@@ -430,6 +517,36 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Added application authenticator : " + authenticator.getName());
         }
+    }
+
+    @Reference(
+            name = "session.serializer",
+            service = SessionSerializer.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionSerializer"
+    )
+    protected void setSessionSerializer(SessionSerializer sessionSerializer) {
+
+        SessionSerializer existingSessionSerializer = FrameworkServiceDataHolder.getInstance().getSessionSerializer();
+
+        if (existingSessionSerializer != null) {
+            log.warn("Multiple Session Serializers are registered. Serializer:"
+                    + existingSessionSerializer.getClass().getName() + " will be replaced with "
+                    + sessionSerializer.getClass().getName());
+        }
+        FrameworkServiceDataHolder.getInstance().setSessionSerializer(sessionSerializer);
+        log.info("Session serializer got registered: " + sessionSerializer.getClass().getName());
+    }
+
+    protected void unsetSessionSerializer(SessionSerializer sessionSerializer) {
+
+        FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed session serializer.");
+        }
+
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
@@ -748,6 +865,39 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setFederatedAssociationManager(null);
     }
 
+    @Reference(
+            name = "MultiAttributeLoginService",
+            service = MultiAttributeLoginService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMultiAttributeLoginService")
+    protected void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(multiAttributeLogin);
+    }
+
+    protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
+    }
+
+
+    @Reference(
+            service = AccountLockService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAccountLockService"
+    )
+    public void setAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(accountLockService);
+    }
+
+    public void unsetAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(null);
+    }
+
     private AuthenticatorConfig getAuthenticatorConfig(String name) {
 
         AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(name);
@@ -756,5 +906,23 @@ public class FrameworkServiceComponent {
             authConfig.setParameterMap(new HashMap<String, String>());
         }
         return authConfig;
+    }
+
+    @Reference(
+            name = "session.context.listener",
+            service = SessionContextMgtListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionContextListener"
+    )
+    protected void setSessionContextListener(SessionContextMgtListener sessionListener) {
+
+        FrameworkServiceDataHolder.getInstance().setSessionContextMgtListener(sessionListener.getInboundType(),
+                sessionListener);
+    }
+
+    protected void unsetSessionContextListener(SessionContextMgtListener sessionListener) {
+
+        FrameworkServiceDataHolder.getInstance().removeSessionContextMgtListener(sessionListener.getInboundType());
     }
 }

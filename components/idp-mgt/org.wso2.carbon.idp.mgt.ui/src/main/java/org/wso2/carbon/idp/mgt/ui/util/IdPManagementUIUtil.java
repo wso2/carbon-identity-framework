@@ -51,6 +51,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -339,9 +340,6 @@ public class IdPManagementUIUtil {
                                                                Map<String, String> paramMap)
             throws IdentityApplicationManagementException {
 
-        // build SPML provisioning configuration.
-        buildSPMLProvisioningConfiguration(fedIdp, paramMap);
-
         // build Google provisioning configuration.
         buildGoogleProvisioningConfiguration(fedIdp, paramMap);
 
@@ -350,83 +348,6 @@ public class IdPManagementUIUtil {
 
         // build Salesforce provisioning configuration.
         buildSalesforceProvisioningConfiguration(fedIdp, paramMap);
-
-    }
-
-    /**
-     * @param fedIdp
-     * @param paramMap
-     * @throws IdentityApplicationManagementException
-     */
-    private static void buildSPMLProvisioningConfiguration(IdentityProvider fedIdp,
-                                                           Map<String, String> paramMap)
-            throws IdentityApplicationManagementException {
-
-        ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
-        proConnector.setName("spml");
-
-        Property userNameProp = null;
-        Property passwordProp = null;
-        Property endPointProp = null;
-        Property objectClass = null;
-        Property uniqueID = null;
-
-        if (paramMap.get("spmlProvEnabled") != null && "on".equals(paramMap.get("spmlProvEnabled"))) {
-            proConnector.setEnabled(true);
-        } else {
-            proConnector.setEnabled(false);
-        }
-
-        if (paramMap.get("spmlProvDefault") != null && "on".equals(paramMap.get("spmlProvDefault"))) {
-            fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
-        }
-
-        if (paramMap.get("spml-username") != null) {
-            userNameProp = new Property();
-            userNameProp.setName("spml-username");
-            userNameProp.setValue(paramMap.get("spml-username"));
-        }
-
-        if (paramMap.get("spml-password") != null) {
-            passwordProp = new Property();
-            passwordProp.setConfidential(true);
-            passwordProp.setName("spml-password");
-            passwordProp.setValue(paramMap.get("spml-password"));
-        }
-
-        if (paramMap.get("spml-ep") != null) {
-            endPointProp = new Property();
-            endPointProp.setName("spml-ep");
-            endPointProp.setValue(paramMap.get("spml-ep"));
-        }
-
-        if (paramMap.get("spml-oc") != null) {
-            objectClass = new Property();
-            objectClass.setName("spml-oc");
-            objectClass.setValue(paramMap.get("spml-oc"));
-        }
-
-        if (paramMap.get("spml-unique-id") != null) {
-            uniqueID = new Property();
-            uniqueID.setName("UniqueID");
-            uniqueID.setValue(paramMap.get("spml-unique-id"));
-        }
-
-        Property[] proProperties = new Property[]{userNameProp, passwordProp, endPointProp,
-                objectClass, uniqueID};
-
-        proConnector.setProvisioningProperties(proProperties);
-
-        ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
-
-        if (proConnector.getName() != null) {
-            if (proConnectors == null || proConnectors.length == 0) {
-                fedIdp.setProvisioningConnectorConfigs((new ProvisioningConnectorConfig[]{proConnector}));
-            } else {
-                fedIdp.setProvisioningConnectorConfigs(concatArrays(
-                        new ProvisioningConnectorConfig[]{proConnector}, proConnectors));
-            }
-        }
 
     }
 
@@ -1043,6 +964,15 @@ public class IdPManagementUIUtil {
             jwksProperty.setValue(jwksUri);
             jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
             fedIdp.addIdpProperties(jwksProperty);
+        }
+
+        // Set idpIssuerName of the identity provider.
+        String idpIssuerName = paramMap.get(IdentityApplicationConstants.IDP_ISSUER_NAME);
+        if (StringUtils.isNotBlank(idpIssuerName)) {
+            IdentityProviderProperty idpIssuerNameProperty = new IdentityProviderProperty();
+            idpIssuerNameProperty.setName(IdentityApplicationConstants.IDP_ISSUER_NAME);
+            idpIssuerNameProperty.setValue(idpIssuerName);
+            fedIdp.addIdpProperties(idpIssuerNameProperty);
         }
     }
 
@@ -1733,15 +1663,22 @@ public class IdPManagementUIUtil {
         String authenticationContextClass = paramMap.get(
                 IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
 
-        if (IdentityApplicationConstants.Authenticator.SAML2SSO.
-                CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
-            authenticationContextClass = paramMap.get(IdentityApplicationConstants.
-                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
-        }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         property.setValue(authenticationContextClass);
         properties.add(property);
+
+        String[] authnContextClassList = StringUtils.split(authenticationContextClass, ",");
+
+        if (Arrays.asList(authnContextClassList).contains(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
+            property = new Property();
+            property.setName(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+            property.setValue(paramMap.get(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS));
+            properties.add(property);
+        }
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);

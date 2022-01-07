@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -55,7 +56,18 @@ public class IdentityDatabaseUtil {
     }
 
     /**
-     * Get database source instance from the Identity Persistence Manager
+     * Get a database connection instance from the Session Persistence.
+     *
+     * @return Database Connection
+     * @throws IdentityRuntimeException Error when getting a database connection to Session database
+     */
+    public static Connection getSessionDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        return JDBCPersistenceManager.getInstance().getSessionDBConnection(shouldApplyTransaction);
+    }
+
+    /**
+     * Get database source instance from the Identity Persistence Manager.
      *
      * @return Database Source
      */
@@ -63,6 +75,17 @@ public class IdentityDatabaseUtil {
 
         return JDBCPersistenceManager.getInstance().getDataSource();
     }
+
+    /**
+     * Get session database source instance from the Identity Persistence Manager.
+     *
+     * @return Database Source
+     */
+    public static DataSource getSessionDataSource() {
+
+        return JDBCPersistenceManager.getInstance().getSessionDataSource();
+    }
+
 
     public static void closeAllConnections(Connection dbConnection, ResultSet rs, PreparedStatement prepStmt) {
 
@@ -124,7 +147,10 @@ public class IdentityDatabaseUtil {
      *
      * @return Database Connection
      * @throws IdentityRuntimeException Error when getting a database connection to Identity database
+     * @Deprecated The logic is improved with the transaction isolation. Hence deprecating this method to
+     * use {@link IdentityDatabaseUtil#getUserDBConnection(boolean)} method.
      */
+    @Deprecated
     public static Connection getUserDBConnection() throws IdentityRuntimeException {
         Connection connection;
         try {
@@ -133,5 +159,77 @@ public class IdentityDatabaseUtil {
             throw IdentityRuntimeException.error("Database error. Could not get a connection", e);
         }
         return connection;
+    }
+
+    /**
+     * Get a database connection instance from the Identity Persistence Manager
+     *
+     * @return Database Connection
+     * @throws IdentityRuntimeException Error when getting a database connection to Identity database
+     */
+    public static Connection getUserDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        return UmPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
+    }
+
+    /**
+     * Commit the User DB transaction.
+     *
+     * @param dbConnection Database Connection.
+     */
+    public static void commitUserDBTransaction(Connection dbConnection) {
+
+        UmPersistenceManager.getInstance().commitTransaction(dbConnection);
+    }
+
+    /**
+     * Rollback the User DB transaction.
+     *
+     * @param dbConnection Database Connection.
+     */
+    public static void rollbackUserDBTransaction(Connection dbConnection) {
+
+        UmPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+    }
+
+    /**
+     * Check whether the specified table exists in the Identity database.
+     *
+     * @param tableName The name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExists(String tableName) {
+
+        try (Connection connection = getDBConnection()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]{"TABLE"})) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Identity database.");
+                    }
+                    commitTransaction(connection);
+                    return true;
+                }
+                commitTransaction(connection);
+            } catch (SQLException e) {
+                rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
+            }
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
     }
 }

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for lookup config store based template from the cache.

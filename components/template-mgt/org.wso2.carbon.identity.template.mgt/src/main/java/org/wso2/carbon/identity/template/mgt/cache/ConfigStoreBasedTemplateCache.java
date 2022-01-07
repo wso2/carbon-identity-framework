@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**

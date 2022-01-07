@@ -81,6 +81,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 }
             case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
                 return getWrapped().isRetrying();
+            case FrameworkConstants.JSAttributes.JS_ENDPOINT_PARAMS:
+                return new JsWritableParameters(getContext().getEndpointParams());
             default:
                 return super.getMember(name);
         }
@@ -104,6 +106,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 return hasTransientValueInParameters(FrameworkConstants.RequestAttribute.HTTP_RESPONSE);
             case FrameworkConstants.JSAttributes.JS_STEPS:
                 return !getWrapped().getSequenceConfig().getStepMap().isEmpty();
+            case FrameworkConstants.JSAttributes.JS_ENDPOINT_PARAMS:
+                return getWrapped().getEndpointParams() != null;
             default:
                 return super.hasMember(name);
         }
@@ -141,7 +145,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
-        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+        Object lastLoginFailedUser
+                = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return new JsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {

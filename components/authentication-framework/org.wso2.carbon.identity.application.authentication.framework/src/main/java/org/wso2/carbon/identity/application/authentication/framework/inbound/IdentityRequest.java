@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,14 +26,21 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Identity request.
+ */
 public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = -5698789879774366242L;
 
-    protected Map<String, String> headers = new HashMap();
-    protected Map<String, Cookie> cookies = new HashMap();
-    protected Map<String, String[]> parameters = new HashMap();
-    protected Map<String, Object> attributes = new HashMap();
+    protected Map<String, String> headers;
+    protected Map<String, Cookie> cookies;
+    protected Map<String, String[]> parameters;
+    protected Map<String, Object> attributes;
     protected String tenantDomain;
     protected String contextPath;
     protected String method;
@@ -76,7 +80,7 @@ public class IdentityRequest implements Serializable {
 
     public Cookie[] getCookies() {
         Collection<Cookie> cookies = getCookieMap().values();
-        return cookies.toArray(new Cookie[cookies.size()]);
+        return cookies.toArray(new Cookie[0]);
     }
 
     public Map<String, String[]> getParameterMap() {
@@ -97,7 +101,7 @@ public class IdentityRequest implements Serializable {
 
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
-        if(values != null && values.length > 0) {
+        if (values != null && values.length > 0) {
             return values[0];
         }
         return null;
@@ -165,6 +169,9 @@ public class IdentityRequest implements Serializable {
         return cookieValue;
     }
 
+    /**
+     * Identity request builder.
+     */
     public static class IdentityRequestBuilder {
 
         protected HttpServletRequest request;
@@ -234,9 +241,10 @@ public class IdentityRequest implements Serializable {
         }
 
         public IdentityRequestBuilder addCookie(String name, Cookie value) {
+
             if (this.cookies.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + name);
+                // Temp-Fix: ignore the second value.
+                return this;
             }
             this.cookies.put(name, value);
             return this;
@@ -372,6 +380,9 @@ public class IdentityRequest implements Serializable {
 
     }
 
+    /**
+     * Identity request constants.
+     */
     public static class IdentityRequestConstants {
         public static final String BROWSER_COOKIE = "SIOWTOSW";
     }

@@ -106,7 +106,8 @@
 
     function deleteUserStores() {
         var selected = false;
-        if (document.userStoreForm.userStores[0] != null) { // there is more than 1 user store
+        if (document.userStoreForm.userStores != null && document.userStoreForm.userStores.length > 1) {
+            // there is more than 1 user store
             for (var j = 0; j < document.userStoreForm.userStores.length; j++) {
                 selected = document.userStoreForm.userStores[j].checked;
                 if (selected) break;
@@ -176,9 +177,9 @@
 </script>
 
 
-<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+<script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+<script type="text/javascript" src="../admin/js/cookies.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
 
 
 <div id="middle">
@@ -214,7 +215,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <% if (userStoreDTOs != null && userStoreDTOs[0] != null) {
+                <% if (userStoreDTOs != null && userStoreDTOs.length > 0) {
                     for (UserStoreDTO userstoreDTO : userStoreDTOs) {
                         String className = userstoreDTO.getClassName();
                         String description = userstoreDTO.getDescription();

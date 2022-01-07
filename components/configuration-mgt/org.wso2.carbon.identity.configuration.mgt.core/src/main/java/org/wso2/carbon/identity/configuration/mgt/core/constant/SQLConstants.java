@@ -187,6 +187,8 @@ public class SQLConstants {
     public static final String DELETE_ATTRIBUTE_SQL = "DELETE FROM IDN_CONFIG_ATTRIBUTE WHERE ID = ?";
     public static final String GET_RESOURCE_TYPE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION FROM IDN_CONFIG_TYPE " +
             "WHERE NAME = ? ";
+    public static final String GET_RESOURCE_TYPE_ID_BY_NAME_SQL = "SELECT ID FROM IDN_CONFIG_TYPE " +
+            "WHERE NAME = ? ";
     public static final String GET_RESOURCE_TYPE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM IDN_CONFIG_TYPE WHERE" +
             " ID = ? ";
     public static final String DELETE_RESOURCE_TYPE_BY_NAME_SQL = "DELETE FROM IDN_CONFIG_TYPE WHERE NAME = ?";
@@ -195,6 +197,8 @@ public class SQLConstants {
             "TENANT_ID = ?";
     public static final String GET_RESOURCE_ID_BY_NAME_SQL = "SELECT ID FROM IDN_CONFIG_RESOURCE WHERE NAME = ? AND " +
             "TENANT_ID = ? AND TYPE_ID = ?";
+    public static final String GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL = "SELECT ID, TENANT_ID FROM " +
+            "IDN_CONFIG_RESOURCE WHERE TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_NAME_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -239,7 +243,7 @@ public class SQLConstants {
             "  F.NAME FILE_NAME," +
             "  A.ID ATTR_ID," +
             "  A.ATTR_KEY ATTR_KEY," +
-            "  A.ATTR_VALUE ATTR_VALUE" +
+            "  A.ATTR_VALUE ATTR_VALUE " +
             "FROM" +
             "  IDN_CONFIG_RESOURCE R" +
             "  INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
@@ -323,7 +327,7 @@ public class SQLConstants {
             "   F.ID FILE_ID," +
             "   A.ID ATTR_ID," +
             "   A.ATTR_KEY ATTR_KEY," +
-            "   A.ATTR_VALUE ATTR_VALUE" +
+            "   A.ATTR_VALUE ATTR_VALUE " +
             "FROM" +
             "   IDN_CONFIG_RESOURCE R" +
             "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
@@ -397,7 +401,7 @@ public class SQLConstants {
             "   F.ID  FILE_ID," +
             "   A.ID  ATTR_ID," +
             "   A.ATTR_KEY  ATTR_KEY," +
-            "   A.ATTR_VALUE  ATTR_VALUE" +
+            "   A.ATTR_VALUE  ATTR_VALUE " +
             "FROM" +
             "   IDN_CONFIG_RESOURCE  R" +
             "   INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID" +

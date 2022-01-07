@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.mgt.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +73,16 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException
      */
     void deleteApplication(String applicationName) throws IdentityApplicationManagementException;
+
+    /**
+     * Delete applications of a given tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
+     */
+    default void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
+
+    }
 
     /**
      * @param applicationID
@@ -141,6 +153,20 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return null;
+    }
+
+    /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    default ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
     }
 
     default String addApplication(ServiceProvider application, String tenantDomain)
@@ -226,5 +252,32 @@ public interface ApplicationDAO {
             IdentityApplicationManagementException {
 
         return 0;
+    }
+
+    /**
+     * Method that can be run after updating components related to the service provider. Contains post application
+     * dependency update tasks.
+     *
+     * @param serviceProvider   Service provider application.
+     * @param tenantDomain      Tenant domain of the service provider.
+     */
+    default void clearApplicationFromCache(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+    }
+
+    /**
+     * Method that checks whether a claim is associated with any service provider.
+     *
+     * @param dbConnection  Optional DB connection.
+     * @param claimUri      Claim URI.
+     * @param tenantId      ID of the tenant.
+     * @return  True if claim is referred by a service provider.
+     * @throws IdentityApplicationManagementException   Error when obtaining claim references.
+     */
+    default boolean isClaimReferredByAnySp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return false;
     }
 }

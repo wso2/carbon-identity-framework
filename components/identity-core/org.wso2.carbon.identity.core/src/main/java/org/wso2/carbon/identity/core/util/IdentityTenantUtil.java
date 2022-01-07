@@ -169,7 +169,11 @@ public class IdentityTenantUtil {
         return registryService;
     }
 
+    /**
+     * This method sets the registry service to tenant util.
+     */
     public static void setRegistryService(RegistryService registryService) {
+
         IdentityTenantUtil.registryService = registryService;
     }
 
@@ -339,5 +343,34 @@ public class IdentityTenantUtil {
     public static boolean isTenantQualifiedUrlsEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
+    }
+
+
+    /**
+     * Checks if the tenanted session support is enabled.
+     * @return true if tenanted session support is enabled, false otherwise
+     */
+    public static boolean isTenantedSessionsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+    }
+
+    /**
+     *
+     * Checks whether legacy SaaS authentication is enabled.
+     *
+     * If enabled and if the username provided during the SaaS application authentication does not have a tenant
+     * domain appended, the user will be treated as a super tenant user and will be authenticated against the super
+     * tenant domain.
+     *
+     * If disabled and if the username provided during the SaaS application authentication does not have a tenant
+     * domain appended, the user will be treated as a application tenant domain user and will be authenticated
+     * against the application tenant domain.
+     *
+     * @return true if legacy SaaS authentication is enabled, false otherwise.
+     */
+    public static boolean isLegacySaaSAuthenticationEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
     }
 }

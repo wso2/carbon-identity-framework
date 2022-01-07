@@ -60,6 +60,9 @@ public class IdentityManagementServiceUtil {
     private String appName;
     private char[] appPassword;
 
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
+
     private static final Log log = LogFactory.getLog(IdentityManagementServiceUtil.class);
 
     /**
@@ -98,9 +101,7 @@ public class IdentityManagementServiceUtil {
 
                 inputStream = new FileInputStream(configFile);
                 properties.load(inputStream);
-                if (isSecuredPropertyAvailable(properties)) {
-                    resolveSecrets(properties);
-                }
+                resolveSecrets(properties);
 
             } else {
                 if (log.isDebugEnabled()) {
@@ -200,6 +201,10 @@ public class IdentityManagementServiceUtil {
 
     private static void resolveSecrets(Properties properties) {
 
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = entry.getKey().toString();

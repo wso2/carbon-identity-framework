@@ -37,6 +37,3 @@
     } finally {
     }
 %>
-<script type="text/javascript">
-    location.href = "idp-mgt-edit-local.jsp";
-</script>

@@ -30,5 +30,14 @@
   "authentication.authenticator.totp.parameters.enable_html_template_based_emails_for_totp" : "authentication.authenticator.totp.parameters.useEventHandlerBasedEmailSender",
   "authentication.authenticator.totp.parameters.totp_authentication_endpointURL":   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL",
   "authentication.authenticator.totp.parameters.totp_authentication_endpoint_error_page":   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage",
-  "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage"
+  "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage",
+  "authentication.authenticator.totp.parameters.allow_sending_verification_code_by_email": "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail",
+  "authentication.authenticator.totp.parameters.hide_user_store_from_display_name_in_qr_url": "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl",
+  "authentication.authenticator.totp.parameters.issuer": "authentication.authenticator.totp.parameters.Issuer",
+  "authentication.authenticator.totp.parameters.use_common_issuer": "authentication.authenticator.totp.parameters.UseCommonIssuer",
+
+  "authentication.authenticator.email_otp.parameters.email_otp_login_page":   "authentication.authenticator.email_otp.parameters.EMAILOTPAuthenticationEndpointURL",
+  "authentication.authenticator.email_otp.parameters.email_otp_error_page":   "authentication.authenticator.email_otp.parameters.EmailOTPAuthenticationEndpointErrorPage",
+  "authentication.authenticator.email_otp.parameters.email_capture_page": "authentication.authenticator.email_otp.parameters.EmailAddressRequestPage",
+  "authentication.authenticator.email_otp.parameters.use_event_handler_based_email_sender": "authentication.authenticator.email_otp.parameters.useEventHandlerBasedEmailSender"
 }

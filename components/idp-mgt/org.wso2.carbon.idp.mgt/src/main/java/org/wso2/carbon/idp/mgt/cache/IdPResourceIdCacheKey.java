@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.idp.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for IDP Cache by resource ID.
@@ -32,7 +32,7 @@ public class IdPResourceIdCacheKey extends CacheKey {
     }
 
     public String getResourceId() {
-        return getResourceId();
+        return resourceId;
     }
 
     @Override

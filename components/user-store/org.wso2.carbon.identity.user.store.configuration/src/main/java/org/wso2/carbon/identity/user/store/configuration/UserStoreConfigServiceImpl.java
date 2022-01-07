@@ -19,10 +19,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
@@ -31,9 +34,11 @@ import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
 import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -45,6 +50,13 @@ import java.util.Set;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostGet;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_EXPRESSION;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -60,7 +72,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
+            triggerListenersOnUserStorePreAdd(userStoreDTO);
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.
@@ -73,8 +87,12 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                                   userStoreDTO.getDomainId() + " with file-based configuration.");
                     }
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
+                    + " cannot be added.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage, e);
@@ -84,7 +102,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void updateUserStore(UserStoreDTO userStoreDTO, boolean isStateChange) throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
+            triggerListenersOnUserStorePreUpdate(userStoreDTO, isStateChange);
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
 
@@ -96,6 +116,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     LOG.debug("Repository separation of user-stores has been disabled. Editing user-store " +
                               userStoreDTO.getDomainId() + " with file-based configuration.");
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -105,9 +126,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                               userStoreDTO.getRepositoryClass());
                 }
             } else {
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
+                    + " cannot be updated.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage, e);
@@ -118,6 +143,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void updateUserStoreByDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -220,6 +246,15 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         if (userStoreDTOS != null) {
             for (UserStoreDTO userStoreDTO : userStoreDTOS) {
                 if (userStoreDTO.getDomainId().equals(domain)) {
+                    // Trigger post get listeners.
+                    try {
+                        triggerListenersOnUserStorePostGet(userStoreDTO);
+                    } catch (UserStoreClientException e) {
+                        throw buildIdentityUserStoreClientException("Userstore " + domain + " cannot be retrieved.", e);
+                    } catch (UserStoreException e) {
+                        throw new IdentityUserStoreMgtException("Error occurred while triggering userstore post get " +
+                                "listener. " + e.getMessage(), e);
+                    }
                     return userStoreDTO;
                 }
             }
@@ -243,7 +278,18 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
             userStoreDTOList.addAll(Arrays.asList(allUserStores));
         }
-        return userStoreDTOList.toArray(new UserStoreDTO[0]);
+        UserStoreDTO[] userStoreDTOS = userStoreDTOList.toArray(new UserStoreDTO[0]);
+
+        // Trigger post get listeners.
+        try {
+            triggerListenersOnUserStoresPostGet(userStoreDTOS);
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstores cannot be retrieved.", e);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while triggering userstores post get listener.", e);
+        }
+
+        return userStoreDTOS;
     }
 
     @Override
@@ -319,6 +365,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void modifyUserStoreState(String domain, Boolean isDisable, String repositoryClass)
             throws IdentityUserStoreMgtException {
 
+        loadTenant();
         UserStoreDTO userStoreDTO;
         if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                 StringUtils.isNotEmpty(repositoryClass)) {
@@ -395,5 +442,60 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         userStoreDTO.setDisabled(isDisable);
         userStoreDTO.setRepositoryClass(repositoryClass);
         return userStoreDTO;
+    }
+
+    /**
+     * Checks whether the tenant is loaded if not loaded the tenant.
+     *
+     * Note: This is required only if tenant configurations
+     * need to be redeployed.
+     */
+    private void loadTenant() throws IdentityUserStoreMgtException {
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            return;
+        }
+
+        Set<String> loadedTenants = TenantAxisUtils.getTenantConfigurationContexts(UserStoreConfigListenersHolder
+                .getInstance().getConfigurationContextService().getServerConfigContext()).keySet();
+        if (!loadedTenants.contains(tenantDomain)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Tenant: " + tenantDomain + " is not loaded. Therefore attempting to load the tenant.");
+            }
+            try {
+                TenantAxisUtils.getTenantConfigurationContext(tenantDomain, UserStoreConfigListenersHolder
+                        .getInstance().getConfigurationContextService().getServerConfigContext());
+            } catch (Exception e) {
+                throw new IdentityUserStoreMgtException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Override
+    public UserStoreAttributeMappings getUserStoreAttributeMappings() throws IdentityUserStoreMgtException {
+
+        return UserStoreConfigListenersHolder.getInstance().getUserStoreAttributeMappings();
+    }
+
+    /**
+     * Validate the userstore connection URL. Currently the init param is checked.
+     *
+     * @param userStoreDTO contains the userstore details.
+     * @throws IdentityUserStoreMgtException throws when the URL is invalid.
+     */
+    private void validateConnectionUrl(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        PropertyDTO[] propertyDTO = userStoreDTO.getProperties();
+        for (PropertyDTO propertyDTOValue : propertyDTO) {
+            if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
+                String connectionURL = propertyDTOValue.getValue();
+                if (connectionURL != null && connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
+                    throw new IdentityUserStoreMgtException("INIT expressions are not allowed in the connection " +
+                            "URL due to security reasons.");
+                }
+            }
+        }
     }
 }

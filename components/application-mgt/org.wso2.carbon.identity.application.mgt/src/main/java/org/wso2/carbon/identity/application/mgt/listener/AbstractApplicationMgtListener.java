@@ -62,6 +62,10 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
         return true;
     }
 
+    /**
+     * @deprecated implement {@link #doPostDeleteApplication(ServiceProvider, String, String)} instead.
+     */
+    @Deprecated
     public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
@@ -414,6 +418,13 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
             throws IdentityApplicationManagementException {
 
         return true;
+    }
+
+    @Override
+    public boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        return doPostDeleteApplication(serviceProvider.getApplicationName(), tenantDomain, userName);
     }
 
     public boolean isEnable() {

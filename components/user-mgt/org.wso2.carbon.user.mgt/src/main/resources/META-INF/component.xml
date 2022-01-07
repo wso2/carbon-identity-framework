@@ -70,6 +70,28 @@
             <ResourceId>/permission/admin/manage/identity/rolemgt/delete</ResourceId>
         </ManagementPermission>
 
+        <!--Group Management Permissions-->
+        <ManagementPermission>
+            <DisplayName>Group Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/groupmgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/groupmgt/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/groupmgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/groupmgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/groupmgt/delete</ResourceId>
+        </ManagementPermission>
+
         <!--User/Role UI Management Permissions-->
         <ManagementPermission>
             <DisplayName>User Role UI Management</DisplayName>

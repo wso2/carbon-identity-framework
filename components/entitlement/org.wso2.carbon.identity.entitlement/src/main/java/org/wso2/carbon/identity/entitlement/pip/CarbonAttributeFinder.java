@@ -212,7 +212,7 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
                 }
             }
         } catch (ParsingException e) {
-            log.error("Error while parsing attribute values from EvaluationCtx : " + e);
+            log.error("Error while parsing attribute values from EvaluationCtx : ", e);
             ArrayList<String> code = new ArrayList<String>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
@@ -220,21 +220,21 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
             return new EvaluationResult(status);
         } catch (ParseException e) {
             e.printStackTrace();
-            log.error("Error while parsing attribute values from EvaluationCtx : " + e);
+            log.error("Error while parsing attribute values from EvaluationCtx : ", e);
             ArrayList<String> code = new ArrayList<String>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
                                        "Error while parsing attribute values from EvaluationCtx : " + e.getMessage());
             return new EvaluationResult(status);
         } catch (URISyntaxException e) {
-            log.error("Error while parsing attribute values from EvaluationCtx : " + e);
+            log.error("Error while parsing attribute values from EvaluationCtx : ", e);
             ArrayList<String> code = new ArrayList<String>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
                                        "Error while parsing attribute values from EvaluationCtx :" + e.getMessage());
             return new EvaluationResult(status);
         } catch (Exception e) {
-            log.error("Error while retrieving attribute values from PIP  attribute finder : " + e);
+            log.error("Error while retrieving attribute values from PIP  attribute finder : ", e);
             ArrayList<String> code = new ArrayList<String>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code, "Error while retrieving attribute values from PIP"

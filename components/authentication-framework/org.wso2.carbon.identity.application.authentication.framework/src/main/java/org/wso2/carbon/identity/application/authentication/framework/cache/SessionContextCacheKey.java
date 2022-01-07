@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
+/**
+ * Key to cache {@link org.wso2.carbon.identity.application.authentication.framework.context.SessionContext}
+ */
 public class SessionContextCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -657663583122855292L;

@@ -46,14 +46,14 @@ public class CacheBackedLocalClaimDAO {
 
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
-        List<LocalClaim> localClaimList = localClaimInvalidationCache.getValueFromCache(tenantId);
+        List<LocalClaim> localClaimList = localClaimInvalidationCache.getValueFromCache(tenantId, tenantId);
 
         if (localClaimList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
             localClaimList = localClaimDAO.getLocalClaims(tenantId);
-            localClaimInvalidationCache.addToCache(tenantId, new ArrayList<>(localClaimList));
+            localClaimInvalidationCache.addToCache(tenantId, new ArrayList<>(localClaimList), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for local claim list for tenant: " + tenantId);
@@ -66,19 +66,34 @@ public class CacheBackedLocalClaimDAO {
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.addLocalClaim(localClaim, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
     }
 
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.updateLocalClaim(localClaim, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+    }
+
+    /**
+     * Update attribute claim mappings related to tenant id and domain in bulk.
+     *
+     * @param localClaimList  List of local claims.
+     * @param tenantId        Tenant Id.
+     * @param userStoreDomain Domain name.
+     * @throws ClaimMetadataException If an error occurred while updating local claims.
+     */
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
     }
 
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
     }
 
     /**
@@ -98,6 +113,6 @@ public class CacheBackedLocalClaimDAO {
             throw new UserStoreException(message);
         }
         localClaimDAO.deleteClaimMappingAttributes(tenantId, userstoreDomain);
-        localClaimInvalidationCache.clearCacheEntry(tenantId);
+        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
     }
 }

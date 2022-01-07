@@ -26,15 +26,11 @@ import java.io.Serializable;
 public class ServiceProviderTemplateCacheKey implements Serializable {
 
     private static final long serialVersionUID = 8263255365985309443L;
-    protected String tenantDomain = "carbon.super";
     private String templateName;
 
-    public ServiceProviderTemplateCacheKey(String templateName, String tenantDomain) {
+    public ServiceProviderTemplateCacheKey(String templateName) {
 
         this.templateName = templateName;
-        if (tenantDomain != null) {
-            this.tenantDomain = tenantDomain.toLowerCase();
-        }
     }
 
     /**
@@ -45,16 +41,6 @@ public class ServiceProviderTemplateCacheKey implements Serializable {
     public String getTemplateName() {
 
         return templateName;
-    }
-
-    /**
-     * Get tenant domain.
-     *
-     * @return tenant domain
-     */
-    public String getTenantDomain() {
-
-        return this.tenantDomain;
     }
 
     @Override
@@ -70,13 +56,7 @@ public class ServiceProviderTemplateCacheKey implements Serializable {
             return false;
         }
         ServiceProviderTemplateCacheKey that = (ServiceProviderTemplateCacheKey) o;
-        if (!templateName.equals(that.templateName)) {
-            return false;
-        }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
-        return true;
+        return templateName.equals(that.templateName);
     }
 
     @Override
@@ -84,7 +64,6 @@ public class ServiceProviderTemplateCacheKey implements Serializable {
 
         int result = super.hashCode();
         result = 31 * result + templateName.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

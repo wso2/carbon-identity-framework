@@ -23,9 +23,15 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.impl.DefaultClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataManagementAuditLogger;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -38,6 +44,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+
+import java.util.Collection;
 
 @SuppressWarnings("unused")
 @Component(
@@ -54,6 +62,10 @@ public class IdentityClaimManagementServiceComponent {
 
             IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(bundleCtx);
 
+            if (IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO() == null) {
+                IdentityClaimManagementServiceDataHolder.getInstance()
+                        .setClaimConfigInitDAO(new DefaultClaimConfigInitDAO());
+            }
             ClaimMetadataStoreFactory claimMetadataStoreFactory = new ClaimMetadataStoreFactory();
             bundleCtx.registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
 
@@ -66,7 +78,12 @@ public class IdentityClaimManagementServiceComponent {
 
             registerClaimConfigListener(bundleCtx);
 
+            // Register claim operation event handler implementation.
+            bundleCtx.registerService(AbstractEventHandler.class.getName(), new ClaimMetadataManagementAuditLogger(),
+                    null);
+
             if (log.isDebugEnabled()) {
+                log.debug("ClaimMetadataManagementAuditLogger is successfully registered.");
                 log.debug("Identity Claim Management Core bundle is activated");
             }
         } catch (Throwable e) {
@@ -177,5 +194,83 @@ public class IdentityClaimManagementServiceComponent {
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
-}
 
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Identity Claim Management bundle");
+        }
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setIdentityEventService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService set in Identity Claim Management bundle");
+        }
+    }
+
+    @Reference(
+            name = "claim.metadata.mgt.event.listener.service",
+            service = ClaimMetadataMgtListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeClaimMetadataMgtListenerService"
+    )
+    protected void addClaimMetadataMgtListenerService(ClaimMetadataMgtListener claimMetadataMgtListenerService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().addClaimMetadataMgtListener(
+                claimMetadataMgtListenerService);
+    }
+
+    protected void removeClaimMetadataMgtListenerService(ClaimMetadataMgtListener claimMetadataMgtListener) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().removeClaimMetadataMgtListener(claimMetadataMgtListener);
+    }
+
+    public static Collection<ClaimMetadataMgtListener> getClaimMetadataMgtListeners() {
+
+        return IdentityClaimManagementServiceDataHolder.getClaimMetadataMgtListeners();
+    }
+
+    @Reference(
+            name = "claim.config.init.dao",
+            service = ClaimConfigInitDAO.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimConfigInitDAO"
+    )
+    protected void setClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
+
+        ClaimConfigInitDAO existingDAO = IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO();
+        if (existingDAO != null) {
+            log.warn("Claim config init DAO implementation " + existingDAO.getClass().getName() +
+                    " is registered already and ClaimMetadataStoreFactory is created." +
+                    " So DAO Impl : " + claimConfigInitDAO.getClass().getName() + " will not be registered");
+        } else {
+            IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfigInitDAO(claimConfigInitDAO);
+            if (log.isDebugEnabled()) {
+                log.debug("Claim config init DAO implementation got registered: " +
+                        claimConfigInitDAO.getClass().getName());
+            }
+        }
+    }
+
+    protected void unsetClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfigInitDAO(new DefaultClaimConfigInitDAO());
+        if (log.isDebugEnabled()) {
+            log.debug("Claim config init DAO implementation: " + claimConfigInitDAO.getClass().getName() +
+                    " got removed and default Claim config init DAO implementation:" +
+                    DefaultClaimConfigInitDAO.class.getName() + " registered.");
+        }
+    }
+}

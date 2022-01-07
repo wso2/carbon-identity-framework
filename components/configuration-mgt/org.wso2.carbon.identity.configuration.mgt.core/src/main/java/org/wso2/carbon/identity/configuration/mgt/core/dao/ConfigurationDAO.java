@@ -251,14 +251,29 @@ public interface ConfigurationDAO {
             ConfigurationManagementException;
 
     /**
-     * Get files for the resource by resource type Id and tenant Id.
+     * Get files for the {@link ResourceType}.
      *
-     * @param resourceTypeId Id of the {@link ResourceType}
-     * @param tenantId       Id of the tenant
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @return A list of {@link ResourceFile} for the given resource.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException {
+
+        throw new ConfigurationManagementException("This method is not implemented", null);
+    }
+
+    /**
+     * Get files by resource type Id and tenant Id.
+     *
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @param tenantId       Id of the tenant.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementException;
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId)
+            throws ConfigurationManagementException {
 
+        throw new ConfigurationManagementException("This method is not implemented", null);
+    }
     /**
      * Delete the file.
      *

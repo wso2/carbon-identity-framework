@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.provisioning.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.provisioning.RuntimeProvisioningConfig;
 
 import java.util.Map;

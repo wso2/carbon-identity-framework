@@ -101,8 +101,8 @@ public class MockClaimManager implements ClaimManager {
     }
 
     @Override
-    public String getAttributeName(String s, String s1) throws UserStoreException {
+    public String getAttributeName(String profileName, String claimURI) throws UserStoreException {
 
-        return null;
+        return claimURI;
     }
 }

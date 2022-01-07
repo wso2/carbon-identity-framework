@@ -196,6 +196,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
 
     private Registry getRegistryForTenant(String tenantDomain) throws RegistryException {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        IdentityTenantUtil.getTenantRegistryLoader().loadTenantRegistry(tenantId);
         return registryService.getConfigSystemRegistry(tenantId);
     }
 

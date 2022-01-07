@@ -30,6 +30,7 @@ public class ConfigurationConstants {
     public static final String RESOURCE_PATH = "/resource";
     public static final String RESOURCE_TYPE_PATH = "/resource-type";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
@@ -68,6 +69,7 @@ public class ConfigurationConstants {
     public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String PATH_SEPARATOR = "/";
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
 
     public enum ErrorMessages {
@@ -128,6 +130,7 @@ public class ConfigurationConstants {
         ERROR_CODE_INVALID_RESOURCE_ID("CONFIGM_00047", "Invalid resource id: %s."),
         ERROR_CODE_DELETE_RESOURCE("CONFIGM_00048", "Error while deleting the resource: %s."),
         ERROR_CODE_CHECK_DB_METADATA("CONFIGM_00049", "Error occurred while checking the DB metadata.");
+
 
         private final String code;
         private final String message;

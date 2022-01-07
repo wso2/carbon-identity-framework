@@ -78,6 +78,28 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     }
 
     /**
+     * Trigger after deleting workflows by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws WorkflowException
+     */
+    @Override
+    public void doPostDeleteWorkflows(int tenantId) throws WorkflowException {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (StringUtils.isBlank(loggedInUser)) {
+            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
+        String auditData = "\"" + "Tenant ID" + "\" : \"" + tenantId + "\"";
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove all workflows of a tenant", auditData,
+                AUDIT_SUCCESS));
+    }
+
+    /**
      * Trigger after adding a workflow
      *
      * @param workflowDTO
@@ -124,7 +146,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
-        String auditData = "\"" + "Association Name" + "\" : \"" + associationName+ "\",\""
+        String auditData = "\"" + "Association Name" + "\" : \"" + associationName + "\",\""
                 + "Workflow ID" + "\" : \"" + workflowId + "\",\""
                 + "Event ID" + "\" : \"" + eventId + "\",\""
                 + "Condition" + "\" : \"" + condition + "\"";

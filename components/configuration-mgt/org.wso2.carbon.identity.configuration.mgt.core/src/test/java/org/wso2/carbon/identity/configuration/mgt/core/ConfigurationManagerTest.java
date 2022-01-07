@@ -561,6 +561,24 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
                 resource2.getResourceName(), resourcesByType.getResources().get(1).getResourceName());
     }
 
+    @Test(priority = 32)
+    public void testSearchTenantSpecificResources() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        mockCarbonContextForTenant(SAMPLE_TENANT_ID_ABC, SAMPLE_TENANT_DOMAIN_ABC);
+        configurationManager.addResource(resourceType.getName(), getSampleResource2Add());
+
+        mockIdentityTenantUtilForTheTest();
+        // Mock carbon context back to the super tenant.
+        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
+
+        ComplexCondition condition = getSampleSearchCondition();
+        Resources resources = configurationManager.getTenantResources(SAMPLE_TENANT_DOMAIN_ABC, condition);
+
+        assertTrue(isTenantSearchConditionMatch(resources));
+    }
+
     private void removeCreatedTimeColumn() throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -583,6 +601,21 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         for (Resource resource : resources.getResources()) {
             if ((!resource.getTenantDomain().equals(SUPER_TENANT_DOMAIN_NAME)
                     && !resource.getTenantDomain().equals(SAMPLE_TENANT_DOMAIN_ABC))) {
+                return false;
+            }
+            for (Attribute attribute : resource.getAttributes()) {
+                if (!attribute.getKey().equals(SAMPLE_ATTRIBUTE_NAME1)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isTenantSearchConditionMatch(Resources resources) {
+
+        for (Resource resource : resources.getResources()) {
+            if ((!resource.getTenantDomain().equals(SAMPLE_TENANT_DOMAIN_ABC))) {
                 return false;
             }
             for (Attribute attribute : resource.getAttributes()) {

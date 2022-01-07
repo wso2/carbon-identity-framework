@@ -110,9 +110,12 @@ public interface ApplicationMgtListener {
 
     /**
      * Define any additional actions after deleting an application
+     *
      * This method does not need to be overridden,
      * if doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
      * is overridden.
+     *
+     * @deprecated implement {@link #doPostDeleteApplication(ServiceProvider, String, String)} instead.
      *
      * @param applicationName name of the Service Provider.
      * @param tenantDomain    tenant domain of the user who created the Service Provider.

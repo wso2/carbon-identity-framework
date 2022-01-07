@@ -157,7 +157,7 @@ public class WorkflowManagementUtil {
 
         } catch (IOException e) {
             String errorMsg = "Error occurred while reading file from class path, " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
         return content;

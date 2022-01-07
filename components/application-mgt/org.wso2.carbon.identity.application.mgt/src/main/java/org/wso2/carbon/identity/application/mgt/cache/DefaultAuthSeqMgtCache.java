@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.application.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
  * Cache layer for default authentication sequence management service.

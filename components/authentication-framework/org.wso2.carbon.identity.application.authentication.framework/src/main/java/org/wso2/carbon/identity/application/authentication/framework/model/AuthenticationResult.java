@@ -22,6 +22,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Authentication result.
+ */
 public class AuthenticationResult implements Serializable {
 
     private static final long serialVersionUID = 462700737456383154L;

@@ -76,6 +76,7 @@
     HashMap<String, String> certificateWithRawIdMap = new HashMap<String, String>();
     String jwksUri = null;
     boolean hasJWKSUri = false;
+    String idpIssuerName = null;
     Claim[] identityProviderClaims = null;
     String userIdClaimURI = null;
     String roleClaimURI = null;
@@ -108,6 +109,7 @@
     String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
     String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
     String authenticationContextClass = IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT;
+    String customAuthnContextClass = "";
     String authenticationContextComparisonLevel = IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT;
     String forceAuthentication = "as_request";
     String attributeConsumingServiceIndex = null;
@@ -185,14 +187,6 @@
     String scimDefaultPwd = null;
     String disableDefaultPwd = "";
     String scimUniqueID = null;
-
-    boolean isSpmlProvEnabled = false;
-    boolean isSpmlProvDefault = false;
-    String spmlUserName = null;
-    String spmlPassword = null;
-    String spmlEndpoint = null;
-    String spmlObjectClass = null;
-    String spmlUniqueID = null;
     
     String samlQueryParam = "";
     String passiveSTSQueryParam = "";
@@ -269,6 +263,9 @@
                 if (IdPManagementUIUtil.JWKS_URI.equals(idpProperty.getName())) {
                     hasJWKSUri = true;
                     jwksUri = idpProperty.getValue();
+                }
+                if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(idpProperty.getName())) {
+                    idpIssuerName = idpProperty.getValue();
                 }
             }
         }
@@ -512,6 +509,12 @@
                         authenticationContextClass = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
                     }
 
+                    Property customAuthnContextRefClassProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+                    if(customAuthnContextRefClassProp != null){
+                        customAuthnContextClass = customAuthnContextRefClassProp.getValue();
+                    }
+
                     Property authnContextCompLevelProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL);
                     if (authnContextCompLevelProp != null) {
@@ -671,14 +674,11 @@
         ProvisioningConnectorConfig googleApps = null;
         ProvisioningConnectorConfig salesforce = null;
         ProvisioningConnectorConfig scim = null;
-        ProvisioningConnectorConfig spml = null;
 
         if (provisioningConnectors != null) {
             for (ProvisioningConnectorConfig provisioningConnector : provisioningConnectors) {
                 if (provisioningConnector != null && "scim".equals(provisioningConnector.getName())) {
                     scim = provisioningConnector;
-                } else if (provisioningConnector != null && "spml".equals(provisioningConnector.getName())) {
-                    spml = provisioningConnector;
                 } else if (provisioningConnector != null && "salesforce".equals(provisioningConnector.getName())) {
                     salesforce = provisioningConnector;
                 } else if (provisioningConnector != null && "googleapps".equals(provisioningConnector.getName())) {
@@ -806,37 +806,6 @@
                 isGoogleProvEnabled = true;
             }
         }
-
-        if (spml != null) {
-
-            if (identityProvider.getDefaultProvisioningConnectorConfig() != null
-                    && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
-                isSpmlProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(spml.getName());
-            }
-
-            Property[] spmlProperties = spml.getProvisioningProperties();
-            if (spmlProperties != null && spmlProperties.length > 0) {
-                for (Property spmlProperty : spmlProperties) {
-                    if (spmlProperty != null) {
-                        if ("spml-username".equals(spmlProperty.getName())) {
-                            spmlUserName = spmlProperty.getValue();
-                        } else if ("spml-password".equals(spmlProperty.getName())) {
-                            spmlPassword = spmlProperty.getValue();
-                        } else if ("spml-ep".equals(spmlProperty.getName())) {
-                            spmlEndpoint = spmlProperty.getValue();
-                        } else if ("spml-oc".equals(spmlProperty.getName())) {
-                            spmlObjectClass = spmlProperty.getValue();
-                        } else if ("UniqueID".equals(spmlProperty.getName())) {
-                            spmlUniqueID = spmlProperty.getValue();
-                        }
-                    }
-                }
-            }
-
-            if (spml.getEnabled()) {
-                isSpmlProvEnabled = true;
-            }
-        }
     }
 
     if (idPName == null) {
@@ -849,6 +818,10 @@
 
     if (jwksUri == null) {
         jwksUri = "";
+    }
+    
+    if (idpIssuerName == null) {
+        idpIssuerName = "";
     }
 
     if (idpDisplayName == null) {
@@ -1035,9 +1008,11 @@
 
     String authnContextClassRefDropdownDisabled = "";
     String authnContextComparisonDropdownDisabled = "";
+    String authnContextClassRefAddBtnDisabled = "";
     if ("no".equals(includeAuthenticationContext)) {
         authnContextClassRefDropdownDisabled = "disabled=\'disabled\'";
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
+        authnContextClassRefAddBtnDisabled = "disabled=\'disabled\'";
     }
 
     String includeNameIdPolicyChecked = "";
@@ -1196,34 +1171,6 @@
         googleProvisioningSeparator = "";
     }
 
-    String spmlProvEnabledChecked = "";
-    String spmlProvDefaultDisabled = "";
-    String spmlProvDefaultChecked = "disabled=\'disabled\'";
-
-
-    if (identityProvider != null) {
-        if (isSpmlProvEnabled) {
-            spmlProvEnabledChecked = "checked=\'checked\'";
-            spmlProvDefaultChecked = "";
-            if (isSpmlProvDefault) {
-                spmlProvDefaultChecked = "checked=\'checked\'";
-            }
-        }
-    }
-
-    if (spmlUserName == null) {
-        spmlUserName = "";
-    }
-    if (spmlPassword == null) {
-        spmlPassword = "";
-    }
-    if (spmlEndpoint == null) {
-        spmlEndpoint = "";
-    }
-    if (spmlObjectClass == null) {
-        spmlObjectClass = "";
-    }
-
     String scimProvEnabledChecked = "";
     String scimProvDefaultDisabled = "";
     String scimPwdProvEnabledChecked = "";
@@ -1297,7 +1244,6 @@
 <script>
 
     var claimMappinRowID = -1;
-    var claimMappinRowIDSPML = -1;
     var advancedClaimMappinRowID = -1;
     var roleRowId = -1;
     var claimRowId = -1;
@@ -1551,7 +1497,6 @@
         jQuery('#googleProvDefault').attr('disabled', 'disabled');
         jQuery('#sfProvDefault').attr('disabled', 'disabled');
         jQuery('#scimProvDefault').attr('disabled', 'disabled');
-        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
         jQuery('#openIdDefault').attr('disabled', 'disabled');
         jQuery('#saml2SSODefault').attr('disabled', 'disabled');
         jQuery('#oidcDefault').attr('disabled', 'disabled');
@@ -1561,11 +1506,6 @@
         if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
             $(jQuery('#claimMappingAddTable')).hide();
         }
-
-        if ($(jQuery('#claimMappingAddTableSPML tr')).length < 2) {
-            $(jQuery('#claimMappingAddTableSPML')).hide();
-        }
-
 
         if (<%=isOpenIdEnabled%>) {
             jQuery('#openid_enable_logo').show();
@@ -1607,12 +1547,6 @@
             jQuery('#scim_enable_logo').show();
         } else {
             jQuery('#scim_enable_logo').hide();
-        }
-
-        if (<%=isSpmlProvEnabled%>) {
-            jQuery('#spml_enable_logo').show();
-        } else {
-            jQuery('#spml_enable_logo').hide();
         }
 
         jQuery('h2.trigger').click(function () {
@@ -1680,16 +1614,6 @@
         var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
         var $authentication_context_class_dropdown = jQuery('#authentication_context_class_dropdown');
         var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
-
-        jQuery('#authentication_context_class_dropdown').change(function () {
-            var selectedClass = $("#authentication_context_class_dropdown").val();
-            if (selectedClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
-                jQuery('#custom_authentication_context_class').removeAttr('disabled');
-            } else {
-                jQuery('#custom_authentication_context_class').val("");
-                jQuery('#custom_authentication_context_class').attr('disabled', true);
-            }
-        });
     })
 
     function selectJWKS(certDataNotNull) {
@@ -3105,7 +3029,6 @@
         jQuery('#passiveSTSDefault').removeAttr('disabled');
         jQuery('#fbAuthDefault').removeAttr('disabled');
         jQuery('#googleProvDefault').removeAttr('disabled');
-        jQuery('#spmlProvDefault').removeAttr('disabled');
         jQuery('#sfProvDefault').removeAttr('disabled');
         jQuery('#scimProvDefault').removeAttr('disabled');
 
@@ -3119,6 +3042,138 @@
         jQuery('#idp-mgt-edit-form').submit();
     }
 
+    function onClickAddAuthnContextClass(){
+
+        var selectedAuthnContextClass = $('#authentication_context_class_dropdown option:selected').val();
+        var authnContextClasses = $("#authnContextCls").val();
+        var currentColumnId = $("#currentColumnId").val();
+        if (selectedAuthnContextClass == '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
+            currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
+            jQuery('#custom_authentication_context_class').val("");
+            jQuery('#custom_authentication_context_class').attr('disabled', true);
+        } else if (authnContextClasses == null || authnContextClasses.trim().length == 0) {
+            if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+                jQuery('#custom_authentication_context_class').removeAttr('disabled');
+            }
+            $("#authnContextCls").val(selectedAuthnContextClass);
+            var row =
+                '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
+                '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
+                '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"'+
+                'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+
+            $('#authnContextClsTable tbody').append(row);
+        } else {
+            var isExist = false;
+            var isUnspecified = false;
+            $.each(authnContextClasses.split(","), function (index, value) {
+                if (value === selectedAuthnContextClass) {
+                    isExist = true;
+                    CARBON.showWarningDialog("Selected AuthnContextClassRef already exists", null, null);
+                    return false;
+                } else if (value ==  '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>') {
+                    isUnspecified = true;
+                }
+            });
+            if (isExist) {
+                return false;
+            }
+            if (isUnspecified) {
+                currentColumnId = cleanAndGenerateNewAuthnTable(selectedAuthnContextClass);
+            } else {
+                var newAuthnContextClass = authnContextClasses + "," + selectedAuthnContextClass;
+                if (newAuthnContextClass.length > 255) {
+                    CARBON.showWarningDialog("Exceed the Selection Limit", null, null);
+                    return false;
+                } else {
+                    if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+                        jQuery('#custom_authentication_context_class').removeAttr('disabled');
+                    }
+                    $("#authnContextCls").val(newAuthnContextClass);
+                    var row =
+                        '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
+                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
+                        '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"' +
+                        'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+
+                    $('#authnContextClsTable tr:last').after(row);
+                }
+            }
+        }
+        $("#currentColumnId").val(parseInt(currentColumnId) + 1);
+    }
+
+    function removeAuthnContextClass(selectedAuthnContextClass, columnId) {
+
+        var authnContextClasses = $("#authnContextCls").val();
+        var newAuthnContextClasses = "";
+        if (selectedAuthnContextClass != '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>' && authnContextClasses === selectedAuthnContextClass) {
+            CARBON.showWarningDialog("AuthnContextClassRef Cannot be null", null, null);
+        } else {
+            if (authnContextClasses != null && authnContextClasses.trim().length > 0) {
+                $.each(authnContextClasses.split(","), function (index, value) {
+                    if (value != selectedAuthnContextClass) {
+                        if (newAuthnContextClasses.length > 0) {
+                            newAuthnContextClasses = newAuthnContextClasses + "," + value;
+                        } else {
+                            newAuthnContextClasses = value;
+                    }
+                    }
+                });
+            }
+            $('#' + columnId).remove();
+            $("#authnContextCls").val(newAuthnContextClasses);
+
+            if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+                jQuery('#custom_authentication_context_class').val("");
+                jQuery('#custom_authentication_context_class').attr('disabled', true);
+            } else if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED %>') {
+                var password_protected_transport_asDefault = '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT%>';
+                $("#authnContextCls").val(password_protected_transport_asDefault);
+
+                var row =
+                        '<tr id="authnCtxCls_0">' +
+                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + password_protected_transport_asDefault +
+                        '</td><td><a onclick="removeAuthnContextClass(\'' + password_protected_transport_asDefault + '\', \'authnCtxCls_0 \');return false;"'+
+                        'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+
+                $('#authnContextClsTable tbody').append(row);
+                $("#currentColumnId").val(1);
+            }
+        }
+    }
+
+    function cleanAndGenerateNewAuthnTable(selectedAuthnContextClass){
+
+        $('#authnContextClsTblRow').remove();
+
+        var row = '<tr id="authnContextClsTblRow">' +
+                        '    <td></td>' +
+                        '    <td>' +
+                        '        <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;" class="styledInner">' +
+                        '            <tbody id="authnContextClsTableBody">' +
+                        '            </tbody>' +
+                        '        </table>' +
+                        '        <input type="hidden" id="authnContextCls" name="AuthnContextClassRef" value="">' +
+                        '        <input type="hidden" id="currentColumnId" value="0">' +
+                        '    </td>' +
+                        '</tr>';
+        $('#authnCtxClsInputRow').after(row);
+        var currentColumnId = $("#currentColumnId").val();
+
+        $("#authnContextCls").val(selectedAuthnContextClass);
+        var row =
+                '<tr id="authnCtxCls_' + parseInt(currentColumnId) + '">' +
+                '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + selectedAuthnContextClass +
+                '</td><td><a onclick="removeAuthnContextClass(\'' + selectedAuthnContextClass + '\', \'authnCtxCls_' + parseInt(currentColumnId) + '\');return false;"'+
+                'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+
+        $('#authnContextClsTable tbody').append(row);
+        if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+            jQuery('#custom_authentication_context_class').removeAttr('disabled');
+        }
+        return currentColumnId;
+        }
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
@@ -3332,7 +3387,18 @@
                                 </div>
                             </td>
                         </tr>
-
+    
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='idp.issuer.name'/>:</td>
+                            <td>
+                                <input id="idpIssuerName" name="idpIssuerName" type="text"
+                                       value="<%=Encode.forHtmlAttribute(idpIssuerName)%>" autofocus/>
+            
+                                <div class="sectionHelp">
+                                    <fmt:message key='idp.issuer.name.help'/>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 
@@ -4325,21 +4391,37 @@
 
                                 <!-- Authentication Context Class -->
 
-                                <tr>
+                                <tr id="authnCtxClsInputRow">
                                     <td class="leftCol-med labelField"><fmt:message key='authentication.context.class'/>:
                                     </td>
                                     <td>
                                         <%
-                                            boolean isNotCustom = false;
+                                            boolean isMultiple = false;
+                                            boolean isCustomNotInclude = true;
+                                            String authContext = "";
+                                            if(authenticationContextClass.contains(",")){
+                                                isMultiple = true;
+                                            }
+                                            if(authenticationContextClass != null){
+                                                    authContext = authenticationContextClass;
+                                            }
+                                            String[] authnContextClassList = StringUtils.split(authContext, ",");
+                                            if(Arrays.asList(authnContextClassList).contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)){
+                                                isCustomNotInclude = false;
+                                            }
                                         %>
                                         <select id="authentication_context_class_dropdown"
-                                                name="AuthnContextClassRef" <%=authnContextClassRefDropdownDisabled%>>
+                                                name="authentication_context_class_dropdown" <%=authnContextClassRefDropdownDisabled%>>
                                             <%
                                                 for (String authnContextClass : authenticationContextClasses) {
                                                     if (authnContextClass != null && authnContextClass.equalsIgnoreCase(authenticationContextClass)) {
-                                                        isNotCustom = true;
                                             %>
                                             <option selected="selected"><%=Encode.forHtmlContent(authenticationContextClass)%>
+                                            </option>
+                                            <%
+                                                    } else if (isMultiple && authnContextClass != null && authnContextClass.equals(IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(authnContextClass)%>
                                             </option>
                                             <%
                                             } else {
@@ -4350,26 +4432,16 @@
                                                     }
                                                 }
                                             %>
-
-                                            <%
-                                                if (isNotCustom) {
-                                            %>
                                             <option><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
                                             </option>
-                                            <%
-                                            } else {
-                                            %>
-                                            <option selected="selected"><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
-                                            </option>
-                                            <%
-                                                }
-                                            %>
-                                        </select>
+                                        </select> <input id="addAuthenticationContextClassBtn" type="button"
+                                               value="<fmt:message key="authentication.context.class.add" />"
+                                               onclick="onClickAddAuthnContextClass()" <%=authnContextClassRefAddBtnDisabled%>/>
                                         <div class="sectionHelp" style="margin-top: 5px">
                                             <fmt:message key='authentication.context.class.help'/>
                                         </div>
                                         <%
-                                            if (isNotCustom) {
+                                            if (isCustomNotInclude) {
                                         %>
                                         <input id="custom_authentication_context_class"
                                                name="CustomAuthnContextClassRef"
@@ -4380,13 +4452,51 @@
                                         <input id="custom_authentication_context_class"
                                                name="CustomAuthnContextClassRef"
                                                type="text"
-                                               value="<%=Encode.forHtmlContent(authenticationContextClass)%>">
+                                               value="<%=Encode.forHtmlContent(customAuthnContextClass)%>">
                                         <%
                                             }
                                         %>
                                         <div class="sectionHelp" style="margin-top: 5px">
                                             <fmt:message key='authentication.context.class.custom.help'/>
                                         </div>
+                                    </td>
+                                </tr>
+                                 <tr id="authnContextClsTblRow">
+                                    <td></td>
+                                    <td>
+                                        <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;"
+                                               class="styledInner">
+                                            <tbody id="authnContextClsTableBody">
+                                            <%
+                                                int authnCtxClsColumnId = 0;
+                                                for(String authenticationContextCls : authnContextClassList){
+                                                    if(StringUtils.isNotEmpty(authenticationContextCls)){
+                                            %>
+                                            <tr id="authnCtxCls_<%=authnCtxClsColumnId%>">
+                                                <td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">
+                                                    <%=Encode.forHtml(authenticationContextCls)%>
+                                                </td>
+                                                <td>
+                                                    <a onclick="removeAuthnContextClass('<%=Encode.forJavaScriptAttribute(authenticationContextCls)%>',
+                                                            'authnCtxCls_<%=authnCtxClsColumnId%>');return false;"
+                                                       href="#" class="icon-link"
+                                                       style="background-image: url(../admin/images/delete.gif)">
+                                                        Delete
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <%
+                                                    authnCtxClsColumnId++;
+                                                }
+                                                }
+                                            %>
+                                            </tbody>
+                                        </table>
+                                        <input type="hidden" id="authnContextCls" name="AuthnContextClassRef"
+                                               value="<%=authnContextClassList.length > 0 ?
+         Encode.forHtmlAttribute(authContext) : ""%>">
+
+                                        <input type="hidden" id="currentColumnId" value="<%=authnCtxClsColumnId%>">
                                     </td>
                                 </tr>
 
@@ -5462,93 +5572,6 @@
                             </tr>
                         </table>
 
-                    </div>
-
-                    <h2 id="spml_prov_head" class="sectionSeperator trigger active"
-                        style="background-color: beige; display:none;">
-                        <a href="#"><fmt:message key="spml.provisioning.connector"/></a>
-
-                        <div id="spml_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-
-                    </h2>
-                    <div class="toggle_container sectionSub"
-                         style="margin-bottom: 10px; display: none;" id="spmlProvRow">
-
-                        <table class="carbonFormTable">
-
-                            <tr>
-                                <td class="leftCol-med labelField"><label
-                                        for="spmlProvEnabled"><fmt:message
-                                        key='spml.provisioning.enabled'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="spmlProvEnabled" name="spmlProvEnabled"
-                                               type="checkbox" <%=spmlProvEnabledChecked%>
-                                               onclick="checkProvEnabled(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='spml.provisioning.enabled.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="display:none;">
-                                <td class="leftCol-med labelField"><label
-                                        for="spmlProvDefault"><fmt:message
-                                        key='spml.provisioning.default'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="spmlProvDefault" name="spmlProvDefault"
-                                               type="checkbox" <%=spmlProvDefaultChecked%>
-                                                <%=spmlProvDefaultDisabled%>
-                                               onclick="checkProvDefault(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='spml.provisioning.default.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.user.name'/>:
-                                </td>
-                                <td><input class="text-box-big" id="spml-username"
-                                           name="spml-username" type="text"
-                                           value=<%=Encode.forHtmlAttribute(spmlUserName) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.user.password'/>:
-                                </td>
-                                <td><input class="text-box-big" id="spml-password"
-                                           name="spml-password" type="password" autocomplete="off"
-                                           value=<%=Encode.forHtmlAttribute(spmlPassword) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="spml-ep" name="spml-ep"
-                                           type="text" value=<%=Encode.forHtmlAttribute(spmlEndpoint) %>></td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.objectClass'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="spml-oc" name="spml-oc"
-                                           type="text" value=<%=Encode.forHtmlAttribute(spmlObjectClass) %>></td>
-                                <%if (spmlUniqueID != null) {%>
-                                <input type="hidden" id="spml-unique-id" name="spml-unique-id"
-                                       value=<%=Encode.forHtmlAttribute(spmlUniqueID)%>>
-                                <%}%>
-                            </tr>
-
-                        </table>
                     </div>
 
                     <%

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.17.102-SNAPSHOT</version>
+        <version>5.20.286-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -73,12 +73,18 @@
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-codec.wso2</groupId>
+            <groupId>org.wso2.orbit.commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.ui</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet.jsp.jstl.wso2</groupId>
+                    <artifactId>jstl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -162,6 +168,32 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.functions.library.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.multi.attribute.login.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId> org.wso2.carbon.claim.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.event.handler.accountlock</groupId>
+            <artifactId>org.wso2.carbon.identity.handler.event.account.lock</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -196,6 +228,7 @@
                             org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
@@ -213,6 +246,7 @@
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
+                            org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
 
                             org.wso2.carbon.claim.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*;
@@ -226,14 +260,18 @@
                             org.wso2.carbon.identity.user.profile.mgt;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.functions.library.mgt.*; version="${carbon.identity.package.import.version.range}"
-
+                            org.wso2.carbon.identity.functions.library.mgt.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.multi.attribute.login.mgt.*;
+                            version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
                             org.wso2.carbon.identity.application.authentication.framework.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
+                        <ListenerManager-RequiredServices>
+                            org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService
+                        </ListenerManager-RequiredServices>
                     </instructions>
                 </configuration>
             </plugin>
@@ -300,13 +338,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

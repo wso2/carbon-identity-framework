@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
+/**
+ * Functional interface for asynchronous caller.
+ */
 @FunctionalInterface
 public interface AsyncCaller {
 
