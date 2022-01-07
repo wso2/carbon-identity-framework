@@ -65,7 +65,7 @@ public class LoginContextManagementUtil {
 
         AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
-        if (context != null) {
+        if (context != null && context.getProperty("currentPostAuthHandler") == null) {
             if (isStepHasMultiOption(context)) {
                 context.setCurrentAuthenticator(null);
             }
