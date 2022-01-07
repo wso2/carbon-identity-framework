@@ -98,6 +98,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setRetrying(retryAuthenticationEnabled());
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Error occurred during the authentication process.", e);
+                        }
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
