@@ -56,7 +56,8 @@ public class BrandingPreferenceMgtConstants {
                 "Unable to build branding preference from branding preference configurations for tenant: %s."),
         ERROR_CODE_ERROR_CHECKING_BRANDING_PREFERENCE_EXISTS("BRANDINGM_00009",
                 "Error while checking branding preference configurations existence."),
-        ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION("BRANDINGM_00010", "Unsupported Encoding Exception.");
+        ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION("BRANDINGM_00010",
+                "Unsupported Encoding in the branding preference configurations of the tenant: %s.");
 
         private final String code;
         private final String message;

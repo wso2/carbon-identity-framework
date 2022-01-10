@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.branding.preference.mgt.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.branding.preference.mgt.exception.BrandingPreferenceMgtClientException;
@@ -34,6 +36,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class BrandingPreferenceMgtUtils {
 
+    private static final Log log = LogFactory.getLog(BrandingPreferenceMgtUtils.class);
     /**
      * Generate Branding Preference input stream.
      *
@@ -64,6 +67,10 @@ public class BrandingPreferenceMgtUtils {
                 return false;
             }
         } catch (JSONException exception) {
+            // If the preference string is not in the valid json format JSONException will be thrown.
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid json string. Error occurred while validating preference string", exception);
+            }
             return false;
         }
         return true;

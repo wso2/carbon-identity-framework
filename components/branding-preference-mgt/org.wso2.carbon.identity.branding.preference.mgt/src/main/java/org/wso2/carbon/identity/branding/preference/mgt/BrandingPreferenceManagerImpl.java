@@ -64,7 +64,6 @@ import static org.wso2.carbon.identity.branding.preference.mgt.util.BrandingPref
 public class BrandingPreferenceManagerImpl implements BrandingPreferenceManager {
 
     private static final Log log = LogFactory.getLog(BrandingPreferenceManagerImpl.class);
-    //TODO: Improve API to manage application level & language level theming resources in addition to the tenant level.
 
     @Override
     public BrandingPreference addBrandingPreference(BrandingPreference brandingPreference)
@@ -91,11 +90,11 @@ public class BrandingPreferenceManagerImpl implements BrandingPreferenceManager 
                 if (log.isDebugEnabled()) {
                     log.debug("Branding preferences are already exists for tenant: " + tenantDomain, e);
                 }
-                throw handleClientException(ERROR_CODE_BRANDING_PREFERENCE_NOT_EXISTS, tenantDomain);
+                throw handleClientException(ERROR_CODE_BRANDING_PREFERENCE_ALREADY_EXISTS, tenantDomain);
             }
             throw handleServerException(ERROR_CODE_ERROR_ADDING_BRANDING_PREFERENCE, tenantDomain, e);
         } catch (UnsupportedEncodingException e) {
-            throw handleServerException(ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION, e);
+            throw handleClientException(ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION, tenantDomain, e);
         }
         if (log.isDebugEnabled()) {
             log.debug("Branding preference for tenant: " + tenantDomain + " added successfully");
@@ -165,7 +164,7 @@ public class BrandingPreferenceManagerImpl implements BrandingPreferenceManager 
         } catch (ConfigurationManagementException e) {
             throw handleServerException(ERROR_CODE_ERROR_UPDATING_BRANDING_PREFERENCE, tenantDomain, e);
         } catch (UnsupportedEncodingException e) {
-            throw handleServerException(ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION, e);
+            throw handleClientException(ERROR_CODE_UNSUPPORTED_ENCODING_EXCEPTION, tenantDomain, e);
         }
         if (log.isDebugEnabled()) {
             log.debug("Branding preference for tenant: " + tenantDomain + " replaced successfully.");

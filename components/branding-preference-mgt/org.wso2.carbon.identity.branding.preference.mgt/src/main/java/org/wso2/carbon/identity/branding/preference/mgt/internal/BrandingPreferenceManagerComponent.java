@@ -48,7 +48,9 @@ public class BrandingPreferenceManagerComponent {
         context.getBundleContext()
                 .registerService(BrandingPreferenceManager.class, new BrandingPreferenceManagerImpl(), null);
 
-        log.info("BrandingPreferenceMgtServiceComponent is activated.");
+        if (log.isDebugEnabled()) {
+            log.debug("BrandingPreferenceMgt Service Component is activated.");
+        }
     }
 
     @Reference(
