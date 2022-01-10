@@ -25,6 +25,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -126,11 +128,13 @@ public class IdentityManagementServiceUtil {
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             contextURL = serviceContextURL;
-            this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? IdentityUtil.getServerURL(
-                    IdentityUtil.getServicePath(), true, true) : serviceContextURL;
+            this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? ServiceURLBuilder.create().
+                    addPath(IdentityUtil.getServicePath()).build().getAbsoluteInternalURL() : serviceContextURL;
 
         } catch (IOException e) {
             log.error("Failed to load service configurations.", e);
+        } catch (URLBuilderException e) {
+            log.error("Error occurred while building service URL.", e);
         } finally {
             if (inputStream != null) {
                 try {
