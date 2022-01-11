@@ -572,7 +572,7 @@
   ],
   "intermediate_cert_validation.enable": false,
   "intermediate_cert_validation.cert_cns": ["localhost"],
-  "intermediate_cert_validation.exempt_contexts": ["scim2"],
+  "intermediate_cert_validation.exempt_contexts": [],
 
   "oauth.jwks_endpoint.enable": true,
   "oauth.jwks_endpoint.enforce_certificate_expiry_time_validity": true,
