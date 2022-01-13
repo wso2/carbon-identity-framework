@@ -1106,7 +1106,7 @@ public class OutboundProvisioningManager {
         if (!IdentityProvisioningConstants.WSO2_CARBON_DIALECT.equals(inboundClaimDialect)) {
             return false;
         }
-        if (provisioningEntity.getAttributes() != null) {
+        if (provisioningEntity != null && provisioningEntity.getAttributes() != null) {
             for (ClaimMapping claimMapping : provisioningEntity.getAttributes().keySet()) {
                 if (!IdentityProvisioningConstants.USERNAME_CLAIM_URI.equalsIgnoreCase(
                         claimMapping.getLocalClaim().getClaimUri()) &&
