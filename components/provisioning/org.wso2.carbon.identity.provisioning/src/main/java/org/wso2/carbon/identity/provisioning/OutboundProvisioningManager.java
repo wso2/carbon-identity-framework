@@ -518,27 +518,29 @@ public class OutboundProvisioningManager {
                             provisioningOp = ProvisioningOperation.DELETE;
                         }
                     }
+                    if (!skipOutBoundProvisioning(provisioningOp, provisioningEntity, inboundClaimDialect)) {
+                        outboundProEntity = new ProvisioningEntity(provisioningEntity.getEntityType(),
+                                provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
 
-                    outboundProEntity = new ProvisioningEntity(provisioningEntity.getEntityType(),
-                                                               provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
-
-                    Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity,
-                                                                         tenantDomainName, connector, connectorType,
-                                                                         idPName, dao);
-                    outboundProEntity.setIdentifier(provisionedIdentifier);
-                    outboundProEntity.setJitProvisioning(jitProvisioning);
-                    boolean isAllowed = true;
-                    boolean isBlocking = entry.getValue().isBlocking();
-                    boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                    if (isPolicyEnabled) {
-                        isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(tenantDomainName,
-                                                                                             provisioningEntity,
-                                                                                             serviceProvider,
-                                                                                             idPName,
-                                                                                             connectorType);
-                    }
-                    if (isAllowed) {
-                        executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
+                        Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity,
+                                tenantDomainName, connector, connectorType,
+                                idPName, dao);
+                        outboundProEntity.setIdentifier(provisionedIdentifier);
+                        outboundProEntity.setJitProvisioning(jitProvisioning);
+                        boolean isAllowed = true;
+                        boolean isBlocking = entry.getValue().isBlocking();
+                        boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
+                        if (isPolicyEnabled) {
+                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(tenantDomainName,
+                                    provisioningEntity,
+                                    serviceProvider,
+                                    idPName,
+                                    connectorType);
+                        }
+                        if (isAllowed) {
+                            executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName,
+                                    proThread, isBlocking);
+                        }
                     }
                 }
             }
@@ -551,6 +553,38 @@ public class OutboundProvisioningManager {
             throw new IdentityProvisioningException("Error occurred while checking for user " +
                                                     "provisioning", e);
         }
+    }
+
+    /**
+     * Skip outbound provisioning if user entity provisioning operation is PUT, inboundClaimDialect is local dialect and
+     * updating attributes are username and last modified time.
+     * This condition is occurred when the updated attribute doesn't have an outbound claim mapping.
+     *
+     * @param provisioningOp      The provisioning operation.
+     * @param provisioningEntity  Provisioning entity.
+     * @param inboundClaimDialect Inbound claim dialect.
+     * @return Whether outbound provisioning is skipped for the attribute update.
+     */
+    private boolean skipOutBoundProvisioning(ProvisioningOperation provisioningOp,
+                                             ProvisioningEntity provisioningEntity, String inboundClaimDialect) {
+
+        if (!ProvisioningOperation.PUT.equals(provisioningOp)) {
+            return false;
+        }
+        if (!IdentityProvisioningConstants.WSO2_CARBON_DIALECT.equals(inboundClaimDialect)) {
+            return false;
+        }
+        if (provisioningEntity != null && provisioningEntity.getAttributes() != null) {
+            for (ClaimMapping claimMapping : provisioningEntity.getAttributes().keySet()) {
+                if (!IdentityProvisioningConstants.USERNAME_CLAIM_URI.equalsIgnoreCase(
+                        claimMapping.getLocalClaim().getClaimUri()) &&
+                        !IdentityProvisioningConstants.LAST_MODIFIED_CLAIM.equalsIgnoreCase(
+                                claimMapping.getLocalClaim().getClaimUri())) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private void executeOutboundProvisioning(ProvisioningEntity provisioningEntity, ExecutorService executors,
