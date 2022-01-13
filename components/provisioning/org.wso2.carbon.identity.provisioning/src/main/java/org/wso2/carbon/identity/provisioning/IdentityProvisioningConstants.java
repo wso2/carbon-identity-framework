@@ -39,6 +39,7 @@ public class IdentityProvisioningConstants {
     public static final String PASSWORD_CLAIM_URI = "org:wso2:carbon:identity:provisioning:claim:password";
     public static final String LOCAL_SP = ApplicationConstants.LOCAL_SP;
     public static final String JIT_PROVISIONING_ENABLED = "jitProvisioningEnabled";
+    public static final String LAST_MODIFIED_CLAIM = "http://wso2.org/claims/modified";
 
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
