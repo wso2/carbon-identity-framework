@@ -1254,7 +1254,7 @@
             -->
             <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
         {% endif %}
-        {% if outbound_provisioning_management.enable_user_tenant_based_provisioning_thread is defined %}
+        {% if outbound_provisioning_management.use_user_tenant_domain_in_saas_apps is defined %}
             <!--
                 Enabling this configuration will use the user's tenant domain for outbound provisioning flow
                 if the user provisioning is happened through a SaaS application.
