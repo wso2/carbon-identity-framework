@@ -394,8 +394,7 @@ public class OutboundProvisioningManager {
                     .getServiceProvider(serviceProviderIdentifier, spTenantDomainName);
 
             String provisioningEntityTenantDomainName = spTenantDomainName;
-            boolean userTenantBasedProvisioningThreadEnabled = isUserTenantBasedOutboundProvisioningEnabled();
-            if (serviceProvider.isSaasApp() && userTenantBasedProvisioningThreadEnabled) {
+            if (serviceProvider.isSaasApp() && isUserTenantBasedOutboundProvisioningEnabled()) {
                 provisioningEntityTenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
 
