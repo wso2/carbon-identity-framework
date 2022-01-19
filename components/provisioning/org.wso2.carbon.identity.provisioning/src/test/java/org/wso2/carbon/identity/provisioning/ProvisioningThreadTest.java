@@ -27,6 +27,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -93,7 +94,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         Assert.assertTrue(result);
     }
 
-    @Test(expectedExceptions = IdentityProvisioningException.class)
+    @Test
     public void testCallForExceptions()
             throws Exception {
 
@@ -104,6 +105,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
                         idPName, mockCacheBackedProvisioningMgDAO);
 
         provisioningThread.call();
+        Assert.assertEquals(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(), "-1");
     }
 
     @DataProvider(name = "provisioningData")

@@ -171,19 +171,4 @@ public class ProvisioningThread implements Callable<Boolean> {
                     "Error while deleting provisioning identifier.", e);
         }
     }
-
-    private int getTenantIdFromDomain(String tenantDomainName) throws IdentityProvisioningException {
-
-        if (StringUtils.isBlank(tenantDomainName)) {
-            throw new IdentityProvisioningException("Provided tenant domain is invalid");
-        }
-
-        try {
-            return IdPManagementUtil.getTenantIdOfDomain(tenantDomainName);
-        } catch (UserStoreException e) {
-            throw new IdentityProvisioningException(
-                    "Error occurred while resolving tenant Id from tenant domain :" + tenantDomainName, e);
-        }
-    }
-
 }
