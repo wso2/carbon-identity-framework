@@ -68,13 +68,15 @@ public class ProvisioningThread implements Callable<Boolean> {
 
         boolean success = false;
         String tenantDomainName = this.tenantDomainName;
-        String userTenantDomainName = this.provisioningEntityTenantDomainName;
+        String provisioningEntityTenantDomainName = this.provisioningEntityTenantDomainName;
+        boolean isUserTenantBasedOutboundProvisioningEnabled = isUserTenantBasedOutboundProvisioningEnabled();
 
         try {
 
             PrivilegedCarbonContext.startTenantFlow();
-            if (isUserTenantBasedOutboundProvisioningEnabled() && userTenantDomainName != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(userTenantDomainName, true);
+            if (isUserTenantBasedOutboundProvisioningEnabled && provisioningEntityTenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .setTenantDomain(provisioningEntityTenantDomainName, true);
             } else {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
             }
@@ -118,11 +120,11 @@ public class ProvisioningThread implements Callable<Boolean> {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
 
-            if (tenantDomainName != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(
-                        tenantDomainName);
+            if (isUserTenantBasedOutboundProvisioningEnabled && provisioningEntityTenantDomainName != null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                       .setTenantId(getTenantIdFromDomain(tenantDomainName));
+                        .setTenantDomain(provisioningEntityTenantDomainName, true);
+            } else if (tenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
             }
         }
 
