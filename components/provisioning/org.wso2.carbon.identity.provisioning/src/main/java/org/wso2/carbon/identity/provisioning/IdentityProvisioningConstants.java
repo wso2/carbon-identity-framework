@@ -44,6 +44,9 @@ public class IdentityProvisioningConstants {
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
 
+    // Outbound provisioning constants.
+    public static final String ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD = "OutboundProvisioning.enableUserTenantBasedProvisioningThread";
+
     public static class SQLQueries {
 
         public static final String ADD_PROVISIONING_ENTITY_SQL = "INSERT INTO IDP_PROVISIONING_ENTITY " +

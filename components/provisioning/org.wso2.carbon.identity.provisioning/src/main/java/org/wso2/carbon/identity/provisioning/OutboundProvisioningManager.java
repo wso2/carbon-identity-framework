@@ -73,6 +73,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedProvisioningThreadEnabled;
+
 /**
  *
  *
@@ -391,6 +393,12 @@ public class OutboundProvisioningManager {
             ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
                     .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
 
+            String userTenantDomain = tenantDomainName;
+            boolean userTenantBasedProvisioningThreadEnabled = isUserTenantBasedProvisioningThreadEnabled();
+            if (serviceProvider.isSaasApp() && userTenantBasedProvisioningThreadEnabled) {
+                userTenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+
             if (serviceProvider == null) {
                 throw new IdentityProvisioningException("Invalid service provider name : "
                                                         + serviceProviderIdentifier);
@@ -507,8 +515,9 @@ public class OutboundProvisioningManager {
                     ProvisionedIdentifier provisionedUserIdentifier;
 
                     for (String user : newUsersList) {
-                        ProvisioningEntity inboundProvisioningEntity = getInboundProvisioningEntity(provisioningEntity,
-                                                                                                    tenantDomainName, ProvisioningOperation.POST, user);
+                        ProvisioningEntity inboundProvisioningEntity =
+                                getInboundProvisioningEntity(provisioningEntity, userTenantDomain,
+                                        ProvisioningOperation.POST, user);
 
                         provisionedUserIdentifier = getProvisionedEntityIdentifier(idPName, connectorType,
                                                                                    inboundProvisioningEntity, tenantDomainName);
@@ -522,8 +531,9 @@ public class OutboundProvisioningManager {
 
                         outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                    user, ProvisioningOperation.POST, mappedUserClaims);
-                        Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity,
-                                                                             tenantDomainName, connector, connectorType, idPName, dao);
+                        Callable<Boolean> proThread =
+                                new ProvisioningThread(outboundProEntity, tenantDomainName, userTenantDomain, connector,
+                                        connectorType, idPName, dao);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isBlocking = entry.getValue().isBlocking();
@@ -533,9 +543,9 @@ public class OutboundProvisioningManager {
 
                     for (String user : deletedUsersList) {
 
-                        ProvisioningEntity inboundProvisioningEntity = getInboundProvisioningEntity(provisioningEntity,
-                                                                                                    tenantDomainName, ProvisioningOperation.DELETE, user);
-
+                        ProvisioningEntity inboundProvisioningEntity =
+                                getInboundProvisioningEntity(provisioningEntity, userTenantDomain,
+                                        ProvisioningOperation.DELETE, user);
                         provisionedUserIdentifier = getProvisionedEntityIdentifier(idPName, connectorType,
                                                                                    inboundProvisioningEntity, tenantDomainName);
 
@@ -545,8 +555,10 @@ public class OutboundProvisioningManager {
 
                             outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                        user, ProvisioningOperation.DELETE, mappedUserClaims);
-                            Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity,
-                                                                                 tenantDomainName, connector, connectorType, idPName, dao);
+
+                            Callable<Boolean> proThread =
+                                    new ProvisioningThread(outboundProEntity, tenantDomainName, userTenantDomain,
+                                            connector, connectorType, idPName, dao);
                             outboundProEntity.setIdentifier(provisionedUserIdentifier);
                             outboundProEntity.setJitProvisioning(jitProvisioning);
                             boolean isBlocking = entry.getValue().isBlocking();
@@ -558,7 +570,7 @@ public class OutboundProvisioningManager {
                     // see whether the given provisioning entity satisfies the conditions to be
                     // provisioned.
 
-                    if (!canUserBeProvisioned(provisioningEntity, provisionByRoleList, tenantDomainName)) {
+                    if (!canUserBeProvisioned(provisioningEntity, provisionByRoleList, userTenantDomain)) {
                         if (!canUserBeDeProvisioned(provisionedIdentifier)) {
                             continue;
                         } else {
@@ -570,8 +582,8 @@ public class OutboundProvisioningManager {
                         outboundProEntity = new ProvisioningEntity(provisioningEntity.getEntityType(),
                                 provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
                         Callable<Boolean> proThread =
-                                new ProvisioningThread(outboundProEntity, tenantDomainName, connector, connectorType,
-                                        idPName, dao);
+                                new ProvisioningThread(outboundProEntity, tenantDomainName, userTenantDomain, connector,
+                                        connectorType, idPName, dao);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isAllowed = true;
