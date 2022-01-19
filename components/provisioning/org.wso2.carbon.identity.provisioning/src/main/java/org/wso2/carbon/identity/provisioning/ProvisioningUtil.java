@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS;
 
 public class ProvisioningUtil {
 
@@ -531,15 +531,15 @@ public class ProvisioningUtil {
     /**
      * Is user tenant used for outbound provisioning thread if user provisioning is happens through a saas app.
      *
-     * @return true if ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD config is enabled.
+     * @return true if useUserTenantDomainInSaasApps config is enabled.
      */
-    public static boolean isUserTenantBasedProvisioningThreadEnabled() {
+    public static boolean isUserTenantBasedOutboundProvisioningEnabled() {
 
         boolean userTenantBasedProvisioningThreadEnabled = false;
 
-        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD))) {
+        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS))) {
             userTenantBasedProvisioningThreadEnabled = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD));
+                    .parseBoolean(IdentityUtil.getProperty(USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS));
         }
         return userTenantBasedProvisioningThreadEnabled;
     }

@@ -45,7 +45,7 @@ public class IdentityProvisioningConstants {
     public static final String IS_FALSE_VALUE = "0";
 
     // Outbound provisioning constants.
-    public static final String ENABLE_USER_TENANT_BASED_PROVISIONING_THREAD = "OutboundProvisioning.enableUserTenantBasedProvisioningThread";
+    public static final String USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS = "OutboundProvisioning.useUserTenantDomainInSaasApps";
 
     public static class SQLQueries {
 

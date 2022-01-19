@@ -29,7 +29,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedProvisioningThreadEnabled;
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
 
 public class ProvisioningThread implements Callable<Boolean> {
 
@@ -54,17 +54,13 @@ public class ProvisioningThread implements Callable<Boolean> {
         this.dao = dao;
     }
 
-    public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName, String userTenantDomainName,
+    public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
+                              String userTenantDomainName,
                               AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
                               CacheBackedProvisioningMgtDAO dao) {
-        super();
-        this.provisioningEntity = provisioningEntity;
-        this.tenantDomainName = spTenantDomainName;
+
+        this(provisioningEntity, spTenantDomainName, connector, connectorType, idPName, dao);
         this.userTenantDomainName = userTenantDomainName;
-        this.connector = connector;
-        this.connectorType = connectorType;
-        this.idPName = idPName;
-        this.dao = dao;
     }
 
     @Override
@@ -77,12 +73,10 @@ public class ProvisioningThread implements Callable<Boolean> {
         try {
 
             PrivilegedCarbonContext.startTenantFlow();
-            if (isUserTenantBasedProvisioningThreadEnabled() && userTenantDomainName != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(userTenantDomainName);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(getTenantIdFromDomain(userTenantDomainName));
+            if (isUserTenantBasedOutboundProvisioningEnabled() && userTenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(userTenantDomainName, true);
             } else {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(getTenantIdFromDomain(tenantDomainName));
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
             }
 
             ProvisionedIdentifier provisionedIdentifier = null;
