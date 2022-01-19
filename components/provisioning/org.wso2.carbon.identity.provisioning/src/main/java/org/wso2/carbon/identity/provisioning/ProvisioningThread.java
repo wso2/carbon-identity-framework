@@ -35,7 +35,7 @@ public class ProvisioningThread implements Callable<Boolean> {
 
     private ProvisioningEntity provisioningEntity;
     private String tenantDomainName;
-    private String userTenantDomainName;
+    private String provisioningEntityTenantDomainName;
     private AbstractOutboundProvisioningConnector connector;
     private String connectorType;
     private String idPName;
@@ -55,12 +55,12 @@ public class ProvisioningThread implements Callable<Boolean> {
     }
 
     public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
-                              String userTenantDomainName,
+                              String provisioningEntityTenantDomainName,
                               AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
                               CacheBackedProvisioningMgtDAO dao) {
 
         this(provisioningEntity, spTenantDomainName, connector, connectorType, idPName, dao);
-        this.userTenantDomainName = userTenantDomainName;
+        this.provisioningEntityTenantDomainName = provisioningEntityTenantDomainName;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ProvisioningThread implements Callable<Boolean> {
 
         boolean success = false;
         String tenantDomainName = this.tenantDomainName;
-        String userTenantDomainName = this.userTenantDomainName;
+        String userTenantDomainName = this.provisioningEntityTenantDomainName;
 
         try {
 
