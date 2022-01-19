@@ -1244,17 +1244,24 @@
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
     </JITProvisioning>
 
-    {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
-        <!--
-        Disabling this configuration will allow to keep the provisioned entities as it is and  will update the outbound
-        provisioning config rather than deleting the existing entries and add them as the new entries whenever updating
-        the provisioning connector configurations.
-        The default value of the configuration is true.
-        -->
-         <OutboundProvisioning>
+    <OutboundProvisioning>
+        {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
+            <!--
+                Disabling this configuration will allow to keep the provisioned entities as it is and  will update the outbound
+                provisioning config rather than deleting the existing entries and add them as the new entries whenever updating
+                the provisioning connector configurations.
+                The default value of the configuration is true.
+            -->
             <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
-         </OutboundProvisioning>
-    {% endif %}
+        {% endif %}
+        {% if outbound_provisioning_management.enable_user_tenant_based_provisioning_thread is defined %}
+            <!--
+                Enabling this configuration will use the user's tenant domain for outbound provisioning thread
+                if the user provisioing is happened through SaaS application.
+            -->
+            <enableUserTenantBasedProvisioningThread>{{outbound_provisioning_management.enable_user_tenant_based_provisioning_thread}}</enableUserTenantBasedProvisioningThread>
+        {% endif %}
+    </OutboundProvisioning>
 
     <EventListeners>
         <EventListener id="workflow"
