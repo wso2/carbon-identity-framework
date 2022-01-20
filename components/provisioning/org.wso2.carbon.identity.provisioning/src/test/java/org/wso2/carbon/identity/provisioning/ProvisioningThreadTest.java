@@ -105,7 +105,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
                         idPName, mockCacheBackedProvisioningMgDAO);
 
         provisioningThread.call();
-        Assert.assertEquals(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(), "-1");
+        Assert.assertEquals(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(), -1);
     }
 
     @DataProvider(name = "provisioningData")
