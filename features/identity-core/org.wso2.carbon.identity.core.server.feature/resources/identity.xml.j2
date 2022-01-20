@@ -283,6 +283,10 @@
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
+        <!-- If a custom client Id is provided, it is validated against the regex -->
+        {% if oauth.client.id.validation is defined %}
+        <ClientIdValidationRegex>{{oauth.client.id.validation.regex}}</ClientIdValidationRegex>
+        {% endif %}
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             {% if oauth.response_type.token.enable is sameas true %}
