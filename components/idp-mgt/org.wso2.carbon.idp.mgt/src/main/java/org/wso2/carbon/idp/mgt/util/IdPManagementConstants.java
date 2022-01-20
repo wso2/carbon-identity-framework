@@ -375,8 +375,12 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_METADATA_BY_IDP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM " +
                 "IDP_METADATA WHERE IDP_ID = ?";
+        public static final String GET_IDP_METADATA_BY_IDP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
+                "IDP_METADATA WHERE IDP_ID = ?";
         public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, VALUE, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
+        public static final String ADD_IDP_METADATA_H2 = "INSERT INTO IDP_METADATA (IDP_ID, NAME, `VALUE`, " +
+                "DISPLAY_NAME, TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
 
         public static final String GET_CONNECTED_APPS_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
@@ -420,6 +424,9 @@ public class IdPManagementConstants {
                 "IDP.UUID = ?) APP";
         public static final String GET_IDP_NAME_BY_METADATA = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
                 "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.VALUE = ? AND " +
+                "IDP_METADATA.TENANT_ID = ?";
+        public static final String GET_IDP_NAME_BY_METADATA_H2 = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA " +
+                "ON IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.`VALUE` = ? AND " +
                 "IDP_METADATA.TENANT_ID = ?";
     }
 

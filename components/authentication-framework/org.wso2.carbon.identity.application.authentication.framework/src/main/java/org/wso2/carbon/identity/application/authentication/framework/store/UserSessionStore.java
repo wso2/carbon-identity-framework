@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.identity.application.mgt.util.JdbcUtils.isH2DB;
+
 /**
  * Class to store and retrieve user related data.
  */
@@ -680,7 +682,9 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeBatchInsert(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_INSERT_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_INSERT_SESSION_META_DATA;
+            jdbcTemplate.executeBatchInsert(sqlStmt, (preparedStatement -> {
                 for (Map.Entry<String, String> entry : metaData.entrySet()) {
                     preparedStatement.setString(1, sessionId);
                     preparedStatement.setString(2, entry.getKey());
@@ -707,7 +711,9 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_SESSION_META_DATA, preparedStatement -> {
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_UPDATE_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_UPDATE_SESSION_META_DATA;
+            jdbcTemplate.executeUpdate(sqlStmt, preparedStatement -> {
                 preparedStatement.setString(1, value);
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.setString(3, propertyType);

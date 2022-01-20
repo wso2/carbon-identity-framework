@@ -71,6 +71,9 @@ public class IdentityCoreConstants {
     public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
 
+    // DB constants.
+    public static final String H2 = "H2";
+
     public static class Filter {
 
         public static final String AND = "and";

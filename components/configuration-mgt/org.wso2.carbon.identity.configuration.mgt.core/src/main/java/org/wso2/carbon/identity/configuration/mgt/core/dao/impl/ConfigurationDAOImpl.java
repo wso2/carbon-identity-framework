@@ -152,7 +152,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
@@ -588,8 +587,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     template.executeUpdate(DELETE_FILES_SQL, (
                             preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
                     ));
+                    String sqlStmt = isH2() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
                     for (ResourceFile file : resource.getFiles()) {
-                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                        template.executeUpdate(sqlStmt, preparedStatement -> {
                             preparedStatement.setString(1, file.getId());
                             preparedStatement.setBlob(2, file.getInputStream());
                             preparedStatement.setString(3, resource.getResourceId());
@@ -1329,8 +1329,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             boolean isPostgreSQL = isPostgreSQLDB();
+            String sqlStmt = isH2() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
+
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                template.executeUpdate(sqlStmt, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
                     if (isPostgreSQL) {
                         preparedStatement.setBinaryStream(2, fileStream);
@@ -1383,10 +1385,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            String sqlStmt = isH2() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
+
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
-                String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
+                String resourceId = template.fetchSingleRecord(sqlStmt,
                         (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
                         preparedStatement -> {
                             preparedStatement.setString(1, fileId);
@@ -1593,8 +1597,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         preparedStatement.setString(3, resourceType);
     }
 
-    private String getFileGetByIdSQL() {
+    private String getFileGetByIdSQL() throws DataAccessException {
 
-        return SQLConstants.GET_FILE_BY_ID_SQL;
+        return isH2() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
     }
 }

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import static org.wso2.carbon.identity.application.mgt.util.JdbcUtils.isH2DB;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +55,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                                     resultSet.getString(4)),
                     preparedStatement -> preparedStatement.setString(1, sessionId));
 
-            jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
+
+            jdbcTemplate.executeQuery(sqlStmt, ((resultSet, rowNumber)
                     -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
                     preparedStatement.setString(1, sessionId));
 
