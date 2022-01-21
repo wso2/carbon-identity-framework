@@ -256,9 +256,9 @@ public class ApplicationMgtDBQueries {
     public static final String STORE_LOCAL_AUTHENTICATOR = "INSERT INTO IDP_AUTHENTICATOR (TENANT_ID, IDP_ID, NAME," +
             "IS_ENABLED, DISPLAY_NAME) VALUES (?, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), ?, ?, ?)";
 
-    public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
+    public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";
-    public static final String ADD_SP_METADATA = "INSERT INTO SP_METADATA (SP_ID, NAME, VALUE, DISPLAY_NAME, " +
+    public static final String ADD_SP_METADATA = "INSERT INTO SP_METADATA (SP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
             "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 

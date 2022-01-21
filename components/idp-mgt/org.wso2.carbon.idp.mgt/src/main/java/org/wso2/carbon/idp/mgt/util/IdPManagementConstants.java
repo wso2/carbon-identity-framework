@@ -364,9 +364,9 @@ public class IdPManagementConstants {
                         "ON auth.ID = prop.AUTHENTICATOR_ID WHERE prop.PROPERTY_KEY=? " +
                         "AND prop.PROPERTY_VALUE=? AND prop.TENANT_ID=? AND auth.NAME = ?";
 
-        public static final String GET_IDP_METADATA_BY_IDP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM " +
+        public static final String GET_IDP_METADATA_BY_IDP_ID = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
                 "IDP_METADATA WHERE IDP_ID = ?";
-        public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, VALUE, DISPLAY_NAME, " +
+        public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
 
@@ -410,7 +410,7 @@ public class IdPManagementConstants {
                 "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE " +
                 "IDP.UUID = ?) APP";
         public static final String GET_IDP_NAME_BY_METADATA = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
-                "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.VALUE = ? AND " +
+                "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.`VALUE` = ? AND " +
                 "IDP_METADATA.TENANT_ID = ?";
     }
 

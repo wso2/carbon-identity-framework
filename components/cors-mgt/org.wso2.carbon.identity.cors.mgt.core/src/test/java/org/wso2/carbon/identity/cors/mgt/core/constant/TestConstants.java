@@ -56,7 +56,7 @@ public class TestConstants {
 
         public static final int ID = 1;
         public static final String NAME = "App 1";
-        public static final String UUID = "c0881fadfb6f4d08b4ad2680364bd998";
+        public static final String UUID = "c0881fad-fb6f-4d08-b4ad-2680364bd998";
 
         private SampleApp1() {
 
@@ -67,7 +67,7 @@ public class TestConstants {
 
         public static final int ID = 2;
         public static final String NAME = "App 2";
-        public static final String UUID = "4d34790b8d164e03b6c5476c0bf31038";
+        public static final String UUID = "4d34790b-8d16-4e03-b6c5-476c0bf31038";
 
         private SampleApp2() {
 
@@ -78,7 +78,7 @@ public class TestConstants {
 
         public static final int ID = 3;
         public static final String NAME = "App 3";
-        public static final String UUID = "1q67890b8d164jh39os574h5c6f36s38";
+        public static final String UUID = "1q67890b-8d16-4jh3-9os5-74h5c6f36s38";
 
         private SampleApp3() {
 

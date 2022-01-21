@@ -51,7 +51,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
-            "META.VALUE " +
+            "META.`VALUE` " +
             "FROM " +
             "SP_INBOUND_AUTH INBOUND," +
             "SP_APP SP," +
