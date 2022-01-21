@@ -58,6 +58,4 @@ public class ClaimMetadataStoreFactory implements ClaimManagerFactory {
         return identityClaimManager;
     }
 
-    // public String getClaimUriRegex(String claimDialectUri) {return claimConfig.getClaimUriRegexMap(claimDialectUri);}
-
 }

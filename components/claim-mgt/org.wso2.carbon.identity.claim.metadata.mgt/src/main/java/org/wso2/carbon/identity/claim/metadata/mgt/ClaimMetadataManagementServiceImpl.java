@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collection;
@@ -61,7 +62,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
@@ -339,11 +340,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
-        String claimURIRegex = IdentityClaimManagementServiceDataHolder.getInstance()
-                .getClaimConfig().getClaimUriRegex(externalClaim.getClaimDialectURI());
+        ClaimConfig claimConfig = IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfig();
+        String claimURIRegex = null;
+        if (claimConfig != null) {
+            claimURIRegex = claimConfig.getClaimUriRegex(externalClaim.getClaimDialectURI());
+        }
 
         if (claimURIRegex != null && !externalClaim.getClaimURI().matches(claimURIRegex)) {
-            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM);
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI);
         }
 
         // TODO : validate tenant domain?

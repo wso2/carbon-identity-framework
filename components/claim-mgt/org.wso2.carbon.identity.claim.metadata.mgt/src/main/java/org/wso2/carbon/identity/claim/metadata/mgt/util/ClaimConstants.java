@@ -73,8 +73,8 @@ public class ClaimConstants {
                 "Unable to delete claim as it is referred by an application"),
         ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP("10014",
                 "Unable to delete claim as it is referred by an IDP"),
-        ERROR_CODE_INVALID_EXTERNAL_CLAIM("10015",
-                "External claim contains invalid characters"),
+        ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI("10015",
+                "External claim URI contains invalid characters"),
 
         // Client errors.
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
