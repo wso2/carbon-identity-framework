@@ -39,6 +39,23 @@ public interface RegistryResourceMgtService {
 
 
     /**
+     * Retrieve a registry resource from tenant registry based on locale.
+     * (In cases where the multiple resources of the same type exists for different locales like email templates,
+     * challenge questions etc.)
+     *
+     * @param path
+     * @param tenantDomain
+     * @param locale
+     * @return
+     * @throws IdentityRuntimeException
+     */
+    Resource getIdentityResource(String path,
+                                 String tenantDomain,
+                                 String locale,
+                                 String service) throws IdentityRuntimeException;
+
+
+    /**
      * Add a registry resource into the tenant registry based on locale. (In cases where the multiple
      * resources of the same type exists for different locales like email templates, challenge questions etc.)
      * If a resource already exists in the same path with the same locale an exception will be thrown.

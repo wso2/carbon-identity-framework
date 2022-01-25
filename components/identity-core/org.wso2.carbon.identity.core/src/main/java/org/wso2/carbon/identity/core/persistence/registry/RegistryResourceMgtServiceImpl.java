@@ -61,6 +61,13 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     }
 
     @Override
+    public Resource getIdentityResource(String path, String tenantDomain, String locale, String service)
+            throws IdentityRuntimeException {
+        path = getRegistryPath(path, locale, service);
+        return getIdentityResource(path, tenantDomain);
+    }
+
+    @Override
     public void putIdentityResource(Resource identityResource,
                                     String path,
                                     String tenantDomain,
@@ -213,6 +220,12 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     private String getRegistryPath(String path, String locale) {
         locale = validateLocale(locale);
         path = path + RegistryConstants.PATH_SEPARATOR + locale;
+        return path;
+    }
+
+    private String getRegistryPath(String path, String locale, String service) {
+        locale = validateLocale(locale);
+        path = path + RegistryConstants.PATH_SEPARATOR + service+ RegistryConstants.PATH_SEPARATOR + locale ;
         return path;
     }
 
