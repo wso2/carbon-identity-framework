@@ -539,22 +539,23 @@ public class OutboundProvisioningManager {
                         outboundProEntity = new ProvisioningEntity(provisioningEntity.getEntityType(),
                                 provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
 
-                    Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                            provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
-                    outboundProEntity.setIdentifier(provisionedIdentifier);
-                    outboundProEntity.setJitProvisioning(jitProvisioning);
-                    boolean isAllowed = true;
-                    boolean isBlocking = entry.getValue().isBlocking();
-                    boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                    if (isPolicyEnabled) {
-                        isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
-                                provisioningEntity,
-                                serviceProvider,
-                                idPName,
-                                connectorType);
-                    }
-                    if (isAllowed) {
-                        executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
+                        Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
+                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                        outboundProEntity.setIdentifier(provisionedIdentifier);
+                        outboundProEntity.setJitProvisioning(jitProvisioning);
+                        boolean isAllowed = true;
+                        boolean isBlocking = entry.getValue().isBlocking();
+                        boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
+                        if (isPolicyEnabled) {
+                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
+                                    provisioningEntity,
+                                    serviceProvider,
+                                    idPName,
+                                    connectorType);
+                        }
+                        if (isAllowed) {
+                            executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
+                        }
                     }
                 }
             }
