@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS;
 
 public class ProvisioningUtil {
 
@@ -523,5 +526,22 @@ public class ProvisioningUtil {
         }
 
         return outboundClaimValueMappings;
+    }
+
+    /**
+     * Is user tenant used for outbound provisioning thread if user provisioning is happens through a saas app.
+     *
+     * @return true if useUserTenantDomainInSaasApps config is enabled.
+     */
+    public static boolean isUserTenantBasedOutboundProvisioningEnabled() {
+
+        boolean userTenantBasedProvisioningThreadEnabled = false;
+
+        if (StringUtils.isNotEmpty(
+                IdentityUtil.getProperty(USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS))) {
+            userTenantBasedProvisioningThreadEnabled = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS));
+        }
+        return userTenantBasedProvisioningThreadEnabled;
     }
 }
