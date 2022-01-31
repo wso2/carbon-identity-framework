@@ -352,7 +352,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
                     }
                 }
-                // Clear the auto login related cookies only during passive authentication flow.
+                // Clear the auto login related cookies only during none passive authentication flow.
                 if (!context.isPassiveAuthenticate()) {
                     FrameworkUtils.removeALORCookie(request, response);
                 }
