@@ -455,7 +455,7 @@ public class WorkflowManagementAdminService {
     }
 
     /**
-     * Move Workflow request to DELETED state.
+     * Move workflow requests created by the logged in user to DELETED state.
      *
      * @param requestId Request ID to delete requests of.
      * @throws WorkflowException
@@ -464,6 +464,18 @@ public class WorkflowManagementAdminService {
 
         WorkflowServiceDataHolder.getInstance().getWorkflowService()
                 .deleteWorkflowRequest(requestId);
+    }
+
+    /**
+     * Move workflow requests created by any user to DELETED state.
+     *
+     * @param requestId Request ID to delete requests of.
+     * @throws WorkflowException
+     */
+    public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+        WorkflowServiceDataHolder.getInstance().getWorkflowService()
+                .deleteWorkflowRequestCreatedByAnyUser(requestId);
     }
 
     /**
