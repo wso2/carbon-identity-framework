@@ -106,6 +106,7 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -2633,6 +2634,24 @@ public class FrameworkUtils {
     }
 
     /**
+     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     *
+     * @param loginIdentifier login identifier for multi attribute login
+     * @param tenantDomain    user tenant domain
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier, String tenantDomain) {
+
+        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
+        if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
+                    resolveUser(loginIdentifier, tenantDomain);
+        }
+        return resolvedUserResult;
+    }
+
+    /**
      * Validate the username when email username is enabled.
      *
      * @param username Username.
@@ -2648,6 +2667,47 @@ public class FrameworkUtils {
                 context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
                 throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
+        }
+    }
+
+    /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param username username.
+     * @return user id of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserIdFromUsername(UserStoreManager userStoreManager, String username) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                /*
+                If the user id is not present in the userstore, we need to add it to the userstore. But if the
+                userstore is read-only, we cannot add the id and empty user id will returned.
+                */
+                if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
+                    userId = addUserId(username, userStoreManager);
+                }
+                return userId;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                        "AbstractUserStore manager");
+            }
+            throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving Id for the user: " + username, e);
+            }
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
         }
     }
 

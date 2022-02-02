@@ -36,6 +36,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtilsTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtilTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactoryTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactoryTest"/>

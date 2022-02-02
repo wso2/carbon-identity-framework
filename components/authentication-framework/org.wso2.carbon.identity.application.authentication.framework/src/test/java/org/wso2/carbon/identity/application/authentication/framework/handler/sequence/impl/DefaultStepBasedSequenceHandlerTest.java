@@ -536,7 +536,8 @@ public class DefaultStepBasedSequenceHandlerTest {
 
         // Mock the provisioning handler
         ProvisioningHandler provisioningHandler = mock(ProvisioningHandler.class);
-        doNothing().when(provisioningHandler).handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
+        doNothing().when(provisioningHandler)
+                .handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
 
         // Mock framework util to returned mocked provisoning handler
         returnMockProvisioningHandler(provisioningHandler);
@@ -597,8 +598,8 @@ public class DefaultStepBasedSequenceHandlerTest {
         context = getMockedContextForJitProvisioning(null, null, null);
         // Mock the provisioning handler
         ProvisioningHandler provisioningHandler = mock(ProvisioningHandler.class);
-        doThrow(new FrameworkException("Provisioning Failed"))
-                .when(provisioningHandler).handle(anyList(), anyString(), anyMap(), anyString(), anyString());
+        doThrow(new FrameworkException("Provisioning Failed")).when(provisioningHandler)
+                .handle(anyList(), anyString(), anyMap(), anyString(), anyString());
 
         returnMockProvisioningHandler(provisioningHandler);
 

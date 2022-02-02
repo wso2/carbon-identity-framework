@@ -45,6 +45,8 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -1326,10 +1328,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            boolean isPostgreSQL = isPostgreSQLDB();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
-                    preparedStatement.setBlob(2, fileStream);
+                    if (isPostgreSQL) {
+                        preparedStatement.setBinaryStream(2, fileStream);
+                    } else {
+                        preparedStatement.setBlob(2, fileStream);
+                    }
                     preparedStatement.setString(3, resourceId);
                     preparedStatement.setString(4, fileName);
                 });
@@ -1356,20 +1363,16 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
-                    (resultSet, rowNumber) -> {
-                        Blob fileBlob = resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE);
-                        if (fileBlob == null) {
-                            return null;
-                        }
-                        return fileBlob.getBinaryStream();
-                    },
-                    preparedStatement -> {
-                        preparedStatement.setString(1, fileId);
-                        preparedStatement.setString(2, resourceName);
-                        preparedStatement.setString(3, resourceType);
-                    });
-        } catch (DataAccessException e) {
+            if (isPostgreSQLDB()) {
+                return jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(), (resultSet, rowNumber) ->
+                                resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                        setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+            }
+            Blob fileBlob = jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(),
+                    (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                            setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+            return fileBlob != null ? fileBlob.getBinaryStream() : null;
+        } catch (DataAccessException | SQLException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
         }
     }
@@ -1531,7 +1534,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     })),
                     preparedStatement -> {
                         preparedStatement.setString(1, resourceTypeId);
-                        preparedStatement.setString(2, Integer.toString(tenantId));
+                        preparedStatement.setInt(2, tenantId);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
@@ -1582,4 +1585,16 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }, resource, false);
     }
 
+    private void setPreparedStatementForFileGetById(String resourceType, String resourceName, String fileId,
+                                                    PreparedStatement preparedStatement) throws SQLException {
+
+        preparedStatement.setString(1, fileId);
+        preparedStatement.setString(2, resourceName);
+        preparedStatement.setString(3, resourceType);
+    }
+
+    private String getFileGetByIdSQL() {
+
+        return SQLConstants.GET_FILE_BY_ID_SQL;
+    }
 }

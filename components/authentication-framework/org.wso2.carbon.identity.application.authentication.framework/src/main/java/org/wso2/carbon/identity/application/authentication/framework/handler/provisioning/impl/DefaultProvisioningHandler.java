@@ -18,27 +18,25 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -47,6 +45,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -58,7 +57,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
+        .Config.ALLOW_ASSOCIATING_TO_EXISTING_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
@@ -69,7 +73,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
+    private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
+    private static Boolean allowAssociationToExistingUser = null;
     private SecureRandom random = new SecureRandom();
 
     public static DefaultProvisioningHandler getInstance() {
@@ -85,7 +91,18 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
-                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+            String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+
+        List<String> idpToLocalRoleMapping =
+                (List<String>) IdentityUtil.threadLocalProperties.get().get(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
+        handle(roles, subject, attributes, provisioningUserStoreId, tenantDomain, idpToLocalRoleMapping);
+
+    }
+
+    @Override
+    public void handle(List<String> roles, String subject, Map<String, String> attributes,
+            String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
+            throws FrameworkException {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
@@ -93,7 +110,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                          realmService, tenantDomain);
+                    realmService, tenantDomain);
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
             String userStoreDomain;
@@ -122,7 +139,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
 
             // If internal roles exists convert internal role domain names to pre defined camel case domain names.
-            List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
+            List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
 
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
@@ -130,16 +147,45 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
-                if (!userClaims.isEmpty()) {
-                    userClaims.remove(FrameworkConstants.PASSWORD);
-                    userClaims.remove(USERNAME_CLAIM);
-                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
-                }
-                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-                if (StringUtils.isEmpty(associatedUserName)) {
+                boolean associationExists = StringUtils.isNotEmpty(FrameworkUtils.getFederatedAssociationManager()
+                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal));
+                /*
+                The association for an existing user is only possible when the AllowAssociatingToExistingUser
+                is set to true (Default value is false) and the corresponding federated user has no association.
+                */
+                if (isAssociationToExistingUserAllowed() && !associationExists) {
                     // Associate User
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                    associationExists = true;
+                }
+
+                if (!userClaims.isEmpty() && associationExists) {
+                    userClaims.remove(FrameworkConstants.PASSWORD);
+                    userClaims.remove(USERNAME_CLAIM);
+                    userClaims.remove(FrameworkConstants.USERID_CLAIM);
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                    /*
+                    Since the user is exist following code is get all active claims of user and crosschecking against
+                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
+                    will be deleted.
+                    */
+                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                    if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
+                        Claim[] userActiveClaims =
+                                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+                        for (Claim claim : userActiveClaims) {
+                            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Claim from external attributes " + claim.getClaimUri() + " has null " +
+                                            "value. But user has not null claim value for Claim " +
+                                            claim.getClaimUri() +
+                                            ". Hence user claim value will be deleted.");
+                                }
+                                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                                        claim.getClaimUri(), null);
+                            }
+                        }
+                    }
                 }
             } else {
                 String password = generatePassword();
@@ -155,9 +201,32 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                userStoreManager.addUser(username, password, null, userClaims, null);
+                boolean userWorkflowEngaged = false;
+                try {
+                    userStoreManager.addUser(username, password, null, userClaims, null);
+                } catch (UserStoreException e) {
+                    // Add user operation will fail if a user operation workflow is already defined for the same user.
+                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
+                        userWorkflowEngaged = true;
+                        if (log.isDebugEnabled()) {
+                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
+                                    " and there is a workflow already defined for the same user");
+                        }
+                    } else {
+                        throw e;
+                    }
+                }
+                if (userWorkflowEngaged ||
+                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User is not found in the userstore. Most probably the local user creation is not " +
+                                "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
+                                " the user account association and role and permission update are skipped.");
+                    }
+                    return;
+                }
 
-                // Associate User
+                // Associate user only if the user is existing in the userstore.
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
 
                 if (log.isDebugEnabled()) {
@@ -165,17 +234,62 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
 
-            if (roles != null) {
-                // Update user with roles
-                List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
-                Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+            boolean includeManuallyAddedLocalRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
+
+            List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
+            Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+
+            // Updating user roles.
+            if (roles != null && roles.size() > 0) {
+
+                if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
+                    boolean excludeUnmappedRoles = true;
+
+                    if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+                        excludeUnmappedRoles = Boolean
+                                .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+                    }
+
+                    if (excludeUnmappedRoles && includeManuallyAddedLocalRoles) {
+                        /*
+                            Get the intersection of deletingRoles with idpRoleMappings. Here we're deleting mapped
+                            roles and keeping manually added local roles.
+                        */
+                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                                .collect(Collectors.toSet());
+                    }
+                }
+
+                // No need to add already existing roles again.
                 rolesToAdd.removeAll(currentRolesList);
 
+                // Cannot add roles that doesn't exists in the system.
+                List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
+                for (String role : rolesToAdd) {
+                    if (!userStoreManager.isExistingRole(role)) {
+                        nonExistingUnmappedIdpRoles.add(role);
+                    }
+                }
+                rolesToAdd.removeAll(nonExistingUnmappedIdpRoles);
+
                 // TODO : Does it need to check this?
-                // Check for case whether superadmin login
+                // Check for case whether super admin login
                 handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
 
                 updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, deletingRoles);
+            } else {
+                if (includeManuallyAddedLocalRoles) {
+                    // Remove only IDP mapped roles and keep manually added local roles.
+                    if (CollectionUtils.isNotEmpty(idpToLocalRoleMapping)) {
+                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                                .collect(Collectors.toSet());
+                        updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                    }
+                } else {
+                    // Remove all roles of the user.
+                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                }
             }
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
@@ -293,6 +407,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return userClaims;
     }
 
+    /**
+     * This method is used to get null value claims passed from idp to be deleted from current user active claims.
+     *
+     * @param attributes User attributes.
+     * @return toBeDeletedClaims
+     */
+    private List<String> prepareToBeDeletedClaimMappings(Map<String, String> attributes) {
+
+        List<String> toBeDeletedUserClaims = new ArrayList<>();
+        if (MapUtils.isNotEmpty(attributes)) {
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                String claimURI = entry.getKey();
+                String claimValue = entry.getValue();
+                if (StringUtils.isNotBlank(claimURI) && StringUtils.isBlank(claimValue)) {
+                    toBeDeletedUserClaims.add(claimURI);
+                }
+            }
+        }
+        return toBeDeletedUserClaims;
+    }
+
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)
             throws UserStoreException, FrameworkException {
         UserStoreManager userStoreManager;
@@ -320,9 +455,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         // If the any of above value is invalid, keep it empty to use primary userstore
         if (userStoreDomain != null
-            && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+                && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
             throw new FrameworkException("Specified user store domain " + userStoreDomain
-                                         + " is not valid.");
+                    + " is not valid.");
         }
 
         return userStoreDomain;
@@ -407,10 +542,24 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         // deletingRoles = currentRolesList - rolesToAdd
         deletingRoles.removeAll(rolesToAdd);
 
-        // Exclude Internal/everyonerole from deleting role since its cannot be deleted
+        // Exclude Internal/everyone role from deleting roles, since it cannot be deleted.
         deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
 
         return deletingRoles;
+    }
+
+    /**
+     * Check whether the configuration that allows to associate the existing users is enabled or not.
+     *
+     * @return whether the association of the existing users with the federated users is allowed.
+     */
+    private Boolean isAssociationToExistingUserAllowed() {
+
+        if (allowAssociationToExistingUser == null) {
+            allowAssociationToExistingUser = Boolean.parseBoolean(
+                    IdentityUtil.getProperty(ALLOW_ASSOCIATING_TO_EXISTING_USER));
+        }
+        return allowAssociationToExistingUser;
     }
 
 }

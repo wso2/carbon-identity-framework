@@ -470,7 +470,6 @@ public class IdentityManagementEndpointUtil {
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
-
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -504,7 +503,6 @@ public class IdentityManagementEndpointUtil {
         URI uri = new URI(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
-
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(uri.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -522,16 +520,23 @@ public class IdentityManagementEndpointUtil {
      * @param queryParams String of query params.
      * @return map of the encoded query params.
      */
-    public static Map<String,String> getEncodedQueryParamMap(String queryParams) {
+    public static Map<String, String> getEncodedQueryParamMap(String queryParams) {
 
         Map<String, String> encodedQueryMap = new HashMap<>();
-        if (StringUtils.isNotBlank(queryParams)) {
-            encodedQueryMap = Arrays.stream(queryParams.split(SPLITTING_CHAR))
-                    .map(entry -> entry.split(PADDING_CHAR))
-                    .collect(Collectors.toMap(entry -> Encode.forUriComponent(entry[0]),
-                            entry -> Encode.forUriComponent(entry[1])));
+        if (StringUtils.isBlank(queryParams)) {
+            return encodedQueryMap;
         }
-
+        String[] params = queryParams.split(SPLITTING_CHAR);
+        if (ArrayUtils.isEmpty(params)) {
+            return encodedQueryMap;
+        }
+        for (String param : params) {
+            String[] queryParamWithValue = param.split(PADDING_CHAR);
+            if (queryParamWithValue.length > 1) {
+                encodedQueryMap.put(Encode.forUriComponent(queryParamWithValue[0]),
+                        Encode.forUriComponent(queryParamWithValue[1]));
+            }
+        }
         return encodedQueryMap;
     }
 
@@ -708,7 +713,12 @@ public class IdentityManagementEndpointUtil {
                     }
                 }
             } else {
-                basePath = serverUrl + context;
+                if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                    basePath = serverUrl + "/t/" + tenantDomain + context;
+                } else {
+                    basePath = serverUrl + context;
+                }
             }
         } catch (URLBuilderException e) {
             throw new ApiException("Error while building url for context: " + context);

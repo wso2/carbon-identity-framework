@@ -96,6 +96,9 @@ public class ApplicationConstants {
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
 
+    // Application Management Service Configurations.
+    public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
+
     /**
      * Grouping of constants related to database table names.
      */

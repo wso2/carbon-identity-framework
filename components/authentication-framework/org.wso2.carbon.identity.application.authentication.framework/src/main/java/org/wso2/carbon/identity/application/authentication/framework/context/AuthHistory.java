@@ -135,8 +135,11 @@ public class AuthHistory implements Serializable {
 
         if (obj instanceof AuthHistory) {
             AuthHistory rhs = (AuthHistory) obj;
-            return new EqualsBuilder().appendSuper(super.equals(obj)).append(authenticatorName, rhs.authenticatorName)
-                    .append(idpName, rhs.idpName).append(code, rhs.code).isEquals();
+            return new EqualsBuilder()
+                    .append(authenticatorName, rhs.authenticatorName)
+                    .append(idpName, rhs.idpName)
+                    .append(code, rhs.code)
+                    .isEquals();
         }
         return false;
     }

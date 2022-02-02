@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -83,6 +84,7 @@ public class FrameworkServiceDataHolder {
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
+    private MultiAttributeLoginService multiAttributeLoginService;
 
     private FrameworkServiceDataHolder() {
 
@@ -212,6 +214,16 @@ public class FrameworkServiceDataHolder {
             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
 
         JsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
+
+    public MultiAttributeLoginService getMultiAttributeLoginService() {
+
+        return multiAttributeLoginService;
+    }
+
+    public void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLoginService) {
+
+        this.multiAttributeLoginService = multiAttributeLoginService;
     }
 
     /**

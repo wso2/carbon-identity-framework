@@ -24,13 +24,19 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,8 +46,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -51,7 +60,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class})
+@PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class, IdentityTenantUtil.class})
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -75,6 +84,21 @@ public class AbstractApplicationAuthenticatorTest {
     @Mock
     SequenceConfig sequenceConfig;
 
+    @Mock
+    ExternalIdPConfig externalIdPConfig;
+
+    @Mock
+    AbstractApplicationAuthenticator federatedApplicationAuthenticator;
+
+    @Mock
+    IdentityEventService identityEventService;
+
+    @Mock
+    RealmService realmService;
+
+    @Mock
+    UserRealm userRealm;
+
     private static final String AUTHENTICATOR = "AbstractAuthenticator";
     private static final String USER_NAME = "DummyUser";
     private static final String USER_STORE_NAME = "TEST.COM";
@@ -90,6 +114,10 @@ public class AbstractApplicationAuthenticatorTest {
     @BeforeTest
     public void setUp() throws Exception {
         initMocks(this);
+        federatedApplicationAuthenticator = mock(AbstractApplicationAuthenticator.class, withSettings()
+                .extraInterfaces(FederatedApplicationAuthenticator.class));
+        when(federatedApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
+        when(federatedApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled(anyObject())).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
@@ -97,6 +125,8 @@ public class AbstractApplicationAuthenticatorTest {
         when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
         doCallRealMethod().when(abstractApplicationAuthenticator).getUserStoreAppendedName(anyString());
         doCallRealMethod().when(abstractApplicationAuthenticator).process(request, response, context);
+        doCallRealMethod().when(federatedApplicationAuthenticator).getUserStoreAppendedName(anyString());
+        doCallRealMethod().when(federatedApplicationAuthenticator).process(request, response, context);
     }
 
     /**
@@ -162,6 +192,43 @@ public class AbstractApplicationAuthenticatorTest {
 
         AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
         assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE);
+    }
+
+    /**
+     * Process request by an authenticator that support federated application authenticator.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProcessLoginRequestCanHandle() throws Exception {
+
+        when(context.isLogoutRequest()).thenReturn(false);
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserName("new/test/user");
+        doReturn(true).when(federatedApplicationAuthenticator).canHandle(request);
+        doReturn("FederatedApplicationAuthenticator").when(federatedApplicationAuthenticator).getName();
+        when(externalIdPConfig.isProvisioningEnabled()).thenReturn(false);
+        context.setExternalIdP(externalIdPConfig);
+        doNothing().when(federatedApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
+
+        when(externalIdPConfig.isProvisioningEnabled()).thenReturn(false);
+        context.setSubject(user);
+        mockStatic(IdentityTenantUtil.class);
+        mockStatic(FrameworkServiceDataHolder.class);
+        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
+        when(frameworkServiceDataHolder.getIdentityEventService()).thenReturn(identityEventService);
+        when(frameworkServiceDataHolder.getRealmService()).thenReturn(realmService);
+        when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        AuthenticatorFlowStatus status = federatedApplicationAuthenticator.process(request, response, context);
+        assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
+
+        user.setUserName("user");
+        when(externalIdPConfig.isProvisioningEnabled()).thenReturn(true);
+        context.setSubject(user);
+        status = federatedApplicationAuthenticator.process(request, response, context);
+        assertEquals(status, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
     }
 
     /**

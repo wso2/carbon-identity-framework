@@ -490,7 +490,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update application id: " + applicationId, e);
         } finally {
@@ -903,8 +903,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Stored application name for id: " + applicationId + " is " + storedAppName);
         }
 
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
         // only if the application has been renamed TODO: move to OSGi layer
-        if (!StringUtils.equals(applicationName, storedAppName)) {
+        if (!StringUtils.equals(applicationName, storedAppName) && validateRoles) {
             String applicationNameforRole = IdentityUtil.addDomainToName(applicationName, ApplicationConstants.
                     APPLICATION_DOMAIN);
             String storedAppNameforRole = IdentityUtil.addDomainToName(storedAppName, ApplicationConstants.
@@ -4645,7 +4646,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return resourceId;
-        } catch (SQLException | UserStoreException e) {
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
                     + " in tenantDomain: " + tenantDomain + ". Rolling back created application information.");
             IdentityDatabaseUtil.rollbackTransaction(connection);

@@ -36,6 +36,7 @@
   "identity_mgt.events.schemes.'account.disable.handler'.module_index": "5",
   "identity_mgt.events.schemes.'account.disable.handler'.subscriptions": [
     "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
   ],
@@ -176,5 +177,16 @@
     "POST_UPDATE_CREDENTIAL",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.module_index": "30",
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.subscriptions": [
+    "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthentication.module_index": "31",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthentication.subscriptions": [
+    "PRE_AUTHENTICATION"
   ]
 }

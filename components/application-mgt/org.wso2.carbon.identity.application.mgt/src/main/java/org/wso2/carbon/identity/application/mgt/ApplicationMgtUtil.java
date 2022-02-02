@@ -66,6 +66,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -103,6 +104,25 @@ public class ApplicationMgtUtil {
         return permissionSet;
     }
 
+    /**
+     * Check whether validate roles is enabled via ApplicationMgt.EnableRoleValidation configuration in the
+     * identity.xml.
+     *
+     * @return True if the config is set to true or if the config is not specified in the identity.xml.
+     */
+    public static boolean validateRoles() {
+
+        String allowRoleValidationProperty = IdentityUtil.getProperty(ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY);
+        if (StringUtils.isBlank(allowRoleValidationProperty)) {
+            /*
+            This means the configuration does not exist in the identity.xml. In that case, true needs to be
+            returned to preserve backward compatibility.
+             */
+            return true;
+        }
+        return Boolean.parseBoolean(allowRoleValidationProperty);
+    }
+
     public static boolean isUserAuthorized(String applicationName, String username, int applicationID)
             throws IdentityApplicationManagementException {
 
@@ -126,6 +146,14 @@ public class ApplicationMgtUtil {
     public static boolean isUserAuthorized(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Validating user with application roles is disabled. Therefore, " +
+                        "user: %s will be authorized for application: %s", username, applicationName));
+            }
+            return true;
+        }
         String applicationRoleName = getAppRoleName(applicationName);
         try {
             if (log.isDebugEnabled()) {
@@ -161,6 +189,14 @@ public class ApplicationMgtUtil {
     public static void createAppRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating user with application roles is disabled. Therefore, the application " +
+                        "role will not be created for application: " + applicationName);
+            }
+            return;
+        }
         String roleName = getAppRoleName(applicationName);
         String[] usernames = {username};
         UserStoreManager userStoreManager = null;

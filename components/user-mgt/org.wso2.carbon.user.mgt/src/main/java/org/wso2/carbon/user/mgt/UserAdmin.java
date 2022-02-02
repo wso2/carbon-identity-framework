@@ -359,7 +359,9 @@ public class UserAdmin {
             String internalSystemRoleName =
                     UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
                             .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
-            getUserAdminProxy().deleteRole(appendInternalDomain(internalSystemRoleName));
+            if (getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
+                getUserAdminProxy().deleteRole(appendInternalDomain(internalSystemRoleName));
+            }
         }
     }
 

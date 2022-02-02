@@ -26,6 +26,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
@@ -261,6 +262,38 @@ public class UserSessionStore {
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e);
+        }
+        return idPId;
+    }
+
+    /**
+     * Retrieve IDP ID from the IDP table using IDP name and tenant ID.
+     *
+     * @param idpName   IDP name.
+     * @param tenantId  Tenant ID.
+     * @return          IDP ID.
+     * @throws UserSessionException
+     */
+    public int getIdPId(String idpName, int tenantId) throws UserSessionException {
+
+        int idPId = -1;
+        if (idpName.equals(FrameworkConstants.LOCAL_IDP_NAME)) {
+            return idPId;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_IDP_WITH_TENANT)) {
+                preparedStatement.setString(1, idpName);
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        idPId = resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving the IdP id of: " + idpName + " and tenant ID: " +
+                    tenantId, e);
         }
         return idPId;
     }
@@ -504,16 +537,41 @@ public class UserSessionStore {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
-                    preparedStatement.setString(1, sessionId);
-                    preparedStatement.setString(2, subject);
-                    preparedStatement.setInt(3, appID);
-                    preparedStatement.setString(4, inboundAuth);
-                });
+                String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
+                if (JdbcUtils.isOracleDB()) {
+                    query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                        preparedStatement.setString(5, sessionId);
+                        preparedStatement.setString(6, subject);
+                        preparedStatement.setInt(7, appID);
+                        preparedStatement.setString(8, inboundAuth);
+                    });
+                } else {
+                    if (JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
+                    } else if (JdbcUtils.isMySQLDB() ||  JdbcUtils.isMariaDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
+                    } else if (JdbcUtils.isPostgreSQLDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
+                    } else if (JdbcUtils.isOracleDB()) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
+                    }
+                    template.executeUpdate(query, preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                    });
+                }
                 return null;
             });
         } catch (TransactionException e) {
-            throw new DataAccessException("Error while storing application data for session in the database.", e);
+            throw new DataAccessException("Error while storing application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
         }
     }
 
@@ -525,7 +583,9 @@ public class UserSessionStore {
      * @param appID       Id of the application.
      * @param inboundAuth Protocol used in the app.
      * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
+     * @deprecated Please use storeAppSessionData method instead.
      */
+    @Deprecated
     public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
@@ -743,8 +803,41 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_FEDERATED_AUTH_SESSION_INFO,
+                        (resultSet, rowNumber) -> resultSet.getInt(1),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, authHistory.getIdpSessionIndex());
+                        });
+                if (recordCount == null) {
+                    storeFederatedAuthSessionInfoIfNotExist(sessionContextKey, authHistory);
+                } else {
+                    updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new UserSessionException("Error while storing federated auth session information of the session" +
+                    " index: " + sessionContextKey, e);
+        }
+    }
+
+    /**
+     * Store session details if not exist of a given session context key to map the session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    private void storeFederatedAuthSessionInfoIfNotExist(String sessionContextKey, AuthHistory authHistory)
+            throws UserSessionException {
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement prepStmt = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
+             PreparedStatement prepStmt = connection
+                     .prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
             prepStmt.setString(2, sessionContextKey);
             prepStmt.setString(3, authHistory.getIdpName());
@@ -754,6 +847,29 @@ public class UserSessionStore {
         } catch (SQLException e) {
             throw new UserSessionException("Error while adding session details of the session index:"
                     + sessionContextKey + ", IdP:" + authHistory.getIdpName(), e);
+        }
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    private void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory) throws
+            UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO, preparedStatement -> {
+                preparedStatement.setString(1, sessionContextKey);
+                preparedStatement.setString(2, authHistory.getIdpSessionIndex());
+            });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while updating " + sessionContextKey + " of session: " +
+                    authHistory.getIdpSessionIndex() + " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
     }
 

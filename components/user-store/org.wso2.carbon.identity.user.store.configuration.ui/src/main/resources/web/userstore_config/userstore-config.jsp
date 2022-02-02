@@ -175,9 +175,9 @@
     }
 %>
 
-<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-<script type="text/javascript" src="resources/js/main.js"></script>
+<script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+<script type="text/javascript" src="../admin/js/cookies.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
 <!--Yahoo includes for dom event handling-->
 <script src="../yui/build/yahoo-dom-event/yahoo-dom-event.js" type="text/javascript"></script>
 <link href="../entitlement/css/entitlement.css" rel="stylesheet" type="text/css" media="all"/>

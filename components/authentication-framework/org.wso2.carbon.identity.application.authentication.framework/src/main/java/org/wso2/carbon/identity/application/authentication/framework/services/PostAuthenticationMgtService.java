@@ -126,12 +126,15 @@ public class PostAuthenticationMgtService {
                             .getContextIdentifier());
                 }
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
+                authenticationContext.setProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER, null);
 
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence"
                             + " returning for context : " + authenticationContext.getContextIdentifier());
                 }
+                authenticationContext.setProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER,
+                        currentHandler.getName());
                 return true;
             }
         } else {

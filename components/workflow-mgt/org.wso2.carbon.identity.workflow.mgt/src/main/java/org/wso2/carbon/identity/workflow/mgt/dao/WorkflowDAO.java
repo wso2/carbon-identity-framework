@@ -335,7 +335,6 @@ public class WorkflowDAO {
                     parameterList.add(parameter);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);

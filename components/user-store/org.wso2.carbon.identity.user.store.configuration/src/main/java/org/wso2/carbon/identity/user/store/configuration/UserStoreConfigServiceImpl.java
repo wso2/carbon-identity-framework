@@ -22,6 +22,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
@@ -58,6 +59,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
+    private static final String H2_INIT_EXPRESSION = ";init=";
 
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
@@ -76,6 +78,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                                   userStoreDTO.getDomainId() + " with file-based configuration.");
                     }
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
         } catch (UserStoreException e) {
@@ -100,6 +103,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     LOG.debug("Repository separation of user-stores has been disabled. Editing user-store " +
                               userStoreDTO.getDomainId() + " with file-based configuration.");
                 }
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -109,6 +113,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                               userStoreDTO.getRepositoryClass());
                 }
             } else {
+                validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             }
@@ -282,6 +287,11 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
             }
         }
+        if (connectionURL != null && connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
+            String errorMessage = "INIT expressions are not allowed in the connection URL due to security reasons.";
+            LOG.error(errorMessage);
+            throw new IdentityUserStoreMgtException(errorMessage);
+        }
 
         WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
 
@@ -428,6 +438,28 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                         .getInstance().getConfigurationContextService().getServerConfigContext());
             } catch (Exception e) {
                 throw new IdentityUserStoreMgtException(e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Validate the userstore connection URL. Currently the init param is checked.
+     *
+     * @param userStoreDTO contains the userstore details.
+     * @throws IdentityUserStoreMgtException throws when the URL is invalid.
+     */
+    private void validateConnectionUrl(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        PropertyDTO[] propertyDTO = userStoreDTO.getProperties();
+        for (PropertyDTO propertyDTOValue : propertyDTO) {
+            if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
+                String connectionURL = propertyDTOValue.getValue();
+                if (connectionURL != null && connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
+                    String errorMessage =
+                            "INIT expressions are not allowed in the connection URL due to security reasons.";
+                    LOG.error(errorMessage);
+                    throw new IdentityUserStoreMgtException(errorMessage);
+                }
             }
         }
     }

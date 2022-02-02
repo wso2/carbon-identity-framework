@@ -93,6 +93,9 @@
     <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
+        {% if service_provider.sp_name_java_script_regex is defined %}
+        <SPNameJavascriptRegex>{{service_provider.sp_name_java_script_regex}}</SPNameJavascriptRegex>
+        {% endif %}
         {% if service_provider.fetch_chunk_size is defined %}
         <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
         {% endif %}
@@ -520,6 +523,9 @@
         handler class. Therefor not supporting additional scope handlers. -->
         <ScopeHandlers>
             <ScopeHandler class="org.wso2.carbon.identity.oauth2.validators.OIDCScopeHandler" />
+        {% for scope_handler in oauth.custom_scope_handler%}
+            <ScopeHandler class="{{scope_handler.class}}" />
+        {% endfor %}
         </ScopeHandlers>
 
         <!-- Assertions can be used to embedd parameters into access token. -->
@@ -611,6 +617,13 @@
             <IDTokenEncryptionAlgorithm>{{oauth.oidc.id_token.supported_encryption_algorithms[0]}}</IDTokenEncryptionAlgorithm>
             <!-- Default symmetric encryption algorithm that used to encrypt JWT claims set. -->
             <IDTokenEncryptionMethod>{{oauth.oidc.id_token.supported_encryption_methods[0]}}</IDTokenEncryptionMethod>
+
+            <!-- This should be set to true when id token needed to be signed before encryption -->
+            {% if oauth.oidc.id_token.sign_before_encryption is defined %}
+            <SignIDTokenBeforeEncryption>{{oauth.oidc.id_token.sign_before_encryption}}</SignIDTokenBeforeEncryption>
+            {% else %}
+            <SignIDTokenBeforeEncryption>false</SignIDTokenBeforeEncryption>
+            {% endif %}
 
             <!-- Supported versions: IS 5.5.0 onwards. -->
             <SupportedIDTokenEncryptionAlgorithms>
@@ -712,6 +725,9 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            {% if oauth.oidc.extensions.ciba_request_object_validator is defined %}
+                <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
+            {% endif %}
             <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
@@ -867,6 +883,8 @@
     <Consent>
         <!--Specify whether consent management should be enable during SSO.-->
         <EnableSSOConsentManagement>{{authentication.consent.prompt}}</EnableSSOConsentManagement>
+        <!--Add config to prompt consent for subject claim uri if configured as a requested claim.-->
+        <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
     </Consent>
 
     <SecurityTokenService>
@@ -1063,6 +1081,8 @@
             <AccountUnlockNotification>{{identity_mgt.password_reset_by_admin.enable_account_unlock_notification}}</AccountUnlockNotification>
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
+        <!--Whether to notify the user if the user account is locked/disabled-->
+        <NotifyUserAccountStatus>{{identity_mgt.recovery.notify_user_account_status}}</NotifyUserAccountStatus>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
@@ -1115,6 +1135,10 @@
         </VerificationCode>
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
         <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
+        <AutoLogin>
+            <Enable>{{identity_mgt.user_self_registration.auto_login.enable}}</Enable>
+            <AliasName>{{identity_mgt.user_self_registration.auto_login.alias_name}}</AliasName>
+        </AutoLogin>
     </SelfRegistration>
 
     <UserClaimUpdate>
@@ -1144,6 +1168,11 @@
         <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
      </AccountSuspension>
 
+
+    <SCIM2MultiAttributeFiltering>
+        <UsePagination>{{scim2_multi_attribute_filtering.use_pagination}}</UsePagination>
+    </SCIM2MultiAttributeFiltering>
+
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
 
@@ -1160,6 +1189,24 @@
         <ReturnOnlyMappedLocalRoles>{{sp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
     </SPRoleManagement>
 
+    <!--
+        This configuration is used to filter the federated IDP configured role mappings. If the property value is,
+        true : If IDP role mapping available, it will return the configured role mappings .
+        false : If there is no IDP role mapping and If the remote role and local role names are matching it will allow
+        to returns all the unmapped roles.
+     -->
+    {% if idp_role_management.return_only_mapped_local_roles is defined %}
+        <FederatedRoleManagement>
+            <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
+        {% if idp_role_management.return_manually_added_local_roles is defined %}
+            <ReturnManuallyAddedLocalRoles>{{idp_role_management.return_manually_added_local_roles}}</ReturnManuallyAddedLocalRoles>
+        {% endif %}
+        {% if idp_role_management.return_only_mapped_local_roles_unmapped_exclusive is defined %}
+            <ReturnOnlyMappedLocalRolesUnmappedExclusive>{{idp_role_management.return_only_mapped_local_roles_unmapped_exclusive}}</ReturnOnlyMappedLocalRolesUnmappedExclusive>
+        {% endif %}
+        </FederatedRoleManagement>
+    {% endif %}
+
     <EnableAskPasswordAdminUI>{{identity_mgt.user_onboarding.ask_password_from_user}}</EnableAskPasswordAdminUI>
 
     <EnableRecoveryEndpoint>{{identity_mgt.endpoint.enable_recovery_endpoint}}</EnableRecoveryEndpoint>
@@ -1169,10 +1216,45 @@
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!-- Show authenticated user name in audit logs. -->
+    <Authentication>
+        <Audit>
+            {% if authentication.audit.username is defined %}
+            <UserNameEnableForAuditLogs>{{authentication.audit.username.UserNameEnableForAuditLogs}}</UserNameEnableForAuditLogs>
+            {% else %}
+            <UserNameEnableForAuditLogs>false</UserNameEnableForAuditLogs>
+            {% endif %}
+        </Audit>
+    </Authentication>
+
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Disabling this configuration will discard validating the application role for the user who initiates the
+        application operations. Disabling this configuration will not create application role for newly created SPs and
+        the application role will not be assigned to the app owner.
+        The default value of the configuration is true.
+        -->
+        <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+    </ApplicationMgt>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
+        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
     </JITProvisioning>
+
+    {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
+        <!--
+        Disabling this configuration will allow to keep the provisioned entities as it is and  will update the outbound
+        provisioning config rather than deleting the existing entries and add them as the new entries whenever updating
+        the provisioning connector configurations.
+        The default value of the configuration is true.
+        -->
+         <OutboundProvisioning>
+            <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
+         </OutboundProvisioning>
+    {% endif %}
 
     <EventListeners>
         <EventListener id="workflow"
@@ -1303,6 +1385,11 @@
                        name="org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger"
                        orderId="{{event.default_listener.user_failure_audit_logger.priority}}"
                        enable="{{event.default_listener.user_failure_audit_logger.enable}}"/>
+       <EventListener id="unique_claim_user_operation_event_listener"
+                      type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                      name="org.wso2.carbon.identity.unique.claim.mgt.listener.UniqueClaimUserOperationEventListener"
+                      orderId="{{event.default_listener.unique_claim_user_operation_event_listener.priority}}"
+                      enable="{{event.default_listener.unique_claim_user_operation_event_listener.enable}}"/>
         <EventListener id="user_claim_audit_logger"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger"
@@ -1310,13 +1397,26 @@
                        enable="{{event.default_listener.user_claim_audit_logger.enable}}">
             <Property name="LogUpdatedClaimsOnly">{{event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly}}</Property>
         </EventListener>
+
+        <!-- Introspection Data Providers -->
+        <EventListener id="uma_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
+                orderId="{{event.default_listener.uma_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.uma_introspection_data_provider.enable}}">
+        </EventListener>
+        <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
+                orderId="{{event.default_listener.is_introspection_data_provider.priority}}"
+                enable="{{event.default_listener.is_introspection_data_provider.enable}}">
+        </EventListener>
+
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
                        type="{{listener.type}}"
                        name="{{listener.name}}"
                        orderId="{{listener.order}}"
-                       enable="true">
+                       enable="{{listener.enable | default(true)}}">
             {% for key,value in listener.properties.items() %}
             <Property name="{{key}}">{{value}}</Property>
             {% endfor %}
@@ -2141,6 +2241,10 @@
         <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>

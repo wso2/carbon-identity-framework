@@ -21,6 +21,7 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -107,6 +108,12 @@
         selectedRoles =
                 addSelectedRoleLists(selectedRoles, (Map<String, Boolean>) session.getAttribute("checkedRolesMap"));
         addDeletedRoleLists(deletedList, (Map<String, Boolean>) session.getAttribute("checkedRolesMap"));
+    
+        UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+    
+        if (deletedList.contains(userRealmInfo.getEveryOneRole())) {
+            deletedList.remove(userRealmInfo.getEveryOneRole());
+        }
 
         if (viewUsers) {
             client.addRemoveRolesOfUser(username, null,

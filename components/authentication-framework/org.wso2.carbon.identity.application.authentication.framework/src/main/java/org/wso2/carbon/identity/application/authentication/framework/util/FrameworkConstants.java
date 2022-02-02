@@ -38,7 +38,9 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String USERID_CLAIM = "http://wso2.org/claims/userid";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
+    public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
@@ -86,6 +88,7 @@ public abstract class FrameworkConstants {
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String CURRENT_POST_AUTHENTICATION_HANDLER = "currentPostAuthHandler";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String STEP_BASED_SEQUENCE_HANDLER_TRIGGERED = "stepBasedSequenceHandlerTriggered";
     public static final String IS_USER_CREATION_NEEDED = "isUserCreationNeeded";
@@ -130,11 +133,25 @@ public abstract class FrameworkConstants {
     public static final String AUTH_MECHANISM = "AuthMechanism";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
 
+    // Idp to local role mapping thread local identifier.
+    public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
+
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
+
+    // DB product names.
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
 
     private FrameworkConstants() {
 
@@ -158,6 +175,14 @@ public abstract class FrameworkConstants {
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRoles";
+        public static final String SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnManuallyAddedLocalRoles";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP_EXCLUDING_UNMAPPED = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRolesUnmappedExclusive";
+        public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning" +
+                ".AllowAssociatingToExistingUser";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant

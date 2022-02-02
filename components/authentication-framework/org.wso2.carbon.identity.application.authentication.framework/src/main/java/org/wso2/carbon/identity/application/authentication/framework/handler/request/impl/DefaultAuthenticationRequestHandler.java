@@ -404,6 +404,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
 
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 List<AuthenticationContextProperty> authenticationContextProperties = new ArrayList<>();
 
                 // Authentication context properties from already authenticated IdPs
@@ -499,6 +500,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -641,8 +643,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (StringUtils.isBlank(FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName))
-                        && isFederatedUser(authenticatedIdPData.getUser())) {
+                if (isFederatedUser(authenticatedIdPData.getUser())) {
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {
@@ -686,7 +687,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
             if (appId > 0) {
-                UserSessionStore.getInstance().storeAppSessionDataIfNotExist(sessionContextKey, subject, appId, inboundAuth);
+                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);

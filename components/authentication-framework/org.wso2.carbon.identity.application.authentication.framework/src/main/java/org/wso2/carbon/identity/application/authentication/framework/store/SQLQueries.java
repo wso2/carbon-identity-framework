@@ -72,11 +72,45 @@ public class SQLQueries {
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
 
+    /**
+     * Query to retrieve IdP Id of a registered IdP using IdpName and TenantId.
+     */
+    public static final String SQL_SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
+
     // Retrieve application id given the name and the tenant id.
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
 
-    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO =
-            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?,?,?,?)";
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO KEY(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) VALUES(?, ?, ?, ?)";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
+                    "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "ON (T.SESSION_ID = S.SESSION_ID AND " +
+                    "T.SUBJECT = S.SUBJECT AND " +
+                    "T.APP_ID = S.APP_ID AND " +
+                    "T.INBOUND_AUTH_TYPE = S.INBOUND_AUTH_TYPE ) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "VALUES (S.SESSION_ID,S.SUBJECT,S.APP_ID,S.INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES " +
+                    "(?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "SESSION_ID= VALUES(SESSION_ID), SUBJECT= VALUES(SUBJECT), APP_ID = VALUES(APP_ID), " +
+                    "INBOUND_AUTH_TYPE = VALUES(INBOUND_AUTH_TYPE);";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?, ?, ?, ?) " +
+                    "ON CONFLICT(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) DO UPDATE SET " +
+                    "SESSION_ID = EXCLUDED.SESSION_ID, SUBJECT = EXCLUDED.SUBJECT, APP_ID = EXCLUDED.APP_ID, " +
+                    "INBOUND_AUTH_TYPE = EXCLUDED.INBOUND_AUTH_TYPE;";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO USING dual ON " +
+            "(SESSION_ID = ? AND SUBJECT = ? AND APP_ID = ? AND INBOUND_AUTH_TYPE = ?) " +
+            "WHEN NOT MATCHED THEN INSERT (SESSION_ID, SUBJECT, APP_ID, INBOUND_AUTH_TYPE) " +
+            "VALUES (?, ?, ?, ?)";
 
     public static final String SQL_CHECK_IDN_AUTH_SESSION_APP_INFO =
             "SELECT 1 FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +
@@ -119,6 +153,14 @@ public class SQLQueries {
     // Store federated authentication session details to map the session context key with the idp session index.
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
+
+    // Check federated authentication session existence using the idp session id.
+    public static final String SQL_CHECK_FEDERATED_AUTH_SESSION_INFO = "SELECT 1 FROM " +
+            "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID=?";
+
+    // Update federated authentication session id using the idp session id.
+    public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO = "UPDATE IDN_FED_AUTH_SESSION_MAPPING SET " +
+            "SESSION_ID=? WHERE IDP_SESSION_ID=?";
 
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"

@@ -78,6 +78,13 @@ public class AuthenticatedUser extends User {
         }
     }
 
+    public AuthenticatedUser(User user) {
+
+        this.userName = user.getUserName();
+        this.tenantDomain = user.getTenantDomain();
+        this.userStoreDomain = user.getUserStoreDomain();
+    }
+
     /**
      * Returns an AuthenticatedUser instance populated from the given subject identifier string.
      * It is assumed that this user is authenticated from a local authenticator thus extract user

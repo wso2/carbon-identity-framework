@@ -86,12 +86,9 @@
 <script src="codemirror/addon/dialog/dialog.js"></script>
 <script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
-<script src="js/handlebars.min-v4.0.11.js"></script>
+<script src="js/handlebars.min-v4.7.7.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
 <script type="text/javascript" src="../identity/encode/js/identity-encode.js"></script>
-
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp" />
@@ -1370,7 +1367,7 @@
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
-                                       white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
+                                       white-list-patterns="<%=Encode.forHtmlContent(ApplicationMgtUIUtil.getSPValidatorJavascriptRegex())%>" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
                                 </div>

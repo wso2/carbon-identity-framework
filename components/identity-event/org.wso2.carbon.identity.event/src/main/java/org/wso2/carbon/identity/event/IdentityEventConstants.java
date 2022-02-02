@@ -78,8 +78,33 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_ROLE= "POST_UPDATE_ROLE";
         public static final String PRE_UPDATE_USER_LIST_OF_ROLE= "PRE_UPDATE_USER_LIST_OF_ROLE";
         public static final String POST_UPDATE_USER_LIST_OF_ROLE= "POST_UPDATE_USER_LIST_OF_ROLE";
+        public static final String POST_UPDATE_USER_LIST_OF_HYBRID_ROLE= "POST_UPDATE_USER_LIST_OF_HYBRID_ROLE";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
+
+        public static final String PRE_ADD_ROLE_EVENT = "PRE_ADD_ROLE_EVENT";
+        public static final String POST_ADD_ROLE_EVENT = "POST_ADD_ROLE_EVENT";
+        public static final String PRE_GET_ROLES_EVENT = "PRE_GET_ROLES_EVENT";
+        public static final String POST_GET_ROLES_EVENT = "POST_GET_ROLES_EVENT";
+        public static final String PRE_GET_ROLE_EVENT = "PRE_GET_ROLE_EVENT";
+        public static final String POST_GET_ROLE_EVENT = "POST_GET_ROLE_EVENT";
+        public static final String PRE_UPDATE_ROLE_NAME_EVENT = "PRE_UPDATE_ROLE_NAME_EVENT";
+        public static final String POST_UPDATE_ROLE_NAME_EVENT = "POST_UPDATE_ROLE_NAME_EVENT";
+        public static final String PRE_DELETE_ROLE_EVENT = "PRE_DELETE_ROLE_EVENT";
+        public static final String POST_DELETE_ROLE_EVENT = "POST_DELETE_ROLE_EVENT";
+        public static final String PRE_GET_USER_LIST_OF_ROLE_EVENT = "PRE_GET_USER_LIST_OF_ROLE_EVENT";
+        public static final String POST_GET_USER_LIST_OF_ROLE_EVENT = "POST_GET_USER_LIST_OF_ROLE_EVENT";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_EVENT = "PRE_UPDATE_USER_LIST_OF_ROLE_EVENT";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_EVENT = "POST_UPDATE_USER_LIST_OF_ROLE_EVENT";
+        public static final String PRE_GET_GROUP_LIST_OF_ROLES_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_EVENT";
+        public static final String POST_GET_GROUP_LIST_OF_ROLES_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_EVENT";
+        public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT = "POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_EVENT = "PRE_GET_PERMISSION_LIST_OF_ROLE_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_EVENT";
+        public static final String PRE_SET_PERMISSIONS_FOR_ROLE_EVENT = "PRE_SET_PERMISSIONS_FOR_ROLE_EVENT";
+        public static final String POST_SET_PERMISSIONS_FOR_ROLE_EVENT = "POST_SET_PERMISSIONS_FOR_ROLE_EVENT";
+
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
         public static final String PRE_ADD_NEW_PASSWORD = "PRE_ADD_NEW_PASSWORD";
         public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
@@ -90,6 +115,8 @@ public class IdentityEventConstants {
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
         public static final String PRE_ACCOUNT_RECOVERY = "PRE_ACCOUNT_RECOVERY";
         public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
+        public static final String PRE_GET_USER_RECOVERY_DATA = "PRE_GET_USER_RECOVERY_DATA";
+        public static final String POST_GET_USER_RECOVERY_DATA = "POST_GET_USER_RECOVERY_DATA";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
@@ -136,6 +163,8 @@ public class IdentityEventConstants {
         public static final String POST_ADD_ROLE_WITH_ID = "POST_ADD_ROLE_WITH_ID";
         public static final String PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
         public static final String POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
+        public static final String POST_UPDATE_USER_LIST_OF_HYBRID_ROLE_WITH_ID=
+                "POST_UPDATE_USER_LIST_OF_HYBRID_ROLE_WITH_ID";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
@@ -182,6 +211,7 @@ public class IdentityEventConstants {
         public static final String MODULE = "module";
         public static final String USER_NAME = "user-name";
         public static final String ROLE_NAME = "role-name";
+        public static final String ROLE_ID = "role-id";
         public static final String USER_STORE_DOMAIN = "userstore-domain";
         public static final String CONFIRMATION_CODE = "confirmation-code";
         public static final String TEMPORARY_PASSWORD = "temporary-password";
@@ -190,9 +220,15 @@ public class IdentityEventConstants {
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenant-domain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
+        public static final String OPERATION_DESCRIPTION = "OPERATION_DESCRIPTION";
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String USER_CLAIMS = "USER_CLAIMS";
         public static final String ROLE_LIST = "ROLE_LIST";
+        public static final String NEW_USER_ID_LIST = "NEW_USER_ID_LIST";
+        public static final String DELETE_USER_ID_LIST = "DELETE_USER_ID_LIST";
+        public static final String GROUP_LIST = "GROUP_LIST";
+        public static final String NEW_GROUP_ID_LIST = "NEW_GROUP_ID_LIST";
+        public static final String DELETE_GROUP_ID_LIST = "DELETE_GROUP_ID_LIST";
         public static final String CREDENTIAL = "CREDENTIAL";
         public static final String CLAIM_URI = "CLAIM_URI";
         public static final String CLAIM_VALUE = "CLAIM_VALUE";
@@ -208,6 +244,12 @@ public class IdentityEventConstants {
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
         public static final String VERIFIED_EMAIL = "VERIFIED_EMAIL";
         public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
+        public static final String USER_RECOVERY_DATA = "USER_RECOVERY_DATA";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO = "GET_USER_RECOVERY_DATA_SCENARIO";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION =
+                "GET_USER_RECOVERY_DATA_SCENARIO_WITH_CODE_EXPIRY_VALIDATION";
+        public static final String GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION =
+                "GET_USER_RECOVERY_DATA_SCENARIO_WITHOUT_CODE_EXPIRY_VALIDATION";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";

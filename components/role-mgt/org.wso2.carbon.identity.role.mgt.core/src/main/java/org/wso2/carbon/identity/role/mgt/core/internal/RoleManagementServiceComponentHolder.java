@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.role.mgt.core.internal;
 
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -27,8 +28,8 @@ public class RoleManagementServiceComponentHolder {
 
     private static RoleManagementServiceComponentHolder instance = new
             RoleManagementServiceComponentHolder();
-
     private RealmService realmService;
+    private IdentityEventService identityEventService;
 
     private RoleManagementServiceComponentHolder() {
 
@@ -47,5 +48,25 @@ public class RoleManagementServiceComponentHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
+    }
+
+    /**
+     * Get instance of IdentityEventService.
+     *
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set instance of IdentityEventService.
+     *
+     * @param identityEventService Instance of IdentityEventService.
+     */
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
     }
 }
