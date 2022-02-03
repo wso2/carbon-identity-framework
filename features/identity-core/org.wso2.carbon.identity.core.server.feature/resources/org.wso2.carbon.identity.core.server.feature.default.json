@@ -844,5 +844,19 @@
   "cors.max_age": -1,
   "cors.tag_requests": false,
   "audit.log.contextual_param.params": [],
-  "common_auth_caller_path.enable_common_auth_caller_path_validation": true
+  "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "axis2.transport_sender.local.name": "local",
+  "axis2.transport_sender.local.class": "org.apache.axis2.transport.local.LocalTransportSender",
+  "axis2.transport_sender.http.name": "http",
+  "axis2.transport_sender.http.class": "org.apache.axis2.transport.http.CommonsHTTPTransportSender",
+  "axis2.transport_sender.http.parameters.PROTOCOL": "HTTP/1.1",
+  "axis2.transport_sender.http.parameters.Transfer-Encoding": "chunked",
+  "axis2.transport_sender.http.parameters.SO_TIMEOUT": "60000",
+  "axis2.transport_sender.http.parameters.CONNECTION_TIMEOUT": "60000",
+  "axis2.transport_sender.https.name": "https",
+  "axis2.transport_sender.https.class": "org.apache.axis2.transport.http.CommonsHTTPTransportSender",
+  "axis2.transport_sender.https.parameters.PROTOCOL": "HTTP/1.1",
+  "axis2.transport_sender.https.parameters.Transfer-Encoding": "chunked",
+  "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
+  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000"
 }
