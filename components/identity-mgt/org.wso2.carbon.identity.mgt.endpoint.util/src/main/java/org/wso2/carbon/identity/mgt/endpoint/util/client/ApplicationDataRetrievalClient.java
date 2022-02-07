@@ -27,7 +27,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +47,7 @@ import java.nio.charset.Charset;
 public class ApplicationDataRetrievalClient {
 
     private static final String CLIENT = "Client ";
-    private static final Logger log = Logger.getLogger(ApplicationDataRetrievalClient.class);
+    private static final Logger log = LogManager.getLogger(ApplicationDataRetrievalClient.class);
     private static final String APPLICATION_API_RELATIVE_PATH = "/api/server/v1/applications";
     private static final String APP_FILTER = "?filter=name+eq+";
     private static final String APPLICATIONS_KEY = "applications";
