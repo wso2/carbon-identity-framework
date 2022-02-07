@@ -61,7 +61,7 @@ public class SelfRegistrationMgtClient {
     private static final String CLIENT = "Client ";
     public static final String CODE = "code";
     public static final String STATUS_CODE = "statusCode";
-    private static final Logger log = Logger.getLogger(SelfRegistrationMgtClient.class);
+    private static final Logger log = LogManager.getLogger(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";

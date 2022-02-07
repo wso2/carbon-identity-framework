@@ -28,7 +28,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
@@ -45,7 +46,7 @@ import java.nio.charset.Charset;
 public class BrandingPreferenceRetrievalClient {
 
     private static final String CLIENT = "Client ";
-    private static final Logger log = Logger.getLogger(PreferenceRetrievalClient.class);
+    private static final Logger log = LogManager.getLogger(PreferenceRetrievalClient.class);
     private static final String BRANDING_PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/branding-preference";
     private static final String RESOURCE_TYPE_URL_SEARCH_PARAM = "type";
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";

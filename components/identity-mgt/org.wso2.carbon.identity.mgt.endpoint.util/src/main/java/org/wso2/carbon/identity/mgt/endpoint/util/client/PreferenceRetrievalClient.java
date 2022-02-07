@@ -29,7 +29,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -50,7 +51,7 @@ public class PreferenceRetrievalClient {
 
     private static final String CLIENT = "Client ";
     private static final String PROPERTIES = "properties";
-    private static final Logger log = Logger.getLogger(PreferenceRetrievalClient.class);
+    private static final Logger log = LogManager.getLogger(PreferenceRetrievalClient.class);
     private static final String PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance/preferences";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
