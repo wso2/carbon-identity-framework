@@ -108,7 +108,7 @@
 
     String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
     String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
-    String authenticationContextClass = IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT;
+    String authenticationContextClass = StringUtils.EMPTY;
     String customAuthnContextClass = "";
     String authenticationContextComparisonLevel = IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT;
     String forceAuthentication = "as_request";
@@ -506,7 +506,7 @@
                     if (authnContextRefClassProp != null) {
                         authenticationContextClass = authnContextRefClassProp.getValue();
                     } else {
-                        authenticationContextClass = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
+                        authenticationContextClass = StringUtils.EMPTY;
                     }
 
                     Property customAuthnContextRefClassProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -1006,13 +1006,17 @@
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
-    String authnContextClassRefDropdownDisabled = "";
-    String authnContextComparisonDropdownDisabled = "";
-    String authnContextClassRefAddBtnDisabled = "";
+    String authnContextClassRefDropdownDisabled = StringUtils.EMPTY;;
+    String authnContextComparisonDropdownDisabled = StringUtils.EMPTY;;
+    String authnContextClassRefAddBtnDisabled = StringUtils.EMPTY;;
+    String authnContextClassTableDisabled = StringUtils.EMPTY;;
+    boolean hideTable = false;
     if ("no".equals(includeAuthenticationContext)) {
         authnContextClassRefDropdownDisabled = "disabled=\'disabled\'";
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
         authnContextClassRefAddBtnDisabled = "disabled=\'disabled\'";
+        authnContextClassTableDisabled = "hidden=\'hidden\'";
+        hideTable = true;
     }
 
     String includeNameIdPolicyChecked = "";
@@ -3107,39 +3111,35 @@
 
         var authnContextClasses = $("#authnContextCls").val();
         var newAuthnContextClasses = "";
-        if (selectedAuthnContextClass != '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED%>' && authnContextClasses === selectedAuthnContextClass) {
-            CARBON.showWarningDialog("AuthnContextClassRef Cannot be null", null, null);
-        } else {
-            if (authnContextClasses != null && authnContextClasses.trim().length > 0) {
-                $.each(authnContextClasses.split(","), function (index, value) {
-                    if (value != selectedAuthnContextClass) {
-                        if (newAuthnContextClasses.length > 0) {
-                            newAuthnContextClasses = newAuthnContextClasses + "," + value;
-                        } else {
-                            newAuthnContextClasses = value;
-                    }
-                    }
-                });
-            }
-            $('#' + columnId).remove();
-            $("#authnContextCls").val(newAuthnContextClasses);
+        if (authnContextClasses != null && authnContextClasses.trim().length > 0) {
+            $.each(authnContextClasses.split(","), function (index, value) {
+                if (value != selectedAuthnContextClass) {
+                    if (newAuthnContextClasses.length > 0) {
+                        newAuthnContextClasses = newAuthnContextClasses + "," + value;
+                    } else {
+                        newAuthnContextClasses = value;
+                }
+                }
+            });
+        }
+        $('#' + columnId).remove();
+        $("#authnContextCls").val(newAuthnContextClasses);
 
-            if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
-                jQuery('#custom_authentication_context_class').val("");
-                jQuery('#custom_authentication_context_class').attr('disabled', true);
-            } else if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED %>') {
-                var password_protected_transport_asDefault = '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT%>';
-                $("#authnContextCls").val(password_protected_transport_asDefault);
+        if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+            jQuery('#custom_authentication_context_class').val("");
+            jQuery('#custom_authentication_context_class').attr('disabled', true);
+        } else if (selectedAuthnContextClass === '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED %>') {
+            var password_protected_transport_asDefault = '<%=IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT%>';
+            $("#authnContextCls").val(password_protected_transport_asDefault);
 
-                var row =
-                        '<tr id="authnCtxCls_0">' +
-                        '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + password_protected_transport_asDefault +
-                        '</td><td><a onclick="removeAuthnContextClass(\'' + password_protected_transport_asDefault + '\', \'authnCtxCls_0 \');return false;"'+
-                        'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
+            var row =
+                    '<tr id="authnCtxCls_0">' +
+                    '</td><td style="padding-left: 15px !important; color: rgb(119, 119, 119);font-style: italic;">' + password_protected_transport_asDefault +
+                    '</td><td><a onclick="removeAuthnContextClass(\'' + password_protected_transport_asDefault + '\', \'authnCtxCls_0 \');return false;"'+
+                    'href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)"> Delete </a></td></tr>';
 
-                $('#authnContextClsTable tbody').append(row);
-                $("#currentColumnId").val(1);
-            }
+            $('#authnContextClsTable tbody').append(row);
+            $("#currentColumnId").val(1);
         }
     }
 
@@ -4399,11 +4399,11 @@
                                             boolean isMultiple = false;
                                             boolean isCustomNotInclude = true;
                                             String authContext = "";
-                                            if(authenticationContextClass.contains(",")){
-                                                isMultiple = true;
-                                            }
-                                            if(authenticationContextClass != null){
-                                                    authContext = authenticationContextClass;
+
+                                             if(StringUtils.isNotEmpty(authenticationContextClass) && !(authenticationContextClass.equalsIgnoreCase("null"))){                                                authContext = authenticationContextClass;
+                                                if(authenticationContextClass.contains(",")){
+                                                    isMultiple = true;
+                                                }
                                             }
                                             String[] authnContextClassList = StringUtils.split(authContext, ",");
                                             if(Arrays.asList(authnContextClassList).contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)){
@@ -4465,7 +4465,7 @@
                                     <td></td>
                                     <td>
                                         <table id="authnContextClsTable" style="width: 40%; margin-bottom: 3px;"
-                                               class="styledInner">
+                                               class="styledInner" <%=authnContextClassTableDisabled%>>
                                             <tbody id="authnContextClsTableBody">
                                             <%
                                                 int authnCtxClsColumnId = 0;
@@ -4493,7 +4493,7 @@
                                             </tbody>
                                         </table>
                                         <input type="hidden" id="authnContextCls" name="AuthnContextClassRef"
-                                               value="<%=authnContextClassList.length > 0 ?
+                                                value="<%=(!hideTable && authnContextClassList != null && authnContextClassList.length > 0) ?
          Encode.forHtmlAttribute(authContext) : ""%>">
 
                                         <input type="hidden" id="currentColumnId" value="<%=authnCtxClsColumnId%>">
