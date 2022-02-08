@@ -3164,9 +3164,10 @@ public class FrameworkUtils {
      * @throws ClaimManagementException
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
-                                                            List<ClaimMapping> claimMappings)
+                                                            List<ClaimMapping> claimMappings, String tenantDomain)
             throws ClaimManagementException {
 
+        startTenantFlow(tenantDomain);
         ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
         for (String claim : claimListOfScopes) {
@@ -3179,6 +3180,7 @@ public class FrameworkUtils {
                 requestedScopeClaims.add(claim);
             }
         }
+        PrivilegedCarbonContext.endTenantFlow();
         return requestedScopeClaims;
     }
 }
