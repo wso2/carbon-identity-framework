@@ -209,7 +209,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spName = serviceProvider.getApplicationName();
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        String tenantDomain = authenticatedUser.getTenantDomain();
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
 
@@ -222,7 +221,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (claimsListOfScopes != null) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
-                        Arrays.asList(claimMappings), tenantDomain).toArray(new ClaimMapping[0]);
+                        Arrays.asList(claimMappings), authenticatedUser.getTenantDomain()).toArray(new ClaimMapping[0]);
             } catch (ClaimManagementException e) {
                 throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");
             }
