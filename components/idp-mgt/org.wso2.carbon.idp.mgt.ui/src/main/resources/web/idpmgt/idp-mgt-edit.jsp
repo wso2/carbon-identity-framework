@@ -4400,7 +4400,8 @@
                                             boolean isCustomNotInclude = true;
                                             String authContext = "";
 
-                                             if(StringUtils.isNotEmpty(authenticationContextClass) && !(authenticationContextClass.equalsIgnoreCase("null"))){                                                authContext = authenticationContextClass;
+                                             if(StringUtils.isNotEmpty(authenticationContextClass) && !(authenticationContextClass.equalsIgnoreCase("null"))){
+                                                authContext = authenticationContextClass;
                                                 if(authenticationContextClass.contains(",")){
                                                     isMultiple = true;
                                                 }
