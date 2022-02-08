@@ -469,8 +469,20 @@
                            onclick="listWorkflows('<%=workflowReq.getRequestId()%>');return false;"
                            href="#" style="background-image: url(images/list.png);"
                            class="icon-link"><fmt:message key='workflows'/></a>
-                        <% if (PENDING_STATUS.equals(workflowReq.getStatus()) && CarbonUIUtil.isUserAuthorized(request,
-                                "/permission/admin/manage/identity/workflow/monitor/delete")) { %>
+                        <%
+                            Boolean authorizedToDelete = false;
+                            if (PENDING_STATUS.equals(workflowReq.getStatus())) {
+                                if (CarbonUIUtil.isUserAuthorized(request,
+                                        "/permission/admin/manage/identity/workflow/monitor/anydelete")) {
+                                    authorizedToDelete = true;
+                                }
+                                else if (workflowReq.getCreatedBy() != null && CarbonUIUtil.isUserAuthorized(request,
+                                        "/permission/admin/manage/identity/workflow/monitor/delete") &&
+                                        workflowReq.getCreatedBy().equals(loggedUser)) {
+                                    authorizedToDelete = true;
+                                }
+                            }
+                            if (authorizedToDelete) { %>
                         <a title="<fmt:message key='workflow.request.delete.title'/>"
                            onclick="removeRequest('<%=workflowReq.getRequestId()%>');return false;"
                            href="#" style="background-image: url(images/delete.gif);"

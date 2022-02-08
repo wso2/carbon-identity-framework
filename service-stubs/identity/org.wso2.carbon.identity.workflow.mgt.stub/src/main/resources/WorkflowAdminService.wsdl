@@ -307,6 +307,13 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="deleteWorkflowRequestCreatedByAnyUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="requestId" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getWorkflowsOfRequest">
                 <xs:complexType>
                     <xs:sequence>
@@ -387,6 +394,13 @@
         <wsdl:part name="parameters" element="ns:deleteWorkflowRequest"/>
     </wsdl:message>
     <wsdl:message name="deleteWorkflowRequestResponse"/>
+    <wsdl:message name="WorkflowAdminServiceWorkflowException">
+        <wsdl:part name="parameters" element="ns:WorkflowAdminServiceWorkflowException"/>
+    </wsdl:message>
+    <wsdl:message name="deleteWorkflowRequestCreatedByAnyUserRequest">
+        <wsdl:part name="parameters" element="ns:deleteWorkflowRequestCreatedByAnyUser"/>
+    </wsdl:message>
+    <wsdl:message name="deleteWorkflowRequestCreatedByAnyUserResponse"/>
     <wsdl:message name="WorkflowAdminServiceWorkflowException">
         <wsdl:part name="parameters" element="ns:WorkflowAdminServiceWorkflowException"/>
     </wsdl:message>
@@ -494,6 +508,11 @@
             <wsdl:output message="tns:deleteWorkflowRequestResponse" wsaw:Action="urn:deleteWorkflowRequestResponse"/>
             <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:deleteWorkflowRequestWorkflowAdminServiceWorkflowException"/>
         </wsdl:operation>
+        <wsdl:operation name="deleteWorkflowRequestCreatedByAnyUser">
+            <wsdl:input message="tns:deleteWorkflowRequestCreatedByAnyUserRequest" wsaw:Action="urn:deleteWorkflowRequestCreatedByAnyUser"/>
+            <wsdl:output message="tns:deleteWorkflowRequestCreatedByAnyUserResponse" wsaw:Action="urn:deleteWorkflowRequestCreatedByAnyUserResponse"/>
+            <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:deleteWorkflowRequestCreatedByAnyUserWorkflowAdminServiceWorkflowException"/>
+        </wsdl:operation>
         <wsdl:operation name="listAssociations">
             <wsdl:input message="tns:listAssociationsRequest" wsaw:Action="urn:listAssociations"/>
             <wsdl:output message="tns:listAssociationsResponse" wsaw:Action="urn:listAssociationsResponse"/>
@@ -587,6 +606,18 @@
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
         <wsdl:operation name="deleteWorkflowRequest">
             <soap:operation soapAction="urn:deleteWorkflowRequest" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteWorkflowRequestCreatedByAnyUser">
+            <soap:operation soapAction="urn:deleteWorkflowRequestCreatedByAnyUser" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -822,6 +853,18 @@
                 <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="deleteWorkflowRequestCreatedByAnyUser">
+            <soap12:operation soapAction="urn:deleteWorkflowRequestCreatedByAnyUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="listAssociations">
             <soap12:operation soapAction="urn:listAssociations" style="document"/>
             <wsdl:input>
@@ -1037,6 +1080,15 @@
         <http:binding verb="POST"/>
         <wsdl:operation name="deleteWorkflowRequest">
             <http:operation location="deleteWorkflowRequest"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteWorkflowRequestCreatedByAnyUser">
+            <http:operation location="deleteWorkflowRequestCreatedByAnyUser"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

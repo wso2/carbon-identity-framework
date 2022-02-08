@@ -92,6 +92,7 @@ public abstract class FrameworkConstants {
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String CURRENT_POST_AUTHENTICATION_HANDLER = "currentPostAuthHandler";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String STEP_BASED_SEQUENCE_HANDLER_TRIGGERED = "stepBasedSequenceHandlerTriggered";
     public static final String IS_USER_CREATION_NEEDED = "isUserCreationNeeded";
@@ -101,6 +102,7 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD_PROVISION_REDIRECTION_TRIGGERED = "passwordProvisioningRedirectionTriggered";
     public static final String CHANGING_USERNAME_ALLOWED = "changingUserNameAllowed";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
@@ -438,6 +440,7 @@ public abstract class FrameworkConstants {
 
         public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "identifier";
         public static final String JS_USERNAME = "username";
+        public static final String JS_UNIQUE_ID = "uniqueId";
         public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
         public static final String JS_TENANT_DOMAIN = "tenantDomain";
         public static final String JS_SERVICE_PROVIDER_NAME = "serviceProviderName";
@@ -498,6 +501,8 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+        public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
+        public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
     }
 
     /**

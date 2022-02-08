@@ -42,6 +42,24 @@ public interface SSOConsentService {
             throws SSOConsentServiceException;
 
     /**
+     * Get consent required claims for a given service from a user considering existing user consents and requested
+     * scopes.
+     *
+     * @param serviceProvider    Service provider requesting consent.
+     * @param authenticatedUser  Authenticated user requesting consent form.
+     * @param claimsListOfScopes Claims list of requested scopes.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws SSOConsentServiceException If error occurs while building claim information.
+     */
+    default ConsentClaimsData getConsentRequiredClaimsWithExistingConsents(ServiceProvider serviceProvider,
+                                                                           AuthenticatedUser authenticatedUser,
+                                                                           List<String> claimsListOfScopes)
+            throws SSOConsentServiceException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
+
+    /**
      * Get consent required claims for a given service from a user ignoring existing user consents.
      *
      * @param serviceProvider       Service provider requesting consent.
@@ -52,6 +70,24 @@ public interface SSOConsentService {
     ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
                                                                       AuthenticatedUser authenticatedUser)
             throws SSOConsentServiceException;
+
+    /**
+     * Get consent required claims for a given service from a user ignoring existing user consents  and considering
+     * requested scopes.
+     *
+     * @param serviceProvider    Service provider requesting consent.
+     * @param authenticatedUser  Authenticated user requesting consent form.
+     * @param claimsListOfScopes Claims list of requested scopes.
+     * @return ConsentClaimsData which contains mandatory and required claims for consent.
+     * @throws SSOConsentServiceException If error occurs while building claim information.
+     */
+    default ConsentClaimsData getConsentRequiredClaimsWithoutExistingConsents(ServiceProvider serviceProvider,
+                                                                              AuthenticatedUser authenticatedUser,
+                                                                              List<String> claimsListOfScopes)
+            throws SSOConsentServiceException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * Process the provided user consent and creates a consent receipt.

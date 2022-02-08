@@ -320,10 +320,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
             FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, context, "Authentication attempt failed.",
-                            e.getErrorCode());
+                    .sendToRetryPage(request, responseWrapper, context, "authentication.attempt.failed",
+                        "authorization.failed");
         } catch (Throwable e) {
-            log.error("Exception in Authentication Framework", e);
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
@@ -332,11 +331,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
                         "suspicious.authentication.attempts.description");
             } else {
+                log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
             UserCoreUtil.setDomainInThreadLocal(null);
-            FrameworkUtils.removeALORCookie(request, response);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -352,6 +351,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     if (log.isDebugEnabled()) {
                         log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
                     }
+                }
+                // Clear the auto login related cookies only during none passive authentication flow.
+                if (!context.isPassiveAuthenticate()) {
+                    FrameworkUtils.removeALORCookie(request, response);
                 }
             }
             unwrapResponse(responseWrapper, sessionDataKey, response, context);

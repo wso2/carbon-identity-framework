@@ -350,6 +350,19 @@ public class WorkflowAdminServiceClient {
     }
 
     /**
+     * Move workflow request created by any user to DELETED state.
+     *
+     * @param requestId Request ID to delete requests of.
+     * @throws WorkflowAdminServiceWorkflowException
+     * @throws RemoteException
+     */
+    public void deleteRequestCreatedByAnyUser(String requestId) throws WorkflowAdminServiceWorkflowException,
+            RemoteException {
+
+        stub.deleteWorkflowRequestCreatedByAnyUser(requestId);
+    }
+
+    /**
      * Get workflows of a request.
      *
      * @param requestId Request ID to get workflows of.

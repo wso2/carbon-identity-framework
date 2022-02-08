@@ -380,6 +380,12 @@ public class JsGraphBuilder {
     private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
+            setCurrentStepAsSubjectIdentifier(stepConfig);
+        }
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
+            setCurrentStepAsSubjectAttribute(stepConfig);
+        }
     }
 
     /**
@@ -581,6 +587,12 @@ public class JsGraphBuilder {
         }
 
         StepConfig stepConfig = graph.getStepMap().get(stepId);
+        if (stepConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("The stepConfig of the step ID : " + stepId + " is null");
+            }
+            return;
+        }
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
         StepConfig clonedStepConfig = new StepConfig(stepConfig);
         StepConfig stepConfigFromContext = null;
@@ -983,6 +995,10 @@ public class JsGraphBuilder {
     private void startScriptExecutionMonitor(String identifier, AuthenticationContext context,
                                              JSExecutionMonitorData previousExecutionResult) {
 
+        JSExecutionSupervisor jsExecutionSupervisor = getJSExecutionSupervisor();
+        if (jsExecutionSupervisor == null) {
+            return;
+        }
         getJSExecutionSupervisor().monitor(identifier, context.getServiceProviderName()
                 , context.getTenantDomain(), previousExecutionResult.getElapsedTime(),
                 previousExecutionResult.getConsumedMemory());
@@ -995,7 +1011,29 @@ public class JsGraphBuilder {
 
     private JSExecutionMonitorData endScriptExecutionMonitor(String identifier) {
 
+        JSExecutionSupervisor executionSupervisor = getJSExecutionSupervisor();
+        if (executionSupervisor == null) {
+            return new JSExecutionMonitorData(0, 0);
+        }
         return getJSExecutionSupervisor().completed(identifier);
+    }
+
+    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
+        stepNamedMap.forEach((integer, config) -> { // remove existing subject identifier step
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectIdentifierStep(false);
+            }
+        });
+        stepConfig.setSubjectIdentifierStep(true);
+    }
+
+    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
+        stepNamedMap.forEach((integer, config) -> { // remove existing subject attribute step
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectAttributeStep(false);
+            }
+        });
+        stepConfig.setSubjectAttributeStep(true);
     }
 
     /**

@@ -249,12 +249,20 @@ public interface WorkflowManagementService {
     WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws WorkflowException;
 
     /**
-     * Update state of a existing workflow request
+     * Move workflow requests created by the logged in user to DELETED state.
      *
-     * @param requestId
+     * @param requestId Request ID
      * @throws WorkflowException
      */
     void deleteWorkflowRequest(String requestId) throws WorkflowException;
+
+    /**
+     * Move workflow requests created by any user to DELETED state.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    default void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException { }
 
     WorkflowRequest[] getRequestsFromFilter(String user, String beginDate, String endDate, String
             dateCategory, int tenantId, String status) throws WorkflowException;

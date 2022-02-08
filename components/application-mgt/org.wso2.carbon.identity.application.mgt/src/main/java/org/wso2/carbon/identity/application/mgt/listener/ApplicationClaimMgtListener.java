@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.AbstractClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION;
 
 /**
  * Internal implementation of {@link AbstractClaimMetadataMgtListener} to listen to claim CRUD events.
@@ -44,7 +47,8 @@ public class ApplicationClaimMgtListener extends AbstractClaimMetadataMgtListene
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             if (applicationDAO.isClaimReferredByAnySp(null, claimUri, tenantId)) {
-                throw new ClaimMetadataException("Unable to delete claim as it is referred by an application.");
+                throw new ClaimMetadataClientException(ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION.getCode(),
+                        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION.getMessage());
             }
         } catch (IdentityApplicationManagementException e) {
             throw new ClaimMetadataException("Error when deleting claim.", e);

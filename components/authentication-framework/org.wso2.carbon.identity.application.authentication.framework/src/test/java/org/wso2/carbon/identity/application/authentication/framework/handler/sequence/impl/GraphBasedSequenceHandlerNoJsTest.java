@@ -24,10 +24,12 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -44,7 +46,8 @@ import static org.testng.Assert.assertNotNull;
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
-@WithRealmService
+@WithRealmService(injectToSingletons =
+        {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
 public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test(dataProvider = "noJsDataProvider")
@@ -78,6 +81,7 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
 
     @DataProvider(name = "noJsDataProvider")
     public Object[][] getIdpMappedUserRolesData() {
+
         return new Object[][]{
                 {"no-js-sp-1.xml", 3},
                 {"disabled-js-sp-1.xml", 3},

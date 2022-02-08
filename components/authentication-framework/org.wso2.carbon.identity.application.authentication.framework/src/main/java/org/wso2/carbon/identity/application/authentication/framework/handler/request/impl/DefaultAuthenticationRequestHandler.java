@@ -567,14 +567,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            if (userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
+                            if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
+                                userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                            } else {
                                 if (log.isDebugEnabled()) {
                                     log.debug(String.format("Federated auth session with the id: %s already exists",
                                             authHistory.getIdpSessionIndex()));
                                 }
-                                continue;
+                                userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
                             }
-                            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
                                     + "of the authenticated user to the database", e);
@@ -697,6 +698,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 try {
                     if (!UserSessionStore.getInstance().isExistingMapping(userId, sessionContextKey)) {
                         UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+                    }
+                    /*
+                For JIT provisioned users, if AssertIdentity Using Mapped Local Subject Identifier config is enabled in
+                the app level, add an entry in the IDN_AUTH_USER_SESSION_MAPPING table with local userId.
+                 */
+                    if (user.isFederatedUser() &&
+                            context.getSequenceConfig().getApplicationConfig().isMappedSubjectIDSelected()) {
+                        String localUserId =
+                                FrameworkUtils.resolveUserIdFromUsername(
+                                        IdentityTenantUtil.getTenantId(user.getTenantDomain()),
+                                        user.getUserStoreDomain(), user.getUserName());
+                        if (StringUtils.isNotEmpty(localUserId) &&
+                                !UserSessionStore.getInstance().isExistingMapping(localUserId, sessionContextKey)) {
+                            UserSessionStore.getInstance().storeUserSessionData(localUserId, sessionContextKey);
+                        }
                     }
                 } catch (UserSessionException e) {
                     throw new UserSessionException("Error while storing session data for user: "

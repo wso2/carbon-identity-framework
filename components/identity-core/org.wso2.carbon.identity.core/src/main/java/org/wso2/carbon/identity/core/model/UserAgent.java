@@ -47,11 +47,7 @@ public class UserAgent {
     public static synchronized Parser getParser() {
 
         if (parser == null) {
-            try {
-                parser = new Parser();
-            } catch (IOException e) {
-                LOG.error("Unable to initialize the user agent parser: ", e);
-            }
+            parser = new Parser();
         }
         return parser;
     }

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.NotImplementedException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -50,6 +51,7 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
     private Map<String, UserStoreManager> secondaryUserStoreManagerMap = new HashMap<>();
     private Map<String, Set<String>> usersOfRole = new HashMap<>();
     private Map<String, Set<String>> userRoleMap = new HashMap<>();
+    private static ThreadLocal<UserStoreModel> threadLocalUserStoreModel = new ThreadLocal<>();
 
     public MockUserStoreManager(DataSource dataSource) {
         try {
@@ -167,6 +169,19 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
     @Override
     public String[] doListUsers(String s, int i) throws UserStoreException {
         return new String[0];
+    }
+
+    @Override
+    protected void doSetUserAttributesWithID(String userID, Map<String,
+            String> processedClaimAttributes, String profileName) throws UserStoreException {
+        UserStoreModel userStoreModel = threadLocalUserStoreModel.get();
+        if(userStoreModel == null) {
+            return;
+        }
+        Map<String, String> currentAttributes = userStoreModel.getClaimValues(userID);
+        if(currentAttributes != null) {
+            currentAttributes.putAll(processedClaimAttributes);
+        }
     }
 
     @Override
@@ -350,11 +365,24 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
 
     protected Map<String, String> doGetUserClaimValuesWithID(String userID, String[] claims, String domainName,
                                                              String profileName) throws UserStoreException {
-        return new HashMap<>();
+        UserStoreModel userStoreModel = threadLocalUserStoreModel.get();
+        if(userStoreModel == null) {
+            return new HashMap<>();
+        }
+        Map<String, String> claimsMap = userStoreModel.getClaimValues(userID);
+        return claimsMap;
     }
 
     protected String doGetUserIDFromUserNameWithID(String userName) throws UserStoreException {
 
         return StringUtils.EMPTY;
+    }
+
+    /*package private*/ static void bindUserStoreModel(UserStoreModel userStoreModel) {
+        threadLocalUserStoreModel.set(userStoreModel);
+    }
+
+    /*package private*/ static void unbindUserStoreModel() {
+        threadLocalUserStoreModel.remove();
     }
 }

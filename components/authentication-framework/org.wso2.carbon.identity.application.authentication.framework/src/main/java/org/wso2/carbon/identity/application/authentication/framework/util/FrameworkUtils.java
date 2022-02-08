@@ -31,6 +31,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.MDC;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
@@ -150,6 +152,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -203,7 +206,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To add authentication request cache entry to cache
+     * To add authentication request cache entry to cache.
      *
      * @param key          cache entry key
      * @param authReqEntry AuthenticationReqCache Entry.
@@ -214,7 +217,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache request from cache
+     * To get authentication cache request from cache.
      *
      * @param key Key of the cache entry
      * @return
@@ -239,7 +242,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Builds the wrapper, wrapping incoming request and information take from cache entry
+     * Builds the wrapper, wrapping incoming request and information take from cache entry.
      *
      * @param request    Original request coming to authentication framework
      * @param cacheEntry Cache entry from the cache, which is added from calling servlets
@@ -726,7 +729,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Remove the auth cookie in the tenanted path
+     * Remove the auth cookie in the tenanted path.
      *
      * @param req    HTTP request
      * @param resp   HTTP response
@@ -968,7 +971,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache result from cache
+     * To get authentication cache result from cache.
      * @param key
      * @return
      */
@@ -1194,7 +1197,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super
+     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super.
      *
      * @return tenant domain
      */
@@ -1540,7 +1543,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * when getting query params through this, only configured params will be appended as query params
+     * when getting query params through this, only configured params will be appended as query params.
      * The required params can be configured from application-authenticators.xml
      *
      * @param request
@@ -1818,7 +1821,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Starts the tenant flow for the given tenant domain
+     * Starts the tenant flow for the given tenant domain.
      *
      * @param tenantDomain tenant domain
      */
@@ -1845,14 +1848,14 @@ public class FrameworkUtils {
     }
 
     /**
-     * Ends the tenant flow
+     * Ends the tenant flow.
      */
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
     /**
-     * create a nano time stamp relative to Unix Epoch
+     * create a nano time stamp relative to Unix Epoch.
      */
     public static long getCurrentStandardNano() {
 
@@ -1865,7 +1868,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param to the URL (URL may already contain query params)
+     * Append a query param to the URL (URL may already contain query params).
      */
     public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
         String queryAppendedUrl = url;
@@ -1891,7 +1894,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -1923,7 +1926,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -2162,7 +2165,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the mapped URI for the IDP role mapping
+     * Get the mapped URI for the IDP role mapping.
      * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
      * @param stepConfig Relevant stepConfig
      * @param context Relevant authentication context
@@ -2269,16 +2272,14 @@ public class FrameworkUtils {
      */
     public static String[] getMissingClaims(AuthenticationContext context) {
 
-        StringBuilder missingClaimsString = new StringBuilder();
-        StringBuilder missingClaimValuesString = new StringBuilder();
+        StringJoiner missingClaimsString = new StringJoiner(",");
+        StringJoiner missingClaimValuesString = new StringJoiner(",");
 
         Map<String, String> missingClaims = getMissingClaimsMap(context);
 
         for (Map.Entry<String, String> entry : missingClaims.entrySet()) {
-            missingClaimsString.append(entry.getKey());
-            missingClaimValuesString.append(entry.getValue());
-            missingClaimsString.append(",");
-            missingClaimValuesString.append(",");
+            missingClaimsString.add(entry.getKey());
+            missingClaimValuesString.add(entry.getValue());
         }
 
         return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
@@ -2485,7 +2486,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the configurations of a tenant from cache or database
+     * Get the configurations of a tenant from cache or database.
      *
      * @param tenantDomain Domain name of the tenant
      * @return Configurations belong to the tenant
@@ -3153,5 +3154,31 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.
                     getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Return a filtered list of requested scope claims.
+     *
+     * @param claimListOfScopes Claims list of requested scopes.
+     * @param claimMappings     Claim mappings list of service provider.
+     * @throws ClaimManagementException
+     */
+    public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
+                                                            List<ClaimMapping> claimMappings)
+            throws ClaimManagementException {
+
+        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
+        List<String> claimMappingListOfScopes = new ArrayList<>();
+        for (String claim : claimListOfScopes) {
+            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
+            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        }
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
+        for (ClaimMapping claim : claimMappings) {
+            if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
+                requestedScopeClaims.add(claim);
+            }
+        }
+        return requestedScopeClaims;
     }
 }
