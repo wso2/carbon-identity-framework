@@ -896,6 +896,7 @@ jQuery('#includeAuthnCtxYes').click(function () {
     jQuery('#authentication_context_class_dropdown').prop( "disabled", false );
     jQuery('#auth_context_comparison_level_dropdown').prop( "disabled", false );
     jQuery('#addAuthenticationContextClassBtn').removeAttr('disabled');
+    jQuery("#authnContextClsTable").removeAttr('hidden');
 });
 
 jQuery('#authnRequestSigned').click(function () {
