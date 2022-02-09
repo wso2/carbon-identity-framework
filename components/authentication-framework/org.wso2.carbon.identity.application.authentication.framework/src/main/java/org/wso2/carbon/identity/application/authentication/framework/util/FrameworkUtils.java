@@ -3180,10 +3180,12 @@ public class FrameworkUtils {
             if (claimManager != null) {
                 for (String claim : claimListOfScopes) {
                     org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
-                    if (currentMapping.getClaim().getClaimUri() != null) {
+                    if (currentMapping != null && currentMapping.getClaim() != null &&
+                            currentMapping.getClaim().getClaimUri() != null) {
                         claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
                     } else {
-                        throw new ClaimManagementException("No claim mapping are found for claim in ");
+                        throw new ClaimManagementException("No claim mapping are found for claim :" +
+                                claim + " in :" + tenantDomain);
                     }
                 }
             }
