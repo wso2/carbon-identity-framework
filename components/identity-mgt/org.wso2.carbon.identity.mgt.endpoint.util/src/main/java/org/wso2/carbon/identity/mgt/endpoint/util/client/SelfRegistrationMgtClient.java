@@ -32,7 +32,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -58,7 +59,7 @@ import java.nio.charset.StandardCharsets;
 public class SelfRegistrationMgtClient {
 
     private static final String CLIENT = "Client ";
-    private static final Logger log = Logger.getLogger(SelfRegistrationMgtClient.class);
+    private static final Logger log = LogManager.getLogger(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";
