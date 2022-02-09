@@ -3168,24 +3168,30 @@ public class FrameworkUtils {
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
                                                             List<ClaimMapping> claimMappings, String tenantDomain)
-            throws ClaimManagementException, CarbonException, UserStoreException {
+            throws ClaimManagementException {
 
         List<String> claimMappingListOfScopes = new ArrayList<>();
-        UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                FrameworkServiceComponent.getRegistryService(),
-                FrameworkServiceComponent.getRealmService(), tenantDomain);
-        ClaimManager claimManager = realm.getClaimManager();
-        if (claimManager != null) {
-            for (String claim : claimListOfScopes) {
-                org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
-                try {
-                    claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
-                } catch (NullPointerException e) {
-                    throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
-                            tenantDomain, e);
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            if (claimManager != null) {
+                for (String claim : claimListOfScopes) {
+                    org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
+                    if (currentMapping.getClaim().getClaimUri() != null) {
+                        claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+                    } else {
+                        throw new ClaimManagementException("No claim mapping are found for claim in ");
+                    }
                 }
             }
+        } catch (CarbonException | UserStoreException e) {
+            throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
+                    tenantDomain, e);
         }
+
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {

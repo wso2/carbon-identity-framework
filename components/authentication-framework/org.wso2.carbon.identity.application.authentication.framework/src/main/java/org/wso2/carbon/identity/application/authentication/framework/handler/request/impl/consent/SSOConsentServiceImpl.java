@@ -21,7 +21,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
@@ -56,7 +55,6 @@ import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -225,7 +223,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
                         .toArray(new ClaimMapping[0]);
-            } catch (ClaimManagementException | CarbonException | UserStoreException e) {
+            } catch (ClaimManagementException e) {
                 throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");
             }
         }
