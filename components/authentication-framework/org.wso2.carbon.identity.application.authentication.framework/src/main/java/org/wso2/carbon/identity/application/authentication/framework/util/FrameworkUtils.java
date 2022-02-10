@@ -31,11 +31,12 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.MDC;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -124,6 +125,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
@@ -3164,15 +3167,33 @@ public class FrameworkUtils {
      * @throws ClaimManagementException
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
-                                                            List<ClaimMapping> claimMappings)
+                                                            List<ClaimMapping> claimMappings, String tenantDomain)
             throws ClaimManagementException {
 
-        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
-        for (String claim : claimListOfScopes) {
-            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
-            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            if (claimManager != null) {
+                for (String claim : claimListOfScopes) {
+                    org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
+                    if (currentMapping != null && currentMapping.getClaim() != null &&
+                            currentMapping.getClaim().getClaimUri() != null) {
+                        claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+                    } else {
+                        throw new ClaimManagementException("No claim mapping are found for claim :" +
+                                claim + " in :" + tenantDomain);
+                    }
+                }
+            }
+        } catch (CarbonException | UserStoreException e) {
+            throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
+                    tenantDomain, e);
         }
+
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
