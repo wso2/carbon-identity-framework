@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -28,7 +30,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
@@ -45,7 +46,7 @@ import java.nio.charset.Charset;
 public class BrandingPreferenceRetrievalClient {
 
     private static final String CLIENT = "Client ";
-    private static final Logger log = Logger.getLogger(PreferenceRetrievalClient.class);
+    private static final Log log = LogFactory.getLog(PreferenceRetrievalClient.class);
     private static final String BRANDING_PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/branding-preference";
     private static final String RESOURCE_TYPE_URL_SEARCH_PARAM = "type";
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";
