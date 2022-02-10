@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.identity.unique.claim.mgt.internal.UniqueClaimUserOperationDataHolder;
 import org.wso2.carbon.user.api.Claim;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * A userstore operation event listener to keep the uniqueness of a given set of claims.
@@ -51,7 +51,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
     private static final String IS_UNIQUE_CLAIM = "isUnique";
     private static final String SCOPE_WITHIN_USERSTORE = "ScopeWithinUserstore";
-    private static Properties properties;
+    private static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
 
     @Override
     public int getExecutionOrderId() {
@@ -87,6 +87,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (!isEnable()) {
             return true;
         }
+        checkUsernameUniqueness(userName, userStoreManager);
         checkClaimUniqueness(userName, claims, profile, userStoreManager, credential);
         return true;
     }
@@ -98,10 +99,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (!isEnable()) {
             return true;
         }
-        String tenantDomain;
         try {
-            tenantDomain = UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantManager().
-                    getDomain(userStoreManager.getTenantId());
+            String tenantDomain = getTenantDomain(userStoreManager);
             if (isUniqueClaim(claimURI, tenantDomain)) {
                 return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager);
             }
@@ -126,15 +125,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     private void checkClaimUniqueness(String username, Map<String, String> claims, String profile,
                                       UserStoreManager userStoreManager, Object credential) throws UserStoreException {
 
-        String tenantDomain = StringUtils.EMPTY;
         String errorMessage = StringUtils.EMPTY;
-        try {
-            tenantDomain = UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantManager().
-                    getDomain(userStoreManager.getTenantId());
-
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            log.error("Error while retrieving tenant domain.", e);
-        }
+        String tenantDomain = getTenantDomain(userStoreManager);
         List<String> duplicateClaim = new ArrayList<>();
         Claim claimObject = null;
         for (Map.Entry<String, String> claim : claims.entrySet()) {
@@ -182,21 +174,18 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     }
 
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,
-                                      UserStoreManager userStoreMgr) throws UserStoreException {
+                                      UserStoreManager userStoreManager) throws UserStoreException {
 
-        String domainName = userStoreMgr.getRealmConfiguration().getUserStoreProperty(
+        String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-        String scopeWithinUserstore =
-                (String) IdentityUtil.readEventListenerProperty(UserOperationEventListener.class.getName(),
-                        UniqueClaimUserOperationEventListener.class.getName()).getProperties().get(
-                                SCOPE_WITHIN_USERSTORE);
-
         String[] userList;
-        if (StringUtils.isNotEmpty(scopeWithinUserstore) && Boolean.parseBoolean(scopeWithinUserstore)) {
+        // Get UserStoreManager from realm since the received one might be for a secondary user store
+        UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
+        if (isScopeWithinUserstore()) {
             String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
-            userList = userStoreMgr.getUserList(claimUri, claimValueWithDomain, profile);
+            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
         } else {
-            userList = userStoreMgr.getUserList(claimUri, claimValue, profile);
+            userList = userStoreMgrFromRealm.getUserList(claimUri, claimValue, profile);
         }
 
         if (userList.length == 1) {
@@ -221,6 +210,60 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             }
         }
         return false;
+    }
+
+    private void checkUsernameUniqueness(String username, UserStoreManager userStoreManager) throws UserStoreException {
+
+        String errorMessage;
+        String tenantDomain = getTenantDomain(userStoreManager);
+
+        try {
+            if (isUniqueClaim(USERNAME_CLAIM, tenantDomain) &&
+                    isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager)) {
+
+                errorMessage = "Username " + username + " is already in use by a different user!";
+                throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
+            }
+        } catch (ClaimMetadataException e) {
+            log.error("Error while getting claim metadata for claimUri : " + USERNAME_CLAIM + ".", e);
+        }
+    }
+
+    private String getTenantDomain(UserStoreManager userStoreManager) throws UserStoreException {
+
+        try {
+            return UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantManager().
+                    getDomain(userStoreManager.getTenantId());
+
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new UserStoreException("Error while retrieving tenant domain.", e);
+        }
+    }
+
+    /**
+     * Returns whether it should check the claim uniqueness within the userstore only.
+     */
+    private boolean isScopeWithinUserstore() {
+
+        String scopeWithinUserstore =
+                (String) IdentityUtil.readEventListenerProperty(UserOperationEventListener.class.getName(),
+                        UniqueClaimUserOperationEventListener.class.getName()).getProperties().get(
+                        SCOPE_WITHIN_USERSTORE);
+        return StringUtils.isNotEmpty(scopeWithinUserstore) && Boolean.parseBoolean(scopeWithinUserstore);
+    }
+
+    private UserStoreManager getUserstoreManager(int tenantId) throws UserStoreException {
+
+        UserRealm userRealm = null;
+        try {
+            userRealm = UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId);
+            if (userRealm != null) {
+                return  (UserStoreManager) userRealm.getUserStoreManager();
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new UserStoreException(e);
+        }
+        throw new UserStoreException("User realm is null for the tenant " + tenantId + ".");
     }
 
     @Override

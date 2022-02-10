@@ -212,7 +212,7 @@ public class ConfigurationEndpointUtils {
     public static String getCorrelation() {
         String ref = null;
         if (isCorrelationIDPresent()) {
-            ref = ThreadContext.get(ConfigurationConstants.CORRELATION_ID_MDC).toString();
+            ref = ThreadContext.get(ConfigurationConstants.CORRELATION_ID_MDC);
         }
         return ref;
     }

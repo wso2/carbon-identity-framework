@@ -888,12 +888,15 @@ jQuery('#includeAuthnCtxNo').click(function () {
     jQuery('#authentication_context_class_dropdown').prop('disabled', true);
     jQuery('#auth_context_comparison_level_dropdown').prop('disabled', true);
     jQuery('#addAuthenticationContextClassBtn').attr('disabled', true);
+    jQuery("#authnContextClsTable > tbody").empty();
+    jQuery('#authnContextCls').attr('value', "");
 });
 
 jQuery('#includeAuthnCtxYes').click(function () {
     jQuery('#authentication_context_class_dropdown').prop( "disabled", false );
     jQuery('#auth_context_comparison_level_dropdown').prop( "disabled", false );
     jQuery('#addAuthenticationContextClassBtn').removeAttr('disabled');
+    jQuery("#authnContextClsTable").removeAttr('hidden');
 });
 
 jQuery('#authnRequestSigned').click(function () {
