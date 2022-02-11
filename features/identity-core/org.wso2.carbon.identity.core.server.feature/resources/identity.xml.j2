@@ -662,6 +662,11 @@
             {% else %}
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             {% endif %}
+            {% if oauth.oidc.user_info.enable_multi_value_support is defined %}
+            <EnableMultiValueSupport>{{oauth.oidc.user_info.enable_multi_value_support}}</EnableMultiValueSupport>
+            {% else %}
+            <EnableMultiValueSupport>false</EnableMultiValueSupport>
+            {% endif %}
             {% if oauth.prompt_consent is sameas true %}
             <SkipUserConsent>false</SkipUserConsent>
             {% else %}
