@@ -796,6 +796,13 @@
             Supported versions : IS 5.10.0 onwards
         -->
         <!--<RemoveDuplicateUsersInUsersResponse>true</RemoveDuplicateUsersInUsersResponse>-->
+
+        <!--
+           If you want to get the total result in scim endpoint to stick with max limit then enable this property value.
+           Default value : false
+           Supported versions : IS 5.11.0 onwards
+        -->
+        <!--<ConsiderMaxLimitForTotalResult>true</ConsiderMaxLimitForTotalResult>-->
     </SCIM2>
 
     <!--Recovery>
