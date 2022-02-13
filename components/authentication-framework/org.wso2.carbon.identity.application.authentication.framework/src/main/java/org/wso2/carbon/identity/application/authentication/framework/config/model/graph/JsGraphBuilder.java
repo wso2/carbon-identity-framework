@@ -407,7 +407,7 @@ public class JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator);
+                    filteredOptions.get(idp).add(authenticator.toLowerCase());
                 }
             }
         });
@@ -442,7 +442,7 @@ public class JsGraphBuilder {
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
                             if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
@@ -460,7 +460,7 @@ public class JsGraphBuilder {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
                             if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
