@@ -788,6 +788,21 @@
             Supported versions : IS 5.9.0 onwards
         -->
         <!--<ReturnUpdatedGroupInPatchResponse>true</ReturnUpdatedGroupInPatchResponse>-->
+
+        <!--
+            If you set the property value to false, the response of the users endpoint would retain duplicate user entries.
+
+            Default value : true
+            Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<RemoveDuplicateUsersInUsersResponse>true</RemoveDuplicateUsersInUsersResponse>-->
+
+        <!--
+           If you want to get the total result in scim endpoint to stick with max limit then enable this property value.
+           Default value : false
+           Supported versions : IS 5.11.0 onwards
+        -->
+        <!--<ConsiderMaxLimitForTotalResult>true</ConsiderMaxLimitForTotalResult>-->
     </SCIM2>
 
     <!--Recovery>
