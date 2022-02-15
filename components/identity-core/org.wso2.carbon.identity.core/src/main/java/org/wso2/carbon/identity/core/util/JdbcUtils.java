@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.core.util;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DB2;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.H2;
@@ -41,7 +40,7 @@ public class JdbcUtils {
      */
     public static JdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(JDBCPersistenceManager.getInstance().getDataSource());
+        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
     }
 
     /**
