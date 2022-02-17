@@ -21,6 +21,7 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.AxisFault" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
@@ -92,20 +93,46 @@
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
 
         if (taskTypeFilter == null) {
-            taskTypeFilter = "";
+            if ((String) session.getAttribute(REQUEST_TYPE_FILTER) != null) {
+                taskTypeFilter = (String) session.getAttribute(REQUEST_TYPE_FILTER);
+            } else {
+                 taskTypeFilter = StringUtils.EMPTY;
+            }
         }
         if (statusToFilter == null) {
-            statusToFilter = "";
+             if ((String) session.getAttribute(REQUEST_STATUS_FILTER) != null) {
+                statusToFilter = (String) session.getAttribute(REQUEST_STATUS_FILTER);
+            } else {
+                statusToFilter = StringUtils.EMPTY;
+            }
         }
         if (lowerBound == null) {
-            lowerBound = "";
+            if ((String) session.getAttribute(CREATED_AT_FROM) != null) {
+                lowerBound = (String) session.getAttribute(CREATED_AT_FROM);
+            } else {
+                lowerBound = StringUtils.EMPTY;
+            }
         }
         if (upperBound == null) {
-            upperBound = "";
+            if ((String) session.getAttribute(CREATED_AT_TO) != null) {
+                upperBound = (String) session.getAttribute(CREATED_AT_TO);
+            } else {
+                upperBound = StringUtils.EMPTY;
+            }
         }
         if (timeFilterCategory == null) {
-            timeFilterCategory = CREATED_AT;
+            if ((String) session.getAttribute(TIME_CATEGORY_TO_FILTER) != null) {
+                timeFilterCategory = (String) session.getAttribute(TIME_CATEGORY_TO_FILTER);
+            } else {
+                timeFilterCategory = CREATED_AT;
+            }
         }
+
+        session.setAttribute(REQUEST_TYPE_FILTER, taskTypeFilter);
+        session.setAttribute(REQUEST_STATUS_FILTER, statusToFilter);
+        session.setAttribute(CREATED_AT_FROM, lowerBound);
+        session.setAttribute(CREATED_AT_TO, upperBound);
+        session.setAttribute(TIME_CATEGORY_TO_FILTER, timeFilterCategory);
 
 
         if (ALL_TASKS.equals(taskTypeFilter)) {
@@ -138,10 +165,22 @@
             events.get(category).add(event);
         }
     } catch (WorkflowAdminServiceWorkflowException e) {
+        // Removing the filter attributed from the session if an exception occurred.
+        session.removeAttribute(REQUEST_TYPE_FILTER);
+        session.removeAttribute(REQUEST_STATUS_FILTER);
+        session.removeAttribute(CREATED_AT_FROM);
+        session.removeAttribute(CREATED_AT_TO);
+        session.removeAttribute(TIME_CATEGORY_TO_FILTER);
         String message = resourceBundle.getString("workflow.error.when.listing.services");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo = ADMIN_ERROR_PAGE;
     } catch (AxisFault e) {
+        // Removing the filter attributed from the session if an exception occurred.
+        session.removeAttribute(REQUEST_TYPE_FILTER);
+        session.removeAttribute(REQUEST_STATUS_FILTER);
+        session.removeAttribute(CREATED_AT_FROM);
+        session.removeAttribute(CREATED_AT_TO);
+        session.removeAttribute(TIME_CATEGORY_TO_FILTER);
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo = ADMIN_ERROR_PAGE;
@@ -415,9 +454,9 @@
                                 <td style="border:0; !important">
                                     <nobr>
                                         <label for="createdAtFrom">From</label>
-                                        <input type="text" id="createdAtFrom" name="createdAtFrom">
+                                        <input type="text" id="createdAtFrom" value="<%=lowerBound%>" name="createdAtFrom">
                                         <label for="createdAtTo">to</label>
-                                        <input type="text" id="createdAtTo" name="createdAtTo">
+                                        <input type="text" id="createdAtTo" value="<%=upperBound%>" name="createdAtTo">
                                     </nobr>
                                 </td>
                             </tr>
