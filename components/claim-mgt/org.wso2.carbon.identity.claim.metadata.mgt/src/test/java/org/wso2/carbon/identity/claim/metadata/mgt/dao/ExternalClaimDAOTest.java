@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
@@ -273,5 +275,46 @@ public class ExternalClaimDAOTest {
                         localClaim3, externalClaim3, TENANT_ID, UPDATED_CLAIM_URI_3
                 },
                 };
+    }
+
+    @Test(dataProvider = "mappedLocalClaimDataProvider")
+    public void testIsLocalClaimMappedWithinDialect(Object localClaim, Object externalClaim1,
+                                                    Object externalClaim2, int tenantId) throws ClaimMetadataException {
+
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect1 = new ClaimDialect(EXTERNAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect1, TENANT_ID);
+
+        ClaimDialect claimDialect2 = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect2, TENANT_ID);
+
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        localClaimDAO.addLocalClaim(((LocalClaim) localClaim), tenantId);
+
+        ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
+
+        ExternalClaim claim1 = (ExternalClaim) externalClaim1;
+        assertFalse(externalClaimDAO.isLocalClaimMappedWithinDialect(claim1.getMappedLocalClaim(),
+                claim1.getClaimDialectURI(), tenantId));
+        externalClaimDAO.addExternalClaim(claim1, tenantId);
+
+        ExternalClaim claim2 = (ExternalClaim) externalClaim2;
+        assertTrue(externalClaimDAO.isLocalClaimMappedWithinDialect(claim2.getMappedLocalClaim(),
+                claim2.getClaimDialectURI(), tenantId));
+
+        claimDialectDAO.removeAllClaimDialects(tenantId);
+
+    }
+
+    @DataProvider(name = "mappedLocalClaimDataProvider")
+    public Object[][] isLocalClaimMappedWithinDialectData() {
+        
+        ExternalClaim externalClaim1 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI1",
+                localClaim1.getClaimURI());
+        ExternalClaim externalClaim2 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "testExternalClaimURI2",
+                localClaim1.getClaimURI());
+        return new Object[][]{
+                {localClaim1, externalClaim1, externalClaim2, TENANT_ID},
+        };
     }
 }
