@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
 
 @PrepareForTest({IdentityTenantUtil.class, ClaimMetadataEventPublisherProxy.class})
 @PowerMockIgnore("jdk.internal.reflect.*")
+@WithCarbonHome
 public class ClaimMetadataManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String EXTERNAL_CLAIM_DIALECT_URI = "https://wso2.org";
