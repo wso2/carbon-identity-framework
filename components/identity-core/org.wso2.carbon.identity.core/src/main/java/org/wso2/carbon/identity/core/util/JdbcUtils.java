@@ -31,6 +31,9 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORACLE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.POSTGRE_SQL;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.S_MICROSOFT;
 
+/**
+ * A util class to support the Jdbc executions.
+ */
 public class JdbcUtils {
 
     /**
@@ -129,17 +132,6 @@ public class JdbcUtils {
     public static boolean isOracleDB() throws DataAccessException {
 
         return isDBTypeOf(ORACLE);
-    }
-
-    /**
-     * Check if the DB is H2, MySQL or Postgres.
-     *
-     * @return true if DB is H2, MySQL or Postgres, false otherwise.
-     * @throws DataAccessException if error occurred while checking the DB metadata.
-     */
-    public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
-
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIADB);
     }
 
     /**

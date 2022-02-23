@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.dao.impl;
 import org.apache.commons.io.IOUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
@@ -28,13 +29,17 @@ import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementSQLExce
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementServerException;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
-import org.wso2.carbon.identity.template.mgt.util.JdbcUtils;
 import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_TEMPLATE;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATED_LIST_TEMPLATES;
@@ -46,9 +51,6 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.SqlQuer
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.SqlQueries.LIST_PAGINATED_TEMPLATES_MSSQL;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.SqlQueries.LIST_PAGINATED_TEMPLATES_MYSQL;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.SqlQueries.LIST_PAGINATED_TEMPLATES_ORACLE;
-import static org.wso2.carbon.identity.template.mgt.util.JdbcUtils.isDB2DB;
-import static org.wso2.carbon.identity.template.mgt.util.JdbcUtils.isH2MySqlOrPostgresDB;
-import static org.wso2.carbon.identity.template.mgt.util.JdbcUtils.isMSSqlDB;
 
 /**
  * Perform CRUD operations for {@link Template}.
@@ -149,7 +151,7 @@ public class TemplateManagerDAOImpl implements TemplateManagerDAO {
 
         try {
             String query;
-            if (isH2MySqlOrPostgresDB()) {
+            if (isH2DB() || isMySQLDB() || isPostgreSQLDB()) {
                 query = LIST_PAGINATED_TEMPLATES_MYSQL;
             } else if (isDB2DB()) {
                 query = LIST_PAGINATED_TEMPLATES_DB2;
