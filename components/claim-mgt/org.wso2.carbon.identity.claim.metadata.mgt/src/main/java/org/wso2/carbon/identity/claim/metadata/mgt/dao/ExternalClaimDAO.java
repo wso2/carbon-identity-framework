@@ -176,6 +176,37 @@ public class ExternalClaimDAO extends ClaimDAO {
         return isMappedLocalClaim;
     }
 
+    public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaimURI, String externalClaimDialectURI,
+                                                   int tenantId) throws ClaimMetadataException {
+
+        boolean isLocalClaimMappedWithinDialect = false;
+
+        String query = SQLConstants.IS_LOCAL_CLAIM_MAPPED_EX_DIALECT;
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false); PreparedStatement prepStmt =
+                connection.prepareStatement(query)) {
+
+            int i = 1;
+            prepStmt.setString(i++, ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+            prepStmt.setInt(i++, tenantId);
+            prepStmt.setString(i++, mappedLocalClaimURI);
+            prepStmt.setInt(i++, tenantId);
+            prepStmt.setInt(i++, tenantId);
+            prepStmt.setString(i++, externalClaimDialectURI);
+            prepStmt.setInt(i, tenantId);
+
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    isLocalClaimMappedWithinDialect = true;
+                }
+            }
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while checking mapped local claim " + mappedLocalClaimURI, e);
+        }
+
+        return isLocalClaimMappedWithinDialect;
+    }
+
     private void addClaimMapping(Connection connection, int externalClaimId, int localClaimId, int tenantId)
             throws ClaimMetadataException {
 

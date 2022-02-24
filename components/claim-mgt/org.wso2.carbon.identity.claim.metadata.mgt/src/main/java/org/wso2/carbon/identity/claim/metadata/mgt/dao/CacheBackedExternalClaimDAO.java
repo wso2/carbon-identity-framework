@@ -95,6 +95,12 @@ public class CacheBackedExternalClaimDAO {
         return externalClaimDAO.isMappedLocalClaim(mappedLocalClaimURI, tenantId);
     }
 
+    public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaimURI, String externalClaimDialectURI,
+                                                   int tenantId) throws ClaimMetadataException {
+
+        return externalClaimDAO.isLocalClaimMappedWithinDialect(mappedLocalClaimURI, externalClaimDialectURI, tenantId);
+    }
+
     /**
      * Remove mapped external claims at post removing claim dialect.
      *

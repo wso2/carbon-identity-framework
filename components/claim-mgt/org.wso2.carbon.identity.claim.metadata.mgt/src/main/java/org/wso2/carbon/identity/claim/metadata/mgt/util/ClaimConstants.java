@@ -80,6 +80,8 @@ public class ClaimConstants {
         ERROR_CODE_EXISTING_CLAIM_DIALECT("CMT-60002", "Claim dialect: %s already exists"),
         ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED("CMT-60003", "Claim property: %s has " +
                 "exceeded maximum character limit of: %s"),
+        ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING("CMT-60004", "Local claim URI : %s is already mapped in claim " +
+                "dialect: %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
