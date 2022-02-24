@@ -42,6 +42,9 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheKey;
@@ -87,6 +90,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -1131,6 +1135,48 @@ public class FrameworkUtils {
             }
         }
         return sessionContext;
+    }
+
+    /**
+     * To add authentication error to cache.
+     *
+     * @param key   Error key.
+     */
+    public static void addAuthenticationErrorToCache(String key, AuthenticationError authenticationError,
+                                                     String tenantDomain) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry cacheEntry = new AuthenticationErrorCacheEntry(authenticationError, tenantDomain);
+        AuthenticationErrorCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * To get authentication error from cache.
+     *
+     * @param key   Error key.
+     * @return      AuthenticationError.
+     */
+    public static AuthenticationError getAuthenticationErrorFromCache(String key) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry authResult = AuthenticationErrorCache.getInstance().getValueFromCache(cacheKey);
+        if (authResult != null) {
+            return authResult.getAuthenticationError();
+        }
+        return null;
+    }
+
+    /**
+     * To remove authentication error from cache.
+     *
+     * @param key   Error key.
+     */
+    public static void removeAuthenticationErrorFromCache(String key) {
+
+        if (StringUtils.isNotEmpty(key)) {
+            AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+            AuthenticationErrorCache.getInstance().clearCacheEntry(cacheKey);
+        }
     }
 
     /**
