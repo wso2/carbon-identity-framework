@@ -940,8 +940,9 @@ public class UserSessionStore {
         long minTimestamp = currentTime - idleSessionTimeOut;
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT)) {
+            String sqlstmt = isH2DB() ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2 :
+                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sqlstmt)) {
                 preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
                 preparedStatement.setString(2, String.valueOf(minTimestamp));
                 preparedStatement.setString(3, String.valueOf(currentTime));
@@ -954,6 +955,9 @@ public class UserSessionStore {
                 IdentityDatabaseUtil.commitTransaction(connection);
             }
         } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
+                    tenantDomain, e);
+        } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
                     tenantDomain, e);
         }
