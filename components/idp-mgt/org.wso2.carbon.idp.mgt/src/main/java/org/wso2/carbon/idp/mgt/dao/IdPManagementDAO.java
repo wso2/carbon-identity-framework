@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -77,6 +78,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -796,11 +798,12 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection, int idpId)
             throws SQLException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
         try {
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -811,6 +814,8 @@ public class IdPManagementDAO {
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
+        } catch (DataAccessException e) {
+            throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
@@ -829,9 +834,11 @@ public class IdPManagementDAO {
                                                List<IdentityProviderProperty> properties, int tenantId)
             throws SQLException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
+
         PreparedStatement prepStmt = null;
         try {
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+                    IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             for (IdentityProviderProperty property : properties) {
@@ -852,6 +859,9 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
+        } catch (DataAccessException e) {
+            String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
+            throw new SQLException(errorMsg, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
@@ -4152,7 +4162,8 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -4164,7 +4175,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {

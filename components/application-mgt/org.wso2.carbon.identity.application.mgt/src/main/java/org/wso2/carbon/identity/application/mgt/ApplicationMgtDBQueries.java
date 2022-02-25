@@ -258,7 +258,11 @@ public class ApplicationMgtDBQueries {
 
     public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";
+    public static final String GET_SP_METADATA_BY_SP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
+            "SP_METADATA WHERE SP_ID = ?";
     public static final String ADD_SP_METADATA = "INSERT INTO SP_METADATA (SP_ID, NAME, VALUE, DISPLAY_NAME, " +
+            "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
+    public static final String ADD_SP_METADATA_H2 = "INSERT INTO SP_METADATA (SP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
             "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 

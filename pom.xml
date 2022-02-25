@@ -1760,8 +1760,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.6.3-m6</carbon.kernel.version>
-        <carbon.kernel.feature.version>4.6.3-m6</carbon.kernel.feature.version>
+        <carbon.kernel.version>4.6.3-m8</carbon.kernel.version>
+        <carbon.kernel.feature.version>4.6.3-m8</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
         <carbon.consent.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</carbon.consent.mgt.imp.pkg.version.range>
@@ -1990,7 +1990,7 @@
         <ehcache.version>1.5.0.wso2v3</ehcache.version>
         <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
         <io.swagger.version>1.6.2</io.swagger.version>
-        <carbon.consent.mgt.version>2.2.10</carbon.consent.mgt.version>
+        <carbon.consent.mgt.version>2.2.19</carbon.consent.mgt.version>
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
@@ -2031,7 +2031,7 @@
         <disruptor.orbit.version>3.3.2.wso2v2</disruptor.orbit.version>
         <antlr.version>4.5</antlr.version>
         <snakeyaml.version>1.11</snakeyaml.version>
-        <h2database.version>1.4.199</h2database.version>
+        <h2database.version>2.1.210</h2database.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>

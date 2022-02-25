@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.identity.application.mgt.util.JdbcUtils.isH2DB;
+
 /**
  * Class to store and retrieve user related data.
  */
@@ -680,7 +682,9 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeBatchInsert(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_INSERT_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_INSERT_SESSION_META_DATA;
+            jdbcTemplate.executeBatchInsert(sqlStmt, (preparedStatement -> {
                 for (Map.Entry<String, String> entry : metaData.entrySet()) {
                     preparedStatement.setString(1, sessionId);
                     preparedStatement.setString(2, entry.getKey());
@@ -707,7 +711,9 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_SESSION_META_DATA, preparedStatement -> {
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_UPDATE_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_UPDATE_SESSION_META_DATA;
+            jdbcTemplate.executeUpdate(sqlStmt, preparedStatement -> {
                 preparedStatement.setString(1, value);
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.setString(3, propertyType);
@@ -934,8 +940,9 @@ public class UserSessionStore {
         long minTimestamp = currentTime - idleSessionTimeOut;
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT)) {
+            String sqlstmt = isH2DB() ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2 :
+                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sqlstmt)) {
                 preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
                 preparedStatement.setString(2, String.valueOf(minTimestamp));
                 preparedStatement.setString(3, String.valueOf(currentTime));
@@ -948,6 +955,9 @@ public class UserSessionStore {
                 IdentityDatabaseUtil.commitTransaction(connection);
             }
         } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
+                    tenantDomain, e);
+        } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
                     tenantDomain, e);
         }

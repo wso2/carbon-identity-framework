@@ -88,6 +88,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is H2.
+     *
+     * @return true if H2, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isH2DB() throws DataAccessException {
+
+        return isDBTypeOf(H2);
+    }
+
+    /**
      * Check whether the DB type string contains in the driver name or db product name.
      *
      * @param dbType database type string.
