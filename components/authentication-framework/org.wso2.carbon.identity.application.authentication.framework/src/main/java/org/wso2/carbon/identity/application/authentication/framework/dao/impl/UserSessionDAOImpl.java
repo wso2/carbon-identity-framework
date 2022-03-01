@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+
 /**
  * Default implementation of {@link UserSessionDAO}. This handles {@link UserSession} related DB operations.
  */
@@ -58,8 +60,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         try {
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
             generateApplicationFromAppID(applicationList);
-
-            jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2 :
+                    SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
+            jdbcTemplate.executeQuery(sqlStmt, ((resultSet, rowNumber)
                     -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
                     preparedStatement.setString(1, sessionId));
 
