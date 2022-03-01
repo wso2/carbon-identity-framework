@@ -2628,12 +2628,16 @@ public class IdPManagementDAO {
 
             prepStmt.setString(6, identityProvider.getAlias());
 
-            if (identityProvider.getJustInTimeProvisioningConfig() != null
-                    && identityProvider.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
+
+            if (identityProvider.getJustInTimeProvisioningConfig() != null) {
                 // just in time provisioning enabled for this identity provider.
                 // based on the authentication response from the identity provider - user will be
                 // provisioned locally.
-                prepStmt.setString(7, IdPManagementConstants.IS_TRUE_VALUE);
+                if (identityProvider.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
+                    prepStmt.setString(7, IdPManagementConstants.IS_TRUE_VALUE);
+                } else {
+                    prepStmt.setString(7, IdPManagementConstants.IS_FALSE_VALUE);
+                }
                 // user will be provisioned to the configured user store.
                 prepStmt.setString(8, identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
             } else {

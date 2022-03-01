@@ -221,7 +221,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (claimsListOfScopes != null) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
-                        Arrays.asList(claimMappings)).toArray(new ClaimMapping[0]);
+                        Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
+                        .toArray(new ClaimMapping[0]);
             } catch (ClaimManagementException e) {
                 throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");
             }

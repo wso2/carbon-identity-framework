@@ -968,6 +968,10 @@
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>
 
+    <SCIM2MultiAttributeFiltering>
+        <UsePagination>false</UsePagination>
+    </SCIM2MultiAttributeFiltering>
+
     <!--This configuration is for enable/disable reCaptcha feature by default.
     The default configuration is to disable the reCaptcha by default. These configuration can be overrided
     tenant wise.-->

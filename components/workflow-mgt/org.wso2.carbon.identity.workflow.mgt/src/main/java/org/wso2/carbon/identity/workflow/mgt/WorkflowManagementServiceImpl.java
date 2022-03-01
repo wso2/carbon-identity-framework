@@ -846,6 +846,39 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
+     * Move workflow request created by any user to DELETED state.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+        workflowRequest.setCreatedBy(workflowRequestDAO.retrieveCreatedUserOfRequest(requestId));
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+    }
+
+    /**
      * get requests list according to createdUser, createdTime, and lastUpdatedTime
      *
      * @param user         User to get requests of, empty String to retrieve requests of all users

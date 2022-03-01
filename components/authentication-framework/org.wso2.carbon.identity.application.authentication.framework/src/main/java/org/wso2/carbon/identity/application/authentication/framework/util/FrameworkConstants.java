@@ -92,6 +92,7 @@ public abstract class FrameworkConstants {
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String CURRENT_POST_AUTHENTICATION_HANDLER = "currentPostAuthHandler";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String STEP_BASED_SEQUENCE_HANDLER_TRIGGERED = "stepBasedSequenceHandlerTriggered";
     public static final String IS_USER_CREATION_NEEDED = "isUserCreationNeeded";

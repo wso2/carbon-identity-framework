@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.20.292-SNAPSHOT</version>
+        <version>5.20.313-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -161,6 +161,7 @@
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                                 <bundleDef>org.apache.santuario:xmlsec</bundleDef>
+                                <bundleDef>org.wso2.orbit.jsr105:jsr105</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>
                             <importFeatures>

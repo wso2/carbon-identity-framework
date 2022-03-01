@@ -699,6 +699,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     if (!UserSessionStore.getInstance().isExistingMapping(userId, sessionContextKey)) {
                         UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
                     }
+                    /*
+                For JIT provisioned users, if AssertIdentity Using Mapped Local Subject Identifier config is enabled in
+                the app level, add an entry in the IDN_AUTH_USER_SESSION_MAPPING table with local userId.
+                 */
+                    if (user.isFederatedUser() &&
+                            context.getSequenceConfig().getApplicationConfig().isMappedSubjectIDSelected()) {
+                        String localUserId =
+                                FrameworkUtils.resolveUserIdFromUsername(
+                                        IdentityTenantUtil.getTenantId(user.getTenantDomain()),
+                                        user.getUserStoreDomain(), user.getUserName());
+                        if (StringUtils.isNotEmpty(localUserId) &&
+                                !UserSessionStore.getInstance().isExistingMapping(localUserId, sessionContextKey)) {
+                            UserSessionStore.getInstance().storeUserSessionData(localUserId, sessionContextKey);
+                        }
+                    }
                 } catch (UserSessionException e) {
                     throw new UserSessionException("Error while storing session data for user: "
                             + user.getLoggableUserId(), e);

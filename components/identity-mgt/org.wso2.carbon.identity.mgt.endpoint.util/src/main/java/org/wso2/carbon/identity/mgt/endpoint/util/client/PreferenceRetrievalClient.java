@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -29,7 +31,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -50,7 +51,7 @@ public class PreferenceRetrievalClient {
 
     private static final String CLIENT = "Client ";
     private static final String PROPERTIES = "properties";
-    private static final Logger log = Logger.getLogger(PreferenceRetrievalClient.class);
+    private static final Log log = LogFactory.getLog(PreferenceRetrievalClient.class);
     private static final String PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance/preferences";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
@@ -66,6 +67,8 @@ public class PreferenceRetrievalClient {
     private static final String PROPERTY_VALUE = "value";
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
+    private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
+    private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
 
     /**
      * Check self registration is enabled or not.
@@ -164,6 +167,30 @@ public class PreferenceRetrievalClient {
     public boolean checkTypingDNA(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, TYPING_DNA_CONNECTOR, TYPING_DNA_PROPERTY, false);
+    }
+
+    /**
+     * Check auto login after self sign up is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if auto login after self sign up is enabled .
+     * @throws PreferenceRetrievalClientException
+     */
+    public boolean checkAutoLoginAfterSelfRegistrationEnabled(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, AUTO_LOGIN_AFTER_SELF_SIGN_UP);
+    }
+
+    /**
+     * Check auto login after password recovery is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if auto login after password recover is enabled .
+     * @throws PreferenceRetrievalClientException
+     */
+    public boolean checkAutoLoginAfterPasswordRecoveryEnabled(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, AUTO_LOGIN_AFTER_PASSWORD_RECOVERY);
     }
 
     /**

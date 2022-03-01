@@ -49,7 +49,11 @@ Work<%--
     ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, request.getLocale());
     String forwardTo = "wf-request-list.jsp";
     try {
-        client.deleteRequest(requestId);
+        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/workflow/monitor/anydelete")) {
+            client.deleteRequestCreatedByAnyUser(requestId);
+        } else {
+            client.deleteRequest(requestId);
+        }
     } catch (Exception e) {
         String message = resourceBundle.getString("workflow.error.request.delete");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);

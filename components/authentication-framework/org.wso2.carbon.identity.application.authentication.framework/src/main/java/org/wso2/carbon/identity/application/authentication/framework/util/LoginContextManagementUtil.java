@@ -325,7 +325,8 @@ public class LoginContextManagementUtil {
 
     private static boolean isValidRequest(HttpServletRequest request, AuthenticationContext context) {
 
-        boolean isValidRequest = context != null;
+        boolean isValidRequest = (context != null &&
+                context.getProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER) == null);
         if (isNonceCookieEnabled() && isValidRequest) {
             Cookie nonceCookie = FrameworkUtils.getCookie(request, getNonceCookieName(context));
             isValidRequest = nonceCookie != null && StringUtils.isNotBlank(nonceCookie.getValue());
