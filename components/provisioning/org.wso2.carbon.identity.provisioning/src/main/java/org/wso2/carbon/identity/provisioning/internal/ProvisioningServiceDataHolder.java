@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class ProvisioningServiceDataHolder {
     private RegistryService registryService;
     private BundleContext bundleContext;
     private EntitlementService entitlementService;
+    private RolePermissionManagementService rolePermissionManagementService;
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
 
     private ProvisioningServiceDataHolder() {
@@ -83,6 +85,16 @@ public class ProvisioningServiceDataHolder {
     public void setEntitlementService(EntitlementService entitlementService) {
 
         this.entitlementService = entitlementService;
+    }
+
+    public void setRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService) {
+
+        this.rolePermissionManagementService = rolePermissionManagementService;
+    }
+
+    public RolePermissionManagementService getRolePermissionManagementService() {
+
+        return rolePermissionManagementService;
     }
 }
 

@@ -1592,6 +1592,12 @@
             {% endfor %}
         </EventListener>
         {% endfor %}
+        <EventListener id="custom_error_resolver"
+                type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                name="org.wso2.carbon.identity.provisioning.listener.OutboundProvisioningErrorListener"
+                orderId="{{event.default_listener.outbound_provisioning_error_handler.priority}}"
+                enable="{{event.default_listener.outbound_provisioning_error_handler.enable}}">
+        </EventListener>
     </EventListeners>
 
     {% if analytics.publish_active_session_count is defined %}
