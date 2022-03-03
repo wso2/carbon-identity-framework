@@ -50,8 +50,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MSSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_ORACLE;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isOracleDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management

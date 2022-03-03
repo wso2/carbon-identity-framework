@@ -1656,6 +1656,11 @@
                    timeout="{{cache.authentication_result_cache.timeout}}"
                    capacity="{{cache.authentication_result_cache.capacity}}"
                    isDistributed="false"/>
+            <Cache id="authentication_error_cache" name="AuthenticationErrorCache"
+                   enable="{{cache.authentication_error_cache.enable}}"
+                   timeout="{{cache.authentication_error_cache.timeout}}"
+                   capacity="{{cache.authentication_error_cache.capacity}}"
+                   isDistributed="false"/>
             <Cache id="app_info_cache" name="AppInfoCache"
                    enable="{{cache.app_info_cache.enable}}"
                    timeout="{{cache.app_info_cache.timeout}}"
@@ -2411,19 +2416,19 @@
             <Scopes>internal_idp_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/create</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/create</Permissions>
             <Scopes>internal_functional_lib_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/view</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/view</Permissions>
             <Scopes>internal_functional_lib_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt//update</Permissions>
             <Scopes>internal_functional_lib_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/delete</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/delete</Permissions>
             <Scopes>internal_functional_lib_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="POST">

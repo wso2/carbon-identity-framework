@@ -53,6 +53,7 @@
     "cache.authentication_context_cache.timeout": "ms",
     "cache.authentication_request_cache.timeout": "ms",
     "cache.authentication_result_cache.timeout": "ms",
+    "cache.authentication_error_cache.timeout": "ms",
     "cache.app_info_cache.timeout": "ms",
     "cache.authorization_grant_cache.timeout": "ms",
     "cache.jwks_cache.timeout": "ms",

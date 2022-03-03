@@ -79,6 +79,17 @@ public class IdentityCoreConstants {
     public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
 
+    //DB constants
+    public static final String H2 = "H2";
+    public static final String INFORMIX = "Informix";
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
+    public static final String ORACLE = "Oracle";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+
     public static class Filter {
 
         public static final String AND = "and";
