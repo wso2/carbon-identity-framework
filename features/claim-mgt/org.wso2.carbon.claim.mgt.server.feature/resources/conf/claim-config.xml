@@ -1066,7 +1066,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-        <Dialect dialectURI="urn:scim:schemas:core:1.0">
+        <Dialect dialectURI="urn:scim:schemas:core:1.0"
+				 claimURIRegex="urn:scim:schemas:core:1.0:[a-z 0-9$\-_]*$">
 			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1770,7 +1771,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 		    </Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-z 0-9$\-_]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1862,7 +1864,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User"
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:User:[a-z 0-9$\-_]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:userName</ClaimURI>
 				<DisplayName>User Name</DisplayName>
@@ -2222,7 +2225,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/x509Certificates</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
+				 claimURIRegex="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:[a-z 0-9$\-_]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
 				<DisplayName>Employee Number</DisplayName>
