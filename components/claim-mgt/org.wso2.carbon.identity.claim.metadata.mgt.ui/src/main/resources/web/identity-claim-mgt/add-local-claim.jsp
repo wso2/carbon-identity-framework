@@ -119,16 +119,14 @@
         if (userRealmInfo == null) {
             userRealmInfo = userAdminClient.getUserRealmInfo();
             session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
-
-            if (localClaims == null) {
-                ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
-                localClaims = client.getLocalClaims();
-                session.setAttribute("localClaims", localClaims);
-            }
+        } else {
+            domainNames = userRealmInfo.getDomainNames();
         }
 
-        if (userRealmInfo != null) {
-            domainNames = userRealmInfo.getDomainNames();
+        if (localClaims == null) {
+            ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+            localClaims = client.getLocalClaims();
+            session.setAttribute("localClaims", localClaims);
         }
 
     } catch (Exception e) {
