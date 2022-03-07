@@ -962,6 +962,9 @@
         temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
         'UseVerifyClaim' should be set to true. -->
         <UseVerifyClaim>false</UseVerifyClaim>
+        <!-- When updating the claim value, it can be validated against the provided regex pattern.
+        To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
+        <!--<EnableUserClaimInputRegexValidation>false</EnableUserClaimInputRegexValidation>-->
     </UserClaimUpdate>
 
     <AccountSuspension>

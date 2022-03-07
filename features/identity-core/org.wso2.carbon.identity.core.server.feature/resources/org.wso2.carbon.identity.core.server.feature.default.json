@@ -366,6 +366,8 @@
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
+  "identity_mgt.enable_user_claim_input_regex_validation": true,
+
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
   "sso_login.recaptcha.enabled": false,
