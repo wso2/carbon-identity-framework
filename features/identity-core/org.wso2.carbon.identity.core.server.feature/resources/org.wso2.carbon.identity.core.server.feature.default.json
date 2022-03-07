@@ -440,8 +440,8 @@
   "event.default_listener.uma_introspection_data_provider.enable": false,
   "event.default_listener.is_introspection_data_provider.priority": "162",
   "event.default_listener.is_introspection_data_provider.enable": false,
-  "event.default_listener.outbound_provisioning_error_handler.priority": "9",
-  "event.default_listener.outbound_provisioning_error_handler.enable": true,
+  "event.default_listener.outbound_provisioning_error_handler.priority": "1",
+  "event.default_listener.outbound_provisioning_error_handler.enable": false,
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,

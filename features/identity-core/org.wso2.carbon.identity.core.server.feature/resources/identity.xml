@@ -1127,8 +1127,8 @@
                        name="org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger"
                        orderId="9" enable="false"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
-                       name="org.wso2.carbon.identity.provisioning.listener.OutboundProvisioningErrorListener"
-                       orderId="9" enable="true"/>
+                       name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
+                       orderId="1" enable="false"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV

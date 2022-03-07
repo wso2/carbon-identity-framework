@@ -31,8 +31,8 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
-import org.wso2.carbon.identity.provisioning.listener.OutboundProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
+import org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -123,9 +123,9 @@ public class IdentityProvisionServiceComponent {
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provider Management Event listener registered successfully");
             }
-            ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserManagementErrorEventListener.class.getName(), new OutboundProvisioningErrorListener(), null);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(), null);
             if (log.isDebugEnabled()) {
-                log.debug("Identity Provision Event listener registered successfully");
+                log.debug("Identity Provision Error Event listener registered successfully");
             }
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provisioning framework bundle is activated");

@@ -1,22 +1,22 @@
-*
-        * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-        *
-        * WSO2 Inc. licenses this file to you under the Apache License,
-        * Version 2.0 (the "License"); you may not use this file except
-        * in compliance with the License.
-        * You may obtain a copy of the License at
-        *
-        *      http://www.apache.org/licenses/LICENSE-2.0
-        *
-        * Unless required by applicable law or agreed to in writing,
-        * software distributed under the License is distributed on an
-        * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-        * KIND, either express or implied.  See the License for the
-        * specific language governing permissions and limitations
-        * under the License.
-        */
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org)
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-        package org.wso2.carbon.identity.provisioning.listener;
+package org.wso2.carbon.identity.provisioning.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +30,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
@@ -41,6 +44,7 @@ import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHol
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
@@ -50,52 +54,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFailureEventListener {
+public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEventListener {
 
-    private static final Log log = LogFactory.getLog(OutboundProvisioningErrorListener.class);
+    private static final Log log = LogFactory.getLog(ProvisioningErrorListener.class);
 
-    // Add user related error codes.
-    private String ERROR_CODE_INVALID_USER_NAME = "31301";
-    private String ERROR_CODE_INVALID_PASSWORD = "30003";
-    private String ERROR_CODE_USER_ALREADY_EXISTS = "30004";
-    private String ERROR_CODE_INTERNAL_ROLE_NOT_EXISTS = "31303";
-    private String ERROR_CODE_EXTERNAL_ROLE_NOT_EXISTS = "31304";
-    private String ERROR_CODE_UNABLE_TO_FETCH_CLAIM_MAPPING = "31305";
-    private String ERROR_CODE_INVALID_CLAIM_URI = "30005";
-    private String ERROR_CODE_ERROR_WHILE_ADDING_USER = "31306";
+    // Error codes related to add user failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_ADD_USER = "31302";
+    private String ERROR_CODE_ERROR_DURING_POST_ADD_USER = "31307";
 
-    // Add roles related error codes.
-    private String ERROR_CODE_READONLY_USER_STORE = "30002";
-    private String ERROR_CODE_INVALID_ROLE_NAME = "30011";
-    private String ERROR_CODE_ERROR_WHILE_ADDING_ROLE = "31702";
-    private String ERROR_CODE_WRITE_GROUPS_NOT_ENABLED = "30014";
-    private String ERROR_CODE_ROLE_ALREADY_EXISTS = "30012";
+    // Error codes related to add role failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_ADD_ROLE = "31701";
+    private String ERROR_CODE_ERROR_DURING_POST_ADD_ROLE = "31703";
 
-    // Set claims related error codes.
-    private String ERROR_CODE_ERROR_WHILE_SETTING_USER_CLAIM_VALUES = "39002";
+    // Error codes related to delete role failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_DELETE_ROLE = "31801";
+    private String ERROR_CODE_ERROR_DURING_POST_DELETE_ROLE = "31803";
 
-    // Delete Claim values related codes.
-    private String ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUES = "31103";
-    private String ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUE = "31203";
+    // Error codes related to set claim values failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_SET_USER_CLAIM_VALUES = "39001";
+    private String ERROR_CODE_ERROR_DURING_POST_SET_USER_CLAIM_VALUES = "39003";
 
-    // Delete role related codes.
-    private String ERROR_CODE_ERROR_WHILE_DELETE_ROLE = "31802";
+    // Error codes related to delete claims failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUES = "31101";
+    private String ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES = "31102";
+
+    // Error codes related to delete claim failure.
+    private String ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUE = "31201";
+    private String ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE = "31202";
 
     @Override
     public boolean onAddUserFailureWithID(String errorCode, String errorMessage, String userName, Object credential,
                                           String[] roleList, Map<String, String> claims, String profile, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_INVALID_USER_NAME) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_INVALID_PASSWORD) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_USER_ALREADY_EXISTS) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_INTERNAL_ROLE_NOT_EXISTS) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_EXTERNAL_ROLE_NOT_EXISTS) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_UNABLE_TO_FETCH_CLAIM_MAPPING) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_INVALID_CLAIM_URI) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_ADDING_USER)
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_ADD_USER) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_ADD_USER))
         ) {
-            return deleteUser(userName, userStoreManager);
+            return deleteOutboundProvisionedUser(userName, userStoreManager);
         }
         return true;
     }
@@ -105,13 +100,10 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
                                     org.wso2.carbon.user.api.Permission[] permissions, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_READONLY_USER_STORE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_INVALID_ROLE_NAME) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_ADDING_ROLE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_WRITE_GROUPS_NOT_ENABLED) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ROLE_ALREADY_EXISTS)
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_ADD_ROLE) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_ADD_ROLE))
         ) {
-            deleteRole(roleName, permission, userStoreManager);
+            deleteOutboundProvisionedRole(roleName, permissions, userStoreManager);
         }
         return true;
     }
@@ -121,8 +113,8 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
                                                Map<String, String> claims, String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_SETTING_USER_CLAIM_VALUES) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_READONLY_USER_STORE)
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_SET_USER_CLAIM_VALUES) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_SET_USER_CLAIM_VALUES))
         ) {
             Set<String> keys = claims.keySet();
             String[] claimURIs = keys.toArray(new String[keys.size()]);
@@ -130,7 +122,7 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
             if (claimURIs.length > 0) {
                 Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claimURIs,
                         UserCoreConstants.DEFAULT_PROFILE);
-                setUserClaimValues(userName, inboundAttributes, userStoreManager);
+                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
             }
         }
         return true;
@@ -141,11 +133,13 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
                                                   String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUES)) {
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUES) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES))
+        ) {
             if (claims.length > 0) {
                 Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claims,
                         UserCoreConstants.DEFAULT_PROFILE);
-                setUserClaimValues(userName, inboundAttributes, userStoreManager);
+                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
             }
         }
         return true;
@@ -156,11 +150,13 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
                                                  String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_DELETING_USER_CLAIM_VALUE)) {
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUE) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE))
+        ) {
             if (!claimURI.isEmpty()) {
                 Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, new String[] {
                         claimURI}, UserCoreConstants.DEFAULT_PROFILE);
-                setUserClaimValues(userName, inboundAttributes, userStoreManager);
+                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
             }
         }
         return true;
@@ -170,9 +166,8 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
     public boolean onDeleteRoleFailure(String errorCode, String errorMessage, String roleName,
                                        UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (errorCode.equalsIgnoreCase(ERROR_CODE_READONLY_USER_STORE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_WRITE_GROUPS_NOT_ENABLED) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_WHILE_DELETE_ROLE)
+        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_ROLE) ||
+                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_ROLE))
         ) {
             org.wso2.carbon.user.api.Permission[] permissions = null;
             String[] users = userStoreManager.getUserListOfRole(roleName);
@@ -193,7 +188,7 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
             if (permissions == null) {
                 permissions = new org.wso2.carbon.user.api.Permission[0];
             }
-            addRole(roleName, users, userStoreManager);
+            addOutboundProvisioningRole(roleName, users, userStoreManager);
         }
         return true;
     }
@@ -206,7 +201,7 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
      * @return boolean
      * @throws UserStoreException
      */
-    private boolean addRole(String roleName, String[] userList, UserStoreManager userStoreManager)
+    private boolean addOutboundProvisioningRole(String roleName, String[] userList, UserStoreManager userStoreManager)
             throws  UserStoreException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
@@ -276,8 +271,8 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
      * @return boolean
      * @throws IdentityProvisioningException
      */
-    private boolean setUserClaimValues(String userName, Map<String, String> inboundAttributes,
-                                       UserStoreManager userStoreManager) throws IdentityProvisioningException {
+    private boolean setOutboundProvisionedUserClaimValues(String userName, Map<String, String> inboundAttributes,
+                                                          UserStoreManager userStoreManager) throws IdentityProvisioningException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
@@ -342,8 +337,8 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
      * @return boolean
      * @throws UserStoreException
      */
-    private boolean deleteRole(String roleName, org.wso2.carbon.user.api.Permission[] permissions,
-                               UserStoreManager userStoreManager) throws UserStoreException {
+    private boolean deleteOutboundProvisionedRole(String roleName, org.wso2.carbon.user.api.Permission[] permissions,
+                                                  UserStoreManager userStoreManager) throws UserStoreException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
@@ -404,7 +399,7 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
      * @return boolean
      * @throws UserStoreException
      */
-    private boolean deleteUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
+    private boolean deleteOutboundProvisionedUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
         outboundAttributes.put(ClaimMapping.build(
@@ -458,6 +453,12 @@ public class OutboundProvisioningErrorListener extends AbstractIdentityUserMgtFa
      * @return {int} priority
      */
     public int getExecutionOrderId() {
-        return 9;
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (UserManagementErrorEventListener.class.getName(), this.getClass().getName());
+        if (identityEventListenerConfig == null) {
+            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
+        }
+        return identityEventListenerConfig.getOrder();
     }
 }
