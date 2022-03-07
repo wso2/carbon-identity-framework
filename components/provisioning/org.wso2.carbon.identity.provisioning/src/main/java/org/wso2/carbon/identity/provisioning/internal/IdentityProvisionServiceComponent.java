@@ -123,7 +123,9 @@ public class IdentityProvisionServiceComponent {
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provider Management Event listener registered successfully");
             }
-            ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(), null);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(),
+                            null);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provision Error Event listener registered successfully");
             }
@@ -212,6 +214,7 @@ public class IdentityProvisionServiceComponent {
      * @param entitlementService
      */
     protected void unsetEntitlementService(EntitlementService entitlementService) {
+
         if (log.isDebugEnabled()) {
             log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
         }
@@ -229,6 +232,7 @@ public class IdentityProvisionServiceComponent {
             unbind = "unsetRolePermissionManagementService"
     )
     protected void setRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService) {
+
         if (log.isDebugEnabled()) {
             log.info("Role Permission Management Service is set to Identity Provisioning bundle.");
         }
@@ -236,14 +240,11 @@ public class IdentityProvisionServiceComponent {
     }
 
     protected void unsetRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService){
+
         if (log.isDebugEnabled()) {
             log.info("Role Permission Management Service is unset to Identity Provisioning bundle.");
         }
         ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(null);
-    }
-
-    public static RolePermissionManagementService getRolePermissionManagementService() {
-        return ProvisioningServiceDataHolder.getInstance().getRolePermissionManagementService();
     }
 }
 
