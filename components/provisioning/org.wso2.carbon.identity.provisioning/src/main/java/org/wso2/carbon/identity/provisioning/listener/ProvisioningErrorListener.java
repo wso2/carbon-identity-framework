@@ -200,7 +200,7 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.POST,
                 outboundAttributes);
 
-        return outBoundProvisionEntity(provisioningEntity);
+        return outboundProvisionEntity(provisioningEntity);
     }
 
     /**
@@ -236,7 +236,7 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         // Set the in-bound attribute list.
         provisioningEntity.setInboundAttributes(inboundAttributes);
 
-        return outBoundProvisionEntity(provisioningEntity);
+        return outboundProvisionEntity(provisioningEntity);
     }
 
     /**
@@ -268,7 +268,7 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
 
-        return outBoundProvisionEntity(provisioningEntity);
+        return outboundProvisionEntity(provisioningEntity);
     }
 
     /**
@@ -296,11 +296,12 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                 ProvisioningEntityType.USER, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
 
-        return outBoundProvisionEntity(provisioningEntity);
+        return outboundProvisionEntity(provisioningEntity);
     }
 
     /**
      * Method to get the priority of the listener.
+     *
      * @return {int} priority.
      */
     public int getExecutionOrderId() {
@@ -320,7 +321,7 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
      * @return {boolean} Status shows that the entity is provisioned.
      * @throws IdentityProvisioningException if error occurred while out provisioning an entity.
      */
-    private boolean outBoundProvisionEntity(ProvisioningEntity provisioningEntity) throws IdentityProvisioningException {
+    private boolean outboundProvisionEntity(ProvisioningEntity provisioningEntity) throws IdentityProvisioningException {
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
