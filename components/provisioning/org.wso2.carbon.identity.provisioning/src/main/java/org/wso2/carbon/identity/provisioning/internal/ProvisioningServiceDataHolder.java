@@ -92,8 +92,16 @@ public class ProvisioningServiceDataHolder {
         this.rolePermissionManagementService = rolePermissionManagementService;
     }
 
+    /**
+     * Method to get rolePermissionManagementService.
+     *
+     * @return {RolePermissionManagementService}
+     */
     public RolePermissionManagementService getRolePermissionManagementService() {
 
+        if (rolePermissionManagementService == null) {
+            throw new RuntimeException("Role permission management service cannot be found.");
+        }
         return rolePermissionManagementService;
     }
 }

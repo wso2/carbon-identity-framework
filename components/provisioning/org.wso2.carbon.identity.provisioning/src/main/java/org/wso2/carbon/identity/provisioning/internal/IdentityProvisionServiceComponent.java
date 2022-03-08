@@ -218,9 +218,6 @@ public class IdentityProvisionServiceComponent {
         ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
     }
 
-    /**
-     * @param rolePermissionManagementService
-     */
     @Reference(
             name = "user.mgt.role.permission",
             service = org.wso2.carbon.user.mgt.RolePermissionManagementService.class,

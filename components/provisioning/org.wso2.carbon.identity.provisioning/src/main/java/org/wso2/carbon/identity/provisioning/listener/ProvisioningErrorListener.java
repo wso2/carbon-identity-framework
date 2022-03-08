@@ -57,6 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Used for handle provisioning errors.
+ */
 public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEventListener {
 
     private static final Log log = LogFactory.getLog(ProvisioningErrorListener.class);
@@ -177,19 +180,16 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
             throws  UserStoreException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
-
         if (StringUtils.isNotEmpty(roleName)) {
             outboundAttributes.put(ClaimMapping.build(
                     IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), Arrays
                     .asList(new String[]{roleName}));
         }
-
         if (userList != null && userList.length > 0) {
             outboundAttributes.put(ClaimMapping.build(
                     IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false), Arrays
                     .asList(userList));
         }
-
         String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
         if (log.isDebugEnabled()) {
             log.debug("Adding domain name : " + domainName + " to role : " + roleName);
@@ -199,7 +199,6 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         ProvisioningEntity provisioningEntity = new ProvisioningEntity(
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.POST,
                 outboundAttributes);
-
         return outboundProvisionEntity(provisioningEntity);
     }
 
@@ -216,26 +215,21 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                                                           UserStoreManager userStoreManager) throws IdentityProvisioningException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
-
         if (StringUtils.isNotEmpty(userName)) {
             outboundAttributes.put(ClaimMapping.build(
                             IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                     Arrays.asList(new String[]{userName}));
         }
-
         String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
         if (log.isDebugEnabled()) {
             log.debug("Adding domain name : " + domainName + " to user : " + userName);
         }
         String domainAwareName = UserCoreUtil.addDomainToName(userName, domainName);
-
         ProvisioningEntity provisioningEntity = new ProvisioningEntity(
                 ProvisioningEntityType.USER, domainAwareName, ProvisioningOperation.PUT,
                 outboundAttributes);
-
         // Set the in-bound attribute list.
         provisioningEntity.setInboundAttributes(inboundAttributes);
-
         return outboundProvisionEntity(provisioningEntity);
     }
 
@@ -251,13 +245,11 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
-
         if (StringUtils.isNotEmpty(roleName)) {
             outboundAttributes.put(ClaimMapping.build(
                     IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), Arrays
                     .asList(new String[]{roleName}));
         }
-
         String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
         if (log.isDebugEnabled()) {
             log.debug("Adding domain name : " + domainName + " to user : " + roleName);
@@ -267,7 +259,6 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         ProvisioningEntity provisioningEntity = new ProvisioningEntity(
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
-
         return outboundProvisionEntity(provisioningEntity);
     }
 
@@ -285,17 +276,14 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         outboundAttributes.put(ClaimMapping.build(
                 IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false), Arrays
                 .asList(new String[]{userName}));
-
         String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
         if (log.isDebugEnabled()) {
             log.debug("Adding domain name : " + domainName + " to user : " + userName);
         }
         String domainAwareName = UserCoreUtil.addDomainToName(userName, domainName);
-
         ProvisioningEntity provisioningEntity = new ProvisioningEntity(
                 ProvisioningEntityType.USER, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
-
         return outboundProvisionEntity(provisioningEntity);
     }
 
@@ -324,7 +312,6 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
     private boolean outboundProvisionEntity(ProvisioningEntity provisioningEntity) throws IdentityProvisioningException {
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
         ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
         threadLocalServiceProvider = IdentityApplicationManagementUtil
                 .getThreadLocalProvisioningServiceProvider();
@@ -343,7 +330,6 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                     return true;
                 }
             }
-
             // Call framework method to provision the user.
             OutboundProvisioningManager.getInstance().provision(provisioningEntity,
                     serviceProvider, threadLocalServiceProvider.getClaimDialect(),
