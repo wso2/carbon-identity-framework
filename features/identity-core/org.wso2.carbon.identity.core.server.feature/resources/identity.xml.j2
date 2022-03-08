@@ -1278,6 +1278,9 @@
         temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
         'UseVerifyClaim' should be set to true. -->
         <UseVerifyClaim>{{identity_mgt.user_claim_update.use_verify_claim}}</UseVerifyClaim>
+          <!-- When updating the claim value, it can be validated against the provided regex pattern.
+          To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
+          <EnableUserClaimInputRegexValidation>{{identity_mgt.enable_user_claim_input_regex_validation}}</EnableUserClaimInputRegexValidation>
     </UserClaimUpdate>
 
      <AccountSuspension>
