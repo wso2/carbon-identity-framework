@@ -338,7 +338,7 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
-        if (roleName != null) {
+        if (StringUtils.isNotEmpty(roleName)) {
             outboundAttributes.put(ClaimMapping.build(
                     IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), Arrays
                     .asList(new String[]{roleName}));
