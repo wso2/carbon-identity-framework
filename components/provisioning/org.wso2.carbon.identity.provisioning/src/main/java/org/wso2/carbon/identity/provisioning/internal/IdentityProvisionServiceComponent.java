@@ -127,10 +127,7 @@ public class IdentityProvisionServiceComponent {
                     .registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(),
                             null);
             if (log.isDebugEnabled()) {
-                log.debug("Identity Provision Error Event listener registered successfully");
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Identity Provisioning framework bundle is activated");
+                log.debug("Identity provisioning error event listener registered successfully");
             }
         } catch (Throwable e) {
             log.error("Error while initiating identity provisioning connector framework", e);
@@ -234,7 +231,7 @@ public class IdentityProvisionServiceComponent {
     protected void setRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService) {
 
         if (log.isDebugEnabled()) {
-            log.info("Role Permission Management Service is set to Identity Provisioning bundle.");
+            log.debug("Role Permission Management Service is set to Identity Provisioning bundle.");
         }
         ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(rolePermissionManagementService);
     }
@@ -242,7 +239,7 @@ public class IdentityProvisionServiceComponent {
     protected void unsetRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService){
 
         if (log.isDebugEnabled()) {
-            log.info("Role Permission Management Service is unset to Identity Provisioning bundle.");
+            log.debug("Role Permission Management Service is unset to Identity Provisioning bundle.");
         }
         ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(null);
     }

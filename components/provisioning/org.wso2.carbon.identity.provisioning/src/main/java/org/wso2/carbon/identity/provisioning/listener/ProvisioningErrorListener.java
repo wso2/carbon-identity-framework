@@ -42,6 +42,8 @@ import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
 import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
+import org.wso2.carbon.user.api.Permission;
+import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -59,52 +61,28 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
 
     private static final Log log = LogFactory.getLog(ProvisioningErrorListener.class);
 
-    // Error codes related to add user failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_ADD_USER = "31302";
-    private final String ERROR_CODE_ERROR_DURING_POST_ADD_USER = "31307";
-
-    // Error codes related to add role failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_ADD_ROLE = "31701";
-    private final String ERROR_CODE_ERROR_DURING_POST_ADD_ROLE = "31703";
-
-    // Error codes related to delete role failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_DELETE_ROLE = "31801";
-    private final String ERROR_CODE_ERROR_DURING_POST_DELETE_ROLE = "31803";
-
-    // Error codes related to set claim values failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_SET_USER_CLAIM_VALUES = "39001";
-    private final String ERROR_CODE_ERROR_DURING_POST_SET_USER_CLAIM_VALUES = "39003";
-
-    // Error codes related to delete claims failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUES = "31101";
-    private final String ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES = "31102";
-
-    // Error codes related to delete claim failure.
-    private final String ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUE = "31201";
-    private final String ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE = "31202";
-
     @Override
     public boolean onAddUserFailureWithID(String errorCode, String errorMessage, String userName, Object credential,
                                           String[] roleList, Map<String, String> claims, String profile, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_ADD_USER) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_ADD_USER))) {
-            return deleteOutboundProvisionedUser(userName, userStoreManager);
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_ADD_USER.getCode())) {
+            return true;
         }
-        return true;
+        return deleteOutboundProvisionedUser(userName, userStoreManager);
     }
 
     @Override
     public boolean onAddRoleFailure(String errorCode, String errorMessage, String roleName, String[] userList,
-                                    org.wso2.carbon.user.api.Permission[] permissions, UserStoreManager userStoreManager)
+                                    Permission[] permissions, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_ADD_ROLE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_ADD_ROLE))) {
-            deleteOutboundProvisionedRole(roleName, permissions, userStoreManager);
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_ADD_ROLE.getCode())) {
+            return true;
         }
-        return true;
+        return deleteOutboundProvisionedRole(roleName, permissions, userStoreManager);
     }
 
     @Override
@@ -112,18 +90,16 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                                                Map<String, String> claims, String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_SET_USER_CLAIM_VALUES) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_SET_USER_CLAIM_VALUES))) {
-            Set<String> keys = claims.keySet();
-            String[] claimURIs = keys.toArray(new String[keys.size()]);
-
-            if (claimURIs.length > 0) {
-                Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claimURIs,
-                        UserCoreConstants.DEFAULT_PROFILE);
-                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
-            }
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_SET_USER_CLAIM_VALUES.getCode()) ||
+                claims.isEmpty()) {
+            return true;
         }
-        return true;
+        Set<String> keys = claims.keySet();
+        String[] claimURIs = keys.toArray(new String[keys.size()]);
+        Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claimURIs,
+                UserCoreConstants.DEFAULT_PROFILE);
+        return setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
     }
 
     @Override
@@ -131,15 +107,14 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                                                   String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUES) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES))) {
-            if (claims.length > 0) {
-                Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claims,
-                        UserCoreConstants.DEFAULT_PROFILE);
-                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
-            }
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES.getCode()) ||
+                claims.length == 0) {
+            return true;
         }
-        return true;
+        Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claims,
+                UserCoreConstants.DEFAULT_PROFILE);
+        return setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
     }
 
     @Override
@@ -147,54 +122,55 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                                                  String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_USER_CLAIM_VALUE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE))) {
-            if (!claimURI.isEmpty()) {
-                Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, new String[] {
-                        claimURI}, UserCoreConstants.DEFAULT_PROFILE);
-                setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
-            }
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE.getCode()) ||
+                claimURI.isEmpty()) {
+            return true;
         }
-        return true;
+        Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, new String[] {
+                claimURI}, UserCoreConstants.DEFAULT_PROFILE);
+        return setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
     }
 
     @Override
     public boolean onDeleteRoleFailure(String errorCode, String errorMessage, String roleName,
                                        UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!(errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_PRE_DELETE_ROLE) ||
-                errorCode.equalsIgnoreCase(ERROR_CODE_ERROR_DURING_POST_DELETE_ROLE))) {
-            org.wso2.carbon.user.api.Permission[] permissions = null;
-            String[] users = userStoreManager.getUserListOfRole(roleName);
-            String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomainName);
-            try {
-                String[] permissionList = ProvisioningServiceDataHolder.getInstance().getRolePermissionManagementService()
-                        .getRolePermissions(roleName, tenantId);
-                if (permissionList.length > 0) {
-                    permissions = new org.wso2.carbon.user.api.Permission[permissionList.length];
-                    for (int index=0; index<permissionList.length; index++) {
-                        permissions[index] = new org.wso2.carbon.user.api.Permission(permissionList[index],
-                                UserMgtConstants.EXECUTE_ACTION);
-                    }
-                }
-            } catch (Exception e) {
-                // Do nothing.
-            }
-            if (permissions == null) {
-                permissions = new org.wso2.carbon.user.api.Permission[0];
-            }
-            addOutboundProvisioningRole(roleName, users, userStoreManager);
+        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
+        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_DELETE_ROLE.getCode())) {
+            return true;
         }
-        return true;
+        Permission[] permissions = null;
+        String[] users = userStoreManager.getUserListOfRole(roleName);
+        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomainName);
+        try {
+            String[] permissionList = ProvisioningServiceDataHolder.getInstance().getRolePermissionManagementService()
+                    .getRolePermissions(roleName, tenantId);
+            if (permissionList.length > 0) {
+                permissions = new Permission[permissionList.length];
+                for (int index = 0; index < permissionList.length; index++) {
+                    permissions[index] = new Permission(permissionList[index], UserMgtConstants.EXECUTE_ACTION);
+                }
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting the permissions for a role.", e);
+            }
+        }
+        if (permissions == null) {
+            permissions = new Permission[0];
+        }
+        return addOutboundProvisioningRole(roleName, users, userStoreManager);
     }
 
     /**
      * Method to add role.
-     * @param roleName - Name of the role
-     * @param userList - Users assigned to the role
-     * @param userStoreManager - User store
-     * @return {boolean} - Status shows that the error is handled.
+     *
+     * @param roleName          Name of the role.
+     * @param userList          Users assigned to the role.
+     * @param userStoreManager  User store.
+     * @return {boolean} Status shows that the error is handled.
      * @throws UserStoreException if error occurred while adding an outbound provisioning role.
      */
     private boolean addOutboundProvisioningRole(String roleName, String[] userList, UserStoreManager userStoreManager)
@@ -224,47 +200,16 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.POST,
                 outboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // Call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // Call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return outBoundProvisionEntity(provisioningEntity);
     }
 
     /**
      * Method to set values for user claims.
-     * @param userName - UserName
-     * @param inboundAttributes - Claims
-     * @param userStoreManager - User Store
-     * @return {boolean} - Status shows that the error is handled.
+     *
+     * @param userName          UserName.
+     * @param inboundAttributes Claims.
+     * @param userStoreManager  User Store.
+     * @return {boolean} Status shows that the error is handled.
      * @throws IdentityProvisioningException if error occurred while setting outbound provisioned user claims.
      */
     private boolean setOutboundProvisionedUserClaimValues(String userName, Map<String, String> inboundAttributes,
@@ -291,49 +236,18 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         // Set the in-bound attribute list.
         provisioningEntity.setInboundAttributes(inboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // Call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // Call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-        return true;
+        return outBoundProvisionEntity(provisioningEntity);
     }
 
     /**
      * Method to delete a role.
-     * @param roleName - Name of the role
-     * @param userStoreManager - User Store
-     * @return {boolean} - Status shows that the error is handled.
+     *
+     * @param roleName          Name of the role.
+     * @param userStoreManager  User Store.
+     * @return {boolean} Status shows that the error is handled.
      * @throws UserStoreException if error occurred while deleting an outbound provisioned role.
      */
-    private boolean deleteOutboundProvisionedRole(String roleName, org.wso2.carbon.user.api.Permission[] permissions,
+    private boolean deleteOutboundProvisionedRole(String roleName, Permission[] permissions,
                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
@@ -354,46 +268,16 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                 ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // Call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // Call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-        return true;
+        return outBoundProvisionEntity(provisioningEntity);
     }
 
     /**
      * Method to delete a user.
-     * @param userName - UserName
-     * @param userStoreManager - User Store
-     * @return {boolean} - Status shows that the error is handled.
-     * @throws UserStoreException if error occurred while deleting an outbound provisioned role.
+     *
+     * @param userName          UserName.
+     * @param userStoreManager  User Store.
+     * @return {boolean} Status shows that the error is handled.
+     * @throws UserStoreException if error occurred while deleting an outbound provisioned user.
      */
     private boolean deleteOutboundProvisionedUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
@@ -411,6 +295,33 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
         ProvisioningEntity provisioningEntity = new ProvisioningEntity(
                 ProvisioningEntityType.USER, domainAwareName, ProvisioningOperation.DELETE,
                 outboundAttributes);
+
+        return outBoundProvisionEntity(provisioningEntity);
+    }
+
+    /**
+     * Method to get the priority of the listener.
+     * @return {int} priority.
+     */
+    public int getExecutionOrderId() {
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (UserManagementErrorEventListener.class.getName(), this.getClass().getName());
+        if (identityEventListenerConfig == null) {
+            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
+        }
+        return identityEventListenerConfig.getOrder();
+    }
+
+    /**
+     * Method to out provision the entity.
+     *
+     * @param provisioningEntity Entity to be provisioned.
+     * @return {boolean} Status shows that the entity is provisioned.
+     * @throws IdentityProvisioningException if error occurred while out provisioning an entity.
+     */
+    private boolean outBoundProvisionEntity(ProvisioningEntity provisioningEntity) throws IdentityProvisioningException {
+
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
         ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
@@ -442,19 +353,5 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
                             IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
         }
         return true;
-    }
-
-    /**
-     * Method to get the priority of the listener.
-     * @return {int} priority
-     */
-    public int getExecutionOrderId() {
-
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (UserManagementErrorEventListener.class.getName(), this.getClass().getName());
-        if (identityEventListenerConfig == null) {
-            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
-        }
-        return identityEventListenerConfig.getOrder();
     }
 }
