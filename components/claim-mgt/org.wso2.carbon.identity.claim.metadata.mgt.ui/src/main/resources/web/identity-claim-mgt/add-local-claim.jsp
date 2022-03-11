@@ -119,7 +119,9 @@
         if (userRealmInfo == null) {
             userRealmInfo = userAdminClient.getUserRealmInfo();
             session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
-        } else {
+        }
+        
+        if (userRealmInfo != null) {
             domainNames = userRealmInfo.getDomainNames();
         }
 
