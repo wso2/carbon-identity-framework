@@ -17,7 +17,8 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@page import="org.apache.log4j.Logger" %>
+<%@page import="org.apache.commons.logging.Log" %>
+<%@page import="org.apache.commons.logging.LogFactory" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
@@ -135,7 +136,7 @@
                 }
             </script>
             <%
-                Logger logger = Logger.getLogger(this.getClass());
+                Log logger = LogFactory.getLog(this.getClass());
                 SpTemplate[] spTemplates = null;
                 SpTemplate[] templatesToDisplay = new SpTemplate[0];
                 String paginationValue = "region=region1&item=sp_template_list";
