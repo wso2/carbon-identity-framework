@@ -106,36 +106,6 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
     }
 
     @Override
-    public boolean onDeleteUserClaimValuesFailure(String errorCode, String errorMessage, String userName, String[] claims,
-                                                  String profileName, UserStoreManager userStoreManager)
-            throws UserStoreException {
-
-        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
-        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUES.getCode()) ||
-                claims.length == 0) {
-            return true;
-        }
-        Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, claims,
-                UserCoreConstants.DEFAULT_PROFILE);
-        return setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
-    }
-
-    @Override
-    public boolean onDeleteUserClaimValueFailure(String errorCode, String errorMessage, String userName, String claimURI,
-                                                 String profileName, UserStoreManager userStoreManager)
-            throws UserStoreException {
-
-        // Outbound provisioning calls should not to be reverted if inbound provisioning is success.
-        if (errorCode.equalsIgnoreCase(ErrorMessages.ERROR_CODE_ERROR_DURING_POST_DELETE_USER_CLAIM_VALUE.getCode()) ||
-                claimURI.isEmpty()) {
-            return true;
-        }
-        Map<String, String> inboundAttributes = userStoreManager.getUserClaimValues(userName, new String[] {
-                claimURI}, UserCoreConstants.DEFAULT_PROFILE);
-        return setOutboundProvisionedUserClaimValues(userName, inboundAttributes, userStoreManager);
-    }
-
-    @Override
     public boolean onDeleteRoleFailure(String errorCode, String errorMessage, String roleName,
                                        UserStoreManager userStoreManager) throws UserStoreException {
 
