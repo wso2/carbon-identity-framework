@@ -2189,20 +2189,21 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Build templateId property for the IDP.
+     * Add templateId property for the IDP.
      *
-     * @param identityProvider Identity provider.
-     * @return templateId IdentityProviderProperty.
+     * @param identityProviderProperties List of IdP properties.
+     * @param identityProvider           Identity provider.
      */
-    private IdentityProviderProperty buildTemplateIdProperty(IdentityProvider identityProvider) {
+    private void addTemplateIdProperty(List<IdentityProviderProperty> identityProviderProperties,
+                                                           IdentityProvider identityProvider) {
 
-        IdentityProviderProperty templateIdProperty = new IdentityProviderProperty();
-        templateIdProperty.setName(TEMPLATE_ID_IDP_PROPERTY_NAME);
-        templateIdProperty.setDisplayName(TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME);
-        templateIdProperty
-                .setValue(StringUtils.isNotBlank(identityProvider.getTemplateId()) ? identityProvider.getTemplateId() :
-                        StringUtils.EMPTY);
-        return templateIdProperty;
+        if (StringUtils.isNotBlank(identityProvider.getTemplateId())) {
+            IdentityProviderProperty templateIdProperty = new IdentityProviderProperty();
+            templateIdProperty.setName(TEMPLATE_ID_IDP_PROPERTY_NAME);
+            templateIdProperty.setDisplayName(TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME);
+            templateIdProperty.setValue(identityProvider.getTemplateId());
+            identityProviderProperties.add(templateIdProperty);
+        }
     }
 
     /**
@@ -2775,7 +2776,7 @@ public class IdPManagementDAO {
             }
             List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
                     .getJustInTimeProvisioningConfig(), idpProperties);
-            identityProviderProperties.add(buildTemplateIdProperty(identityProvider));
+            addTemplateIdProperty(identityProviderProperties, identityProvider);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
             return resourceId;
