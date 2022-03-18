@@ -548,6 +548,8 @@ public abstract class FrameworkConstants {
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.Enable";
         public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
                 "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
         public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =

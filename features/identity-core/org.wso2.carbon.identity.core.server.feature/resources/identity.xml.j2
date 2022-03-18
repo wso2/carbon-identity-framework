@@ -2737,6 +2737,7 @@
         <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
+            <Enable>{{authentication.adaptive.execution_supervisor.enable}}</Enable>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
             {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}

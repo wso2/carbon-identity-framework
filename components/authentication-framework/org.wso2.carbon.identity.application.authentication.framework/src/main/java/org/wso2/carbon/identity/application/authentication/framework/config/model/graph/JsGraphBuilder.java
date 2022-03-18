@@ -183,7 +183,9 @@ public class JsGraphBuilder {
             } finally {
                 scriptExecutionData = endScriptExecutionMonitor(identifier);
             }
-            storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            if (scriptExecutionData != null) {
+                storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            }
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
@@ -1013,7 +1015,7 @@ public class JsGraphBuilder {
 
         JSExecutionSupervisor executionSupervisor = getJSExecutionSupervisor();
         if (executionSupervisor == null) {
-            return new JSExecutionMonitorData(0, 0);
+            return null;
         }
         return getJSExecutionSupervisor().completed(identifier);
     }
@@ -1100,8 +1102,9 @@ public class JsGraphBuilder {
                     } finally {
                         scriptExecutionData = endScriptExecutionMonitor(identifier);
                     }
-
-                    storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+                    if (scriptExecutionData != null) {
+                        storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+                    }
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
