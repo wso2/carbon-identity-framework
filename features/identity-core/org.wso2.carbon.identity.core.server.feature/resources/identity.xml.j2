@@ -2998,4 +2998,21 @@
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}
+
+    {% if authentication_context.method_refs is defined %}
+        <AuthenticationContext>
+            <MethodRefs>
+                {% for method_ref in authentication_context.method_refs %}
+                    {% if method_ref.amr_value is defined %}
+                    <MethodRef method="{{method_ref.method}}" uri="{{method_ref.amr_value}}" />
+                    {% elif method_ref.excluded_methods is defined %}
+                    {% for excluded_method in method_ref.excluded_methods %}
+                    <MethodRef method="{{excluded_method}}" xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </MethodRefs>
+        </AuthenticationContext>
+    {% endif %}
+
 </Server>
