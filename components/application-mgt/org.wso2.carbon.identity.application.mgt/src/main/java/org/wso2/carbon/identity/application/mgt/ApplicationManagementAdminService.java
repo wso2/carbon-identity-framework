@@ -240,8 +240,12 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                         totalFilteredSystemAppCount);
         int startIndexOfRequestedPage = (itemsPerPage * (pageNumber - 1));
         int endIndexOfRequestedPage = expectedFilteredAuthorizedAppInfoList.size();
-        return expectedFilteredAuthorizedAppInfoList.subList(startIndexOfRequestedPage, endIndexOfRequestedPage)
-                .toArray(new ApplicationBasicInfo[0]);
+        if (startIndexOfRequestedPage > endIndexOfRequestedPage) {
+            return new ApplicationBasicInfo[0];
+        } else {
+            return expectedFilteredAuthorizedAppInfoList.subList(startIndexOfRequestedPage, endIndexOfRequestedPage)
+                    .toArray(new ApplicationBasicInfo[0]);
+        }
     }
 
     /**
@@ -319,7 +323,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     @SuppressWarnings("ValidExternallyBoundObject")
     public int getCountOfAllApplications() throws IdentityApplicationManagementException {
 
-        int applicationCount;
+        int applicationCount = 0;
         boolean validateRoles = ApplicationMgtUtil.validateRoles();
         if (!validateRoles) {
             if (log.isDebugEnabled()) {
@@ -332,8 +336,15 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             /* Application role validation is enabled. Checking the
              number of applications the user has access to, based
              on the application role. */
+            String applicationRolePrefix = "Application/";
             List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
-            applicationCount = applicationRoles.size();
+            ApplicationBasicInfo[] applications = getAllApplicationBasicInfo();
+
+            for (ApplicationBasicInfo applicationBasicInfo : applications) {
+                if (applicationRoles.contains(applicationRolePrefix + applicationBasicInfo.getApplicationName())) {
+                    applicationCount += 1;
+                }
+            }
         }
 
         return applicationCount;
