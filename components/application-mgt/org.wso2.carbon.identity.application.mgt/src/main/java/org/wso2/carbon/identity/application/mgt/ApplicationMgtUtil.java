@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
@@ -605,18 +606,16 @@ public class ApplicationMgtUtil {
             applicationNode) throws RegistryException {
 
         Collection appCollection = (Collection) tenantGovReg.get(permissionPath);
-        String[] childern = appCollection.getChildren();
+        String[] children = appCollection.getChildren();
 
-        if (childern == null || childern.length == 0) {
+        if ((children == null || children.length == 0) && !Objects.equals(permissionPath, applicationNode)) {
             paths.add(permissionPath.replace(applicationNode, "").substring(2));
         }
 
-        while (childern != null && childern.length != 0) {
-            for (int i = 0; i < childern.length; i++) {
-                permissionPath(tenantGovReg, childern[i], paths, applicationNode);
+        if (children != null && children.length != 0) {
+            for (String child : children) {
+                permissionPath(tenantGovReg, child, paths, applicationNode);
             }
-            break;
-
         }
     }
 
