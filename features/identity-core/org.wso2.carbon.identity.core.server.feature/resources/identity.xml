@@ -1129,6 +1129,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger"
                        orderId="9" enable="false"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                       name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
+                       orderId="1" enable="false"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -1213,24 +1216,24 @@
             <Scopes>internal_config_mgt_list</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type(.*)" secured="true" http-method="POST">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="PUT">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
@@ -1238,7 +1241,7 @@
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
@@ -1918,8 +1921,9 @@
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST, PUT"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET, DELETE"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST, PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET, DELETE, POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET, DELETE"/>

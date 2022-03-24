@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -56,7 +58,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_EXPRESSION;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -68,6 +70,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
+    private static Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
 
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
@@ -491,9 +494,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         for (PropertyDTO propertyDTOValue : propertyDTO) {
             if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
                 String connectionURL = propertyDTOValue.getValue();
-                if (connectionURL != null && connectionURL.toLowerCase().contains(H2_INIT_EXPRESSION)) {
-                    throw new IdentityUserStoreMgtException("INIT expressions are not allowed in the connection " +
-                            "URL due to security reasons.");
+                if (StringUtils.isNotEmpty(connectionURL)) {
+                    String validationConnectionString = connectionURL.toLowerCase().replace("\\", "");
+                    Matcher matcher = h2InitPattern.matcher(validationConnectionString);
+                    if (matcher.find()) {
+                        throw new IdentityUserStoreMgtException("INIT expressions are not allowed in the connection " +
+                                "URL due to security reasons.");
+                    }
                 }
             }
         }

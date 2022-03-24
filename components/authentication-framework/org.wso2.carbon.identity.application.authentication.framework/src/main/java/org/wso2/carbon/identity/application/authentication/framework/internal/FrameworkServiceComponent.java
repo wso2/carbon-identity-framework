@@ -364,6 +364,15 @@ public class FrameworkServiceComponent {
 
     private void setAdaptiveAuthExecutionSupervisor() {
 
+        String isEnabled = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_ENABLE);
+        if (!Boolean.parseBoolean(isEnabled)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Adaptive auth script execution supervisor is turned off.");
+            }
+            return;
+        }
+
         String threadCountString = IdentityUtil.getProperty(
                 FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_THREAD_COUNT);
         int threadCount = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT;
@@ -400,8 +409,6 @@ public class FrameworkServiceComponent {
             }
         }
 
-
-
         FrameworkServiceDataHolder.getInstance()
                 .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis, memoryLimitInBytes));
     }
@@ -415,7 +422,9 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
         SessionDataStore.getInstance().stopService();
-        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+        if (FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor() != null) {
+            FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+        }
     }
 
     @Reference(

@@ -1595,6 +1595,12 @@
             {% endfor %}
         </EventListener>
         {% endfor %}
+        <EventListener id="provision_error_listener"
+                type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
+                orderId="{{event.default_listener.outbound_provisioning_error_handler.priority}}"
+                enable="{{event.default_listener.outbound_provisioning_error_handler.enable}}">
+        </EventListener>
     </EventListeners>
 
     {% if analytics.publish_active_session_count is defined %}
@@ -1844,24 +1850,24 @@
             <Scopes>internal_config_mgt_list</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
@@ -1869,7 +1875,7 @@
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
@@ -2596,10 +2602,10 @@
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
@@ -2731,6 +2737,7 @@
         <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
+            <Enable>{{authentication.adaptive.execution_supervisor.enable}}</Enable>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
             {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
@@ -2991,4 +2998,21 @@
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}
+
+    {% if authentication_context.method_refs is defined %}
+        <AuthenticationContext>
+            <MethodRefs>
+                {% for method_ref in authentication_context.method_refs %}
+                    {% if method_ref.amr_value is defined %}
+                    <MethodRef method="{{method_ref.method}}" uri="{{method_ref.amr_value}}" />
+                    {% elif method_ref.excluded_methods is defined %}
+                    {% for excluded_method in method_ref.excluded_methods %}
+                    <MethodRef method="{{excluded_method}}" xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </MethodRefs>
+        </AuthenticationContext>
+    {% endif %}
+
 </Server>

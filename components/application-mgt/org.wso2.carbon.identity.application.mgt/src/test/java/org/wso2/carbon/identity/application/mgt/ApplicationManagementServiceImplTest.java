@@ -76,6 +76,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -139,6 +140,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(retrievedSP.getApplicationID(), inputSP.getApplicationID());
         Assert.assertEquals(retrievedSP.getOwner().getUserName(), inputSP.getOwner().getUserName());
+        Assert.assertFalse(retrievedSP.isManagementApp());
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
@@ -501,6 +503,51 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         // Deleting added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "testAddApplicationWithIsManagementApplicationData")
+    public Object[][] testAddApplicationWithIsManagementApplicationData() {
+
+
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "testAddApplicationWithIsManagementApplicationData")
+    public void testAddApplicationWithIsManagementApplication(boolean isManagementApp) throws Exception {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        inputSP.setManagementApp(isManagementApp);
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        Assert.assertEquals(addedSP.isManagementApp(), isManagementApp);
+
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.isManagementApp(), isManagementApp);
+
+        // Updating the application by changing the isManagementApplication flag. It should not be changed.
+        inputSP.setManagementApp(!isManagementApp);
+
+        applicationManagementService.updateApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.isManagementApp(), isManagementApp);
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {

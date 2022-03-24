@@ -1572,6 +1572,20 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td class="leftCol-med">
+                                <label for="isManagementApp"><fmt:message key="config.application.isManagementApp"/></label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input type="checkbox" id="isManagementApp"
+                                           name="isManagementApp" <%=appBean.getServiceProvider().getManagementApp() ? "checked" : "" %> disabled/>
+                                    <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='help.management.app'/>
+                                </span>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 

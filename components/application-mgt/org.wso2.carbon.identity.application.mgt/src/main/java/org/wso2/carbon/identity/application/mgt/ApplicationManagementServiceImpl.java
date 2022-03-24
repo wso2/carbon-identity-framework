@@ -640,6 +640,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
 
+            // Updating the isManagement flag of application is blocked. So updating it to stored value
+            boolean isManagementApp = appDAO.getApplication(serviceProvider.getApplicationID())
+                    .isManagementApp();
+            serviceProvider.setManagementApp(isManagementApp);
+
             doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdatedInRequest(serviceProvider)) {

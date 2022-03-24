@@ -219,6 +219,15 @@ window.onload = function() {
                             </div>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="leftCol-med labelField">Management Application:</td>
+                        <td>
+                            <input type="checkbox" name="is-management-app" id="is-management-app"/>
+                            <div class="sectionHelp">
+                                <fmt:message key='help.management.app'/>
+                            </div>
+                        </td>
+                    </tr>
                     <%
                         if (spTemplates != null && spTemplates.length > 0) {
                     %>

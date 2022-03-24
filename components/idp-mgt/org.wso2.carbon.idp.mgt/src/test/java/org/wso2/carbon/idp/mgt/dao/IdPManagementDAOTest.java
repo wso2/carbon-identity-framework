@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
+import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -996,6 +997,10 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         newProvisioningConnectorConfig2.setBlocking(true);
         idp1New.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{newProvisioningConnectorConfig1,
                 newProvisioningConnectorConfig2});
+
+        JustInTimeProvisioningConfig justInTimeProvisioningConfig = new JustInTimeProvisioningConfig();
+        justInTimeProvisioningConfig.setProvisioningUserStore("PRIMARY");
+        idp1New.setJustInTimeProvisioningConfig(justInTimeProvisioningConfig);
 
         ClaimConfig newClaimConfig = new ClaimConfig();
         newClaimConfig.setLocalClaimDialect(false);
