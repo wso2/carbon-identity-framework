@@ -61,6 +61,8 @@ public class IdentityManagementServiceUtil {
     private String contextURL;
     private String appName;
     private char[] appPassword;
+    private String basicAuthName;
+    private char[] basicAuthPassword;
 
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
@@ -125,6 +127,10 @@ public class IdentityManagementServiceUtil {
                     .APP_NAME);
             appPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
                     .APP_PASSWORD).toCharArray();
+            basicAuthName = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .BASIC_AUTH_NAME);
+            basicAuthPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .BASIC_AUTH_PASSWORD).toCharArray();
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             contextURL = serviceContextURL;
@@ -274,6 +280,14 @@ public class IdentityManagementServiceUtil {
     }
 
     public char[] getAppPassword() {
+        return appPassword;
+    }
+
+    public String getBasicAuthName() {
+        return appName;
+    }
+
+    public char[] getBasicAuthPassword() {
         return appPassword;
     }
 

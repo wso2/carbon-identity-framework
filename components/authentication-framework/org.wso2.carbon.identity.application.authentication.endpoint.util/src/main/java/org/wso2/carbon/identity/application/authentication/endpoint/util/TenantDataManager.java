@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +45,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -59,10 +57,8 @@ public class TenantDataManager {
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
     private static Properties prop;
-    private static String carbonLogin = "";
     private static String serviceURL;
-    private static String usernameHeaderName = "";
-    private static List<String> tenantDomainList = new ArrayList<String>();
+    private static final List<String> tenantDomainList = new ArrayList<>();
     private static boolean initialized = false;
     private static boolean initAttempted = false;
 
@@ -111,40 +107,6 @@ public class TenantDataManager {
 
                 if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
 
-                        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
-
-                        carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
-
-                        // Base64 encoded username
-                        carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
-
-                        String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-                        String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-                                .CLIENT_TRUST_STORE));
-
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-                            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-                                    .TLS_PROTOCOL));
-                        }
-
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-                            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-                                    .KEY_MANAGER_TYPE));
-                        }
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-                            TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-                                    .TRUST_MANAGER_TYPE));
-                        }
-
-                        TenantMgtAdminServiceClient
-                                .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-                                        .CLIENT_KEY_STORE_PASSWORD));
-                        TenantMgtAdminServiceClient
-                                .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-                                        .CLIENT_TRUST_STORE_PASSWORD));
-                        TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
-                                getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
-
                         // Build the service URL of tenant management admin service
                         StringBuilder builder = new StringBuilder();
                         serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
@@ -154,7 +116,7 @@ public class TenantDataManager {
                 }
             }
 
-        } catch (AuthenticationException | IOException e) {
+        } catch (IOException e) {
             log.error("Initialization failed : ", e);
         } finally {
             if (inputStream != null) {
@@ -211,11 +173,10 @@ public class TenantDataManager {
      * @return Response from service
      */
     private static String getServiceResponse(String url) {
-        String serviceResponse = null;
-        Map<String, String> headerParams = new HashMap<String, String>();
-        // Set the username in HTTP header for mutual ssl authentication
-        headerParams.put(usernameHeaderName, carbonLogin);
-        serviceResponse = TenantMgtAdminServiceClient.sendPostRequest(url, null, headerParams);
+
+        String serviceResponse;
+        serviceResponse = AuthenticationEndpointUtil.sendPostRequest(url, null, null,
+                AuthenticationEndpointUtil.BASIC_AUTH_TYPE);
         return serviceResponse;
     }
 
@@ -275,7 +236,7 @@ public class TenantDataManager {
                         Constants.TenantConstants.RETURN + "']";
 
                 XPathExpression expr = xpath.compile(xPathExpression);
-                NodeList nodeList = null;
+                NodeList nodeList;
                 nodeList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 
                 // Reset existing tenant domains list
