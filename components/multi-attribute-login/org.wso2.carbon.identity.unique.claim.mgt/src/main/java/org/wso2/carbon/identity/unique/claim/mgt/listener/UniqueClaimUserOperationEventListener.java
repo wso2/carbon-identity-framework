@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.unique.claim.mgt.internal.UniqueClaimUserOperati
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
@@ -170,7 +171,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             String claimList = String.join(", ", duplicateClaim);
             errorMessage = "The values defined for " + claimList + " are already in use by a different users!";
         }
-        throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
+        throw new UserStoreClientException(errorMessage, new PolicyViolationException(errorMessage));
     }
 
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,
