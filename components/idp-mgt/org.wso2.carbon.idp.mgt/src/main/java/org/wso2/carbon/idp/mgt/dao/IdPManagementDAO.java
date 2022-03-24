@@ -2913,10 +2913,13 @@ public class IdPManagementDAO {
                     && newIdentityProvider.getJustInTimeProvisioningConfig()
                     .isProvisioningEnabled()) {
                 prepStmt1.setString(6, IdPManagementConstants.IS_TRUE_VALUE);
-                prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore
-                        ());
             } else {
                 prepStmt1.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
+            }
+            // user will be provisioned to the configured user store.
+            if (newIdentityProvider.getJustInTimeProvisioningConfig() != null) {
+                prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
+            } else {
                 prepStmt1.setString(7, null);
             }
 
