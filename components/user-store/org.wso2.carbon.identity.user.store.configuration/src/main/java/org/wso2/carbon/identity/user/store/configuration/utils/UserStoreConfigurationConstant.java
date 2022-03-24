@@ -45,7 +45,7 @@ public class UserStoreConfigurationConstant {
     public static final String FILE_EXTENSION_XML = ".xml";
     public static final String ALLOWED_USERSTORES = "AllowedUserstores";
     public static final String ALLOWED_USERSTORE = "AllowedUserstore";
-    public static final String H2_INIT_EXPRESSION = ";init=";
+    public static final String H2_INIT_REGEX = "\\s*;\\s*init\\s*=\\s*";
 
     // Attribute mappings constants
     public static final String CLAIM_CONFIG = "claim-config.xml";

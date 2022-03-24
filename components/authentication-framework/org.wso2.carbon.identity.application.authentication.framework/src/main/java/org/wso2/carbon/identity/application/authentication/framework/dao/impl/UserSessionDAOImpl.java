@@ -108,7 +108,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
              PreparedStatement ps = connection.prepareStatement(sql)) {
             int index = 1;
             for (String appId : appIdMap.keySet()) {
-                ps.setString(index, appId);
+                ps.setInt(index, Integer.parseInt(appId));
                 index++;
             }
             try (ResultSet rs = ps.executeQuery()) {

@@ -62,6 +62,8 @@ public class AuthenticationMethodNameTranslatorImplTest {
         assertTrue(translator.translateToExternalAmr("SampleHardwareKeyAuthenticator", "openid").contains("hwk"));
         assertTrue(translator.translateToExternalAmr("SomeOtherHwkAuthenticator", "openid").contains("hwk1"));
         assertTrue(translator.translateToExternalAmr("SomeOtherHwkAuthenticator", "openid").contains("hwk2"));
+        assertTrue(translator.translateToExternalAmr("AuthenticatorNoNeedToProvideInformation",
+                "openid").contains(String.valueOf(Character.MIN_VALUE)));
     }
 
     private AuthenticationMethodNameTranslatorImpl getTranslator(String fileName) throws XMLStreamException {
