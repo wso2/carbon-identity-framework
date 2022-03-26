@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
@@ -72,7 +73,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     private RequestEntityRelationshipDAO requestEntityRelationshipDAO = new RequestEntityRelationshipDAO();
     private WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
     private WorkflowRequestAssociationDAO workflowRequestAssociationDAO = new WorkflowRequestAssociationDAO();
-    private WorkflowEngine workflowEngine=new DefaultWorkflowEngine();
+    private WorkflowEngine workflowEngine = new DefaultWorkflowEngine();
+
+    static final int limit = 10;
+    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 
     @Override
     public Workflow getWorkflow(String workflowId) throws WorkflowException {
@@ -91,13 +95,13 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         return workflowBean;*/
 
-        int tenantId= IdentityTenantUtil.getTenantId(IdentityTenantUtil.getTenantDomainFromContext());
+        int tenantId = IdentityTenantUtil.getTenantId(IdentityTenantUtil.getTenantDomainFromContext());
         return workflowEngine.getWorkflow(workflowId, tenantId);
     }
 
     @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
-        
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -114,7 +118,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         return workflowParams;
     }
-
 
     @Override
     public List<WorkflowEvent> listWorkflowEvents() {
@@ -160,6 +163,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
         return eventList;
+
     }
 
     @Override
@@ -295,7 +299,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return template;
     }
 
-
     @Override
     public WorkflowImpl getWorkflowImpl(String templateId, String workflowImplId) throws WorkflowException {
 
@@ -382,10 +385,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 workflowListener.doPostAddWorkflow(workflow, parameterList, tenantId);
             }
         }*/
-        workflowEngine.addWorkflow(workflow,tenantId);
 
-        Workflow wfId=workflowDAO.getWorkflow(workflow.getWorkflowId());
-        workflowEngine.updateDefinition(workflow,wfId, tenantId);
+        workflowEngine.addWorkflow(workflow, tenantId);
+        String wfId = String.valueOf(workflowDAO.getWorkflow(workflow.getWorkflowId()));
+        workflowEngine.updateDefinition(workflow, wfId, tenantId);
     }
 
     @Override
@@ -450,9 +453,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
         return workflowList;*/
-        int limit=0;
-        int offset=0;
-        String searchQuery=null;
+        int offset = 0;
+        String searchQuery=myObj.nextLine();
+        //if(searchQuery!=null)
         return workflowEngine.getDefinitions(limit,offset, searchQuery,tenantId);
     }
 
@@ -517,6 +520,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 workflowListener.doPostDeleteWorkflows(tenantId);
             }
         }
+
     }
 
     @Override
@@ -690,7 +694,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requestType) throws
             WorkflowException {
         
-      /*  List<WorkflowListener> workflowListenerList =
+        List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
@@ -704,9 +708,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        return hasPendingWorkflows;*/
-        String userId=null;
-        return workflowEngine.getPendingApprovalRequests(userId, entity.getTenantId());
+        return hasPendingWorkflows;
     }
 
     /**
@@ -872,7 +874,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
 
-        List<WorkflowListener> workflowListenerList =
+      /*  List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         WorkflowRequest workflowRequest = new WorkflowRequest();
         workflowRequest.setRequestId(requestId);
@@ -893,7 +895,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             if (workflowListener.isEnable()) {
                 workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
             }
-        }
+        }*/
+        int tenantId=IdentityTenantUtil.getTenantId(IdentityTenantUtil.getTenantDomainFromContext());
+        workflowEngine.deleteActiveRequest(requestId, tenantId);
     }
 
     /**
@@ -954,11 +958,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
         return resultList;*/
-        int limit=0;
-        int offSet=0;
-        String searchQuery=null;
-        return workflowEngine.listActiveRequests(limit, offSet, searchQuery, tenantId);
-
+        int offSet = 0;
+        String searchQuery=myObj.nextLine();
+        //if(searchQuery!=null)
+            return workflowEngine.listActiveRequests(limit, offSet, searchQuery, tenantId);
     }
 
     /**

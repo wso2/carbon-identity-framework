@@ -19,7 +19,7 @@ public interface WorkflowEngine {
 
     Workflow getWorkflow(String wfId, int tenantId);
 
-    void updateDefinition(Workflow newWorkflowDefinition, Workflow wfId, int tenantId);
+    void updateDefinition(Workflow newWorkflowDefinition, String wfId, int tenantId);
 
     WorkflowRequest[] listActiveRequests(int limit, int offSet, String searchQuery, int tenantId);
 

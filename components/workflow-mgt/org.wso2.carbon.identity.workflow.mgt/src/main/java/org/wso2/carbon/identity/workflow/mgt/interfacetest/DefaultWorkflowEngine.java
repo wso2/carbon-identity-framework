@@ -33,7 +33,7 @@ public class DefaultWorkflowEngine implements WorkflowEngine{
     }
 
     @Override
-    public void updateDefinition(Workflow newWorkflowDefinition, Workflow wfId, int tenantId) {
+    public void updateDefinition(Workflow newWorkflowDefinition, String wfId, int tenantId) {
 
     }
 
