@@ -171,7 +171,7 @@
   "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
   "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
-  "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": false,
+  "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": true,
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,
