@@ -877,11 +877,11 @@
             <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                Default value : 2
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
             -->
-            <!--<MinQuestionsToAnswer></MinQuestionsToAnswer>
+            <!--<MinQuestionsToAnswer>1</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
