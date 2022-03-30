@@ -243,7 +243,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT));
         }
 
-        if (isPassThroughScenario(claimMappings, userAttributes)) {
+        if (isPassThroughScenario(claimsListOfScopes, claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
                 String remoteClaimUri = userAttribute.getKey().getRemoteClaim().getClaimUri();
                 if (subjectClaimUri.equals(remoteClaimUri) ||
@@ -319,9 +319,10 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         return !serviceProvider.getClaimConfig().isLocalClaimDialect();
     }
 
-    private boolean isPassThroughScenario(ClaimMapping[] claimMappings, Map<ClaimMapping, String> userAttributes) {
+    private boolean isPassThroughScenario(List<String> claimsListOfScopes, ClaimMapping[] claimMappings,
+                                          Map<ClaimMapping, String> userAttributes) {
 
-        return isEmpty(claimMappings) && isNotEmpty(userAttributes);
+        return isNotEmpty(claimsListOfScopes) && isEmpty(claimMappings) && isNotEmpty(userAttributes);
     }
 
     private String getSubjectClaimUri(ServiceProvider serviceProvider) {
