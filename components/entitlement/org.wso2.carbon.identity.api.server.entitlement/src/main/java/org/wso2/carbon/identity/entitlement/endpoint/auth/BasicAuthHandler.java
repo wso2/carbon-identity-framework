@@ -114,8 +114,10 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                             authzHeaders.set(0, userName);
                             return true;
                         } else {
-                            log.error("Authentication failed for the user: " + tenantLessUserName
-                                    + "@" + tenantDomain);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Authentication failed for the user: " + tenantLessUserName
+                                        + "@" + tenantDomain);
+                            }
                             return false;
                         }
                     } else {
