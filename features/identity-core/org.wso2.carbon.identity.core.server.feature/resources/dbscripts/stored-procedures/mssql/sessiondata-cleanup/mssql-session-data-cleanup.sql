@@ -66,10 +66,10 @@ SET @sessionCleanUpTempTableCount = 1;
 SET @operationCleanUpTempTableCount = 1;
 SET @cleanUpCompleted = 1;
 
--- Session data older than 20160 minutes(14 days) will be removed.
-SET @sessionCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (1209600000))AS DECIMAL) * 1000000
--- Operational data older than 720 minutes(12 h) will be removed.
-SET @operationCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (720*60000))AS DECIMAL) * 1000000
+-- Session data which the expiry time has passed over 60 minutes(1 hour) will be removed.
+SET @sessionCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (60*60000))AS DECIMAL) * 1000000
+-- Operational data older than 60 minutes(1 h) will be removed.
+SET @operationCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (60*60000))AS DECIMAL) * 1000000
 
 SET @SQL_SAFE_UPDATES = 0;
 SET @OLD_SQL_SAFE_UPDATES=@SQL_SAFE_UPDATES;
@@ -86,14 +86,14 @@ SELECT 'CLEANUP_SESSION_DATA() STARTED .... !' AS 'INFO LOG',GETUTCDATE() AS 'ST
 DROP TABLE IF EXISTS IDN_AUTH_SESSION_STORE_TMP;
 DROP TABLE IF EXISTS TEMP_SESSION_BATCH;
 
--- RUN UNTILL
+-- RUN UNTIL
 WHILE (@sessionCleanUpTempTableCount > 0)
 BEGIN
 
 IF NOT  EXISTS (SELECT * FROM SYS.OBJECTS WHERE OBJECT_ID = OBJECT_ID(N'[DBO].[IDN_AUTH_SESSION_STORE_TMP]') AND TYPE IN (N'U'))
 BEGIN
 CREATE TABLE IDN_AUTH_SESSION_STORE_TMP( SESSION_ID VARCHAR (100));
-INSERT INTO IDN_AUTH_SESSION_STORE_TMP (SESSION_ID) SELECT TOP (@chunkLimit) SESSION_ID FROM IDN_AUTH_SESSION_STORE where TIME_CREATED < @sessionCleanupTime;
+INSERT INTO IDN_AUTH_SESSION_STORE_TMP (SESSION_ID) SELECT TOP (@chunkLimit) SESSION_ID FROM IDN_AUTH_SESSION_STORE where EXPIRY_TIME < @sessionCleanupTime;
 CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID)
 END
 

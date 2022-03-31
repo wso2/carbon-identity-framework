@@ -56,10 +56,10 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     SET @operationCleanUpTempTableCount = 1;
     SET cleanUpCompleted = FALSE;
 
-    -- Session data older than 20160 minutes(14 days) will be removed.
-    SET @sessionCleanupTime = unix_timestamp()*1000000000 - (20160*60000000000);
-    -- Operational data older than 720 minutes(12 h) will be removed.
-    SET @operationCleanupTime = unix_timestamp()*1000000000 - (720*60000000000);
+    -- Session data which the expiry time has passed over 60 minutes(1 hour) will be removed.
+    SET @sessionCleanupTime = unix_timestamp()*1000000000 - (60*60000000000);
+    -- Operational data older than 60 minutes(1 h) will be removed.
+    SET @operationCleanupTime = unix_timestamp()*1000000000 - (60*60000000000);
 
     SET @OLD_SQL_SAFE_UPDATES = @@SQL_SAFE_UPDATES;
     SET SQL_SAFE_UPDATES = 0;
@@ -76,10 +76,10 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     DROP TABLE IF EXISTS TEMP_SESSION_BATCH;
     COMMIT;
 
-    -- RUN UNTILL
+    -- RUN UNTIL
     WHILE (@sessionCleanUpTempTableCount > 0) DO
 
-      CREATE TABLE IF NOT EXISTS IDN_AUTH_SESSION_STORE_TMP AS SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE where TIME_CREATED < @sessionCleanupTime limit chunkLimit;
+      CREATE TABLE IF NOT EXISTS IDN_AUTH_SESSION_STORE_TMP AS SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE where EXPIRY_TIME < @sessionCleanupTime limit chunkLimit;
       CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID);
       COMMIT;
 

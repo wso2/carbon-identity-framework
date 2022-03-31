@@ -118,10 +118,10 @@ END IF;
 -- ------------------------------------------
 -- REMOVE SESSION DATA
 -- ------------------------------------------
--- Session data older than 20160 minutes(14 days) will be removed.
-sessionCleanupTime := (unix_timestamp*1000000000) - (20160*60000000000);
+-- Session data which the expiry time has passed over 60 minutes(1 hour) will be removed.
+sessionCleanupTime := (unix_timestamp*1000000000) - (60*60000000000);
 
-purgingCondition := 'select session_id from idn_auth_session_store where time_created < '||sessionCleanupTime||'';
+purgingCondition := 'select session_id from idn_auth_session_store where expiry_time < '||sessionCleanupTime||'';
 
 IF (enableLog) THEN
     RAISE NOTICE '';
@@ -291,8 +291,8 @@ END LOOP;
 -- --------------------------------------------
 -- REMOVE OPERATIONAL DATA
 -- --------------------------------------------
--- Operational data older than 720 minutes(12 h) will be removed.
-operationCleanupTime = (unix_timestamp*1000000000) - (720*60000000000);
+-- Operational data older than 60 minutes(1 h) will be removed.
+operationCleanupTime = (unix_timestamp*1000000000) - (60*60000000000);
 
 purgingCondition := 'select session_id from idn_auth_session_store where operation = ''DELETE'' and time_created < '||operationCleanupTime||'';
 
