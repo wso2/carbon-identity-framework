@@ -18,7 +18,39 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception;
 
-import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.*;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CODE_DEFAULT;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CODE_JIT_PROVISIONING_USERNAME_EXISTENCE;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CODE_MISSING_CLAIM_REQUEST;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CONSENT_DISABLED_FOR_SSO;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_GETTING_ASSOCIATION_FOR_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_INVALID_USER_STORE;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_INVALID_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_POST_AUTH_COOKIE_NOT_FOUND;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_RETRIEVING_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_UPDATING_CLAIMS_FOR_LOCAL_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_USER_DENIED_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_USER_DENIED_CONSENT_FOR_MANDATORY;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_ADDING_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_BUILDING_REDIRECT_URI;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_CONSENT_INPUT_FOR_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_CLAIM_MAPPINGS;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_LOCAL_USER_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_REALM_TO_HANDLE_CLAIMS;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_REDIRECTING_TO_CONSENT_PAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_REDIRECTING_TO_REQUEST_CLAIMS_PAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_RETRIEVING_CONSENT_DATA;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_SETTING_IDP_DATA;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_SETTING_IDP_DATA_IDP_IS_NULL;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.USER_ALREADY_EXISTS_ERROR;
 
 /**
  * Responsible for translating the error codes into respective status and the status message and keeping the mapping
@@ -26,6 +58,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.exce
  */
 public class ErrorToI18nCodeTranslator {
 
+    /**
+     * Enum for I18N Messages.
+     */
     public enum I18NErrorMessages {
 
         // Generic error messages.
@@ -96,8 +131,8 @@ public class ErrorToI18nCodeTranslator {
                 "authentication.attempt.failed", "update.local.user.claims.error"),
         ERROR_WHILE_GETTING_REALM_TO_HANDLE_CLAIMS("Error while handling missing mandatory claims. Error in realm.",
                 "authentication.attempt.failed", "retrieving.realm.to.handle.claims.error"),
-        ERROR_POST_AUTH_COOKIE_NOT_FOUND("Invalid Request: Your authentication flow is ended or invalid. Please initiate again.",
-                "authentication.attempt.failed", "post.auth.cookie.not.found"),
+        ERROR_POST_AUTH_COOKIE_NOT_FOUND("Invalid Request: Your authentication flow is ended or invalid. " +
+                "Please initiate again.", "authentication.attempt.failed", "post.auth.cookie.not.found"),
         ERROR_CODE_DEFAULT("Default", "authentication.attempt.failed", "authorization.failed");
 
         private final String errorCode;
