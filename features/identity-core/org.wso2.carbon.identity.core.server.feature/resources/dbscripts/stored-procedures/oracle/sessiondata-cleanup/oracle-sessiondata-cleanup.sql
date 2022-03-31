@@ -36,8 +36,8 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     checkcount                       INT := 100; -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE SESSION COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 100]
     tracingenabled                   BOOLEAN := TRUE; --  IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
     sleeptime                        INT := 2; -- Sleep time in seconds.
-    sessnclntiminminits              INT := 20160; -- Session data older than 20160 minutes (14 days) will be removed.
-    opertnclntimeinminits            INT := 720; -- Operational data older than 720 minutes (12 h) will be removed.
+    sessnclntiminminits              INT := 60; -- Session data which the expiry time has passed over 60 minutes (1 hour) will be removed.
+    opertnclntimeinminits            INT := 60; -- Operational data older than 60 minutes (1 h) will be removed.
 
 
 
