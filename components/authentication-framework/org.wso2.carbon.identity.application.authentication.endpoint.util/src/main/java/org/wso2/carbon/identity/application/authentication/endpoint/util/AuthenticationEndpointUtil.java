@@ -212,9 +212,73 @@ public class AuthenticationEndpointUtil {
             case Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI:
                 return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED:
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING:
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_JIT_PROVISIONING_VERIFY_USERNAME_FAILED:
                 return Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN:
                 return Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTS:
+                return Constants.ErrorToi18nMappingConstants.USERNAME_EXISTS_ERROR_I19N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_DOMAIN_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USER_STORE_DOMAIN_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ERROR_INVALID_USER_STORE_DOMAIN:
+                return Constants.ErrorToi18nMappingConstants.ERROR_INVALID_USER_STORE_DOMAIN_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_MAN_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USER_STORE_MAN_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INVALID_USER_STORE:
+                return Constants.ErrorToi18nMappingConstants.INVALID_USER_STORE_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTENCE_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USERNAME_EXISTENCE_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_HANDLING_ERROR:
+                return Constants.ErrorToi18nMappingConstants.CLAIM_MAP_HANDLING_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RESIDENT_IDP_NULL_ERROR:
+                return Constants.ErrorToi18nMappingConstants.RESIDENT_IDP_NULL_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_GET_ERROR:
+                return Constants.ErrorToi18nMappingConstants.CLAIM_MAP_GET_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ASSOCIATED_LOCAL_USER_ID_ERROR:
+                return Constants.ErrorToi18nMappingConstants.ASSOCIATED_LOCAL_USER_ID_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_IDP_ERROR_FOR_TENANT:
+                return Constants.ErrorToi18nMappingConstants.IDP_ERROR_FOR_TENANT_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REALM_ERROR_FOR_TENANT:
+                return Constants.ErrorToi18nMappingConstants.REALM_ERROR_FOR_TENANT_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_ERROR_PASSWORD_PROVISION:
+                return Constants.ErrorToi18nMappingConstants.CLAIM_ERROR_PASSWORD_PROVISION_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_FOR_ASSOCIATED_IDP_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USERNAME_FOR_ASSOCIATED_IDP_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SIGNUP_EP_ERROR_FOR_PROVISION:
+                return Constants.ErrorToi18nMappingConstants.SIGNUP_EP_ERROR_FOR_PROVISION_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_ADD_FOR_TENANT_ERROR:
+                return Constants.ErrorToi18nMappingConstants.CONSENT_ADD_FOR_TENANT_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SET_IDP_FOR_TENANT_ERROR:
+                return Constants.ErrorToi18nMappingConstants.SET_IDP_FOR_TENANT_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_CONSENT_FOR_USER_ERROR:
+                return Constants.ErrorToi18nMappingConstants.GET_CONSENT_FOR_USER_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_DISABLED_FOR_SSO_ERROR:
+                return Constants.ErrorToi18nMappingConstants.CONSENT_DISABLED_FOR_SSO_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INPUT_CONSENT_FOR_USER_ERROR:
+                return Constants.ErrorToi18nMappingConstants.INPUT_CONSENT_FOR_USER_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_CONSENT_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USER_DENIED_CONSENT_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_MANDATORY_CONSENT_ERROR:
+                return Constants.ErrorToi18nMappingConstants.USER_DENIED_MANDATORY_CONSENT_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_PAGE_ERROR:
+                return Constants.ErrorToi18nMappingConstants.CONSENT_PAGE_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_APPLICATION_CONFIG_NULL_ERROR:
+                return Constants.ErrorToi18nMappingConstants.APPLICATION_CONFIG_NULL_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_ERROR:
+                return Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_URI_ERROR:
+                return Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_URI_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVE_CLAIM_ERROR:
+                return Constants.ErrorToi18nMappingConstants.RETRIEVE_CLAIM_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_USER_ASSOCIATION_ERROR:
+                return Constants.ErrorToi18nMappingConstants.GET_USER_ASSOCIATION_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_UPDATE_LOCAL_USER_CLAIMS_ERROR:
+                return Constants.ErrorToi18nMappingConstants.UPDATE_LOCAL_USER_CLAIMS_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR:
+                return Constants.ErrorToi18nMappingConstants.RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_POST_AUTH_COOKIE_NOT_FOUND:
+                return Constants.ErrorToi18nMappingConstants.POST_AUTH_COOKIE_NOT_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION:
                 return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY;
             default:
