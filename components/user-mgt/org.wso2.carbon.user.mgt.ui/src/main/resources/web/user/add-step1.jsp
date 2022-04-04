@@ -34,8 +34,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.client.ClaimDataAdminClient" %>
-<%@ page import="org.apache.logging.log4j.Logger"%>
-<%@ page import="org.apache.logging.log4j.LogManager"%>
+<%@ page import="org.slf4j.Logger"%>
+<%@ page import="org.slf4j.LoggerFactory"%>
 <%@ page import="org.wso2.carbon.user.mgt.ui.ClaimDataAdminException" %>
 
 <jsp:useBean id="userBean"
@@ -53,7 +53,7 @@
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
-    Logger logger = LogManager.getLogger(this.getClass());
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     List<String> domainNames = null;
     String selectedDomain = null;
