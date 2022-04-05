@@ -72,6 +72,8 @@
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
+  "oauth.access_token.generate_with_sp_tenant_domain": true,
+
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
   "oauth.endpoints.oauth1_access_token_url": "$ref{server.base_path}/oauth/access-token",
