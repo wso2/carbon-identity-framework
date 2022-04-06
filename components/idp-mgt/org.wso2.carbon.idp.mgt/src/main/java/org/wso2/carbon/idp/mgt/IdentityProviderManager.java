@@ -3013,11 +3013,12 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Extracts IdpEntityId property from metadata
-     * and adds it to the existing properties of the federatedAuthenticatorConfigs.
+     * Extracts IdpEntityId property from metadata and adds it to the existing properties of the
+     * federatedAuthenticatorConfigs.
      *
      * @param identityProvider IdentityProvider.
-     * @return federatedAuthenticatorConfigs FederatedAuthenticatorConfig[].
+     * @return federatedAuthenticatorConfigs - FederatedAuthenticatorConfig[] of the given identityProvider with the
+     * IdPEntityId property added by extracting from metadata.
      * @throws IdentityProviderManagementException If the IdpMgtServiceComponentHolder does not contain any
      *                                             metadataConverters.
      */
