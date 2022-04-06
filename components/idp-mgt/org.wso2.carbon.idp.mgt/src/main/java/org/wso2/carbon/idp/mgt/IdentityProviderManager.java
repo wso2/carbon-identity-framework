@@ -3072,10 +3072,10 @@ public class IdentityProviderManager implements IdpManager {
      * Extracts and returns the property from metadata with the given property name.
      * If the property with the given name is not included in metadata, returns null.
      *
-     * @param metadataConverter MetadataConverter.
-     * @param properties        Property[].
-     * @param propertyName      String.
-     * @return propertyWithName Property.
+     * @param metadataConverter MetadataConverter to convert the metadata.
+     * @param properties        Property[] from which the property should be extracted.
+     * @param propertyName      String which is the property name.
+     * @return propertyWithName Property with the propertyName is equal to the given property name.
      * @throws IdentityProviderManagementException If an error occurs when converting or configuring metadata.
      */
     private Property extractPropertyFromMetadata(MetadataConverter metadataConverter, Property[] properties,
