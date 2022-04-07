@@ -1074,8 +1074,8 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         identityProviderManagementService.deleteIdP("SHARED_IDP");
     }
 
-    @Test(expectedExceptions = {
-            IdentityProviderManagementException.class}, expectedExceptionsMessageRegExp = "An Identity Provider Entity ID has already been registered with the name 'localhost' for tenant .*")
+    @Test(expectedExceptions = {IdentityProviderManagementException.class}, expectedExceptionsMessageRegExp =
+            "An Identity Provider Entity ID has already been registered with the name 'localhost' for tenant .*")
     public void testAddIdPWithResourceId() throws IdentityProviderManagementException, XMLStreamException {
 
         when(mockMetadataConverter.canHandle((Property) anyObject())).thenReturn(TRUE);
