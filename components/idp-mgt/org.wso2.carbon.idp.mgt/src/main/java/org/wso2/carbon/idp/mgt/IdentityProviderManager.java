@@ -644,10 +644,8 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList.add(idPEntityIdProperty);
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // Add SSO URL as a destination URL if not already available.
-            addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
-        }
+        // Add SSO URL as a destination URL if not already available.
+        addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
 
         for (Property property : samlFederatedAuthConfig.getProperties()) {
             if (property != null &&
