@@ -48,8 +48,8 @@ import java.util.UUID;
 
 // TODO: User Account Recovery Service
 /**
- * @deprecated use REST API implementation available in org.wso2.carbon.identity.user.endpoint
- * and org.wso2.carbon.identity.rest.api.user.challenge.v1.core.UserChallengeService,
+ * @deprecated use REST API implementation available in org.wso2.carbon.identity.user.endpoint,
+ * org.wso2.carbon.identity.rest.api.user.challenge.v1.core.UserChallengeService,
  * org.wso2.carbon.identity.rest.api.user.recovery.v1.impl.core.PasswordRecoveryService instead.
  */
 @Deprecated
