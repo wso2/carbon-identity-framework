@@ -179,7 +179,7 @@
 
         <!-- This configuration is used to specify whether the Service Provider tenant domain should be used when generating
              access token. Otherwise user domain will be used. Currently this value is only supported by the JWTTokenIssuer.-->
-        <!--<UseSPTenantDomain>True</UseSPTenantDomain>-->
+        <UseSPTenantDomain>True</UseSPTenantDomain>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
