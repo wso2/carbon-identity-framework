@@ -35,6 +35,10 @@ import org.wso2.carbon.stratos.common.exception.StratosException;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
+/**
+ * @deprecated use org.wso2.carbon.identity.recovery.listener.TenantManagementListener instead.
+ */
+@Deprecated
 public class TenantManagementListener implements TenantMgtListener {
     private static final int EXEC_ORDER = 40;
     private static final Log log = LogFactory.getLog(TenantManagementListener.class);
