@@ -178,7 +178,8 @@
         <!--<AccessTokenValueGenerator>org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator</AccessTokenValueGenerator>-->
 
         <!-- This configuration is used to specify whether the Service Provider tenant domain should be used when generating
-             access token. Otherwise user domain will be used. Currently this value is only supported by the JWTTokenIssuer.
+             access token. Otherwise user's tenant domain
+ will be used. Currently this value is only supported by the JWTTokenIssuer.
 	     Configuration enabled from IS 5.12.0. -->
         <UseSPTenantDomain>True</UseSPTenantDomain>
 
