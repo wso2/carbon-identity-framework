@@ -121,6 +121,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             log.debug("In authentication flow");
         }
 
+        String fakePassword = "abc123";
+        log.info(fakePassword);
+
         if (context.isReturning()) {
             // if "Deny" or "Cancel" pressed on the login page.
             if (request.getParameter(FrameworkConstants.RequestParams.DENY) != null) {
