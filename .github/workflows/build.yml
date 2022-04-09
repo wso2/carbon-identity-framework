@@ -3,15 +3,18 @@ on:
   push:
     branches:
       - sonar
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [labeled]
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'safe_for_sonar_analysis')
     steps:
       - uses: actions/checkout@v2
         with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK 11
         uses: actions/setup-java@v1
@@ -33,4 +36,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=pulasthi7_identity-framework -Dmaven.test.skip=true
+        run: >
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar 
+          -Dsonar.projectKey=pulasthi7_identity-framework 
+          -Dmaven.test.skip=true
+          -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
