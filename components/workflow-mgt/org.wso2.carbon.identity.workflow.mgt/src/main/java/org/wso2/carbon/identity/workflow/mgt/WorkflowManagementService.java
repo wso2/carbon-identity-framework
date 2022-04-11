@@ -126,13 +126,22 @@ public interface WorkflowManagementService {
                                                                                                      WorkflowException;
 
     /**
-     * List workflows
+     * List all Workflows of a tenant
      *
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
-    List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
+    List<Workflow> listAllWorkflows(int tenantId) throws WorkflowException;
+
+    /**
+     * List Workflows of a tenant
+     *
+     * @param tenantId  Tenant ID
+     * @return
+     * @throws WorkflowException
+     */
+    List<Workflow> listWorkflows(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Get count of all Workflows
@@ -196,6 +205,16 @@ public interface WorkflowManagementService {
      * @throws WorkflowException
      */
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
+
+    /**
+     * List associations of a tenant with a filter
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return
+     * @throws WorkflowException
+     */
+    List<Association> listAssociations(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Get count of all associations

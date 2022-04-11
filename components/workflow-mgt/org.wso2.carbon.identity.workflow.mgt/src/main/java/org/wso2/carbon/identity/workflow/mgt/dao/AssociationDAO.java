@@ -111,24 +111,26 @@ public class AssociationDAO {
      * @return
      * @throws InternalWorkflowException
      */
-    public List<Association> listAssociations(int tenantId) throws InternalWorkflowException {
+    public List<Association> listAssociations(int tenantId, String filter) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet resultSet = null;
         List<Association> associations = new ArrayList<>();
-        String query = SQLConstants.GET_ALL_ASSOCIATIONS_QUERY;
+        String query = SQLConstants.GET_ASSOCIATIONS_QUERY;
         try {
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             prepStmt = connection.prepareStatement(query);
             prepStmt.setInt(1, tenantId);
-            rs = prepStmt.executeQuery();
-            while (rs.next()) {
-                String condition = rs.getString(SQLConstants.CONDITION_COLUMN);
-                String eventId = rs.getString(SQLConstants.EVENT_ID_COLUMN);
-                String associationId = String.valueOf(rs.getInt(SQLConstants.ID_COLUMN));
-                String associationName = rs.getString(SQLConstants.ASSOCIATION_NAME_COLUMN);
-                String workflowName = rs.getString(SQLConstants.WF_NAME_COLUMN);
-                String isEnable = rs.getString(SQLConstants.ASSOCIATION_IS_ENABLED);
+            prepStmt.setString(2, filterResolvedForSQL);
+            resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                String condition = resultSet.getString(SQLConstants.CONDITION_COLUMN);
+                String eventId = resultSet.getString(SQLConstants.EVENT_ID_COLUMN);
+                String associationId = String.valueOf(resultSet.getInt(SQLConstants.ID_COLUMN));
+                String associationName = resultSet.getString(SQLConstants.ASSOCIATION_NAME_COLUMN);
+                String workflowName = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
+                String isEnable = resultSet.getString(SQLConstants.ASSOCIATION_IS_ENABLED);
                 Association associationDTO = new Association();
                 associationDTO.setCondition(condition);
                 associationDTO.setAssociationId(associationId);

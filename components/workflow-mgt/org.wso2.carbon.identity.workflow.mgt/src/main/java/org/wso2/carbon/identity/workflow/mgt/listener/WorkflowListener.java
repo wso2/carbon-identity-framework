@@ -320,18 +320,20 @@ public interface WorkflowListener {
      * Trigger before listing all associations
      *
      * @param tenantId Tenant ID
+     * @param filter Filter
      * @throws WorkflowException
      */
-    void doPreListAllAssociations(int tenantId) throws WorkflowException;
+    void doPreListAssociations(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Trigger after listing all associations
      *
      * @param tenantId Tenant ID
+     * @param filter Filter
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
-    void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException;
+    void doPostListAssociations(int tenantId, String filter, List<Association> result) throws WorkflowException;
 
     /**
      * Trigger before changing state of an association

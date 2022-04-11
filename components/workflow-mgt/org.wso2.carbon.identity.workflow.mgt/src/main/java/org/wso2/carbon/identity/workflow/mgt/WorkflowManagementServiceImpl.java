@@ -427,7 +427,13 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
-    public List<Workflow> listWorkflows(int tenantId) throws WorkflowException {
+    public List<Workflow> listAllWorkflows(int tenantId) throws WorkflowException{
+
+        return listWorkflows(tenantId, "*");
+    }
+
+    @Override
+    public List<Workflow> listWorkflows(int tenantId, String filter) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
@@ -436,7 +442,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 workflowListener.doPreListWorkflows(tenantId);
             }
         }
-        List<Workflow> workflowList = workflowDAO.listWorkflows(tenantId);
+
+        List<Workflow> workflowList = workflowDAO.listWorkflows(tenantId, filter);
+
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostListWorkflows(tenantId, workflowList);
@@ -573,14 +581,21 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public List<Association> listAllAssociations(int tenantId) throws WorkflowException {
 
+        return listAssociations(tenantId, "*");
+
+    }
+
+    @Override
+    public List<Association> listAssociations(int tenantId, String filter) throws WorkflowException {
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPreListAllAssociations(tenantId);
+                workflowListener.doPreListAssociations(tenantId, filter);
             }
         }
-        List<Association> associations = associationDAO.listAssociations(tenantId);
+        List<Association> associations = associationDAO.listAssociations(tenantId, filter);
         for (Iterator<Association> iterator = associations.iterator(); iterator.hasNext(); ) {
             Association association = iterator.next();
             WorkflowRequestHandler requestHandler =
@@ -592,13 +607,15 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 iterator.remove();
             }
         }
+
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                workflowListener.doPostListAllAssociations(tenantId, associations);
+                workflowListener.doPostListAssociations(tenantId, filter, associations);
             }
         }
         return associations;
     }
+
 
     @Override
     public int getCountOfAllAssociations(int tenantId) throws WorkflowException {

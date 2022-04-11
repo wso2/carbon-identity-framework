@@ -188,31 +188,33 @@ public class WorkflowDAO {
         }
     }
 
-
     /**
-     * Retrieve all the Workflows for a tenant
+     * Retrieve Workflows for a tenant
      *
      * @param tenantId Tenant ID
+     * @param filter Filter
      * @return List<Workflow>
      * @throws InternalWorkflowException
      */
-    public List<Workflow> listWorkflows(int tenantId) throws InternalWorkflowException {
+    public List<Workflow> listWorkflows(int tenantId, String filter) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet resultSet = null;
         List<Workflow> workflowList = new ArrayList<>();
         String query = SQLConstants.LIST_WORKFLOWS_QUERY;
         try {
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             prepStmt = connection.prepareStatement(query);
             prepStmt.setInt(1, tenantId);
-            rs = prepStmt.executeQuery();
-            while (rs.next()) {
-                String id = rs.getString(SQLConstants.ID_COLUMN);
-                String name = rs.getString(SQLConstants.WF_NAME_COLUMN);
-                String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
-                String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
-                String templateImplId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+            prepStmt.setString(2, filterResolvedForSQL);
+            resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                String id = resultSet.getString(SQLConstants.ID_COLUMN);
+                String name = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
+                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
                 Workflow workflowDTO = new Workflow();
                 workflowDTO.setWorkflowId(id);
                 workflowDTO.setWorkflowName(name);

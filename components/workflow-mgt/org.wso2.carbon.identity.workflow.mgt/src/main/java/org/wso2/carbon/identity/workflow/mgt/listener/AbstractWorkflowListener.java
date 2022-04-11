@@ -404,10 +404,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger before listing all associations
      *
      * @param tenantId Tenant ID
+     * @param filter Filter
      * @throws WorkflowException
      */
     @Override
-    public void doPreListAllAssociations(int tenantId) throws WorkflowException {
+    public void doPreListAssociations(int tenantId, String filter) throws WorkflowException {
 
     }
 
@@ -415,11 +416,12 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger after listing all associations
      *
      * @param tenantId Tenant ID
+     * @param filter Filter
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
     @Override
-    public void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException {
+    public void doPostListAssociations(int tenantId, String filter, List<Association> result) throws WorkflowException {
 
     }
 

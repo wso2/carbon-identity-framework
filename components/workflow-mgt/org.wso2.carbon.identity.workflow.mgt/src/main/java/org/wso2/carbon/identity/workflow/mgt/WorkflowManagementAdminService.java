@@ -299,7 +299,7 @@ public class WorkflowManagementAdminService {
         List<Workflow> workflowBeans = null;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
-            workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflows(tenantId);
+            workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflows(tenantId, "*");
             for (Workflow workflow : workflowBeans) {
                 WorkflowWizard workflowTmp = getWorkflow(workflow);
                 workflowWizards.add(workflowTmp);
