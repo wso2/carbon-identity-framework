@@ -427,6 +427,40 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
+    public List<Workflow> listAllPaginatedWorkflows(int tenantId, int pageNumber) throws WorkflowException{
+
+        return listPaginatedWorkflows(tenantId, pageNumber, "*");
+    }
+
+    @Override
+    public List<Workflow> listPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException{
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreListPaginatedWorkflows(tenantId, pageNumber, filter);
+            }
+        }
+        // Validate whether the page number is not zero or a negative number.
+        if (pageNumber < 1) {
+            throw new WorkflowException("Invalid page number requested. The page number should "
+                    + "be a value greater than 0.");
+        }
+
+        int limit = WorkflowManagementUtil.getItemsPerPage();
+        int offset = (pageNumber - 1) * limit;
+
+        List<Workflow> workflowList = workflowDAO.listPaginatedWorkflows(tenantId, filter, offset, limit);
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostListPaginatedWorkflows(tenantId, pageNumber, filter, workflowList);
+            }
+        }
+        return workflowList;
+    }
+
+    @Override
     public List<Workflow> listAllWorkflows(int tenantId) throws WorkflowException{
 
         return listWorkflows(tenantId, "*");
@@ -575,6 +609,51 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
+        return associations;
+    }
+
+    @Override
+    public List<Association> listAllPaginatedAssociations(int tenantId, int pageNumber) throws WorkflowException {
+
+        return listPaginatedAssociations(tenantId, pageNumber, "*");
+    }
+
+    @Override
+    public List<Association> listPaginatedAssociations(int tenantId, int pageNumber, String filter) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreListPaginatedAssociations(tenantId,pageNumber,filter);
+            }
+        }
+        // Validate whether the page number is not zero or a negative number.
+        if (pageNumber < 1) {
+            throw new WorkflowException("Invalid page number requested. The page number should "
+                    + "be a value greater than 0.");
+        }
+
+        int limit = WorkflowManagementUtil.getItemsPerPage();
+        int offset = (pageNumber - 1)  * limit;
+
+        List<Association> associations = associationDAO.listPaginatedAssociations(tenantId, filter, offset, limit);
+        for (Iterator<Association> iterator = associations.iterator(); iterator.hasNext(); ) {
+            Association association = iterator.next();
+            WorkflowRequestHandler requestHandler =
+                    WorkflowServiceDataHolder.getInstance().getRequestHandler(association.getEventId());
+            if (requestHandler != null) {
+                association.setEventName(requestHandler.getFriendlyName());
+            } else {
+                //invalid reference, probably event id is renamed or removed
+                iterator.remove();
+            }
+        }
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostListPaginatedAssociations(tenantId,pageNumber,filter, associations);
+            }
+        }
         return associations;
     }
 

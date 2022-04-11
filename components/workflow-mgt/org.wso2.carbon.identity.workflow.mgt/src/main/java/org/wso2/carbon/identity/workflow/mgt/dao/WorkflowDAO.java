@@ -189,6 +189,103 @@ public class WorkflowDAO {
     }
 
     /**
+     * Retrieve Workflows for a tenant with pagination
+     *
+     * @param tenantId
+     * @param filter
+     * @param offset
+     * @param limit
+     * @throws InternalWorkflowException
+     */
+    public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        String sqlQuery;
+        List<Workflow> workflowList = new ArrayList<>();
+
+        try {
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("Oracle")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("Microsoft")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("PostgreSQL")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, limit);
+                prepStmt.setInt(4, offset);
+            } else if (databaseProductName.contains("DB2")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("INFORMIX")) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else {
+                //log.error("Error while loading applications from DB: Database driver could not be identified or " +
+                //  "not supported.");
+                throw new InternalWorkflowException("Error while loading applications from DB: " +
+                        "Database driver could not be identified or not supported.");
+            }
+
+            resultSet = prepStmt.executeQuery();
+
+            while (resultSet.next()) {
+                String id = resultSet.getString(SQLConstants.ID_COLUMN);
+                String name = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
+                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+                Workflow workflowDTO = new Workflow();
+                workflowDTO.setWorkflowId(id);
+                workflowDTO.setWorkflowName(name);
+                workflowDTO.setWorkflowDescription(description);
+                workflowDTO.setTemplateId(templateId);
+                workflowDTO.setWorkflowImplId(templateImplId);
+                workflowList.add(workflowDTO);
+            }
+
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+
+        return workflowList;
+    }
+
+    /**
      * Retrieve Workflows for a tenant
      *
      * @param tenantId Tenant ID

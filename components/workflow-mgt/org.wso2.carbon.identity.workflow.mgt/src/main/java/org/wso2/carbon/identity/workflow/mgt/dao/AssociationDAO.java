@@ -108,6 +108,107 @@ public class AssociationDAO {
 
     /**
      *
+     * @param tenantId
+     * @param filter
+     * @param offset
+     * @param limit
+     * @throws InternalWorkflowException
+     */
+    public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        String sqlQuery;
+        List<Association> associations = new ArrayList<>();
+
+        try {
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("Oracle")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("Microsoft")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("PostgreSQL")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, limit);
+                prepStmt.setInt(4, offset);
+            } else if (databaseProductName.contains("DB2")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("INFORMIX")) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
+                prepStmt = connection.prepareStatement(sqlQuery);
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                prepStmt.setInt(3, offset);
+                prepStmt.setInt(4, limit);
+            } else {
+                //log.error("Error while loading applications from DB: Database driver could not be identified or " +
+                //  "not supported.");
+                throw new InternalWorkflowException("Error while loading applications from DB: " +
+                        "Database driver could not be identified or not supported.");
+            }
+
+            resultSet = prepStmt.executeQuery();
+
+            while (resultSet.next()) {
+                String condition = resultSet.getString(SQLConstants.CONDITION_COLUMN);
+                String eventId = resultSet.getString(SQLConstants.EVENT_ID_COLUMN);
+                String associationId = String.valueOf(resultSet.getInt(SQLConstants.ID_COLUMN));
+                String associationName = resultSet.getString(SQLConstants.ASSOCIATION_NAME_COLUMN);
+                String workflowName = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
+                String isEnable = resultSet.getString(SQLConstants.ASSOCIATION_IS_ENABLED);
+                Association associationDTO = new Association();
+                associationDTO.setCondition(condition);
+                associationDTO.setAssociationId(associationId);
+                associationDTO.setEventId(eventId);
+                associationDTO.setAssociationName(associationName);
+                associationDTO.setWorkflowName(workflowName);
+                associations.add(associationDTO);
+                if(isEnable.equals("1")){
+                    associationDTO.setEnabled(true);
+                }else{
+                    associationDTO.setEnabled(false);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return associations;
+    }
+
+    /**
+     *
      * @return
      * @throws InternalWorkflowException
      */

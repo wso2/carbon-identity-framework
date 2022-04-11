@@ -270,6 +270,27 @@ public interface WorkflowListener {
      * Trigger before listing workflows of a tenant
      *
      * @param tenantId Tenant ID
+     * @param pageNumber Page Number
+     * @param filter Filter
+     * @throws WorkflowException
+     */
+    void doPreListPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException;
+
+    /**
+     * Trigger after listing workflows of a tenant
+     *
+     * @param tenantId Tenant ID
+     * @param pageNumber Page Number
+     * @param filter Filter
+     * @param result   List of workflows returned by original method.
+     * @throws WorkflowException
+     */
+    void doPostListPaginatedWorkflows(int tenantId, int pageNumber, String filter, List<Workflow> result) throws WorkflowException;
+
+    /**
+     * Trigger before listing workflows of a tenant
+     *
+     * @param tenantId Tenant ID
      * @throws WorkflowException
      */
     void doPreListWorkflows(int tenantId) throws WorkflowException;
@@ -315,6 +336,25 @@ public interface WorkflowListener {
      * @throws WorkflowException
      */
     void doPostGetAssociationsForWorkflow(String workflowId, List<Association> result) throws WorkflowException;
+
+    /**
+     * Trigger before listing all associations
+     * @param tenantId Tenant ID
+     * @param pageNumber Page Number
+     * @param filter Filter
+     * @throws WorkflowException
+     */
+    void doPreListPaginatedAssociations(int tenantId, int pageNumber, String filter);
+
+    /**
+     * Trigger before listing all associations
+     * @param tenantId Tenant ID
+     * @param pageNumber Page Number
+     * @param filter Filter
+     * @param result   Result of the original operation
+     * @throws WorkflowException
+     */
+    void doPostListPaginatedAssociations(int tenantId, int pageNumber, String filter, List<Association> result);
 
     /**
      * Trigger before listing all associations

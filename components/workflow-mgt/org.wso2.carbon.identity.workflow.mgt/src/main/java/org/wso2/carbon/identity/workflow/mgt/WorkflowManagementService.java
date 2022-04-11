@@ -126,6 +126,25 @@ public interface WorkflowManagementService {
                                                                                                      WorkflowException;
 
     /**
+     * List All paginated Workflows of a tenant
+     *
+     * @param pageNumber  Page Number
+     * @return
+     * @throws WorkflowException
+     */
+    List<Workflow> listAllPaginatedWorkflows(int tenantId, int pageNumber) throws WorkflowException;
+
+    /**
+     * List paginated Workflows of a tenant with a filter
+     *
+     * @param pageNumber  Page Number
+     * @param filter  filter
+     * @return
+     * @throws WorkflowException
+     */
+    List<Workflow> listPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException;
+
+    /**
      * List all Workflows of a tenant
      *
      * @param tenantId  Tenant ID
@@ -196,6 +215,25 @@ public interface WorkflowManagementService {
      * @throws WorkflowException
      */
     List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException;
+
+    /**
+     * List All paginated associations of a tenant
+     *
+     * @param pageNumber  Page Number
+     * @return
+     * @throws WorkflowException
+     */
+    List<Association> listAllPaginatedAssociations(int tenantId, int pageNumber) throws WorkflowException;
+
+    /**
+     * List paginated associations of a tenant with a filter
+     *
+     * @param pageNumber  Page Number
+     * @param filter  filter
+     * @return
+     * @throws WorkflowException
+     */
+    List<Association> listPaginatedAssociations(int tenantId, int pageNumber, String filter) throws WorkflowException;
 
     /**
      * List all associations of a tenant

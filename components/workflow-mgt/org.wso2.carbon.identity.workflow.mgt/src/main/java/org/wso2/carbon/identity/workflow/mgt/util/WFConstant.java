@@ -36,6 +36,9 @@ public class WFConstant {
     public static final String WORKFLOW_ENTITY_TYPE = "USER";
     public static final String WORKFLOW_REQUEST_TYPE = "ADD_USER";
 
+    public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
+    public static final int DEFAULT_RESULTS_PER_PAGE = 15;
+
     public static final Set<Class> NUMERIC_CLASSES;
 
     static {
