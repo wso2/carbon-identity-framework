@@ -229,6 +229,62 @@ public class WorkflowDAO {
         return workflowList;
     }
 
+    /**
+     * Resolve SQL Filter
+     *
+     * @param filter
+     * @return
+     * @throws InternalWorkflowException
+     */
+    private String resolveSQLFilter(String filter) {
+
+        //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
+        String sqlfilter = "%";
+        if (StringUtils.isNotBlank(filter)) {
+            sqlfilter = filter.trim()
+                    .replace("*", "%")
+                    .replace("?", "_");
+        }
+
+        return sqlfilter;
+    }
+
+    /**
+     * Get count of workflows with a filter
+     *
+     * @param tenantId
+     * @param filter
+     * @return
+     * @throws InternalWorkflowException
+     */
+
+    public int getCountOfWorkflows(int tenantId, String filter) throws InternalWorkflowException{
+
+        int count;
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+            prepStmt = connection
+                    .prepareStatement(SQLConstants.GET_WORKFLOWS_COUNT_QUERY);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, filterResolvedForSQL);
+            resultSet = prepStmt.executeQuery();
+            resultSet.next();
+            count = Integer.parseInt(resultSet.getString(1));
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(
+                    "Error while getting the count of Association for the tenantID: " + tenantId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+
+        return count;
+    }
+
 
     /**
      * Clear all the parameters that stored under workflow Id

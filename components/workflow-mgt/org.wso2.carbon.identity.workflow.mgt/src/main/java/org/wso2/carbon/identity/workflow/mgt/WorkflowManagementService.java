@@ -135,6 +135,25 @@ public interface WorkflowManagementService {
     List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
 
     /**
+     * Get count of all Workflows
+     *
+     * @param tenantId  Tenant ID
+     * @return
+     * @throws WorkflowException
+     */
+    int getCountOfAllWorkflows(int tenantId) throws WorkflowException;
+
+    /**
+     * Get count of Workflows
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return
+     * @throws WorkflowException
+     */
+    int getCountOfWorkflows(int tenantId, String filter) throws WorkflowException;
+
+    /**
      * Remove a workflow
      *
      * @param id  ID of workflow to remove
@@ -177,6 +196,25 @@ public interface WorkflowManagementService {
      * @throws WorkflowException
      */
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
+
+    /**
+     * Get count of all associations
+     *
+     * @param tenantId  Tenant ID
+     * @return
+     * @throws WorkflowException
+     */
+    int getCountOfAllAssociations(int tenantId) throws WorkflowException;
+
+    /**
+     * Get count of associations
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return
+     * @throws WorkflowException
+     */
+    int getCountOfAssociations(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Enable or disable association
