@@ -87,7 +87,7 @@
             session.setAttribute(requestToken,workflowWizard);
         }
 
-        WorkflowWizard[] workflowWizards = client.listWorkflows();
+        WorkflowWizard[] workflowWizards = client.listAllWorkflows();
         for (int i = 0; i < workflowWizards.length; i++) {
             WorkflowWizard workflow = workflowWizards[i];
             existingWorkflowNames +=  "\"" + workflow.getWorkflowName() + "\"" ;
