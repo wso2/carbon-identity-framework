@@ -13,6 +13,11 @@ DECLARE
     backupTables boolean;
     cleanUpCodesTimeLimit int;
     cleanUpDateTimeLimit timestamp;
+    backupTable text;
+    cusrRecord record;
+
+tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
+tablename  IN ('idn_recovery_data');
 
 BEGIN
 
@@ -27,9 +32,9 @@ BEGIN
     batchCount := 1000;
     chunkCount := 1000;
     rowCount   := 0;
-    cleanUpCodesTimeLimit := 1;
+    cleanUpCodesTimeLimit := 720; -- SET SAFE PERIOD OF HOURS FOR CODE DELETE [DEFAULT : 720 hrs (30 days)]. CODES OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
     cleanUpDateTimeLimit :=  timezone('UTC'::text, now()) - INTERVAL '1hour' * cleanUpCodesTimeLimit;
-    RAISE NOTICE 'Cleanup time limit : %', cleanUpDateTimeLimit;
+    backupTable = 'idn_recovery_data_backup';
 
     IF (enableLog) THEN
         RAISE NOTICE 'WSO2_CONFIRMATION_CODE_CLEANUP() STARTED...!';
@@ -38,18 +43,26 @@ BEGIN
     -- ------------------------------------------
     -- BACKUP DATA
     -- ------------------------------------------
-    IF (backupTables)
-    THEN
-        EXECUTE 'SELECT count(1) FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowCount USING 'idn_recovery_data_backup';
-        IF (rowCount = 1)
+    Begin
+        IF (backupTables)
         THEN
-            IF (enableLog) THEN
-                RAISE NOTICE 'CREATING BACKUP TABLE BAK_IDN_RECOVERY_DATA...';
-            END IF;
-            DROP TABLE idn_recovery_data_backup;
-            CREATE TABLE idn_recovery_data_backup AS SELECT * FROM idn_recovery_data;
+            OPEN tablesCursor;
+            LOOP
+                FETCH tablesCursor INTO cusrRecord;
+                EXIT WHEN NOT FOUND;
+                backupTable := cusrRecord.tablename||'_backup';
+
+                EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
+                IF (rowcount = 1)
+                THEN
+                    EXECUTE 'DROP TABLE '||quote_ident(backupTable);
+                END IF;
+
+                EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
+
+            END LOOP;
+            CLOSE tablesCursor;
         END IF;
-    END IF;
 
     -- ------------------------------------------
     -- CLEANUP DATA
