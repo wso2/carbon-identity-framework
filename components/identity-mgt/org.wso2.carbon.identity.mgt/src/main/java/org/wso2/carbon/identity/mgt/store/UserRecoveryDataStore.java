@@ -23,9 +23,7 @@ import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
 
 /**
  * TODO add java comments
- * @deprecated use org.wso2.carbon.identity.recovery.store.UserRecoveryDataStore instead.
  */
-@Deprecated
 public interface UserRecoveryDataStore {
 
     public static final String EXPIRE_TIME = "expireTime";
