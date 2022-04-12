@@ -39,7 +39,9 @@ import java.util.Map;
 
 /**
  * //TODO remove method when user is deleted
+ * @deprecated use {@link org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore} instead.
  */
+@Deprecated
 public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
 
     private static Log log = LogFactory.getLog(JDBCIdentityDataStore.class);

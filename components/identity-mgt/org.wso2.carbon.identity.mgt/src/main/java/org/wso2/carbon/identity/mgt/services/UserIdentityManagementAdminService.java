@@ -59,7 +59,10 @@ import java.util.Set;
  * allowed to all logged in users.
  *
  * @author sga
+ * @deprecated use REST API implementation available in org.wso2.carbon.identity.scim2.provider.resources.UserResource
+ * and org.wso2.carbon.identity.rest.api.user.challenge.v1.core.UserChallengeService instead.
  */
+@Deprecated
 public class UserIdentityManagementAdminService {
 
     private static final Log log = LogFactory.getLog(UserIdentityManagementAdminService.class);
