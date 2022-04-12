@@ -35,10 +35,7 @@ import java.util.Properties;
 /**
  * This service is to configure the Account and Credential Management
  * functionality.
- * @deprecated use the rest API implementation available in
- * org.wso2.carbon.identity.rest.api.server.email.template.v1.core.ServerEmailTemplatesService instead.
  */
-@Deprecated
 public class AccountCredentialMgtConfigService {
 
     private static final Log log = LogFactory.getLog(AccountCredentialMgtConfigService.class);

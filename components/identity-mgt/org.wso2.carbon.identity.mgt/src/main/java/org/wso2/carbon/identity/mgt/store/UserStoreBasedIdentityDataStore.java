@@ -40,9 +40,7 @@ import java.util.Map;
 /**
  * This module persists data in to user store as user's attribute
  * //TODO remove method when user is deleted
- * @deprecated use {@link org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore} instead.
  */
-@Deprecated
 public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
 
     private static Log log = LogFactory.getLog(UserStoreBasedIdentityDataStore.class);
