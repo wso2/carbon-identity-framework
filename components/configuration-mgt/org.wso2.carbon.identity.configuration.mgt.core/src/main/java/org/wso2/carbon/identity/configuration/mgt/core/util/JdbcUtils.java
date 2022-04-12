@@ -19,6 +19,8 @@ package org.wso2.carbon.identity.configuration.mgt.core.util;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+
 /**
  * A util class to support the Jdbc executions.
  * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils} instead.
@@ -47,8 +49,7 @@ public class JdbcUtils {
     @Deprecated
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB() ||
-                org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB() ||
+        return isH2DB() || org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB() ||
                 org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB() ||
                 org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB();
     }
@@ -63,7 +64,7 @@ public class JdbcUtils {
     @Deprecated
     public static boolean isH2() throws DataAccessException {
 
-        return org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB();
+        return isH2DB();
     }
 
     /**
