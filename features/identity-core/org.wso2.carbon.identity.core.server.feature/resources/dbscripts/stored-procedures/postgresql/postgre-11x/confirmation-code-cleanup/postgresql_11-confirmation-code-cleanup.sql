@@ -11,6 +11,8 @@ DECLARE
     rowCount int;
     enableLog boolean;
     backupTables boolean;
+    cleanUpCodesTimeLimit int;
+    cleanUpDateTimeLimit timestamp;
 
 BEGIN
 
@@ -19,12 +21,15 @@ BEGIN
     -- ------------------------------------------
     batchSize    := 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
     chunkSize    := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
-    backupTables := FALSE; -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : FALSE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    backupTables := FALSE; -- SET IF RECOVERY TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : FALSE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
     enableLog    := FALSE; -- ENABLE LOGGING [DEFAULT : FALSE]
 
     batchCount := 1000;
     chunkCount := 1000;
     rowCount   := 0;
+    cleanUpCodesTimeLimit := 1;
+    cleanUpDateTimeLimit :=  timezone('UTC'::text, now()) - INTERVAL '1hour' * cleanUpCodesTimeLimit;
+    RAISE NOTICE 'Cleanup time limit : %', cleanUpDateTimeLimit;
 
     IF (enableLog) THEN
         RAISE NOTICE 'WSO2_CONFIRMATION_CODE_CLEANUP() STARTED...!';
@@ -83,7 +88,9 @@ BEGIN
             IF (enableLog) THEN
                 RAISE NOTICE 'BATCH DELETE STARTED ON IDN_RECOVERY_DATA...';
             END IF;
-            DELETE FROM idn_recovery_data WHERE code IN (SELECT code FROM idn_recovery_data_batch_tmp);
+            DELETE
+            FROM idn_recovery_data
+            WHERE code IN (SELECT code FROM idn_recovery_data_batch_tmp where (cleanUpDateTimeLimit > TIME_CREATED));
             GET DIAGNOSTICS rowCount := ROW_COUNT;
             commit;
             IF (enableLog) THEN
