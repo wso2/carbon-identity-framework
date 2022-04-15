@@ -397,8 +397,7 @@ public class UserAdmin {
             }
         }
     }
-
-
+    
     /**
      * @return
      * @throws UserAdminException
