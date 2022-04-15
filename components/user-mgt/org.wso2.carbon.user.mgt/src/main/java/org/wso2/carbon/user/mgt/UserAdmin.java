@@ -372,11 +372,32 @@ public class UserAdmin {
      */
     public void updateRoleName(String roleName, String newRoleName) throws UserAdminException {
         try {
+            if (getUserAdminProxy().isRoleAndGroupSeparationEnabled()) {
+                UIPermissionNode uiPermissionNode = getRolePermissions(roleName);
+                List<String> permissions = new ArrayList<>();
+                extractPermissionsFromUIPermissionNode(uiPermissionNode, permissions);
+                if (!permissions.isEmpty()) {
+                    addInternalSystemRole(newRoleName, permissions.toArray(new String[0]));
+                }
+            }
             getUserAdminProxy().updateRoleName(roleName, newRoleName);
         } catch (UserAdminException e) {
             throw e;
         }
     }
+
+    private void extractPermissionsFromUIPermissionNode(UIPermissionNode uiPermissionNode, List<String> permissionList) {
+        if (uiPermissionNode.isSelected()) {
+            permissionList.add(uiPermissionNode.getResourcePath());
+        }
+        if (uiPermissionNode.getNodeList().length > 0) {
+            for (UIPermissionNode childUIPermissionNode : uiPermissionNode.getNodeList()) {
+                /* Extract resource path from UI permission node recursively. */
+                extractPermissionsFromUIPermissionNode(childUIPermissionNode, permissionList);
+            }
+        }
+    }
+
 
     /**
      * @return
