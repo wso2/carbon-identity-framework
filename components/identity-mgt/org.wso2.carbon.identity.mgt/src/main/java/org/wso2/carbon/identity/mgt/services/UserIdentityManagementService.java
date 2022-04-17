@@ -52,7 +52,6 @@ import java.util.UUID;
  * org.wso2.carbon.identity.rest.api.user.challenge.v1.core.UserChallengeService,
  * org.wso2.carbon.identity.rest.api.user.recovery.v1.impl.core.PasswordRecoveryService instead.
  */
-@Deprecated
 public class UserIdentityManagementService {
 
     private static final Log log = LogFactory.getLog(UserIdentityManagementService.class);

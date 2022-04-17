@@ -38,7 +38,6 @@ import java.util.Properties;
  * @deprecated use the rest API implementation available in
  * org.wso2.carbon.identity.rest.api.server.email.template.v1.core.ServerEmailTemplatesService instead.
  */
-@Deprecated
 public class AccountCredentialMgtConfigService {
 
     private static final Log log = LogFactory.getLog(AccountCredentialMgtConfigService.class);
