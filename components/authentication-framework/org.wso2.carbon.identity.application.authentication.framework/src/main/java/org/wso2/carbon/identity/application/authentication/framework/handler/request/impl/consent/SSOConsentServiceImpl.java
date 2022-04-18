@@ -86,6 +86,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ENABLE_CONSENT_SCOPE_FILTERING;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
@@ -209,16 +210,22 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spName = serviceProvider.getApplicationName();
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+        boolean consentScopeFilteringEnabled = true;
+
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_CONSENT_SCOPE_FILTERING))) {
+            consentScopeFilteringEnabled =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_CONSENT_SCOPE_FILTERING));
+        }
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
 
-        if (claimMappings == null || claimMappings.length == 0) {
+        if (consentScopeFilteringEnabled && (claimMappings == null || claimMappings.length == 0)) {
             if (log.isDebugEnabled()) {
                 log.debug("No claim mapping configured from the application. Hence skipping getting consent.");
             }
             return new ConsentClaimsData();
         }
-        if (claimsListOfScopes != null) {
+        if (consentScopeFilteringEnabled && claimsListOfScopes != null) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
@@ -243,7 +250,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT));
         }
 
-        if (isPassThroughScenario(claimMappings, userAttributes)) {
+        if (!consentScopeFilteringEnabled && isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
                 String remoteClaimUri = userAttribute.getKey().getRemoteClaim().getClaimUri();
                 if (subjectClaimUri.equals(remoteClaimUri) ||

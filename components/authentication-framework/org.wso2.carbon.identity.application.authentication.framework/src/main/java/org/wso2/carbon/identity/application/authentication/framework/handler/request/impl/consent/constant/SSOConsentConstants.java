@@ -29,6 +29,7 @@ public class SSOConsentConstants {
     public static final String CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT = "EnableSSOConsentManagement";
     public static final String CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT =
             "Consent.PromptSubjectClaimRequestedConsent";
+    public static final String CONFIG_ENABLE_CONSENT_SCOPE_FILTERING = "Consent.EnableConsentScopeFiltering";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String FEDERATED_USER_DOMAIN_PREFIX = "FEDERATED";
     public static final String FEDERATED_USER_DOMAIN_SEPARATOR = ":";
