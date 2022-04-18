@@ -1067,7 +1067,7 @@
 			</Claim>
 		</Dialect>
         <Dialect dialectURI="urn:scim:schemas:core:1.0"
-				 claimURIRegex="urn:scim:schemas:core:1.0:[a-zA-Z0-9$\-_]*$">
+				 claimURIRegex="urn:scim:schemas:core:1.0:[a-zA-Z0-9$\-_.]*$">
 			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1772,7 +1772,7 @@
 		    </Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
-				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-zA-Z0-9$\-_]*$">
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-zA-Z0-9$\-_.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1865,7 +1865,7 @@
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User"
-				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:User:[a-zA-Z0-9$\-_]*$">
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:User:[a-zA-Z0-9$\-_.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:userName</ClaimURI>
 				<DisplayName>User Name</DisplayName>
@@ -2226,7 +2226,7 @@
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
-				 claimURIRegex="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:[a-zA-Z0-9$\-_]*$">
+				 claimURIRegex="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:[a-zA-Z0-9$\-_.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
 				<DisplayName>Employee Number</DisplayName>
