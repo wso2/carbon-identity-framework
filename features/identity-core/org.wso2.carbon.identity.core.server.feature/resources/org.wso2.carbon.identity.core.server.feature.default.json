@@ -1,8 +1,8 @@
 {
   "authentication.consent.prompt": true,
   "authentication.consent.subject.prompt": true,
-  "authentication.consent.scope.filtering": true,
   "authentication.map_federated_users_to_local": false,
+  "authentication.enable_scope_based_claim_filtering": true,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,

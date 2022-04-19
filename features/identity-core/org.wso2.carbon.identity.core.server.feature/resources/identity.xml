@@ -699,8 +699,6 @@
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>true</PromptSubjectClaimRequestedConsent>
-        <!--Specify whether consent should be filtered according to the scope.-->
-        <EnableConsentScopeFiltering>true</EnableConsentScopeFiltering>
     </Consent>
 
     <SecurityTokenService>
@@ -2099,4 +2097,6 @@
     <!--    By setting false localization code will be stored inside the http://wso2.org/claims/local-->
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
 
+    <!-- Configuration to enable or disable claim filtering based on scope. -->
+    <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 </Server>

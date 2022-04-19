@@ -945,8 +945,6 @@
         <EnableSSOConsentManagement>{{authentication.consent.prompt}}</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
-        <!--Specify whether consent should be filtered according to the scope.-->
-        <EnableConsentScopeFiltering>{{authentication.consent.scope.filtering}}</EnableConsentScopeFiltering>
     </Consent>
 
     <SecurityTokenService>
@@ -2994,6 +2992,9 @@
 
     <!-- Configuration for allowing users to introspect tokens from other tenants. -->
     <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
+
+    <!-- Configuration to enable or disable claim filtering based on scope. -->
+    <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
