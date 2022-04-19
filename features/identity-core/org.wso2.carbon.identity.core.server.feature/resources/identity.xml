@@ -178,8 +178,9 @@
         <!--<AccessTokenValueGenerator>org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator</AccessTokenValueGenerator>-->
 
         <!-- This configuration is used to specify whether the Service Provider tenant domain should be used when generating
-             access token. Otherwise user domain will be used. Currently this value is only supported by the JWTTokenIssuer.-->
-        <!--<UseSPTenantDomain>True</UseSPTenantDomain>-->
+             access token. Otherwise user's tenant domain will be used. Currently this value is only supported by the JWTTokenIssuer.
+	         This configuration will be enabled by default from IS 5.12.0. -->
+        <UseSPTenantDomain>True</UseSPTenantDomain>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -877,11 +878,11 @@
             <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
             -->
-            <!--<MinQuestionsToAnswer></MinQuestionsToAnswer>
+            <!--<MinQuestionsToAnswer>1</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
@@ -1659,6 +1660,10 @@
         <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
             <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
             <Scopes>internal_keystore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin</Permissions>
+            <Scopes>SYSTEM</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>

@@ -59,7 +59,8 @@
   "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
     "PRE_UPDATE_CREDENTIAL",
     "PRE_UPDATE_CREDENTIAL_BY_ADMIN",
-    "PRE_ADD_USER"
+    "PRE_ADD_USER",
+    "VALIDATE_PASSWORD"
   ],
   "identity_mgt.events.schemes.passwordPolicy.properties.'min.length'": "6",
   "identity_mgt.events.schemes.passwordPolicy.properties.'max.length'": "12",

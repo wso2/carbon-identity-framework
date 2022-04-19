@@ -72,6 +72,8 @@
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
+  "oauth.access_token.generate_with_sp_tenant_domain": true,
+
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
   "oauth.endpoints.oauth1_access_token_url": "$ref{server.base_path}/oauth/access-token",
@@ -91,6 +93,7 @@
   "oauth.endpoints.oidc_logout_page": "$ref{server.base_path}/authenticationendpoint/oauth2_logout.do",
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
+  "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
@@ -147,8 +150,8 @@
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
   "oauth.grant_type.device_code.key_length": "6",
-  "oauth.grant_type.device_code.expiry_time": "600000",
-  "oauth.grant_type.device_code.polling_interval": "5000",
+  "oauth.grant_type.device_code.expiry_time": "10m",
+  "oauth.grant_type.device_code.polling_interval": "5s",
   "oauth.grant_type.device_code.key_set": "BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789",
 
   "oauth.dcrm.application_role_permission_required_to_view": true,
@@ -308,7 +311,7 @@
   "identity_mgt.password_reset_challenge_questions.skip_on_insufficient_answers": true,
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
-  "identity_mgt.challenge_questions.min_required_answers": "",
+  "identity_mgt.challenge_questions.min_required_answers": "1",
 
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
@@ -600,6 +603,7 @@
   "authentication.adaptive.long_wait.page_refresh_interval": "500ms",
   "authentication.adaptive.long_wait.timout": "10s",
   "authentication.adaptive.long_wait.prompt": false,
+  "authentication.adaptive.execution_supervisor.enable": false,
   "authentication.adaptive.execution_supervisor.thread_count": "1",
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
 

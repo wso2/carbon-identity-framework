@@ -33,7 +33,7 @@ import java.util.Map;
 import javax.ws.rs.container.ContainerRequestContext;
 
 /**
- * This is the default BASIC-Auth authentication handler for Entitlement REST Endpoints
+ * This is the default BASIC-Auth authentication handler for Entitlement REST Endpoints.
  */
 public class BasicAuthHandler implements EntitlementAuthenticationHandler {
 
@@ -92,7 +92,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
             String password = authHeader.split(":")[1];
             if (userName != null && password != null) {
                 String tenantDomain = MultitenantUtils.getTenantDomain(userName);
-                String tenantLessUserName = MultitenantUtils.getTenantAwareUsername(userName);
+                String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(userName);
 
                 try {
                     // get super tenant context and get realm service which is an osgi service
@@ -107,15 +107,17 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                         // get tenant's user realm
                         UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
                         boolean authenticated = userRealm.getUserStoreManager().authenticate(
-                                tenantLessUserName, password);
+                                tenantAwareUsername, password);
                         if (authenticated) {
                             // authentication success. set the username for authorization header and
                             // proceed the REST call
                             authzHeaders.set(0, userName);
                             return true;
                         } else {
-                            log.error("Authentication failed for the user: " + tenantLessUserName
-                                    + "@" + tenantDomain);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Authentication failed for the user: " + tenantAwareUsername
+                                        + "@" + tenantDomain);
+                            }
                             return false;
                         }
                     } else {

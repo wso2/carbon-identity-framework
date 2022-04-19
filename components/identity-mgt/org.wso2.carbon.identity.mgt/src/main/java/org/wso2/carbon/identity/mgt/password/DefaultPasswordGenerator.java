@@ -23,7 +23,9 @@ import java.util.Random;
 
 /**
  * default password generator with 8 letter password
+ * @deprecated use {@link org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator} instead.
  */
+@Deprecated
 public class DefaultPasswordGenerator implements RandomPasswordGenerator {
 
     //TODO : read the lenth from the user-mgt.xml

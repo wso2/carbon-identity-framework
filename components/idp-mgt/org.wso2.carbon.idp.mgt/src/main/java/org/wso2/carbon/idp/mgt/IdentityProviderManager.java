@@ -644,10 +644,8 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList.add(idPEntityIdProperty);
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // Add SSO URL as a destination URL if not already available.
-            addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
-        }
+        // Add SSO URL as a destination URL if not already available.
+        addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
 
         for (Property property : samlFederatedAuthConfig.getProperties()) {
             if (property != null &&
@@ -2061,7 +2059,7 @@ public class IdentityProviderManager implements IdpManager {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, identityProvider.getPermissionAndRoleConfig());
         }
 
-        validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
+        validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
@@ -3010,5 +3008,95 @@ public class IdentityProviderManager implements IdpManager {
             return MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
         }
         return "";
+    }
+
+    /**
+     * Extracts IdpEntityId property from metadata and adds it to the existing properties of the
+     * federatedAuthenticatorConfigs.
+     *
+     * @param identityProvider IdentityProvider.
+     * @return federatedAuthenticatorConfigs - FederatedAuthenticatorConfig[] of the given identityProvider with the
+     * IdPEntityId property added by extracting from metadata.
+     * @throws IdentityProviderManagementException If the IdpMgtServiceComponentHolder does not contain any
+     *                                             metadataConverters.
+     */
+    private FederatedAuthenticatorConfig[] extractIdpEntityIdFromMetadata(IdentityProvider identityProvider)
+            throws IdentityProviderManagementException {
+
+        List<MetadataConverter> metadataConverters = IdpMgtServiceComponentHolder.getInstance().getMetadataConverters();
+        if (metadataConverters.isEmpty()) {
+            throw new IdentityProviderManagementException("Metadata Converter is not set");
+        }
+
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
+                identityProvider.getFederatedAuthenticatorConfigs();
+
+        for (FederatedAuthenticatorConfig federatedAuthenticatorConfig : federatedAuthenticatorConfigs) {
+            Property[] properties = federatedAuthenticatorConfig.getProperties();
+            if (ArrayUtils.isEmpty(properties)) {
+                return federatedAuthenticatorConfigs;
+            }
+            for (Property property : properties) {
+                if (property == null) {
+                    continue;
+                }
+                // Searching for the metadata property to extract data.
+                // Ignoring the properties with blank names and names not equal to meta_data.
+                if (StringUtils.isBlank(property.getName()) ||
+                        !property.getName().contains((IdPManagementConstants.META_DATA))) {
+                    continue;
+                }
+                for (MetadataConverter metadataConverter : metadataConverters) {
+                    if (!metadataConverter.canHandle(property)) {
+                        continue;
+                    }
+                    // Extracting IdpEntityId property and adding to properties of federatedAuthenticatorConfig.
+                    Property idpEntityIdFromMetadata = extractPropertyFromMetadata(metadataConverter, properties,
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+                    if (idpEntityIdFromMetadata != null) {
+                        ArrayList<Property> propertiesList = new ArrayList<>(Arrays.asList(properties));
+                        propertiesList.add(idpEntityIdFromMetadata);
+                        properties = propertiesList.toArray(properties);
+                        federatedAuthenticatorConfig.setProperties(properties);
+                        break;
+                    }
+                }
+            }
+        }
+        return federatedAuthenticatorConfigs;
+    }
+
+    /**
+     * Extracts and returns the property from metadata with the given property name.
+     * If the property with the given name is not included in metadata, returns null.
+     *
+     * @param metadataConverter MetadataConverter to convert the metadata.
+     * @param properties        Property[] from which the property should be extracted.
+     * @param propertyName      String which is the property name.
+     * @return propertyWithName Property with the propertyName is equal to the given property name.
+     * @throws IdentityProviderManagementException If an error occurs when converting or configuring metadata.
+     */
+    private Property extractPropertyFromMetadata(MetadataConverter metadataConverter, Property[] properties,
+                                                 String propertyName) throws IdentityProviderManagementException {
+
+        Property propertyWithName = null;
+        StringBuilder certificate = new StringBuilder();
+        try {
+            FederatedAuthenticatorConfig metaFederated =
+                    metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
+            Property[] metadataProperties = metaFederated.getProperties();
+            for (Property metadataProperty : metadataProperties) {
+                // Searching for the property.
+                if (propertyName.equals(metadataProperty.getName())) {
+                    propertyWithName = metadataProperty;
+                    break;
+                }
+            }
+        } catch (IdentityProviderManagementException ex) {
+            throw new IdentityProviderManagementException("Error converting metadata", ex);
+        } catch (XMLStreamException e) {
+            throw new IdentityProviderManagementException("Error while configuring metadata", e);
+        }
+        return propertyWithName;
     }
 }

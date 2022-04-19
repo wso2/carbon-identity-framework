@@ -249,7 +249,7 @@
         <OAuth2DCREPUrl>{{oauth.endpoints.oauth2_dcr_url}}</OAuth2DCREPUrl>
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
-
+        <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -1154,7 +1154,7 @@
              <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
              -->
@@ -2331,6 +2331,10 @@
             <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
             <Scopes>internal_keystore_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin</Permissions>
+            <Scopes>SYSTEM</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
             <Scopes>internal_application_mgt_create</Scopes>
@@ -2737,6 +2741,7 @@
         <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
+            <Enable>{{authentication.adaptive.execution_supervisor.enable}}</Enable>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
             {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
@@ -3010,4 +3015,21 @@
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}
+
+    {% if authentication_context.method_refs is defined %}
+        <AuthenticationContext>
+            <MethodRefs>
+                {% for method_ref in authentication_context.method_refs %}
+                    {% if method_ref.amr_value is defined %}
+                    <MethodRef method="{{method_ref.method}}" uri="{{method_ref.amr_value}}" />
+                    {% elif method_ref.excluded_methods is defined %}
+                    {% for excluded_method in method_ref.excluded_methods %}
+                    <MethodRef method="{{excluded_method}}" xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </MethodRefs>
+        </AuthenticationContext>
+    {% endif %}
+
 </Server>

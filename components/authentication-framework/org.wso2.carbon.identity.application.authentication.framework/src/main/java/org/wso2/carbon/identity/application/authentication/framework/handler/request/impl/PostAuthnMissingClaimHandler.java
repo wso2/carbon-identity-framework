@@ -237,11 +237,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims", "Error " +
                         "while redirecting to request claims page", e);
             } catch (URISyntaxException e) {
-                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
-                        "Error while building redirect URI", e);
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                        "Error in redirect URI.", "Error while building redirect URI", e);
             } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
-                        "Error while retrieving claim from claim URI.", e);
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                        "Error in retrieving claim.", "Error while retrieving claim from claim URI.", e);
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim metadata.", e);
@@ -353,8 +353,8 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                             persistClaims = true;
                         }
                     } catch (FederatedAssociationManagerException | FrameworkException e) {
-                        throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
-                                "Error while getting association for " + subject, e);
+                        throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                                "Error in association.", "Error while getting association for " + subject, e);
                     }
                 }
                 break;
@@ -427,8 +427,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     FrameworkServiceComponent.getRegistryService(),
                     FrameworkServiceComponent.getRealmService(), tenantDomain);
         } catch (CarbonException e) {
-            throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
-                    "Error occurred while retrieving the Realm for " + tenantDomain + " to handle local claims", e);
+            throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
+                    "Error in realm.", "Error occurred while retrieving the Realm for " + tenantDomain +
+                    " to handle local claims", e);
         }
         return realm;
     }
