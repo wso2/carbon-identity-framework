@@ -373,6 +373,16 @@ public class UserAdmin {
     public void updateRoleName(String roleName, String newRoleName) throws UserAdminException {
         try {
             getUserAdminProxy().updateRoleName(roleName, newRoleName);
+            String internalSystemRoleName =
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                            .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
+            String newInternalSystemRoleName =
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(newRoleName)
+                            .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(newRoleName);
+            getUserAdminProxy().updateRoleName(appendInternalDomain(internalSystemRoleName),
+                    appendInternalDomain(newInternalSystemRoleName));
+            getUserAdminProxy().updateGroupListOfHybridRole(newInternalSystemRoleName, null,
+                    new String[]{newRoleName});
         } catch (UserAdminException e) {
             throw e;
         }
