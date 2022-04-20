@@ -49,6 +49,7 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_COR
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.TENANT_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.UNIQUE_ID;
@@ -175,7 +176,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             int corsOriginId = -1;
                             if (!resultSet1.next()) {
                                 try (NamedPreparedStatement namedPreparedStatement3 =
-                                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN, ID)) {
                                     // Origin is not present. Therefore add an origin.
                                     namedPreparedStatement3.setInt(TENANT_ID, tenantId);
                                     namedPreparedStatement3.setString(ORIGIN, corsOrigin.getOrigin());
