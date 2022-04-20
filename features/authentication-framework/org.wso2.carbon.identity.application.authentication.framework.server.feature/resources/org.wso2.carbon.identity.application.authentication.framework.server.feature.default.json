@@ -13,8 +13,8 @@
   "identity.auth_framework.endpoint.tls_protocol" : "TLSv1.2",
   "identity.auth_framework.endpoint.app_name": "dashboard",
   "identity.auth_framework.endpoint.app_password": "dashboard",
-  "identity.auth_framework.endpoint.username": "admin",
-  "identity.auth_framework.endpoint.password": "admin",
+  "identity.auth_framework.endpoint.username": "$ref{super_admin.username}",
+  "identity.auth_framework.endpoint.password": "$ref{super_admin.password}",
   "identity.auth_framework.identity_server_origin": "${carbon.protocol}://${carbon.host}:${carbon.management.port}",
   "identity.auth_framework.endpoint.securevault_secret_handler": "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler",
 
@@ -171,6 +171,7 @@
   "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
   "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
+  "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": true,
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,

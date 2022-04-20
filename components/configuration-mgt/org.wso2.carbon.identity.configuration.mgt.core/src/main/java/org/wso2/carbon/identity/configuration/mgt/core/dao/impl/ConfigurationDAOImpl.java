@@ -39,8 +39,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PlaceholderSQL;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveConditionValidator;
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
-import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
@@ -152,7 +152,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
@@ -219,13 +218,13 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.useCreatedTimeField;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMariaDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMySQLDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isPostgreSQLDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isDB2DB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isOracleDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 
 /**
  * {@link ConfigurationDAO} implementation.
@@ -562,7 +561,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
-                if (isH2()) {
+                if (isH2DB()) {
                     updateMetadataForH2(
                             resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
                     );
@@ -756,7 +755,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             String query = SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_MYSQL;
-            if (isH2()) {
+            if (isH2DB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
             } else if (isPostgreSQLDB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_TYPE_POSTGRESQL;
@@ -936,7 +935,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 String query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
-                if (isH2()) {
+                if (isH2DB()) {
                     query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
                 } else if (isPostgreSQLDB()) {
                     query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
@@ -1293,7 +1292,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             DataAccessException {
 
         StringBuilder sb = new StringBuilder();
-        if (isH2()) {
+        if (isH2DB()) {
             sb.append(SQLConstants.UPDATE_ATTRIBUTES_H2);
         } else if (isMySQLDB() || isPostgreSQLDB() || isMariaDB()) {
             sb.append(SQLConstants.INSERT_ATTRIBUTES_SQL);
@@ -1391,8 +1390,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             boolean isPostgreSQL = isPostgreSQLDB();
+            String sqlStmt = isH2DB() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
+
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                template.executeUpdate(sqlStmt, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
                     if (isPostgreSQL) {
                         preparedStatement.setBinaryStream(2, fileStream);
@@ -1448,7 +1449,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
-                String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
+                String sqlStmt = isH2DB() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
+
+                String resourceId = template.fetchSingleRecord(sqlStmt,
                         (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
                         preparedStatement -> {
                             preparedStatement.setString(1, fileId);
@@ -1656,7 +1659,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         try {
             boolean isPostgreSQL = isPostgreSQLDB();
-            template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+            String sqlStmt = isH2DB() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
+
+            template.executeUpdate(sqlStmt, preparedStatement -> {
                 preparedStatement.setString(1, fileId);
                 if (isPostgreSQL) {
                     preparedStatement.setBinaryStream(2, fileStream);
@@ -1679,8 +1684,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         preparedStatement.setString(3, resourceType);
     }
 
-    private String getFileGetByIdSQL() {
+    private String getFileGetByIdSQL() throws DataAccessException{
 
-        return SQLConstants.GET_FILE_BY_ID_SQL;
+        return isH2DB() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
     }
 }

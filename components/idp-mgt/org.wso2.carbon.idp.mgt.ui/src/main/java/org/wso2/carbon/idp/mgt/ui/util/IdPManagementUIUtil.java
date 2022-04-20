@@ -1670,7 +1670,7 @@ public class IdPManagementUIUtil {
 
         String[] authnContextClassList = StringUtils.split(authenticationContextClass, ",");
 
-        if (Arrays.asList(authnContextClassList).contains(
+        if (authnContextClassList != null && Arrays.asList(authnContextClassList).contains(
             IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
             property = new Property();
             property.setName(IdentityApplicationConstants.

@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
@@ -40,6 +41,7 @@ public class ClaimMetadataStoreFactory implements ClaimManagerFactory {
     static {
         try {
             claimConfig = FileBasedClaimBuilder.buildClaimMappingsFromConfigFile();
+            IdentityClaimManagementServiceDataHolder.getInstance().setClaimConfig(claimConfig);
         } catch (IOException e) {
             log.error("Could not find claim configuration file", e);
         } catch (XMLStreamException e) {
@@ -55,4 +57,5 @@ public class ClaimMetadataStoreFactory implements ClaimManagerFactory {
 
         return identityClaimManager;
     }
+
 }

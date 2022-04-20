@@ -28,20 +28,24 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.ThreadContext;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheKey;
@@ -87,6 +91,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -124,6 +129,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
@@ -1131,6 +1138,48 @@ public class FrameworkUtils {
             }
         }
         return sessionContext;
+    }
+
+    /**
+     * To add authentication error to cache.
+     *
+     * @param key   Error key.
+     */
+    public static void addAuthenticationErrorToCache(String key, AuthenticationError authenticationError,
+                                                     String tenantDomain) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry cacheEntry = new AuthenticationErrorCacheEntry(authenticationError, tenantDomain);
+        AuthenticationErrorCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * To get authentication error from cache.
+     *
+     * @param key   Error key.
+     * @return      AuthenticationError.
+     */
+    public static AuthenticationError getAuthenticationErrorFromCache(String key) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry authResult = AuthenticationErrorCache.getInstance().getValueFromCache(cacheKey);
+        if (authResult != null) {
+            return authResult.getAuthenticationError();
+        }
+        return null;
+    }
+
+    /**
+     * To remove authentication error from cache.
+     *
+     * @param key   Error key.
+     */
+    public static void removeAuthenticationErrorFromCache(String key) {
+
+        if (StringUtils.isNotEmpty(key)) {
+            AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+            AuthenticationErrorCache.getInstance().clearCacheEntry(cacheKey);
+        }
     }
 
     /**
@@ -3068,7 +3117,7 @@ public class FrameworkUtils {
 
         String ref;
         if (isCorrelationIDPresent()) {
-            ref = MDC.get(CORRELATION_ID_MDC).toString();
+            ref = ThreadContext.get(CORRELATION_ID_MDC);
         } else {
             ref = UUID.randomUUID().toString();
         }
@@ -3082,7 +3131,7 @@ public class FrameworkUtils {
      */
     public static boolean isCorrelationIDPresent() {
 
-        return MDC.get(CORRELATION_ID_MDC) != null;
+        return ThreadContext.get(CORRELATION_ID_MDC) != null;
     }
 
     /**
@@ -3164,15 +3213,33 @@ public class FrameworkUtils {
      * @throws ClaimManagementException
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
-                                                            List<ClaimMapping> claimMappings)
+                                                            List<ClaimMapping> claimMappings, String tenantDomain)
             throws ClaimManagementException {
 
-        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
-        for (String claim : claimListOfScopes) {
-            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
-            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            if (claimManager != null) {
+                for (String claim : claimListOfScopes) {
+                    org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
+                    if (currentMapping != null && currentMapping.getClaim() != null &&
+                            currentMapping.getClaim().getClaimUri() != null) {
+                        claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+                    } else {
+                        throw new ClaimManagementException("No claim mapping are found for claim :" +
+                                claim + " in :" + tenantDomain);
+                    }
+                }
+            }
+        } catch (CarbonException | UserStoreException e) {
+            throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
+                    tenantDomain, e);
         }
+
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {

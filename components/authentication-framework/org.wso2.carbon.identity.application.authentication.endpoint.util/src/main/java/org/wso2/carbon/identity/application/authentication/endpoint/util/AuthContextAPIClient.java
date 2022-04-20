@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -75,6 +76,10 @@ public class AuthContextAPIClient {
                 builder.append(line);
             }
             response = builder.toString();
+        } catch (FileNotFoundException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ", return 404.");
+            }
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ", failed.", e);
         } finally {

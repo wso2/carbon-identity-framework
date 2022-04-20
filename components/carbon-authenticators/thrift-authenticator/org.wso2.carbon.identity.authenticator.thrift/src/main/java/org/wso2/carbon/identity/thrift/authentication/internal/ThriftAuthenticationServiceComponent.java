@@ -213,7 +213,8 @@ public class ThriftAuthenticationServiceComponent {
         if (portElement != null) {
             port = Integer.parseInt(portElement.getText());
         } else {
-            throw new Exception("Error, Thrift Authentication Service config does not have a port defined!");
+            log.info("Thrift Authentication Service is disabled since thrift port is not configured.");
+            return;
         }
         port = port + portOffset;
         String keyStore = serverConfig.getFirstProperty("Security.KeyStore.Location");

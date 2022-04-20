@@ -117,6 +117,7 @@ public class IdentityEventConstants {
         public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
         public static final String PRE_GET_USER_RECOVERY_DATA = "PRE_GET_USER_RECOVERY_DATA";
         public static final String POST_GET_USER_RECOVERY_DATA = "POST_GET_USER_RECOVERY_DATA";
+        public static final String VALIDATE_PASSWORD = "VALIDATE_PASSWORD";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";

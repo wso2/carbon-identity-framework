@@ -32,14 +32,17 @@ import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
+import org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import java.util.Map;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
 @Component(
          name = "org.wso2.carbon.identity.provision.internal.IdentityProvisionServiceComponent",
@@ -120,8 +123,11 @@ public class IdentityProvisionServiceComponent {
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provider Management Event listener registered successfully");
             }
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(),
+                            null);
             if (log.isDebugEnabled()) {
-                log.debug("Identity Provisioning framework bundle is activated");
+                log.debug("Identity provisioning error event listener registered successfully");
             }
         } catch (Throwable e) {
             log.error("Error while initiating identity provisioning connector framework", e);
@@ -205,10 +211,34 @@ public class IdentityProvisionServiceComponent {
      * @param entitlementService
      */
     protected void unsetEntitlementService(EntitlementService entitlementService) {
+
         if (log.isDebugEnabled()) {
             log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
         }
         ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
+    }
+
+    @Reference(
+            name = "user.mgt.role.permission",
+            service = org.wso2.carbon.user.mgt.RolePermissionManagementService.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRolePermissionManagementService"
+    )
+    protected void setRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Role Permission Management Service is set to Identity Provisioning bundle.");
+        }
+        ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(rolePermissionManagementService);
+    }
+
+    protected void unsetRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService){
+
+        if (log.isDebugEnabled()) {
+            log.debug("Role Permission Management Service is unset to Identity Provisioning bundle.");
+        }
+        ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(null);
     }
 }
 

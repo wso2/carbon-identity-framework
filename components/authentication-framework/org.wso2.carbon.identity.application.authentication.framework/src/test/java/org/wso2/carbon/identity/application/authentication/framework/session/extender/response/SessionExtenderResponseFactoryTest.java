@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.response;
 
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.ThreadContext;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -99,7 +99,7 @@ public class SessionExtenderResponseFactoryTest extends PowerMockTestCase {
     @Test(dataProvider = "handleExceptionProvider")
     public void testHandleExceptions(FrameworkException exception, int expectedStatusCode) {
 
-        MDC.put("Correlation-ID", TRACE_ID);
+        ThreadContext.put("Correlation-ID", TRACE_ID);
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderResponseFactory.handleException(exception);
         HttpIdentityResponse response = responseBuilder.build();

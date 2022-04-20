@@ -719,10 +719,17 @@ public class CacheBackedIdPMgtDAO {
         List<IdentityProvider> identityProviders = this.getIdPs(null, tenantId,
                 tenantDomain);
         for (IdentityProvider identityProvider : identityProviders) {
-            identityProvider = this.getIdPByName(null, identityProvider.getIdentityProviderName(),
-                    tenantId, tenantDomain);
-            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
-                    identityProvider.getIdentityProviderName());
+            String identityProviderName = identityProvider.getIdentityProviderName();
+            identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            // An IDP might get deleted from another process. Hence, identityProvider is nullable.
+            if (identityProvider == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Continue the iteration since identity provider %s is not available " +
+                            "in cache or database of tenant domain %s", identityProviderName, tenantDomain));
+                }
+                continue;
+            }
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProviderName);
             idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
             if (identityProvider.getHomeRealmId() != null) {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
@@ -785,10 +792,17 @@ public class CacheBackedIdPMgtDAO {
         List<IdentityProvider> identityProviders = this.getIdPs(null, tenantId,
                 tenantDomain);
         for (IdentityProvider identityProvider : identityProviders) {
-            identityProvider = this.getIdPByName(null, identityProvider.getIdentityProviderName(),
-                    tenantId, tenantDomain);
-            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
-                    identityProvider.getIdentityProviderName());
+            String identityProviderName = identityProvider.getIdentityProviderName();
+            identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            // An IDP might get deleted from another process. Hence, identityProvider is nullable.
+            if (identityProvider == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Continue the iteration since identity provider %s is not available " +
+                            "in cache or database of tenant domain %s", identityProviderName, tenantDomain));
+                }
+                continue;
+            }
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProviderName);
             idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
             if (identityProvider.getHomeRealmId() != null) {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
@@ -814,10 +828,17 @@ public class CacheBackedIdPMgtDAO {
         List<IdentityProvider> identityProviders = this.getIdPs(null, tenantId,
                 tenantDomain);
         for (IdentityProvider identityProvider : identityProviders) {
-            identityProvider = this.getIdPByName(null, identityProvider.getIdentityProviderName(),
-                    tenantId, tenantDomain);
-            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
-                    identityProvider.getIdentityProviderName());
+            String identityProviderName = identityProvider.getIdentityProviderName();
+            identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            // An IDP might get deleted from another process. Hence, identityProvider is nullable.
+            if (identityProvider == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Continue the iteration since identity provider %s is not available " +
+                            "in cache or database of tenant domain %s", identityProviderName, tenantDomain));
+                }
+                continue;
+            }
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProviderName);
             idPCacheByName.clearCacheEntry(idPNameCacheKey, tenantDomain);
             if (identityProvider.getHomeRealmId() != null) {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(

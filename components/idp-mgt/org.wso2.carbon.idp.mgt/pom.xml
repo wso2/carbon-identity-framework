@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>5.20.309-SNAPSHOT</version>
+        <version>5.20.378-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -69,6 +69,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -149,6 +153,7 @@
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
+                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,

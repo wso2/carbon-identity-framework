@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
@@ -64,6 +65,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -349,13 +351,25 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             // Set parameters specific to sendError function to context if isShowErrorPage  is true
             String errorPage = node.getErrorPageUri();
             String redirectURL = null;
-            if (StringUtils.isBlank(errorPage)) {
-                errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-            }
             try {
-                URIBuilder uriBuilder = new URIBuilder(errorPage);
-                node.getFailureData().forEach(uriBuilder::addParameter);
-                redirectURL = uriBuilder.toString();
+                if (StringUtils.isBlank(errorPage)) {
+                    // Redirecting to server retry page.
+                    errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                    URIBuilder uriBuilder = new URIBuilder(errorPage);
+                    // Create error key and add failure data set in the script to AuthenticationError and add to cache.
+                    String errorKey = UUID.randomUUID().toString();
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    Map<String, String> failureData = node.getFailureData();
+                    failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                    AuthenticationError authenticationError = new AuthenticationError(failureData);
+                    FrameworkUtils.addAuthenticationErrorToCache(errorKey, authenticationError,
+                            context.getTenantDomain());
+                    redirectURL = uriBuilder.toString();
+                } else {
+                    URIBuilder uriBuilder = new URIBuilder(errorPage);
+                    node.getFailureData().forEach(uriBuilder::addParameter);
+                    redirectURL = uriBuilder.toString();
+                }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
             } catch (IOException e) {
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);

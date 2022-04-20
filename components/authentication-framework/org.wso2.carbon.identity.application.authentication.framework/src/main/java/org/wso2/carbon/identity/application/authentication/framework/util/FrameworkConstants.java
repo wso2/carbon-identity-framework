@@ -108,6 +108,7 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
 
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String REQUEST_PARAM_ERROR_KEY = "errorKey";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
@@ -547,6 +548,8 @@ public abstract class FrameworkConstants {
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.Enable";
         public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
                 "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
         public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =

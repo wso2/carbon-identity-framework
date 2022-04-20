@@ -50,6 +50,8 @@ import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -706,8 +708,15 @@ public class IdentityManagementEndpointUtil {
     private static void loadCredentials() throws IOException {
 
         Properties properties = new Properties();
-        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
-                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
+        File currentDirectory =
+                new File(new File(IdentityManagementEndpointConstants.RELATIVE_PATH_START_CHAR).getAbsolutePath());
+        String configFilePath = currentDirectory.getCanonicalPath() + File.separator +
+                IdentityManagementEndpointConstants.SERVICE_CONFIG_RELATIVE_PATH;
+        File configFile = new File(configFilePath);
+
+        try (InputStream inputStream = configFile.exists() ? new FileInputStream(configFile) :
+                IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
+                        (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
             properties.load(inputStream);
 
             // Resolve encrypted properties with secure vault.
