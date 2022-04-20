@@ -228,7 +228,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 boolean userWorkflowEngaged = false;
                 try {
                     /*
-                    This thread local is set to skip the password pattern validation even if the password
+                    This thread local is set to skip the password and username pattern validation even if the password
                     is generated, or user entered one. If it is required to check password pattern validation,
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
