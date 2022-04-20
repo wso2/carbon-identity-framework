@@ -29,6 +29,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB;
  * A util class to support the Jdbc executions.
  * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils} instead.
  */
+@Deprecated
 public class JdbcUtils {
 
     /**
