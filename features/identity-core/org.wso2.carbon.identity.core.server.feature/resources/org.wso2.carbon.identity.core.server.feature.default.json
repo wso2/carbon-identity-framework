@@ -614,6 +614,11 @@
   "fido.webauthn.enable": true,
   "fido.trusted.origins": ["${carbon.protocol}://${carbon.host}:${carbon.management.port}"],
   "fido.user_response_timeout": "300000",
+  "fido.metadata_service.enable": false,
+  "fido.metadata_service.mds_endpoints": [],
+  "fido.metadata_service.mds_root_certificate_file_path": "${carbon.home}/repository/resources/identity/fido2/security/MDS3ROOT.crt",
+  "fido.metadata_service.metadata_statement_directory": "${carbon.home}/repository/resources/identity/fido2/metadataStatements",
+  "fido.metadata_service.mds_scheduler_initial_delay": "0",
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",

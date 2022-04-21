@@ -2845,6 +2845,19 @@
             Time configurations are in milliseconds.
         -->
         <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
+
+        <!-- FIDO2 metadata service related configurations -->
+        <MetadataService>
+            <Enable>{{fido.metadata_service.enable}}</Enable>
+            <MDSEndpoints>
+                {% for endpoint in fido.metadata_service.mds_endpoints %}
+                    <Endpoint>{{endpoint}}</Endpoint>
+                {% endfor %}
+            </MDSEndpoints>
+            <MDSRootCertificateFilePath>{{fido.metadata_service.mds_root_certificate_file_path}}</MDSRootCertificateFilePath>
+            <MetadataStatementDirectory>{{fido.metadata_service.metadata_statement_directory}}</MetadataStatementDirectory>
+            <SchedulerInitialDelay>{{fido.metadata_service.mds_scheduler_initial_delay}}</SchedulerInitialDelay>
+        </MetadataService>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
