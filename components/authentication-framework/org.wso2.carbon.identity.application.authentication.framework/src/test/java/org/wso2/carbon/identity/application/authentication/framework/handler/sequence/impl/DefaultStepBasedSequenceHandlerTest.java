@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -67,11 +68,11 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
@@ -92,6 +93,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
         IdentityTenantUtil.class, IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class DefaultStepBasedSequenceHandlerTest {
 
     private static final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
@@ -691,7 +693,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(true);
                 context.setRequestAuthenticated(true);
@@ -710,7 +712,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(false);
                 context.setRequestAuthenticated(isRequestAuthenticated);
