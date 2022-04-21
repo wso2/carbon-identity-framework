@@ -93,6 +93,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_PREFIX;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE;
@@ -209,16 +210,22 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spName = serviceProvider.getApplicationName();
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
+        boolean scopeBasedClaimFilteringEnabled = true;
+
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING))) {
+            scopeBasedClaimFilteringEnabled =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING));
+        }
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
 
-        if (claimMappings == null || claimMappings.length == 0) {
+        if (scopeBasedClaimFilteringEnabled && (claimMappings == null || claimMappings.length == 0)) {
             if (log.isDebugEnabled()) {
                 log.debug("No claim mapping configured from the application. Hence skipping getting consent.");
             }
             return new ConsentClaimsData();
         }
-        if (claimsListOfScopes != null) {
+        if (scopeBasedClaimFilteringEnabled && claimsListOfScopes != null) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
@@ -243,7 +250,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT));
         }
 
-        if (isPassThroughScenario(claimMappings, userAttributes)) {
+        if (!scopeBasedClaimFilteringEnabled && isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
                 String remoteClaimUri = userAttribute.getKey().getRemoteClaim().getClaimUri();
                 if (subjectClaimUri.equals(remoteClaimUri) ||
