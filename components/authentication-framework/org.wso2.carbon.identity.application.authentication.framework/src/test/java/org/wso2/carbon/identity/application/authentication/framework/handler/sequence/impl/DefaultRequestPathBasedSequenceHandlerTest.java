@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -59,9 +60,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -76,6 +77,7 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";

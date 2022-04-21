@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponse;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
