@@ -81,6 +81,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%!public static final String IS_HANDLER = "IS_HANDLER";%>
+<%!public static final String BACKUP_CODE_AUTHENTICATOR = "backup-code-authenticator";%>
 <carbon:breadcrumb label="breadcrumb.advanced.auth.step.config"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
@@ -92,6 +93,7 @@
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     String spName = appBean.getServiceProvider().getApplicationName();
     Map<String, String> claimMapping = appBean.getClaimMapping();
+
     
     LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
     IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
@@ -105,6 +107,9 @@
     
     if (localAuthenticatorConfigs != null && localAuthenticatorConfigs.length > 0) {
         for (LocalAuthenticatorConfig auth : localAuthenticatorConfigs) {
+            if (auth.getName().equals(BACKUP_CODE_AUTHENTICATOR)) {
+                continue;
+            }
             localAuthTypes.append(startOption).append(Encode.forHtmlAttribute(auth.getName())).append(middleOption)
                 .append(Encode.forHtmlContent(auth.getDisplayName())).append(endOption);
         }

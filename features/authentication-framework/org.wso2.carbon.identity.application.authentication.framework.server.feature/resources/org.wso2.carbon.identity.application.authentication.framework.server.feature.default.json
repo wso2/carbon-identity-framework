@@ -191,6 +191,14 @@
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
 
+  "authentication.authenticator.backup_code.name": "backup-code-authenticator",
+  "authentication.authenticator.backup_code.enable": true,
+  "authentication.authenticator.backup_code.parameters.authenticationMandatory": true,
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointURL": "authenticationendpoint/backup_code.do",
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointErrorPage": "authenticationendpoint/backup_code_error.do",
+  "authentication.authenticator.backup_code.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.backup_code.parameters.Tags": "MFA",
+
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,
   "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
