@@ -356,9 +356,7 @@ public class UserAdmin {
 
         getUserAdminProxy().deleteRole(roleName);
         if (getUserAdminProxy().isRoleAndGroupSeparationEnabled()) {
-            String internalSystemRoleName =
-                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
-                            .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
+            String internalSystemRoleName = getInternalSystemRoleName(roleName);
             if (getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
                 getUserAdminProxy().deleteRole(appendInternalDomain(internalSystemRoleName));
             }
@@ -371,11 +369,39 @@ public class UserAdmin {
      * @throws UserAdminException
      */
     public void updateRoleName(String roleName, String newRoleName) throws UserAdminException {
+
         try {
-            getUserAdminProxy().updateRoleName(roleName, newRoleName);
+            boolean isInternalRole = false;
+            if (isInternalRole(roleName)) {
+                isInternalRole = true;
+            }
+            String internalSystemRoleName;
+            String newInternalSystemRoleName;
+            if (!isInternalRole) {
+                internalSystemRoleName = getInternalSystemRoleName(roleName);
+                newInternalSystemRoleName = getInternalSystemRoleName(newRoleName);
+                if (getUserAdminProxy().isRoleAndGroupSeparationEnabled() &&
+                        getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
+                    getUserAdminProxy().updateRoleName(appendInternalDomain(internalSystemRoleName),
+                            appendInternalDomain(newInternalSystemRoleName));
+                    getUserAdminProxy().updateRoleName(roleName, newRoleName);
+                    getUserAdminProxy().updateGroupListOfHybridRole(newInternalSystemRoleName, null,
+                            new String[]{newRoleName});
+                } else {
+                    getUserAdminProxy().updateRoleName(roleName, newRoleName);
+                }
+            } else {
+                getUserAdminProxy().updateRoleName(roleName, newRoleName);
+            }
         } catch (UserAdminException e) {
             throw e;
         }
+    }
+
+    private String getInternalSystemRoleName(String roleName) {
+
+        return UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
     }
 
     /**
