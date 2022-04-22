@@ -82,6 +82,7 @@
                     <reuseForks>true</reuseForks>
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>org.ops4j.pax.logging</classpathDependencyExclude>
+                        <classpathDependencyExclude>org.wso2.org.ops4j.pax.logging</classpathDependencyExclude>
                     </classpathDependencyExcludes>
                 </configuration>
             </plugin>
