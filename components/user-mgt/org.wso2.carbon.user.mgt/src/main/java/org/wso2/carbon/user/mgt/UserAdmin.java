@@ -380,21 +380,16 @@ public class UserAdmin {
 
         try {
             boolean isInternalRole = false;
-            if (roleName.startsWith(UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR) ||
-                    roleName.startsWith(UserCoreConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR)) {
+            if (isInternalRole(roleName)) {
                 isInternalRole = true;
             }
             String internalSystemRoleName;
             String newInternalSystemRoleName;
             if (!isInternalRole) {
-                internalSystemRoleName = UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
-                        .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
-                newInternalSystemRoleName = UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(newRoleName)
-                        .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(newRoleName);
-                UIPermissionNode uiPermissionNode = getRolePermissions(roleName);
-                List<String> permissions = new ArrayList<>();
-                extractPermissionsFromUIPermissionNode(uiPermissionNode, permissions);
-                if (getUserAdminProxy().isRoleAndGroupSeparationEnabled() && CollectionUtils.isNotEmpty(permissions)) {
+                internalSystemRoleName = getInternalSystemRoleName(roleName);
+                newInternalSystemRoleName = getInternalSystemRoleName(newRoleName);
+                if (getUserAdminProxy().isRoleAndGroupSeparationEnabled() &&
+                        getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
                     getUserAdminProxy().updateRoleName(appendInternalDomain(internalSystemRoleName),
                             appendInternalDomain(newInternalSystemRoleName));
                     getUserAdminProxy().updateRoleName(roleName, newRoleName);
@@ -406,7 +401,6 @@ public class UserAdmin {
             } else {
                 getUserAdminProxy().updateRoleName(roleName, newRoleName);
             }
-
         } catch (UserAdminException e) {
             throw e;
         }
@@ -418,19 +412,6 @@ public class UserAdmin {
      */
     public boolean hasMultipleUserStores() throws UserAdminException {
         return getUserAdminProxy().hasMultipleUserStores();
-    }
-
-    private void extractPermissionsFromUIPermissionNode(UIPermissionNode uiPermissionNode, List<String> permissionList) {
-
-        if (uiPermissionNode.isSelected()) {
-            permissionList.add(uiPermissionNode.getResourcePath());
-        }
-        if (uiPermissionNode.getNodeList().length > 0) {
-            for (UIPermissionNode childUIPermissionNode : uiPermissionNode.getNodeList()) {
-                /* Extract resource path from UI permission node recursively. */
-                extractPermissionsFromUIPermissionNode(childUIPermissionNode, permissionList);
-            }
-        }
     }
 
     /*
