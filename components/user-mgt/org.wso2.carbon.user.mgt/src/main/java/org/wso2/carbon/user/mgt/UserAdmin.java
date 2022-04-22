@@ -398,6 +398,8 @@ public class UserAdmin {
                     getUserAdminProxy().updateRoleName(appendInternalDomain(internalSystemRoleName),
                             appendInternalDomain(newInternalSystemRoleName));
                     getUserAdminProxy().updateRoleName(roleName, newRoleName);
+                    getUserAdminProxy().updateGroupListOfHybridRole(newInternalSystemRoleName, new String[]{roleName},
+                            new String[]{newRoleName});
                 } else {
                     getUserAdminProxy().updateRoleName(roleName, newRoleName);
                 }
