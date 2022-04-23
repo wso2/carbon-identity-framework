@@ -75,7 +75,6 @@ import java.util.Map;
  * org.wso2.carbon.identity.rest.api.user.recovery.v1.impl.core.PasswordRecoveryService,
  * org.wso2.carbon.identity.user.endpoint.impl.MeApiServiceImpl instead.
  */
-@Deprecated
 public class UserInformationRecoveryService {
 
     private static final Log log = LogFactory.getLog(UserInformationRecoveryService.class);

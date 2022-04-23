@@ -2,10 +2,13 @@ CREATE OR REPLACE PROCEDURE WSO2_CONFIRMATION_CODE_CLEANUP IS
     -- ------------------------------------------
     -- DECLARE VARIABLES
     -- ------------------------------------------
+    systime TIMESTAMP := systimestamp;
+    utcTime TIMESTAMP := sys_extract_utc(systimestamp);
     batchCount INT := 1000;
     chunkCount INT := 1000;
     rowCount INT   := 0;
     current_schema VARCHAR(20);
+    cleanUpCodesTimeLimit TIMESTAMP;
 
     -- ------------------------------------------
     -- CONFIGURABLE VARIABLES
@@ -14,10 +17,12 @@ CREATE OR REPLACE PROCEDURE WSO2_CONFIRMATION_CODE_CLEANUP IS
     chunkSize INT        := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
     enableLog BOOLEAN    := FALSE; -- ENABLE LOGGING [DEFAULT : FALSE]
     backupTables BOOLEAN := FALSE; -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : FALSE], WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    cleanUpCodesTimeLimitInHrs INT := 720; -- SET SAFE PERIOD OF HOURS FOR CODE DELETE [DEFAULT : 720 hrs (30 days)]. CODES OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
 
 BEGIN
 
     SELECT sys_context('USERENV', 'CURRENT_SCHEMA') INTO current_schema FROM DUAL;
+    cleanUpCodesTimeLimit := utcTime - cleanUpCodesTimeLimitInHrs/24;
 
     IF ( enableLog ) THEN
         SELECT COUNT(*) INTO rowCount FROM all_tables WHERE owner = current_schema AND table_name = UPPER('LOG_WSO2_CONFIRMATION_CODE_CLEANUP');
@@ -92,7 +97,8 @@ BEGIN
             THEN
                 EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_CONFIRMATION_CODE_CLEANUP (TIMESTAMP,LOG) VALUES (TO_CHAR(SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''BATCH DELETE STARTED ON IDN_RECOVERY_DATA...'')';
             END IF;
-            EXECUTE IMMEDIATE 'DELETE FROM IDN_RECOVERY_DATA WHERE CODE IN (SELECT CODE FROM IDN_RECOVERY_DATA_BATCH_TMP)';
+            EXECUTE IMMEDIATE 'DELETE FROM IDN_RECOVERY_DATA WHERE code IN (SELECT code FROM IDN_RECOVERY_DATA_BATCH_TMP where (:cleanUpCodesTimeLimit  > TIME_CREATED))'
+            using  cleanUpCodesTimeLimit;
             rowCount:= sql%rowcount;
             COMMIT;
             IF (enableLog)
