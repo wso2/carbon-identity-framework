@@ -193,7 +193,6 @@
   ],
   "oauth.oidc.token_validation.logout_token_validity": "2m",
   "oauth.oidc.extensions.request_object_validator": "org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl",
-  "oauth.oidc.extensions.oauth_authz_request": "org.wso2.carbon.identity.oauth2.model.CarbonOAuthAuthzRequest",
   "oauth.oidc.user_info.jwt_signature_algorithm": "$ref{oauth.oidc.id_token.signature_algorithm}",
   "oauth.oidc.extensions.user_info_claim_retriever": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever",
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
