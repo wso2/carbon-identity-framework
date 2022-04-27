@@ -256,12 +256,22 @@ function checkAuthenticators() {
 
 function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
+    if (scriptEncodeEnabled === 'true') {
+        encodeAuthScript();
+    }
     $("#configure-auth-flow-form").submit();
 }
 
 function submitFormWithEnabledScript() {
     $("#enableScript").prop("checked", true);
+    if (scriptEncodeEnabled === 'true') {
+        encodeAuthScript();
+    }
     $("#configure-auth-flow-form").submit();
+}
+
+function encodeAuthScript() {
+    doc.setValue(btoa(doc.getValue()));
 }
 
 $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');

@@ -73,6 +73,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -334,7 +335,7 @@
             <fmt:message key='breadcrumb.advanced.auth.step.config.for'/><%=Encode.forHtmlContent(spName)%>
         </h2>
         <div id="workArea">
-            <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post"
+            <form id="configure-auth-flow-form" name="configure-auth-flow-form" method="post"
                   action="configure-authentication-flow-finish-ajaxprocessor.jsp">
                 <input type=hidden name=spName value='<%=Encode.forHtmlAttribute(spName)%>'/>
 
@@ -726,5 +727,7 @@
             $('#attribute_step_' + stepOrder).attr('checked', true);
         }
     }
+    var scriptEncodeEnabled = '<%=Boolean.parseBoolean(IdentityUtil.getProperty("AdaptiveAuth.EncodeAdaptiveAuthScript.Enable"))%>';
+
 </script>
 <script src="./js/configure-authentication-flow.js"></script>
