@@ -93,18 +93,26 @@ public class SAMLValidator implements ApplicationValidator {
         Property[] properties = inboundAuthenticationRequestConfig.getProperties();
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
+
+        validateIssuer(map.get(ISSUER).get(0), validationErrors);
+
+        validateIssuerQualifier(map.get(ISSUER_QUALIFIER).get(0), validationErrors);
+
         if (map.containsKey(ISSUER) && !StringUtils.isBlank(map.get(ISSUER).get(0)) &&
                 isIssuerExists(map.get(ISSUER).get(0))) {
             validationErrors.add(String.format(INVALID_ISSUER, map.get(ISSUER).get(0), tenantDomain));
         }
+
         if (map.containsKey(SIGNING_ALGORITHM_URI) && !StringUtils.isBlank(map.get(SIGNING_ALGORITHM_URI).get(0))
                 && !Arrays.asList(getSigningAlgorithmUris()).contains(map.get(SIGNING_ALGORITHM_URI).get(0))) {
             validationErrors.add(String.format(INVALID_SIGNING_ALGORITHM_URI, map.get(SIGNING_ALGORITHM_URI).get(0)));
         }
+
         if (map.containsKey(DIGEST_ALGORITHM_URI) && !StringUtils.isBlank(map.get(DIGEST_ALGORITHM_URI).get(0))
                 && !Arrays.asList(getDigestAlgorithmURIs()).contains(map.get(DIGEST_ALGORITHM_URI).get(0))) {
             validationErrors.add(String.format(INVALID_DIGEST_ALGORITHM_URI , map.get(DIGEST_ALGORITHM_URI).get(0)));
         }
+
         if (map.containsKey(ASSERTION_ENCRYPTION_ALGORITHM_URI)
                 && !StringUtils.isBlank(map.get(ASSERTION_ENCRYPTION_ALGORITHM_URI).get(0))
                 && !Arrays.asList(getAssertionEncryptionAlgorithmURIs()).contains(
@@ -112,6 +120,7 @@ public class SAMLValidator implements ApplicationValidator {
             validationErrors.add(String.format(INVALID_ASSERTION_ENCRYPTION_ALGORITHM_URI,
                     map.get(ASSERTION_ENCRYPTION_ALGORITHM_URI).get(0)));
         }
+
         if (map.containsKey(KEY_ENCRYPTION_ALGORITHM_URI)
                 && !StringUtils.isBlank(map.get(KEY_ENCRYPTION_ALGORITHM_URI).get(0))
                 && !Arrays.asList(getKeyEncryptionAlgorithmURIs()).contains(
@@ -124,6 +133,27 @@ public class SAMLValidator implements ApplicationValidator {
     private boolean isIssuerExists(String issuer) {
         //TODO :complete
         return false;
+    }
+
+    private void validateIssuerQualifier(String issuerQualifier, List<String> validationErrors) {
+
+        if (StringUtils.isNotBlank(issuerQualifier) && issuerQualifier.contains("@")) {
+            String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
+            validationErrors.add(errorMessage);
+        }
+    }
+
+    private void validateIssuer(String issuer, List<String> validationErrors) {
+
+        if (StringUtils.isBlank(issuer)) {
+            validationErrors.add("A value for the Issuer is mandatory.");
+            return;
+        }
+
+        if (issuer.contains("@")) {
+            String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
+            validationErrors.add(errorMessage);
+        }
     }
 
     public String[] getSigningAlgorithmUris() {
