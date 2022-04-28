@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  */
 public class SAMLValidator implements ApplicationValidator {
 
-    private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
 
     public static final String ISSUER = "issuer";
     public static final String ISSUER_QUALIFIER = "issuerQualifier";
@@ -30,9 +29,8 @@ public class SAMLValidator implements ApplicationValidator {
     public static final String ASSERTION_ENCRYPTION_ALGORITHM_URI = "assertionEncryptionAlgorithmURI";
     public static final String KEY_ENCRYPTION_ALGORITHM_URI = "keyEncryptionAlgorithmURI";
     public static final String CERT_ALIAS = "certAlias";
-    //    TODO: check "attrConsumServiceIndex" (Line 77)
-//    public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
     public static final String DO_SIGN_RESPONSE = "doSignResponse";
+    private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
     public static final String DO_SINGLE_LOGOUT = "doSingleLogout";
     public static final String DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
     public static final String FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
@@ -80,7 +78,7 @@ public class SAMLValidator implements ApplicationValidator {
         for (InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig:
                 serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
             if (inboundAuthenticationRequestConfig.getInboundAuthType().equals("samlsso")) {
-                validateSAMLProperties(validationErrors, inboundAuthenticationRequestConfig, tenantDomain, username);
+                validateSAMLProperties(validationErrors, inboundAuthenticationRequestConfig, tenantDomain);
                 break;
             }
         }
@@ -89,14 +87,14 @@ public class SAMLValidator implements ApplicationValidator {
 
     private void validateSAMLProperties(List<String> validationErrors,
                                         InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig,
-                                        String tenantDomain, String username) {
+                                        String tenantDomain) {
         Property[] properties = inboundAuthenticationRequestConfig.getProperties();
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
-        validateIssuer(map.get(ISSUER).get(0), validationErrors);
+        validateIssuer(map, validationErrors);
 
-        validateIssuerQualifier(map.get(ISSUER_QUALIFIER).get(0), validationErrors);
+        validateIssuerQualifier(map, validationErrors);
 
         if (map.containsKey(ISSUER) && !StringUtils.isBlank(map.get(ISSUER).get(0)) &&
                 isIssuerExists(map.get(ISSUER).get(0))) {
@@ -135,22 +133,21 @@ public class SAMLValidator implements ApplicationValidator {
         return false;
     }
 
-    private void validateIssuerQualifier(String issuerQualifier, List<String> validationErrors) {
-
-        if (StringUtils.isNotBlank(issuerQualifier) && issuerQualifier.contains("@")) {
+    private void validateIssuerQualifier(HashMap<String, List<String>> map, List<String> validationErrors) {
+        if (map.containsKey(ISSUER_QUALIFIER) && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))
+                && map.get(ISSUER_QUALIFIER).get(0).contains("@")) {
             String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
             validationErrors.add(errorMessage);
         }
     }
 
-    private void validateIssuer(String issuer, List<String> validationErrors) {
-
-        if (StringUtils.isBlank(issuer)) {
+    private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors) {
+        if (!map.containsKey(ISSUER) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
             validationErrors.add("A value for the Issuer is mandatory.");
             return;
         }
 
-        if (issuer.contains("@")) {
+        if (map.get(ISSUER).get(0).contains("@")) {
             String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
             validationErrors.add(errorMessage);
         }
