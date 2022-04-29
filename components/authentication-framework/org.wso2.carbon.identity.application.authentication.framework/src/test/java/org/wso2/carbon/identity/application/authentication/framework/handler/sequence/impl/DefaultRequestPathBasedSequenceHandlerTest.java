@@ -72,6 +72,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
@@ -325,7 +326,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                 .getServiceProviderMappedUserRoles(any(SequenceConfig.class), anyList());
 
         ServiceProvider serviceProvider = new ServiceProvider();
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
         when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUri);
 
         SequenceConfig sequenceConfig = new SequenceConfig();

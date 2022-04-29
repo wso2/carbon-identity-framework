@@ -87,6 +87,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
@@ -596,7 +597,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         when(externalIdPConfig.getProvisioningUserStoreId()).thenReturn(provisioningUserStoreId);
         when(externalIdPConfig.getProvisioningUserStoreClaimURI()).thenReturn(provisioningUserStoreClaimUri);
 
-        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
         applicationConfig.setApplicationName("DUMMY_NAME");
 
         SequenceConfig sequenceConfig = new SequenceConfig();
@@ -965,7 +966,8 @@ public class DefaultStepBasedSequenceHandlerTest {
                                        String expectedSubjectIdentifier) throws Exception {
 
         stepBasedSequenceHandler = new DefaultStepBasedSequenceHandler();
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(new ServiceProvider()));
+        ApplicationConfig applicationConfig =
+                spy(new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME));
         when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUriFromAppConfig);
         when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(appendTenantDomainToSubject);
         when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier())
