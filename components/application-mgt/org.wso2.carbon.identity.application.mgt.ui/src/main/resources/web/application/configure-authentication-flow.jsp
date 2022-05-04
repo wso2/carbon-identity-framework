@@ -73,7 +73,6 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -727,7 +726,5 @@
             $('#attribute_step_' + stepOrder).attr('checked', true);
         }
     }
-    var scriptEncodeEnabled = '<%=Boolean.parseBoolean(IdentityUtil.getProperty("AdaptiveAuth.EncodeAdaptiveAuthScript.Enable"))%>';
-
 </script>
 <script src="./js/configure-authentication-flow.js"></script>

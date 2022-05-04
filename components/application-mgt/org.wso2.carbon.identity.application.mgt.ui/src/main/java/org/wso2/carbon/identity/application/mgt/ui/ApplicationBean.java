@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -76,8 +75,6 @@ public class ApplicationBean {
     public static final String DUMB = "dumb";
 
     private static final String LOGOUT_RETURN_URL = "logoutReturnUrl";
-
-    private static final String ENCODE_ADAPTIVE_AUTH_ENABLE_CONFIG = "AdaptiveAuth.EncodeAdaptiveAuthScript.Enable";
 
     private ServiceProvider serviceProvider;
     private IdentityProvider[] federatedIdentityProviders;
@@ -1117,11 +1114,8 @@ public class ApplicationBean {
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig();
         String flawByScript = request.getParameter("scriptTextArea");
-        boolean isAuthScriptEncoded = Boolean.parseBoolean(IdentityUtil.getProperty(
-                ENCODE_ADAPTIVE_AUTH_ENABLE_CONFIG));
-        if (isAuthScriptEncoded) {
-            flawByScript = new String(Base64.getDecoder().decode(flawByScript), StandardCharsets.UTF_8);
-        }
+        // Decode the auth script.
+        flawByScript = new String(Base64.getDecoder().decode(flawByScript), StandardCharsets.UTF_8);
 
         if (StringUtils.isBlank(flawByScript)) {
             authenticationScriptConfig.setEnabled(false);

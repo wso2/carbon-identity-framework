@@ -2717,13 +2717,6 @@
     </JWTValidatorConfigs>
 
     <AdaptiveAuth>
-    <!--Default configs for encode adaptive authentication script-->
-    {% if authentication.adaptive.encode_adaptive_auth_script is defined %}
-        <EncodeAdaptiveAuthScript>
-            <Enable>{{authentication.adaptive.encode_adaptive_auth_script.enable}}</Enable>
-        </EncodeAdaptiveAuthScript>
-    {% endif %}
-
         <!--Default configs for event publisher-->
         <EventPublisher>
             <ReceiverURL>{{authentication.adaptive.event_publisher.url}}</ReceiverURL>

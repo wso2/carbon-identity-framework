@@ -256,20 +256,17 @@ function checkAuthenticators() {
 
 function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
-    if (scriptEncodeEnabled === 'true') {
-        encodeAuthScript();
-    }
+    encodeAuthScript();
     $("#configure-auth-flow-form").submit();
 }
 
 function submitFormWithEnabledScript() {
     $("#enableScript").prop("checked", true);
-    if (scriptEncodeEnabled === 'true') {
-        encodeAuthScript();
-    }
+    encodeAuthScript();
     $("#configure-auth-flow-form").submit();
 }
 
+// Encode the auth script with Base64 encoding.
 function encodeAuthScript() {
     doc.setValue(btoa(doc.getValue()));
 }
