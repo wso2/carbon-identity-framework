@@ -2700,16 +2700,6 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/enabledAuthenticators</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:backupCodes</ClaimURI>
-				<DisplayName>Backup Codes</DisplayName>
-				<AttributeID>backupCodes</AttributeID>
-				<Description>Backup Codes of the user</Description>
-				<Required />
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/identity/backupCodes</MappedLocalClaim>
-			</Claim>
-			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedBackupCodeAttempts</ClaimURI>
 				<DisplayName>Failed Backup Code Attempts</DisplayName>
 				<AttributeID>failedBackupCodeAttempts</AttributeID>
