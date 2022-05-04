@@ -92,7 +92,7 @@ public class SAMLValidator implements ApplicationValidator {
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
-        validateIssuer(map, validationErrors);
+        validateIssuer(map, validationErrors, inboundAuthenticationRequestConfig.getInboundAuthKey());
 
         validateIssuerQualifier(map, validationErrors);
 
@@ -141,10 +141,15 @@ public class SAMLValidator implements ApplicationValidator {
         }
     }
 
-    private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors) {
-        if (!map.containsKey(ISSUER) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
+    private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors, String issuer) {
+        if (!map.containsKey(ISSUER) || (map.get(ISSUER) == null) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
             validationErrors.add("A value for the Issuer is mandatory.");
             return;
+        }
+
+        if (!map.get(ISSUER).get(0).equals(issuer)) {
+            validationErrors.add(String.format("The Inbound Auth Key of the  application name %s " +
+                    "is not match with SAML issuer %s.", issuer, map.get(ISSUER).get(0)));
         }
 
         if (map.get(ISSUER).get(0).contains("@")) {
