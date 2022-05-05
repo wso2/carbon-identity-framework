@@ -6,6 +6,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,8 +93,7 @@ public class SAMLValidator implements ApplicationValidator {
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
-        validateIssuer(map, validationErrors, inboundAuthenticationRequestConfig.getInboundAuthKey());
-
+        validateIssuer(map, validationErrors,  inboundAuthenticationRequestConfig.getInboundAuthKey());
         validateIssuerQualifier(map, validationErrors);
 
         if (map.containsKey(ISSUER) && !StringUtils.isBlank(map.get(ISSUER).get(0)) &&
@@ -134,7 +134,8 @@ public class SAMLValidator implements ApplicationValidator {
     }
 
     private void validateIssuerQualifier(HashMap<String, List<String>> map, List<String> validationErrors) {
-        if (map.containsKey(ISSUER_QUALIFIER) && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))
+        if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
+                && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))
                 && map.get(ISSUER_QUALIFIER).get(0).contains("@")) {
             String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Qualifier Value.";
             validationErrors.add(errorMessage);
@@ -142,6 +143,11 @@ public class SAMLValidator implements ApplicationValidator {
     }
 
     private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors, String issuer) {
+        if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
+                && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
+            issuer = getIssuerWithoutQualifier(issuer);
+        }
+
         if (!map.containsKey(ISSUER) || (map.get(ISSUER) == null) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
             validationErrors.add("A value for the Issuer is mandatory.");
             return;
@@ -182,6 +188,17 @@ public class SAMLValidator implements ApplicationValidator {
         Collection<String> keyEncryptionAlgoUris =
                 IdentityApplicationManagementUtil.getXMLKeyEncryptionAlgorithms().values();
         return keyEncryptionAlgoUris.toArray(new String[keyEncryptionAlgoUris.size()]);
+    }
+
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
     }
 
 }
