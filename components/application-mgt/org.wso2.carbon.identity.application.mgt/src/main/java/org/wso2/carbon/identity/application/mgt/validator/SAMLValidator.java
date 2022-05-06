@@ -6,6 +6,8 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 
 import java.util.ArrayList;
@@ -23,12 +25,12 @@ public class SAMLValidator implements ApplicationValidator {
 
     public static final String ISSUER = "issuer";
     public static final String ISSUER_QUALIFIER = "issuerQualifier";
-    public static final String ASSERTION_CONSUMER_URLS = "assertionConsumerUrls";
-    public static final String DEFAULT_ASSERTION_CONSUMER_URL = "defaultAssertionConsumerUrl";
     public static final String SIGNING_ALGORITHM_URI = "signingAlgorithmURI";
     public static final String DIGEST_ALGORITHM_URI = "digestAlgorithmURI";
     public static final String ASSERTION_ENCRYPTION_ALGORITHM_URI = "assertionEncryptionAlgorithmURI";
     public static final String KEY_ENCRYPTION_ALGORITHM_URI = "keyEncryptionAlgorithmURI";
+    public static final String ASSERTION_CONSUMER_URLS = "assertionConsumerUrls";
+    public static final String DEFAULT_ASSERTION_CONSUMER_URL = "defaultAssertionConsumerUrl";
     public static final String CERT_ALIAS = "certAlias";
     public static final String DO_SIGN_RESPONSE = "doSignResponse";
     private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
@@ -54,6 +56,7 @@ public class SAMLValidator implements ApplicationValidator {
     public static final String DO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
     public static final String DO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     public static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
+    private static final String IS_UPDATE = "isUpdate";
 
     private static final String INVALID_SIGNING_ALGORITHM_URI = "Invalid Response Signing Algorithm: %s";
     private static final String INVALID_DIGEST_ALGORITHM_URI = "Invalid Response Digest Algorithm: %s";
@@ -88,18 +91,13 @@ public class SAMLValidator implements ApplicationValidator {
 
     private void validateSAMLProperties(List<String> validationErrors,
                                         InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig,
-                                        String tenantDomain) {
+                                        String tenantDomain) throws IdentityApplicationManagementException {
         Property[] properties = inboundAuthenticationRequestConfig.getProperties();
         HashMap<String, List<String>> map = new HashMap<>(Arrays.stream(properties).collect(Collectors.groupingBy(
                 Property::getName, Collectors.mapping(Property::getValue, Collectors.toList()))));
 
-        validateIssuer(map, validationErrors,  inboundAuthenticationRequestConfig.getInboundAuthKey());
+        validateIssuer(map, validationErrors,  inboundAuthenticationRequestConfig.getInboundAuthKey(), tenantDomain);
         validateIssuerQualifier(map, validationErrors);
-
-        if (map.containsKey(ISSUER) && !StringUtils.isBlank(map.get(ISSUER).get(0)) &&
-                isIssuerExists(map.get(ISSUER).get(0))) {
-            validationErrors.add(String.format(INVALID_ISSUER, map.get(ISSUER).get(0), tenantDomain));
-        }
 
         if (map.containsKey(SIGNING_ALGORITHM_URI) && !StringUtils.isBlank(map.get(SIGNING_ALGORITHM_URI).get(0))
                 && !Arrays.asList(getSigningAlgorithmUris()).contains(map.get(SIGNING_ALGORITHM_URI).get(0))) {
@@ -126,11 +124,21 @@ public class SAMLValidator implements ApplicationValidator {
             validationErrors.add(String.format(INVALID_KEY_ENCRYPTION_ALGORITHM_URI,
                     map.get(KEY_ENCRYPTION_ALGORITHM_URI).get(0)));
         }
+
+        inboundAuthenticationRequestConfig.setProperties(Arrays.stream(properties).filter(property ->
+                (!property.getName().equals(IS_UPDATE))).toArray(Property[]::new));
     }
 
-    private boolean isIssuerExists(String issuer) {
-        //TODO :complete
-        return false;
+    private boolean isIssuerExists(String issuer, String tenantDomain) throws IdentityApplicationManagementException {
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        try {
+            if (applicationDAO.getServiceProviderNameByClientId(issuer, "samlsso", tenantDomain) != null) {
+                return true;
+            }
+            return false;
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while checking SAML issuer exists", e);
+        }
     }
 
     private void validateIssuerQualifier(HashMap<String, List<String>> map, List<String> validationErrors) {
@@ -142,7 +150,9 @@ public class SAMLValidator implements ApplicationValidator {
         }
     }
 
-    private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors, String issuer) {
+    private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors, String inboundAuthKey,
+                                String tenantDomain) throws IdentityApplicationManagementException {
+        String issuer = inboundAuthKey;
         if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
                 && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
             issuer = getIssuerWithoutQualifier(issuer);
@@ -161,6 +171,12 @@ public class SAMLValidator implements ApplicationValidator {
         if (map.get(ISSUER).get(0).contains("@")) {
             String errorMessage = "\'@\' is a reserved character. Cannot be used for Service Provider Entity ID.";
             validationErrors.add(errorMessage);
+        }
+
+        //Have to check whether issuer exists in create or import (POST) operation.
+        if (map.containsKey(IS_UPDATE) && (map.get(IS_UPDATE) != null) && map.get(IS_UPDATE).get(0).equals("false")
+                && isIssuerExists(inboundAuthKey, tenantDomain)) {
+            validationErrors.add(String.format(INVALID_ISSUER, map.get(ISSUER).get(0), tenantDomain));
         }
     }
 
