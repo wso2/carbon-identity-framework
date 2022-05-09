@@ -22,40 +22,41 @@ import java.util.stream.Collectors;
  */
 public class SAMLValidator implements ApplicationValidator {
 
+    private static final String SAMLSSO = "samlsso";
 
-    public static final String ISSUER = "issuer";
-    public static final String ISSUER_QUALIFIER = "issuerQualifier";
-    public static final String SIGNING_ALGORITHM_URI = "signingAlgorithmURI";
-    public static final String DIGEST_ALGORITHM_URI = "digestAlgorithmURI";
-    public static final String ASSERTION_ENCRYPTION_ALGORITHM_URI = "assertionEncryptionAlgorithmURI";
-    public static final String KEY_ENCRYPTION_ALGORITHM_URI = "keyEncryptionAlgorithmURI";
-    public static final String ASSERTION_CONSUMER_URLS = "assertionConsumerUrls";
-    public static final String DEFAULT_ASSERTION_CONSUMER_URL = "defaultAssertionConsumerUrl";
-    public static final String CERT_ALIAS = "certAlias";
-    public static final String DO_SIGN_RESPONSE = "doSignResponse";
+    private static final String ISSUER = "issuer";
+    private static final String ISSUER_QUALIFIER = "issuerQualifier";
+    private static final String SIGNING_ALGORITHM_URI = "signingAlgorithmURI";
+    private static final String DIGEST_ALGORITHM_URI = "digestAlgorithmURI";
+    private static final String ASSERTION_ENCRYPTION_ALGORITHM_URI = "assertionEncryptionAlgorithmURI";
+    private static final String KEY_ENCRYPTION_ALGORITHM_URI = "keyEncryptionAlgorithmURI";
+    private static final String ASSERTION_CONSUMER_URLS = "assertionConsumerUrls";
+    private static final String DEFAULT_ASSERTION_CONSUMER_URL = "defaultAssertionConsumerUrl";
+    private static final String CERT_ALIAS = "certAlias";
+    private static final String DO_SIGN_RESPONSE = "doSignResponse";
     private static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attrConsumServiceIndex";
-    public static final String DO_SINGLE_LOGOUT = "doSingleLogout";
-    public static final String DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
-    public static final String FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
-    public static final String IS_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED = "isAssertionQueryRequestProfileEnabled";
-    public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "supportedAssertionQueryRequestTypes";
-    public static final String ENABLE_SAML2_ARTIFACT_BINDING = "enableSAML2ArtifactBinding";
-    public static final String DO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE = "doValidateSignatureInArtifactResolve";
-    public static final String LOGIN_PAGE_URL = "loginPageURL";
-    public static final String SLO_RESPONSE_URL = "sloResponseURL";
-    public static final String SLO_REQUEST_URL = "sloRequestURL";
-    public static final String REQUESTED_CLAIMS = "requestedClaims";
-    public static final String REQUESTED_AUDIENCES = "requestedAudiences";
-    public static final String REQUESTED_RECIPIENTS = "requestedRecipients";
-    public static final String ENABLE_ATTRIBUTES_BY_DEFAULT = "enableAttributesByDefault";
-    public static final String NAME_ID_CLAIM_URI = "nameIdClaimUri";
-    public static final String NAME_ID_FORMAT = "nameIDFormat";
-    public static final String IDP_INIT_SSO_ENABLED = "idPInitSSOEnabled";
-    public static final String IDP_INIT_SLO_ENABLED = "idPInitSLOEnabled";
-    public static final String IDP_INIT_SLO_RETURN_TO_URLS = "idpInitSLOReturnToURLs";
-    public static final String DO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
-    public static final String DO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
-    public static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
+    private static final String DO_SINGLE_LOGOUT = "doSingleLogout";
+    private static final String DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
+    private static final String FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
+    private static final String IS_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED = "isAssertionQueryRequestProfileEnabled";
+    private static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "supportedAssertionQueryRequestTypes";
+    private static final String ENABLE_SAML2_ARTIFACT_BINDING = "enableSAML2ArtifactBinding";
+    private static final String DO_VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE = "doValidateSignatureInArtifactResolve";
+    private static final String LOGIN_PAGE_URL = "loginPageURL";
+    private static final String SLO_RESPONSE_URL = "sloResponseURL";
+    private static final String SLO_REQUEST_URL = "sloRequestURL";
+    private static final String REQUESTED_CLAIMS = "requestedClaims";
+    private static final String REQUESTED_AUDIENCES = "requestedAudiences";
+    private static final String REQUESTED_RECIPIENTS = "requestedRecipients";
+    private static final String ENABLE_ATTRIBUTES_BY_DEFAULT = "enableAttributesByDefault";
+    private static final String NAME_ID_CLAIM_URI = "nameIdClaimUri";
+    private static final String NAME_ID_FORMAT = "nameIDFormat";
+    private static final String IDP_INIT_SSO_ENABLED = "idPInitSSOEnabled";
+    private static final String IDP_INIT_SLO_ENABLED = "idPInitSLOEnabled";
+    private static final String IDP_INIT_SLO_RETURN_TO_URLS = "idpInitSLOReturnToURLs";
+    private static final String DO_ENABLE_ENCRYPTED_ASSERTION = "doEnableEncryptedAssertion";
+    private static final String DO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
+    private static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
     private static final String IS_UPDATE = "isUpdate";
 
     private static final String INVALID_SIGNING_ALGORITHM_URI = "Invalid Response Signing Algorithm: %s";
@@ -81,7 +82,7 @@ public class SAMLValidator implements ApplicationValidator {
         }
         for (InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig:
                 serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
-            if (inboundAuthenticationRequestConfig.getInboundAuthType().equals("samlsso")) {
+            if (inboundAuthenticationRequestConfig.getInboundAuthType().equals(SAMLSSO)) {
                 validateSAMLProperties(validationErrors, inboundAuthenticationRequestConfig, tenantDomain);
                 break;
             }
@@ -132,7 +133,7 @@ public class SAMLValidator implements ApplicationValidator {
     private boolean isIssuerExists(String issuer, String tenantDomain) throws IdentityApplicationManagementException {
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         try {
-            if (applicationDAO.getServiceProviderNameByClientId(issuer, "samlsso", tenantDomain) != null) {
+            if (applicationDAO.getServiceProviderNameByClientId(issuer, SAMLSSO, tenantDomain) != null) {
                 return true;
             }
             return false;
