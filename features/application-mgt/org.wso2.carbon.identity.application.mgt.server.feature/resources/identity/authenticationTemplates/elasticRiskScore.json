@@ -1,0 +1,57 @@
+{
+  "category": "analytics_based",
+  "name": "ELK-Risk-Based",
+  "title": "ELK Risk-Based 2FA Template",
+  "summary": "Define conditional authentication by risk score value calculated from ELK.",
+  "preRequisites": [
+    "Change elasticsearch domain with the port.",
+    "Modify the default authentication steps and option(s) as required."
+  ],
+  "parametersDescription": {
+    "elasticsearchDomain": "Domain and port of the elasticsearch instance",
+    "elasticUsername" : "Elastic user's username with read access",
+    "elasticPassword" : "Elastic user's password"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://is.docs.wso2.com/en/latest/learn/configuring-risk-based-adaptive-authentication/",
+  "code": [
+    "// Define conditional authentication by risk score value calculated from ELK analytics.",
+    "",
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            var username = context.currentKnownSubject.username;",
+    "            callElastic('https://localhost:9200', {'username': username, 'elasticUsername':'<username>', 'elasticPassword':'<password>'}, {",
+    "                onSuccess : function(context, data) {",
+    "                    Log.info('--------------- Received risk score value: ' + data.risk_score.value);",
+    "                    if (data.risk_score.value > 0) {",
+    "                        executeStep(2);",
+    "                    }",
+    "                }, onFail : function(context, data) {",
+    "                    Log.info('--------------- Failed to call ELK');",
+    "                    executeStep(2);",
+    "                }",
+    "            });",
+    "        }",
+    "    });",
+    "};"
+  ]
+}
