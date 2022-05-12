@@ -64,8 +64,10 @@ public class SAMLValidator implements ApplicationValidator {
     private static final String INVALID_ASSERTION_ENCRYPTION_ALGORITHM_URI = "Invalid Assertion Encryption Algorithm:" +
             " %s";
     private static final String INVALID_KEY_ENCRYPTION_ALGORITHM_URI = "Invalid Key Encryption Algorithm: %s";
-    private static final String INVALID_ISSUER = "An application with the SAML issuer: %s already exists in " +
+    private static final String ISSUER_ALREADY_EXISTS = "An application with the SAML issuer: %s already exists in " +
             "tenantDomain: %s";
+    private static final String ISSUER_WITH_ISSUER_QUALIFIER_ALREADY_EXISTS = "SAML2 Service Provider already exists " +
+            "with the same issuer name: %s and qualifier name: %s , in tenantDomain: %s";
 
     @Override
     public int getOrderId() {
@@ -164,9 +166,9 @@ public class SAMLValidator implements ApplicationValidator {
             return;
         }
 
-        if (!map.get(ISSUER).get(0).equals(issuer)) {
+        if (!map.get(ISSUER).get(0).equals(inboundAuthKey)) {
             validationErrors.add(String.format("The Inbound Auth Key of the  application name %s " +
-                    "is not match with SAML issuer %s.", issuer, map.get(ISSUER).get(0)));
+                    "is not match with SAML issuer %s.", inboundAuthKey, map.get(ISSUER).get(0)));
         }
 
         if (map.get(ISSUER).get(0).contains("@")) {
@@ -176,8 +178,14 @@ public class SAMLValidator implements ApplicationValidator {
 
         //Have to check whether issuer exists in create or import (POST) operation.
         if (map.containsKey(IS_UPDATE) && (map.get(IS_UPDATE) != null) && map.get(IS_UPDATE).get(0).equals("false")
-                && isIssuerExists(inboundAuthKey, tenantDomain)) {
-            validationErrors.add(String.format(INVALID_ISSUER, map.get(ISSUER).get(0), tenantDomain));
+                && isIssuerExists(issuer, tenantDomain)) {
+            if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
+                    && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
+                validationErrors.add(String.format(ISSUER_WITH_ISSUER_QUALIFIER_ALREADY_EXISTS, inboundAuthKey,
+                        map.get(ISSUER_QUALIFIER).get(0), tenantDomain));
+            } else {
+                validationErrors.add(String.format(ISSUER_ALREADY_EXISTS, map.get(ISSUER).get(0), tenantDomain));
+            }
         }
     }
 
