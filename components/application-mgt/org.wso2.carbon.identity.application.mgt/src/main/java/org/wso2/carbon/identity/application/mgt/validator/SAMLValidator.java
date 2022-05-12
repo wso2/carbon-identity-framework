@@ -158,7 +158,7 @@ public class SAMLValidator implements ApplicationValidator {
         String issuer = inboundAuthKey;
         if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
                 && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
-            issuer = getIssuerWithoutQualifier(issuer);
+            issuer = getIssuerWithQualifier(inboundAuthKey, map.get(ISSUER_QUALIFIER).get(0));
         }
 
         if (!map.containsKey(ISSUER) || (map.get(ISSUER) == null) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
@@ -216,14 +216,18 @@ public class SAMLValidator implements ApplicationValidator {
     }
 
     /**
-     * Get the issuer value by removing the qualifier.
+     * Get the issuer value to be added to registry by appending the qualifier.
      *
-     * @param issuerWithQualifier issuer value saved in the registry.
-     * @return issuer value given as 'issuer' when configuring SAML SP.
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
      */
-    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+    public static String getIssuerWithQualifier(String issuer, String qualifier) {
 
-        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
+        if (StringUtils.isNotBlank(qualifier)) {
+            return issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        } else {
+            return issuer;
+        }
     }
 
 }
