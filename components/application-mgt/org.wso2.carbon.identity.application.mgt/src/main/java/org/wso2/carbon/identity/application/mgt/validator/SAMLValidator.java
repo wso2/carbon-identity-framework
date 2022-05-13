@@ -155,18 +155,21 @@ public class SAMLValidator implements ApplicationValidator {
 
     private void validateIssuer(HashMap<String, List<String>> map, List<String> validationErrors, String inboundAuthKey,
                                 String tenantDomain) throws IdentityApplicationManagementException {
-        String issuer = inboundAuthKey;
-        if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
-                && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
-            issuer = getIssuerWithQualifier(inboundAuthKey, map.get(ISSUER_QUALIFIER).get(0));
-        }
 
         if (!map.containsKey(ISSUER) || (map.get(ISSUER) == null) || StringUtils.isBlank(map.get(ISSUER).get(0))) {
             validationErrors.add("A value for the Issuer is mandatory.");
             return;
         }
 
-        if (!map.get(ISSUER).get(0).equals(inboundAuthKey)) {
+        String issuerWithQualifier = inboundAuthKey;
+        String issuerWithoutQualifier = map.get(ISSUER).get(0);
+        if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
+                && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
+            issuerWithQualifier = getIssuerWithQualifier(inboundAuthKey, map.get(ISSUER_QUALIFIER).get(0));
+            issuerWithoutQualifier = getIssuerWithoutQualifier(map.get(ISSUER).get(0));
+        }
+
+        if (!issuerWithoutQualifier.equals(inboundAuthKey)) {
             validationErrors.add(String.format("The Inbound Auth Key of the  application name %s " +
                     "is not match with SAML issuer %s.", inboundAuthKey, map.get(ISSUER).get(0)));
         }
@@ -178,7 +181,7 @@ public class SAMLValidator implements ApplicationValidator {
 
         //Have to check whether issuer exists in create or import (POST) operation.
         if (map.containsKey(IS_UPDATE) && (map.get(IS_UPDATE) != null) && map.get(IS_UPDATE).get(0).equals("false")
-                && isIssuerExists(issuer, tenantDomain)) {
+                && isIssuerExists(issuerWithQualifier, tenantDomain)) {
             if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
                     && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
                 validationErrors.add(String.format(ISSUER_WITH_ISSUER_QUALIFIER_ALREADY_EXISTS, inboundAuthKey,
@@ -228,6 +231,16 @@ public class SAMLValidator implements ApplicationValidator {
         } else {
             return issuer;
         }
+    }
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    public static String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
     }
 
 }
