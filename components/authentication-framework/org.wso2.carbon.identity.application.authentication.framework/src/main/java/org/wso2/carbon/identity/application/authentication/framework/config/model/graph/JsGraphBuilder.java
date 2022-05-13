@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -389,7 +390,7 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Filter out options in the step config to retain only the options provided in authentication options
+     * Filter out options in the step config to retain only the options provided in authentication options.
      *
      * @param authenticationOptions Authentication options to keep
      * @param stepConfig            The step config to be modified
@@ -407,7 +408,7 @@ public class JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    filteredOptions.get(idp).add(authenticator);
                 }
             }
         });
@@ -421,80 +422,100 @@ public class JsGraphBuilder {
         }
         Set<AuthenticatorConfig> authenticatorsToRemove = new HashSet<>();
         Map<String, AuthenticatorConfig> idpsToRemove = new HashMap<>();
-        stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
-            .forEach((idpName, idp) -> {
-                Set<String> authenticators = filteredOptions.get(idpName);
-                boolean removeOption = false;
-                if (authenticators == null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Authentication options didn't include idp: %s. Hence excluding from " +
-                            "options list", idpName));
-                    }
-                    removeOption = true;
-                } else if (!authenticators.isEmpty()) {
-                    // Both idp and authenticator present, but authenticator is given by display name due to the fact
-                    // that it is the one available at UI. Should translate the display name to actual name, and
-                    // keep/remove option
-                    removeOption = true;
+        stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+            try {
+                authenticatorConfig.getIdps()
+                    .forEach((idpName, idp) -> {
+                        Set<String> authenticators = filteredOptions.get(idpName);
+                        boolean removeOption = false;
+                        if (authenticators == null) {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format(
+                                        "Authentication options didn't include idp: %s. Hence excluding from " +
+                                    "options list", idpName));
+                            }
+                            removeOption = true;
+                        } else if (!authenticators.isEmpty()) {
+                            // Both idp and authenticator present, but authenticator is given by display name due to the
+                            // fact
+                            // that it is the one available at UI. Should translate the display name to actual name, and
+                            // keep/remove option
+                            removeOption = true;
 
-                    if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
-                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                            .getInstance().getLocalAuthenticators();
-                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
-                            }
-                        }
-                        if (log.isDebugEnabled()) {
-                            if (removeOption) {
-                                log.debug(String.format("Authenticator options don't match any entry for local" +
-                                    "authenticator: %s. Hence removing the option", authenticatorConfig.getName()));
+                            if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
+                                List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
+                                    .getInstance().getLocalAuthenticators();
+                                for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                                    if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                        removeOption = false;
+                                        break;
+                                    }
+                                }
+                                if (log.isDebugEnabled()) {
+                                    if (removeOption) {
+                                        log.debug(String.format("Authenticator options don't match any entry for local"
+                                                + "authenticator: %s. Hence removing the option",
+                                                authenticatorConfig.getName()));
+                                    } else {
+                                        log.debug(String.format("Authenticator options contained a match for local " +
+                                            "authenticator: %s. Hence keeping the option",
+                                                authenticatorConfig.getName()));
+                                    }
+                                }
                             } else {
-                                log.debug(String.format("Authenticator options contained a match for local " +
-                                    "authenticator: %s. Hence keeping the option", authenticatorConfig.getName()));
+                                for (FederatedAuthenticatorConfig federatedAuthConfig
+                                        : idp.getFederatedAuthenticatorConfigs()) {
+                                    if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                        removeOption = false;
+                                        break;
+                                    }
+                                }
+                                if (log.isDebugEnabled()) {
+                                    if (removeOption) {
+                                        log.debug(String.format("Authenticator options don't match any entry for idp:" +
+                                                " %s, " + "authenticator: %s. Hence removing the option", idpName,
+                                                authenticatorConfig
+                                            .getName()));
+                                    } else {
+                                        log.debug(String.format("Authenticator options contained a match for idp: %s, "
+                                                + "authenticator: %s. Hence keeping the option", idpName,
+                                                authenticatorConfig.getName()));
+                                    }
+                                }
+                            }
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug(String.format("No authenticator filters for idp %s, hence keeping it as an " +
+                                                "option",
+                                    idpName));
                             }
                         }
-                    } else {
-                        for (FederatedAuthenticatorConfig federatedAuthConfig
-                                : idp.getFederatedAuthenticatorConfigs()) {
-                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                        if (removeOption) {
+                            try {
+                                if (authenticatorConfig.getIdps().size() > 1) {
+                                    idpsToRemove.put(idpName, authenticatorConfig);
+                                } else {
+                                    authenticatorsToRemove.add(authenticatorConfig);
+                                }
+                            } catch (FrameworkException e) {
+                                throw new RuntimeException();
                             }
                         }
-                        if (log.isDebugEnabled()) {
-                            if (removeOption) {
-                                log.debug(String.format("Authenticator options don't match any entry for idp: %s, " +
-                                    "authenticator: %s. Hence removing the option", idpName, authenticatorConfig
-                                    .getName()));
-                            } else {
-                                log.debug(String.format("Authenticator options contained a match for idp: %s, " +
-                                    "authenticator: %s. Hence keeping the option", idpName, authenticatorConfig
-                                    .getName()));
-                            }
-                        }
-                    }
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("No authenticator filters for idp %s, hence keeping it as an option",
-                            idpName));
-                    }
-                }
-                if (removeOption) {
-                    if (authenticatorConfig.getIdps().size() > 1) {
-                        idpsToRemove.put(idpName, authenticatorConfig);
-                    } else {
-                        authenticatorsToRemove.add(authenticatorConfig);
-                    }
-                }
-            }));
+                    });
+            } catch (FrameworkException e) {
+                throw new RuntimeException();
+            }
+        });
         if (stepConfig.getAuthenticatorList().size() > authenticatorsToRemove.size()) {
             idpsToRemove.forEach((idp, authenticatorConfig) -> {
                 int index = stepConfig.getAuthenticatorList().indexOf(authenticatorConfig);
-                stepConfig.getAuthenticatorList().get(index).getIdps().remove(idp);
+                try {
+                    stepConfig.getAuthenticatorList().get(index).removeIdPResourceIdByName(idp);
+                } catch (FrameworkException e) {
+                    throw new RuntimeException();
+                }
                 stepConfig.getAuthenticatorList().get(index).getIdpNames().remove(idp);
                 if (log.isDebugEnabled()) {
                     log.debug("Removed " + idp + " option from " + authenticatorConfig.getName() + " as it " +
@@ -503,8 +524,12 @@ public class JsGraphBuilder {
             });
             // If all idps are removed from the authenticator the authenticator should be removed.
             stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
-                if (authenticatorConfig.getIdps().isEmpty()) {
-                    authenticatorsToRemove.add(authenticatorConfig);
+                try {
+                    if (authenticatorConfig.getIdps().isEmpty()) {
+                        authenticatorsToRemove.add(authenticatorConfig);
+                    }
+                } catch (FrameworkException e) {
+                    throw new RuntimeException();
                 }
             });
             stepConfig.getAuthenticatorList().removeAll(authenticatorsToRemove);
@@ -538,20 +563,27 @@ public class JsGraphBuilder {
         Object federatedOptionsObj = options.get(FrameworkConstants.JSAttributes.JS_FEDERATED_IDP);
         if (federatedOptionsObj instanceof Map) {
             Map<String, Map<String, String>> federatedOptions = (Map<String, Map<String, String>>) federatedOptionsObj;
-            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
-                    .forEach((idpName, idp) -> {
-                        if (!FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)
-                                && federatedOptions.containsKey(idpName)) {
-                            for (FederatedAuthenticatorConfig federatedAuthConfig
-                                    : idp.getFederatedAuthenticatorConfigs()) {
-                                String authenticatorName = authenticatorConfig.getApplicationAuthenticator().getName();
-                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName())) {
-                                    authenticatorParams.put(authenticatorName,
-                                            new HashMap<>(federatedOptions.get(idpName)));
+            stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> {
+                try {
+                    authenticatorConfig.getIdps()
+                            .forEach((idpName, idp) -> {
+                                if (!FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)
+                                        && federatedOptions.containsKey(idpName)) {
+                                    for (FederatedAuthenticatorConfig federatedAuthConfig
+                                            : idp.getFederatedAuthenticatorConfigs()) {
+                                        String authenticatorName = authenticatorConfig.getApplicationAuthenticator().
+                                                getName();
+                                        if (authenticatorConfig.getName().equals(federatedAuthConfig.getName())) {
+                                            authenticatorParams.put(authenticatorName,
+                                                    new HashMap<>(federatedOptions.get(idpName)));
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    }));
+                            });
+                } catch (FrameworkException e) {
+                    throw new RuntimeException();
+                }
+            });
         }
 
         Object commonOptions = options.get(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);

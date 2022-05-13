@@ -717,11 +717,11 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Set federated subject's SP Subject Claim URI as a property
+     * Set federated subject's SP Subject Claim URI as a property.
      */
     private void setSubjectClaimForFederatedClaims(Map<String, String> attributesMap,
                                                    String spStandardDialect,
-                                                   AuthenticationContext context) {
+                                                   AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
@@ -741,14 +741,14 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
-    /**
+    /**.
      * Set federated subject's SP Subject Claim URI as a property
      */
     private void setSubjectClaimForLocalClaims(AuthenticatedUser authenticatedUser,
                                                AbstractUserStoreManager userStore,
                                                Map<String, String> attributesMap,
                                                String spStandardDialect,
-                                               AuthenticationContext context) {
+                                               AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
@@ -768,11 +768,11 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Set authenticated user's SP Subject Claim URI as a property
+     * Set authenticated user's SP Subject Claim URI as a property.
      */
     private void setSubjectClaim(AuthenticatedUser authenticatedUser, AbstractUserStoreManager userStore,
                                  Map<String, String> attributesMap, String spStandardDialect,
-                                 AuthenticationContext context) {
+                                 AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
@@ -867,7 +867,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Returns the claim dialect URI based on the client type
+     * Returns the claim dialect URI based on the client type.
      *
      * @param clientType
      * @param appConfig
@@ -996,7 +996,8 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param context Authentication context.
      * @param mappedAttrs Mapped claim attributes.
      */
-    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
+    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs)
+            throws FrameworkException {
 
         if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
             String[] groups = mappedAttrs.get(getLocalGroupsClaimURI()).split(Pattern
@@ -1010,7 +1011,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
-    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) throws FrameworkException {
 
         return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
                 isUseUserstoreDomainInRoles();

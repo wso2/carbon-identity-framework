@@ -220,7 +220,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 handleExceptions(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
                                         "provided.username.already.exists", null);
                             }
-                        } catch (UserStoreException e) {
+                        } catch (UserStoreException | FrameworkException e) {
                             handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
                                     "error.user.existence", e);
                         }
@@ -247,7 +247,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private Map<String, String> getCombinedClaims(HttpServletRequest request, Map<String, String> localClaimValues,
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
-        String externalIdPConfigName = context.getExternalIdP().getIdPName();
+        String externalIdPConfigName;
+        try {
+            externalIdPConfigName = context.getExternalIdP().getIdPName();
+        } catch (FrameworkException e) {
+            String err = "Error while getting combined claims";
+            String error = "Failed to retrieve identity provider from context";
+            throw new PostAuthenticationFailedException(err, error, e);
+        }
         org.wso2.carbon.user.api.ClaimMapping[] claims = getClaimsForTenant(context.getTenantDomain(),
                 externalIdPConfigName);
         Map<String, String> missingClaims = new HashMap<>();
@@ -666,7 +673,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             addMissingClaims(uriBuilder, context);
             localClaimValues.forEach(uriBuilder::addParameter);
             response.sendRedirect(uriBuilder.build().getRelativePublicURL());
-        } catch (IOException | URLBuilderException e) {
+        } catch (IOException | URLBuilderException | FrameworkException e) {
             handleExceptions(String.format(
                     ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
                     username, externalIdPConfig.getName()),
@@ -680,20 +687,28 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param uriBuilder Relevant URI builder.
      * @param context    Authentication context.
      */
-    private void addMissingClaims(ServiceURLBuilder uriBuilder, AuthenticationContext context) {
+    private void addMissingClaims(ServiceURLBuilder uriBuilder, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
-        if (StringUtils.isNotEmpty(missingClaims[1])) {
-            if (log.isDebugEnabled()) {
-                String username = context.getSequenceConfig().getAuthenticatedUser()
-                        .getAuthenticatedSubjectIdentifier();
-                String idPName = context.getExternalIdP().getIdPName();
-                log.debug("Mandatory claims for SP, " + missingClaims[1] + " is missing for the user : " + username
-                        + " from the IDP " + idPName);
+        try {
+            if (StringUtils.isNotEmpty(missingClaims[1])) {
+                if (log.isDebugEnabled()) {
+                    String username = context.getSequenceConfig().getAuthenticatedUser()
+                            .getAuthenticatedSubjectIdentifier();
+                    String idPName = context.getExternalIdP().getIdPName();
+                    log.debug("Mandatory claims for SP, " + missingClaims[1] + " is missing for the user : " + username
+                            + " from the IDP " + idPName);
+                }
+                uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS, missingClaims[1]);
+                uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS_DISPLAY_NAME, missingClaims[0]);
             }
-            uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS, missingClaims[1]);
-            uriBuilder.addParameter(FrameworkConstants.MISSING_CLAIMS_DISPLAY_NAME, missingClaims[0]);
+        } catch (FrameworkException e) {
+            String err = "Error occurred during add missing claims";
+            String error = "Failed to retrieve the identity provider";
+            throw new PostAuthenticationFailedException(err, error, e);
         }
+
     }
 
     /**
@@ -1000,13 +1015,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
             }
         } else {
-            ClaimMapping[] customClaimMapping = context.getExternalIdP().getClaimMappings();
-            for (ClaimMapping externalClaim : customClaimMapping) {
-                if (originalExternalAttributeValueMap.containsKey(externalClaim.getRemoteClaim().getClaimUri())) {
-                    claimMapping.put(externalClaim.getLocalClaim().getClaimUri(),
-                            externalClaim.getRemoteClaim().getClaimUri());
+            try {
+                ClaimMapping[] customClaimMapping = context.getExternalIdP().getClaimMappings();
+                for (ClaimMapping externalClaim : customClaimMapping) {
+                    if (originalExternalAttributeValueMap.containsKey(externalClaim.getRemoteClaim().getClaimUri())) {
+                        claimMapping.put(externalClaim.getLocalClaim().getClaimUri(),
+                                externalClaim.getRemoteClaim().getClaimUri());
+                    }
                 }
+            } catch (FrameworkException e) {
+                throw new PostAuthenticationFailedException(ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode(),
+                        ErrorMessages.ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
             }
+
         }
 
         if (claimMapping != null && claimMapping.size() > 0) {

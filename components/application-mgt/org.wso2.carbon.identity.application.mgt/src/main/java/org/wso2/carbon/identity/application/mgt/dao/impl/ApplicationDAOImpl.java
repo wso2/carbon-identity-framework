@@ -2831,6 +2831,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private void readAndSetConfigurationsFromProperties(List<ServiceProviderProperty> propertyList,
                                                         LocalAndOutboundAuthenticationConfig localAndOutboundConfig) {
         // Override with changed values.
+        List<ServiceProviderProperty> removableProperties = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(propertyList)) {
             for (ServiceProviderProperty serviceProviderProperty : propertyList) {
 
@@ -2839,12 +2840,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 if (USE_DOMAIN_IN_ROLES.equals(name)) {
                     localAndOutboundConfig.setUseUserstoreDomainInRoles(value == null || Boolean.parseBoolean(value));
+                    removableProperties.add(serviceProviderProperty);
                 } else if (SKIP_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
+                    removableProperties.add(serviceProviderProperty);
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
+                    removableProperties.add(serviceProviderProperty);
                 }
             }
+            if (removableProperties.size() > 0) {
+                resetSpProperties(propertyList, removableProperties);
+            }
+        }
+    }
+
+    private void resetSpProperties(List<ServiceProviderProperty> propertyList,
+                                   List<ServiceProviderProperty> resettablePropertyList) {
+        for (ServiceProviderProperty property : resettablePropertyList) {
+            propertyList.remove(property);
         }
     }
 

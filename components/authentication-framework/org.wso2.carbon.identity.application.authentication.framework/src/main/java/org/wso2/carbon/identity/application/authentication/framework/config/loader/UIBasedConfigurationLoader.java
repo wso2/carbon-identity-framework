@@ -155,7 +155,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setApplicationId(serviceProvider.getApplicationName());
-        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider));
+        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider, tenantDomain));
 
         // setting request path authenticators
         loadRequestPathAuthenticators(sequenceConfig, serviceProvider);
@@ -182,7 +182,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             // loading local authenticators
-            loadLocalAuthenticators(authenticationStep, stepConfig);
+            loadLocalAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             sequenceConfig.getStepMap().put(stepOrder, stepConfig);
         }
@@ -204,7 +204,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if (serviceProvider.getRequestPathAuthenticatorConfigs() != null
                 && serviceProvider.getRequestPathAuthenticatorConfigs().length > 0) {
 
-            List<AuthenticatorConfig> requestPathAuthenticators = new ArrayList<AuthenticatorConfig>();
+            List<AuthenticatorConfig> requestPathAuthenticators = new ArrayList<>();
             RequestPathAuthenticatorConfig[] reqAuths = serviceProvider.getRequestPathAuthenticatorConfigs();
 
             // for each request path authenticator
@@ -257,12 +257,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
                 // assign it to the step
-                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) {
+    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
+                                           String tenantDomain) throws FrameworkException {
 
         LocalAuthenticatorConfig[] localAuthenticators = authenticationStep.getLocalAuthenticatorConfigs();
         if (localAuthenticators != null) {
@@ -271,12 +272,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             // assign it to the step
             for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
                 String actualAuthenticatorName = localAuthenticator.getName();
-                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName) {
+    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName,
+                                       String tenantDomain) throws FrameworkException {
 
         AuthenticatorConfig authenticatorConfig = null;
 
@@ -306,7 +308,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         if (idp != null) {
             authenticatorConfig.getIdpNames().add(idp.getIdentityProviderName());
-            authenticatorConfig.getIdps().put(idp.getIdentityProviderName(), idp);
+            //authenticatorConfig.getIdps().put(idp.getIdentityProviderName(), idp);
+            authenticatorConfig.addIdP(idp.getIdentityProviderName(), tenantDomain);
         }
 
         if (!stepConfig.isMultiOption() && (stepConfig.getAuthenticatorList().size() > 1

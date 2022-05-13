@@ -105,7 +105,7 @@ public class PostAuthenticationMgtService {
      */
     private boolean executePostAuthnHandler(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext authenticationContext, PostAuthenticationHandler currentHandler)
-            throws PostAuthenticationFailedException {
+            throws FrameworkException {
 
         if (currentHandler.isEnabled()) {
 

@@ -18,9 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,18 +35,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is a wrapper class for ApplicationAuthenticator
+ * This is a wrapper class for ApplicationAuthenticator.
  */
 public class AuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = 4391415512399764048L;
+    private static final Log log = LogFactory.getLog(AuthenticatorConfig.class);
 
     private String name;
     private boolean enabled;
-    private ApplicationAuthenticator applicationAuthenticator;
     private AuthenticatorStateInfo authenticatorStateInfo;
+    private String tenantDomain;
     private Map<String, String> parameterMap;
-    private Map<String, IdentityProvider> idps = new HashMap<>();
+    private List<String> idpResourceIDs = new ArrayList<>();
     private List<String> idpNames = new ArrayList<>();
 
     public AuthenticatorConfig() {
@@ -61,12 +68,13 @@ public class AuthenticatorConfig implements Serializable {
     public AuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
 
         this.name = authenticatorConfig.getName();
-        this.applicationAuthenticator = authenticatorConfig.getApplicationAuthenticator();
         this.authenticatorStateInfo = authenticatorConfig.getAuthenticatorStateInfo();
         this.enabled = authenticatorConfig.isEnabled();
+        this.tenantDomain = authenticatorConfig.getTenantDomain();
         this.idpNames = authenticatorConfig.getIdpNames() != null ?
                 new ArrayList<>(authenticatorConfig.getIdpNames()) : null;
-        this.idps = authenticatorConfig.getIdps() != null ? new HashMap<>(authenticatorConfig.getIdps()) : null;
+        this.idpResourceIDs = authenticatorConfig.getIdpResourceIDs() != null ?
+                new ArrayList<>(authenticatorConfig.getIdpResourceIDs()) : null;
         this.parameterMap = authenticatorConfig.getParameterMap() != null ?
                 new HashMap<>(authenticatorConfig.getParameterMap()) : null;
     }
@@ -96,12 +104,15 @@ public class AuthenticatorConfig implements Serializable {
     }
 
     public ApplicationAuthenticator getApplicationAuthenticator() {
-        return applicationAuthenticator;
+
+        return FrameworkUtils.getAppAuthenticatorByName(this.name);
     }
 
-    public void setApplicationAuthenticator(
-            ApplicationAuthenticator applicationAuthenticator) {
-        this.applicationAuthenticator = applicationAuthenticator;
+    @Deprecated
+    public void setApplicationAuthenticator(ApplicationAuthenticator applicationAuthenticator) {
+
+        log.warn(String.format(
+                "Cannot set the application authenticator: %s in authenticator config", applicationAuthenticator));
     }
 
     public AuthenticatorStateInfo getAuthenticatorStateInfo() {
@@ -117,7 +128,77 @@ public class AuthenticatorConfig implements Serializable {
         return idpNames;
     }
 
-    public Map<String, IdentityProvider> getIdps() {
+    public Map<String, IdentityProvider> getIdps() throws FrameworkException {
+        return getIdPsFromResourceIdList();
+    }
+
+    private Map<String, IdentityProvider> getIdPsFromResourceIdList() throws FrameworkException {
+
+        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        HashMap<String, IdentityProvider> idps = new HashMap<>();
+        for (String resourceId : this.idpResourceIDs) {
+            try {
+                IdentityProvider idp = manager.getIdPByResourceId(resourceId, this.tenantDomain, false);
+                if (idp == null) {
+                    throw new FrameworkException(
+                            String.format("Cannot able to find the IdP for Resource ID: %s and tenant domain: %s",
+                                    resourceId, this.tenantDomain));
+                }
+                idps.put(idp.getIdentityProviderName(), idp);
+            } catch (IdentityProviderManagementException e) {
+                throw new FrameworkException(
+                        String.format("Failed to get the identity provider with resource ID: %s in tenant domain: %s",
+                                resourceId, this.tenantDomain), e);
+            }
+        }
         return idps;
+    }
+
+    public void addIdP(String idpName, String tenantDomain) throws FrameworkException {
+
+        this.tenantDomain = tenantDomain;
+        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        try {
+            IdentityProvider idp = manager.getIdPByName(idpName, this.tenantDomain);
+            if (idp == null) {
+                throw new FrameworkException(
+                        String.format("Cannot able to find the IdP with the name: %s and tenant domain: %s",
+                                idpName, tenantDomain));
+            }
+            this.idpResourceIDs.add(idp.getResourceId());
+        } catch (IdentityProviderManagementException e) {
+            throw new FrameworkException(
+                    String.format("Failed to get the identity provider with name: %s in tenant domain: %s", idpName,
+                            tenantDomain), e);
+        }
+    }
+
+    public void removeIdPResourceIdByName(String idpName) throws FrameworkException {
+
+        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        IdentityProvider idp;
+        try {
+            idp = manager.getIdPByName(idpName, this.tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new FrameworkException(
+                    String.format("Failed to get the identity provider with name: %s in tenant domain: %s", idpName,
+                    tenantDomain), e);
+        }
+        if (idp == null) {
+            throw new FrameworkException(
+                    String.format("Cannot able to find the IdP with the name: %s and tenant domain: %s",
+                            idpName, tenantDomain));
+        }
+        this.idpResourceIDs.remove(idp.getResourceId());
+    }
+
+    private List<String> getIdpResourceIDs() {
+
+        return this.idpResourceIDs;
+    }
+
+    public String getTenantDomain() {
+
+        return this.tenantDomain;
     }
 }

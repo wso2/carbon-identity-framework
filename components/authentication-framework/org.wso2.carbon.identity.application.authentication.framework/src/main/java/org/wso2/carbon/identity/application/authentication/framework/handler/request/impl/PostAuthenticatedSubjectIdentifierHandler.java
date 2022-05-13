@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
@@ -87,10 +88,10 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
             return SUCCESS_COMPLETED;
         }
-        SequenceConfig sequenceConfig = context.getSequenceConfig();
-        String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
-        String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         try {
+            SequenceConfig sequenceConfig = context.getSequenceConfig();
+            String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
+            String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
             if (StringUtils.isNotBlank(subjectClaimURI)) {
                 if (subjectValue != null) {
                     handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
@@ -101,7 +102,7 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
             } else {
                 setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig);
             }
-        } catch (UserIdNotFoundException e) {
+        } catch (UserIdNotFoundException | FrameworkException e) {
             return UNSUCCESS_COMPLETED;
         }
         return SUCCESS_COMPLETED;
@@ -113,7 +114,8 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
      * @param sequenceConfig Relevant sequence config.
      * @param subjectValue   Subject value.
      */
-    private void handleUserStoreAndTenantDomain(SequenceConfig sequenceConfig, String subjectValue) {
+    private void handleUserStoreAndTenantDomain(SequenceConfig sequenceConfig, String subjectValue)
+            throws FrameworkException {
 
         sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
         /* Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
@@ -143,7 +145,7 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
      * @param sequenceConfig Relevant sequence config.
      */
     private void setAuthenticatedSubjectIdentifierBasedOnUserId(SequenceConfig sequenceConfig)
-            throws UserIdNotFoundException {
+            throws UserIdNotFoundException, FrameworkException {
 
         boolean isUserstoreDomainInLocalSubjectIdentifier = sequenceConfig.getApplicationConfig()
                 .isUseUserstoreDomainInLocalSubjectIdentifier();

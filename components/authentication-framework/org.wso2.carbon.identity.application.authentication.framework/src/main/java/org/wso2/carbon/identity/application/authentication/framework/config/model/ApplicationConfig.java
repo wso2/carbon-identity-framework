@@ -22,20 +22,29 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,50 +59,110 @@ import java.util.Map;
 public class ApplicationConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 8082478632322393384L;
+    private static final Log log = LogFactory.getLog(ApplicationConfig.class);
 
-    private ServiceProvider serviceProvider = null;
+    private String serviceProviderResourceId;
 
-    private int applicationID = 0;
-    private String applicationName = null;
-    private String roleClaim = null;
-    private boolean alwaysSendMappedLocalSubjectId = false;
+    private final String tenantDomain;
     private boolean mappedSubjectIDSelected = false;
-    private String subjectClaimUri;
-    private String[] permissions = new String[0];
+    private final List<OptimizedAuthStep> optimizedAuthSteps;
+
     private Map<String, String> claimMappings = new HashMap<>();
     private Map<String, String> roleMappings = new HashMap<>();
     private Map<String, String> requestedClaims = new HashMap<>();
     private Map<String, String> mandatoryClaims = new HashMap<>();
-    private boolean isSaaSApp;
-    private boolean useTenantDomainInLocalSubjectIdentifier = false;
-    private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
-    private boolean enableAuthorization = false;
-    private boolean useUserstoreDomainInRole = false;
-    private boolean useUserIdForDefaultSubject = false;
 
-    private static final Log log = LogFactory.getLog(ApplicationConfig.class);
+    private class OptimizedAuthStep implements Serializable {
 
-    public ApplicationConfig(ServiceProvider application) {
-        this.serviceProvider = application;
-        applicationID = application.getApplicationID();
-        applicationName = application.getApplicationName();
-        isSaaSApp = application.isSaasApp();
-        LocalAndOutboundAuthenticationConfig outboundAuthConfig = application.getLocalAndOutBoundAuthenticationConfig();
+        private final int stepOrder;
+        private final List<String> localAuthenticatorConfigNames;
+        private final List<String> federatedIdPResourceIds;
+        private final boolean subjectStep;
+        private final boolean attributeStep;
 
-        if (outboundAuthConfig != null) {
-            subjectClaimUri = outboundAuthConfig.getSubjectClaimUri();
-            setUseTenantDomainInLocalSubjectIdentifier(outboundAuthConfig.isUseTenantDomainInLocalSubjectIdentifier());
-            setUseUserstoreDomainInLocalSubjectIdentifier(outboundAuthConfig
-                    .isUseUserstoreDomainInLocalSubjectIdentifier());
-            setEnableAuthorization(outboundAuthConfig.isEnableAuthorization());
-            setUseUserstoreDomainInRole(outboundAuthConfig.isUseUserstoreDomainInRoles());
+        private OptimizedAuthStep(AuthenticationStep authenticationStep) throws FrameworkException {
+
+            this.stepOrder = authenticationStep.getStepOrder();
+            this.localAuthenticatorConfigNames =
+                    setLocalAuthenticatorConfigNames(authenticationStep.getLocalAuthenticatorConfigs());
+            this.federatedIdPResourceIds =
+                    setFederatedIdpResourceId(authenticationStep.getFederatedIdentityProviders());
+            this.subjectStep = authenticationStep.isSubjectStep();
+            this.attributeStep = authenticationStep.isAttributeStep();
         }
 
+        private List<String> setLocalAuthenticatorConfigNames(LocalAuthenticatorConfig[] localAuthenticatorConfigs) {
+
+            List<String> configNames = new ArrayList<>();
+            for (LocalAuthenticatorConfig config : localAuthenticatorConfigs) {
+                configNames.add(config.getName());
+            }
+            return configNames;
+        }
+
+        private LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs() {
+            ApplicationAuthenticatorService authenticatorService = ApplicationAuthenticatorService.getInstance();
+            LocalAuthenticatorConfig[] localAuthenticatorConfigs =
+                    new LocalAuthenticatorConfig[this.localAuthenticatorConfigNames.size()];
+            for (int i = 0; i < this.localAuthenticatorConfigNames.size(); i++) {
+                localAuthenticatorConfigs[i] = authenticatorService.
+                        getLocalAuthenticatorByName(this.localAuthenticatorConfigNames.get(i));
+            }
+            return localAuthenticatorConfigs;
+        }
+
+        private List<String> setFederatedIdpResourceId(IdentityProvider[] idpList) throws FrameworkException {
+            List<String> resourceIdList = new ArrayList<>();
+            IdentityProviderManager manager = IdentityProviderManager.getInstance();
+            if (idpList != null) {
+                for (IdentityProvider idp : idpList) {
+                    try {
+                        idp = manager.getIdPByName(idp.getIdentityProviderName(), getTenantDomain());
+                        resourceIdList.add(idp.getResourceId());
+                    } catch (IdentityProviderManagementException e) {
+                        throw new FrameworkException("Failed to get the IdP by Name: " + idp.getIdentityProviderName()
+                                + " TenantDomain: " + getTenantDomain(), e);
+                    }
+                }
+            }
+            return resourceIdList;
+        }
+
+        private IdentityProvider[] getFederatedIdentityProviders() throws FrameworkException {
+            IdentityProviderManager manager = IdentityProviderManager.getInstance();
+            IdentityProvider[] federatedIdP = new IdentityProvider[this.federatedIdPResourceIds.size()];
+            for (int i = 0; i < this.federatedIdPResourceIds.size(); i++) {
+                try {
+                    federatedIdP[i] = manager.getIdPByResourceId(this.federatedIdPResourceIds.get(i), getTenantDomain()
+                            , false);
+                } catch (IdentityProviderManagementException e) {
+                    throw new FrameworkException("Failed to get the IdP by the Resource ID: " +
+                            this.federatedIdPResourceIds.get(i) + " Tenant Domain: " + getTenantDomain(), e);
+                }
+            }
+            return federatedIdP;
+        }
+
+        private AuthenticationStep getAuthenticationStep() throws FrameworkException {
+
+            AuthenticationStep authenticationStep = new AuthenticationStep();
+            authenticationStep.setStepOrder(this.stepOrder);
+            authenticationStep.setLocalAuthenticatorConfigs(getLocalAuthenticatorConfigs());
+            authenticationStep.setFederatedIdentityProviders(getFederatedIdentityProviders());
+            authenticationStep.setSubjectStep(this.subjectStep);
+            authenticationStep.setAttributeStep(this.attributeStep);
+            return authenticationStep;
+        }
+    }
+
+
+    public ApplicationConfig(ServiceProvider application, String tenantDomain) throws FrameworkException {
+
+        this.serviceProviderResourceId = application.getApplicationResourceId();
+        this.tenantDomain = tenantDomain;
 
         ClaimConfig claimConfig = application.getClaimConfig();
         if (claimConfig != null) {
-            roleClaim = claimConfig.getRoleClaimURI();
-            alwaysSendMappedLocalSubjectId = claimConfig.isAlwaysSendMappedLocalSubjectId();
 
             List<ClaimMapping> spClaimMappings = new ArrayList<>(Arrays.asList(claimConfig.getClaimMappings()));
             setSpDialectClaims(claimConfig, spClaimMappings);
@@ -131,8 +200,91 @@ public class ApplicationConfig implements Serializable, Cloneable {
             }
         }
 
+        LocalAndOutboundAuthenticationConfig outboundAuthenticationConfig =
+                application.getLocalAndOutBoundAuthenticationConfig();
+        AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
+        if (outboundAuthenticationConfig != null) {
+            authenticationSteps = outboundAuthenticationConfig.getAuthenticationSteps();
+        }
+        List<OptimizedAuthStep> optimizedAuthSteps = new ArrayList<>();
+        for (AuthenticationStep step : authenticationSteps) {
+            OptimizedAuthStep optimizedAuthStep = new OptimizedAuthStep(step);
+            optimizedAuthSteps.add(optimizedAuthStep);
+        }
+        this.optimizedAuthSteps = optimizedAuthSteps;
+
         PermissionsAndRoleConfig permissionRoleConfiguration;
         permissionRoleConfiguration = application.getPermissionAndRoleConfig();
+
+        if (permissionRoleConfiguration != null) {
+
+            RoleMapping[] tempRoleMappings = permissionRoleConfiguration.getRoleMappings();
+            if (tempRoleMappings != null && tempRoleMappings.length > 0) {
+                for (RoleMapping roleMapping : tempRoleMappings) {
+                    this.roleMappings.put(roleMapping.getLocalRole().getLocalRoleName(),
+                                          roleMapping.getRemoteRole());
+                }
+            }
+        }
+    }
+
+    @Deprecated
+    public void setUseUserstoreDomainInRole(boolean useUserstoreDomainInRole) {
+        log.warn(String.format("Cannot set useUserStoreDomainInRoles: %s " +
+                "after the optimization of the service provider", useUserstoreDomainInRole));
+    }
+
+    public int getApplicationID() throws FrameworkException {
+
+        return getServiceProvider().getApplicationID();
+    }
+
+    public String getTenantDomain() {
+
+        return this.tenantDomain;
+    }
+
+    @Deprecated
+    public void setApplicationID(int applicationID) {
+
+        log.warn(String.format("Cannot set application ID: %s " +
+                "after the optimization of the service provider", applicationID));
+    }
+
+    public String getApplicationName() throws FrameworkException {
+
+        return getServiceProvider().getApplicationName();
+    }
+
+    @Deprecated
+    public void setApplicationName(String applicationName) {
+
+        log.warn(String.format("Cannot set application name: %s " +
+                "after the optimization of the service provider", applicationName));
+    }
+
+    public String getRoleClaim() throws FrameworkException {
+
+        String roleClaim = null;
+        ServiceProvider serviceProvider = getServiceProvider();
+        if (serviceProvider.getClaimConfig() != null) {
+            roleClaim = serviceProvider.getClaimConfig().getRoleClaimURI();
+        }
+        return roleClaim;
+    }
+
+    @Deprecated
+    public void setRoleClaim(String roleClaim) {
+
+        log.warn(String.format("Cannot set roleClaim: %s " +
+                "after the optimization of the service provider", roleClaim));
+    }
+
+    public String[] getPermissions() throws FrameworkException {
+
+        String[] permissions = new String[0];
+        PermissionsAndRoleConfig permissionRoleConfiguration;
+        permissionRoleConfiguration = getServiceProvider().getPermissionAndRoleConfig();
 
         if (permissionRoleConfiguration != null) {
             ApplicationPermission[] permissionList = permissionRoleConfiguration.getPermissions();
@@ -146,81 +298,29 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 ApplicationPermission permission = permissionList[i];
                 permissions[i] = permission.getValue();
             }
-
-            RoleMapping[] tempRoleMappings = permissionRoleConfiguration.getRoleMappings();
-
-            if (tempRoleMappings != null && tempRoleMappings.length > 0) {
-                for (RoleMapping roleMapping : tempRoleMappings) {
-                    this.roleMappings.put(roleMapping.getLocalRole().getLocalRoleName(),
-                                          roleMapping.getRemoteRole());
-                }
-            }
         }
-
-        ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
-        if (spProperties != null) {
-            for (ServiceProviderProperty prop: spProperties) {
-                if (IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(prop.getName())) {
-                    useUserIdForDefaultSubject = Boolean.parseBoolean(prop.getValue());
-                    break;
-                }
-            }
-        }
+        return permissions.clone();
     }
 
-    public void setUseUserstoreDomainInRole(boolean useUserstoreDomainInRole) {
-
-        this.useUserstoreDomainInRole = useUserstoreDomainInRole;
-    }
-
-    public int getApplicationID() {
-        return applicationID;
-    }
-
-    public void setApplicationID(int applicationID) {
-        this.applicationID = applicationID;
-    }
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getRoleClaim() {
-        return roleClaim;
-    }
-
-    public void setRoleClaim(String roleClaim) {
-        this.roleClaim = roleClaim;
-    }
-
-    public String[] getPermissions() {
-        if (permissions != null) {
-            return permissions.clone();
-        } else {
-            return new String[0];
-        }
-    }
-
+    @Deprecated
     public void setPermissions(String[] permissions) {
-        if (permissions != null) {
-            this.permissions = permissions.clone();
-        }
+
+        log.warn("Cannot set permissions: after the optimization of the service provider");
     }
 
     public Map<String, String> getClaimMappings() {
-        return claimMappings;
+
+        return this.claimMappings;
     }
 
     public void setClaimMappings(Map<String, String> claimMappings) {
+
         this.claimMappings = claimMappings;
     }
 
     public Map<String, String> getRequestedClaimMappings() {
-        return requestedClaims;
+
+        return this.requestedClaims;
     }
 
     /**
@@ -234,7 +334,8 @@ public class ApplicationConfig implements Serializable, Cloneable {
     }
 
     public Map<String, String> getMandatoryClaimMappings() {
-        return mandatoryClaims;
+
+        return this.mandatoryClaims;
     }
 
     /**
@@ -248,88 +349,138 @@ public class ApplicationConfig implements Serializable, Cloneable {
     }
 
     public Map<String, String> getRoleMappings() {
-        return roleMappings;
+
+        return this.roleMappings;
     }
 
     public void setRoleMappings(Map<String, String> roleMappings) {
+
         this.roleMappings = roleMappings;
     }
 
+    @Deprecated
     public boolean noClaimMapping() {
+
         return claimMappings == null;
     }
 
-    public boolean isAlwaysSendMappedLocalSubjectId() {
+    public boolean isAlwaysSendMappedLocalSubjectId() throws FrameworkException {
+
+        boolean alwaysSendMappedLocalSubjectId = false;
+        ServiceProvider serviceProvider = getServiceProvider();
+        if (serviceProvider.getClaimConfig() != null) {
+            alwaysSendMappedLocalSubjectId = serviceProvider.getClaimConfig().isAlwaysSendMappedLocalSubjectId();
+        }
         return alwaysSendMappedLocalSubjectId;
     }
 
+    @Deprecated
     public void setAlwaysSendMappedLocalSubjectId(boolean alwaysSendMappedLocalSubjectId) {
-        this.alwaysSendMappedLocalSubjectId = alwaysSendMappedLocalSubjectId;
+
+        log.warn(String.format("Cannot set alwaysSendMappedLocalSubjectId: %s " +
+                "after the optimization of the service provider", alwaysSendMappedLocalSubjectId));
     }
 
     public boolean isMappedSubjectIDSelected() {
+
         return mappedSubjectIDSelected;
     }
 
     public void setMappedSubjectIDSelected(boolean mappedSubjectIDSelected) {
+
         this.mappedSubjectIDSelected = mappedSubjectIDSelected;
     }
 
-    public String getSubjectClaimUri() {
+    public String getSubjectClaimUri() throws FrameworkException {
+
+        String subjectClaimUri = null;
+        if (getServiceProvider().getLocalAndOutBoundAuthenticationConfig() != null) {
+            subjectClaimUri = getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri();
+        }
         return subjectClaimUri;
     }
 
-    public ServiceProvider getServiceProvider() {
-        return serviceProvider;
+    public ServiceProvider getServiceProvider() throws FrameworkException {
+
+        return reconstructServiceProvider();
     }
 
     public void setServiceProvider(ServiceProvider serviceProvider) {
-        this.serviceProvider = serviceProvider;
+
+        this.serviceProviderResourceId = serviceProvider.getApplicationResourceId();
     }
 
-    public boolean isSaaSApp() {
-        return isSaaSApp;
+    public boolean isSaaSApp() throws FrameworkException {
+        return getServiceProvider().isSaasApp();
     }
 
-    public boolean isUseTenantDomainInLocalSubjectIdentifier() {
+    public boolean isUseTenantDomainInLocalSubjectIdentifier() throws FrameworkException {
+
+        boolean useTenantDomainInLocalSubjectIdentifier = false;
+        LocalAndOutboundAuthenticationConfig outboundConfig =
+                getServiceProvider().getLocalAndOutBoundAuthenticationConfig();
+        if (outboundConfig != null) {
+            useTenantDomainInLocalSubjectIdentifier = outboundConfig.isUseTenantDomainInLocalSubjectIdentifier();
+        }
         return useTenantDomainInLocalSubjectIdentifier;
     }
 
+    @Deprecated
     public void setUseTenantDomainInLocalSubjectIdentifier(boolean useTenantDomainInLocalSubjectIdentifier) {
-        this.useTenantDomainInLocalSubjectIdentifier = useTenantDomainInLocalSubjectIdentifier;
+
+        log.warn(String.format("Cannot set useTenantDomainInLocalSubjectIdentifier: %s " +
+                "after the optimization of the service provider", useTenantDomainInLocalSubjectIdentifier));
     }
 
-    public boolean isUseUserstoreDomainInLocalSubjectIdentifier() {
+    public boolean isUseUserstoreDomainInLocalSubjectIdentifier() throws FrameworkException {
+
+        LocalAndOutboundAuthenticationConfig outboundConfig =
+                getServiceProvider().getLocalAndOutBoundAuthenticationConfig();
+        boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+        if (outboundConfig != null) {
+            useUserstoreDomainInLocalSubjectIdentifier = outboundConfig.isUseUserstoreDomainInLocalSubjectIdentifier();
+        }
         return useUserstoreDomainInLocalSubjectIdentifier;
     }
 
+    @Deprecated
     public void setUseUserstoreDomainInLocalSubjectIdentifier(boolean useUserstoreDomainInLocalSubjectIdentifier) {
-        this.useUserstoreDomainInLocalSubjectIdentifier = useUserstoreDomainInLocalSubjectIdentifier;
+
+        log.warn(String.format("Cannot set useUserStoreDomainInLocalSubjectIdentifier: %s " +
+                "after the optimization of the service provider", useUserstoreDomainInLocalSubjectIdentifier));
     }
 
-    public boolean isEnableAuthorization() {
+    public boolean isEnableAuthorization() throws FrameworkException {
 
+        LocalAndOutboundAuthenticationConfig outboundAuthenticationConfig =
+                getServiceProvider().getLocalAndOutBoundAuthenticationConfig();
+        boolean enableAuthorization = false;
+        if (outboundAuthenticationConfig != null) {
+            enableAuthorization = outboundAuthenticationConfig.isEnableAuthorization();
+        }
         return enableAuthorization;
     }
 
+    @Deprecated
     public void setEnableAuthorization(boolean enableAuthorization) {
 
-        this.enableAuthorization = enableAuthorization;
+        log.warn(String.format("Cannot set enableAuthorization: %s " +
+                "after the optimization of the service provider", enableAuthorization));
     }
 
     /**
-     * This method will clone current class objects
+     * This method will clone current class objects.
      * This method is to solve the issue - multiple requests for same user/SP
      *
      * @return Object object
      */
     public Object clone() throws CloneNotSupportedException {
+
         ApplicationConfig applicationConfig = (ApplicationConfig) super.clone();
         applicationConfig.setClaimMappings(new HashMap<>(this.claimMappings));
         applicationConfig.setRoleMappings(new HashMap<>(this.roleMappings));
         applicationConfig.requestedClaims = new HashMap<>(this.requestedClaims);
         applicationConfig.mandatoryClaims = new HashMap<>(this.mandatoryClaims);
-        applicationConfig.setPermissions(this.permissions.clone());
         return applicationConfig;
     }
 
@@ -367,7 +518,40 @@ public class ApplicationConfig implements Serializable, Cloneable {
         }
     }
 
-    public boolean isUseUserIdForDefaultSubject() {
+    public boolean isUseUserIdForDefaultSubject() throws FrameworkException {
+
+        boolean useUserIdForDefaultSubject = false;
+        ServiceProviderProperty[] spProperties = getServiceProvider().getSpProperties();
+        if (spProperties != null) {
+            for (ServiceProviderProperty prop: spProperties) {
+                if (IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(prop.getName())) {
+                    useUserIdForDefaultSubject = Boolean.parseBoolean(prop.getValue());
+                    break;
+                }
+            }
+        }
         return useUserIdForDefaultSubject;
     }
+
+    private ServiceProvider reconstructServiceProvider() throws FrameworkException {
+
+        ServiceProvider serviceProvider;
+        try {
+            serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getApplicationByResourceId(this.serviceProviderResourceId, this.tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException(String.format("Failed to get the application with ID: %s in tenant domain: %s"
+                    , this.serviceProviderResourceId, this.tenantDomain), e);
+        }
+        if (serviceProvider == null) {
+            return null;
+        }
+        AuthenticationStep[] authenticationSteps = new AuthenticationStep[this.optimizedAuthSteps.size()];
+        for (int i = 0; i < this.optimizedAuthSteps.size(); i++) {
+            authenticationSteps[i] = optimizedAuthSteps.get(i).getAuthenticationStep();
+        }
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(authenticationSteps);
+        return serviceProvider;
+    }
+
 }

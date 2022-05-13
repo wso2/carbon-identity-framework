@@ -1555,7 +1555,8 @@ public class FrameworkUtils {
         return idpAuthenticatorMap;
     }
 
-    public static String getAuthenticatorIdPMappingString(List<AuthenticatorConfig> authConfigList) {
+    public static String getAuthenticatorIdPMappingString(List<AuthenticatorConfig> authConfigList)
+            throws FrameworkException {
 
         StringBuilder authenticatorIdPStr = new StringBuilder("");
 
@@ -2221,7 +2222,7 @@ public class FrameworkUtils {
      * @return idpRole claim uri in IDPs dialect or Custom dialect
      */
     public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
-                                                  AuthenticationContext context) {
+                                                  AuthenticationContext context) throws FrameworkException {
 
         // Finally return the incoming idpClaimUri if it is in expected dialect.
         String idpRoleMappingURI = idpRoleClaimUri;
@@ -2892,7 +2893,7 @@ public class FrameworkUtils {
      * @param context  Authentication context.
      * @return preprocessed username
      */
-    public static String preprocessUsername(String username, AuthenticationContext context) {
+    public static String preprocessUsername(String username, AuthenticationContext context) throws FrameworkException {
 
         boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
 
