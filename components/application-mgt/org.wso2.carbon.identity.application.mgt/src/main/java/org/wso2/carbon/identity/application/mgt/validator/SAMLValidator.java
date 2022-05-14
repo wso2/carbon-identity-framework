@@ -58,6 +58,7 @@ public class SAMLValidator implements ApplicationValidator {
     private static final String DO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     private static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
     private static final String IS_UPDATE = "isUpdate";
+    private static final String METADATA = "metadata";
 
     private static final String INVALID_SIGNING_ALGORITHM_URI = "Invalid Response Signing Algorithm: %s";
     private static final String INVALID_DIGEST_ALGORITHM_URI = "Invalid Response Digest Algorithm: %s";
@@ -129,7 +130,8 @@ public class SAMLValidator implements ApplicationValidator {
         }
 
         inboundAuthenticationRequestConfig.setProperties(Arrays.stream(properties).filter(property ->
-                (!property.getName().equals(IS_UPDATE))).toArray(Property[]::new));
+                (!property.getName().equals(IS_UPDATE) &&
+                        !property.getName().equals(METADATA))).toArray(Property[]::new));
     }
 
     private boolean isIssuerExists(String issuer, String tenantDomain) throws IdentityApplicationManagementException {
