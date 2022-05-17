@@ -53,9 +53,10 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private ApplicationManagementService applicationMgtService;
     private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
+    private static final String SAMLSSO = "samlsso";
 
     /**
-     * Creates a service provider with basic information.First we need to create
+     * Creates a service provider with basic information.First we need to create.
      * a role with the
      * application name. Only the users in this role will be able to edit/update
      * the application.The
@@ -427,13 +428,45 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                         " does not have access to the application " + serviceProvider.getApplicationName());
                 throw new IdentityApplicationManagementException("User not authorized");
             }
+            ServiceProvider samlSP = null;
             applicationMgtService = ApplicationManagementService.getInstance();
+            InboundAuthenticationRequestConfig requestConfig =
+                    getInboundAuthenticationRequestConfigByClientType(serviceProvider, SAMLSSO);
+            if (requestConfig != null) {
+                samlSP = applicationMgtService.getServiceProviderByClientId(requestConfig.getInboundAuthKey(),
+                        SAMLSSO , getTenantDomain());
+                if (samlSP != null) {
+                    InboundAuthenticationRequestConfig samlRequestConfig =
+                            getInboundAuthenticationRequestConfigByClientType(samlSP, SAMLSSO);
+                    if (samlRequestConfig != null) {
+                        requestConfig.setProperties(samlRequestConfig.getProperties());
+                    }
+                    //have to delete old application before updating the new application with saml data.Because there
+                    // can't be 2 service Providers with same saml issuer
+                    deleteApplication(samlSP.getApplicationName());
+                }
+            }
+
             applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
         } catch (IdentityApplicationManagementException ex) {
             String msg = "Error while updating application: " + serviceProvider.getApplicationName() + " for " +
                     "tenant: " + getTenantDomain();
             throw handleException(msg, ex);
         }
+    }
+
+    private InboundAuthenticationRequestConfig getInboundAuthenticationRequestConfigByClientType(
+            ServiceProvider serviceProvider, String clientType) {
+        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+            for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()) {
+                if (StringUtils.equals(authConfig.getInboundAuthType(), clientType)) {
+                    return authConfig;
+                }
+            }
+        }
+        return null;
     }
 
     /**
