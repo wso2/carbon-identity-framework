@@ -773,7 +773,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String time = Long.toString(System.currentTimeMillis());
 
         Map<String, String> metaDataMap = new HashMap<>();
-        if (userAgent != null && !userAgent.isEmpty()) {
+        if (StringUtils.isNotEmpty(userAgent)) {
             metaDataMap.put(SessionMgtConstants.USER_AGENT, userAgent);
         }
         metaDataMap.put(SessionMgtConstants.IP_ADDRESS, ip);
