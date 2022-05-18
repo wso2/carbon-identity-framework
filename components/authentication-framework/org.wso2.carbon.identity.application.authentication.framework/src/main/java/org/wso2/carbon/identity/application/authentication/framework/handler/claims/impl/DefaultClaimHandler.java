@@ -188,8 +188,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
         } else {
             log.warn("Authenticator : " + authenticator.getFriendlyName() + " does not have " +
-                     "a standard dialect and IdP : " + context.getExternalIdP().getIdPName() +
-                     " does not have custom claim mappings. Cannot proceed with claim mappings");
+                    "a standard dialect and IdP : " + context.getExternalIdP().getIdPName() +
+                    " does not have custom claim mappings. Cannot proceed with claim mappings");
             return spFilteredClaims;
         }
 
@@ -199,12 +199,12 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
-                                                                                      spClaimMappings);
+                spClaimMappings);
 
         // Loop through <code>localToSPClaimMappings</code> and filter
         // <code>spUnfilteredClaims</code> and <code>spFilteredClaims</code>
         filterSPClaims(spRequestedClaimMappings, localUnfilteredClaims, spUnfilteredClaims, spFilteredClaims,
-                       localToSPClaimMappings);
+                localToSPClaimMappings);
 
         if (stepConfig.isSubjectAttributeStep()) {
             if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
@@ -248,7 +248,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     private void setMandatoryAndRequestedClaims(ApplicationConfig appConfig,
-                                                             List<ClaimMapping> selectedRequestedClaims) {
+                                                List<ClaimMapping> selectedRequestedClaims) {
 
 
         Map<String, String> claimMappings = new HashMap<>();
@@ -325,18 +325,18 @@ public class DefaultClaimHandler implements ClaimHandler {
             // Key:value -> carbon_dialect:standard_dialect
             try {
                 localToSPClaimMappings = getClaimMappings(spStandardDialect, null,
-                                                          context.getTenantDomain(), true);
+                        context.getTenantDomain(), true);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
-                                             spStandardDialect + " dialect to " +
-                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                             context.getTenantDomain() + " to handle federated claims", e);
+                        spStandardDialect + " dialect to " +
+                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
+                        context.getTenantDomain() + " to handle federated claims", e);
             }
         } else if (!spClaimMappings.isEmpty()) {
             localToSPClaimMappings = FrameworkUtils.getLocalToSPClaimMappings(spClaimMappings);
         } else { // no standard dialect and no custom claim mappings
             throw new AssertionError("Authenticator Error! Authenticator does not have a " +
-                                     "standard dialect and no custom claim mappings defined for IdP");
+                    "standard dialect and no custom claim mappings defined for IdP");
         }
         return localToSPClaimMappings;
     }
@@ -375,13 +375,13 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         try {
             localToIdPClaimMap = getClaimMappings(idPStandardDialect,
-                                                  remoteClaims.keySet(), context.getTenantDomain(), true);
+                    remoteClaims.keySet(), context.getTenantDomain(), true);
         } catch (Exception e) {
             throw new FrameworkException("Error occurred while getting claim mappings for " +
-                                         "received remote claims from " +
-                                         idPStandardDialect + " dialect to " +
-                                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                         context.getTenantDomain() + " to handle federated claims", e);
+                    "received remote claims from " +
+                    idPStandardDialect + " dialect to " +
+                    ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
+                    context.getTenantDomain() + " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
         localToIdPClaimMap.putAll(Arrays.stream(idPClaimMappings).filter(claimMapping -> StringUtils.
@@ -496,7 +496,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
-                                            allSPMappedClaims, spRequestedClaims);
+                allSPMappedClaims, spRequestedClaims);
         if (stepConfig == null || stepConfig.isSubjectAttributeStep()) {
             context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
             context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
@@ -516,18 +516,18 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         /*
-        * This is a custom change added to pass 'MultipleAttributeSeparator' attribute value to other components,
-        * since we can't get the logged in user in some situations.
-        *
-        * Following components affected from this change -
-        * org.wso2.carbon.identity.application.authentication.endpoint
-        * org.wso2.carbon.identity.provider
-        * org.wso2.carbon.identity.oauth
-        * org.wso2.carbon.identity.oauth.endpoint
-        * org.wso2.carbon.identity.sso.saml
-        *
-        * TODO: Should use Map<String, List<String>> in future for claim mapping
-        * */
+         * This is a custom change added to pass 'MultipleAttributeSeparator' attribute value to other components,
+         * since we can't get the logged in user in some situations.
+         *
+         * Following components affected from this change -
+         * org.wso2.carbon.identity.application.authentication.endpoint
+         * org.wso2.carbon.identity.provider
+         * org.wso2.carbon.identity.oauth
+         * org.wso2.carbon.identity.oauth.endpoint
+         * org.wso2.carbon.identity.sso.saml
+         *
+         * TODO: Should use Map<String, List<String>> in future for claim mapping
+         * */
         addMultiAttributeSeparatorToRequestedClaims(authenticatedUser, userStore, spRequestedClaims, realm);
 
         return spRequestedClaims;
@@ -543,7 +543,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         return requestedClaimMappings.values().stream()
                 .distinct()
                 .filter(mapping -> StringUtils.
-                isNotBlank(carbonToStandardClaimMapping.get(mapping)))
+                        isNotBlank(carbonToStandardClaimMapping.get(mapping)))
                 .collect(Collectors.toMap(carbonToStandardClaimMapping::get, Function.identity()));
     }
 
@@ -589,18 +589,18 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     private Map<String, String> getStandardDialectToCarbonMapping(String spStandardDialect,
-                                                                 AuthenticationContext context,
-                                                                 Map<String, String> spToLocalClaimMappings,
-                                                                 String tenantDomain) throws FrameworkException {
+                                                                  AuthenticationContext context,
+                                                                  Map<String, String> spToLocalClaimMappings,
+                                                                  String tenantDomain) throws FrameworkException {
         if (spStandardDialect != null) {
             try {
                 spToLocalClaimMappings = getClaimMappings(spStandardDialect, null,
-                                                          context.getTenantDomain(), false);
+                        context.getTenantDomain(), false);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
-                                             spStandardDialect + " dialect to " +
-                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                             tenantDomain + " to handle local claims", e);
+                        spStandardDialect + " dialect to " +
+                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
+                        tenantDomain + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
@@ -617,15 +617,17 @@ public class DefaultClaimHandler implements ClaimHandler {
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
-                         spStandardDialect + " dialect for " + tenantDomain + " to handle local claims", e);
+                        spStandardDialect + " dialect for " + tenantDomain + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
     }
 
     private Map<String, String> retrieveAllNunNullUserClaimValues(AuthenticatedUser authenticatedUser,
-            ClaimManager claimManager, ApplicationConfig appConfig,
-            AbstractUserStoreManager userStore) throws FrameworkException {
+                                                                  ClaimManager claimManager,
+                                                                  ApplicationConfig appConfig,
+                                                                  AbstractUserStoreManager userStore)
+            throws FrameworkException {
 
         String tenantDomain = authenticatedUser.getTenantDomain();
 
@@ -679,7 +681,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             claimManager = realm.getClaimManager();
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving the ClaimManager " +
-                                         "from Realm for " + tenantDomain + " to handle local claims", e);
+                    "from Realm for " + tenantDomain + " to handle local claims", e);
         }
         return claimManager;
     }
@@ -692,7 +694,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     FrameworkServiceComponent.getRealmService(), tenantDomain);
         } catch (CarbonException e) {
             throw new FrameworkException("Error occurred while retrieving the Realm for " +
-                                         tenantDomain + " to handle local claims", e);
+                    tenantDomain + " to handle local claims", e);
         }
         return realm;
     }
@@ -717,11 +719,11 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Set federated subject's SP Subject Claim URI as a property
+     * Set federated subject's SP Subject Claim URI as a property.
      */
     private void setSubjectClaimForFederatedClaims(Map<String, String> attributesMap,
                                                    String spStandardDialect,
-                                                   AuthenticationContext context) {
+                                                   AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
@@ -729,26 +731,26 @@ public class DefaultClaimHandler implements ClaimHandler {
                 setSubjectClaim(null, null, attributesMap, spStandardDialect, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst locally mapped " +
-                             "unfiltered remote claims");
+                            "unfiltered remote claims");
                 }
             } else {
                 setSubjectClaim(null, null, attributesMap, null, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst service provider mapped " +
-                             "unfiltered remote claims");
+                            "unfiltered remote claims");
                 }
             }
         }
     }
 
-    /**
+    /**.
      * Set federated subject's SP Subject Claim URI as a property
      */
     private void setSubjectClaimForLocalClaims(AuthenticatedUser authenticatedUser,
                                                AbstractUserStoreManager userStore,
                                                Map<String, String> attributesMap,
                                                String spStandardDialect,
-                                               AuthenticationContext context) {
+                                               AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         if (subjectURI != null && !subjectURI.isEmpty()) {
@@ -761,18 +763,18 @@ public class DefaultClaimHandler implements ClaimHandler {
                 setSubjectClaim(authenticatedUser, userStore, attributesMap, null, context);
                 if (context.getProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE) == null) {
                     log.warn("Subject claim could not be found amongst service provider mapped " +
-                             "unfiltered local claims");
+                            "unfiltered local claims");
                 }
             }
         }
     }
 
     /**
-     * Set authenticated user's SP Subject Claim URI as a property
+     * Set authenticated user's SP Subject Claim URI as a property.
      */
     private void setSubjectClaim(AuthenticatedUser authenticatedUser, AbstractUserStoreManager userStore,
                                  Map<String, String> attributesMap, String spStandardDialect,
-                                 AuthenticationContext context) {
+                                 AuthenticationContext context) throws FrameworkException {
 
         String subjectURI = context.getSequenceConfig().getApplicationConfig().getSubjectClaimUri();
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
@@ -822,7 +824,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 context.setProperty(SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE, value);
                 if (log.isDebugEnabled()) {
                     log.debug("Setting \'ServiceProviderSubjectClaimValue\' property value " +
-                              "from user store " + value);
+                            "from user store " + value);
                 }
             } else {
                 if (log.isDebugEnabled()) {
@@ -832,7 +834,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         } catch (UserStoreException e) {
             log.error("Error occurred while retrieving " + subjectURI + " claim value for user "
-                            + authenticatedUser.getLoggableUserId(), e);
+                    + authenticatedUser.getLoggableUserId(), e);
         } catch (UserIdNotFoundException e) {
             log.error("User id is not available for user: " + authenticatedUser.getLoggableUserId(), e);
         }
@@ -854,7 +856,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         try {
             claimMapping = ClaimMetadataHandler.getInstance()
                     .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, tenantDomain,
-                                                            useLocalDialectAsKey);
+                            useLocalDialectAsKey);
         } catch (ClaimMetadataException e) {
             throw new FrameworkException("Error while loading mappings.", e);
         }
@@ -867,7 +869,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Returns the claim dialect URI based on the client type
+     * Returns the claim dialect URI based on the client type.
      *
      * @param clientType
      * @param appConfig
@@ -917,7 +919,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
         sb.append("]");
         log.debug("Executing claim handler. isFederatedClaims = " + isFederatedClaims +
-                  " and remote claims = " + sb.toString());
+                " and remote claims = " + sb.toString());
     }
 
     private void logOutput(Map<String, String> returningClaims, AuthenticationContext context) {
@@ -945,7 +947,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             sb.append("]");
         }
         log.debug(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES +
-                  " map property set to " + sb.toString());
+                " map property set to " + sb.toString());
         claimsProperty = (Map<String, String>)
                 context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
         if (claimsProperty != null) {
@@ -960,7 +962,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             sb.append("]");
         }
         log.debug(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES +
-                  " map property set to " + sb.toString());
+                " map property set to " + sb.toString());
         claimsProperty = (Map<String, String>)
                 context.getProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES);
         if (claimsProperty != null) {
@@ -975,7 +977,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             sb.append("]");
         }
         log.debug(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES +
-                  " map property set to " + sb.toString());
+                " map property set to " + sb.toString());
     }
 
     /**
@@ -996,7 +998,8 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param context Authentication context.
      * @param mappedAttrs Mapped claim attributes.
      */
-    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
+    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs)
+            throws FrameworkException {
 
         if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
             String[] groups = mappedAttrs.get(getLocalGroupsClaimURI()).split(Pattern
@@ -1010,7 +1013,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
-    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) throws FrameworkException {
 
         return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
                 isUseUserstoreDomainInRoles();

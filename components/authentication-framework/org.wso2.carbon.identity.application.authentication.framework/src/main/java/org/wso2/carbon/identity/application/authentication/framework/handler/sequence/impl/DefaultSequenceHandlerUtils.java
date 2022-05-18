@@ -55,7 +55,8 @@ public class DefaultSequenceHandlerUtils {
     }
 
     public static String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
-                                                           List<String> locallyMappedUserRoles) {
+                                                           List<String> locallyMappedUserRoles)
+            throws FrameworkException {
         if (log.isDebugEnabled()) {
             AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
             String serviceProvider = sequenceConfig.getApplicationConfig().getApplicationName();
@@ -97,8 +98,8 @@ public class DefaultSequenceHandlerUtils {
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("No local roles to map to Service Provider role mappings. Sending back all local roles " +
-                            "as service provider mapped roles.");
+                    log.debug("No local roles to map to Service Provider role mappings. " +
+                            "Sending back all local roles as service provider mapped roles.");
                 }
                 // We don't have any sp role mappings
                 if (isRemoveUserDomainInRole(sequenceConfig)) {
@@ -125,7 +126,7 @@ public class DefaultSequenceHandlerUtils {
     }
 
     /**
-     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow)
+     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow).
      *
      * @param names list of roles assigned to a user
      * @return list of roles assigned to a user with domain name removed from roles
@@ -146,7 +147,7 @@ public class DefaultSequenceHandlerUtils {
     }
 
     // Execute only if it has allowed removing userstore domain from the sp level configurations.
-    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) throws FrameworkException {
 
         return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
                 isUseUserstoreDomainInRoles();
@@ -224,7 +225,7 @@ public class DefaultSequenceHandlerUtils {
      * @param context AuthenticationContext.
      * @return True if the used dialect is the local dialect.
      */
-    private static boolean isLocalClaimDialect(AuthenticationContext context) {
+    private static boolean isLocalClaimDialect(AuthenticationContext context) throws FrameworkException {
 
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
         ClaimConfig claimConfig = appConfig.getServiceProvider().getClaimConfig();
@@ -263,7 +264,8 @@ public class DefaultSequenceHandlerUtils {
 
         try {
             Map<String, String> claimMapping = ClaimMetadataHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(standardDialect, null, tenantDomain, true);
+                    .getMappingsMapFromOtherDialectToCarbon(standardDialect, null, tenantDomain,
+                            true);
             if (claimMapping.containsKey(claimURI)) {
                 return claimMapping.get(claimURI);
             }
@@ -279,7 +281,7 @@ public class DefaultSequenceHandlerUtils {
      * @param appConfig ApplicationConfig.
      * @return Service Provider mapped role claim URI.
      */
-    private static String getSPMappedLocalRoleClaimURI(ApplicationConfig appConfig) {
+    private static String getSPMappedLocalRoleClaimURI(ApplicationConfig appConfig) throws FrameworkException {
 
         String spRoleClaimUri = appConfig.getRoleClaim();
         if (StringUtils.isNotBlank(spRoleClaimUri)) {
@@ -303,7 +305,7 @@ public class DefaultSequenceHandlerUtils {
      * @param appConfig ApplicationConfig.
      * @return Role claim URI of the service provider.
      */
-    public static String getSpRoleClaimUri(ApplicationConfig appConfig) {
+    public static String getSpRoleClaimUri(ApplicationConfig appConfig) throws FrameworkException {
 
         // Get external identity provider role claim uri.
         String spRoleClaimUri = appConfig.getRoleClaim();

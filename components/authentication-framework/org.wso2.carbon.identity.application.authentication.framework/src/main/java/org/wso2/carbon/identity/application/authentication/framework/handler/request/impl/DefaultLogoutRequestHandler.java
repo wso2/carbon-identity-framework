@@ -221,7 +221,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     protected void sendResponse(HttpServletRequest request, HttpServletResponse response,
                                 AuthenticationContext context, boolean isLoggedOut)
-            throws ServletException, IOException {
+            throws ServletException, IOException, FrameworkException {
 
         if (log.isTraceEnabled()) {
             log.trace("Inside sendLogoutResponseToCaller()");
@@ -289,7 +289,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     }
 
     /**
-     * Add authentication result into request attribute
+     * Add authentication result into request attribute.
      *
      * @param request Http servlet request
      * @param authenticationResult Authentication result

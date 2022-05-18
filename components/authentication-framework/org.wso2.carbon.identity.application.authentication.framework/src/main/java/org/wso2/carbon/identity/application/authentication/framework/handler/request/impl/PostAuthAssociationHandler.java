@@ -98,7 +98,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     @Override
     @SuppressWarnings("unchecked")
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws PostAuthenticationFailedException {
+                                             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
             return SUCCESS_COMPLETED;
@@ -114,28 +114,35 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
-                if (stepConfig.isSubjectIdentifierStep()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(authenticator.getName() + " has been set up for subject identifier step.");
-                    }
+            try {
+                if (authenticator instanceof FederatedApplicationAuthenticator) {
+                    if (stepConfig.isSubjectIdentifierStep()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                        }
                      /*
                     If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
                     federated idp.
                      */
-                    String associatedLocalUserName = null;
-                    if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
-                        associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
-                    }
-                    if (StringUtils.isNotEmpty(associatedLocalUserName)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
-                                    + "equavlent local user : " + associatedLocalUserName);
+                        String associatedLocalUserName = null;
+                        if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
+                            associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
                         }
-                        setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                        if (StringUtils.isNotEmpty(associatedLocalUserName)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
+                                        + "equavlent local user : " + associatedLocalUserName);
+                            }
+                            setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                        }
                     }
                 }
+            } catch (FrameworkException e) {
+                String err = "Authentication Failed when handling in the post authentication association handler.";
+                String error = "Error occured while retriving the identity provider." + e.getMessage();
+                throw new PostAuthenticationFailedException(err, error, e);
             }
+
         }
         return SUCCESS_COMPLETED;
     }
@@ -149,7 +156,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @throws PostAuthenticationFailedException Post Authentication failed exception.
      */
     private void setAssociatedLocalUserToContext(String associatedLocalUserName, AuthenticationContext context,
-            StepConfig stepConfig) throws PostAuthenticationFailedException {
+                                                 StepConfig stepConfig) throws FrameworkException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
@@ -259,7 +266,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     }
 
     private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
-            mappedAttrs) throws PostAuthenticationFailedException {
+            mappedAttrs) throws FrameworkException {
 
         String spRoleUri = DefaultSequenceHandlerUtils.getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
         String[] roles;

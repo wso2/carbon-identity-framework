@@ -245,6 +245,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             } catch (ClaimMetadataException e) {
                 throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                         "Error while retrieving claim metadata.", e);
+            } catch (FrameworkException e) {
+                throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
+                        "Error while retrieving the identity provider", e);
             }
             return PostAuthnHandlerFlowStatus.INCOMPLETE;
         } else {

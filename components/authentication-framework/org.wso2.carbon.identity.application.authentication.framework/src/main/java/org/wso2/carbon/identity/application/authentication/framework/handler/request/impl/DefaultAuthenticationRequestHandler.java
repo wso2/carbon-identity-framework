@@ -683,7 +683,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @param sessionContextKey of the authenticated session
      */
     private void storeSessionData(AuthenticationContext context, String sessionContextKey)
-            throws UserSessionException {
+            throws UserSessionException, FrameworkException {
 
         String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         String inboundAuth = context.getCallerPath().substring(1);

@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Holds the login page and the authenticator objects
- * of a particular factor
+ * of a particular factor.
  */
 public class StepConfig implements Serializable {
 
@@ -38,7 +38,7 @@ public class StepConfig implements Serializable {
     private boolean subjectIdentifierStep;
     private boolean subjectAttributeStep;
     private String authenticatedIdP;
-    private AuthenticatorConfig authenticatedAutenticator;
+    private String authenticatedAuthenticatorName;
     private List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
     private List<String> authenticatorMappings = new ArrayList<>();
 
@@ -63,8 +63,7 @@ public class StepConfig implements Serializable {
         this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
         this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
-        this.authenticatedAutenticator = stepConfig.getAuthenticatedAutenticator() != null ?
-                new AuthenticatorConfig(stepConfig.getAuthenticatedAutenticator()) : null;
+        this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAuthenticatorName();
         this.authenticatorList = new ArrayList<>();
         for (AuthenticatorConfig authenticator : stepConfig.getAuthenticatorList()) {
             this.authenticatorList.add(new AuthenticatorConfig(authenticator));
@@ -163,7 +162,8 @@ public class StepConfig implements Serializable {
      * @return
      */
     public AuthenticatorConfig getAuthenticatedAutenticator() {
-        return authenticatedAutenticator;
+
+        return getAuthenticatedConfig(this.authenticatedAuthenticatorName);
     }
 
     /**
@@ -171,7 +171,8 @@ public class StepConfig implements Serializable {
      */
     public void setAuthenticatedAutenticator(
             AuthenticatorConfig authenticatedAutenticator) {
-        this.authenticatedAutenticator = authenticatedAutenticator;
+
+        this.authenticatedAuthenticatorName = authenticatedAutenticator.getName();
     }
 
     /**
@@ -251,5 +252,21 @@ public class StepConfig implements Serializable {
             this.subjectIdentifierStep = stepConfigFromContext.isSubjectIdentifierStep();
             this.subjectAttributeStep = stepConfigFromContext.isSubjectAttributeStep();
         }
+    }
+
+    private String getAuthenticatedAuthenticatorName() {
+        return this.authenticatedAuthenticatorName;
+    }
+
+    private AuthenticatorConfig getAuthenticatedConfig(String name) {
+
+        int index = 0;
+        for (AuthenticatorConfig authConfig : this.authenticatorList) {
+            if (authConfig.getName().equals(name)) {
+                index = this.authenticatorList.indexOf(authConfig);
+            }
+        }
+        AuthenticatorConfig config = this.authenticatorList.get(index);
+        return config;
     }
 }

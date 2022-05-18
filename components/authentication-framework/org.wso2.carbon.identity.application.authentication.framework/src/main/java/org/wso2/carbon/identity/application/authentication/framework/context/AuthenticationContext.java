@@ -23,13 +23,17 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -56,7 +60,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean isLogoutRequest;
     private int currentStep;
     private SequenceConfig sequenceConfig;
-    private ExternalIdPConfig externalIdP;
+    private String externalIdPID;
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
@@ -235,12 +239,27 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         return parameters.get(key);
     }
 
-    public ExternalIdPConfig getExternalIdP() {
-        return externalIdP;
+    public ExternalIdPConfig getExternalIdP() throws FrameworkException {
+
+        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        ExternalIdPConfig externalIdP;
+        try {
+            IdentityProvider idp =
+                    manager.getIdPByResourceId(this.externalIdPID, this.tenantDomain, false);
+            externalIdP = new ExternalIdPConfig(idp);
+            return externalIdP;
+        } catch (IdentityProviderManagementException e) {
+            throw new FrameworkException("Error occurred while retrieving identity provider.");
+        }
     }
 
     public void setExternalIdP(ExternalIdPConfig externalIdP) {
-        this.externalIdP = externalIdP;
+
+        if (externalIdP != null) {
+            this.externalIdPID = externalIdP.getIdentityProvider().getResourceId();
+        } else {
+            this.externalIdPID = null;
+        }
     }
 
     public String getTenantDomain() {
