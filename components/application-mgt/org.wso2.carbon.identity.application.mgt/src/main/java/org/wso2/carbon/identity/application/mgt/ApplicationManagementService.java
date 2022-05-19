@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -197,15 +199,15 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     public abstract Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                          String tenantDomain)
+                                                                                 String tenantDomain)
             throws IdentityApplicationManagementException;
 
     public abstract Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                          String tenantDomain)
+                                                                                 String tenantDomain)
             throws IdentityApplicationManagementException;
 
     public abstract List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                                 String tenantDomain)
+                                                                        String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -301,7 +303,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException
      */
     public abstract void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
-                                                                   String tenantDomain)
+                                                         String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -334,7 +336,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException
      */
     public abstract void updateApplicationTemplate(String templateName, SpTemplate spTemplate,
-                                                             String tenantDomain)
+                                                   String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -416,6 +418,12 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public Set<String> getSystemApplications() {
 
         return Collections.emptySet();
+    }
+
+    public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                             String tenantId)
+            throws IdentityApplicationManagementException {
+        return null;
     }
 
 }

@@ -21,9 +21,11 @@ package org.wso2.carbon.identity.application.mgt.dao;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -280,4 +282,8 @@ public interface ApplicationDAO {
 
         return false;
     }
+
+    HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                      String tenantId)
+            throws IdentityApplicationManagementException;
 }

@@ -129,6 +129,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.G
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.IS_APP_BY_TENANT_AND_UUID_DISCOVERABLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_ALL_CLIENT_PROPERTIES_BY_CLIENT_TYPE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_UUID;
@@ -1316,8 +1317,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws IdentityApplicationManagementException
      */
     private void updateLocalAndOutboundAuthenticationConfiguration(int applicationId,
-                       LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                       Connection connection)
+                                                                   LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
+                                                                   Connection connection)
             throws SQLException, IdentityApplicationManagementException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -4476,8 +4477,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws SQLException
      */
     private void updateAuthenticationScriptConfiguration(int applicationId,
-                                                     LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                                                     Connection connection, int tenantID)
+                                                         LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
+                                                         Connection connection, int tenantID)
             throws SQLException {
 
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
@@ -5376,5 +5377,42 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
+    }
+
+    @Override
+    public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        HashMap<String, List<Property>> propertyMap = new HashMap<>();
+        try {
+            prepStmt = connection.prepareStatement(LOAD_ALL_CLIENT_PROPERTIES_BY_CLIENT_TYPE);
+            prepStmt.setString(1, clientType);
+            prepStmt.setInt(2, tenantID);
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                Property property = new Property();
+                property.setName(rs.getString("PROP_NAME"));
+                property.setValue(rs.getString("PROP_VALUE"));
+                if (propertyMap.containsKey(rs.getString("INBOUND_AUTH_KEY"))) {
+                    propertyMap.get(rs.getString("INBOUND_AUTH_KEY")).add(property);
+                } else {
+                    List<Property> properties = new ArrayList<>();
+                    properties.add(property);
+                    propertyMap.put(rs.getString("INBOUND_AUTH_KEY"), properties);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while retrieving All inbound " +
+                    "authentication properties for clientType: %s and tenantDomain: %s", clientType, tenantDomain), e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+        return propertyMap;
     }
 }

@@ -457,7 +457,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
     private InboundAuthenticationRequestConfig getInboundAuthenticationRequestConfigByClientType(
             ServiceProvider serviceProvider, String clientType) {
-        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+        if (serviceProvider != null && serviceProvider.getInboundAuthenticationConfig() != null &&
                 serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
             for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs()) {
