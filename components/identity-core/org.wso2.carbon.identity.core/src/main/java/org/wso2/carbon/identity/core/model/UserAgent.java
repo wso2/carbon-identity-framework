@@ -24,7 +24,6 @@ import ua_parser.Device;
 import ua_parser.OS;
 import ua_parser.Parser;
 
-import java.io.IOException;
 
 /**
  * Wrapper class for ua-parser library.
@@ -47,11 +46,7 @@ public class UserAgent {
     public static synchronized Parser getParser() {
 
         if (parser == null) {
-            try {
-                parser = new Parser();
-            } catch (IOException e) {
-                LOG.error("Unable to initialize the user agent parser: ", e);
-            }
+            parser = new Parser();
         }
         return parser;
     }

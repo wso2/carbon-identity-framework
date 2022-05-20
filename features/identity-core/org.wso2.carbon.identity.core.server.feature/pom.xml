@@ -55,8 +55,9 @@
             <artifactId>ua-parser</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-collections.wso2</groupId>
-            <artifactId>commons-collections</artifactId>
+            <groupId>org.wso2.orbit.org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -119,6 +120,7 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.core</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.common</bundleDef>
                                 <bundleDef>ua.parser.wso2:ua-parser:${ua_parser.version}</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.apache.commons:commons-collections4:${apache.commons.collections4.version}</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
