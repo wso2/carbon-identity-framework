@@ -13,7 +13,7 @@ BEGIN
 
     IF (@enableLog = 1)
     BEGIN
-        SELECT 'CLEANUP DATA RESTORATION STARTED .... !' AS 'INFO_LOG'
+        SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION STARTED .... !' AS 'INFO_LOG'
     END
 
     SELECT @rowCount = COUNT(1)  FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME IN ('IDN_RECOVERY_DATA')
@@ -29,6 +29,6 @@ BEGIN
 
     IF (@enableLog = 1)
     BEGIN
-        SELECT  'CLEANUP DATA RESTORATION COMPLETED .... !' AS 'INFO_LOG'
+        SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED .... !' AS 'INFO_LOG'
     END
 END
