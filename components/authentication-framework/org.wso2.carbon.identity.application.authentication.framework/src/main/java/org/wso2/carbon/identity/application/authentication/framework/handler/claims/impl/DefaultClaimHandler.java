@@ -165,9 +165,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             idPStandardDialect = authenticator.getClaimDialectURI();
         }
 
-        // Insert the runtime claims from the context. The priority is for runtime claims.
-        remoteClaims.putAll(context.getRuntimeClaims());
-
         Map<String, String> localUnfilteredClaims = new HashMap<>();
         Map<String, String> spUnfilteredClaims = new HashMap<>();
         Map<String, String> spFilteredClaims = new HashMap<>();
@@ -196,6 +193,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Loop remote claims and map to local claims
         mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims,
                 localUnfilteredClaimsForNullValues);
+
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        localUnfilteredClaims.putAll(context.getRuntimeClaims());
 
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
