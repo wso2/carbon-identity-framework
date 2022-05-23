@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -885,11 +886,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // redirect to the caller
-        String redirectURL;
-        String commonauthCallerPath = context.getCallerPath();
-
         try {
             String queryParamsString = "";
+            String redirectURL = FrameworkUtils.buildCallerPathRedirectURL(context.getCallerPath(), context);
             if (context.getCallerSessionKey() != null) {
                 queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
                         URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
@@ -898,9 +897,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (StringUtils.isNotEmpty(rememberMeParam)) {
                 queryParamsString += "&" + rememberMeParam;
             }
-            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParamsString);
             response.sendRedirect(redirectURL);
-        } catch (IOException e) {
+        } catch (IOException | URLBuilderException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
     }

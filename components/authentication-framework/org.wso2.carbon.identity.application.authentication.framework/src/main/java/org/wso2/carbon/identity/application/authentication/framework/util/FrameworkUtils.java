@@ -171,6 +171,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
@@ -3247,5 +3248,36 @@ public class FrameworkUtils {
             }
         }
         return requestedScopeClaims;
+    }
+
+    /**
+     * Util function to build caller patch redirect URLs using ServiceURLBuilder.
+     *
+     * @param callerPath        Application caller path.
+     * @param context           Authentication context.
+     * @return  reirect URL.
+     * @throws URLBuilderException  throw if an error occurred during URL generation.
+     */
+    public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
+            throws URLBuilderException {
+
+        String serviceProvider = null;
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+            serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        }
+        /*
+         Skip My Account application redirections to use ServiceURLBuilder for URL generation
+         since My Account is SaaS.
+         */
+        if (callerPath.startsWith("/t/") && !MY_ACCOUNT_APP.equals(serviceProvider)) {
+            String callerTenant = callerPath.split("/")[2];
+            String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+            String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                    .setTenant(callerTenant)
+                    .build().getAbsolutePublicURL();
+            return redirectURL;
+        } else {
+            return callerPath;
+        }
     }
 }
