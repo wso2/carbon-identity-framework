@@ -51,6 +51,9 @@ import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component(
         name = "identity.core.component",
         immediate = true
@@ -62,7 +65,9 @@ public class IdentityCoreServiceComponent {
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
-    private static ServiceURLBuilderFactory serviceURLBuilderFactory = new ServiceURLBuilderFactory();
+    private static Map<String, ServiceURLBuilderFactory> serviceURLBuilderFactoryMap =
+            new HashMap<String, ServiceURLBuilderFactory>() {{
+                put(ServiceURLBuilderFactory.class.getName(), new ServiceURLBuilderFactory());}};
     private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
     private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
     private DefaultKeyProviderService defaultKeyProviderService;
@@ -334,24 +339,23 @@ public class IdentityCoreServiceComponent {
     )
     protected void setServiceURLBuilderFactory(ServiceURLBuilderFactory serviceURLBuilderFactory) {
 
-        IdentityCoreServiceComponent.serviceURLBuilderFactory = serviceURLBuilderFactory;
+        IdentityCoreServiceComponent.serviceURLBuilderFactoryMap.put(serviceURLBuilderFactory.getClass().getName(),
+                serviceURLBuilderFactory);
         if (log.isDebugEnabled()) {
-            log.debug("ServiceURLBuilderFactory service set to: " + IdentityCoreServiceComponent.serviceURLBuilderFactory
-                    .getClass().getName());
+            log.debug(serviceURLBuilderFactory.getClass().getName() + " added to serviceURLBuilderFactoryMap.");
         }
     }
 
     protected void unsetServiceURLBuilderFactory(ServiceURLBuilderFactory serviceURLBuilderFactory) {
 
-        IdentityCoreServiceComponent.serviceURLBuilderFactory = new ServiceURLBuilderFactory();
+        IdentityCoreServiceComponent.serviceURLBuilderFactoryMap.clear();
         if (log.isDebugEnabled()) {
-            log.debug("ServiceURLBuilderFactory service reverted to: " + IdentityCoreServiceComponent.serviceURLBuilderFactory
-                    .getClass().getName());
+            log.debug("ServiceURLBuilderFactoryMap cleared.");
         }
     }
 
-    public static ServiceURLBuilderFactory getServiceURLBuilderFactory() {
+    public static Map<String, ServiceURLBuilderFactory> getServiceURLBuilderFactoryMap() {
 
-        return serviceURLBuilderFactory;
+        return IdentityCoreServiceComponent.serviceURLBuilderFactoryMap;
     }
 }

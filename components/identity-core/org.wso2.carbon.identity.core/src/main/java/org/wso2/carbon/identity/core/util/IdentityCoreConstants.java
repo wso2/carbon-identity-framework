@@ -31,6 +31,7 @@ public class IdentityCoreConstants {
     public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
     public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
     public static final String RECOVERY_ENDPOINT_PATH = "RecoveryEndpoint.Path";
+    public static final String SERVICE_URL_BUILDER_FACTORY = "ServiceURLBuilder.ServiceURLBuilderFactory";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 

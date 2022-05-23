@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SERVICE_URL_BUILDER_FACTORY;
 
 /**
  * URL Builder service interface.
@@ -28,8 +32,10 @@ public interface ServiceURLBuilder {
 
     static ServiceURLBuilder create() {
 
-        if (IdentityCoreServiceComponent.getServiceURLBuilderFactory() != null) {
-            return IdentityCoreServiceComponent.getServiceURLBuilderFactory().createServiceURLBuilder();
+        if (MapUtils.isNotEmpty(IdentityCoreServiceComponent.getServiceURLBuilderFactoryMap())) {
+            String serviceURLBuilderFactory = IdentityUtil.getProperty(SERVICE_URL_BUILDER_FACTORY);
+            return IdentityCoreServiceComponent.getServiceURLBuilderFactoryMap().get(serviceURLBuilderFactory)
+                    .createServiceURLBuilder();
         } else {
             return new DefaultServiceURLBuilder();
         }

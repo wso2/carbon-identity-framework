@@ -100,6 +100,14 @@
         <Path>{{recoveryendpoint.path}}</Path>
     </RecoveryEndpoint>
 
+    <!--
+        This configuration is to manually configure a custom ServiceURLBuilderFactory for the product.
+        org.wso2.carbon.identity.core.ServiceURLBuilderFactory is configured as the default ServiceURLBuilderFactory.
+    -->
+    <ServiceURLBuilder>
+        <ServiceURLBuilderFactory>{{service.url.builder.factory}}</ServiceURLBuilderFactory>
+    </ServiceURLBuilder>
+
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
         <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>

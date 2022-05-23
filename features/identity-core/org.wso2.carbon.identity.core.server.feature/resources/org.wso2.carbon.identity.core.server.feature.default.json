@@ -875,5 +875,6 @@
   "axis2.transport_sender.https.parameters.PROTOCOL": "HTTP/1.1",
   "axis2.transport_sender.https.parameters.Transfer-Encoding": "chunked",
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
-  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000"
+  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
+  "service.url.builder.factory": "org.wso2.carbon.identity.core.ServiceURLBuilderFactory"
 }
