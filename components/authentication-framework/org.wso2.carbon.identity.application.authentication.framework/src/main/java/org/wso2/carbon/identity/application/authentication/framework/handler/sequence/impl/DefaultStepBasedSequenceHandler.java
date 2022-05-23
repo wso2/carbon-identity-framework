@@ -413,8 +413,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 && sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
-
-        if (authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
+        if (!authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
