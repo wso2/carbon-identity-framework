@@ -396,24 +396,21 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             throw new MisconfigurationException(errorMsg);
         }
 
+        if (sequenceConfig.getAuthenticatedUser() == null) {
+            return;
+        }
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
         List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
 
         // Reset the user attributes returned from federate IdP if the requested claims are not empty.
         if (!selectedRequestedClaims.isEmpty()) {
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(new HashMap<>());
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
         }
-
-        if (authenticatedUserAttributes.isEmpty()) {
-            return;
-        }
-
-        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()
-                && sequenceConfig.getAuthenticatedUser() != null) {
+        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
-        if (!authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
+        if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
