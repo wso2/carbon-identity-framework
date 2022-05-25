@@ -954,6 +954,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
             <VerificationOnUpdate>
                 <Enable>false</Enable>
+                <EnableVerificationByPrivilegedUser>false</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>5</ExpiryTime>
                 </VerificationCode>
