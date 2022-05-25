@@ -52,6 +52,10 @@
             <artifactId>org.wso2.carbon.identity.application.common</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.idp.mgt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
         </dependency>
