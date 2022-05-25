@@ -20,13 +20,7 @@ package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
-import org.wso2.carbon.registry.core.Registry;
 
 /**
  * Implementation of {@link SAMLApplicationDAO}.
@@ -36,16 +30,7 @@ public class SAMLApplicationDAOImpl implements SAMLApplicationDAO {
     private static final Log log = LogFactory.getLog(SAMLApplicationDAOImpl.class);
 
     @Override
-    public void removeServiceProviderConfiguration(String issuer) throws IdentityApplicationManagementException {
-        try {
-            IdentityPersistenceManager persistenceManager = IdentityPersistenceManager.getPersistanceManager();
-            Registry configSystemRegistry = (Registry) PrivilegedCarbonContext.getThreadLocalCarbonContext().
-                    getRegistry(RegistryType.SYSTEM_CONFIGURATION);
-            persistenceManager.removeServiceProvider(configSystemRegistry, issuer);
-        } catch (IdentityException e) {
-            log.error("Erro while deleting the issuer", e);
-            throw new IdentityApplicationManagementException("Error while deleting SAML issuer " + e.getMessage());
-        }
+    public void removeServiceProviderConfiguration(String issuer) {
+        // SAML inbound configuration will be deleted automatically when deleting the Service Provider application By Id
     }
-
 }

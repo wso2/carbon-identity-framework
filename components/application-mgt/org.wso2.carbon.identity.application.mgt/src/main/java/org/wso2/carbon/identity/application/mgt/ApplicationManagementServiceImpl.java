@@ -2695,15 +2695,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return localClaimsArray;
     }
 
+    @Override
     public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType ,
-                                                                                             String tenantId)
+                                                                                             String tenantDomain)
             throws IdentityApplicationManagementException {
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         try {
-            return appDAO.getAllInboundAuthenticationPropertiesByClientType(clientType, tenantId);
+            return appDAO.getAllInboundAuthenticationPropertiesByClientType(clientType, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityApplicationManagementException(String.format("Error while retrieving All inbound " +
-                    "authentication properties for clientType: %s and tenantId: %d", clientType, tenantId), e);
+                    "authentication properties for clientType: %s and tenantId: %s", clientType, tenantDomain), e);
         }
     }
 }

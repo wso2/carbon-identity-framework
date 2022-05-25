@@ -1316,9 +1316,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws SQLException
      * @throws IdentityApplicationManagementException
      */
-    private void updateLocalAndOutboundAuthenticationConfiguration(int applicationId,
-                                                                   LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                                                                   Connection connection)
+    private void updateLocalAndOutboundAuthenticationConfiguration(
+            int applicationId, LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection)
             throws SQLException, IdentityApplicationManagementException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -4476,10 +4475,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param tenantID
      * @throws SQLException
      */
-    private void updateAuthenticationScriptConfiguration(int applicationId,
-                                                         LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                                                         Connection connection, int tenantID)
-            throws SQLException {
+    private void updateAuthenticationScriptConfiguration(
+            int applicationId, LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection,
+            int tenantID) throws SQLException {
 
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig

@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.model.XMPPSettingsDO;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.core.UserRealm;
 
+@Deprecated
 public class IdentityPersistenceManager {
 
     private static IdentityPersistenceManager manager = new IdentityPersistenceManager();

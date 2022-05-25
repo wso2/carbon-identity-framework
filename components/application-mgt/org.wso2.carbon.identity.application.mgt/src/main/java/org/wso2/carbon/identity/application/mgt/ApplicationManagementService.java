@@ -420,10 +420,15 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return Collections.emptySet();
     }
 
+    /**
+     * Get All inbound authentication config properties by client type.
+     *
+     * @return HashMap where the key is clientId and value is list of properties.
+     */
     public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
-                                                                                             String tenantId)
+                                                                                             String tenantDomain)
             throws IdentityApplicationManagementException {
-        return null;
+        return new HashMap<>();
     }
 
 }

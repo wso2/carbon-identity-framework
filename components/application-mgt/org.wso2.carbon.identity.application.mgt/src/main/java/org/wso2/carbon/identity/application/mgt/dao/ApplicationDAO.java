@@ -283,7 +283,16 @@ public interface ApplicationDAO {
         return false;
     }
 
-    HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
-                                                                                      String tenantId)
-            throws IdentityApplicationManagementException;
+    /**
+     * Get All inbound authentication config properties by client type and tenant domain.
+     *
+     * @param clientType client type
+     * @param tenantDomain Tenant domain to be filtered from.
+     * @return HashMap where the key is clientId and value is list of properties.
+     */
+    default HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                              String tenantDomain)
+            throws IdentityApplicationManagementException {
+        return new HashMap<>();
+    }
 }

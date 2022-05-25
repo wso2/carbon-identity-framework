@@ -164,14 +164,13 @@ public class SAMLValidator implements ApplicationValidator {
         }
 
         String issuerWithQualifier = inboundAuthKey;
-        String issuerWithoutQualifier = map.get(ISSUER).get(0);
+        String issuerWithoutQualifier = inboundAuthKey;
         if (map.containsKey(ISSUER_QUALIFIER) && (map.get(ISSUER_QUALIFIER) != null)
                 && StringUtils.isNotBlank(map.get(ISSUER_QUALIFIER).get(0))) {
-            issuerWithQualifier = getIssuerWithQualifier(inboundAuthKey, map.get(ISSUER_QUALIFIER).get(0));
             issuerWithoutQualifier = getIssuerWithoutQualifier(map.get(ISSUER).get(0));
         }
 
-        if (!issuerWithoutQualifier.equals(inboundAuthKey)) {
+        if (!map.get(ISSUER).get(0).equals(inboundAuthKey)) {
             validationErrors.add(String.format("The Inbound Auth Key of the  application name %s " +
                     "is not match with SAML issuer %s.", inboundAuthKey, map.get(ISSUER).get(0)));
         }
