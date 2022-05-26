@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderClientException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
@@ -107,7 +108,11 @@ public class IdentityServlet extends HttpServlet {
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
-            log.error("Failed to process IdentityRequest", e);
+            if (e instanceof SessionExtenderClientException) {
+                log.debug("Failed to process IdentityRequest", e);
+            } else {
+                log.error("Failed to process IdentityRequest", e);
+            }
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
