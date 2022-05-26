@@ -2102,5 +2102,5 @@
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 
     <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>false</AllowCrossTenantTokenIntrospection>
+    <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
 </Server>
