@@ -63,7 +63,7 @@
   "oauth.map_federated_users_to_local": "$ref{authentication.map_federated_users_to_local}",
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
-  "oauth.allow_cross_tenant_token_introspection": false,
+  "oauth.introspect.allow_cross_tenant": true,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
