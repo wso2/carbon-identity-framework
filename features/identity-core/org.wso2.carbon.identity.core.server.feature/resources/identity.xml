@@ -2105,4 +2105,7 @@
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    <ShowPendingUserInformation>true</ShowPendingUserInformation>
+
 </Server>
