@@ -880,6 +880,10 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -3016,9 +3020,6 @@
     {% else %}
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
-
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
