@@ -431,5 +431,15 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return new HashMap<>();
     }
 
+    /**
+     * Update Service Provider application in SOAP flow.
+     * @param serviceProvider Service Provider Application to be updated
+     * @param tenantDomain Tenant Domain
+     * @param username Username
+     * @param applicationNameToBeDeleted Name of the dummy service provider to be deleted
+     */
+    public abstract void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
+                                                     String username, String applicationNameToBeDeleted)
+            throws IdentityApplicationManagementException;
 }
 

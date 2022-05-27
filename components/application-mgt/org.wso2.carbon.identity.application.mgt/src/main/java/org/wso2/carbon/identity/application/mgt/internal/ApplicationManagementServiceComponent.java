@@ -54,7 +54,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceMana
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
-import org.wso2.carbon.identity.application.mgt.validator.SAMLValidator;
+import org.wso2.carbon.identity.application.mgt.validator.SAMLInboundConfigPreprocessor;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -126,7 +126,7 @@ public class ApplicationManagementServiceComponent {
                     new DefaultApplicationValidator(), null);
 
             context.getBundleContext().registerService(ApplicationValidator.class,
-                    new SAMLValidator(), null);
+                    new SAMLInboundConfigPreprocessor(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");

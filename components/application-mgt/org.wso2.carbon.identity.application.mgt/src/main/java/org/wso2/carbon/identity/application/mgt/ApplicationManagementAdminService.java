@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
  */
 public class ApplicationManagementAdminService extends AbstractAdmin {
 
+    public static final String DUMMY_SP_SUFFIX = "SAML-SP";
     private static Log log = LogFactory.getLog(ApplicationManagementAdminService.class);
     private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private ApplicationManagementService applicationMgtService;
@@ -435,7 +436,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             if (requestConfig != null) {
                 samlSP = applicationMgtService.getServiceProviderByClientId(requestConfig.getInboundAuthKey(),
                         SAMLSSO , getTenantDomain());
-                if (samlSP != null) {
+                if (samlSP != null && isDummyServiceProvider(samlSP.getApplicationName())) {
                     InboundAuthenticationRequestConfig samlRequestConfig =
                             getInboundAuthenticationRequestConfigByClientType(samlSP, SAMLSSO);
                     if (samlRequestConfig != null) {
@@ -443,7 +444,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     }
                     //have to delete old application before updating the new application with saml data.Because there
                     // can't be 2 service Providers with same saml issuer
-                    deleteApplication(samlSP.getApplicationName());
+                    applicationMgtService.updateApplicationInSOAPFlow(serviceProvider, getTenantDomain(), getUsername(),
+                            samlSP.getApplicationName());
+                    return;
                 }
             }
 
@@ -453,6 +456,18 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     "tenant: " + getTenantDomain();
             throw handleException(msg, ex);
         }
+    }
+
+    private boolean isDummyServiceProvider(String applicationName) {
+        String arr[] = applicationName.split("_");
+        if (arr.length != 2 || arr[0] == null || arr[1] == null || !arr[1].equals(DUMMY_SP_SUFFIX)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+        if (!pattern.matcher(arr[0]).matches()) {
+            return false;
+        }
+        return true;
     }
 
     private InboundAuthenticationRequestConfig getInboundAuthenticationRequestConfigByClientType(

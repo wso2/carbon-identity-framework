@@ -251,6 +251,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
+    private static final String PROP_NAME = "PROP_NAME";
+    private static final String PROP_VALUE = "PROP_VALUE";
+    private static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -5393,14 +5396,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             rs = prepStmt.executeQuery();
             while (rs.next()) {
                 Property property = new Property();
-                property.setName(rs.getString("PROP_NAME"));
-                property.setValue(rs.getString("PROP_VALUE"));
-                if (propertyMap.containsKey(rs.getString("INBOUND_AUTH_KEY"))) {
-                    propertyMap.get(rs.getString("INBOUND_AUTH_KEY")).add(property);
+                property.setName(rs.getString(PROP_NAME));
+                property.setValue(rs.getString(PROP_VALUE));
+                if (propertyMap.containsKey(rs.getString(INBOUND_AUTH_KEY))) {
+                    propertyMap.get(rs.getString(INBOUND_AUTH_KEY)).add(property);
                 } else {
                     List<Property> properties = new ArrayList<>();
                     properties.add(property);
-                    propertyMap.put(rs.getString("INBOUND_AUTH_KEY"), properties);
+                    propertyMap.put(rs.getString(INBOUND_AUTH_KEY), properties);
                 }
             }
         } catch (SQLException e) {
@@ -5412,5 +5415,48 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
         return propertyMap;
+    }
+
+    @Override
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
+                                            String applicationNameToBeDeleted)
+            throws IdentityApplicationManagementException {
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        int applicationId = serviceProvider.getApplicationID();
+        try {
+            //delete dummy service provider
+            if (log.isDebugEnabled()) {
+                log.debug("Deleting Application " + applicationNameToBeDeleted);
+            }
+            // Delete the application certificate if there is any.
+            deleteCertificate(connection, applicationNameToBeDeleted, tenantID);
+
+            // First, delete all the clients of the application
+            int applicationID = getApplicationIDByName(applicationNameToBeDeleted, tenantID, connection);
+            InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID, connection, tenantID);
+            for (InboundAuthenticationRequestConfig client : clients.getInboundAuthenticationRequestConfigs()) {
+                handleClientDeletion(client.getInboundAuthKey(), client.getInboundAuthType());
+            }
+            handleDeleteServiceProvider(connection, applicationNameToBeDeleted, tenantID);
+
+            //update existing service provider
+            if (log.isDebugEnabled()) {
+                log.debug("Updating Application " + serviceProvider.getApplicationName());
+            }
+            deleteApplicationConfigurations(connection, serviceProvider, applicationId);
+            addApplicationConfigurations(connection, serviceProvider, tenantDomain);
+
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            String errorMessage = String.format("An error occurred while updating the application: %s and " +
+                    "deleting application: %s", serviceProvider.getApplicationName(), applicationNameToBeDeleted);
+            log.error(errorMessage, e);
+            throw new IdentityApplicationManagementException(errorMessage, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+
     }
 }

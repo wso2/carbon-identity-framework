@@ -295,4 +295,10 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
         return new HashMap<>();
     }
+
+    default void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
+                                             String applicationNameToBeDeleted)
+            throws IdentityApplicationManagementException {
+    }
+
 }

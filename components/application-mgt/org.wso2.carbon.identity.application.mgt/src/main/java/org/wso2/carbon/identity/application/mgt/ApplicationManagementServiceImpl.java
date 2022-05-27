@@ -2707,5 +2707,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     "authentication properties for clientType: %s and tenantId: %s", clientType, tenantDomain), e);
         }
     }
+
+    @Override
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                            String applicationNameToBeDeleted)
+            throws IdentityApplicationManagementException {
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        try {
+            appDAO.updateApplicationInSOAPFlow(serviceProvider, tenantDomain, applicationNameToBeDeleted);
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while updating Service Provider " +
+                    "in SOAP flow with name: %s in tenantDomain: %s", serviceProvider.getApplicationName(),
+                    tenantDomain), e);
+        }
+    }
 }
 

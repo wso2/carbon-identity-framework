@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Validator class to be used to validate the SAML inbound properties, before it is persisted.
  */
-public class SAMLValidator implements ApplicationValidator {
+public class SAMLInboundConfigPreprocessor implements ApplicationValidator {
 
     private static final String SAMLSSO = "samlsso";
 
