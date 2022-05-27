@@ -132,7 +132,7 @@
             String formattedFilterString;
             // The formattedFilterStringPrefix can be "name sw", "name ew", "name eq" and "name co".
             String formattedFilterStringPrefix = IdPManagementConstants.IDP_NAME + " %s \"%s\"";
-            // As the defaultFormattedFilterString, it will check for eq operation to comply with the backend support.
+            // With the defaultFormattedFilterString, it will check for eq operation to comply with the backend support.
             String defaultFormattedFilterString =
                     String.format(formattedFilterStringPrefix, IdPManagementConstants.EQ, filterString);
             if (filterString.length() > 1) {
@@ -145,10 +145,6 @@
                   // If filterString is "My_IDP_*", formattedFilterString will be "name sw My_IDP_".
                   formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.SW,
                           filterString.substring(0, filterString.length() - 1));
-               } else if (!filterString.contains("*")) {
-                  // If filterString is "My_IDP_1", formattedFilterString will be "name eq My_IDP_1".
-                  formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.EQ,
-                          filterString);
                } else if (filterString.startsWith("*") && filterString.endsWith("*")) {
                   // If filterString is "*_IDP_*", formattedFilterString will be "name co _IDP_".
                   formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.CO,
@@ -163,12 +159,16 @@
                                      " and " + String.format(formattedFilterStringPrefix, IdPManagementConstants.EW,
                                      filterSubStrings[1]);
                   } else {
+                     // If filterString is "My*IDP*1", formattedFilterString will be "name eq My*IDP*1" as complex
+                     // regex is not supported for IDP filtering.
                      formattedFilterString = defaultFormattedFilterString;
                   }
                } else {
+                  // If filterString is "My_IDP_1", formattedFilterString will be "name eq My_IDP_1".
                   formattedFilterString = defaultFormattedFilterString;
                }
             } else {
+               // If filterString is "M", formattedFilterString will be "name eq M".
                formattedFilterString = defaultFormattedFilterString;
             }
 
