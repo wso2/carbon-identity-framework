@@ -634,6 +634,10 @@
         Default value : false
         -->
         <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -2101,6 +2105,4 @@
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
 </Server>
