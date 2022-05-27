@@ -24,12 +24,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.jcajce.provider.drbg.DRBG;
 import org.jaxen.JaxenException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
+import org.wso2.carbon.identity.workflow.mgt.bean.metadata.MetaData;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowRequestAssociationDAO;
@@ -115,6 +117,8 @@ public class WorkFlowExecutorManager {
                     WorkflowRequest requestToSend = workFlowRequest.clone();
                     requestToSend.setUuid(relationshipId);
                     Workflow workflow = workflowDAO.getWorkflow(association.getWorkflowId());
+                    workflow.setWorkflowImplId("newWorkflowImpl");
+                    workflow.setTemplateId("newTemplate");
                     AbstractWorkflow templateImplementation = WorkflowServiceDataHolder.getInstance()
                             .getWorkflowImpls().get(workflow.getTemplateId()).get(workflow.getWorkflowImplId());
                     List<Parameter> parameterList = workflowDAO.getWorkflowParams(association.getWorkflowId());

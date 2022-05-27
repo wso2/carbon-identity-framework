@@ -29,6 +29,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.workflow.mgt.WorkflowExecutorManagerService;
+import org.wso2.carbon.identity.workflow.mgt.WorkflowExecutorManagerServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -57,6 +59,9 @@ public class WorkflowMgtServiceComponent {
             WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
             bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
             WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
+            WorkflowExecutorManagerService workflowExecutorManagerService = new WorkflowExecutorManagerServiceImpl();
+            bundleContext.registerService(WorkflowExecutorManagerService.class, workflowExecutorManagerService, null);
+            WorkflowServiceDataHolder.getInstance().setWorkflowExecutorManagerService(workflowExecutorManagerService);
             WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
             ServiceRegistration serviceRegistration = context.getBundleContext()
                     .registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
