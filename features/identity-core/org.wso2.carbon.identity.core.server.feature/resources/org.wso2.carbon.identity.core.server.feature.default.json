@@ -63,7 +63,7 @@
   "oauth.map_federated_users_to_local": "$ref{authentication.map_federated_users_to_local}",
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
-  "oauth.allow_cross_tenant_token_introspection": false,
+  "oauth.introspect.allow_cross_tenant": true,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -362,6 +362,7 @@
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_claim_update.email.enable_notify_existing_email": false,
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
   "identity_mgt.user_claim_update.use_verify_claim": true,
   "identity_mgt.user_claim_update.uniqueness.enable": false,
@@ -875,5 +876,7 @@
   "axis2.transport_sender.https.parameters.PROTOCOL": "HTTP/1.1",
   "axis2.transport_sender.https.parameters.Transfer-Encoding": "chunked",
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
-  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000"
+  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
+
+  "show_pending_user_information.enable": true
 }

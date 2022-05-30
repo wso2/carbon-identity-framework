@@ -880,6 +880,10 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1272,6 +1276,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
                 <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <EnableVerificationByPrivilegedUser>{{identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user}}</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
                 </VerificationCode>
@@ -3016,9 +3021,6 @@
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
-
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
@@ -3046,6 +3048,11 @@
                 {% endfor %}
             </MethodRefs>
         </AuthenticationContext>
+    {% endif %}
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
 
 </Server>

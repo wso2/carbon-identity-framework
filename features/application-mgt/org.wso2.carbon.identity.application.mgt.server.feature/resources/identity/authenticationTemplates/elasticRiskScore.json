@@ -8,9 +8,11 @@
     "Modify the default authentication steps and option(s) as required."
   ],
   "parametersDescription": {
-    "elasticsearchDomain": "Domain and port of the elasticsearch instance",
-    "elasticUsername" : "Elastic user's username with read access",
-    "elasticPassword" : "Elastic user's password"
+    "username" : "Current login context username.",
+    "index": "[optional] Elasticsearch index to calculate the risk score. (Default: 'transaction')",
+    "duration" : "[optional] Aggregation time period from current timestamp. (Default: '5m')",
+    "riskLogic": "[optional] Elastic map script to calculate the summation of values. (Default: 'state.sum.add(doc['amount'].value);')",
+    "threshold": "[optional] Threshold summation value to identify as a risk. (Default: '10000')"
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
@@ -42,7 +44,7 @@
     "            callElastic({'username': username}, {",
     "                onSuccess : function(context, data) {",
     "                    Log.info('--------------- Received risk score value: ' + data.risk_score);",
-    "                    if (data.risk_score.value > 0) {",
+    "                    if (data.risk_score > 0) {",
     "                        executeStep(2);",
     "                    }",
     "                }, onFail : function(context, data) {",
