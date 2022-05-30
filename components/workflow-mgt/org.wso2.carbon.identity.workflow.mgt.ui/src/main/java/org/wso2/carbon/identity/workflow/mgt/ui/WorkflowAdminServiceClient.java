@@ -168,7 +168,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List all paginated workflows
      *
-     * @return
+     * @return WorkflowEvent objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -184,7 +184,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List paginated workflows with a filter
      *
-     * @return
+     * @return WorkflowEvent objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -200,7 +200,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List all workflows
      *
-     * @return
+     * @return WorkflowEvent objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -216,7 +216,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List workflows with a filter
      *
-     * @return
+     * @return WorkflowEvent objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -232,7 +232,7 @@ public class WorkflowAdminServiceClient {
     /**
      * Get count of all workflows
      *
-     * @return
+     * @return Count of all workflows
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -245,7 +245,7 @@ public class WorkflowAdminServiceClient {
     /**
      * Get count of workflows
      *
-     * @return
+     * @return Count of workflows
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -287,7 +287,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List all paginated associations
      *
-     * @return
+     * @return Association objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -303,7 +303,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List paginated associations with a filter
      *
-     * @return
+     * @return Association objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -319,7 +319,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List all associations
      *
-     * @return
+     * @return Association objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -335,7 +335,7 @@ public class WorkflowAdminServiceClient {
     /**
      * List associations with a filter
      *
-     * @return
+     * @return Association objects array
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -351,7 +351,7 @@ public class WorkflowAdminServiceClient {
     /**
      * Get count of all associations
      *
-     * @return
+     * @return Count of all associations
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */
@@ -364,7 +364,7 @@ public class WorkflowAdminServiceClient {
     /**
      * Get count of associations
      *
-     * @return
+     * @return Count of associations
      * @throws RemoteException
      * @throws WorkflowAdminServiceWorkflowException
      */

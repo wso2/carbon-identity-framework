@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dto;
 
+import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
+
 public class Association {
 
     private String associationId;
@@ -29,6 +31,23 @@ public class Association {
     private String condition;
     private String eventCategory;
     private boolean enabled;
+
+    private Association(AssociationBuilder associationBuilder){
+
+        this.associationId = associationBuilder.associationId;
+        this.associationName = associationBuilder.associationName;
+        this.workflowName = associationBuilder.workflowName;
+        this.workflowId = associationBuilder.workflowId;
+        this.eventName = associationBuilder.eventName;
+        this.eventId = associationBuilder.eventId;
+        this.condition = associationBuilder.condition;
+        this.eventCategory = associationBuilder.eventCategory;
+        this.enabled = associationBuilder.enabled;
+    }
+
+    public Association(){
+
+    }
 
     public String getAssociationId() {
 
@@ -112,5 +131,71 @@ public class Association {
 
     public void setWorkflowId(String workflowId) {
         this.workflowId = workflowId;
+    }
+
+    public static class AssociationBuilder{
+        private String associationId;
+        private String associationName;
+        private String workflowName;
+        private String workflowId;
+        private String eventName;
+        private String eventId;
+        private String condition;
+        private String eventCategory;
+        private boolean enabled;
+
+        public AssociationBuilder(){
+
+        }
+
+        public AssociationBuilder setAssociationId(String associationId) {
+            this.associationId = associationId;
+            return this;
+        }
+
+        public AssociationBuilder setAssociationName(String associationName) {
+            this.associationName = associationName;
+            return this;
+        }
+
+        public AssociationBuilder setWorkflowName(String workflowName) {
+            this.workflowName = workflowName;
+            return this;
+        }
+
+        public AssociationBuilder setWorkflowId(String workflowId) {
+            this.workflowId = workflowId;
+            return this;
+        }
+
+        public AssociationBuilder setEventName(String eventName) {
+            this.eventName = eventName;
+            return this;
+        }
+
+        public AssociationBuilder setEventId(String eventId) {
+            this.eventId = eventId;
+            return this;
+        }
+
+        public AssociationBuilder setCondition(String condition) {
+            this.condition = condition;
+            return this;
+        }
+
+        public AssociationBuilder setEventCategory(String eventCategory) {
+            this.eventCategory = eventCategory;
+            return this;
+        }
+
+        public AssociationBuilder setEnabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public Association build() {
+            return new Association(this);
+        }
+
     }
 }

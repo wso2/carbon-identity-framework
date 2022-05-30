@@ -33,11 +33,12 @@ public class WFConstant {
     public static final String KEYSTORE_CARBON_CONFIG_PATH = "Security.KeyStore.Location";
     public static final String KEYSTORE_PASSWORD_CARBON_CONFIG_PATH = "Security.KeyStore.Password";
 
-    public static final String WORKFLOW_ENTITY_TYPE = "USER";
-    public static final String WORKFLOW_REQUEST_TYPE = "ADD_USER";
+    public static final String WORKFLOW_USER_ENTITY_TYPE = "USER";
+    public static final String WORKFLOW_ADD_USER_REQUEST_TYPE = "ADD_USER";
 
-    public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final int DEFAULT_RESULTS_PER_PAGE = 15;
+
+    public static final String DEFAULT_FILTER = "*";
 
     public static final Set<Class> NUMERIC_CLASSES;
 
@@ -60,6 +61,7 @@ public class WFConstant {
     public static class ParameterName {
         //Template specific parameters
         public static final String WORKFLOW_NAME = "WorkflowName";
+        public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
 
     }
     public static class ParameterHolder {
@@ -67,5 +69,43 @@ public class WFConstant {
         public static final String  WORKFLOW_IMPL = "WorkflowImpl" ;
     }
 
+    public static class DBProductNames{
+        public static final String MYSQL = "MySQL" ;
+        public static final String MARIADB = "MariaDB" ;
+        public static final String H2 = "H2" ;
+        public static final String ORACLE = "Oracle" ;
+        public static final String MICROSOFT = "Microsoft" ;
+        public static final String POSTGRESQL = "PostgreSQL" ;
+        public static final String DB2 = "DB2" ;
+        public static final String INFORMIX = "INFORMIX" ;
+    }
 
+    public static class Exceptions{
+        // Association errors
+        public static final String ERROR_WHILE_LOADING_ASSOCIATIONS =  "Error while loading associations from DB: " +
+                "Database driver could not be identified or not supported.";
+        public static final String ERROR_LISTING_PAGINATED_ASSOCIATIONS_WITH_FILTER =  "Server error occurred when listing " +
+                "paginated associations with filter";
+        public static final String ERROR_LISTING_PAGINATED_ASSOCIATIONS =  "Server error occurred when listing " +
+                "paginated associations";
+        public static final String ERROR_LISTING_ASSOCIATIONS_WITH_FILTER =  "Server error occurred when listing " +
+                "associations with filter: ";
+        public static final String ERROR_LISTING_ASSOCIATIONS =  "Server error when listing associations";
+        public static final String ERROR_GETTING_ASSOC_COUNT =  "Server error when getting the count of Associations";
+
+        // Workflow errors
+        public static final String ERROR_WHILE_LOADING_WORKFLOWS =  "Error while loading workflows from DB: " +
+                "Database driver could not be identified or not supported.";
+        public static final String ERROR_LISTING_PAGINATED_WORKFLOWS_WITH_FILTER =  "Server error occurred when listing " +
+                "paginated workflows with filter";
+        public static final String ERROR_LISTING_PAGINATED_WORKFLOWS =  "Server error occurred when listing " +
+                "paginated workflows";
+        public static final String ERROR_LISTING_WORKFLOWS_WITH_FILTER =  "Server error occurred when listing " +
+                "workflows with filter: ";
+        public static final String ERROR_LISTING_WORKFLOWS =  "Server error when listing workflows";
+        public static final String ERROR_GETTING_WORKFLOW_COUNT =  "Server error when getting the count of workflows";
+
+        public static final String ERROR_INVALID_PAGE_NUMBER =  "Invalid page number requested. The page number should "
+                + "be a value greater than 0.";
+    }
 }

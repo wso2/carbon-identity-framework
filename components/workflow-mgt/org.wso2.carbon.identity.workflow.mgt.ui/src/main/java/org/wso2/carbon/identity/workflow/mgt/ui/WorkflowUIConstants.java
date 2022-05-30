@@ -99,4 +99,5 @@ public class WorkflowUIConstants {
         public static final String TEMPLATE = "Template" ;
         public static final String  WORKFLOW_IMPL = "WorkflowImpl" ;
     }
+
 }

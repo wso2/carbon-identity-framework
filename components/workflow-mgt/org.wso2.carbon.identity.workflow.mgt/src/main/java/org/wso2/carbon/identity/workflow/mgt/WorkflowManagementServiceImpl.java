@@ -426,12 +426,29 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
     }
 
+    /**
+     * List All paginated Workflows
+     *
+     * @param pageNumber  Page Number
+     * @param tenantId  Tenant ID
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
     @Override
     public List<Workflow> listAllPaginatedWorkflows(int tenantId, int pageNumber) throws WorkflowException{
 
-        return listPaginatedWorkflows(tenantId, pageNumber, "*");
+        return listPaginatedWorkflows(tenantId, pageNumber, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * List paginated Workflows with a filter
+     *
+     * @param tenantId  Tenant ID
+     * @param pageNumber  Page Number
+     * @param filter  filter
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
     @Override
     public List<Workflow> listPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException{
 
@@ -444,8 +461,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         // Validate whether the page number is not zero or a negative number.
         if (pageNumber < 1) {
-            throw new WorkflowException("Invalid page number requested. The page number should "
-                    + "be a value greater than 0.");
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_PAGE_NUMBER);
         }
 
         int limit = WorkflowManagementUtil.getItemsPerPage();
@@ -460,12 +476,27 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return workflowList;
     }
 
+    /**
+     * List All workflows
+     *
+     * @param tenantId  Tenant ID
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
     @Override
     public List<Workflow> listAllWorkflows(int tenantId) throws WorkflowException{
 
-        return listWorkflows(tenantId, "*");
+        return listWorkflows(tenantId, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * List workflows
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
     @Override
     public List<Workflow> listWorkflows(int tenantId, String filter) throws WorkflowException {
 
@@ -488,12 +519,27 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return workflowList;
     }
 
+    /**
+     * Get count of all Workflows
+     *
+     * @param tenantId  Tenant ID
+     * @return Return count of all workflows
+     * @throws WorkflowException
+     */
     @Override
     public int getCountOfAllWorkflows(int tenantId) throws WorkflowException{
 
-        return getCountOfWorkflows(tenantId, "*");
+        return getCountOfWorkflows(tenantId, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * Get count of Workflows
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return count of all workflows
+     * @throws WorkflowException
+     */
     @Override
     public int getCountOfWorkflows(int tenantId, String filter) throws WorkflowException{
 
@@ -612,12 +658,29 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return associations;
     }
 
+    /**
+     * List paginated Associations with a filter
+     *
+     * @param tenantId  Tenant ID
+     * @param pageNumber  Page Number
+     * @return List<Association>
+     * @throws WorkflowException
+     */
     @Override
     public List<Association> listAllPaginatedAssociations(int tenantId, int pageNumber) throws WorkflowException {
 
-        return listPaginatedAssociations(tenantId, pageNumber, "*");
+        return listPaginatedAssociations(tenantId, pageNumber, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * List paginated Associations with a filter
+     *
+     * @param tenantId  Tenant ID
+     * @param pageNumber  Page Number
+     * @param filter  filter
+     * @return List<Association>
+     * @throws WorkflowException
+     */
     @Override
     public List<Association> listPaginatedAssociations(int tenantId, int pageNumber, String filter) throws WorkflowException {
 
@@ -630,8 +693,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         // Validate whether the page number is not zero or a negative number.
         if (pageNumber < 1) {
-            throw new WorkflowException("Invalid page number requested. The page number should "
-                    + "be a value greater than 0.");
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_PAGE_NUMBER);
         }
 
         int limit = WorkflowManagementUtil.getItemsPerPage();
@@ -657,13 +719,27 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return associations;
     }
 
+    /**
+     * List All Associations
+     *
+     * @param tenantId  Tenant ID
+     * @return List<Association>
+     * @throws WorkflowException
+     */
     @Override
     public List<Association> listAllAssociations(int tenantId) throws WorkflowException {
 
-        return listAssociations(tenantId, "*");
-
+        return listAssociations(tenantId, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * List Associations
+     *
+     * @param tenantId  Tenant ID
+     * @param filter Filter
+     * @return List<Association>
+     * @throws WorkflowException
+     */
     @Override
     public List<Association> listAssociations(int tenantId, String filter) throws WorkflowException {
 
@@ -696,12 +772,27 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
 
+    /**
+     * Get count of All Associations
+     *
+     * @param tenantId  Tenant ID
+     * @return Return count of all associations
+     * @throws WorkflowException
+     */
     @Override
     public int getCountOfAllAssociations(int tenantId) throws WorkflowException {
 
-        return getCountOfAssociations(tenantId, "*");
+        return getCountOfAssociations(tenantId, WFConstant.DEFAULT_FILTER);
     }
 
+    /**
+     * Get count of Associations
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return count of all associations
+     * @throws WorkflowException
+     */
     @Override
     public int getCountOfAssociations(int tenantId, String filter) throws WorkflowException{
 
@@ -729,7 +820,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
 
     }
-
 
     /**
      * Add a new relationship between a workflow request and an entity.

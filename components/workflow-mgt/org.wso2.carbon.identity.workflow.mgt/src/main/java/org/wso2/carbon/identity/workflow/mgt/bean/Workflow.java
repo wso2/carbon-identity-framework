@@ -34,6 +34,19 @@ public class Workflow implements Serializable {
     private String templateId;
     private String workflowImplId;
 
+    private Workflow(WorkflowBuilder workflowBuilder){
+
+        this.workflowId = workflowBuilder.workflowId;
+        this.workflowName = workflowBuilder.workflowName;
+        this.workflowDescription = workflowBuilder.workflowDescription;
+        this.templateId = workflowBuilder.templateId;
+        this.workflowImplId = workflowBuilder.workflowImplId;
+    }
+
+    public Workflow(){
+
+    }
+
     public String getWorkflowId() {
         return workflowId;
     }
@@ -74,4 +87,47 @@ public class Workflow implements Serializable {
     public void setTemplateId(String templateId) {
         this.templateId = templateId;
     }
+
+    public static class WorkflowBuilder {
+
+        private String workflowId;
+        private String workflowName;
+        private String workflowDescription;
+        private String templateId;
+        private String workflowImplId;
+
+        public WorkflowBuilder(){
+
+        }
+
+        public WorkflowBuilder setWorkflowId(String workflowId) {
+            this.workflowId = workflowId;
+            return this;
+        }
+
+        public WorkflowBuilder setWorkflowName(String workflowName) {
+            this.workflowName = workflowName;
+            return this;
+        }
+
+        public WorkflowBuilder setWorkflowDescription(String workflowDescription) {
+            this.workflowDescription = workflowDescription;
+            return this;
+        }
+
+        public WorkflowBuilder setTemplateId(String templateId) {
+            this.templateId = templateId;
+            return this;
+        }
+
+        public WorkflowBuilder setWorkflowImplId(String workflowImplId) {
+            this.workflowImplId = workflowImplId;
+            return this;
+        }
+
+        public Workflow build() {
+            return new Workflow(this);
+        }
+    }
+
 }

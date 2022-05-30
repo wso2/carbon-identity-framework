@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
+import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -96,12 +97,13 @@ public class WorkflowDAO {
                 String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
                 String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                 String implId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                workflow = new Workflow();
-                workflow.setWorkflowId(workflowId);
-                workflow.setWorkflowName(workflowName);
-                workflow.setWorkflowDescription(description);
-                workflow.setTemplateId(templateId);
-                workflow.setWorkflowImplId(implId);
+                workflow = new Workflow.WorkflowBuilder()
+                        .setWorkflowId(workflowId)
+                        .setWorkflowName(workflowName)
+                        .setWorkflowDescription(description)
+                        .setTemplateId(templateId)
+                        .setWorkflowImplId(implId)
+                        .build();
 
                 break;
             }
@@ -208,55 +210,28 @@ public class WorkflowDAO {
         try {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL")
-                    || databaseProductName.contains("MariaDB")
-                    || databaseProductName.contains("H2")) {
+            if (databaseProductName.contains(WFConstant.DBProductNames.MYSQL)
+                    || databaseProductName.contains(WFConstant.DBProductNames.MARIADB)
+                    || databaseProductName.contains(WFConstant.DBProductNames.H2)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, offset);
-                prepStmt.setInt(4, limit);
-            } else if (databaseProductName.contains("Oracle")) {
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
+            } else if (databaseProductName.contains(WFConstant.DBProductNames.ORACLE)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, offset);
-                prepStmt.setInt(4, limit);
-            } else if (databaseProductName.contains("Microsoft")) {
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
+            } else if (databaseProductName.contains(WFConstant.DBProductNames.MICROSOFT)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, offset);
-                prepStmt.setInt(4, limit);
-            } else if (databaseProductName.contains("PostgreSQL")) {
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
+            } else if (databaseProductName.contains(WFConstant.DBProductNames.POSTGRESQL)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, limit);
-                prepStmt.setInt(4, offset);
-            } else if (databaseProductName.contains("DB2")) {
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
+            } else if (databaseProductName.contains(WFConstant.DBProductNames.DB2)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, offset);
-                prepStmt.setInt(4, limit);
-            } else if (databaseProductName.contains("INFORMIX")) {
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
+            } else if (databaseProductName.contains(WFConstant.DBProductNames.INFORMIX)) {
                 sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
-                prepStmt = connection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, filterResolvedForSQL);
-                prepStmt.setInt(3, offset);
-                prepStmt.setInt(4, limit);
+                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
             } else {
-                //log.error("Error while loading applications from DB: Database driver could not be identified or " +
-                //  "not supported.");
-                throw new InternalWorkflowException("Error while loading applications from DB: " +
-                        "Database driver could not be identified or not supported.");
+                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
             }
 
             resultSet = prepStmt.executeQuery();
@@ -267,12 +242,13 @@ public class WorkflowDAO {
                 String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
                 String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                 String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                Workflow workflowDTO = new Workflow();
-                workflowDTO.setWorkflowId(id);
-                workflowDTO.setWorkflowName(name);
-                workflowDTO.setWorkflowDescription(description);
-                workflowDTO.setTemplateId(templateId);
-                workflowDTO.setWorkflowImplId(templateImplId);
+                Workflow workflowDTO = new Workflow.WorkflowBuilder()
+                        .setWorkflowId(id)
+                        .setWorkflowName(name)
+                        .setWorkflowDescription(description)
+                        .setTemplateId(templateId)
+                        .setWorkflowImplId(templateImplId)
+                        .build();
                 workflowList.add(workflowDTO);
             }
 
@@ -281,8 +257,39 @@ public class WorkflowDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
-
         return workflowList;
+    }
+
+    /**
+     * Create PreparedStatement
+     *
+     * @param DBProductName db product name
+     * @param connection db connection
+     * @param sqlQuery SQL query
+     * @param tenantId Tenant ID
+     * @param filterResolvedForSQL resolved filter for sql
+     * @param offset offset
+     * @param limit limit
+     * @return PreparedStatement
+     * @throws SQLException
+     */
+    public PreparedStatement generatePrepStmt(String DBProductName, Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException {
+
+        PreparedStatement prepStmt = null;
+        if (DBProductName.equals(WFConstant.DBProductNames.POSTGRESQL)){
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, filterResolvedForSQL);
+            prepStmt.setInt(3, limit);
+            prepStmt.setInt(4, offset);
+        } else {
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, filterResolvedForSQL);
+            prepStmt.setInt(3, offset);
+            prepStmt.setInt(4, limit);
+        }
+        return prepStmt;
     }
 
     /**
@@ -312,12 +319,13 @@ public class WorkflowDAO {
                 String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
                 String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                 String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                Workflow workflowDTO = new Workflow();
-                workflowDTO.setWorkflowId(id);
-                workflowDTO.setWorkflowName(name);
-                workflowDTO.setWorkflowDescription(description);
-                workflowDTO.setTemplateId(templateId);
-                workflowDTO.setWorkflowImplId(templateImplId);
+                Workflow workflowDTO = new Workflow.WorkflowBuilder()
+                        .setWorkflowId(id)
+                        .setWorkflowName(name)
+                        .setWorkflowDescription(description)
+                        .setTemplateId(templateId)
+                        .setWorkflowImplId(templateImplId)
+                        .build();
                 workflowList.add(workflowDTO);
             }
         } catch (SQLException e) {
@@ -344,7 +352,6 @@ public class WorkflowDAO {
                     .replace("*", "%")
                     .replace("?", "_");
         }
-
         return sqlfilter;
     }
 
@@ -356,7 +363,6 @@ public class WorkflowDAO {
      * @return
      * @throws InternalWorkflowException
      */
-
     public int getCountOfWorkflows(int tenantId, String filter) throws InternalWorkflowException{
 
         int count;
@@ -380,7 +386,6 @@ public class WorkflowDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
-
         return count;
     }
 
@@ -502,7 +507,4 @@ public class WorkflowDAO {
         }
         return parameterList;
     }
-
-
-
 }

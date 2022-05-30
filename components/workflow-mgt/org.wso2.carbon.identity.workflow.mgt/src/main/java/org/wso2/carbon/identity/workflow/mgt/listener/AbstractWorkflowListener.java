@@ -434,7 +434,6 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @param filter Filter
      * @throws WorkflowException
      */
-
     @Override
     public void doPreListPaginatedAssociations(int tenantId, int pageNumber, String filter){
 
@@ -448,7 +447,6 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
-
     @Override
     public void doPostListPaginatedAssociations(int tenantId, int pageNumber, String filter, List<Association> result){
 

@@ -172,34 +172,33 @@
         <h2><fmt:message key='workflow.list'/></h2>
 
         <table style="border:none; !important margin-top:10px;margin-left:5px;">
-                    <tr>
-                        <td>
-                            <form action="list-workflows.jsp" name="searchForm" method="post">
-                                <table style="border:0;
-                                                    !important margin-top:10px;margin-bottom:10px;">
-                                    <tr>
-                                        <td>
-                                            <table style="border:0; !important">
-                                                <tbody>
-                                                <tr style="border:0; !important">
-                                                    <td style="border:0; !important">
-                                                        <fmt:message key="workflow.service.workflow.add.name.pattern"/>
-                                                        <input style="margin-left:30px; !important"
-                                                               type="text" name="<%=WorkflowUIConstants.WF_NAME_FILTER%>"
-                                                               value="<%=filterString != null ?
-                                                           Encode.forHtmlAttribute(filterString) : Encode.forHtmlAttribute(WorkflowUIConstants.DEFAULT_FILTER) %>"/>&nbsp;
-                                                        <input class="button" type="submit"
-                                                               value="<fmt:message key="workflow.service.workflow.search"/>"/>
-                                                    </td>
-                                                </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </form>
-                        </td>
-                   </tr>
+            <tr>
+                <td>
+                    <form action="list-workflows.jsp" name="searchForm" method="post">
+                        <table style="border:0;!important margin-top:10px;margin-bottom:10px;">
+                            <tr>
+                                <td>
+                                    <table style="border:0; !important">
+                                        <tbody>
+                                            <tr style="border:0; !important">
+                                                <td style="border:0; !important">
+                                                    <fmt:message key="workflow.service.workflow.add.name.pattern"/>
+                                                    <input style="margin-left:30px; !important"
+                                                           type="text" name="<%=WorkflowUIConstants.WF_NAME_FILTER%>"
+                                                           value="<%=filterString != null ?
+                                                       Encode.forHtmlAttribute(filterString) : Encode.forHtmlAttribute(WorkflowUIConstants.DEFAULT_FILTER) %>"/>&nbsp;
+                                                    <input class="button" type="submit"
+                                                           value="<fmt:message key="workflow.service.workflow.search"/>"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </td>
+            </tr>
         </table>
 
         <div id="workArea">

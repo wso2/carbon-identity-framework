@@ -191,7 +191,7 @@ public class WorkflowManagementUtil {
     public static int getItemsPerPage() {
 
         String itemsPerPagePropertyValue =
-                ServerConfiguration.getInstance().getFirstProperty(WFConstant.ITEMS_PER_PAGE_PROPERTY);
+                ServerConfiguration.getInstance().getFirstProperty(WFConstant.ParameterName.ITEMS_PER_PAGE_PROPERTY);
 
         try {
             if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
