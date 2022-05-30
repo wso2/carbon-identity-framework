@@ -28,8 +28,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.logging.log4j.ThreadContext;
 import org.json.JSONObject;
+import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
@@ -3117,7 +3117,7 @@ public class FrameworkUtils {
 
         String ref;
         if (isCorrelationIDPresent()) {
-            ref = ThreadContext.get(CORRELATION_ID_MDC);
+            ref = MDC.get(CORRELATION_ID_MDC);
         } else {
             ref = UUID.randomUUID().toString();
         }
@@ -3131,7 +3131,7 @@ public class FrameworkUtils {
      */
     public static boolean isCorrelationIDPresent() {
 
-        return ThreadContext.get(CORRELATION_ID_MDC) != null;
+        return MDC.get(CORRELATION_ID_MDC) != null;
     }
 
     /**

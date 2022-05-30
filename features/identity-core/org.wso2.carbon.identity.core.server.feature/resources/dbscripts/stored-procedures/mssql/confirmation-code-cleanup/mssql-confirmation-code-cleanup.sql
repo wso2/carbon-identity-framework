@@ -30,7 +30,7 @@ BEGIN
 
     IF (@enableLog = 1)
     BEGIN
-    SELECT 'WSO2_CONFIRMATION_CODE_CLEANUP() STARTED...!' AS 'INFO LOG'
+    SELECT '[' + convert(varchar, getdate(), 121) + '] WSO2_CONFIRMATION_CODE_CLEANUP() STARTED...!' AS 'INFO LOG'
     END;
 
     -- ------------------------------------------
@@ -40,14 +40,14 @@ BEGIN
     BEGIN
         IF (@enableLog = 1)
         BEGIN
-        SELECT 'TABLE BACKUP STARTED ... !' AS 'INFO LOG';
+        SELECT '[' + convert(varchar, getdate(), 121) + '] TABLE BACKUP STARTED ... !' AS 'INFO LOG';
         END;
 
         IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BAK_IDN_RECOVERY_DATA'))
         BEGIN
             IF (@enableLog = 1)
             BEGIN
-                SELECT 'DELETING OLD BACKUP...' AS 'INFO LOG'
+                SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD BACKUP...' AS 'INFO LOG'
             END
             DROP TABLE BAK_IDN_RECOVERY_DATA
         END
@@ -74,7 +74,7 @@ BEGIN
         CREATE INDEX IDN_RECOVERY_DATA_CHUNK_TMP_INDX on IDN_RECOVERY_DATA_CHUNK_TMP (CODE)
         IF (@enableLog = 1)
         BEGIN
-            SELECT 'CREATED IDN_RECOVERY_DATA_CHUNK_TMP...' AS 'INFO LOG'
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CREATED IDN_RECOVERY_DATA_CHUNK_TMP...' AS 'INFO LOG'
         END
 
         -- BATCH LOOP
@@ -95,13 +95,13 @@ BEGIN
             CREATE INDEX IDN_RECOVERY_DATA_BATCH_TMP on IDN_RECOVERY_DATA_BATCH_TMP (CODE)
             IF (@enableLog = 1)
             BEGIN
-                SELECT 'CREATED IDN_RECOVERY_DATA_BATCH_TMP...' AS 'INFO LOG'
+                SELECT '[' + convert(varchar, getdate(), 121) + '] CREATED IDN_RECOVERY_DATA_BATCH_TMP...' AS 'INFO LOG'
             END
 
             -- BATCH DELETION
             IF (@enableLog = 1)
             BEGIN
-                SELECT 'BATCH DELETE STARTED ON IDN_RECOVERY_DATA...' AS 'INFO LOG'
+                SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE STARTED ON IDN_RECOVERY_DATA...' AS 'INFO LOG'
             END
             DELETE FROM IDN_RECOVERY_DATA WHERE CODE IN (SELECT CODE FROM IDN_RECOVERY_DATA_BATCH_TMP)
             SET @rowCount = @@ROWCOUNT
@@ -121,6 +121,6 @@ BEGIN
 
     IF (@enableLog = 1)
     BEGIN
-        SELECT 'CLEANUP COMPLETED...!' AS 'INFO_LOG'
+        SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP COMPLETED...!' AS 'INFO_LOG'
     END
 END

@@ -739,6 +739,9 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            {% if oauth.oidc.extensions.oauth_authz_request_class is defined %}
+            <OAuthAuthzRequestClass>{{oauth.oidc.extensions.oauth_authz_request_class}}</OAuthAuthzRequestClass>
+            {% endif %}
             {% if oauth.oidc.extensions.ciba_request_object_validator is defined %}
                 <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
             {% endif %}
@@ -877,6 +880,10 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1269,6 +1276,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
                 <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <EnableVerificationByPrivilegedUser>{{identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user}}</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
                 </VerificationCode>
@@ -2164,7 +2172,7 @@
         <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
@@ -3013,9 +3021,6 @@
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
-
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
@@ -3043,6 +3048,11 @@
                 {% endfor %}
             </MethodRefs>
         </AuthenticationContext>
+    {% endif %}
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
 
 </Server>

@@ -26,7 +26,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -71,6 +70,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class})
 @WithCarbonHome
@@ -159,7 +159,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
             .AUTH_TYPE_LOCAL);
         serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
         sequenceConfig.setApplicationConfig(applicationConfig);
 
         context.setSequenceConfig(sequenceConfig);
@@ -393,7 +393,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     private void addApplicationConfig(AuthenticationContext context) {
 
-        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new
                 LocalAndOutboundAuthenticationConfig();
         applicationConfig.getServiceProvider().setLocalAndOutBoundAuthenticationConfig
@@ -406,7 +406,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setAuthenticatedSubjectIdentifier(userName);
         authenticatedUser.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
-        context.setProperty("user-tenant-domain", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        context.setProperty("user-tenant-domain", SUPER_TENANT_DOMAIN_NAME);
         context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
     }
 

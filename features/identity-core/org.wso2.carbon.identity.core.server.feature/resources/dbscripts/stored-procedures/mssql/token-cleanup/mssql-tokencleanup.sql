@@ -53,7 +53,7 @@ SET @updateStats = 'FALSE'; -- SET TRUE FOR GATHER TABLE STATS TO IMPROVE QUERY 
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'WSO2_TOKEN_CLEANUP_SP STARTED ... !' AS 'INFO LOG';
+SELECT '[' + convert(varchar, getdate(), 121) + '] WSO2_TOKEN_CLEANUP_SP STARTED ... !' AS 'INFO LOG';
 END;
 
 IF (@enableAudit = 1)
@@ -70,7 +70,7 @@ BEGIN
 
 	IF (@enableLog = 1)
 	BEGIN
-	SELECT 'TABLE BACKUP STARTED ... !' AS 'INFO LOG';
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TABLE BACKUP STARTED ... !' AS 'INFO LOG';
 	END;
 
 	OPEN backupTablesCursor;
@@ -114,28 +114,28 @@ BEGIN
 	IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP'))
 	BEGIN
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-			SELECT 'CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP .. !';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP .. !';
 			END
 			Select * into dbo.AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP  from  dbo.IDN_OAUTH2_ACCESS_TOKEN where 1 =2;
 	END
 	ELSE
 	BEGIN
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-			SELECT 'USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP ..!';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_ACCESS_TOKEN_CLEANUP ..!';
 			END
 	END
 
 	IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP'))
 	BEGIN
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-			SELECT 'CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP .. !';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP .. !';
 			END
 			Select * into dbo.AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP  from  dbo.IDN_OAUTH2_AUTHORIZATION_CODE where 1 =2;
 	END
 	ELSE
 	BEGIN
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-			SELECT 'USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP ..!';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP ..!';
 			END
 	END
 END
@@ -147,25 +147,25 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-		SELECT 'CALCULATING TOKEN TYPES IN IDN_OAUTH2_ACCESS_TOKEN TABLE .... !';
+		SELECT '[' + convert(varchar, getdate(), 121) + '] CALCULATING TOKEN TYPES IN IDN_OAUTH2_ACCESS_TOKEN TABLE .... !';
 
 		IF (@enableLog = 1 AND @logLevel IN ('DEBUG','TRACE'))
 		BEGIN
 		SELECT @rowcount = COUNT(1) FROM IDN_OAUTH2_ACCESS_TOKEN;
-		SELECT 'TOTAL TOKENS ON IDN_OAUTH2_ACCESS_TOKEN TABLE BEFORE DELETE :'+CAST(@rowCount as varchar);
+		SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_ACCESS_TOKEN TABLE BEFORE DELETE :'+CAST(@rowCount as varchar);
 		END
 
 		IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 		BEGIN
 		SELECT @cleaupCount = COUNT(1) FROM IDN_OAUTH2_ACCESS_TOKEN WHERE (VALIDITY_PERIOD BETWEEN 0 and @maxValidityPeriod ) AND (REFRESH_TOKEN_VALIDITY_PERIOD BETWEEN 0 and @maxValidityPeriod) AND (TOKEN_STATE IN ('EXPIRED','INACTIVE','REVOKED') OR
 		(TOKEN_STATE in('ACTIVE') AND(@deleteTimeLimit > DATEADD(MINUTE, (VALIDITY_PERIOD/60000), TIME_CREATED) AND (@deleteTimeLimit > DATEADD(MINUTE, (REFRESH_TOKEN_VALIDITY_PERIOD/60000), REFRESH_TOKEN_TIME_CREATED)))));
-		SELECT 'TOTAL TOKENS SHOULD BE DELETED FROM IDN_OAUTH2_ACCESS_TOKEN : '+ CAST(@cleaupCount as varchar);
+		SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS SHOULD BE DELETED FROM IDN_OAUTH2_ACCESS_TOKEN : '+ CAST(@cleaupCount as varchar);
 		END
 
 		IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 		BEGIN
 		select @rowcount  = (@rowcount - @cleaupCount);
-		SELECT 'TOTAL TOKENS SHOULD BE RETAIN IN IDN_OAUTH2_ACCESS_TOKEN : '+CAST(@rowCount as varchar);
+		SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS SHOULD BE RETAIN IN IDN_OAUTH2_ACCESS_TOKEN : '+CAST(@rowCount as varchar);
 		END
 END
 
@@ -175,7 +175,7 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'TOKEN DELETE ON IDN_OAUTH2_ACCESS_TOKEN STARTED .... !';
+SELECT '[' + convert(varchar, getdate(), 121) + '] TOKEN DELETE ON IDN_OAUTH2_ACCESS_TOKEN STARTED .... !';
 END
 
 
@@ -200,7 +200,7 @@ BEGIN
 
 		IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 		BEGIN
-		SELECT 'CHUNK TABLE CHUNK_IDN_OAUTH2_ACCESS_TOKEN CREATED WITH : '+CAST(@chunkCount as varchar);
+		SELECT '[' + convert(varchar, getdate(), 121) + '] CHUNK TABLE CHUNK_IDN_OAUTH2_ACCESS_TOKEN CREATED WITH : '+CAST(@chunkCount as varchar);
 		END
 
 		IF (@enableAudit=1)
@@ -230,7 +230,7 @@ BEGIN
 
 				IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 				BEGIN
-				SELECT 'BATCH DELETE START ON TABLE IDN_OAUTH2_ACCESS_TOKEN WITH : '+CAST(@batchCount as varchar);
+				SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE START ON TABLE IDN_OAUTH2_ACCESS_TOKEN WITH : '+CAST(@batchCount as varchar);
 				END
 
 				DELETE IDN_OAUTH2_ACCESS_TOKEN where TOKEN_ID in (select TOKEN_ID from  BATCH_IDN_OAUTH2_ACCESS_TOKEN);
@@ -238,19 +238,19 @@ BEGIN
 
 				IF (@enableLog = 1)
 				BEGIN
-				SELECT 'BATCH DELETE FINISHED ON IDN_OAUTH2_ACCESS_TOKEN WITH : '+CAST(@deleteCount as varchar);
+				SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE FINISHED ON IDN_OAUTH2_ACCESS_TOKEN WITH : '+CAST(@deleteCount as varchar);
 				END
 
 				DELETE CHUNK_IDN_OAUTH2_ACCESS_TOKEN WHERE TOKEN_ID in (select TOKEN_ID from BATCH_IDN_OAUTH2_ACCESS_TOKEN);
 
 				IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 				BEGIN
-				SELECT 'DELETED BATCH ON  CHUNK_IDN_OAUTH2_ACCESS_TOKEN !';
+				SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED BATCH ON  CHUNK_IDN_OAUTH2_ACCESS_TOKEN !';
 				END
 
 				IF ((@deleteCount > 0))
 				BEGIN
-				SELECT 'SLEEPING ...';
+				SELECT '[' + convert(varchar, getdate(), 121) + '] SLEEPING ...';
 				WAITFOR DELAY @sleepTime;
 				END
 			END
@@ -259,7 +259,7 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'TOKEN DELETE ON IDN_OAUTH2_ACCESS_TOKEN COMPLETED .... !';
+SELECT '[' + convert(varchar, getdate(), 121) + '] TOKEN DELETE ON IDN_OAUTH2_ACCESS_TOKEN COMPLETED .... !';
 END
 
 
@@ -268,7 +268,7 @@ END
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 IF (@enableLog = 1 )
 BEGIN
-	SELECT 'CALCULATING CODE TYPES IN IDN_OAUTH2_AUTHORIZATION_CODE TABLE .... !';
+	SELECT '[' + convert(varchar, getdate(), 121) + '] CALCULATING CODE TYPES IN IDN_OAUTH2_AUTHORIZATION_CODE TABLE .... !';
 
 	IF (@enableLog = 1 AND @logLevel IN ('DEBUG','TRACE'))
 	BEGIN
@@ -282,14 +282,14 @@ BEGIN
 	SELECT @cleaupCount = COUNT(1) FROM IDN_OAUTH2_AUTHORIZATION_CODE WHERE (VALIDITY_PERIOD BETWEEN 0 and @maxValidityPeriod) AND (CODE_ID IN
 	(SELECT CODE_ID FROM IDN_OAUTH2_AUTHORIZATION_CODE code WHERE NOT EXISTS (SELECT * FROM IDN_OAUTH2_ACCESS_TOKEN tok where tok.TOKEN_ID = code.TOKEN_ID))
 	AND ((@deleteTimeLimit > DATEADD(MINUTE, (VALIDITY_PERIOD/60000), TIME_CREATED)) OR STATE ='INACTIVE'));
-	SELECT 'TOTAL CODES SHOULD BE DELETED FROM IDN_OAUTH2_AUTHORIZATION_CODE : '+CAST(@cleaupCount as varchar);
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL CODES SHOULD BE DELETED FROM IDN_OAUTH2_AUTHORIZATION_CODE : '+CAST(@cleaupCount as varchar);
 	END
 -- -------------
 
 	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 	BEGIN
 	select @rowcount  = (@rowcount - @cleaupCount);
-	SELECT 'TOTAL CODES SHOULD BE RETAIN IN IDN_OAUTH2_AUTHORIZATION_CODE : '+CAST(@rowCount as varchar);
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL CODES SHOULD BE RETAIN IN IDN_OAUTH2_AUTHORIZATION_CODE : '+CAST(@rowCount as varchar);
 	END
 END
 
@@ -301,7 +301,7 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'CODE DELETE ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE STARTED ... !';
+SELECT '[' + convert(varchar, getdate(), 121) + '] CODE DELETE ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE STARTED ... !';
 END
 
 ----
@@ -329,7 +329,7 @@ BEGIN
 
 	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 	BEGIN
-	SELECT 'CHUNK TABLE CHNK_IDN_OATH_AUTHRIZATN_CODE CREATED WITH : '+CAST(@chunkCount as varchar);
+	SELECT '[' + convert(varchar, getdate(), 121) + '] CHUNK TABLE CHNK_IDN_OATH_AUTHRIZATN_CODE CREATED WITH : '+CAST(@chunkCount as varchar);
 	END
 
 	IF (@enableAudit = 1)
@@ -359,7 +359,7 @@ BEGIN
 		BEGIN
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 			BEGIN
-			SELECT 'BATCH DELETE START ON TABLE IDN_OAUTH2_AUTHORIZATION_CODE WITH : '+CAST(@batchCount as varchar);
+			SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE START ON TABLE IDN_OAUTH2_AUTHORIZATION_CODE WITH : '+CAST(@batchCount as varchar);
 			END
 
 			DELETE FROM IDN_OAUTH2_AUTHORIZATION_CODE where CODE_ID in (select CODE_ID from BATCH_IDN_OATH2_AUTHRIZATN_CDE);
@@ -367,19 +367,19 @@ BEGIN
 
 			IF (@enableLog = 1)
 			BEGIN
-			SELECT 'BATCH DELETE FINISHED ON IDN_OAUTH2_AUTHORIZATION_CODE WITH : '+CAST(@deleteCount as varchar);
+			SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE FINISHED ON IDN_OAUTH2_AUTHORIZATION_CODE WITH : '+CAST(@deleteCount as varchar);
 			END
 
 			DELETE CHNK_IDN_OATH_AUTHRIZATN_CODE WHERE CODE_ID in (select CODE_ID from BATCH_IDN_OATH2_AUTHRIZATN_CDE);
 
 			IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 			BEGIN
-			SELECT 'DELETED BATCH ON  CHNK_IDN_OATH_AUTHRIZATN_CODE !';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED BATCH ON  CHNK_IDN_OATH_AUTHRIZATN_CODE !';
 			END
 
 			IF ((@deleteCount > 0))
 			BEGIN
-			SELECT 'SLEEPING ...';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] SLEEPING ...';
 			WAITFOR DELAY @sleepTime;
 			END
 		END
@@ -389,16 +389,16 @@ END
 --
 IF (@enableLog = 1)
 BEGIN
-SELECT 'CODE DELETE ON IDN_OAUTH2_AUTHORIZATION_CODE COMPLETED .... !';
+SELECT '[' + convert(varchar, getdate(), 121) + '] CODE DELETE ON IDN_OAUTH2_AUTHORIZATION_CODE COMPLETED .... !';
 END
 
 IF (@enableLog = 1 AND @logLevel IN ('DEBUG','TRACE'))
 BEGIN
 SELECT @rowcount = COUNT(1) FROM IDN_OAUTH2_ACCESS_TOKEN;
-SELECT 'TOTAL TOKENS ON IDN_OAUTH2_ACCESS_TOKEN TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
+SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_ACCESS_TOKEN TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
 
 SELECT @rowcount = COUNT(1) FROM IDN_OAUTH2_AUTHORIZATION_CODE;
-SELECT 'TOTAL TOKENS ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
+SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
 END
 
 -- ------------------------------------------------------
@@ -410,7 +410,7 @@ BEGIN
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'INDEX REBUILDING STARTED ...!';
+SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING STARTED ...!';
 
 END
 	OPEN backupTablesCursor;
@@ -421,7 +421,7 @@ END
 
 		IF (@enableLog = 1)
 		BEGIN
-		SELECT 'INDEX REBUILDING FOR TABLE :'+@cusrBackupTable;
+		SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FOR TABLE :'+@cusrBackupTable;
 		END
 
 		SELECT @SQL = 'ALTER INDEX ALL ON '+@cusrBackupTable+' REBUILD WITH (ONLINE = ON)';
@@ -433,7 +433,7 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'INDEX REBUILDING FINISHED ...!';
+SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FINISHED ...!';
 END
 
 END
@@ -447,7 +447,7 @@ BEGIN
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'UPDATE DATABSE STATICTICS JOB STARTED ...!';
+SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB STARTED ...!';
 
 END
 	OPEN backupTablesCursor;
@@ -458,7 +458,7 @@ END
 
 		IF (@enableLog = 1)
 		BEGIN
-		SELECT 'UPDATE TABLE STATICTICS :'+@cusrBackupTable;
+		SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE TABLE STATICTICS :'+@cusrBackupTable;
 		END
 
 		SELECT @SQL = 'UPDATE STATISTICS '+@cusrBackupTable;
@@ -470,7 +470,7 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT 'UPDATE DATABSE STATICTICS JOB FINISHED ...!';
+SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB FINISHED ...!';
 END
 
 END
@@ -481,7 +481,7 @@ deallocate backupTablesCursor;
 
 IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 BEGIN
-SELECT 'TOKEN_CLEANUP_SP COMPLETED .... !' AS 'INFO LOG';
+SELECT '[' + convert(varchar, getdate(), 121) + '] TOKEN_CLEANUP_SP COMPLETED .... !' AS 'INFO LOG';
 END
 
 END

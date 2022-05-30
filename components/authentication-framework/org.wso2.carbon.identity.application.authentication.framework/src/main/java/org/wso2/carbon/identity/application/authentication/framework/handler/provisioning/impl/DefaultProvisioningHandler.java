@@ -228,11 +228,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 boolean userWorkflowEngaged = false;
                 try {
                     /*
-                    This thread local is set to skip the password pattern validation even if the password
+                    This thread local is set to skip the username and password pattern validation even if the password
                     is generated, or user entered one. If it is required to check password pattern validation,
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
                     UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                    UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
                     if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                         setJitProvisionedSource(tenantDomain, idp, userClaims);
                     }
@@ -250,6 +251,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     }
                 } finally {
                     UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
+                    UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
                 }
 
                 if (userWorkflowEngaged ||
