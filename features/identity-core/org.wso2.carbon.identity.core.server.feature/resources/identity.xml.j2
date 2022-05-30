@@ -3050,4 +3050,9 @@
         </AuthenticationContext>
     {% endif %}
 
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
+    {% endif %}
+
 </Server>
