@@ -215,14 +215,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         try {
             sendResponse(request, response, context, true);
-        } catch (ServletException | IOException | URLBuilderException e) {
+        } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
     }
 
     protected void sendResponse(HttpServletRequest request, HttpServletResponse response,
                                 AuthenticationContext context, boolean isLoggedOut)
-            throws ServletException, IOException, URLBuilderException {
+            throws ServletException, IOException {
 
         if (log.isTraceEnabled()) {
             log.trace("Inside sendLogoutResponseToCaller()");
@@ -241,7 +241,15 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             context.setCallerPath(getDefaultLogoutReturnUrl());
         }
 
-        String redirectURL = FrameworkUtils.buildCallerPathRedirectURL(context.getCallerPath(), context);
+        String redirectURL;
+        try {
+            redirectURL = FrameworkUtils.buildCallerPathRedirectURL(context.getCallerPath(), context);
+        } catch (URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while generating redirect URL.", e);
+            }
+            redirectURL = context.getCallerPath();
+        }
         if (context.getCallerSessionKey() != null) {
             request.setAttribute(FrameworkConstants.SESSION_DATA_KEY, context.getCallerSessionKey());
 
@@ -265,6 +273,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
                     URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
             redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, sessionDataKeyParam);
+        } else {
+            redirectURL = context.getCallerPath();
         }
 
         /*

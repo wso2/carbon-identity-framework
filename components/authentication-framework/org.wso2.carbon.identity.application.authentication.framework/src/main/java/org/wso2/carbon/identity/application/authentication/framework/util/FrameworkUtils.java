@@ -3269,15 +3269,16 @@ public class FrameworkUtils {
          Skip My Account application redirections to use ServiceURLBuilder for URL generation
          since My Account is SaaS.
          */
-        if (callerPath.startsWith("/t/") && !MY_ACCOUNT_APP.equals(serviceProvider)) {
-            String callerTenant = callerPath.split("/")[2];
-            String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
-            String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
-                    .setTenant(callerTenant)
-                    .build().getAbsolutePublicURL();
-            return redirectURL;
-        } else {
-            return callerPath;
+        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+            if (callerPath != null && callerPath.startsWith("/t/")) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
+            }
         }
+        return callerPath;
     }
 }
