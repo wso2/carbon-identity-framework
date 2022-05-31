@@ -63,17 +63,18 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
@@ -121,10 +122,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         // Mock authentication context and sequence config for request path authentication
         context = new AuthenticationContext();
 
-        authenticatorConfig = spy(new AuthenticatorConfig());
         doReturn(requestPathAuthenticator).when(authenticatorConfig).getApplicationAuthenticator();
 
-        sequenceConfig = spy(new SequenceConfig());
         doReturn(Arrays.asList(new AuthenticatorConfig[]{authenticatorConfig}))
                 .when(sequenceConfig).getReqPathAuthenticators();
 

@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -30,9 +31,10 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 
-import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 
 @PrepareForTest({MutualSSLManager.class})
+@PowerMockIgnore("org.mockito.*")
 public class MutualSSLManagerTest extends PowerMockTestCase {
 
     private String clientKeyStore = "./repository/resources/security/wso2carbon.jks";

@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -65,6 +66,8 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNull;
@@ -81,6 +84,7 @@ import static java.lang.Boolean.TRUE;
 @WithRealmService(injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/h2.sql"})
 @WithKeyStore
+@PowerMockIgnore("org.mockito.*")
 public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
     @Mock

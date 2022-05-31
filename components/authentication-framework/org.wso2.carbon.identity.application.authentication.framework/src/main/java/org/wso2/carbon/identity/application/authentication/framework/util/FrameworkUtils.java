@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -29,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;

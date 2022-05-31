@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -51,7 +52,7 @@ import static org.wso2.carbon.identity.provisioning.ProvisioningOperation.PUT;
 /**
  * Test class for ProvisioningThread test cases.
  */
-@PrepareForTest({IdPManagementUtil.class, CacheBackedProvisioningMgtDAO.class})
+@PrepareForTest({IdPManagementUtil.class, CacheBackedProvisioningMgtDAO.class, PrivilegedCarbonContext.class})
 public class ProvisioningThreadTest extends PowerMockTestCase {
 
     private ProvisioningEntity provisioningEntity;
@@ -86,6 +87,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         provisioningEntity = new ProvisioningEntity((ProvisioningEntityType) entityType,
                 (ProvisioningOperation) entityOperation, attributeMap);
         System.setProperty("carbon.home", "");
+        mockCarbonContextForTenant();
         ProvisioningThread provisioningThread =
                 new ProvisioningThread(provisioningEntity, tenantDomainName, mockConnector, connectorType,
                         idPName, mockCacheBackedProvisioningMgDAO);
@@ -100,6 +102,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
 
         provisioningEntity = new ProvisioningEntity(USER, DELETE, null);
         System.setProperty("carbon.home", "");
+        mockCarbonContextForTenant();
         ProvisioningThread provisioningThread =
                 new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
                         idPName, mockCacheBackedProvisioningMgDAO);
@@ -129,6 +132,17 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
+    }
+
+    private void mockCarbonContextForTenant() {
+
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomainName);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(-1234);
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 }
