@@ -443,7 +443,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                         requestConfig.setProperties(samlRequestConfig.getProperties());
                     }
                     //have to delete old application before updating the new application with saml data.Because there
-                    // can't be 2 service Providers with same saml issuer
+                    //can't be 2 service Providers with same saml issuer
+                    //delete and update is done using a single method to maintain atomicity
                     applicationMgtService.updateApplicationInSOAPFlow(serviceProvider, getTenantDomain(), getUsername(),
                             samlSP.getApplicationName());
                     return;
