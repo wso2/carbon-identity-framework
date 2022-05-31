@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -57,13 +55,13 @@ import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
@@ -95,9 +93,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     private Collection mockAppCollection;
     private Collection childCollection;
 
-    private static Log log = LogFactory.getLog(ApplicationMgtUtilTest.class);
-
-
     private static final String USERNAME = "user";
     private static final String APPLICATION_NAME = "applicationName";
     private static final String NEW_APPLICATION_NAME = "newApplicationName";
@@ -117,10 +112,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockAppRootNode = mock(Collection.class);
         mockRealmConfiguration = mock(RealmConfiguration.class);
-        mockUserRealm = mock(UserRealm.class);
-        mockUserStoreManager = mock(UserStoreManager.class);
-        mockTenantRegistry = mock(Registry.class);
-        mockUserStoreException = mock(UserStoreException.class);
         mockAppCollection = mock(Collection.class);
         childCollection = mock(Collection.class);
 
@@ -272,6 +263,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public void testCreateAppRoleUserStoreException() throws UserStoreException {
 
         mockUserStoreManager();
+        UserStoreException mockUserStoreException = mock(UserStoreException.class);
         doThrow(mockUserStoreException).when(mockUserStoreManager).addRole(ROLE_NAME, new String[]{USERNAME},
                 null);
         when(mockUserStoreException.getMessage()).thenReturn(String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.
@@ -316,24 +308,24 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
                 NEW_APPLICATION_NAME);
     }
 
-//    @Test
-//    public void testRenameAppPermissionPathNode() throws IdentityApplicationManagementException, UserStoreException,
-//            RegistryException {
-//
-//        loadPermissions();
-//        Collection permissionNode = mock(Collection.class);
-//        when(mockTenantRegistry.newCollection()).thenReturn(permissionNode);
-//
-//        String newApplicationNode = PERMISSION_PATH + PATH_CONSTANT  + NEW_APPLICATION_NAME;
-//        String newApplicationPermissionPath = PERMISSION_PATH + PATH_CONSTANT + NEW_APPLICATION_NAME +
-//                PATH_CONSTANT + PERMISSION + PATH_CONSTANT;
-//
-//        ApplicationMgtUtil.renameAppPermissionPathNode(APPLICATION_NAME, NEW_APPLICATION_NAME);
-//        verify(mockTenantRegistry, times(1)).delete(applicationPermissionPath);
-//        verify(mockTenantRegistry, times(1)).delete(applicationNode);
-//        verify(mockTenantRegistry, times(1)).put(newApplicationNode, permissionNode);
-//        verify(mockTenantRegistry, times(1)).put(newApplicationPermissionPath, permissionNode);
-//    }
+    @Test
+    public void testRenameAppPermissionPathNode() throws IdentityApplicationManagementException, UserStoreException,
+            RegistryException {
+
+        loadPermissions();
+        Collection permissionNode = mock(Collection.class);
+        when(mockTenantRegistry.newCollection()).thenReturn(permissionNode);
+
+        String newApplicationNode = PERMISSION_PATH + PATH_CONSTANT  + NEW_APPLICATION_NAME;
+        String newApplicationPermissionPath = PERMISSION_PATH + PATH_CONSTANT + NEW_APPLICATION_NAME +
+                PATH_CONSTANT + PERMISSION + PATH_CONSTANT;
+
+        ApplicationMgtUtil.renameAppPermissionPathNode(APPLICATION_NAME, NEW_APPLICATION_NAME);
+        verify(mockTenantRegistry, times(1)).delete(applicationPermissionPath);
+        verify(mockTenantRegistry, times(1)).delete(applicationNode);
+        verify(mockTenantRegistry, times(1)).put(newApplicationNode, permissionNode);
+        verify(mockTenantRegistry, times(1)).put(newApplicationPermissionPath, permissionNode);
+    }
 
     @Test
     public void testStorePermissions() throws  Exception {
@@ -365,8 +357,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public Object[][] updatePermissionDataProvider() {
 
        return new Object[][]{
-               {new String[]{PERMISSION, ""}, 1}
-//               ,   need to add a new test            {new String[]{}, 0}
+               {new String[]{PERMISSION, ""}, 1},
+               {new String[]{}, 0}
 
        };
     }
@@ -384,7 +376,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockAppCollection.getChildCount()).thenReturn(childCount);
 
         ApplicationMgtUtil.updatePermissions(APPLICATION_NAME, applicationPermissions);
-        verify(mockTenantRegistry, times(2)).put(applicationNode, mockAppRootNode);
+        verify(mockTenantRegistry, times(1)).put(applicationNode, mockAppRootNode);
         verify(mockTenantRegistry, times(1)).put(applicationPermissionPath + PATH_CONSTANT,
                 mockAppRootNode);
     }
@@ -404,7 +396,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     private void loadPermissions() throws RegistryException, UserStoreException {
 
         mockTenantRegistry();
-
+        when(mockTenantRegistry.resourceExists(anyString())).thenReturn(TRUE);
         changeUserToAdmin();
 
         when(mockTenantRegistry.newCollection()).thenReturn(mockAppRootNode);
@@ -412,7 +404,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockAppCollection.getChildren()).thenReturn(new String[]{PATH_CONSTANT + applicationPermissionPath});
         when(mockTenantRegistry.get(PATH_CONSTANT + applicationPermissionPath)).thenReturn(childCollection);
         when(childCollection.getChildren()).thenReturn(new String[]{});
-        when(mockTenantRegistry.resourceExists(anyString())).thenReturn(TRUE);
     }
 
     @Test
@@ -424,15 +415,15 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         verify(mockTenantRegistry).delete(anyString());
     }
 
-//    @Test
-//    public void testDeletePermissionsRegistryException() throws RegistryException {
-//
-//        mockTenantRegistry();
-//        doThrow(new RegistryException("")).when(mockTenantRegistry).resourceExists(anyString());
-//
-//        assertThrows(IdentityApplicationManagementException.class, () -> ApplicationMgtUtil.deletePermissions
-//                (APPLICATION_NAME));
-//    }
+    @Test
+    public void testDeletePermissionsRegistryException() throws RegistryException {
+
+        mockTenantRegistry();
+        doThrow(new RegistryException("")).when(mockTenantRegistry).resourceExists(anyString());
+
+        assertThrows(IdentityApplicationManagementException.class, () -> ApplicationMgtUtil.deletePermissions
+                (APPLICATION_NAME));
+    }
 
     @Test
     public void testConcatArrays() {
@@ -500,13 +491,15 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     private void mockTenantRegistry() {
 
         mockCarbonContext();
-//        mockTenantRegistry = mock(Registry.class);
+        mockTenantRegistry = mock(Registry.class);
         when(mockCarbonContext.getRegistry(RegistryType.USER_GOVERNANCE)).thenReturn(mockTenantRegistry);
     }
 
     private void mockUserStoreManager() throws UserStoreException {
 
         mockCarbonContext();
+        mockUserRealm = mock(UserRealm.class);
+        mockUserStoreManager = mock(UserStoreManager.class);
         when(mockCarbonContext.getUserRealm()).thenReturn(mockUserRealm);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
     }

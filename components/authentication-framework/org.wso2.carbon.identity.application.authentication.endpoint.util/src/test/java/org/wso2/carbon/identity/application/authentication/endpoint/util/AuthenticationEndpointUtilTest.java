@@ -16,20 +16,33 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
+@PrepareForTest(IdentityUtil.class)
+@PowerMockIgnore("org.mockito.*")
 @WithCarbonHome
 @WithAxisConfiguration
 public class AuthenticationEndpointUtilTest {
@@ -151,6 +164,10 @@ public class AuthenticationEndpointUtilTest {
     public void testGetUser(String username,
                             String tenantDomain,
                             String userStoreDomain) throws Exception {
+
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getPrimaryDomainName()).thenReturn(PRIMARY_DEFAULT_DOMAIN_NAME);
+        when(IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
 
         UserDTO userDTO = AuthenticationEndpointUtil.getUser(username);
         Assert.assertNotNull(userDTO);

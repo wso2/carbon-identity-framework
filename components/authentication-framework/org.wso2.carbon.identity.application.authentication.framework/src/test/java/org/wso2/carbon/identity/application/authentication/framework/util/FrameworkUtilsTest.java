@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -86,6 +85,7 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
@@ -266,8 +266,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetStepHandlerNonExistHandler() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-        FrameworkUtils.getStepHandler();
-        verify(GraphBasedStepHandler.class, times(1));
+        StepHandler stepHandler = FrameworkUtils.getStepHandler();
+        assertNotNull(stepHandler);
     }
 
     @Test
