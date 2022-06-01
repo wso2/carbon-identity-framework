@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -231,7 +232,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // attributes
         request.setAttribute(FrameworkConstants.ResponseParams.LOGGED_OUT, isLoggedOut);
 
-        String redirectURL;
 
         if (isLoggedOut && !isValidCallerPath(context)) {
             if (log.isDebugEnabled()) {
@@ -241,6 +241,15 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             context.setCallerPath(getDefaultLogoutReturnUrl());
         }
 
+        String redirectURL;
+        try {
+            redirectURL = FrameworkUtils.buildCallerPathRedirectURL(context.getCallerPath(), context);
+        } catch (URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while generating redirect URL.", e);
+            }
+            redirectURL = context.getCallerPath();
+        }
         if (context.getCallerSessionKey() != null) {
             request.setAttribute(FrameworkConstants.SESSION_DATA_KEY, context.getCallerSessionKey());
 
@@ -263,7 +272,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
             String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
                     URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
-            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(context.getCallerPath(), sessionDataKeyParam);
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, sessionDataKeyParam);
         } else {
             redirectURL = context.getCallerPath();
         }
