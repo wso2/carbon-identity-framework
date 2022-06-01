@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.core;
 
-import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 
 /**
