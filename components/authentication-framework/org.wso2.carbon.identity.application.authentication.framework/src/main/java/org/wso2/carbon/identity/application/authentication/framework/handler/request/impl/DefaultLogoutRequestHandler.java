@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -210,8 +211,38 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     log.error("Exception while getting IdP by name", e);
                 }
             }
-        }
+        } else if (context.getPreviousAuthenticatedIdPs().size() != 0) {
+            for (AuthenticatedIdPData authenticatedIdPData: context.getPreviousAuthenticatedIdPs().values()) {
+                // Assuming the authenticator list contains only one authenticated authenticator.
+                AuthenticatorConfig authenticatorConfig = authenticatedIdPData.getAuthenticators().get(0);
+                ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
+                try {
+                    externalIdPConfig = ConfigurationFacade.getInstance()
+                            .getIdPConfigByName(authenticatedIdPData.getIdpName(), context.getTenantDomain());
+                    context.setExternalIdP(externalIdPConfig);
+                    context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
+                            externalIdPConfig, authenticator.getName())
+                    );
+                    if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
+                        context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
+                    } else {
+                        context.setStateInfo(getStateInfoFromPreviousAuthenticatedIdPs(
+                                authenticatedIdPData.getIdpName(), authenticatorConfig.getName(), context));
+                    }
+
+                    AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+                    if (status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
+                        return;
+                    }
+                } catch (AuthenticationFailedException | LogoutFailedException e) {
+                    throw new FrameworkException("Exception while handling logout request", e);
+                } catch (IdentityProviderManagementException e) {
+                    log.error("Exception while getting IdP by name", e);
+                }
+            }
+        }
 
         try {
             sendResponse(request, response, context, true);
