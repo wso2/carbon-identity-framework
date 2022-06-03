@@ -220,10 +220,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     String authenticatorName = authenticator.getName();
 
                     // Check whether the IDP and related authenticator is already logged out.
-                    List<String> previouslyLoggedOutAuthenticators =
-                            context.getLoggedOutAuthenticators().get(authenticatedIdPName);
-                    if (previouslyLoggedOutAuthenticators != null
-                            && previouslyLoggedOutAuthenticators.contains(authenticatorName)) {
+                    if (context.isLoggedOutAuthenticator(authenticatedIdPName, authenticatorName)) {
                         continue;
                     }
 
