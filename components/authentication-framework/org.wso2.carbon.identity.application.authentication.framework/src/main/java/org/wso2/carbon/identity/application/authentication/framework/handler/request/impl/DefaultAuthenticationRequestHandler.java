@@ -764,10 +764,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
         } catch (DataAccessException e) {
             if (retryAttemptCounter >= FrameworkConstants.MAX_RETRY_TIME) {
-                log.error("Storing application session data retry count exceeded above the maximum count - " +
-                        FrameworkConstants.MAX_RETRY_TIME, e);
                 throw new UserSessionException("Error while storing Application session data in the database for " +
-                        "subject: " + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".");
+                        "subject: " + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".", e);
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Error while storing Application session data in the database. Retrying to " +
