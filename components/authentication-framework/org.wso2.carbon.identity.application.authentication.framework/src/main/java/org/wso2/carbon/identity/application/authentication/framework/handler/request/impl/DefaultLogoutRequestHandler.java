@@ -213,38 +213,51 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
         } else if (context.getPreviousAuthenticatedIdPs().size() != 0) {
             for (AuthenticatedIdPData authenticatedIdPData: context.getPreviousAuthenticatedIdPs().values()) {
-                // Assuming the authenticator list contains only one authenticated authenticator.
-                AuthenticatorConfig authenticatorConfig = authenticatedIdPData.getAuthenticators().get(0);
-                ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
+                List<AuthenticatorConfig> authenticatorConfigs = authenticatedIdPData.getAuthenticators();
+                for (AuthenticatorConfig authenticatorConfig: authenticatorConfigs) {
+                    String authenticatedIdPName = authenticatedIdPData.getIdpName();
+                    ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
+                    String authenticatorName = authenticator.getName();
 
-                try {
-                    externalIdPConfig = ConfigurationFacade.getInstance()
-                            .getIdPConfigByName(authenticatedIdPData.getIdpName(), context.getTenantDomain());
-                    context.setExternalIdP(externalIdPConfig);
-                    context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
-                            externalIdPConfig, authenticator.getName())
-                    );
-                    if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
-                        context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
-                    } else {
-                        context.setStateInfo(getStateInfoFromPreviousAuthenticatedIdPs(
-                                authenticatedIdPData.getIdpName(), authenticatorConfig.getName(), context));
+                    // Check whether the IDP and related authenticator is already logged out.
+                    List<String> previouslyLoggedOutAuthenticators =
+                            context.getLoggedOutAuthenticators().get(authenticatedIdPName);
+                    if (previouslyLoggedOutAuthenticators != null
+                            && previouslyLoggedOutAuthenticators.contains(authenticatorName)) {
+                        continue;
                     }
 
-                    AuthenticatorFlowStatus status = authenticator.process(request, response, context);
-                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
-                    if (status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
-                        return;
+                    try {
+                        externalIdPConfig = ConfigurationFacade.getInstance()
+                                .getIdPConfigByName(authenticatedIdPName, context.getTenantDomain());
+                        context.setExternalIdP(externalIdPConfig);
+                        context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
+                                externalIdPConfig, authenticatorName)
+                        );
+                        if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
+                            context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
+                        } else {
+                            context.setStateInfo(getStateInfoFromPreviousAuthenticatedIdPs(
+                                    authenticatedIdPName, authenticatorConfig.getName(), context));
+                        }
+
+                        AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+                        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+                        if (status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
+                            return;
+                        }
+                        context.addLoggedOutAuthenticator(authenticatedIdPName, authenticatorName);
+                    } catch (AuthenticationFailedException | LogoutFailedException e) {
+                        throw new FrameworkException("Exception while handling logout request", e);
+                    } catch (IdentityProviderManagementException e) {
+                        log.error("Exception while getting IdP by name", e);
                     }
-                } catch (AuthenticationFailedException | LogoutFailedException e) {
-                    throw new FrameworkException("Exception while handling logout request", e);
-                } catch (IdentityProviderManagementException e) {
-                    log.error("Exception while getting IdP by name", e);
                 }
             }
         }
 
         try {
+            context.clearLoggedOutAuthenticators();
             sendResponse(request, response, context, true);
         } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
