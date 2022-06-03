@@ -8,6 +8,7 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import java.util.List;
 
 public interface WorkflowExecutorManagerService {
+
     /**
      * Get association details related to eventID
      *
@@ -18,4 +19,9 @@ public interface WorkflowExecutorManagerService {
      */
     List<WorkflowAssociation> getWorkflowAssociationsForRequest(String eventId, int tenantId)
             throws InternalWorkflowException;
+
+    List<String> getWorkflowStatesOfRequest(String requestId) throws InternalWorkflowException;
+
+    WorkflowRequest retrieveWorkflow(String uuid) throws InternalWorkflowException;
+   String getRequestIdOfRelationship(String relationshipId) throws InternalWorkflowException;
 }
