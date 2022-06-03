@@ -729,15 +729,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Get currently logged out authenticators with IDPs.
-     * @return logged out authenticators.
-     */
-    public Map<String, List<String>> getLoggedOutAuthenticators() {
-
-        return loggedOutAuthenticators;
-    }
-
-    /**
      * Add a logged out authenticator providing the IDP name. Method creates a new list and appends the
      * authenticator if no entry for the IDP.
      *
