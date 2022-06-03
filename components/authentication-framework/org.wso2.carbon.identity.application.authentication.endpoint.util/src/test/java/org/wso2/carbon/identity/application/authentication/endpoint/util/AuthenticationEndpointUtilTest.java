@@ -16,24 +16,22 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-@PrepareForTest(IdentityUtil.class)
+@WithCarbonHome
+@WithAxisConfiguration
 public class AuthenticationEndpointUtilTest {
 
     final String USERNAME = "TestUser";
@@ -154,10 +152,6 @@ public class AuthenticationEndpointUtilTest {
                             String tenantDomain,
                             String userStoreDomain) throws Exception {
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getPrimaryDomainName()).thenReturn(PRIMARY_DEFAULT_DOMAIN_NAME);
-        when(IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
-
         UserDTO userDTO = AuthenticationEndpointUtil.getUser(username);
         Assert.assertNotNull(userDTO);
         Assert.assertEquals(userDTO.getUsername(), USERNAME);
@@ -165,4 +159,24 @@ public class AuthenticationEndpointUtilTest {
         Assert.assertEquals(userDTO.getRealm(), userStoreDomain);
     }
 
+    @DataProvider(name = "url-provider")
+    public Object[][] isValidURLData() {
+
+        return new Object[][]{
+                {"/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
+                {"https://localhost:9443/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
+                {"javascript:alert(document.domain)", false},
+                {"abc\"><img%20src/onerror%2f\"alert(document.domain)\"<%20\"", false},
+                {"https:// www.wso2.org/", false},
+                {"   ", false},
+                {null, false}
+        };
+    }
+
+    @Test(dataProvider = "url-provider")
+    public void testIsValidURL(String urlString, boolean expectedValidity) throws Exception {
+
+        boolean validity = AuthenticationEndpointUtil.isValidURL(urlString);
+        Assert.assertEquals(validity, expectedValidity);
+    }
 }
