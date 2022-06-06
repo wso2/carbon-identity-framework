@@ -1066,7 +1066,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         if (!isEnable()) {
             return true;
         }
-
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!listener.doPreGetUserList(condition, domain, profileName, limit, cursor, direction, sortBy,
@@ -1075,7 +1074,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 }
             }
         }
-
         return true;
     }
 
@@ -1112,10 +1110,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         if (!isEnable()) {
             return true;
         }
-
         List<String> userNamesList = users.stream().map(User::getUsername).collect(Collectors.toList());
         String[] userNames = userNamesList.toArray(new String[0]);
-
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 return listener
@@ -1123,7 +1119,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                                 userNames, userStoreManager);
             }
         }
-
         return true;
     }
 

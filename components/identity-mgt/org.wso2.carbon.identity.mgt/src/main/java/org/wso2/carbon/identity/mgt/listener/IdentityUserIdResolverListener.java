@@ -1058,7 +1058,6 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         if (!isEnable()) {
             return true;
         }
-
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
@@ -1068,7 +1067,6 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
                 }
             }
         }
-
         return true;
     }
 
@@ -1176,10 +1174,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         if (!isEnable()) {
             return true;
         }
-
         List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager,
                 Arrays.asList(returnUserNameList));
-
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
@@ -1189,7 +1185,6 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
                 }
             }
         }
-
         return true;
     }
 
