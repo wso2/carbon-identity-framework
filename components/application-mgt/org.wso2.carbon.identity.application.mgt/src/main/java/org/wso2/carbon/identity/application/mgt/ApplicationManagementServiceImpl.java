@@ -2709,12 +2709,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                            String applicationNameToBeDeleted)
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                            String tenantDomain, String username)
             throws IdentityApplicationManagementException {
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         try {
-            appDAO.updateApplicationInSOAPFlow(serviceProvider, tenantDomain, applicationNameToBeDeleted);
+            appDAO.updateApplicationInSOAPFlow(serviceProvider, toBeRemoved, tenantDomain, username);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityApplicationManagementException(String.format("Error while updating Service Provider " +
                     "in SOAP flow with name: %s in tenantDomain: %s", serviceProvider.getApplicationName(),

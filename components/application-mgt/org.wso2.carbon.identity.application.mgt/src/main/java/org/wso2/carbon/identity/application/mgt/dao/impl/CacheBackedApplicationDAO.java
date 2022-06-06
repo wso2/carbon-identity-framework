@@ -788,4 +788,15 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             }
         }
     }
+
+    @Override
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                            String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
+        clearAllAppCache(storedApp, serviceProvider, tenantDomain);
+        clearAllAppCache(toBeRemoved, tenantDomain);
+        appDAO.updateApplicationInSOAPFlow(serviceProvider, toBeRemoved, tenantDomain, username);
+    }
 }

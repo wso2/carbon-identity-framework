@@ -5418,22 +5418,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
-                                            String applicationNameToBeDeleted)
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                            String tenantDomain, String username)
             throws IdentityApplicationManagementException {
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         int applicationId = serviceProvider.getApplicationID();
+        String applicationNameToBeDeleted = toBeRemoved.getApplicationName();
         try {
             //delete dummy service provider
             if (log.isDebugEnabled()) {
-                log.debug("Deleting Application " + applicationNameToBeDeleted);
+                log.debug("Deleting Application " + toBeRemoved.getApplicationName());
             }
             // Delete the application certificate if there is any.
             deleteCertificate(connection, applicationNameToBeDeleted, tenantID);
 
             // First, delete all the clients of the application
-            int applicationID = getApplicationIDByName(applicationNameToBeDeleted, tenantID, connection);
+            int applicationID = toBeRemoved.getApplicationID();
             InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID, connection, tenantID);
             for (InboundAuthenticationRequestConfig client : clients.getInboundAuthenticationRequestConfigs()) {
                 handleClientDeletion(client.getInboundAuthKey(), client.getInboundAuthType());

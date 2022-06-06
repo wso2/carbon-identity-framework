@@ -436,10 +436,10 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @param serviceProvider Service Provider Application to be updated
      * @param tenantDomain Tenant Domain
      * @param username Username
-     * @param applicationNameToBeDeleted Name of the dummy service provider to be deleted
+     * @param toBeRemoved dummy service provider to be deleted
      */
-    public abstract void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
-                                                     String username, String applicationNameToBeDeleted)
+    public abstract void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                                     String tenantDomain, String username)
             throws IdentityApplicationManagementException;
 }
 

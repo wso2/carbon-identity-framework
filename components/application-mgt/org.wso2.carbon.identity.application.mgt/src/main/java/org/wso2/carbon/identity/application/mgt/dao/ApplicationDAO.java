@@ -296,8 +296,16 @@ public interface ApplicationDAO {
         return new HashMap<>();
     }
 
-    default void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, String tenantDomain,
-                                             String applicationNameToBeDeleted)
+    /**
+     * Delete dummy Service Provider and update existing service provider in single method in soap create sp flow.
+     *
+     * @param serviceProvider Application to be update
+     * @param toBeRemoved dummy service provider to be removed
+     * @param tenantDomain Tenant domain to be filtered from.
+     * @param username user name
+     */
+    default void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                             String tenantDomain, String username)
             throws IdentityApplicationManagementException {
     }
 
