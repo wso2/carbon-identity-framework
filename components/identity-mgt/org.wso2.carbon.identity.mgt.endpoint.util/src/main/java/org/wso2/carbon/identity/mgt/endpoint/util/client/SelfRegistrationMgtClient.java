@@ -216,7 +216,6 @@ public class SelfRegistrationMgtClient {
             setAuthorizationHeader(request);
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
-
                 return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
             } finally {
                 request.releaseConnection();
