@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -75,6 +76,13 @@ public class AuthenticationContextCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
+
+        try {
+            AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
+        } catch (AuthenticationContextOptimizationException e) {
+            log.error("Error occurred while optimizing the Authentication context");
+            return;
+        }
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -125,6 +133,13 @@ public class AuthenticationContextCache extends
 
             // Update the cache again with the new value.
             super.addToCache(key, entry);
+        }
+        if (entry != null) {
+            try {
+                AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+            } catch (AuthenticationContextOptimizationException e) {
+                entry = null;
+            }
         }
         return entry;
     }

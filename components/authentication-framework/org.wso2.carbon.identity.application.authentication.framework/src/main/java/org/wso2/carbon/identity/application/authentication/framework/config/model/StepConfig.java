@@ -39,6 +39,7 @@ public class StepConfig implements Serializable {
     private boolean subjectAttributeStep;
     private String authenticatedIdP;
     private AuthenticatorConfig authenticatedAutenticator;
+    private String authenticatedAuthenticatorName;
     private List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
     private List<String> authenticatorMappings = new ArrayList<>();
 
@@ -65,6 +66,7 @@ public class StepConfig implements Serializable {
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
         this.authenticatedAutenticator = stepConfig.getAuthenticatedAutenticator() != null ?
                 new AuthenticatorConfig(stepConfig.getAuthenticatedAutenticator()) : null;
+        this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAuthenticatorName();
         this.authenticatorList = new ArrayList<>();
         for (AuthenticatorConfig authenticator : stepConfig.getAuthenticatorList()) {
             this.authenticatorList.add(new AuthenticatorConfig(authenticator));
@@ -234,6 +236,16 @@ public class StepConfig implements Serializable {
     public void setForced(boolean forced) {
 
         this.forced = forced;
+    }
+
+    public void setAuthenticatedAuthenticatorName(String name) {
+
+        this.authenticatedAuthenticatorName = name;
+    }
+
+    public String getAuthenticatedAuthenticatorName() {
+
+        return this.authenticatedAuthenticatorName;
     }
 
     /**

@@ -43,6 +43,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
     private ApplicationConfig applicationConfig = null;
+    private OptimizedApplicationConfig optApplicationConfig = null;
     private boolean completed;
 
     private AuthenticatedUser authenticatedUser;
@@ -187,6 +188,17 @@ public class SequenceConfig implements Serializable, Cloneable {
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
         sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
         sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
+        sequenceConfig.setOptApplicationConfig(this.getOptApplicationConfig());
         return sequenceConfig;
+    }
+
+    public OptimizedApplicationConfig getOptApplicationConfig() {
+
+        return this.optApplicationConfig;
+    }
+
+    public void setOptApplicationConfig(OptimizedApplicationConfig optApplicationConfig) {
+
+        this.optApplicationConfig = optApplicationConfig;
     }
 }
