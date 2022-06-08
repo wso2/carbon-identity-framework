@@ -57,6 +57,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private int currentStep;
     private SequenceConfig sequenceConfig;
     private ExternalIdPConfig externalIdP;
+    private String externalIdPResourceId;
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
@@ -724,5 +725,15 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setLoginTenantDomain(String loginTenantDomain) {
 
         this.loginTenantDomain = loginTenantDomain;
+    }
+
+    public void setExternalIdPResourceId(String resourceId) {
+
+        this.externalIdPResourceId = resourceId;
+    }
+
+    public String getExternalIdPResourceId() {
+
+        return this.externalIdPResourceId;
     }
 }

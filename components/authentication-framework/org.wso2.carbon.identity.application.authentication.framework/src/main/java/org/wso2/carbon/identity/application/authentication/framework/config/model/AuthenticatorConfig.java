@@ -42,6 +42,7 @@ public class AuthenticatorConfig implements Serializable {
     private Map<String, String> parameterMap;
     private Map<String, IdentityProvider> idps = new HashMap<>();
     private List<String> idpNames = new ArrayList<>();
+    private List<String> idPResourceIds = new ArrayList<>();
 
     public AuthenticatorConfig() {
     }
@@ -69,6 +70,8 @@ public class AuthenticatorConfig implements Serializable {
         this.idps = authenticatorConfig.getIdps() != null ? new HashMap<>(authenticatorConfig.getIdps()) : null;
         this.parameterMap = authenticatorConfig.getParameterMap() != null ?
                 new HashMap<>(authenticatorConfig.getParameterMap()) : null;
+        this.idPResourceIds = authenticatorConfig.getIdPResourceIds() != null ?
+                new ArrayList<>(authenticatorConfig.getIdPResourceIds()) : null;
     }
 
     public String getName() {
@@ -119,5 +122,40 @@ public class AuthenticatorConfig implements Serializable {
 
     public Map<String, IdentityProvider> getIdps() {
         return idps;
+    }
+
+    public void setIdPs(Map<String, IdentityProvider> idPs) {
+
+        this.idps = idPs;
+    }
+
+    public void addIdPs(String name, IdentityProvider idp) {
+
+        this.idps.put(name, idp);
+    }
+
+    public void setIdPNames(List<String> idpNames) {
+
+        this.idpNames = idpNames;
+    }
+
+    public void addIdPNames(String name) {
+
+        this.idpNames.add(name);
+    }
+
+    public void addResourceId(String resourceId) {
+
+        this.idPResourceIds.add(resourceId);
+    }
+
+    public void setIdPResourceIds(List<String> resourceIds) {
+
+        this.idPResourceIds = resourceIds;
+    }
+
+    public List<String> getIdPResourceIds() {
+
+        return this.idPResourceIds;
     }
 }
