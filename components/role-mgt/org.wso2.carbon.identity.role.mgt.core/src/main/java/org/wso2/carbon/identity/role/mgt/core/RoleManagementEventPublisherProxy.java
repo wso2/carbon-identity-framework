@@ -128,6 +128,22 @@ public class RoleManagementEventPublisherProxy {
         doPublishEvent(event);
     }
 
+    public void publishPreGetRolesCount(String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_ROLES_COUNT_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostGetRolesCount(String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_COUNT_EVENT);
+        doPublishEvent(event);
+    }
+
     public void publishPreGetRole(String roleID, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
