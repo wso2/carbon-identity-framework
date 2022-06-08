@@ -4423,8 +4423,10 @@
                                                 legacyCustomAuthnContextClassList.forEach(newAuthnContextClasses::remove);
 
                                                 // Add legacy custom authn context classes to the custom auth context classes list.
-                                                if (StringUtils.isBlank(customAuthnContextClass)) {
+                                                if (!newAuthnContextClasses.contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
                                                     newAuthnContextClasses.add(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION);
+                                                }
+                                                if (StringUtils.isBlank(customAuthnContextClass)) {
                                                     customAuthnContextClass = String.join(",", legacyCustomAuthnContextClassList);
                                                 } else {
                                                     customAuthnContextClass += "," + String.join(",", legacyCustomAuthnContextClassList);
