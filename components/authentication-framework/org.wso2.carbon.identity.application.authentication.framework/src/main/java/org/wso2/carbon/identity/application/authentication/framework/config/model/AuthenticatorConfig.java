@@ -129,24 +129,9 @@ public class AuthenticatorConfig implements Serializable {
         this.idps = idPs;
     }
 
-    public void addIdPs(String name, IdentityProvider idp) {
-
-        this.idps.put(name, idp);
-    }
-
     public void setIdPNames(List<String> idpNames) {
 
         this.idpNames = idpNames;
-    }
-
-    public void addIdPNames(String name) {
-
-        this.idpNames.add(name);
-    }
-
-    public void addResourceId(String resourceId) {
-
-        this.idPResourceIds.add(resourceId);
     }
 
     public void setIdPResourceIds(List<String> resourceIds) {
