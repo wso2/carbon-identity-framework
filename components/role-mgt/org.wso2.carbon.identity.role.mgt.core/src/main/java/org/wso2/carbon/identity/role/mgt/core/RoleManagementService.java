@@ -210,6 +210,7 @@ public interface RoleManagementService {
      * @param tenantDomain tenant domain.
      */
     default int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
         throw new NotImplementedException("getNumberOfRoles method is not implemented");
     }
 }

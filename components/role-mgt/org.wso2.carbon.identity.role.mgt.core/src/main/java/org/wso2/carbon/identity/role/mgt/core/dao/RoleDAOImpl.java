@@ -1514,8 +1514,8 @@ public class RoleDAOImpl implements RoleDAO {
 
     @Override
     public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,

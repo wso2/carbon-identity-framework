@@ -248,6 +248,7 @@ public interface RoleDAO {
      * @param tenantDomain tenant domain.
      */
     default int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
         throw new NotImplementedException("getRoleCount method is not implemented");
     }
 }
