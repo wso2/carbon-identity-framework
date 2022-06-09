@@ -1521,9 +1521,10 @@ public class RoleDAOImpl implements RoleDAO {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     getDBTypeSpecificRolesCountQuery(databaseProductName), RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    return resultSet.getInt(1);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
                 }
             }
         } catch (SQLException e) {
