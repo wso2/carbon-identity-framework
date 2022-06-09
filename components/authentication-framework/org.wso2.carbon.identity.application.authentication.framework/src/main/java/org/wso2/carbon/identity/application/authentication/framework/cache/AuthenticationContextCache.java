@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -79,8 +79,8 @@ public class AuthenticationContextCache extends
 
         try {
             AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
-        } catch (AuthenticationContextOptimizationException e) {
-            log.error("Error occurred while optimizing the Authentication context");
+        } catch (AuthenticationContextLoaderException e) {
+            log.debug("Error occurred while optimizing the Authentication context", e);
             return;
         }
         super.addToCache(key, entry);
@@ -137,7 +137,8 @@ public class AuthenticationContextCache extends
         if (entry != null) {
             try {
                 AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
-            } catch (AuthenticationContextOptimizationException e) {
+            } catch (AuthenticationContextLoaderException e) {
+                log.debug("Error occurred while loading optimized authentication context", e);
                 entry = null;
             }
         }

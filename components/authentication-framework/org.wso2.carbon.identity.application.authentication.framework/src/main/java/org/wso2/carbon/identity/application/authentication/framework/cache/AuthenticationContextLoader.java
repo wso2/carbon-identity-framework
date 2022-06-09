@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -7,7 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -44,7 +62,7 @@ public class AuthenticationContextLoader {
     }
 
     public void optimizeAuthenticationContext(AuthenticationContext context)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         optimizeExternalIdP(context);
         optimizeAuthenticatorConfig(context);
@@ -52,7 +70,7 @@ public class AuthenticationContextLoader {
     }
 
     public void loadAuthenticationContext(AuthenticationContext context) throws
-            AuthenticationContextOptimizationException {
+            AuthenticationContextLoaderException {
 
         loadExternalIdP(context);
         loadAuthenticatorConfig(context);
@@ -67,7 +85,7 @@ public class AuthenticationContextLoader {
         context.setExternalIdP(null);
     }
 
-    private void loadExternalIdP(AuthenticationContext context) throws AuthenticationContextOptimizationException {
+    private void loadExternalIdP(AuthenticationContext context) throws AuthenticationContextLoaderException {
 
         if (context.getExternalIdP() == null && context.getExternalIdPResourceId() != null) {
             IdentityProvider idp = getIdPsByResourceID(context.getExternalIdPResourceId(), context.getTenantDomain());
@@ -77,7 +95,7 @@ public class AuthenticationContextLoader {
     }
 
     private void optimizeAuthenticatorConfig(AuthenticationContext context)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         if (sequenceConfig != null) {
@@ -91,16 +109,17 @@ public class AuthenticationContextLoader {
                 for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
                     authenticatorConfig.setIdPResourceIds(new ArrayList<>());
                     authenticatorConfig.setApplicationAuthenticator(null);
+                    List<String> idPResourceId = new ArrayList<>();
                     for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
                         String idpName = entry.getKey();
                         IdentityProvider idp = entry.getValue();
                         if (idp.getResourceId() == null) {
-                            authenticatorConfig.addResourceId(
-                                    getIdPsByIdPName(idpName, context.getTenantDomain()).getResourceId());
+                            idPResourceId.add(getIdPsByIdPName(idpName, context.getTenantDomain()).getResourceId());
                         } else {
-                            authenticatorConfig.addResourceId(idp.getResourceId());
+                            idPResourceId.add(idp.getResourceId());
                         }
                     }
+                    authenticatorConfig.setIdPResourceIds(idPResourceId);
                     authenticatorConfig.setIdPs(null);
                     authenticatorConfig.setIdPNames(null);
                 }
@@ -109,7 +128,7 @@ public class AuthenticationContextLoader {
     }
 
     private void loadAuthenticatorConfig(AuthenticationContext context)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         if (sequenceConfig != null) {
@@ -123,11 +142,15 @@ public class AuthenticationContextLoader {
                     if (authenticatorConfig.getIdps() == null && authenticatorConfig.getIdpNames() == null) {
                         authenticatorConfig.setIdPs(new HashMap<>());
                         authenticatorConfig.setIdPNames(new ArrayList<>());
+                        HashMap<String, IdentityProvider> idPs = new HashMap<>();
+                        List<String> idPNames = new ArrayList<>();
                         for (String resourceId : authenticatorConfig.getIdPResourceIds()) {
                             IdentityProvider idp = getIdPsByResourceID(resourceId, context.getTenantDomain());
-                            authenticatorConfig.addIdPNames(idp.getIdentityProviderName());
-                            authenticatorConfig.addIdPs(idp.getIdentityProviderName(), idp);
+                            idPs.put(idp.getIdentityProviderName(), idp);
+                            idPNames.add(idp.getIdentityProviderName());
                         }
+                        authenticatorConfig.setIdPs(idPs);
+                        authenticatorConfig.setIdPNames(idPNames);
                     }
                 }
                 if (stepConfig.getAuthenticatedAutenticator() == null) {
@@ -142,7 +165,7 @@ public class AuthenticationContextLoader {
     }
 
     private void optimizeApplicationConfig(AuthenticationContext context) throws
-            AuthenticationContextOptimizationException {
+            AuthenticationContextLoaderException {
 
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
         if (applicationConfig != null) {
@@ -154,7 +177,7 @@ public class AuthenticationContextLoader {
     }
 
     private void loadApplicationConfig(AuthenticationContext context)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
         OptimizedApplicationConfig optApplicationConfig = context.getSequenceConfig().getOptApplicationConfig();
@@ -162,11 +185,11 @@ public class AuthenticationContextLoader {
             ServiceProvider serviceProvider = reconstructServiceProvider(optApplicationConfig,
                     context.getTenantDomain());
             if (serviceProvider == null) {
-                throw new AuthenticationContextOptimizationException(
+                throw new AuthenticationContextLoaderException(
                         String.format("Cannot find the Service Provider by the resource ID: %s tenant domain: %s",
                                 optApplicationConfig.getServiceProviderResourceId(), context.getTenantDomain()));
             }
-            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider);
+            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, context.getTenantDomain());
             appConfig.setMappedSubjectIDSelected(optApplicationConfig.isMappedSubjectIDSelected());
             appConfig.setClaimMappings(optApplicationConfig.getClaimMappings());
             appConfig.setRoleMappings(optApplicationConfig.getRoleMappings());
@@ -178,7 +201,7 @@ public class AuthenticationContextLoader {
 
     private ServiceProvider reconstructServiceProvider(OptimizedApplicationConfig optApplicationConfig,
                                                        String tenantDomain)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         ServiceProvider serviceProvider;
         try {
@@ -190,7 +213,7 @@ public class AuthenticationContextLoader {
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementException | FrameworkException e) {
-            throw new AuthenticationContextOptimizationException(
+            throw new AuthenticationContextLoaderException(
                     String.format("Error occurred while retrieving the service provider by resource id: %s " +
                             "tenant domain: %s", optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
@@ -198,40 +221,40 @@ public class AuthenticationContextLoader {
     }
 
     private IdentityProvider getIdPsByIdPName(String idPName, String tenantDomain)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByName(idPName, tenantDomain);
             if (idp == null) {
-                throw new AuthenticationContextOptimizationException(String.format(
+                throw new AuthenticationContextLoaderException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new AuthenticationContextOptimizationException(String.format(
+            throw new AuthenticationContextLoaderException(String.format(
                     "Failed to get the Identity Provider by name: %s tenant domain: %s", idPName, tenantDomain), e);
         }
         return idp;
     }
 
     private IdentityProvider getIdPsByResourceID(String resourceId, String tenantDomain)
-            throws AuthenticationContextOptimizationException {
+            throws AuthenticationContextLoaderException {
 
         if (resourceId == null) {
-            throw new AuthenticationContextOptimizationException("Error occurred while getting IdPs");
+            throw new AuthenticationContextLoaderException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
             if (idp == null) {
-                throw new AuthenticationContextOptimizationException(
+                throw new AuthenticationContextLoaderException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new AuthenticationContextOptimizationException(
+            throw new AuthenticationContextLoaderException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);
         }

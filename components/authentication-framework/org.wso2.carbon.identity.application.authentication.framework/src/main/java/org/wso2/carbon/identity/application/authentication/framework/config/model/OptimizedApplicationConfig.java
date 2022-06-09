@@ -1,6 +1,24 @@
+/*
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -37,7 +55,7 @@ public class OptimizedApplicationConfig implements Serializable {
         private boolean attributeStep;
 
         private OptimizedAuthStep(AuthenticationStep authStep, String tenantDomain) throws
-                AuthenticationContextOptimizationException {
+                AuthenticationContextLoaderException {
 
             this.stepOrder = authStep.getStepOrder();
             this.localAuthenticatorConfigNames = setLocalAuthenticatorConfigNames
@@ -58,7 +76,7 @@ public class OptimizedApplicationConfig implements Serializable {
         }
 
         private List<String> setFederatedIdPResourceIds(IdentityProvider[] idPs, String tenantDomain) throws
-                AuthenticationContextOptimizationException {
+                AuthenticationContextLoaderException {
 
             List<String> federatedIdPResourceIDs = new ArrayList<>();
             IdentityProviderManager manager = IdentityProviderManager.getInstance();
@@ -68,13 +86,13 @@ public class OptimizedApplicationConfig implements Serializable {
                         IdentityProvider identityProvider = manager.
                                 getIdPByName(idp.getIdentityProviderName(), tenantDomain);
                         if (identityProvider == null) {
-                            throw new AuthenticationContextOptimizationException(String.format(
+                            throw new AuthenticationContextLoaderException(String.format(
                                     "Cannot find the Identity Provider by the name: %s tenant domain: %s",
                                     idp.getIdentityProviderName(), tenantDomain));
                         }
                         federatedIdPResourceIDs.add(identityProvider.getResourceId());
                     } catch (IdentityProviderManagementException e) {
-                        throw new AuthenticationContextOptimizationException(String.format(
+                        throw new AuthenticationContextLoaderException(String.format(
                                 "Failed to get the Identity Provider by name: %s tenant domain: %s",
                                  idp.getIdentityProviderName(), tenantDomain), e);
                     }
@@ -113,7 +131,7 @@ public class OptimizedApplicationConfig implements Serializable {
     }
 
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
-            AuthenticationContextOptimizationException {
+            AuthenticationContextLoaderException {
 
         this.serviceProviderResourceId = applicationConfig.getServiceProvider().getApplicationResourceId();
         List<OptimizedAuthStep> optimizedAuthSteps = new ArrayList<>();
@@ -177,13 +195,13 @@ public class OptimizedApplicationConfig implements Serializable {
                 IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
                         false);
                 if (idp == null) {
-                    throw new AuthenticationContextOptimizationException(
+                    throw new AuthenticationContextLoaderException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",
                                     federatedIdPResourceIds.get(i), tenantDomain));
                 }
                 idPs[i] = idp;
             } catch (IdentityProviderManagementException e) {
-                throw new AuthenticationContextOptimizationException(
+                throw new AuthenticationContextLoaderException(
                         String.format("Failed to get the IdP by the name: %s Tenant Domain: %s",
                                 federatedIdPResourceIds.get(i), tenantDomain), e);
             }
