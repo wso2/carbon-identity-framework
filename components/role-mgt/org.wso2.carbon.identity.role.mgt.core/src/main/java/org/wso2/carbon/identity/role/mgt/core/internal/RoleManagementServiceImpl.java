@@ -112,6 +112,20 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy =
+                RoleManagementEventPublisherProxy.getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRolesCount(tenantDomain);
+        int count = roleDAO.getRolesCount(tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRolesCount(tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get roles count successfully.", getUser(tenantDomain)));
+        }
+        return count;
+    }
+
+    @Override
     public Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
