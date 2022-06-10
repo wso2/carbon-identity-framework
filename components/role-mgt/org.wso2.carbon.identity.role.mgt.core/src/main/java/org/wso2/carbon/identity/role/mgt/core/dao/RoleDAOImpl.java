@@ -1519,7 +1519,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    getDBTypeSpecificRolesCountQuery(databaseProductName), RoleTableColumns.UM_ID)) {
+                    getDBTypeSpecificRolesCountQuery(databaseProductName))) {
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
