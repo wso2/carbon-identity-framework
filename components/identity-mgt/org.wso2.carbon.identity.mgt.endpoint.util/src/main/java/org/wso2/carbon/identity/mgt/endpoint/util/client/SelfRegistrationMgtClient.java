@@ -64,6 +64,7 @@ public class SelfRegistrationMgtClient {
     private static final Log log = LogFactory.getLog(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
+    private static final String USERSTORE_API_RELATIVE_PATH = "/api/server/v1/userstores";
     private static final String PURPOSE_ID = "purposeId";
     private static final String PURPOSES_ENDPOINT_RELATIVE_PATH = "/consents/purposes";
     private static final String PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH = "/consents/purpose-categories";
@@ -149,6 +150,11 @@ public class SelfRegistrationMgtClient {
         return getEndpoint(tenantDomain, USERNAME_VALIDATE_API_RELATIVE_PATH);
     }
 
+    private String getUserstoresEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
+
+        return getEndpoint(tenantDomain, USERSTORE_API_RELATIVE_PATH);
+    }
+
     private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
 
         try {
@@ -188,6 +194,38 @@ public class SelfRegistrationMgtClient {
             } finally {
                 httpGet.releaseConnection();
             }
+        }
+    }
+
+    /**
+     * To check the availability of the userstore.
+     *
+     * @param userStoreDomain Userstore domain.
+     * @param tenantDomain Tenant domain.
+     * @return A boolean with the userstore availability.
+     * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     */
+    public Boolean isUserstoreAvailable(String userStoreDomain, String tenantDomain)
+            throws SelfRegistrationMgtClientException {
+
+        byte[] encoding = Base64.encodeBase64(userStoreDomain.getBytes());
+        String userstoreId = new String(encoding, Charset.defaultCharset());
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            HttpGet request = new HttpGet(getUserstoresEndpoint(tenantDomain) + "/" + userstoreId);
+            setAuthorizationHeader(request);
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+                return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException e) {
+            String msg = "Error while retrieving userstore " + userStoreDomain + " in tenant : " + tenantDomain;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new SelfRegistrationMgtClientException(msg, e);
         }
     }
 
