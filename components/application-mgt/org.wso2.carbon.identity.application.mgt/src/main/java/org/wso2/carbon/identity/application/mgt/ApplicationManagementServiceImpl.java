@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
@@ -98,6 +99,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -2691,6 +2693,33 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             localClaimsArray.add(localClaim.getClaimURI());
         }
         return localClaimsArray;
+    }
+
+    @Override
+    public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType ,
+                                                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        try {
+            return appDAO.getAllInboundAuthenticationPropertiesByClientType(clientType, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while retrieving All inbound " +
+                    "authentication properties for clientType: %s and tenantId: %s", clientType, tenantDomain), e);
+        }
+    }
+
+    @Override
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                            String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        try {
+            appDAO.updateApplicationInSOAPFlow(serviceProvider, toBeRemoved, tenantDomain, username);
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while updating Service Provider " +
+                    "in SOAP flow with name: %s in tenantDomain: %s", serviceProvider.getApplicationName(),
+                    tenantDomain), e);
+        }
     }
 }
 

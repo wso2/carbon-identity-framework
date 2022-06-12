@@ -49,13 +49,15 @@ import java.util.regex.Pattern;
  */
 public class ApplicationManagementAdminService extends AbstractAdmin {
 
+    public static final String DUMMY_SP_SUFFIX = "SAML-SP";
     private static Log log = LogFactory.getLog(ApplicationManagementAdminService.class);
     private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private ApplicationManagementService applicationMgtService;
     private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
+    private static final String SAMLSSO = "samlsso";
 
     /**
-     * Creates a service provider with basic information.First we need to create
+     * Creates a service provider with basic information.First we need to create.
      * a role with the
      * application name. Only the users in this role will be able to edit/update
      * the application.The
@@ -427,13 +429,60 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                         " does not have access to the application " + serviceProvider.getApplicationName());
                 throw new IdentityApplicationManagementException("User not authorized");
             }
+            ServiceProvider samlSP = null;
             applicationMgtService = ApplicationManagementService.getInstance();
+            InboundAuthenticationRequestConfig requestConfig =
+                    getInboundAuthenticationRequestConfigByClientType(serviceProvider, SAMLSSO);
+            if (requestConfig != null) {
+                samlSP = applicationMgtService.getServiceProviderByClientId(requestConfig.getInboundAuthKey(),
+                        SAMLSSO , getTenantDomain());
+                if (samlSP != null && isDummyServiceProvider(samlSP.getApplicationName())) {
+                    InboundAuthenticationRequestConfig samlRequestConfig =
+                            getInboundAuthenticationRequestConfigByClientType(samlSP, SAMLSSO);
+                    if (samlRequestConfig != null) {
+                        requestConfig.setProperties(samlRequestConfig.getProperties());
+                    }
+                    // Required to delete the old application before updating the new application with SAML data. Because there
+                    // can't be two service Providers with the same SAML issuer. Therefore
+                    // delete and update are done using a single method to maintain atomicity.
+                    applicationMgtService.updateApplicationInSOAPFlow(serviceProvider, samlSP, getTenantDomain(),
+                            getUsername());
+                    return;
+                }
+            }
+
             applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
         } catch (IdentityApplicationManagementException ex) {
             String msg = "Error while updating application: " + serviceProvider.getApplicationName() + " for " +
                     "tenant: " + getTenantDomain();
             throw handleException(msg, ex);
         }
+    }
+
+    private boolean isDummyServiceProvider(String applicationName) {
+        String arr[] = applicationName.split("_");
+        if (arr.length != 2 || arr[0] == null || arr[1] == null || !arr[1].equals(DUMMY_SP_SUFFIX)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+        if (!pattern.matcher(arr[0]).matches()) {
+            return false;
+        }
+        return true;
+    }
+
+    private InboundAuthenticationRequestConfig getInboundAuthenticationRequestConfigByClientType(
+            ServiceProvider serviceProvider, String clientType) {
+        if (serviceProvider != null && serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+            for (InboundAuthenticationRequestConfig authConfig : serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()) {
+                if (StringUtils.equals(authConfig.getInboundAuthType(), clientType)) {
+                    return authConfig;
+                }
+            }
+        }
+        return null;
     }
 
     /**

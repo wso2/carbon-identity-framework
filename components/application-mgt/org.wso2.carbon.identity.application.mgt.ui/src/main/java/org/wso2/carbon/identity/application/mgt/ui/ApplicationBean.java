@@ -552,7 +552,7 @@ public class ApplicationBean {
                 if ("samlsso".equalsIgnoreCase(request.getInboundAuthType())) {
                     if (request.getProperties() != null) {
                         for (Property property : request.getProperties()) {
-                            if ("attrConsumServiceIndex".equalsIgnoreCase(property.getName())) {
+                            if ("AttributeConsumingServiceIndex".equalsIgnoreCase(property.getName())) {
                                 attrConsumServiceIndex = property.getValue();
                                 return attrConsumServiceIndex;
                             }
@@ -1282,7 +1282,7 @@ public class ApplicationBean {
             samlAuthenticationRequest.setInboundAuthType("samlsso");
             if (attrConsumServiceIndex != null && !attrConsumServiceIndex.isEmpty()) {
                 Property property = new Property();
-                property.setName("attrConsumServiceIndex");
+                property.setName("AttributeConsumingServiceIndex");
                 property.setValue(attrConsumServiceIndex);
                 Property[] properties = {property};
                 samlAuthenticationRequest.setProperties(properties);

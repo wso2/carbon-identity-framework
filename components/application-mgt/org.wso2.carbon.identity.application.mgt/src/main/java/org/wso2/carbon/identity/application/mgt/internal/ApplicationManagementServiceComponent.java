@@ -120,9 +120,10 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ClaimMetadataMgtListener.class.getName(), new ApplicationClaimMgtListener(),
                     null);
 
-            // Register the ApplicationValidator.
+            // Register the ApplicationValidators.
             context.getBundleContext().registerService(ApplicationValidator.class,
                     new DefaultApplicationValidator(), null);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }

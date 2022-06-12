@@ -429,6 +429,9 @@ public class ApplicationMgtDBQueries {
 
     public static final String GET_TOTAL_SP_CLAIM_USAGES = "SELECT COUNT(*) FROM SP_CLAIM_MAPPING WHERE TENANT_ID = ?" +
             " AND IDP_CLAIM = ?";
+
+    public static final String LOAD_ALL_CLIENT_PROPERTIES_BY_CLIENT_TYPE = "SELECT INBOUND_AUTH_KEY, PROP_NAME," +
+            " PROP_VALUE FROM SP_INBOUND_AUTH WHERE INBOUND_AUTH_TYPE = ? AND TENANT_ID = ? AND PROP_NAME != 'NULL'";
 }
 
 

@@ -129,6 +129,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.G
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.IS_APP_BY_TENANT_AND_UUID_DISCOVERABLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_ALL_CLIENT_PROPERTIES_BY_CLIENT_TYPE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_UUID;
@@ -250,6 +251,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
+    private static final String PROP_NAME = "PROP_NAME";
+    private static final String PROP_VALUE = "PROP_VALUE";
+    private static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -1315,9 +1319,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws SQLException
      * @throws IdentityApplicationManagementException
      */
-    private void updateLocalAndOutboundAuthenticationConfiguration(int applicationId,
-                       LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                       Connection connection)
+    private void updateLocalAndOutboundAuthenticationConfiguration(
+            int applicationId, LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection)
             throws SQLException, IdentityApplicationManagementException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -4475,10 +4478,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param tenantID
      * @throws SQLException
      */
-    private void updateAuthenticationScriptConfiguration(int applicationId,
-                                                     LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
-                                                     Connection connection, int tenantID)
-            throws SQLException {
+    private void updateAuthenticationScriptConfiguration(
+            int applicationId, LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig, Connection connection,
+            int tenantID) throws SQLException {
 
         if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
@@ -5376,5 +5378,86 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
+    }
+
+    @Override
+    public HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        HashMap<String, List<Property>> propertyMap = new HashMap<>();
+        try {
+            prepStmt = connection.prepareStatement(LOAD_ALL_CLIENT_PROPERTIES_BY_CLIENT_TYPE);
+            prepStmt.setString(1, clientType);
+            prepStmt.setInt(2, tenantID);
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                Property property = new Property();
+                property.setName(rs.getString(PROP_NAME));
+                property.setValue(rs.getString(PROP_VALUE));
+                if (propertyMap.containsKey(rs.getString(INBOUND_AUTH_KEY))) {
+                    propertyMap.get(rs.getString(INBOUND_AUTH_KEY)).add(property);
+                } else {
+                    List<Property> properties = new ArrayList<>();
+                    properties.add(property);
+                    propertyMap.put(rs.getString(INBOUND_AUTH_KEY), properties);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(String.format("Error while retrieving All inbound " +
+                    "authentication properties for clientType: %s and tenantDomain: %s", clientType, tenantDomain), e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+        return propertyMap;
+    }
+
+    @Override
+    public void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                            String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        int applicationId = serviceProvider.getApplicationID();
+        String applicationNameToBeDeleted = toBeRemoved.getApplicationName();
+        try {
+            //delete dummy service provider
+            if (log.isDebugEnabled()) {
+                log.debug("Deleting Application " + toBeRemoved.getApplicationName());
+            }
+            // Delete the application certificate if there is any.
+            deleteCertificate(connection, applicationNameToBeDeleted, tenantID);
+
+            // First, delete all the clients of the application
+            int applicationID = toBeRemoved.getApplicationID();
+            InboundAuthenticationConfig clients = getInboundAuthenticationConfig(applicationID, connection, tenantID);
+            for (InboundAuthenticationRequestConfig client : clients.getInboundAuthenticationRequestConfigs()) {
+                handleClientDeletion(client.getInboundAuthKey(), client.getInboundAuthType());
+            }
+            handleDeleteServiceProvider(connection, applicationNameToBeDeleted, tenantID);
+
+            //update existing service provider
+            if (log.isDebugEnabled()) {
+                log.debug("Updating Application " + serviceProvider.getApplicationName());
+            }
+            deleteApplicationConfigurations(connection, serviceProvider, applicationId);
+            addApplicationConfigurations(connection, serviceProvider, tenantDomain);
+
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            String errorMessage = String.format("An error occurred while updating the application: %s and " +
+                    "deleting application: %s", serviceProvider.getApplicationName(), applicationNameToBeDeleted);
+            log.error(errorMessage, e);
+            throw new IdentityApplicationManagementException(errorMessage, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+
     }
 }

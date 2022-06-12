@@ -21,9 +21,11 @@ package org.wso2.carbon.identity.application.mgt.dao;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -280,4 +282,31 @@ public interface ApplicationDAO {
 
         return false;
     }
+
+    /**
+     * Get All inbound authentication config properties by client type and tenant domain.
+     *
+     * @param clientType client type
+     * @param tenantDomain Tenant domain to be filtered from.
+     * @return HashMap where the key is clientId and value is list of properties.
+     */
+    default HashMap<String, List<Property>> getAllInboundAuthenticationPropertiesByClientType(String clientType,
+                                                                                              String tenantDomain)
+            throws IdentityApplicationManagementException {
+        return new HashMap<>();
+    }
+
+    /**
+     * Delete dummy Service Provider and update existing service provider in single method in soap create sp flow.
+     *
+     * @param serviceProvider Application to be update
+     * @param toBeRemoved dummy service provider to be removed
+     * @param tenantDomain Tenant domain to be filtered from.
+     * @param username user name
+     */
+    default void updateApplicationInSOAPFlow(ServiceProvider serviceProvider, ServiceProvider toBeRemoved,
+                                             String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+    }
+
 }
