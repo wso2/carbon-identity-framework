@@ -43,7 +43,7 @@ public class AuthenticationContextCache extends
     private boolean isTemporarySessionDataPersistEnabled = false;
 
     /**
-     * Private constructor which will not allow to create objects of this class from outside
+     * Private constructor which will not allow to create objects of this class from outside.
      */
     private AuthenticationContextCache() {
         super(AUTHENTICATION_CONTEXT_CACHE_NAME, true);
@@ -54,7 +54,7 @@ public class AuthenticationContextCache extends
     }
 
     /**
-     * Singleton method
+     * Singleton method.
      *
      * @return AuthenticationContextCache
      */

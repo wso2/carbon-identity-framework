@@ -104,32 +104,58 @@ public class OptimizedApplicationConfig implements Serializable {
             return federatedIdPResourceIDs;
         }
 
+        /**
+         * This method is used to get the step order of the authentication step.
+         * @return step order
+         */
         public int getStepOrder() {
 
             return stepOrder;
         }
 
+        /**
+         * This method is used to get the local authenticator config names of authentication step.
+         * @return list of authenticator config names
+         */
         public List<String> getLocalAuthenticatorConfigNames() {
 
             return localAuthenticatorConfigNames;
         }
 
+        /**
+         * This method is used to get the resource ids of the federated IdPs of authentication step.
+         * @return list of resource ids
+         */
         public List<String> getFederatedIdPResourceIds() {
 
             return federatedIdPResourceIds;
         }
 
+        /**
+         * This method is used to get the subject step of the authentication step.
+         * @return subject step
+         */
         public boolean isSubjectStep() {
 
             return subjectStep;
         }
 
+        /**
+         * This method is used to get the attribute step of the authentication step.
+         * @return attribute step
+         */
         public boolean isAttributeStep() {
 
             return attributeStep;
         }
     }
 
+    /**
+     * Initialize optimized application config.
+     * @param applicationConfig application config
+     * @param tenantDomain tenant domain of the application
+     * @throws AuthenticationContextLoaderException Authentication Context Loader exception
+     */
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
             AuthenticationContextLoaderException {
 
@@ -151,11 +177,21 @@ public class OptimizedApplicationConfig implements Serializable {
         this.requestedClaims = applicationConfig.getRequestedClaimMappings();
     }
 
+    /**
+     * This method is used to get the service provider's resource id.
+     * @return resource id of the service provider
+     */
     public String getServiceProviderResourceId() {
 
         return serviceProviderResourceId;
     }
 
+    /**
+     * This method is used to get the array of authentication steps using optimized authentication steps.
+     * @param tenantDomain tenant domain of the application
+     * @return array of authentication step
+     * @throws FrameworkException Framework Exception
+     */
     public AuthenticationStep[] getAuthenticationSteps(String tenantDomain) throws FrameworkException {
 
         AuthenticationStep[] authenticationSteps = new AuthenticationStep[this.optimizedAuthSteps.size()];
@@ -209,26 +245,46 @@ public class OptimizedApplicationConfig implements Serializable {
         return idPs;
     }
 
+    /**
+     * This method is used to get is the mapped subject id selected.
+     * @return mapped subject id selected
+     */
     public boolean isMappedSubjectIDSelected() {
 
         return mappedSubjectIDSelected;
     }
 
+    /**
+     * This method is used to get the claim mappings.
+     * @return claim mappings
+     */
     public Map<String, String> getClaimMappings() {
 
         return claimMappings;
     }
 
+    /**
+     * This method is used to get the role mappings.
+     * @return role mappings
+     */
     public Map<String, String> getRoleMappings() {
 
         return roleMappings;
     }
 
+    /**
+     * This method is used to the requested claims.
+     * @return requested claims
+     */
     public Map<String, String> getRequestedClaims() {
 
         return requestedClaims;
     }
 
+    /**
+     * This method is used to get the mandatory claims.
+     * @return mandatory claims.
+     */
     public Map<String, String> getMandatoryClaims() {
 
         return mandatoryClaims;

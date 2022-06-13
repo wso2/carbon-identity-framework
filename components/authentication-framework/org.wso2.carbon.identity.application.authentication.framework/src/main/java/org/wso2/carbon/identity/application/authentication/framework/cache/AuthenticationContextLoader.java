@@ -49,6 +49,10 @@ public class AuthenticationContextLoader {
 
     private AuthenticationContextLoader() { }
 
+    /**
+     * Singleton method.
+     * @return Authentication Context Loader
+     */
     public static AuthenticationContextLoader getInstance() {
 
         if (instance == null) {
@@ -61,6 +65,11 @@ public class AuthenticationContextLoader {
         return instance;
     }
 
+    /**
+     * This method is used to optimize the authentication context object.
+     * @param context Authentication context
+     * @throws AuthenticationContextLoaderException Authentication Context Loader Exception
+     */
     public void optimizeAuthenticationContext(AuthenticationContext context)
             throws AuthenticationContextLoaderException {
 
@@ -69,6 +78,11 @@ public class AuthenticationContextLoader {
         optimizeApplicationConfig(context);
     }
 
+    /**
+     * This method is used to load the authentication context from optimized authentication context's references.
+     * @param context Authentication context
+     * @throws AuthenticationContextLoaderException Authentication Context Loader Exception
+     */
     public void loadAuthenticationContext(AuthenticationContext context) throws
             AuthenticationContextLoaderException {
 

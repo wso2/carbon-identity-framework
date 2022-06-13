@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is a wrapper class for ApplicationAuthenticator
+ * This is a wrapper class for ApplicationAuthenticator.
  */
 public class AuthenticatorConfig implements Serializable {
 

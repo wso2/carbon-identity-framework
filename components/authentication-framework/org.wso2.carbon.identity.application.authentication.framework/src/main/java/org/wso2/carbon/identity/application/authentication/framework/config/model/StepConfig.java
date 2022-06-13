@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Holds the login page and the authenticator objects
- * of a particular factor
+ * of a particular factor.
  */
 public class StepConfig implements Serializable {
 
