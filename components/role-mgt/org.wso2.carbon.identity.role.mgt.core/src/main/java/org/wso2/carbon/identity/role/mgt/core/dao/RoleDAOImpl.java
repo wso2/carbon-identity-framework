@@ -159,6 +159,13 @@ public class RoleDAOImpl implements RoleDAO {
         roleName = removeInternalDomain(roleName);
         String roleID;
 
+        if (isDomainSeparatorPresent(roleName)) {
+             /* SCIM2 API do not support for roles with domains. Currently, role endpoint does not have context about
+             userstores. */
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
+                    "Entered role name contains a domain. Role name: " + roleName);
+        }
+
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 try {
@@ -264,6 +271,16 @@ public class RoleDAOImpl implements RoleDAO {
             return UserCoreUtil.removeDomainFromName(roleName);
         }
         return roleName;
+    }
+
+    /**
+     * Check if the role name has a domain.
+     * @param roleName Role name.
+     * @return True if the role name has a domain.
+     */
+    private boolean isDomainSeparatorPresent(String roleName) {
+
+        return roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR);
     }
 
     @Override
@@ -802,6 +819,12 @@ public class RoleDAOImpl implements RoleDAO {
                     "Invalid operation. Role: " + roleName + " Cannot be renamed since it's a read only system role.");
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (isDomainSeparatorPresent(roleName)) {
+            /* SCIM2 API do not support for roles with domains. Currently, role endpoint does not have context about
+             userstores. */
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
+                    "Entered role name contains a domain. Role name: " + roleName);
+        }
         if (!isExistingRoleID(roleID, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
                     "Role id: " + roleID + " does not exist in the system.");
