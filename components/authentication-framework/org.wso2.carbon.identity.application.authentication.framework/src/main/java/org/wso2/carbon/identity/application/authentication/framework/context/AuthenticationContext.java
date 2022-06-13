@@ -95,10 +95,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String selectedAcr;
     private Map<String,  AuthenticatedIdPData> authenticatedIdPsOfApp = new HashMap<>();
 
-    /** The user/subject known at the latest authentication step */
+    /** The user/subject known at the latest authentication step. */
     private AuthenticatedUser lastAuthenticatedUser;
 
-    /** subject should be set by each authenticator */
+    /** subject should be set by each authenticator. */
     private AuthenticatedUser subject;
 
     /* Holds any (state) information that would be required by the authenticator
@@ -546,7 +546,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Get parameter map for a specific authenticator
+     * Get parameter map for a specific authenticator.
      *
      * @param authenticatorName Authenticator name
      * @return Parameter map
@@ -757,7 +757,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Sets the tenant domain where the user's session should be created
+     * Sets the tenant domain where the user's session should be created.
      *
      * @param loginTenantDomain the tenant domain where the user's session is created
      */

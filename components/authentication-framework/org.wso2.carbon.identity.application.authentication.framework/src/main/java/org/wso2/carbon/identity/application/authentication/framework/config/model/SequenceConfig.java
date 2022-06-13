@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Configuration holder for an application
+ * Configuration holder for an application.
  */
 public class SequenceConfig implements Serializable, Cloneable {
 
@@ -168,7 +168,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     }
 
     /**
-     * This method will clone current class objects
+     * This method will clone current class objects.
      * This method is to solve the issue - multiple requests for same user/SP
      *
      * @return Object object
