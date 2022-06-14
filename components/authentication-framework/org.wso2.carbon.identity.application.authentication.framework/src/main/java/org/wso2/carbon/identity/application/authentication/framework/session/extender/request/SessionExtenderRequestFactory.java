@@ -48,10 +48,6 @@ public class SessionExtenderRequestFactory extends HttpIdentityRequestFactory {
 
     private static final Log log = LogFactory.getLog(SessionExtenderRequestFactory.class);
 
-    public static final String CORRELATION_ID_MDC = "Correlation-ID";
-    public static final String TRACE_ID = "faaabef8-df76-408a-aa54-808858c250be";
-
-
     public SessionExtenderRequestFactory() {
 
         super();
