@@ -261,6 +261,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
     public static final String USE_DOMAIN_IN_ROLE_DISPLAY_NAME = "DOMAIN_IN_ROLES";
+    public static final String USE_USER_ID_FOR_DEFAULT_SUBJECT = "useUserIdForDefaultSubject";
 
     public ApplicationDAOImpl() {
 
@@ -2157,6 +2158,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     applicationId, connection, tenantID);
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
+            removeSpPropertiesFromAdditionalProps(propertyList);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
@@ -2181,6 +2183,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    private void removeSpPropertiesFromAdditionalProps(List<ServiceProviderProperty> propertyList) {
+
+        propertyList.removeIf(property -> SKIP_CONSENT.equals(property.getName()));
+        propertyList.removeIf(property -> SKIP_LOGOUT_CONSENT.equals(property.getName()));
+        propertyList.removeIf(property -> USE_DOMAIN_IN_ROLES.equals(property.getName()));
+        propertyList.removeIf(property -> USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(property.getName()));
+    }
+
     private boolean getIsManagementApp(List<ServiceProviderProperty> propertyList) {
 
         String value = propertyList.stream()
@@ -2188,6 +2198,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+        propertyList.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
         if (StringUtils.EMPTY.equals(value)) {
             return true;
         }
@@ -2196,11 +2207,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private String getTemplateId(List<ServiceProviderProperty> propertyList) {
 
-        return propertyList.stream()
+        String templateId =  propertyList.stream()
                 .filter(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+         propertyList.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
+         return templateId;
     }
 
     private String getJwksUri(List<ServiceProviderProperty> propertyList) {
