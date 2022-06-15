@@ -83,6 +83,19 @@ public interface ServiceURLBuilder {
     }
 
     /**
+     * This is an overload of method setTenant(String tenantDomain). This method has an additional param to mandate
+     * tenanted path appending for URLs.
+     *
+     * @param tenantDomain          Tenant domain.
+     * @param mandateTenantedPath   Mandate tenanted path appending for the URL.
+     * @return  {@link ServiceURLBuilder}
+     */
+    default ServiceURLBuilder setTenant(String tenantDomain, boolean mandateTenantedPath) {
+
+        return this;
+    }
+
+    /**
      * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
      * root and the tenant domain (appended if required).
      *
