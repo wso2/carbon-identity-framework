@@ -160,10 +160,9 @@ public class RoleDAOImpl implements RoleDAO {
         String roleID;
 
         if (isDomainSeparatorPresent(roleName)) {
-             /* SCIM2 API do not support for roles with domains. Currently, role endpoint does not have context about
-             userstores. */
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
-                    "Entered role name contains a domain. Role name: " + roleName);
+             // SCIM2 API only adds roles to the internal domain.
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
         }
 
         if (!isExistingRoleName(roleName, tenantDomain)) {
@@ -820,10 +819,9 @@ public class RoleDAOImpl implements RoleDAO {
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (isDomainSeparatorPresent(roleName)) {
-            /* SCIM2 API do not support for roles with domains. Currently, role endpoint does not have context about
-             userstores. */
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
-                    "Entered role name contains a domain. Role name: " + roleName);
+            // SCIM2 API only adds roles to the internal domain.
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
         }
         if (!isExistingRoleID(roleID, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
