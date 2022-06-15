@@ -2703,6 +2703,35 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewrite>
+        <WebApp>
+        {% for organization_context in organization_context.rewrite %}
+        {% for base_path in organization_context.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in organization_context.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
+            <Context>
+                <BasePath>/api/identity/organization-mgt/v1.0/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/scim2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
 

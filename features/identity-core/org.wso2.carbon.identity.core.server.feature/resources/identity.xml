@@ -1982,6 +1982,23 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewrite>
+        <WebApp>
+            <Context>
+                <BasePath>/api/identity/organization-mgt/v1.0/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/scim2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 
