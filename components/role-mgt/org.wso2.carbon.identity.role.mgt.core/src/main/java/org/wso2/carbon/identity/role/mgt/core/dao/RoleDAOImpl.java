@@ -159,12 +159,6 @@ public class RoleDAOImpl implements RoleDAO {
         roleName = removeInternalDomain(roleName);
         String roleID;
 
-        if (isDomainSeparatorPresent(roleName)) {
-             // SCIM2 API only adds roles to the internal domain.
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
-                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
-        }
-
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 try {
@@ -270,16 +264,6 @@ public class RoleDAOImpl implements RoleDAO {
             return UserCoreUtil.removeDomainFromName(roleName);
         }
         return roleName;
-    }
-
-    /**
-     * Check if the role name has a domain.
-     * @param roleName Role name.
-     * @return True if the role name has a domain.
-     */
-    private boolean isDomainSeparatorPresent(String roleName) {
-
-        return roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR);
     }
 
     @Override
@@ -818,11 +802,6 @@ public class RoleDAOImpl implements RoleDAO {
                     "Invalid operation. Role: " + roleName + " Cannot be renamed since it's a read only system role.");
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (isDomainSeparatorPresent(roleName)) {
-            // SCIM2 API only adds roles to the internal domain.
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
-                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
-        }
         if (!isExistingRoleID(roleID, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
                     "Role id: " + roleID + " does not exist in the system.");
