@@ -670,10 +670,6 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Collection mockPermissionNode = mock(Collection.class);
         when(mockRegistry.newCollection()).thenReturn(mockPermissionNode);
         when(mockRegistry.get(anyString())).thenReturn(mockPermissionNode);
-
-        when(CarbonContext.getThreadLocalCarbonContext().getRegistry(
-                RegistryType.USER_GOVERNANCE)).thenReturn(mockRegistry);
-        when(mockRegistry.resourceExists(anyString())).thenReturn(FALSE);
     }
 
     private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {
