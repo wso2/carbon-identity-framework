@@ -64,6 +64,9 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             if (identityProvider.getResourceId() == null && idpId != null) {
                 identityProvider.setResourceId(idpId);
             }
+            if (identityProvider.getDefaultAuthenticatorConfig() == null) {
+                identityProvider.setEnable(false);
+            }
             int offset = 0;
             do {
                 connectedApplications =
