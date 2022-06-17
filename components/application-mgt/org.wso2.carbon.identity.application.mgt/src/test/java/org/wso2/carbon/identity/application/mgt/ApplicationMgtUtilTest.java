@@ -276,7 +276,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         try {
             ApplicationMgtUtil.createAppRole(APPLICATION_NAME, USERNAME);
         } catch (IdentityApplicationManagementException e) {
-            assertEquals(e.getMessage(), "Error while creating application role: " + ROLE_NAME + " with user "
+            assertEquals(e.getMessage(), "Error while updating application role: " + ROLE_NAME + " with user "
                     + USERNAME);
         }
     }

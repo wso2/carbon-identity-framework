@@ -79,12 +79,9 @@ public class RoleDAOTest extends PowerMockTestCase {
     private RoleDAO roleDAO;
     private List<String> userNamesList = new ArrayList<>();
     private List<String> emptyList = new ArrayList<>();
-
     private List<String> groupNamesList = new ArrayList<>();
     private Map<String, String> groupNamesMap = new HashMap<>();
-
     private Map<String, String> emptyMap = new HashMap<>();
-
     private Map<String, String> groupIdsMap = new HashMap<>();
     private List<String> userIDsList = new ArrayList<>();
     private List<String> groupIDsList = new ArrayList<>();
