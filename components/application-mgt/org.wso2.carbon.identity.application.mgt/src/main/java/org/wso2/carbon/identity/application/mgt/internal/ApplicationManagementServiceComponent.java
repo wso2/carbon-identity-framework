@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.listener.SharedApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -106,6 +107,8 @@ public class ApplicationManagementServiceComponent {
                     new ApplicationIdentityProviderMgtListener(), null);
             ApplicationMgtSystemConfig.getInstance();
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
+                    null);
+            bundleContext.registerService(ApplicationMgtListener.class.getName(), new SharedApplicationMgtListener(),
                     null);
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
