@@ -1021,7 +1021,8 @@ public class JsGraphBuilder {
     }
 
     private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject identifier step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectIdentifierStep(false);
             }
@@ -1030,7 +1031,8 @@ public class JsGraphBuilder {
     }
 
     private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject attribute step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectAttributeStep(false);
             }

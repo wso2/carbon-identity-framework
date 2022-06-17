@@ -1301,6 +1301,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
             serviceProvider.setOwner(getUser(tenantDomain, username));
+            serviceProvider.setSpProperties(savedSP.getSpProperties());
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {

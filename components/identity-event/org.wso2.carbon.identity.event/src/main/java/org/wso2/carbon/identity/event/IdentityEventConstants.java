@@ -86,6 +86,8 @@ public class IdentityEventConstants {
         public static final String POST_ADD_ROLE_EVENT = "POST_ADD_ROLE_EVENT";
         public static final String PRE_GET_ROLES_EVENT = "PRE_GET_ROLES_EVENT";
         public static final String POST_GET_ROLES_EVENT = "POST_GET_ROLES_EVENT";
+        public static final String PRE_GET_ROLES_COUNT_EVENT = "PRE_GET_ROLES_COUNT_EVENT";
+        public static final String POST_GET_ROLES_COUNT_EVENT = "POST_GET_ROLES_COUNT_EVENT";
         public static final String PRE_GET_ROLE_EVENT = "PRE_GET_ROLE_EVENT";
         public static final String POST_GET_ROLE_EVENT = "POST_GET_ROLE_EVENT";
         public static final String PRE_UPDATE_ROLE_NAME_EVENT = "PRE_UPDATE_ROLE_NAME_EVENT";

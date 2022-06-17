@@ -241,4 +241,14 @@ public interface RoleDAO {
 
         throw new NotImplementedException("getSystemRoles method is not implemented");
     }
+
+    /**
+     * Retrieve the count of tenant roles.
+     *
+     * @param tenantDomain tenant domain.
+     */
+    default int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoleCount method is not implemented");
+    }
 }
