@@ -205,6 +205,10 @@ public class FrameworkUtils {
 
     public static final String ROOT_DOMAIN = "/";
 
+    private static final String HASH_CHAR = "#";
+    private static final String HASH_CHAR_ENCODED = "%23";
+    private static final String QUESTION_MARK = "?";
+
     private FrameworkUtils() {
     }
 
@@ -1719,8 +1723,20 @@ public class FrameworkUtils {
                 .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
         try {
-            uriBuilder = new URIBuilder(redirectUrl);
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
         } catch (URISyntaxException e) {
             log.warn("Unable to filter redirect params for url." + redirectUrl, e);
             return redirectUrl;
@@ -1785,7 +1801,16 @@ public class FrameworkUtils {
         }
         uriBuilder.clearParameters();
         uriBuilder.setParameters(queryParamsList);
-        return uriBuilder.toString();
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
     }
 
     public static boolean isRemoveAPIParamsOnConsume() {
