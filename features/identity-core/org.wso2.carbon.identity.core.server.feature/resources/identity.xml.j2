@@ -2718,15 +2718,13 @@
         {% endfor %}
         {% endfor %}
             <Context>
-                <BasePath>/api/identity/organization-mgt/v1.0/</BasePath>
-            </Context>
-            <Context>
                 <BasePath>/scim2/</BasePath>
             </Context>
             <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
                 </SubPaths>
             </Context>
         </WebApp>
