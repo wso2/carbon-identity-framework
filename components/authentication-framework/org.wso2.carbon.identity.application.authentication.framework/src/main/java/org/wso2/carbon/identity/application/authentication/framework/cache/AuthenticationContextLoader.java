@@ -27,11 +27,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -218,9 +219,13 @@ public class AuthenticationContextLoader {
             throws AuthenticationContextLoaderException {
 
         ServiceProvider serviceProvider;
+        ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
         try {
-            serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().
-                    getApplicationByResourceId(optApplicationConfig.getServiceProviderResourceId(), tenantDomain);
+            serviceProvider = applicationManager.getApplicationByResourceId(
+                    optApplicationConfig.getServiceProviderResourceId(), tenantDomain);
+            /*serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().
+                    getApplicationByResourceId(optApplicationConfig.getServiceProviderResourceId(), tenantDomain);*/
             if (serviceProvider == null) {
                 return null;
             }
@@ -237,7 +242,9 @@ public class AuthenticationContextLoader {
     private IdentityProvider getIdPsByIdPName(String idPName, String tenantDomain)
             throws AuthenticationContextLoaderException {
 
-        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        IdentityProviderManager manager =
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+        //IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByName(idPName, tenantDomain);
@@ -258,7 +265,9 @@ public class AuthenticationContextLoader {
         if (resourceId == null) {
             throw new AuthenticationContextLoaderException("Error occurred while getting IdPs");
         }
-        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        IdentityProviderManager manager =
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+        //IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
