@@ -64,9 +64,6 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             if (identityProvider.getResourceId() == null && idpId != null) {
                 identityProvider.setResourceId(idpId);
             }
-            if (identityProvider.getDefaultAuthenticatorConfig() == null) {
-                identityProvider.setEnable(false);
-            }
             int offset = 0;
             do {
                 connectedApplications =
@@ -309,6 +306,9 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                     throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
                             " as it is referred by service providers.");
                 }
+            } else {
+                throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
+                        " as it is referred by service providers.");
             }
         }
     }
