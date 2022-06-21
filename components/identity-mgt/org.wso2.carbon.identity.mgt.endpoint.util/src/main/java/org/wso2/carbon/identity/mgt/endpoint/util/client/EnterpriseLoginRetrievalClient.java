@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -58,10 +59,10 @@ public class EnterpriseLoginRetrievalClient {
     public boolean isEnterpriseLoginEnabled(String tenantDomain) throws EnterpriseLoginRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            HttpPost post = new HttpPost(getUserGovernancePreferenceEndpoint(tenantDomain));
-            setAuthorizationHeader(post);
+            HttpGet get = new HttpGet(getUserGovernancePreferenceEndpoint(tenantDomain));
+            setAuthorizationHeader(get);
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
+            try (CloseableHttpResponse response = httpclient.execute(get)) {
 
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     JSONObject jsonResponse = new JSONObject(
@@ -72,7 +73,7 @@ public class EnterpriseLoginRetrievalClient {
                 }
                 return false;
             } finally {
-                post.releaseConnection();
+                get.releaseConnection();
             }
         } catch (IOException e) {
             // Logging and throwing since this is a client.
