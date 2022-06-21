@@ -59,7 +59,7 @@ public class EnterpriseLoginRetrievalClient {
     public boolean isEnterpriseLoginEnabled(String tenantDomain) throws EnterpriseLoginRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            HttpGet get = new HttpGet(getUserGovernancePreferenceEndpoint(tenantDomain));
+            HttpGet get = new HttpGet(getEnterpriseLoginManagementEndpoint(tenantDomain));
             setAuthorizationHeader(get);
 
             try (CloseableHttpResponse response = httpclient.execute(get)) {
@@ -84,7 +84,7 @@ public class EnterpriseLoginRetrievalClient {
             throw new EnterpriseLoginRetrievalClientException(msg, e);
         }
     }
-    private String getUserGovernancePreferenceEndpoint(String tenantDomain)
+    private String getEnterpriseLoginManagementEndpoint(String tenantDomain)
                 throws EnterpriseLoginRetrievalClientException {
 
         return getEndpoint(SUPER_TENANT, ENTERPRISE_API_RELATIVE_PATH + tenantDomain);
