@@ -20,7 +20,7 @@
     <parent>
         <artifactId>multi-attribute-login-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.20.427</version>
+        <version>5.20.428-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
