@@ -2021,6 +2021,10 @@
         </WebApp>
     </OrgContextsToRewrite>
 
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 
