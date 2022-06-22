@@ -2531,6 +2531,30 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
             <Scopes>internal_organization_view</Scopes>
