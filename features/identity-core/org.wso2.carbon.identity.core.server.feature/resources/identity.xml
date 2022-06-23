@@ -1204,7 +1204,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
