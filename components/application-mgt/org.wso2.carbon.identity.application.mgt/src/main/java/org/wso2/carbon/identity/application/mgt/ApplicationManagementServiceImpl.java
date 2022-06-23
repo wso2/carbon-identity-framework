@@ -1950,7 +1950,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
             ApplicationMgtUtil.createAppRole(applicationName, username);
-            if (tenantNotAssociatedWithOrg(tenantDomain)) {
+            if (!isOrganization(tenantDomain)) {
                 try {
                     PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
                     ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
@@ -2155,14 +2155,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private boolean tenantNotAssociatedWithOrg(String tenantDomain) throws IdentityApplicationManagementException {
+    private boolean isOrganization(String tenantDomain) throws IdentityApplicationManagementException {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             Tenant tenant =
                     ApplicationManagementServiceComponentHolder.getInstance().getRealmService().getTenantManager()
                             .getTenant(tenantID);
-            return StringUtils.isBlank(tenant.getAssociatedOrganizationUUID());
+            return StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
         } catch (UserStoreException e) {
             String errorMsg =
                     String.format("Error while retrieving details of the application tenant: %s", tenantDomain);
