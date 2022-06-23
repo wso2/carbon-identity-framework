@@ -1861,7 +1861,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
             <Scopes>internal_role_mgt_create</Scopes>
         </Resource>
