@@ -141,6 +141,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRege
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
  * Application management service implementation.
@@ -1950,7 +1951,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
             ApplicationMgtUtil.createAppRole(applicationName, username);
-            if (!isOrganization(tenantDomain)) {
+            if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain) || !isOrganization(tenantDomain)) {
                 try {
                     PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
                     ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
@@ -2162,7 +2163,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             Tenant tenant =
                     ApplicationManagementServiceComponentHolder.getInstance().getRealmService().getTenantManager()
                             .getTenant(tenantID);
-            return StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
+            return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
         } catch (UserStoreException e) {
             String errorMsg =
                     String.format("Error while retrieving details of the application tenant: %s", tenantDomain);
