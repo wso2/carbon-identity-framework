@@ -568,14 +568,31 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
-                                userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
-                            } else {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(String.format("Federated auth session with the id: %s already exists",
-                                            authHistory.getIdpSessionIndex()));
+                            if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
+                                int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+                                if (!userSessionStore.isExistingFederatedAuthSessionAvailable(
+                                        authHistory.getIdpSessionIndex(), tenantId)) {
+                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                                            tenantId);
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(String.format("Federated auth session with the id: %s already " +
+                                                "exists.", authHistory.getIdpSessionIndex()));
+                                    }
+                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                                            tenantId);
                                 }
-                                userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                            } else {
+                                if (!userSessionStore.hasExistingFederatedAuthSession(
+                                        authHistory.getIdpSessionIndex())) {
+                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(String.format("Federated auth session with the id: %s already " +
+                                                "exists.", authHistory.getIdpSessionIndex()));
+                                    }
+                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                }
                             }
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
