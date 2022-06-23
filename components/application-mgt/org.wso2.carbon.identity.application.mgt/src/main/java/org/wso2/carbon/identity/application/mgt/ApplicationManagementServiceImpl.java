@@ -78,6 +78,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -1949,16 +1950,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
             ApplicationMgtUtil.createAppRole(applicationName, username);
-            try {
-                PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
-                ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
-            } catch (IdentityApplicationManagementException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially created data.");
+            if (tenantNotAssociatedWithOrg(tenantDomain)) {
+                try {
+                    PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
+                    ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
+                } catch (IdentityApplicationManagementException ex) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                                " failed. Rolling back by cleaning up partially created data.");
+                    }
+                    deleteApplicationRole(applicationName);
+                    throw ex;
                 }
-                deleteApplicationRole(applicationName);
-                throw ex;
             }
 
             try {
@@ -2149,6 +2152,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.error(errorMsg, e);
                 throw new IdentityApplicationManagementException(errorMsg, e);
             }
+        }
+    }
+
+    private boolean tenantNotAssociatedWithOrg(String tenantDomain) throws IdentityApplicationManagementException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            Tenant tenant =
+                    ApplicationManagementServiceComponentHolder.getInstance().getRealmService().getTenantManager()
+                            .getTenant(tenantID);
+            return StringUtils.isBlank(tenant.getAssociatedOrganizationUUID());
+        } catch (UserStoreException e) {
+            String errorMsg =
+                    String.format("Error while retrieving details of the application tenant: %s", tenantDomain);
+            throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }
 
