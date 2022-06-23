@@ -672,6 +672,7 @@
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
   "console.ui.idp_templates.github.enabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
+  "console.ui.hiddenAuthenticators": ["MagicLinkAuthenticator"],
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
