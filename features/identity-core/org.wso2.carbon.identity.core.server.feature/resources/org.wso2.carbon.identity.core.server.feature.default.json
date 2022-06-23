@@ -820,6 +820,12 @@
   "console.system_apps_identifiers": ["Console", "My Account"],
   "console.gravatar.configs.fallback": "404",
   "console.list_all_attribute_dialects": false,
+  "console.organizations.enabled": true,
+  "console.organizations.scopes.feature": ["console:organizations"],
+  "console.organizations.scopes.create": ["internal_organization_create"],
+  "console.organizations.scopes.read": ["internal_organization_view"],
+  "console.organizations.scopes.update": ["internal_organization_update"],
+  "console.organizations.scopes.delete": ["internal_organization_delete"],
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
