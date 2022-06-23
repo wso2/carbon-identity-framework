@@ -762,19 +762,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth)
             throws UserSessionException {
 
-        for (int retryTimes = 0; retryTimes < FrameworkConstants.MAX_RETRY_TIME; retryTimes++) {
-            try {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
-                return;
-            } catch (DataAccessException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while storing Application session data in the database. Retrying to store the " +
-                            "data.", e);
-                }
+        storeAppSessionData(sessionContextKey, subject, appId, inboundAuth, 0);
+    }
+
+    /**
+     * Method to store app session data. If an error occurs, it tries maximum times and throws an error.
+     *
+     * @param sessionContextKey   Context of the authenticated session.
+     * @param subject             Username in application
+     * @param appId               ID of the application.
+     * @param inboundAuth         Protocol used in app.
+     * @param retryAttemptCounter The retry attempt number.
+     * @throws UserSessionException If storing app session data fails.
+     */
+    private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth,
+                                     int retryAttemptCounter) throws UserSessionException {
+
+        try {
+            UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+        } catch (DataAccessException e) {
+            if (retryAttemptCounter >= FrameworkConstants.MAX_RETRY_TIME) {
+                throw new UserSessionException("Error while storing Application session data in the database for " +
+                        "subject: " + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".", e);
             }
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Error while storing Application session data in the database. Retrying to " +
+                        "store the data for the %d time.", retryAttemptCounter + 1), e);
+            }
+            storeAppSessionData(sessionContextKey, subject, appId, inboundAuth,
+                    retryAttemptCounter + 1);
         }
-        throw new UserSessionException("Error while storing Application session data in the database for subject: "
-                + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".");
     }
 
     /**
