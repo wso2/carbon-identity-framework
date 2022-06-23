@@ -23,11 +23,11 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
-        <version>5.20.436</version>
+        <version>5.20.437-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.api.server.entitlement</artifactId>
-    <version>5.20.436</version>
+    <version>5.20.437-SNAPSHOT</version>
     <name>WSO2 Carbon - Entitlement REST API</name>
     <packaging>jar</packaging>
 
