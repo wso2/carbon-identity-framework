@@ -11,6 +11,8 @@ DECLARE @deletedSessionAppInfo INT;
 DECLARE @deletedOperationalSessionAppInfo INT;
 DECLARE @deletedSessionMetadata INT;
 DECLARE @deletedOperationalSessionMetadata INT;
+DECLARE @deletedFederatedSessionMappings INT;
+DECLARE @deletedOperationalFederatedSessionMappings INT;
 DECLARE @deletedStoreOperations INT;
 DECLARE @deletedDeleteOperations INT;
 DECLARE @sessionCleanupCount INT;
@@ -20,6 +22,8 @@ DECLARE @sessionAppInfoCleanupCount INT;
 DECLARE @operationalSessionAppInfoCleanupCount INT;
 DECLARE @sessionMetadataCleanupCount INT;
 DECLARE @operationalSessionMetadataCleanupCount INT;
+DECLARE @sessionFederatedMappingsCleanupCount INT;
+DECLARE @operationalFederatedSessionMappingsCleanupCount INT;
 DECLARE @operationCleanupCount INT;
 DECLARE @tracingEnabled INT;
 DECLARE @sleepTime AS VARCHAR(12);
@@ -49,6 +53,8 @@ SET @deletedSessionAppInfo = 0;
 SET @deletedOperationalSessionAppInfo = 0;
 SET @deletedSessionMetadata = 0;
 SET @deletedOperationalSessionMetadata = 0;
+SET @deletedFederatedSessionMappings = 0;
+SET @deletedOperationalFederatedSessionMappings = 1;
 SET @deletedStoreOperations = 0;
 SET @deletedDeleteOperations = 0;
 SET @sessionCleanupCount = 1;
@@ -58,6 +64,8 @@ SET @sessionAppInfoCleanupCount = 1;
 SET @operationalSessionAppInfoCleanupCount = 1;
 SET @sessionMetadataCleanupCount = 1;
 SET @operationalSessionMetadataCleanupCount = 1;
+SET @sessionFederatedMappingsCleanupCount = 1;
+SET @operationalFederatedSessionMappingsCleanupCount = 1;
 SET @operationCleanupCount = 1;
 SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
 SET @sleepTime = '00:00:02.000';          -- Sleep time in seconds.
@@ -171,6 +179,22 @@ BEGIN
     END;
 END
 
+-- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_FED_AUTH_SESSION_MAPPING'))
+BEGIN
+    DELETE A
+    FROM IDN_FED_AUTH_SESSION_MAPPING AS A
+             INNER JOIN TEMP_SESSION_BATCH AS B ON A.SESSION_ID = B.SESSION_ID;
+    SET @sessionFederatedMappingsCleanupCount = @@ROWCOUNT;
+    SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED FEDERATED SESSION MAPPINGS ...!!' AS 'INFO LOG', @sessionFederatedMappingsCleanupCount;
+
+    IF (@tracingEnabled=1)
+    BEGIN
+        SET @deletedFederatedSessionMappings = @deletedFederatedSessionMappings + @sessionFederatedMappingsCleanupCount;
+        SELECT '[' + convert(varchar, getdate(), 121) + '] REMOVED FEDERATED SESSION MAPPINGS: ' AS 'INFO LOG', @deletedFederatedSessionMappings AS 'NO OF DELETED ENTRIES';
+    END;
+END
+
 DELETE A
 FROM IDN_AUTH_SESSION_STORE_TMP AS A
 INNER JOIN TEMP_SESSION_BATCH AS B
@@ -202,6 +226,7 @@ SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION RECORDS REMOVED FROM 
 SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSION_MAPPING: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'TOTAL NO OF DELETED ENTRIES';
 SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_APP_INFO: ' AS 'INFO LOG', @deletedSessionAppInfo AS 'TOTAL NO OF DELETED ENTRIES';
 SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_META_DATA: ' AS 'INFO LOG', @deletedSessionMetadata AS 'TOTAL NO OF DELETED ENTRIES';
+SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION RECORDS REMOVED FROM IDN_FED_AUTH_SESSION_MAPPING: ' AS 'INFO LOG', @deletedFederatedSessionMappings AS 'TOTAL NO OF DELETED ENTRIES';
 END;
 
 SELECT '[' + convert(varchar, getdate(), 121) + '] SESSION_CLEANUP_TASK ENDED .... !' AS 'INFO LOG';
@@ -296,6 +321,22 @@ BEGIN
     END;
 END
 
+-- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_FED_AUTH_SESSION_MAPPING'))
+BEGIN
+    DELETE A
+    FROM IDN_FED_AUTH_SESSION_MAPPING AS A
+             INNER JOIN TEMP_SESSION_BATCH AS B ON A.SESSION_ID = B.SESSION_ID;
+    SET @operationalFederatedSessionMappingsCleanupCount = @@ROWCOUNT;
+    SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED FEDERATED SESSION MAPPINGS ...!!' AS 'INFO LOG', @operationalSessionMappingsCleanupCount;
+
+    IF (@tracingEnabled=1)
+    BEGIN
+        SET @deletedOperationalFederatedSessionMappings = @deletedOperationalFederatedSessionMappings + @operationalFederatedSessionMappingsCleanupCount;
+        SELECT '[' + convert(varchar, getdate(), 121) + '] REMOVED FEDERATED SESSION MAPPING RECORDS: ' AS 'INFO LOG', @deletedOperationalFederatedSessionMappings AS 'NO OF DELETED STORE ENTRIES';
+    END;
+END
+
 IF (@tracingEnabled=1)
 BEGIN
 SET @deletedDeleteOperations = @operationCleanupCount + @deletedDeleteOperations;
@@ -333,6 +374,7 @@ SELECT '[' + convert(varchar, getdate(), 121) + '] DELETE OPERATION RECORDS REMO
 SELECT '[' + convert(varchar, getdate(), 121) + '] DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSION_MAPPING: ' AS 'INFO LOG', @deletedOperationalUserSessionMappings AS 'TOTAL NO OF DELETED DELETE ENTRIES';
 SELECT '[' + convert(varchar, getdate(), 121) + '] DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_APP_INFO: ' AS 'INFO LOG', @deletedOperationalSessionAppInfo AS 'TOTAL NO OF DELETED DELETE ENTRIES';
 SELECT '[' + convert(varchar, getdate(), 121) + '] DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_META_DATA: ' AS 'INFO LOG', @deletedOperationalSessionMetadata AS 'TOTAL NO OF DELETED DELETE ENTRIES';
+SELECT '[' + convert(varchar, getdate(), 121) + '] DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_FED_AUTH_SESSION_MAPPING: ' AS 'INFO LOG', @deletedOperationalFederatedSessionMappings AS 'TOTAL NO OF DELETED DELETE ENTRIES';
 END;
 
 SET @SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
