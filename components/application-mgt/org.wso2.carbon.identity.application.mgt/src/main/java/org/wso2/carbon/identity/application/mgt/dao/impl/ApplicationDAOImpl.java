@@ -2158,6 +2158,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     applicationId, connection, tenantID);
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
+            /* Remove sp properties that are already added either as first class props or part of
+             advancedConfigurations .*/
             removeSpPropertiesFromAdditionalProps(propertyList);
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
@@ -2185,10 +2187,47 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private void removeSpPropertiesFromAdditionalProps(List<ServiceProviderProperty> propertyList) {
 
+        /*These properties are either first class or part of advanced configurations and hence removing
+        them as they can't be packed as a part of additional sp properties again.*/
         propertyList.removeIf(property -> SKIP_CONSENT.equals(property.getName()));
         propertyList.removeIf(property -> SKIP_LOGOUT_CONSENT.equals(property.getName()));
         propertyList.removeIf(property -> USE_DOMAIN_IN_ROLES.equals(property.getName()));
         propertyList.removeIf(property -> USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(property.getName()));
+        propertyList.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
+        propertyList.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
+    }
+
+    public ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
+                                                                      List <String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try {
+            // Load basic application data
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (CollectionUtils.isNotEmpty(requiredAttributes)) {
+                List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+                for (String requiredAttribute : requiredAttributes) {
+                    if (requiredAttribute.equals("templateId")) {
+                        serviceProvider.setTemplateId(getTemplateId(propertyList));
+                    }
+                    if (requiredAttribute.equals("advancedConfigurations")) {
+                        readAndSetConfigurationsFromProperties(propertyList,
+                                serviceProvider.getLocalAndOutBoundAuthenticationConfig());
+                        removeSpPropertiesFromAdditionalProps(propertyList);
+                        serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
+                        serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+                    }
+
+                }
+            }
+            return serviceProvider;
+        } catch (SQLException | CertificateRetrievingException e) {
+            throw new IdentityApplicationManagementException("Failed to gather required attributes for application " +
+                        "with id: " + applicationId, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
     }
 
     private boolean getIsManagementApp(List<ServiceProviderProperty> propertyList) {
@@ -2198,7 +2237,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
-        propertyList.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
         if (StringUtils.EMPTY.equals(value)) {
             return true;
         }
@@ -2207,13 +2245,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private String getTemplateId(List<ServiceProviderProperty> propertyList) {
 
-        String templateId =  propertyList.stream()
+        return propertyList.stream()
                 .filter(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
-         propertyList.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
-         return templateId;
     }
 
     private String getJwksUri(List<ServiceProviderProperty> propertyList) {

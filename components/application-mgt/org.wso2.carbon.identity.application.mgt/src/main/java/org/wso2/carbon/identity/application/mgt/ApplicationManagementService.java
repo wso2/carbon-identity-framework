@@ -230,6 +230,18 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
+     * Export Service Provider application with required attributes.
+     *
+     * @param applicationId      ID of the SP
+     * @param requiredAttributes List of required attributes.
+     * @return SP with required attributes attached.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
+                                                                         List<String> requiredAttributes)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Export Service Provider application using application ID.
      *
      * @param applicationId ID of the SP
