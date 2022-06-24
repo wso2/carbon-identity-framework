@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.framework.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;

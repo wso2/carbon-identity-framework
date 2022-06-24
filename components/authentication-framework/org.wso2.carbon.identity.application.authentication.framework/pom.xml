@@ -140,20 +140,22 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.framework.testutil</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -203,9 +205,10 @@
             <artifactId>org.wso2.carbon.identity.handler.event.account.lock</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.orbit.openjdk.nashorn</groupId>
-            <artifactId>openjdk-nashorn</artifactId>
-            <version>${openjdk.nashorn.wso2.version}</version>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.3</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

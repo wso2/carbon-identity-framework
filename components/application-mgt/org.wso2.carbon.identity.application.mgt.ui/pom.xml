@@ -75,6 +75,10 @@
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt.stub</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.consent.mgt</groupId>
             <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
         </dependency>
@@ -117,6 +121,7 @@
                             org.wso2.carbon.user.mgt.stub.types.carbon; version="${carbon.identity.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.authentication.framework.stub; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.dto.xsd.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.stub; version="${carbon.identity.package.import.version.range}",

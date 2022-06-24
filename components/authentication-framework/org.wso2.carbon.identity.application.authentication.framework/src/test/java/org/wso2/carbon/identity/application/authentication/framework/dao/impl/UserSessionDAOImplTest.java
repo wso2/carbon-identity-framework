@@ -26,9 +26,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
-import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.framework.common.testng.WithH2Database;
+import org.wso2.carbon.identity.framework.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;

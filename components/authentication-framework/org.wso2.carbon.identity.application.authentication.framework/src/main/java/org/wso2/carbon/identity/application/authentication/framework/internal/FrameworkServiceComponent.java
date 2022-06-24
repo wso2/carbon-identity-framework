@@ -214,7 +214,13 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+        if (FrameworkUtils.isOpenJDKNashornAvailable()) {
+            log.info("is Adaptive Authentication Enable : True");
+            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+            JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
+            jsGraphBuilderFactory.init();
+            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        }
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
         bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
@@ -283,11 +289,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
-        dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);

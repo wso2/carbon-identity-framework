@@ -43,12 +43,12 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
-import org.wso2.carbon.identity.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.common.testng.WithKeyStore;
-import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.framework.common.testng.WithAxisConfiguration;
+import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.framework.common.testng.WithH2Database;
+import org.wso2.carbon.identity.framework.common.testng.WithKeyStore;
+import org.wso2.carbon.identity.framework.common.testng.WithRealmService;
+import org.wso2.carbon.identity.framework.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
@@ -66,8 +66,6 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.ArgumentMatchers.anyObject;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNull;

@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
-import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
-import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
+import static org.wso2.carbon.identity.framework.testutil.Whitebox.setInternalState;
 
 @PrepareForTest({IdentityTenantUtil.class, ClaimMetadataEventPublisherProxy.class})
 @PowerMockIgnore("jdk.internal.reflect.*")

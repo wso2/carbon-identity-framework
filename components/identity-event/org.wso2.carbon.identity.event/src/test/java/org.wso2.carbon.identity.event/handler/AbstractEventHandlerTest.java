@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.identity.framework.testutil.IdentityBaseTest;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
