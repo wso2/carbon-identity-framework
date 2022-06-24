@@ -359,7 +359,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
        return new Object[][]{
                {new String[]{PERMISSION, ""}, 1},
                {new String[]{}, 0}
-
        };
     }
 

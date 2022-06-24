@@ -2417,6 +2417,23 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    /**
+     * To check OpenJDK Nashorn is availability.
+     *
+     * @return AdaptiveAuthentication Enabled or not.
+     */
+    public static boolean isOpenJDKNashornAvailable() {
+
+        boolean isOpenJDKNashornAvailable = false;
+        try {
+            Class.forName("org.openjdk.nashorn.api.scripting.ScriptObjectMirror");
+            isOpenJDKNashornAvailable = true;
+            return isOpenJDKNashornAvailable;
+        } catch (ClassNotFoundException e) {
+            return isOpenJDKNashornAvailable;
+        }
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;

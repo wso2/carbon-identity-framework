@@ -22,7 +22,7 @@ import com.google.gson.JsonParseException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.identity.framework.testutil.IdentityBaseTest;
 
 public class JSONRequestParserTest extends IdentityBaseTest {
 

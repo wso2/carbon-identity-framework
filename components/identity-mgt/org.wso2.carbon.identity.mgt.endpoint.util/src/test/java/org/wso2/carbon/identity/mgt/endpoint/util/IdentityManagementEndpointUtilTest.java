@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.testutil.Whitebox;
+import org.wso2.carbon.identity.framework.testutil.Whitebox;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;

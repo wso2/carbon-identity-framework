@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.identity.framework.testutil.IdentityBaseTest;
 
 import java.io.IOException;
 import java.util.UUID;

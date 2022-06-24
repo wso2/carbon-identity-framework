@@ -44,8 +44,6 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
-import static org.mockito.ArgumentMatchers.anyString;
-
 /**
  * Mock initial context factory to be used to supply Datasource, etc.
  */
@@ -66,7 +64,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
                 String name = (String) invocationOnMock.getArguments()[0];
                 return getDatasource(name);
             }
-        }).when(context).lookup(anyString());
+        }).when(context).lookup(Mockito.anyString());
 
         return context;
     }
