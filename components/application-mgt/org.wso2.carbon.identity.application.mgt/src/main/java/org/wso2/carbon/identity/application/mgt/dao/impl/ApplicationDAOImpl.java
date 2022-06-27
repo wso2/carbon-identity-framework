@@ -2160,8 +2160,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             /* Remove sp properties that are already added either as first class props or part of
              advancedConfigurations .*/
-            removeSpPropertiesFromAdditionalProps(propertyList);
-            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
+            serviceProvider.setSpProperties(removeAndSetSpProperties(propertyList)
+                            .toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Will be supported with 'Advance Consent Management Feature'.
@@ -2185,16 +2185,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private void removeSpPropertiesFromAdditionalProps(List<ServiceProviderProperty> propertyList) {
+    private List<ServiceProviderProperty> removeAndSetSpProperties(List<ServiceProviderProperty> propertyList) {
 
-        /*These properties are either first class or part of advanced configurations and hence removing
+        /* These properties are either first class or part of advanced configurations and hence removing
         them as they can't be packed as a part of additional sp properties again.*/
-        propertyList.removeIf(property -> SKIP_CONSENT.equals(property.getName()));
-        propertyList.removeIf(property -> SKIP_LOGOUT_CONSENT.equals(property.getName()));
-        propertyList.removeIf(property -> USE_DOMAIN_IN_ROLES.equals(property.getName()));
-        propertyList.removeIf(property -> USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(property.getName()));
-        propertyList.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
-        propertyList.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
+        List<ServiceProviderProperty> copiedProps = new ArrayList<>();
+        for (ServiceProviderProperty serviceProviderProp: propertyList) {
+            // copy, remove and then set, not to tangle with if requested properties have any of these specifically.
+            copiedProps.add(serviceProviderProp);
+        }
+        copiedProps.removeIf(property -> SKIP_CONSENT.equals(property.getName()));
+        copiedProps.removeIf(property -> SKIP_LOGOUT_CONSENT.equals(property.getName()));
+        copiedProps.removeIf(property -> USE_DOMAIN_IN_ROLES.equals(property.getName()));
+        copiedProps.removeIf(property -> USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(property.getName()));
+        copiedProps.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
+        copiedProps.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
+        return copiedProps;
     }
 
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
@@ -2208,17 +2214,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (CollectionUtils.isNotEmpty(requiredAttributes)) {
                 List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
                 for (String requiredAttribute : requiredAttributes) {
-                    if (requiredAttribute.equals("templateId")) {
-                        serviceProvider.setTemplateId(getTemplateId(propertyList));
-                    }
                     if (requiredAttribute.equals("advancedConfigurations")) {
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
-                        removeSpPropertiesFromAdditionalProps(propertyList);
-                        serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
+                        serviceProvider.setSpProperties(removeAndSetSpProperties(propertyList)
+                                        .toArray(new ServiceProviderProperty[0]));
                         serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
                     }
-
+                    if (requiredAttribute.equals("templateId")) {
+                        serviceProvider.setTemplateId(getTemplateId(propertyList));
+                    }
                 }
             }
             return serviceProvider;
