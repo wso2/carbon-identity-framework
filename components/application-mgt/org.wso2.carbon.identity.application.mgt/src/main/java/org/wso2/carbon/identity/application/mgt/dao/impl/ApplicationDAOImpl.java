@@ -2203,8 +2203,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return copiedProps;
     }
 
-    public ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
-                                                                      List <String> requiredAttributes)
+    public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);

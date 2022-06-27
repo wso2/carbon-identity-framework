@@ -281,8 +281,7 @@ public interface ApplicationDAO {
         return false;
     }
 
-    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
-                                                                List <String> requiredAttributes)
+    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
         return new ServiceProvider();
