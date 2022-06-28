@@ -2203,6 +2203,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return copiedProps;
     }
 
+    @Override
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
