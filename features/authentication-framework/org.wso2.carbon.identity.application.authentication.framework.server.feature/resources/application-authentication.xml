@@ -160,9 +160,9 @@
            -->
        </AuthenticatorConfig>
        <AuthenticatorConfig name="SMSOTP" enabled="true">
-           <Parameter name="SMSOTPAuthenticationEndpointURL">smsotpauthenticationendpoint/smsotp.jsp</Parameter>
-           <Parameter name="SMSOTPAuthenticationEndpointErrorPage">smsotpauthenticationendpoint/smsotpError.jsp</Parameter>
-           <Parameter name="MobileNumberRegPage">smsotpauthenticationendpoint/mobile.jsp</Parameter>
+           <Parameter name="SMSOTPAuthenticationEndpointURL">authenticationendpoint/smsOtp.jsp</Parameter>
+           <Parameter name="SMSOTPAuthenticationEndpointErrorPage">authenticationendpoint/smsOtpError.jsp</Parameter>
+           <Parameter name="MobileNumberRegPage">authenticationendpoint/mobile.jsp</Parameter>
            <Parameter name="RetryEnable">true</Parameter>
            <Parameter name="ResendEnable">true</Parameter>
            <Parameter name="BackupCode">true</Parameter>

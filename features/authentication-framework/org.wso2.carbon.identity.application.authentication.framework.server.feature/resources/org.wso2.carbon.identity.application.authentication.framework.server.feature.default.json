@@ -159,9 +159,9 @@
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "smsotpauthenticationendpoint/smsotp.jsp",
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "smsotpauthenticationendpoint/smsotpError.jsp",
-  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "smsotpauthenticationendpoint/mobile.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "authenticationendpoint/smsOtp.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "authenticationendpoint/smsOtpError.jsp",
+  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "authenticationendpoint/mobile.jsp",
   "authentication.authenticator.sms_otp.parameters.RetryEnable": true,
   "authentication.authenticator.sms_otp.parameters.ResendEnable": true,
   "authentication.authenticator.sms_otp.parameters.BackupCode": true,
