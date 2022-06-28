@@ -526,7 +526,7 @@
                 <!-- sectionSub Div -->
                 <br/>
                 <%
-                    if(FrameworkUtils.isOpenJDKNashornAvailable()) {
+                    if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
                 %>
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Script Based Adaptive Authentication</a>

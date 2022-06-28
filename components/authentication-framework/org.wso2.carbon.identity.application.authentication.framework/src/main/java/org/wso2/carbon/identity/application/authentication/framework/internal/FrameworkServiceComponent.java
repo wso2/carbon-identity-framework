@@ -214,7 +214,7 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        if (FrameworkUtils.isOpenJDKNashornAvailable()) {
+        if (FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
             log.info("is Adaptive Authentication Enable : True");
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
