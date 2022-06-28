@@ -21,7 +21,7 @@
     <parent>
         <artifactId>functions-library-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.20.441</version>
+        <version>5.20.442-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
