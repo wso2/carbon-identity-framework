@@ -1093,6 +1093,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
         <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>
+
+        <!--
+             If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+             then enable this property value.
+             Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+             Default value : false
+             Supported versions : IS 5.10.0 onwards
+        -->
+        <ConsiderTotalRecordsForTotalResultOfLDAP>{{scim2.consider_total_records_for_total_results_of_ldap}}</ConsiderTotalRecordsForTotalResultOfLDAP>
+
     </SCIM2>
 
       <Recovery>
