@@ -2422,15 +2422,15 @@ public class FrameworkUtils {
      *
      * @return AdaptiveAuthentication Enabled or not.
      */
-    public static boolean isOpenJDKNashornAvailable() {
+    public static boolean isAdaptiveAuthenticationAvailable() {
 
-        boolean isOpenJDKNashornAvailable = false;
+        boolean isAdaptiveAuthenticationAvailable = false;
         try {
             Class.forName("org.openjdk.nashorn.api.scripting.ScriptObjectMirror");
-            isOpenJDKNashornAvailable = true;
-            return isOpenJDKNashornAvailable;
+            isAdaptiveAuthenticationAvailable = true;
+            return isAdaptiveAuthenticationAvailable;
         } catch (ClassNotFoundException e) {
-            return isOpenJDKNashornAvailable;
+            return isAdaptiveAuthenticationAvailable;
         }
     }
 
