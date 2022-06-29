@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.common.testng;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -64,7 +65,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
                 String name = (String) invocationOnMock.getArguments()[0];
                 return getDatasource(name);
             }
-        }).when(context).lookup(Mockito.anyString());
+        }).when(context).lookup(Matchers.anyString());
 
         return context;
     }
