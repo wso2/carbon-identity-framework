@@ -454,6 +454,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             String implId=workflow.getWorkflowImplId();
         if (implId.equals("workflowImplSimple")) {
             workflowDAO.removeWorkflowFromImpl(workflowId);
+            WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+            workflowDAO.removeWorkflowParams(workflowId);
+            workflowDAO.removeWorkflow(workflowId);
         } else {
     List<WorkflowListener> workflowListenerList =
             WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
