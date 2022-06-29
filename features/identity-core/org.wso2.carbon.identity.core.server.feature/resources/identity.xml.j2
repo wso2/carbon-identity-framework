@@ -283,6 +283,8 @@
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
+        <!-- Enable password expiry enforcement for Oauth2 Password Grant flow-->
+        <EnablePasswordResetEnforcement>{{oauth.enable_password_reset_enforcement}}</EnablePasswordResetEnforcement>
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             {% if oauth.response_type.token.enable is sameas true %}
