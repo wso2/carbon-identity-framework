@@ -42,7 +42,6 @@
 				<AttributeID>organizationName</AttributeID>
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -94,7 +93,6 @@
 				<AttributeID>im</AttributeID>
 				<Description>IM</Description>
 				<DisplayOrder>9</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/url</ClaimURI>
@@ -102,7 +100,6 @@
 				<AttributeID>url</AttributeID>
 				<Description>URL</Description>
 				<DisplayOrder>10</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/gender</ClaimURI>
