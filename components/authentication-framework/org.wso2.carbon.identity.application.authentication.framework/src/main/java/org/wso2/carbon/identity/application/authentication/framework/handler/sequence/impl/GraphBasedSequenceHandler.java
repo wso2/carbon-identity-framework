@@ -359,6 +359,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     // Create error key and add failure data set in the script to AuthenticationError and add to cache.
                     String errorKey = UUID.randomUUID().toString();
                     uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    String sessionDataKey = UUID.randomUUID().toString();
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SESSION_DATA_KEY, sessionDataKey);
                     Map<String, String> failureData = node.getFailureData();
                     failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
                     AuthenticationError authenticationError = new AuthenticationError(failureData);
