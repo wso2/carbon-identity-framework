@@ -100,7 +100,7 @@
 				<AttributeID>url</AttributeID>
 				<Description>URL</Description>
 				<DisplayOrder>10</DisplayOrder>
-				<SupportedByDefault/>
+				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/gender</ClaimURI>
