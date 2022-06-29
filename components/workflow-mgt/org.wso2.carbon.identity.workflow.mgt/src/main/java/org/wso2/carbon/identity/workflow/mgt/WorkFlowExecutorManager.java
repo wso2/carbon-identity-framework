@@ -117,15 +117,9 @@ public class WorkFlowExecutorManager {
                     WorkflowRequest requestToSend = workFlowRequest.clone();
                     requestToSend.setUuid(relationshipId);
                     Workflow workflow = workflowDAO.getWorkflow(association.getWorkflowId());
-                    workflow.setWorkflowImplId("newWorkflowImpl");
-                    workflow.setTemplateId("MultiStepApprovalTemplate");
                     AbstractWorkflow templateImplementation = WorkflowServiceDataHolder.getInstance()
                             .getWorkflowImpls().get(workflow.getTemplateId()).get(workflow.getWorkflowImplId());
                     List<Parameter> parameterList = workflowDAO.getWorkflowParams(association.getWorkflowId());
-                    Parameter parameter=new Parameter();
-                    parameter.setParamName("workflowRequestID");
-                    parameter.setParamValue(workFlowRequest.getUuid());
-                    parameterList.add(parameter);
                     templateImplementation.execute(requestToSend, parameterList);
                     workflowRequestAssociationDAO.addNewRelationship(relationshipId, association.getWorkflowId(),
                             workFlowRequest

@@ -122,6 +122,7 @@ public class SQLConstants {
     public static final String DELETE_WORKFLOW_QUERY = "DELETE FROM WF_WORKFLOW WHERE ID = ?";
 
     public static final String DELETE_WORKFLOW_BY_TENANT_ID_QUERY = "DELETE FROM WF_WORKFLOW WHERE TENANT_ID = ?";
+    public static final String DELETE_WORKFLOW_FROM_IMPL = "DELETE FROM WF_WORKFLOW WHERE ID=?";
 
     public static final String ASSOCIATE_WF_TO_EVENT = "INSERT INTO WF_WORKFLOW_ASSOCIATION(EVENT_ID, ASSOC_NAME, " +
             "ASSOC_CONDITION, WORKFLOW_ID) VALUES (?, ?, ?, ?)";

@@ -157,6 +157,20 @@ public class WorkflowDAO {
         }
     }
 
+    public void removeWorkflowFromImpl(String workflowId) throws InternalWorkflowException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants
+                    .DELETE_WORKFLOW_FROM_IMPL)) {
+                prepStmt.setString(1, workflowId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        }
+    }
+
     /**
      * Update current workflow
      *
