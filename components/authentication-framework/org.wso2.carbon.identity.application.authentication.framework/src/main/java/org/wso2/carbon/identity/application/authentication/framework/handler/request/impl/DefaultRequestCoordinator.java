@@ -51,9 +51,11 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
@@ -368,7 +370,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (responseWrapper.isRedirect()) {
             String redirectURL;
-            if (context != null) {
+            if (context != null && (context.getExternalIdP() == null ||
+                    context.getExternalIdP().getIdPName().equals("LOCAL"))) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
             } else {
@@ -841,15 +844,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             outboundQueryStringBuilder.append("&");
         }
 
+        String appName = context.getServiceProviderName();
+        String tenantDomain = context.getTenantDomain();
+
         try {
+            ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
+                    .getServiceProvider(appName, tenantDomain);
             outboundQueryStringBuilder.append("sessionDataKey=").append(context.getContextIdentifier())
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8"))
                     .append("&type=").append(context.getRequestType()).append("&")
                     .append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
-                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
+                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&")
+                    .append(FrameworkConstants.REQUEST_PARAM_SP_ID).append("=")
+                    .append(URLEncoder.encode(serviceProvider.getApplicationResourceId(), "UTF-8"))
+                    .append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
             throw new FrameworkException("Error while URL Encoding", e);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException("Error while getting service provider", e);
         }
 
         if (log.isDebugEnabled()) {

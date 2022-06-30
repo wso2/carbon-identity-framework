@@ -46,6 +46,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols.OAUTH2;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.StandardInboundProtocols.SAML2;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REQUEST_PARAM_APPLICATION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REQUEST_PARAM_APPLICATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getConsoleURL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getMyAccountURL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -65,12 +66,13 @@ public class LoginContextManagementUtil {
         String sessionDataKey = request.getParameter("sessionDataKey");
         String relyingParty = request.getParameter("relyingParty");
         String applicationName = request.getParameter(REQUEST_PARAM_APPLICATION);
+        String applicationId = request.getParameter(REQUEST_PARAM_APPLICATION_ID);
         String tenantDomain = getTenantDomain(request);
 
         JsonObject result = new JsonObject();
         response.setContentType(TYPE_APPLICATION_JSON);
         if (StringUtils.isBlank(sessionDataKey) || (StringUtils.isBlank (applicationName) && StringUtils.isBlank
-                (relyingParty))) {
+                (applicationId) && StringUtils.isBlank (relyingParty))) {
             if (log.isDebugEnabled()) {
                 log.debug("Required data to proceed is not available in the request.");
             }
@@ -96,9 +98,14 @@ public class LoginContextManagementUtil {
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving redirect url for the requested application:" + applicationName
-                        + " relying party: " + relyingParty +  " for sessionDataKey: " +  sessionDataKey);
+                        + " relying party: " + relyingParty + " for sessionDataKey: " + sessionDataKey);
             }
-            String redirectUrl = getRedirectURL(applicationName, relyingParty, tenantDomain, request);
+            String redirectUrl;
+            if (applicationId != null) {
+                redirectUrl = getRedirectURLFromAppId(applicationId, relyingParty, tenantDomain, request);
+            } else {
+                redirectUrl = getRedirectURL(applicationName, relyingParty, tenantDomain, request);
+            }
             if (StringUtils.isBlank(redirectUrl)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Unable to obtain a redirect URL for the application: " + applicationName + "or " +
@@ -164,7 +171,34 @@ public class LoginContextManagementUtil {
     }
 
     /**
+     * Get the redirect URL for the application id.
+     *
+     * @param appId
+     * @param tenantDomain
+     * @return
+     */
+    private static String getRedirectURLFromAppId(String appId, String relyingParty, String tenantDomain,
+                                                  HttpServletRequest request) {
+
+        String redirectUrl = null;
+        if (StringUtils.isNotEmpty(appId)) {
+            String accessURLFromApplication = getAccessURLFromApplicationId(appId, tenantDomain);
+            return replaceURLPlaceholders(accessURLFromApplication, request);
+        } else if (StringUtils.isNotEmpty(relyingParty)) {
+            // If application is not sent in the request, retrieve the URL via the relying party configuration
+            // for the backward compatibility
+            if (log.isDebugEnabled()) {
+                log.debug("Trying to retrieve the access url using relyingParty: " + relyingParty + " as the " +
+                        "application name is not sent in the request.");
+            }
+            redirectUrl = getRelyingPartyRedirectUrl(relyingParty, tenantDomain);
+        }
+        return redirectUrl;
+    }
+
+    /**
      * Returns the access URL of the application as the redirect url.
+     *
      * @param appName
      * @param tenantDomain
      * @return
@@ -198,6 +232,36 @@ public class LoginContextManagementUtil {
 
         if (log.isDebugEnabled() && StringUtils.isNotEmpty(accessURL)) {
             log.debug("Access URL is: " + accessURL + " for the the application: " + appName + " in tenant: "
+                    + tenantDomain);
+        }
+        return accessURL;
+    }
+
+    /**
+     * Returns the access URL of the application as the redirect url.
+     *
+     * @param appResourceId
+     * @param tenantDomain
+     * @return
+     */
+    public static String getAccessURLFromApplicationId(String appResourceId, String tenantDomain) {
+
+        ServiceProvider sp;
+        String accessURL = null;
+        try {
+            appResourceId = URLDecoder.decode(appResourceId, "UTF-8");
+            sp = ApplicationManagementService.getInstance().getApplicationByResourceId(appResourceId, tenantDomain);
+            if (sp != null) {
+                accessURL = sp.getAccessUrl();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Unable to retrieve an application with resource id: " + appResourceId, e);
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error while decoding application resource id: " + appResourceId, e);
+        }
+
+        if (log.isDebugEnabled() && StringUtils.isNotEmpty(accessURL)) {
+            log.debug("Access URL is: " + accessURL + " for the the application: " + appResourceId + " in tenant: "
                     + tenantDomain);
         }
         return accessURL;

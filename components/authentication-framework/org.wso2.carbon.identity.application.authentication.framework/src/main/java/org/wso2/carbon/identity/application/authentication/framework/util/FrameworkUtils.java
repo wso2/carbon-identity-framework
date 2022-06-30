@@ -199,6 +199,8 @@ public class FrameworkUtils {
     public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
     public static final String REQUEST_PARAM_APPLICATION = "application";
+
+    public static final String REQUEST_PARAM_APPLICATION_ID = "applicationId";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
