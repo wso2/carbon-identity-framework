@@ -106,6 +106,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
@@ -2192,13 +2193,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (CollectionUtils.isNotEmpty(requiredAttributes)) {
                 List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
                 for (String requiredAttribute : requiredAttributes) {
-                    if (requiredAttribute.equals("advancedConfigurations")) {
+                    if (ADVANCED_CONFIG.equals(requiredAttribute)) {
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
                         serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
                         serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
                     }
-                    if (requiredAttribute.equals("templateId")) {
+                    if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
                     }
                 }
