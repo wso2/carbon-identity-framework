@@ -1133,6 +1133,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    @Override
+    public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+    }
+
     /**
      * @param appId
      * @return
