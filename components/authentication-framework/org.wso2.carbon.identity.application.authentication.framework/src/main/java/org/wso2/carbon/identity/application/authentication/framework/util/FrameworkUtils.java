@@ -207,8 +207,6 @@ public class FrameworkUtils {
     private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
 
-    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
-
     private FrameworkUtils() {
     }
 
@@ -2427,21 +2425,6 @@ public class FrameworkUtils {
     public static boolean isAdaptiveAuthenticationAvailable() {
 
         return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
-    }
-
-    /**
-     * This method is to check Adaptive authentication is availability.
-     *
-     * @return AdaptiveAuthentication Available or not.
-     */
-    public static boolean checkAdaptiveAuthenticationAvailable() {
-
-        try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     public static boolean promptOnLongWait() {
