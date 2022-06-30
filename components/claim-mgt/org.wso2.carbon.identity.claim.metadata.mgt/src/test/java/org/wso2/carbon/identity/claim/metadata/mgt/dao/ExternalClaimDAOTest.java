@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
-import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.framework.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -24,11 +24,11 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
-import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.framework.common.testng.WithH2Database;
-import org.wso2.carbon.identity.framework.common.testng.WithRealmService;
-import org.wso2.carbon.identity.framework.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;

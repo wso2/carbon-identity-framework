@@ -47,7 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
 import java.util.UUID;

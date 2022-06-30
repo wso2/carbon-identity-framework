@@ -35,11 +35,6 @@ public class CacheBackedProvisioningMgtDAO {
 
     private ProvisioningEntityCache provisioningEntityCache = null;
 
-    public CacheBackedProvisioningMgtDAO() {
-        this.provisioningMgtDAO = null;
-        this.provisioningEntityCache = null;
-    }
-
     /**
      * @param provisioningManagementDAO
      */

@@ -181,8 +181,6 @@ public abstract class FrameworkConstants {
     public static final String H2 = "H2";
     public static final String ORACLE = "Oracle";
 
-    public static final String ENABLE_ADAPTIVE_AUTHENTICATION = "AdaptiveAuthentication.Enable";
-
     private FrameworkConstants() {
 
     }

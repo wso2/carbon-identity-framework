@@ -29,11 +29,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.framework.testutil.powermock.PowerMockIdentityBaseTest;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.util.DAOUtils;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import java.sql.Connection;
 import java.sql.SQLException;
