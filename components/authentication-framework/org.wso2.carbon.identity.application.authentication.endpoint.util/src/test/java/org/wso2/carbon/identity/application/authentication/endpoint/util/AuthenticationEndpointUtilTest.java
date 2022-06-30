@@ -175,6 +175,8 @@ public class AuthenticationEndpointUtilTest {
     public Object[][] isValidURLData() {
 
         return new Object[][]{
+                // Todo : following test case is failing for JDK 11 support. Ref: @thumimku
+                // we will fix it later.
 //                {"/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
                 {"https://localhost:9443/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
                 {"javascript:alert(document.domain)", false},

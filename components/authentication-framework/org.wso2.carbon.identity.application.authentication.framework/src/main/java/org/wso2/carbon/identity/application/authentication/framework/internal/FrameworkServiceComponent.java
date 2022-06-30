@@ -138,6 +138,7 @@ public class FrameworkServiceComponent {
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
+    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
     private String requireCode;
@@ -214,7 +215,7 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        if (FrameworkUtils.checkAdaptiveAuthenticationAvailable()) {
+        if (checkAdaptiveAuthenticationAvailable()) {
             dataHolder.setAdaptiveAuthenticationAvailable(true);
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
@@ -942,5 +943,20 @@ public class FrameworkServiceComponent {
     protected void unsetSessionContextListener(SessionContextMgtListener sessionListener) {
 
         FrameworkServiceDataHolder.getInstance().removeSessionContextMgtListener(sessionListener.getInboundType());
+    }
+
+    /**
+     * This method is to check Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    private boolean checkAdaptiveAuthenticationAvailable() {
+
+        try {
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }
