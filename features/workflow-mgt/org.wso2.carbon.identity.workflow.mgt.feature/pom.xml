@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>workflow-mgt-feature</artifactId>
-        <version>5.20.445-SNAPSHOT</version>
+        <version>5.20.445</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
