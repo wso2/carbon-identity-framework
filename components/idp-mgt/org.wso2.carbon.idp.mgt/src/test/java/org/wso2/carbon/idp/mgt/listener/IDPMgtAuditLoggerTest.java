@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.framework.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 /**
  * Unit tests for IDPMgtAuditLogger.

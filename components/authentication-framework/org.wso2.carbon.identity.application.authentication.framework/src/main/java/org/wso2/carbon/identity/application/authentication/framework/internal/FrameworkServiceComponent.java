@@ -214,12 +214,15 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        if (FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
-            log.info("is Adaptive Authentication Enable : True");
+        if (FrameworkUtils.checkAdaptiveAuthenticationAvailable()) {
+            dataHolder.setAdaptiveAuthenticationAvailable(true);
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
             jsGraphBuilderFactory.init();
             dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        } else {
+            dataHolder.setAdaptiveAuthenticationAvailable(false);
+            log.warn("Adaptive authentication is disabled.");
         }
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);

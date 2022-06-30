@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.event;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.framework.testutil.IdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import static org.testng.Assert.assertNotNull;
 
 
