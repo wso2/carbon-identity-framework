@@ -261,7 +261,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
     public static final String USE_DOMAIN_IN_ROLE_DISPLAY_NAME = "DOMAIN_IN_ROLES";
-    public static final String USE_USER_ID_FOR_DEFAULT_SUBJECT = "useUserIdForDefaultSubject";
 
     public ApplicationDAOImpl() {
 
@@ -2157,6 +2156,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
                     applicationId, connection, tenantID);
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
+
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
