@@ -21,7 +21,7 @@
     <parent>
         <artifactId>central-logger</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.20.445</version>
+        <version>5.20.446-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
