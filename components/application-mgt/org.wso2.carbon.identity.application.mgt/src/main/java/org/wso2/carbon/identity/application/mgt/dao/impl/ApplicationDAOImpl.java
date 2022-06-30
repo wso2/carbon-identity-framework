@@ -2209,7 +2209,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Failed to gather required attributes for application " +
                         "with id: " + applicationId, e);
         } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
+            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
