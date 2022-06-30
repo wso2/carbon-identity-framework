@@ -2157,11 +2157,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
                     applicationId, connection, tenantID);
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
-
-            /* Remove sp properties that are already added either as first class props or part of
-             advancedConfigurations .*/
-            serviceProvider.setSpProperties(removeAndSetSpProperties(propertyList)
-                            .toArray(new ServiceProviderProperty[0]));
+            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Will be supported with 'Advance Consent Management Feature'.
@@ -2185,24 +2181,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private List<ServiceProviderProperty> removeAndSetSpProperties(List<ServiceProviderProperty> propertyList) {
-
-        /* These properties are either first class or part of advanced configurations and hence removing
-        them as they can't be packed as a part of additional sp properties again.*/
-        List<ServiceProviderProperty> copiedProps = new ArrayList<>();
-        for (ServiceProviderProperty serviceProviderProp: propertyList) {
-            // copy, remove and then set, not to tangle with if requested properties have any of these specifically.
-            copiedProps.add(serviceProviderProp);
-        }
-        copiedProps.removeIf(property -> SKIP_CONSENT.equals(property.getName()));
-        copiedProps.removeIf(property -> SKIP_LOGOUT_CONSENT.equals(property.getName()));
-        copiedProps.removeIf(property -> USE_DOMAIN_IN_ROLES.equals(property.getName()));
-        copiedProps.removeIf(property -> USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(property.getName()));
-        copiedProps.removeIf(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()));
-        copiedProps.removeIf(property -> IS_MANAGEMENT_APP_SP_PROPERTY_NAME.equals(property.getName()));
-        return copiedProps;
-    }
-
     @Override
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
@@ -2217,8 +2195,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (requiredAttribute.equals("advancedConfigurations")) {
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
-                        serviceProvider.setSpProperties(removeAndSetSpProperties(propertyList)
-                                        .toArray(new ServiceProviderProperty[0]));
+                        serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
                         serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
                     }
                     if (requiredAttribute.equals("templateId")) {
