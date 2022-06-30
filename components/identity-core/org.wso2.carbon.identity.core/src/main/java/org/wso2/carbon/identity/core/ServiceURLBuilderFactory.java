@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.core;
 
-import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
-
 /**
  * Service URL Builder Factory representation.
  */

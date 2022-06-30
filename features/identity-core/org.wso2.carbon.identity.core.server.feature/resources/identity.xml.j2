@@ -249,7 +249,7 @@
         <OAuth2DCREPUrl>{{oauth.endpoints.oauth2_dcr_url}}</OAuth2DCREPUrl>
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
-
+        <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -739,6 +739,9 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            {% if oauth.oidc.extensions.oauth_authz_request_class is defined %}
+            <OAuthAuthzRequestClass>{{oauth.oidc.extensions.oauth_authz_request_class}}</OAuthAuthzRequestClass>
+            {% endif %}
             {% if oauth.oidc.extensions.ciba_request_object_validator is defined %}
                 <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
             {% endif %}
@@ -877,6 +880,10 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1086,6 +1093,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
         <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>
+
+        <!--
+             If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+             then enable this property value.
+             Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+             Default value : false
+             Supported versions : IS 5.10.0 onwards
+        -->
+        <ConsiderTotalRecordsForTotalResultOfLDAP>{{scim2.consider_total_records_for_total_results_of_ldap}}</ConsiderTotalRecordsForTotalResultOfLDAP>
+
     </SCIM2>
 
       <Recovery>
@@ -1154,7 +1171,7 @@
              <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
              -->
@@ -1269,6 +1286,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
                 <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <EnableVerificationByPrivilegedUser>{{identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user}}</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
                 </VerificationCode>
@@ -1601,18 +1619,28 @@
                 orderId="{{event.default_listener.outbound_provisioning_error_handler.priority}}"
                 enable="{{event.default_listener.outbound_provisioning_error_handler.enable}}">
         </EventListener>
+        {% if analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
+        <EventListener id="authn_data_publisher_proxy"
+               type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
+               name = "org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
+               orderId="11"
+               enable="true"/>
+        {% endif %}
     </EventListeners>
 
-    {% if analytics.publish_active_session_count is defined %}
     <Analytics>
         <!-- By default value of analytics.publish_active_session_count is set to false so that the identity server
         publishes session data to the stream org.wso2.is.analytics.stream.OverallSession:1.0.0.
         When this configuration is enabled, the stream definition org.wso2.is.analytics.stream.OverallSession:1.0.1
         is used and the current active session count of the identity server will be added as an attribute. Enable it
         by setting analytics.publish_active_session_count = true -->
+        {% if analytics.publish_active_session_count is defined %}
         <PublishActiveSessionCount>{{analytics.publish_active_session_count}}</PublishActiveSessionCount>
+        {% endif %}
+        {% if analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
+        <PublishActiveSessionCount>true</PublishActiveSessionCount>
+        {% endif %}
     </Analytics>
-    {% endif %}
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
      file recorder. This recorder is disabled by default. Enable it by setting enable="true". To run these recorders,
@@ -1832,7 +1860,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
@@ -2154,7 +2188,7 @@
         <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
@@ -2330,6 +2364,10 @@
         <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
             <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
             <Scopes>internal_keystore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin</Permissions>
+            <Scopes>SYSTEM</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -2509,6 +2547,54 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/create</Permissions>
+            <Scopes>internal_organization_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
+            <Scopes>internal_organization_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -2681,6 +2767,37 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewrite>
+        <WebApp>
+        {% for organization_context in organization_context.rewrite %}
+        {% for base_path in organization_context.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in organization_context.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
+            <Context>
+                <BasePath>/scim2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
 
@@ -2831,6 +2948,19 @@
             Time configurations are in milliseconds.
         -->
         <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
+
+        <!-- FIDO2 metadata service related configurations -->
+        <MetadataService>
+            <Enable>{{fido.metadata_service.enable}}</Enable>
+            <MDSEndpoints>
+                {% for endpoint in fido.metadata_service.mds_endpoints %}
+                    <Endpoint>{{endpoint}}</Endpoint>
+                {% endfor %}
+            </MDSEndpoints>
+            <MDSRootCertificateFilePath>{{fido.metadata_service.mds_root_certificate_file_path}}</MDSRootCertificateFilePath>
+            <MetadataStatementDirectory>{{fido.metadata_service.metadata_statement_directory}}</MetadataStatementDirectory>
+            <SchedulerInitialDelay>{{fido.metadata_service.mds_scheduler_initial_delay}}</SchedulerInitialDelay>
+        </MetadataService>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
@@ -2986,8 +3116,8 @@
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
+    <!-- Configuration to enable or disable claim filtering based on scope. -->
+    <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
@@ -3013,6 +3143,11 @@
                 {% endfor %}
             </MethodRefs>
         </AuthenticationContext>
+    {% endif %}
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
 
 </Server>

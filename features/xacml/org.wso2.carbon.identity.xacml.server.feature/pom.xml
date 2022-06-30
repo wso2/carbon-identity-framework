@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.20.351-SNAPSHOT</version>
+        <version>5.20.444-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -151,7 +151,6 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>libthrift.wso2:libthrift</bundleDef>
-                                <bundleDef>org.slf4j:slf4j-api</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.authenticator.thrift
                                 </bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement

@@ -76,6 +76,8 @@
     "oauth.jwks_endpoint.connection_timeout": "ms",
     "oauth.jwks_endpoint.read_timeout": "ms",
     "oauth.token.validation.validation_response_jwt_validity": "m",
+    "oauth.grant_type.device_code.expiry_time": "ms",
+    "oauth.grant_type.device_code.polling_interval": "ms",
 
     "authentication.adaptive.http_connections.default_timeout": "ms",
     "authentication.adaptive.http_connections.connection_timeout": "ms",

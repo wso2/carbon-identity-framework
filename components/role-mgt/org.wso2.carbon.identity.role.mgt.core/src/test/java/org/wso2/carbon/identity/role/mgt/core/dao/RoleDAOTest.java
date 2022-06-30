@@ -180,6 +180,40 @@ public class RoleDAOTest extends PowerMockTestCase {
         }
     }
 
+
+    @Test
+    public void testCountRoles() throws Exception {
+
+        try (Connection connection1 = DAOUtils.getConnection(DB_NAME);
+             Connection connection2 = DAOUtils.getConnection(DB_NAME);
+             Connection connection3 = DAOUtils.getConnection(DB_NAME);
+             Connection connection4 = DAOUtils.getConnection(DB_NAME);
+             Connection connection5 = DAOUtils.getConnection(DB_NAME);
+             Connection connection6 = DAOUtils.getConnection(DB_NAME);
+             Connection connection7 = DAOUtils.getConnection(DB_NAME);
+             Connection connection8 = DAOUtils.getConnection(DB_NAME)) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
+            addRole("role3");
+
+            mockRealmConfiguration();
+            mockStatic(UserCoreUtil.class);
+            when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
+            int rolesCount = roleDAO.getRolesCount(SAMPLE_TENANT_DOMAIN);
+            assertEquals(rolesCount, 3);
+        }
+    }
+
     @DataProvider(name = "filterData")
     public Object[][] filterData() {
 

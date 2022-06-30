@@ -4400,13 +4400,44 @@
                                             boolean isCustomNotInclude = true;
                                             String authContext = "";
 
-                                             if(StringUtils.isNotEmpty(authenticationContextClass) && !(authenticationContextClass.equalsIgnoreCase("null"))){
+                                            if(StringUtils.isNotEmpty(authenticationContextClass) && !(authenticationContextClass.equalsIgnoreCase("null"))){
                                                 authContext = authenticationContextClass;
                                                 if(authenticationContextClass.contains(",")){
                                                     isMultiple = true;
                                                 }
                                             }
                                             String[] authnContextClassList = StringUtils.split(authContext, ",");
+
+                                            // Check for custom authn context classes stored in the default authn context class list itself
+                                            List<String> legacyCustomAuthnContextClassList = new ArrayList<>();
+                                            for (String authenticationContextCls : authnContextClassList) {
+                                                if (!authenticationContextClasses.contains(authenticationContextCls)
+                                                        && !IdentityApplicationConstants.Authenticator.SAML2SSO
+                                                        .CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextCls)) {
+                                                    legacyCustomAuthnContextClassList.add(authenticationContextCls);
+                                                }
+                                            }
+                                            if (legacyCustomAuthnContextClassList.size() > 0) {
+                                                List<String> newAuthnContextClasses =
+                                                                                new ArrayList<>(Arrays.asList(authnContextClassList));
+                                                legacyCustomAuthnContextClassList.forEach(newAuthnContextClasses::remove);
+
+                                                // Add legacy custom authn context classes to the custom auth context classes list.
+                                                if (!newAuthnContextClasses.contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
+                                                    newAuthnContextClasses.add(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION);
+                                                }
+                                                if (StringUtils.isBlank(customAuthnContextClass)) {
+                                                    customAuthnContextClass = String.join(",", legacyCustomAuthnContextClassList);
+                                                } else {
+                                                    customAuthnContextClass += "," + String.join(",", legacyCustomAuthnContextClassList);
+                                                }
+
+                                                // Remove legacy custom authn context classes from the default authn context class list.
+                                                authenticationContextClass = String.join(",", newAuthnContextClasses);
+                                                authContext = authenticationContextClass;
+                                                authnContextClassList = newAuthnContextClasses.toArray(new String[0]);
+                                            }
+
                                             if(Arrays.asList(authnContextClassList).contains(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)){
                                                 isCustomNotInclude = false;
                                             }

@@ -13,8 +13,8 @@
   "identity.auth_framework.endpoint.tls_protocol" : "TLSv1.2",
   "identity.auth_framework.endpoint.app_name": "dashboard",
   "identity.auth_framework.endpoint.app_password": "dashboard",
-  "identity.auth_framework.endpoint.username": "admin",
-  "identity.auth_framework.endpoint.password": "admin",
+  "identity.auth_framework.endpoint.username": "$ref{super_admin.username}",
+  "identity.auth_framework.endpoint.password": "$ref{super_admin.password}",
   "identity.auth_framework.identity_server_origin": "${carbon.protocol}://${carbon.host}:${carbon.management.port}",
   "identity.auth_framework.endpoint.securevault_secret_handler": "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler",
 
@@ -116,13 +116,6 @@
   "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
   "authentication.authenticator.facebook.parameters.Tags": "Social-Login",
 
-  "authentication.authenticator.yahoo.name": "YahooOAuth2Authenticator",
-  "authentication.authenticator.yahoo.enable": true,
-  "authentication.authenticator.yahoo.parameters.YahooTokenEndpoint": "https://api.login.yahoo.com/oauth2/get_token",
-  "authentication.authenticator.yahoo.parameters.YahooOAuthzEndpoint": "https://api.login.yahoo.com/oauth2/request_auth",
-  "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://api.login.yahoo.com/openid/v1/userinfo",
-  "authentication.authenticator.yahoo.parameters.Tags": "Social-Login",
-
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
@@ -159,9 +152,9 @@
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "smsotpauthenticationendpoint/smsotp.jsp",
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "smsotpauthenticationendpoint/smsotpError.jsp",
-  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "smsotpauthenticationendpoint/mobile.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "authenticationendpoint/smsOtp.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "authenticationendpoint/smsOtpError.jsp",
+  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "authenticationendpoint/mobile.jsp",
   "authentication.authenticator.sms_otp.parameters.RetryEnable": true,
   "authentication.authenticator.sms_otp.parameters.ResendEnable": true,
   "authentication.authenticator.sms_otp.parameters.BackupCode": true,
@@ -171,6 +164,7 @@
   "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
   "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
+  "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": true,
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,
@@ -189,6 +183,14 @@
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+
+  "authentication.authenticator.backup_code.name": "backup-code-authenticator",
+  "authentication.authenticator.backup_code.enable": true,
+  "authentication.authenticator.backup_code.parameters.authenticationMandatory": true,
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointURL": "authenticationendpoint/backup_code.do",
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointErrorPage": "authenticationendpoint/backup_code_error.do",
+  "authentication.authenticator.backup_code.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.backup_code.parameters.Tags": "MFA",
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,

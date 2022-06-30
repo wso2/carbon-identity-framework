@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.request;
 
-import org.apache.logging.log4j.ThreadContext;
 import org.mockito.Mock;
+import org.slf4j.MDC;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -144,7 +144,7 @@ public class SessionExtenderRequestFactoryTest {
         when(exception.getErrorCode()).thenReturn(EXCEPTION_ERROR_CODE);
         when(exception.getErrorMessage()).thenReturn(EXCEPTION_MESSAGE);
         when(exception.getDescription()).thenReturn(EXCEPTION_DESCRIPTION);
-        ThreadContext.put("Correlation-ID", TRACE_ID);
+        MDC.put("Correlation-ID", TRACE_ID);
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderRequestFactory.handleException(exception, mockedHttpRequest, mockedHttpResponse);

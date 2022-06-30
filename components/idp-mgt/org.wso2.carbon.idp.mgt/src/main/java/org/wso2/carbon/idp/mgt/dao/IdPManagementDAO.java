@@ -550,8 +550,12 @@ public class IdPManagementDAO {
             identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
             identityProvider.setResourceId(resultSet.getString("UUID"));
 
-            populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
-                    identityProvider);
+            try {
+                populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
+                        identityProvider);
+            } catch (IdentityProviderManagementClientException e) {
+                continue;
+            }
 
             if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                     .equals(identityProvider.getIdentityProviderName())) {
@@ -576,7 +580,7 @@ public class IdPManagementDAO {
     private void populateRequiredAttributesForIdentityProviderList(ResultSet resultSet, Connection dbConnection,
                                                                    List<String> requiredAttributes, int tenantId,
                                                                    IdentityProvider identityProvider)
-            throws SQLException, IdentityProviderManagementServerException {
+            throws SQLException, IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         int idpId = Integer.parseInt(identityProvider.getId());
         String idPName = identityProvider.getIdentityProviderName();
@@ -680,6 +684,8 @@ public class IdPManagementDAO {
                     }
                 }
             }
+        } catch (IdentityProviderManagementClientException e) {
+            throw e;
         } catch (IdentityProviderManagementException e) {
             throw new IdentityProviderManagementServerException("Error occurred while performing required " +
                     "attribute filter", e);
@@ -906,7 +912,7 @@ public class IdPManagementDAO {
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
             Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementException, SQLException {
+            throws IdentityProviderManagementClientException, SQLException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -4036,7 +4042,7 @@ public class IdPManagementDAO {
      * @throws IdentityProviderManagementException
      */
     private int getIdentityProviderIdentifier(Connection dbConnection, String idPName, int tenantId)
-            throws SQLException, IdentityProviderManagementException {
+            throws SQLException, IdentityProviderManagementClientException {
 
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -4051,7 +4057,7 @@ public class IdPManagementDAO {
             if (rs.next()) {
                 return rs.getInt("ID");
             } else {
-                throw new IdentityProviderManagementException("Invalid Identity Provider Name "
+                throw new IdentityProviderManagementClientException("Invalid Identity Provider Name "
                         + idPName);
             }
         } finally {

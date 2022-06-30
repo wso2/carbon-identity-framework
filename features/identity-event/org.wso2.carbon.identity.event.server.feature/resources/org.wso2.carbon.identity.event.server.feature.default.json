@@ -59,7 +59,8 @@
   "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
     "PRE_UPDATE_CREDENTIAL",
     "PRE_UPDATE_CREDENTIAL_BY_ADMIN",
-    "PRE_ADD_USER"
+    "PRE_ADD_USER",
+    "VALIDATE_PASSWORD"
   ],
   "identity_mgt.events.schemes.passwordPolicy.properties.'min.length'": "6",
   "identity_mgt.events.schemes.passwordPolicy.properties.'max.length'": "12",
@@ -104,6 +105,7 @@
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.module_index": "14",
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_authentication_event_types}",
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enableMultipleEventPublishingForSaasApps": true,
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.module_index": "15",
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.subscriptions": "$ref{authentication.analytics.publish_session_event_types}",
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.properties.enable": false,

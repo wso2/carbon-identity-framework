@@ -178,8 +178,9 @@
         <!--<AccessTokenValueGenerator>org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator</AccessTokenValueGenerator>-->
 
         <!-- This configuration is used to specify whether the Service Provider tenant domain should be used when generating
-             access token. Otherwise user domain will be used. Currently this value is only supported by the JWTTokenIssuer.-->
-        <!--<UseSPTenantDomain>True</UseSPTenantDomain>-->
+             access token. Otherwise user's tenant domain will be used. Currently this value is only supported by the JWTTokenIssuer.
+	         This configuration will be enabled by default from IS 5.12.0. -->
+        <UseSPTenantDomain>True</UseSPTenantDomain>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -633,6 +634,10 @@
         Default value : false
         -->
         <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -832,6 +837,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
 <!--        <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>-->
+
+        <!--
+          If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+          then enable this property value.
+          Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+          Default value : false
+          Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<ConsiderTotalRecordsForTotalResultOfLDAP>false</ConsiderTotalRecordsForTotalResultOfLDAP>-->
+
     </SCIM2>
 
     <!--Recovery>
@@ -877,11 +892,11 @@
             <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
             -->
-            <!--<MinQuestionsToAnswer></MinQuestionsToAnswer>
+            <!--<MinQuestionsToAnswer>1</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
@@ -953,6 +968,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
             <VerificationOnUpdate>
                 <Enable>false</Enable>
+                <EnableVerificationByPrivilegedUser>false</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>5</ExpiryTime>
                 </VerificationCode>
@@ -1198,7 +1214,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
@@ -1495,7 +1517,7 @@
         <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all">
+        <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all">
             <Permissions></Permissions>
         </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
@@ -1659,6 +1681,10 @@
         <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
             <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
             <Scopes>internal_keystore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin</Permissions>
+            <Scopes>SYSTEM</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -1837,6 +1863,54 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/create</Permissions>
+            <Scopes>internal_organization_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
+            <Scopes>internal_organization_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1972,6 +2046,25 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewrite>
+        <WebApp>
+            <Context>
+                <BasePath>/scim2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 
@@ -2091,5 +2184,11 @@
     <!--    By setting true localization code will be stored inside the http://wso2.org/claims/locality-->
     <!--    By setting false localization code will be stored inside the http://wso2.org/claims/local-->
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
+
+    <!-- Configuration to enable or disable claim filtering based on scope. -->
+    <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    <ShowPendingUserInformation>true</ShowPendingUserInformation>
 
 </Server>

@@ -2,6 +2,7 @@
   "authentication.consent.prompt": true,
   "authentication.consent.subject.prompt": true,
   "authentication.map_federated_users_to_local": false,
+  "authentication.enable_scope_based_claim_filtering": true,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
@@ -38,7 +39,7 @@
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
   "recoveryendpoint.hostname": "$ref{server.hostname}",
-  "recoveryendpoint.path": "/recoveryendpoint",
+  "recoveryendpoint.path": "/accountrecoveryendpoint",
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
@@ -62,7 +63,7 @@
   "oauth.map_federated_users_to_local": "$ref{authentication.map_federated_users_to_local}",
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
-  "oauth.allow_cross_tenant_token_introspection": false,
+  "oauth.introspect.allow_cross_tenant": true,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -71,6 +72,8 @@
   "oauth.token_validation.validation_response_signing_algorithm": "SHA256withRSA",
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
+
+  "oauth.access_token.generate_with_sp_tenant_domain": true,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -91,6 +94,7 @@
   "oauth.endpoints.oidc_logout_page": "$ref{server.base_path}/authenticationendpoint/oauth2_logout.do",
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
+  "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
@@ -147,8 +151,8 @@
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
   "oauth.grant_type.device_code.key_length": "6",
-  "oauth.grant_type.device_code.expiry_time": "600000",
-  "oauth.grant_type.device_code.polling_interval": "5000",
+  "oauth.grant_type.device_code.expiry_time": "10m",
+  "oauth.grant_type.device_code.polling_interval": "5s",
   "oauth.grant_type.device_code.key_set": "BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789",
 
   "oauth.dcrm.application_role_permission_required_to_view": true,
@@ -268,6 +272,7 @@
   "scim2.return_updated_group_in_group_patch_response": true,
   "scim2.remove_duplicate_users_in_users_response": false,
   "scim2.consider_max_limit_for_total_results": false,
+  "scim2.consider_total_records_for_total_results_of_ldap": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
@@ -308,7 +313,7 @@
   "identity_mgt.password_reset_challenge_questions.skip_on_insufficient_answers": true,
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
-  "identity_mgt.challenge_questions.min_required_answers": "",
+  "identity_mgt.challenge_questions.min_required_answers": "1",
 
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
@@ -358,6 +363,7 @@
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_claim_update.email.enable_notify_existing_email": false,
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
   "identity_mgt.user_claim_update.use_verify_claim": true,
   "identity_mgt.user_claim_update.uniqueness.enable": false,
@@ -611,6 +617,11 @@
   "fido.webauthn.enable": true,
   "fido.trusted.origins": ["${carbon.protocol}://${carbon.host}:${carbon.management.port}"],
   "fido.user_response_timeout": "300000",
+  "fido.metadata_service.enable": false,
+  "fido.metadata_service.mds_endpoints": [],
+  "fido.metadata_service.mds_root_certificate_file_path": "${carbon.home}/repository/resources/identity/fido2/security/MDS3ROOT.crt",
+  "fido.metadata_service.metadata_statement_directory": "${carbon.home}/repository/resources/identity/fido2/metadataStatements",
+  "fido.metadata_service.mds_scheduler_initial_delay": "0",
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
@@ -662,6 +673,7 @@
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
   "console.ui.idp_templates.github.enabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
+  "console.ui.hiddenAuthenticators": ["MagicLinkAuthenticator"],
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
@@ -866,5 +878,7 @@
   "axis2.transport_sender.https.parameters.PROTOCOL": "HTTP/1.1",
   "axis2.transport_sender.https.parameters.Transfer-Encoding": "chunked",
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
-  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000"
+  "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
+
+  "show_pending_user_information.enable": true
 }
