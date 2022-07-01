@@ -370,8 +370,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (responseWrapper.isRedirect()) {
             String redirectURL;
-            if (context != null && (context.getExternalIdP() == null ||
-                    context.getExternalIdP().getIdPName().equals("LOCAL"))) {
+            if (context != null) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
             } else {
