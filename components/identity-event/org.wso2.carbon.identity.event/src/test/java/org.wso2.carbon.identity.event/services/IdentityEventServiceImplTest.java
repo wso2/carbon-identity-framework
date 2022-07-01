@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.internal.IdentityEventServiceComponent;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
