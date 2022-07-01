@@ -231,8 +231,17 @@
     via the REST API for authentication framework. "removeOnConsumeFromAPI" defines whether to make the filtered
     parameters unavailable from the API on the first consumption.
     -->
-    <AuthenticationEndpointRedirectParams action="exclude" removeOnConsumeFromAPI="true">
-        <AuthenticationEndpointRedirectParam name="loggedInUser"/>
+<!--    <AuthenticationEndpointRedirectParams action="exclude" removeOnConsumeFromAPI="true">-->
+<!--        <AuthenticationEndpointRedirectParam name="loggedInUser"/>-->
+<!--    </AuthenticationEndpointRedirectParams>-->
+
+    <AuthenticationEndpointRedirectParams
+            action="include"
+            removeOnConsumeFromAPI="true">
+        <AuthenticationEndpointRedirectParam name="sessionDataKey"/>
+        <AuthenticationEndpointRedirectParam name="spId"/>
+        <AuthenticationEndpointRedirectParam name="tenantDomain"/>
+        <AuthenticationEndpointRedirectParam name="sessionDataKeyConsent"/>
     </AuthenticationEndpointRedirectParams>
 
         <!--TenantDomainDropDownEnabled>true</TenantDomainDropDownEnabled>
