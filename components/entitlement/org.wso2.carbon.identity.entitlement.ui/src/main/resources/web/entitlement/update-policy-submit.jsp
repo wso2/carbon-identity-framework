@@ -20,6 +20,8 @@
 <%@ page import="org.wso2.carbon.identity.entitlement.stub.dto.PolicyDTO"%>
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.client.EntitlementPolicyAdminServiceClient"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
+<%@ page import="java.nio.charset.StandardCharsets"%>
+<%@ page import="java.util.Base64"%>
 
 <%
 	String serverURL = CarbonUIUtil.getServerURL(config
@@ -52,7 +54,9 @@
             if(dto == null){
                 dto = new PolicyDTO();
             }
-            dto.setPolicy(request.getParameter("policy"));
+            String policy = request.getParameter("policy");
+            policy = new String(Base64.getDecoder().decode(policy), StandardCharsets.UTF_8);
+            dto.setPolicy(policy);
 			dto.setPolicyId(policyid);
             dto.setPolicyEditor("XML");
 			client.updatePolicy(dto);
