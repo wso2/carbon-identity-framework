@@ -112,6 +112,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
+    private final Map<String, List<String>> loggedOutAuthenticators = new HashMap<>();
+
     public String getCallerPath() {
         return callerPath;
     }
@@ -724,5 +726,46 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setLoginTenantDomain(String loginTenantDomain) {
 
         this.loginTenantDomain = loginTenantDomain;
+    }
+
+    /**
+     * Add a logged out authenticator providing the IDP name. Method creates a new list and appends the
+     * authenticator if no entry for the IDP.
+     *
+     * @param idpName Identity provider name.
+     * @param  authenticatorName Authenticator name.
+     */
+    public void addLoggedOutAuthenticator(String idpName, String authenticatorName) {
+
+        if (loggedOutAuthenticators.containsKey(idpName)) {
+            loggedOutAuthenticators.get(idpName).add(authenticatorName);
+        } else {
+            List<String> authenticators = new ArrayList<>();
+            authenticators.add(authenticatorName);
+            loggedOutAuthenticators.put(idpName, authenticators);
+        }
+    }
+
+    /**
+     * Check whether the authenticator is already logged out.
+     *
+     * @param idpName Identity provider name.
+     * @param authenticatorName Authenticator name.
+     * @return true if the authenticator already logged out. False otherwise.
+     */
+    public boolean isLoggedOutAuthenticator(String idpName, String authenticatorName) {
+
+        if (loggedOutAuthenticators.containsKey(idpName)) {
+            return loggedOutAuthenticators.get(idpName).contains(authenticatorName);
+        }
+        return false;
+    }
+
+    /**
+     * Clears all currently logged out authenticators from the context.
+     */
+    public void clearLoggedOutAuthenticators() {
+
+        loggedOutAuthenticators.clear();
     }
 }

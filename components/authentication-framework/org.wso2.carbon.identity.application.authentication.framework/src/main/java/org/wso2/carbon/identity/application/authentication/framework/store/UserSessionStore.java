@@ -862,6 +862,34 @@ public class UserSessionStore {
     }
 
     /**
+     * Store session details with the given session context key for the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId)
+            throws UserSessionException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection
+                     .prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT)) {
+            prepStmt.setString(1, authHistory.getIdpSessionIndex());
+            prepStmt.setString(2, sessionContextKey);
+            prepStmt.setString(3, authHistory.getIdpName());
+            prepStmt.setString(4, authHistory.getAuthenticatorName());
+            prepStmt.setString(5, authHistory.getRequestType());
+            prepStmt.setInt(6, tenantId);
+            prepStmt.execute();
+        } catch (SQLException e) {
+            String msg = String.format("Error while adding session details of the session index: %s, IdP: %s " +
+                    "and tenant id: %s.", sessionContextKey, authHistory.getIdpName(), tenantId);
+            throw new UserSessionException(msg, e);
+        }
+    }
+
+    /**
      * Update session details of a given session context key to map the current session context key with
      * the federated IdP's session ID.
      *
@@ -881,6 +909,34 @@ public class UserSessionStore {
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while updating " + sessionContextKey + " of session:" +
                     authHistory.getIdpSessionIndex() + " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
+        }
+    }
+
+    /**
+     * Update session details of a given session context key to map the current session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @param tenantId          Tenant id.
+     * @throws UserSessionException Error while storing session details.
+     */
+    public void updateFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId) throws
+            UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(
+                    SQLQueries.SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT, preparedStatement -> {
+                        preparedStatement.setString(1, sessionContextKey);
+                        preparedStatement.setString(2, authHistory.getIdpSessionIndex());
+                        preparedStatement.setInt(3, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            String msg = String.format("Error while updating %s of session: %s in table " +
+                            "IDN_FED_AUTH_SESSION_MAPPING for tenant id %s.", sessionContextKey,
+                    authHistory.getIdpSessionIndex(), tenantId);
+            throw new UserSessionException(msg, e);
         }
     }
 
@@ -906,6 +962,36 @@ public class UserSessionStore {
         } catch (SQLException e) {
             throw new UserSessionException("Error occurred while checking for an federated auth session " +
                     "with session index: " + idpSessionIndex, e);
+        }
+        return isExisting;
+    }
+
+    /**
+     * Check whether there is already existing federated auth session with the given session index and the tenant id.
+     *
+     * @param idpSessionIndex IDP session index.
+     * @param tenantId        Tenant id.
+     * @return True if a federated auth session found with the given session index.
+     * @throws UserSessionException If an error occurred while checking for an federated auth session.
+     */
+    public boolean isExistingFederatedAuthSessionAvailable(String idpSessionIndex, int tenantId)
+            throws UserSessionException {
+
+        boolean isExisting = false;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection.prepareStatement(
+                     SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_TENANT)) {
+            prepStmt.setString(1, idpSessionIndex);
+            prepStmt.setInt(2, tenantId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    isExisting = true;
+                }
+            }
+        } catch (SQLException e) {
+            String msg = String.format("Error occurred while checking for a federated auth session with " +
+                    "session index: %s and tenant id: %s", idpSessionIndex, tenantId);
+            throw new UserSessionException(msg, e);
         }
         return isExisting;
     }

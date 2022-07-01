@@ -43,26 +43,25 @@ BEGIN
     -- ------------------------------------------
     -- BACKUP DATA
     -- ------------------------------------------
-    Begin
-        IF (backupTables)
-        THEN
-            OPEN tablesCursor;
-            LOOP
-                FETCH tablesCursor INTO cusrRecord;
-                EXIT WHEN NOT FOUND;
-                backupTable := cusrRecord.tablename||'_backup';
+    IF (backupTables)
+    THEN
+        OPEN tablesCursor;
+        LOOP
+            FETCH tablesCursor INTO cusrRecord;
+            EXIT WHEN NOT FOUND;
+            backupTable := cusrRecord.tablename||'_backup';
 
-                EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
-                IF (rowcount = 1)
-                THEN
-                    EXECUTE 'DROP TABLE '||quote_ident(backupTable);
-                END IF;
+            EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
+            IF (rowcount = 1)
+            THEN
+                EXECUTE 'DROP TABLE '||quote_ident(backupTable);
+            END IF;
 
-                EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
+            EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
 
-            END LOOP;
-            CLOSE tablesCursor;
-        END IF;
+        END LOOP;
+        CLOSE tablesCursor;
+    END IF;
 
     -- ------------------------------------------
     -- CLEANUP DATA

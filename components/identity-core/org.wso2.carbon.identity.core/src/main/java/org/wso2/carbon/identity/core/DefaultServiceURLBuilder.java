@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core.internal;
+package org.wso2.carbon.identity.core;
 
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.collections.MapUtils;
@@ -24,9 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -51,11 +49,12 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CON
  */
 public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
-    private String fragment;
-    private String[] urlPaths;
-    private String tenant;
-    private Map<String, String> parameters = new HashMap<>();
-    private Map<String, String> fragmentParams = new HashMap<>();
+    protected String fragment;
+    protected String[] urlPaths;
+    protected String tenant;
+    protected boolean mandateTenantedPath = false;
+    protected Map<String, String> parameters = new HashMap<>();
+    protected Map<String, String> fragmentParams = new HashMap<>();
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -93,30 +92,37 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
-
+        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPath, resolvedFragment);
+        String relativeInternalUrl = fetchRelativeInternalUrl(urlPath, resolvedFragment);
+        String absoluteInternalUrl = fetchAbsoluteInternalUrl(protocol, internalHostName, transportPort,
+                relativeInternalUrl);
+        String absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol, proxyHostName,
+                proxyPort);
         if (StringUtils.isNotBlank(urlPath)) {
             if (authenticationEndpointHostName != null && authenticationEndpointPath != null &&
                     urlPath.contains(authenticationEndpointPath)) {
-                return new ServiceURLImpl(protocol, authenticationEndpointHostName, internalHostName, proxyPort,
-                        transportPort, tenantDomain, proxyContextPath, urlPath, parameters, resolvedFragment);
+                absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
+                        authenticationEndpointHostName, proxyPort);
             }
             if (recoveryEndpointHostName != null && recoveryEndpointPath != null &&
                     urlPath.contains(recoveryEndpointPath)) {
-                return new ServiceURLImpl(protocol, recoveryEndpointHostName, internalHostName, proxyPort,
-                        transportPort, tenantDomain, proxyContextPath, urlPath, parameters, resolvedFragment);
+                absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
+                        recoveryEndpointHostName, proxyPort);
             }
         }
+        String absolutePublicURL = fetchAbsolutePublicUrl(absolutePublicUrlWithoutURLPath, relativePublicUrl);
         return new ServiceURLImpl(protocol, proxyHostName, internalHostName, proxyPort, transportPort, tenantDomain,
-                proxyContextPath, urlPath, parameters, resolvedFragment);
+                proxyContextPath, urlPath, parameters, resolvedFragment, absolutePublicURL,
+                absoluteInternalUrl, relativePublicUrl, relativeInternalUrl, absolutePublicUrlWithoutURLPath);
     }
 
-    private String getResolvedUrlPath(String tenantDomain) {
+    protected String getResolvedUrlPath(String tenantDomain) {
 
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            if (isNotSuperTenant(tenantDomain)) {
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/")) {
+            if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
                 resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
             }
         }
@@ -132,7 +138,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return resolvedUrlStringBuilder.toString();
     }
 
-    private boolean isNotSuperTenant(String tenantDomain) {
+    protected boolean isNotSuperTenant(String tenantDomain) {
 
         return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
@@ -187,7 +193,15 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return this;
     }
 
-    private String resolveTenantDomain() {
+    @Override
+    public ServiceURLBuilder setTenant(String tenantDomain, boolean mandateTenantedPath) {
+
+        this.tenant = tenantDomain;
+        this.mandateTenantedPath = mandateTenantedPath;
+        return this;
+    }
+
+    protected String resolveTenantDomain() {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         if (StringUtils.isBlank(tenantDomain)) {
@@ -196,7 +210,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return tenantDomain;
     }
 
-    private String buildFragment(String fragment, Map<String, String> fragmentParams) throws URLBuilderException {
+    protected String buildFragment(String fragment, Map<String, String> fragmentParams) throws URLBuilderException {
 
         if (StringUtils.isNotBlank(fragment)) {
             return fragment;
@@ -205,7 +219,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private String getResolvedParamString(Map<String, String> parameters) throws URLBuilderException {
+    protected String getResolvedParamString(Map<String, String> parameters) throws URLBuilderException {
 
         StringJoiner joiner = new StringJoiner("&");
         if (MapUtils.isNotEmpty(parameters)) {
@@ -224,7 +238,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return joiner.toString();
     }
 
-    private String buildUrlPath(String[] urlPaths) {
+    protected String buildUrlPath(String[] urlPaths) {
 
         StringBuilder urlPathBuilder = new StringBuilder();
         if (ArrayUtils.isNotEmpty(urlPaths)) {
@@ -246,24 +260,24 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return urlPathBuilder.toString();
     }
 
-    private String fetchProtocol() {
+    protected String fetchProtocol() {
 
         return CarbonUtils.getManagementTransport();
     }
 
-    private String fetchProxyHostName() throws URLBuilderException {
+    protected String fetchProxyHostName() throws URLBuilderException {
 
         String proxyHostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
         return resolveHostName(proxyHostName);
     }
 
-    private String fetchInternalHostName() throws URLBuilderException {
+    protected String fetchInternalHostName() throws URLBuilderException {
 
         String internalHostName = IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME);
         return resolveHostName(internalHostName);
     }
 
-    private String resolveHostName(String hostName) throws URLBuilderException {
+    protected String resolveHostName(String hostName) throws URLBuilderException {
 
         try {
             if (StringUtils.isBlank(hostName)) {
@@ -280,7 +294,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return hostName;
     }
 
-    private int fetchPort() {
+    protected int fetchPort() {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
@@ -292,7 +306,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return port;
     }
 
-    private int fetchTransportPort() {
+    protected int fetchTransportPort() {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
@@ -300,7 +314,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
     }
 
-    private String fetchAuthenticationEndpointHostName() throws URLBuilderException {
+    protected String fetchAuthenticationEndpointHostName() throws URLBuilderException {
 
         String authenticationEndpointHostName = IdentityUtil.
                 getProperty(IdentityCoreConstants.AUTHENTICATION_ENDPOINT_HOST_NAME);
@@ -310,28 +324,28 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return null;
     }
 
-    private String fetchAuthenticationEndpointPath() {
+    protected String fetchAuthenticationEndpointPath() {
 
         String authenticationEndpointPath = IdentityUtil
                 .getProperty(IdentityCoreConstants.AUTHENTICATION_ENDPOINT_PATH);
         return preprocessEndpointPath(authenticationEndpointPath);
     }
 
-    private String fetchRecoveryEndpointHostName() throws URLBuilderException {
+    protected String fetchRecoveryEndpointHostName() throws URLBuilderException {
 
         String recoveryEndpointHostName = IdentityUtil.
                 getProperty(IdentityCoreConstants.RECOVERY_ENDPOINT_HOST_NAME);
         return resolveHostName(recoveryEndpointHostName);
     }
 
-    private String fetchRecoveryEndpointPath() {
+    protected String fetchRecoveryEndpointPath() {
 
         String recoveryEndpointPath = IdentityUtil
                 .getProperty(IdentityCoreConstants.RECOVERY_ENDPOINT_PATH);
         return preprocessEndpointPath(recoveryEndpointPath);
     }
 
-    private String preprocessEndpointPath(String endpointPath) {
+    protected String preprocessEndpointPath(String endpointPath) {
 
         if (StringUtils.isNotBlank(endpointPath)) {
             if (!endpointPath.startsWith("/")) {
@@ -346,7 +360,99 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return null;
     }
 
-    private class ServiceURLImpl implements ServiceURL {
+    protected String fetchAbsolutePublicUrl(String absolutePublicURLWithoutURLPath, String relativePublicURL) {
+
+        StringBuilder absolutePublicUrl = new StringBuilder();
+        absolutePublicUrl.append(absolutePublicURLWithoutURLPath);
+        absolutePublicUrl.append(relativePublicURL);
+        return absolutePublicUrl.toString();
+    }
+
+    protected String fetchAbsoluteInternalUrl(String protocol, String internalHostName, int transportPort,
+                                              String relativeInternalURL) throws URLBuilderException {
+
+        StringBuilder absoluteInternalUrl = new StringBuilder();
+        if (StringUtils.isBlank(protocol)) {
+            throw new URLBuilderException("Protocol of service URL is not available.");
+        }
+        if (StringUtils.isBlank(internalHostName)) {
+            throw new URLBuilderException("Internal hostname of service URL is not available.");
+        }
+        absoluteInternalUrl.append(protocol).append("://");
+        absoluteInternalUrl.append(internalHostName.toLowerCase());
+        // If it's well known HTTPS port, skip adding port.
+        if (transportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+            absoluteInternalUrl.append(":").append(transportPort);
+        }
+        absoluteInternalUrl.append(relativeInternalURL);
+        return absoluteInternalUrl.toString();
+    }
+
+    protected String fetchRelativePublicUrl(String proxyContextPath, String urlPath, String fragment) throws URLBuilderException {
+
+        StringBuilder relativeUrl = new StringBuilder();
+        appendContextToUri(relativeUrl, proxyContextPath);
+        appendContextToUri(relativeUrl, urlPath);
+        String resolvedParamsString = getResolvedParamString(parameters);
+        appendParamsToUri(relativeUrl, resolvedParamsString, "?");
+        appendParamsToUri(relativeUrl, fragment, "#");
+        return relativeUrl.toString();
+    }
+
+    protected String fetchAbsolutePublicUrlWithoutURLPath(String protocol, String proxyHostName, int proxyPort) throws URLBuilderException {
+
+        StringBuilder absolutePublicUrlWithoutURLPath = new StringBuilder();
+        if (StringUtils.isBlank(protocol)) {
+            throw new URLBuilderException("Protocol of service URL is not available.");
+        }
+        if (StringUtils.isBlank(proxyHostName)) {
+            throw new URLBuilderException("Hostname of service URL is not available.");
+        }
+        absolutePublicUrlWithoutURLPath.append(protocol).append("://");
+        absolutePublicUrlWithoutURLPath.append(proxyHostName.toLowerCase());
+        // If it's well known HTTPS port, skip adding port.
+        if (proxyPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+            absolutePublicUrlWithoutURLPath.append(":").append(proxyPort);
+        }
+        return absolutePublicUrlWithoutURLPath.toString();
+    }
+
+    protected String fetchRelativeInternalUrl(String urlPath, String fragment) throws URLBuilderException {
+
+        StringBuilder relativeUrl = new StringBuilder();
+        appendContextToUri(relativeUrl, urlPath);
+        String resolvedParamsString = getResolvedParamString(parameters);
+        appendParamsToUri(relativeUrl, resolvedParamsString, "?");
+        appendParamsToUri(relativeUrl, fragment, "#");
+        return relativeUrl.toString();
+    }
+
+    protected void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
+            throws URLBuilderException {
+
+        if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
+            serverUrl.setLength(serverUrl.length() - 1);
+        }
+        if (StringUtils.isNotBlank(resolvedParamsString)) {
+            serverUrl.append(delimiter).append(resolvedParamsString);
+        }
+    }
+
+    protected void appendContextToUri(StringBuilder serverUrl, String contextPath) {
+
+        if (StringUtils.isNotBlank(contextPath)) {
+            if (contextPath.endsWith("/")) {
+                contextPath = contextPath.substring(0, contextPath.length() - 1);
+            }
+            if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
+                serverUrl.append("/").append(contextPath.trim());
+            } else {
+                serverUrl.append(contextPath.trim());
+            }
+        }
+    }
+
+    protected static class ServiceURLImpl implements ServiceURL {
 
         private String protocol;
         private String proxyHostName;
@@ -364,10 +470,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativeInternalUrl;
         private String absolutePublicUrlWithoutURLPath;
 
-        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int proxyPort,
-                               int transportPort,
-                               String tenantDomain, String proxyContextPath, String urlPath,
-                               Map<String, String> parameters, String fragment) throws URLBuilderException {
+        public ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int proxyPort,
+                                 int transportPort, String tenantDomain, String proxyContextPath, String urlPath,
+                                 Map<String, String> parameters, String fragment, String absolutePublicUrl,
+                                 String absoluteInternalUrl, String relativePublicUrl, String relativeInternalUrl,
+                                 String absolutePublicUrlWithoutURLPath) {
 
             this.protocol = protocol;
             this.proxyHostName = proxyHostName;
@@ -379,11 +486,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             this.urlPath = urlPath;
             this.parameters = parameters;
             this.fragment = fragment;
-            this.absolutePublicUrl = fetchAbsolutePublicUrl();
-            this.absoluteInternalUrl = fetchAbsoluteInternalUrl();
-            this.relativePublicUrl = fetchRelativePublicUrl();
-            this.relativeInternalUrl = fetchRelativeInternalUrl();
-            this.absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath();
+            this.absolutePublicUrl = absolutePublicUrl;
+            this.absoluteInternalUrl = absoluteInternalUrl;
+            this.relativePublicUrl = relativePublicUrl;
+            this.relativeInternalUrl = relativeInternalUrl;
+            this.absolutePublicUrlWithoutURLPath = absolutePublicUrlWithoutURLPath;
         }
 
         /**
@@ -547,98 +654,5 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
             return relativeInternalUrl;
         }
-
-        private String fetchAbsolutePublicUrl() throws URLBuilderException {
-
-            StringBuilder absolutePublicUrl = new StringBuilder();
-            absolutePublicUrl.append(fetchAbsolutePublicUrlWithoutURLPath());
-            absolutePublicUrl.append(fetchRelativePublicUrl());
-            return absolutePublicUrl.toString();
-        }
-
-        private String fetchAbsoluteInternalUrl() throws URLBuilderException {
-
-            StringBuilder absoluteInternalUrl = new StringBuilder();
-            if (StringUtils.isBlank(protocol)) {
-                throw new URLBuilderException("Protocol of service URL is not available.");
-            }
-            if (StringUtils.isBlank(internalHostName)) {
-                throw new URLBuilderException("Internal hostname of service URL is not available.");
-            }
-            absoluteInternalUrl.append(protocol).append("://");
-            absoluteInternalUrl.append(internalHostName.toLowerCase());
-            // If it's well known HTTPS port, skip adding port.
-            if (transportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absoluteInternalUrl.append(":").append(transportPort);
-            }
-            absoluteInternalUrl.append(fetchRelativeInternalUrl());
-            return absoluteInternalUrl.toString();
-        }
-
-        private String fetchRelativePublicUrl() throws URLBuilderException {
-
-            StringBuilder relativeUrl = new StringBuilder();
-            appendContextToUri(relativeUrl, proxyContextPath);
-            appendContextToUri(relativeUrl, urlPath);
-            String resolvedParamsString = getResolvedParamString(parameters);
-            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
-            appendParamsToUri(relativeUrl, fragment, "#");
-            return relativeUrl.toString();
-        }
-
-        private String fetchAbsolutePublicUrlWithoutURLPath() throws URLBuilderException {
-
-            StringBuilder absolutePublicUrlWithoutURLPath = new StringBuilder();
-            if (StringUtils.isBlank(protocol)) {
-                throw new URLBuilderException("Protocol of service URL is not available.");
-            }
-            if (StringUtils.isBlank(proxyHostName)) {
-                throw new URLBuilderException("Hostname of service URL is not available.");
-            }
-            absolutePublicUrlWithoutURLPath.append(protocol).append("://");
-            absolutePublicUrlWithoutURLPath.append(proxyHostName.toLowerCase());
-            // If it's well known HTTPS port, skip adding port.
-            if (proxyPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absolutePublicUrlWithoutURLPath.append(":").append(proxyPort);
-            }
-            return absolutePublicUrlWithoutURLPath.toString();
-        }
-
-
-        private String fetchRelativeInternalUrl() throws URLBuilderException {
-
-            StringBuilder relativeUrl = new StringBuilder();
-            appendContextToUri(relativeUrl, urlPath);
-            String resolvedParamsString = getResolvedParamString(parameters);
-            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
-            appendParamsToUri(relativeUrl, fragment, "#");
-            return relativeUrl.toString();
-        }
-
-        private void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
-                throws URLBuilderException {
-
-            if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
-                serverUrl.setLength(serverUrl.length() - 1);
-            }
-            if (StringUtils.isNotBlank(resolvedParamsString)) {
-                serverUrl.append(delimiter).append(resolvedParamsString);
-            }
-        }
-
-        private void appendContextToUri(StringBuilder serverUrl, String contextPath) {
-
-            if (StringUtils.isNotBlank(contextPath)) {
-                if (contextPath.endsWith("/")) {
-                    contextPath = contextPath.substring(0, contextPath.length() - 1);
-                }
-                if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
-                    serverUrl.append("/").append(contextPath.trim());
-                } else {
-                    serverUrl.append(contextPath.trim());
-                }
-            }
-        }
     }
-
 }

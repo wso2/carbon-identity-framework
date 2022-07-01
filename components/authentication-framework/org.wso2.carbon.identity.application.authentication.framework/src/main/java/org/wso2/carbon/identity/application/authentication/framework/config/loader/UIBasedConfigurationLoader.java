@@ -155,7 +155,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setApplicationId(serviceProvider.getApplicationName());
-        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider));
+        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider, tenantDomain));
 
         // setting request path authenticators
         loadRequestPathAuthenticators(sequenceConfig, serviceProvider);

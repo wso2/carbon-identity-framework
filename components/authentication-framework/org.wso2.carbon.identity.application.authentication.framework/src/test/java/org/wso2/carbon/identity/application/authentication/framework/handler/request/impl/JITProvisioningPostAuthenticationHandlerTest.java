@@ -69,8 +69,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -82,7 +82,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
  */
 @PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, AccountLockService.class,
         FrameworkServiceDataHolder.class, IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.xml.*"})
+@PowerMockIgnore({"javax.xml.*", "org.mockito.*"})
 public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFrameworkTest {
 
     private UIBasedConfigurationLoader configurationLoader;
@@ -132,6 +132,10 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     public void testHandleWithAuthenticatedUserWithoutFederatedIdp() throws FrameworkException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, false);
+        // Need to mock ConfigurationFacade class to mock get instance method.
+        mockStatic(ConfigurationFacade.class);
+        ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
+        PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                 .handle(request, response, context);
         Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
@@ -141,7 +145,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow with an authenticated user")
     public void testHandleWithAuthenticatedUserWithFederatedIdp() throws FrameworkException,
-            FederatedAssociationManagerException, AccountLockServiceException, UserStoreException {
+            FederatedAssociationManagerException, AccountLockServiceException, UserStoreException, XMLStreamException,
+            IdentityProviderManagementException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
@@ -171,6 +176,13 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
                         eq(new String[]{AccountConstants.ACCOUNT_DISABLED_CLAIM}),
                         eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
         when(mockClaimValues.get(AccountConstants.ACCOUNT_DISABLED_CLAIM)).thenReturn("false");
+
+        // Need to mock getIdPConfigByName with a null parameter.
+        ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
+        PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
+        IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
+        ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
+        Mockito.doReturn(externalIdPConfig).when(configurationFacade).getIdPConfigByName(eq(null), anyString());
 
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                 .handle(request, response, context);

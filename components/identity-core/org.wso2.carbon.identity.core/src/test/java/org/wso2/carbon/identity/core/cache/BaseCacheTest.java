@@ -42,7 +42,7 @@ import static org.testng.Assert.assertNull;
  */
 @PrepareForTest({IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.*",
-        "javax.naming.*", "javax.sql.*"})
+        "javax.naming.*", "javax.sql.*", "org.mockito.*"})
 public class BaseCacheTest {
 
     @BeforeMethod

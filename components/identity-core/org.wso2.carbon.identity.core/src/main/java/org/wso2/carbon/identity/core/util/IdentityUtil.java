@@ -1615,7 +1615,11 @@ public class IdentityUtil {
 
         try {
             if (StringUtils.isEmpty(userStoreDomain)) {
-                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                userStoreDomain = IdentityCoreServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId).
+                        getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                if (StringUtils.isEmpty(userStoreDomain)) {
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                }
             }
             org.wso2.carbon.user.api.UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
             try {

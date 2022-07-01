@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.request;
 
-import org.apache.logging.log4j.ThreadContext;
 import org.mockito.Mock;
+import org.slf4j.MDC;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.SESSION_ID_PARAM_NAME;
@@ -137,19 +136,23 @@ public class SessionExtenderRequestFactoryTest {
         sessionExtenderRequestFactory.create(mockedHttpRequest, mockedHttpResponse);
     }
 
-    @Test
-    public void testHandleException() {
+    @DataProvider(name = "handleExceptionProvider")
+    public Object[][] getExceptionsForHandle() {
 
-        SessionExtenderClientException exception = mock(SessionExtenderClientException.class);
-        when(exception.getErrorCode()).thenReturn(EXCEPTION_ERROR_CODE);
-        when(exception.getErrorMessage()).thenReturn(EXCEPTION_MESSAGE);
-        when(exception.getDescription()).thenReturn(EXCEPTION_DESCRIPTION);
-        ThreadContext.put("Correlation-ID", TRACE_ID);
+        return new Object[][] {
+                {new SessionExtenderClientException(EXCEPTION_ERROR_CODE, EXCEPTION_MESSAGE, EXCEPTION_DESCRIPTION),
+                        400}
+        };
+    }
 
+    @Test(dataProvider = "handleExceptionProvider")
+    public void testHandleException(FrameworkClientException exception, int expectedStatusCode) {
+
+        MDC.put("Correlation-ID", TRACE_ID);
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderRequestFactory.handleException(exception, mockedHttpRequest, mockedHttpResponse);
         HttpIdentityResponse response = responseBuilder.build();
         assertEquals(response.getBody(), ERROR_RESPONSE_BODY);
-        assertEquals(response.getStatusCode(), 400);
+        assertEquals(response.getStatusCode(), expectedStatusCode);
     }
 }

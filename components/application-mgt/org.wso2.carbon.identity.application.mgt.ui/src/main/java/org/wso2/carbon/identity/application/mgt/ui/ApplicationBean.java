@@ -49,8 +49,10 @@ import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProp
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -1112,6 +1114,8 @@ public class ApplicationBean {
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig();
         String flawByScript = request.getParameter("scriptTextArea");
+        // Decode the auth script.
+        flawByScript = new String(Base64.getDecoder().decode(flawByScript), StandardCharsets.UTF_8);
 
         if (StringUtils.isBlank(flawByScript)) {
             authenticationScriptConfig.setEnabled(false);

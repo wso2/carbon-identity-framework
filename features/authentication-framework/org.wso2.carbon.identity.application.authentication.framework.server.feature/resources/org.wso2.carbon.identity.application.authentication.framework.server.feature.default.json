@@ -152,9 +152,9 @@
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "smsotpauthenticationendpoint/smsotp.jsp",
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "smsotpauthenticationendpoint/smsotpError.jsp",
-  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "smsotpauthenticationendpoint/mobile.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "authenticationendpoint/smsOtp.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "authenticationendpoint/smsOtpError.jsp",
+  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "authenticationendpoint/mobile.jsp",
   "authentication.authenticator.sms_otp.parameters.RetryEnable": true,
   "authentication.authenticator.sms_otp.parameters.ResendEnable": true,
   "authentication.authenticator.sms_otp.parameters.BackupCode": true,
@@ -183,6 +183,14 @@
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
+
+  "authentication.authenticator.backup_code.name": "backup-code-authenticator",
+  "authentication.authenticator.backup_code.enable": true,
+  "authentication.authenticator.backup_code.parameters.authenticationMandatory": true,
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointURL": "authenticationendpoint/backup_code.do",
+  "authentication.authenticator.backup_code.parameters.BackupCodeAuthenticationEndpointErrorPage": "authenticationendpoint/backup_code_error.do",
+  "authentication.authenticator.backup_code.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.backup_code.parameters.Tags": "MFA",
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,

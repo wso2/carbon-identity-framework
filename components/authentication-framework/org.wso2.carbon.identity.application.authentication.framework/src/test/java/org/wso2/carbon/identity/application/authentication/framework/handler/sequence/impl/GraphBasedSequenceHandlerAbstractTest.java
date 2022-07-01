@@ -52,8 +52,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
@@ -120,10 +120,10 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
         HttpServletRequest req = mock(HttpServletRequest.class);
         Map<String, Object> attributes = new HashMap<>();
-        doAnswer(m -> attributes.put(m.getArgumentAt(0, String.class), m.getArgumentAt(1, Object.class))).when(req)
+        doAnswer(m -> attributes.put(m.getArgument(0), m.getArgument(1))).when(req)
                 .setAttribute(anyString(), anyObject());
 
-        doAnswer(m -> attributes.get(m.getArgumentAt(0, String.class))).when(req).getAttribute(anyString());
+        doAnswer(m -> attributes.get(m.getArgument(0))).when(req).getAttribute(anyString());
 
         return req;
     }
