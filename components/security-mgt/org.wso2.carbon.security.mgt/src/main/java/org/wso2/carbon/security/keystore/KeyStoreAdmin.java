@@ -62,10 +62,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class KeyStoreAdmin {
 
@@ -340,6 +337,11 @@ public class KeyStoreAdmin {
         }
     }
 
+    public void importCertToStore(String fileName, X509Certificate cert, KeyStore keyStore){
+
+    }
+
+
     public void importCertToStore(String fileName, String certData, String keyStoreName)
             throws SecurityConfigException {
         try {
@@ -347,8 +349,18 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key Store name can't be null");
             }
 
+
+
             KeyStore ks = getKeyStore(keyStoreName);
             X509Certificate cert = extractCertificate(certData);
+
+            importCertToStore();
+
+            if(isCertificateExpired(cert)){
+                Exception e = new SecurityConfigException("Certificate is expired.");
+                log.error(e);
+                throw e;
+            }
 
             if (ks.getCertificateAlias(cert) != null) {
                 // We already have this certificate in the key store - ignore
@@ -914,5 +926,18 @@ public class KeyStoreAdmin {
             throw new SecurityConfigException("Invalid format of the provided certificate file");
         }
         return cert;
+    }
+
+    public static boolean isCertificateExpired(java.security.cert.X509Certificate certificate) {
+
+        if (certificate != null) {
+            Date expiresOn = certificate.getNotAfter();
+            Date now = new Date();
+            long validityPeriod = (expiresOn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+            if (validityPeriod >= 0) {
+                return false;
+            }
+        }
+        return true;
     }
 }
