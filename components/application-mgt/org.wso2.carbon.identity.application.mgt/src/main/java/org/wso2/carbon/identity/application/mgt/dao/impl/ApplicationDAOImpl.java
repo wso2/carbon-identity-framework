@@ -215,12 +215,11 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.S
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.STORE_STEP_IDP_AUTH;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.STORE_STEP_INFO;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT_AND_SEND_LOCAL_SUB_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
@@ -1325,8 +1324,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
-        PreparedStatement updateAuthTypePrepStmt = null;
-
         PreparedStatement storeLocalAndOutboundConfigs = null;
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
@@ -1365,10 +1362,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (authSteps != null && authSteps.length > 0) {
             // we have authentications steps defined.
             PreparedStatement storeStepIDPAuthnPrepStmt = null;
-            storeStepIDPAuthnPrepStmt = connection
-                    .prepareStatement(STORE_STEP_IDP_AUTH);
             try {
-
+                storeStepIDPAuthnPrepStmt = connection
+                        .prepareStatement(STORE_STEP_IDP_AUTH);
                 if (ApplicationConstants.AUTH_TYPE_LOCAL
                         .equalsIgnoreCase(localAndOutboundAuthConfig.getAuthenticationType())) {
                     // for local authentication there can only be only one authentication step and
@@ -1558,8 +1554,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         PreparedStatement storeRoleClaimPrepStmt = null;
         PreparedStatement storeSPDialectsPrepStmt = null;
-        PreparedStatement storeClaimDialectPrepStmt = null;
-        PreparedStatement storeSendLocalSubIdPrepStmt = null;
+        PreparedStatement storeClaimDialectAndSendLocalSubIdPrepStmt = null;
 
         if (claimConfiguration == null) {
             return;
@@ -1609,29 +1604,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         try {
-            storeClaimDialectPrepStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT);
-            // IS_LOCAL_CLAIM_DIALECT=? WHERE TENANT_ID= ? AND ID = ?
-            storeClaimDialectPrepStmt.setString(1, claimConfiguration.isLocalClaimDialect() ? "1"
+            storeClaimDialectAndSendLocalSubIdPrepStmt = connection
+                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT_AND_SEND_LOCAL_SUB_ID);
+            // IS_LOCAL_CLAIM_DIALECT=?, IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
+            storeClaimDialectAndSendLocalSubIdPrepStmt.setString(1, claimConfiguration.isLocalClaimDialect() ? "1"
                     : "0");
-            storeClaimDialectPrepStmt.setInt(2, tenantID);
-            storeClaimDialectPrepStmt.setInt(3, applicationId);
-            storeClaimDialectPrepStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeClaimDialectPrepStmt);
-        }
-
-        try {
-            storeSendLocalSubIdPrepStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID);
-            // IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
-            storeSendLocalSubIdPrepStmt.setString(1,
+            storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2,
                     claimConfiguration.isAlwaysSendMappedLocalSubjectId() ? "1" : "0");
-            storeSendLocalSubIdPrepStmt.setInt(2, tenantID);
-            storeSendLocalSubIdPrepStmt.setInt(3, applicationId);
-            storeSendLocalSubIdPrepStmt.executeUpdate();
+            storeClaimDialectAndSendLocalSubIdPrepStmt.setInt(3, tenantID);
+            storeClaimDialectAndSendLocalSubIdPrepStmt.setInt(4, applicationId);
+            storeClaimDialectAndSendLocalSubIdPrepStmt.executeUpdate();
         } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeSendLocalSubIdPrepStmt);
+            IdentityApplicationManagementUtil.closeStatement(storeClaimDialectAndSendLocalSubIdPrepStmt);
         }
 
         if (claimConfiguration.getClaimMappings() == null
