@@ -86,8 +86,9 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                 } catch (AuthenticationFailedException e) {
                     if (isAccountLocked(context)) {
                         try {
-                            String redirectUrl = getRedirectUrlOnAccountLock(context, response);
-                            response.sendRedirect(redirectUrl);
+                            String status = FrameworkConstants.ACCOUNT_LOCKED_MSG;
+                            String statusMsg = FrameworkConstants.ERROR_MSG;
+                            FrameworkUtils.sendToRetryPage(request, response, context, status, statusMsg);
                         } catch (IOException e1) {
                             throw new AuthenticationFailedException(
                                     ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
