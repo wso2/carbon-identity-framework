@@ -215,17 +215,12 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.S
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.STORE_STEP_IDP_AUTH;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.STORE_STEP_INFO;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SEND_AUTH_LIST_OF_IDPS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_SUBJECT_CLAIM_URI;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_USE_TENANT_DOMAIN_LOCAL_SUBJECT_ID;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_USE_USERSTORE_DOMAIN_LOCAL_SUBJECT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
@@ -1332,97 +1327,39 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         PreparedStatement updateAuthTypePrepStmt = null;
 
-        PreparedStatement storeSendAuthListOfIdPsPrepStmt = null;
-        try {
-            storeSendAuthListOfIdPsPrepStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_SEND_AUTH_LIST_OF_IDPS);
-            // IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
-            storeSendAuthListOfIdPsPrepStmt.setString(1, localAndOutboundAuthConfig
-                    .isAlwaysSendBackAuthenticatedListOfIdPs() ? "1" : "0");
-            storeSendAuthListOfIdPsPrepStmt.setInt(2, tenantID);
-            storeSendAuthListOfIdPsPrepStmt.setInt(3, applicationId);
-            storeSendAuthListOfIdPsPrepStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeSendAuthListOfIdPsPrepStmt);
-        }
-
-        PreparedStatement storeUseTenantDomainInLocalSubjectIdStmt = null;
-        try {
-            storeUseTenantDomainInLocalSubjectIdStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_USE_TENANT_DOMAIN_LOCAL_SUBJECT_ID);
-            // IS_USE_TENANT_DIMAIN_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
-            storeUseTenantDomainInLocalSubjectIdStmt.setString(1, localAndOutboundAuthConfig
-                    .isUseTenantDomainInLocalSubjectIdentifier() ? "1" : "0");
-            storeUseTenantDomainInLocalSubjectIdStmt.setInt(2, tenantID);
-            storeUseTenantDomainInLocalSubjectIdStmt.setInt(3, applicationId);
-            storeUseTenantDomainInLocalSubjectIdStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeUseTenantDomainInLocalSubjectIdStmt);
-        }
-
-        PreparedStatement storeUseUserstoreDomainInLocalSubjectIdStmt = null;
-        try {
-            storeUseUserstoreDomainInLocalSubjectIdStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_USE_USERSTORE_DOMAIN_LOCAL_SUBJECT_ID);
-            // IS_USE_USERSTORE_DIMAIN_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
-            storeUseUserstoreDomainInLocalSubjectIdStmt.setString(1, localAndOutboundAuthConfig
-                    .isUseUserstoreDomainInLocalSubjectIdentifier() ? "1" : "0");
-            storeUseUserstoreDomainInLocalSubjectIdStmt.setInt(2, tenantID);
-            storeUseUserstoreDomainInLocalSubjectIdStmt.setInt(3, applicationId);
-            storeUseUserstoreDomainInLocalSubjectIdStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeUseUserstoreDomainInLocalSubjectIdStmt);
-        }
-
-        PreparedStatement enableAuthzStmt = null;
-        try {
-            enableAuthzStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION);
-            enableAuthzStmt.setString(1, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
-            enableAuthzStmt.setInt(2, tenantID);
-            enableAuthzStmt.setInt(3, applicationId);
-            enableAuthzStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(enableAuthzStmt);
-        }
-
-        PreparedStatement storeSubjectClaimUri = null;
-        try {
-            storeSubjectClaimUri = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_SUBJECT_CLAIM_URI);
-            // SUBJECT_CLAIM_URI=? WHERE TENANT_ID= ? AND ID = ?
-            storeSubjectClaimUri.setString(1, localAndOutboundAuthConfig.getSubjectClaimUri());
-            storeSubjectClaimUri.setInt(2, tenantID);
-            storeSubjectClaimUri.setInt(3, applicationId);
-            storeSubjectClaimUri.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeSubjectClaimUri);
-        }
+        PreparedStatement storeLocalAndOutboundConfigs = null;
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
 
-        if (authSteps == null || authSteps.length == 0) {
+        if (authSteps == null || authSteps.length == 0 || localAndOutboundAuthConfig.getAuthenticationType() == null) {
             // if no authentication steps defined - it should be the default behavior.
             localAndOutboundAuthConfig
                     .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
         }
 
         try {
-            if (localAndOutboundAuthConfig.getAuthenticationType() == null) {
-                // no authentication type defined - set to default.
-                localAndOutboundAuthConfig
-                        .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
-            }
-
-            updateAuthTypePrepStmt = connection
-                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE);
-            // AUTH_TYPE=? WHERE TENANT_ID= ? AND ID = ?
-            updateAuthTypePrepStmt.setString(1, localAndOutboundAuthConfig.getAuthenticationType());
-            updateAuthTypePrepStmt.setInt(2, tenantID);
-            updateAuthTypePrepStmt.setInt(3, applicationId);
-            updateAuthTypePrepStmt.execute();
+            storeLocalAndOutboundConfigs = connection
+                    .prepareStatement(UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION);
+            // IS_SEND_AUTH_LIST_OF_IDPS=?
+            storeLocalAndOutboundConfigs.setString(1, localAndOutboundAuthConfig
+                    .isAlwaysSendBackAuthenticatedListOfIdPs() ? "1" : "0");
+            // IS_USE_TENANT_DOMAIN_SUBJECT=?
+            storeLocalAndOutboundConfigs.setString(2, localAndOutboundAuthConfig
+                    .isUseTenantDomainInLocalSubjectIdentifier() ? "1" : "0");
+            // IS_USE_USER_DOMAIN_LOCAL_SUBJECT_ID=?
+            storeLocalAndOutboundConfigs.setString(3, localAndOutboundAuthConfig
+                    .isUseUserstoreDomainInLocalSubjectIdentifier() ? "1" : "0");
+            // ENABLE_AUTHORIZATION=?
+            storeLocalAndOutboundConfigs.setString(4, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
+            // SUBJECT_CLAIM_URI=?
+            storeLocalAndOutboundConfigs.setString(5, localAndOutboundAuthConfig.getSubjectClaimUri());
+            // AUTH_TYPE=?
+            storeLocalAndOutboundConfigs.setString(6, localAndOutboundAuthConfig.getAuthenticationType());
+            storeLocalAndOutboundConfigs.setInt(7, tenantID);
+            storeLocalAndOutboundConfigs.setInt(8, applicationId);
+            storeLocalAndOutboundConfigs.executeUpdate();
         } finally {
-            IdentityApplicationManagementUtil.closeStatement(updateAuthTypePrepStmt);
+            IdentityApplicationManagementUtil.closeStatement(storeLocalAndOutboundConfigs);
         }
 
         if (authSteps != null && authSteps.length > 0) {
