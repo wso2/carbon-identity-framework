@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -207,6 +208,8 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
     protected String getRedirectUrlOnAccountLock(AuthenticationContext context, HttpServletResponse response) {
 
         String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+        retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
+                "sessionDataKey=" + context.getContextIdentifier());
         String queryParams = context.getContextIdIncludedQueryParams();
         return response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
                 FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
