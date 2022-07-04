@@ -231,7 +231,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
                 paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
-                if (user != null) {
+                if (user != null && StringUtils.isBlank(user.getTenantDomain())) {
                     user.setTenantDomain(context.getTenantDomain());
                 }
             } else {
