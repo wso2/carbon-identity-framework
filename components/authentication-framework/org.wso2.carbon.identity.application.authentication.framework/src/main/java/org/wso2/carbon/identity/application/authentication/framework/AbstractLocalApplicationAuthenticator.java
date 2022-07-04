@@ -209,8 +209,6 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
     protected String getRedirectUrlOnAccountLock(AuthenticationContext context, HttpServletResponse response) {
 
         String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-        retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
-                "sessionDataKey=" + context.getContextIdentifier());
         String queryParams = context.getContextIdIncludedQueryParams();
         return response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
                 FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
