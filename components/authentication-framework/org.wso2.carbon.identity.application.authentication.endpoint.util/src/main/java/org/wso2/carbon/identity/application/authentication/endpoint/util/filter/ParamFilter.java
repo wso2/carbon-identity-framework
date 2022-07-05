@@ -70,6 +70,14 @@ public class ParamFilter implements Filter {
                 return;
             }
         }
+        else if (servletRequest.getParameter("sessionDataKeyConsent") != null) {
+            if (servletRequest instanceof HttpServletRequest) {
+                // Cast ServletRequest to HttpServletRequest and get the wrapped request.
+                HttpServletRequest httpServletRequest = cacheParamsFromConsentKey((HttpServletRequest) servletRequest);
+                filterChain.doFilter(httpServletRequest, servletResponse);
+                return;
+            }
+        }
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
@@ -91,14 +99,38 @@ public class ParamFilter implements Filter {
 
         // Add 'context' path to url and set 'sessionDataKey'.
         authAPIURL += "context/" + servletRequest.getParameter("sessionDataKey");
+        // Get login parameters from the API.
+        String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
+        Gson gson = new Gson();
+        Map<String, Object> cachedParams = gson.fromJson(contextProperties, Map.class);
+
+        return new AuthenticationRequestWrapper(servletRequest, cachedParams);
+    }
+
+    /**
+     * Cache the parameters retrieved from the API using SessionDataKey.
+     *
+     * @param servletRequest - Received servlet request.
+     * @return - HttpServletRequestWrapper with cached parameter map.
+     */
+    private HttpServletRequest cacheParamsFromConsentKey(HttpServletRequest servletRequest) {
+
+        // Define Authentication API URL.
+        String authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
+
+        // Add '/' if missing.
+        if (!authAPIURL.endsWith("/")) {
+            authAPIURL += "/";
+        }
+
+        // Add 'context' path to url and set 'sessionDataKey'.
+        authAPIURL += "OauthConsentKey/" + servletRequest.getParameter("sessionDataKeyConsent");
 
         // Get login parameters from the API.
         String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
         Gson gson = new Gson();
         Map<String, Object> cachedParams = gson.fromJson(contextProperties, Map.class);
 
-//        // Add 'sessionDataKey' to the parameter map.
-//        cachedParams.put("sessionDataKey", servletRequest.getParameter("sessionDataKey"));
         return new AuthenticationRequestWrapper(servletRequest, cachedParams);
     }
 
