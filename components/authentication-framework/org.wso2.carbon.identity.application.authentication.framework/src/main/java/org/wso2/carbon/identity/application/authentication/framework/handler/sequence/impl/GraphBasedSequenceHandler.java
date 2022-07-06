@@ -360,7 +360,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     String errorKey = UUID.randomUUID().toString();
                     uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
                     String sessionDataKey = context.getContextIdentifier();
-                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SESSION_DATA_KEY, sessionDataKey);
+                    uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
                     Map<String, String> failureData = node.getFailureData();
                     failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
                     AuthenticationError authenticationError = new AuthenticationError(failureData);

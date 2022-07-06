@@ -611,7 +611,7 @@ public class FrameworkUtils {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             String sessionDataKey = context.getContextIdentifier();
-            uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SESSION_DATA_KEY, sessionDataKey);
+            uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
             if (status != null && statusMsg != null) {
                 uriBuilder.addParameter("status", status);
                 uriBuilder.addParameter("statusMsg", statusMsg);
