@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -86,9 +85,8 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
                 } catch (AuthenticationFailedException e) {
                     if (isAccountLocked(context)) {
                         try {
-                            String status = FrameworkConstants.ACCOUNT_LOCKED_MSG;
-                            String statusMsg = FrameworkConstants.ERROR_MSG;
-                            FrameworkUtils.sendToRetryPage(request, response, context, status, statusMsg);
+                            FrameworkUtils.sendToRetryPage(request, response, context, FrameworkConstants.
+                                    ACCOUNT_LOCKED_MSG, FrameworkConstants.ERROR_MSG);
                         } catch (IOException e1) {
                             throw new AuthenticationFailedException(
                                     ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
@@ -196,23 +194,6 @@ public abstract class AbstractLocalApplicationAuthenticator extends AbstractAppl
             return true;
         }
         return false;
-    }
-
-    /**
-     * To get the redirect url when the user's account gets locked.
-     *
-     * @param context the authentication context
-     * @param response the the httpServletResponse
-     * @return redirect_url
-     */
-
-    protected String getRedirectUrlOnAccountLock(AuthenticationContext context, HttpServletResponse response) {
-
-        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-        String queryParams = context.getContextIdIncludedQueryParams();
-        return response.encodeRedirectURL(retryPage + ("?" + queryParams)) +
-                FrameworkConstants.STATUS_MSG + FrameworkConstants.ERROR_MSG +
-                FrameworkConstants.STATUS + FrameworkConstants.ACCOUNT_LOCKED_MSG;
     }
 
     /**
