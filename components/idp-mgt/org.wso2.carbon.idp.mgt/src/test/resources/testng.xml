@@ -23,6 +23,7 @@
         <classes>
             <class name="org.wso2.carbon.idp.mgt.util.IdPManagementUtilTest"/>
             <class name="org.wso2.carbon.idp.mgt.dao.IdPManagementDAOTest"/>
+            <class name="org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAOTest"/>
             <class name="org.wso2.carbon.idp.mgt.IdentityProviderManagementServiceTest"/>
             <class name="org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLoggerTest"/>
         </classes>
