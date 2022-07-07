@@ -77,6 +77,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -358,6 +360,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         authenticationResult.setAuthenticated(isAuthenticated);
 
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
+
+        //TODO: Check whether we should add these as a new parameter in AuthenticationResult.
+        if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
+            authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
+                    context.getProperty(ORGANIZATION_USER_PROPERTIES));
+        }
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
 
