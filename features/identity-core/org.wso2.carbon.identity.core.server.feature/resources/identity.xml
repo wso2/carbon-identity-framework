@@ -2050,6 +2050,10 @@
         <WebApp>
             <Context>
                 <BasePath>/scim2/</BasePath>
+                <SubPaths>
+                    <Path>/scim2/Groups</Path>
+                    <Path>/scim2/Users</Path>
+                </SubPaths>
             </Context>
             <Context>
                 <BasePath>/api/</BasePath>
