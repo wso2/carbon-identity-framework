@@ -555,15 +555,22 @@
                 }
                 CARBON.showConfirmationDialog(confirmationMessage,
                     function () {
+                        encodeSPCertificate();
                         document.getElementById("configure-sp-form").submit();
                     },
                     function () {
                         return false;
                     });
             } else {
+                encodeSPCertificate();
                 document.getElementById("configure-sp-form").submit();
             }
         }
+    }
+
+    function encodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
     function updateBeanAndRedirect(redirectURL) {
