@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -185,6 +186,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
             withAuthenticatedUser, boolean isFederated, boolean withSpRoleMapping) throws FrameworkException {
 
         AuthenticationContext context = getAuthenticationContext(sp1);
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         sequenceConfig.getApplicationConfig().setAlwaysSendMappedLocalSubjectId(true);
