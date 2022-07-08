@@ -294,8 +294,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-        retryURL = FrameworkUtils.appendQueryParamsStringToUrl(retryURL,
-                "sessionDataKey=" + context.getContextIdentifier());
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
@@ -488,6 +486,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             boolean showAuthFailureReason = true;
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
+            retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
+                    "sessionDataKey=" + context.getContextIdentifier());
             if (!showAuthFailureReason) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
