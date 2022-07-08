@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -105,14 +106,19 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
                                                                 localAndOutboundAuthenticationConfig) {
 
-        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
-                ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
-                        localAndOutboundAuthenticationConfig.getAuthenticationType())) {
-            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
-                    .getAuthenticationScriptConfig();
-            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        if (FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+            if (ApplicationConstants.AUTH_TYPE_FLOW.equals(
+                    localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
+                    ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
+                            localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+                AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                        .getAuthenticationScriptConfig();
+                return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+            }
+            return false;
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
