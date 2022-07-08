@@ -2923,6 +2923,9 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
+     <!--This enables federated user's role based authorization -->
+     <EnableFederatedIDPRoleBasedAuthorization>{{federated.idp.role_based_authorization}}</EnableFederatedIDPRoleBasedAuthorization>
+
     <!--This configuration is used for X509 Certificate based authentication. -->
 
     {% if x509.request_header_name is defined and x509.request_header_name|length %}
