@@ -112,6 +112,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
                 .anyString());
         when(FrameworkUtils.isStepBasedSequenceHandlerExecuted(Mockito.any(AuthenticationContext.class)))
                 .thenCallRealMethod();
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
