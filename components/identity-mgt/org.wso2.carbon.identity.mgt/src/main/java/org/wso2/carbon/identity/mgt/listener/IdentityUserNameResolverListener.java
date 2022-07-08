@@ -1060,8 +1060,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserListWithID(Condition condition, String domain, String profileName, int limit,
-                                          String cursor, String direction, String sortBy, String sortOrder,
-                                          UserStoreManager userStoreManager) throws UserStoreException {
+                                          String cursor, UserCoreConstants.PaginationDirection direction, String sortBy,
+                                          String sortOrder, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -1103,8 +1104,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserListWithID(Condition condition, String domain, String profileName, int limit,
-                                           String cursor, String direction, String sortBy, String sortOrder,
-                                           List<User> users, UserStoreManager userStoreManager)
+                   String cursor, UserCoreConstants.PaginationDirection direction, String sortBy, String sortOrder,
+                   List<User> users, UserStoreManager userStoreManager)
             throws UserStoreException {
 
         if (!isEnable()) {
