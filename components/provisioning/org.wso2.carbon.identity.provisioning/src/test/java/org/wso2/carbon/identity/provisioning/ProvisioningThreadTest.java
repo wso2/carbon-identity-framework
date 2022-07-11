@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.provisioning;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -29,7 +30,9 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
+import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.ArrayList;
@@ -38,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -51,7 +56,9 @@ import static org.wso2.carbon.identity.provisioning.ProvisioningOperation.PUT;
 /**
  * Test class for ProvisioningThread test cases.
  */
-@PrepareForTest({IdPManagementUtil.class, CacheBackedProvisioningMgtDAO.class})
+@PrepareForTest({IdPManagementUtil.class, CacheBackedProvisioningMgtDAO.class, PrivilegedCarbonContext.class,
+        ProvisioningEntityCache.class})
+@PowerMockIgnore("org.mockito.*")
 public class ProvisioningThreadTest extends PowerMockTestCase {
 
     private ProvisioningEntity provisioningEntity;
@@ -59,8 +66,6 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
     private String connectorType = "testConnectorType";
     private String idPName = "testIdpName";
 
-    @Mock
-    private CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgDAO;
     @Mock
     private AbstractOutboundProvisioningConnector mockConnector;
 
@@ -72,8 +77,6 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         ProvisionedIdentifier provisionedIdentifier = new ProvisionedIdentifier();
         when(mockConnector.provision(provisioningEntity)).thenReturn(provisionedIdentifier);
         int tenantId = -1234;
-        doNothing().when(mockCacheBackedProvisioningMgDAO).addProvisioningEntity(idPName, connectorType,
-                provisioningEntity, tenantId, tenantDomainName);
         mockStatic(IdPManagementUtil.class);
         when(IdPManagementUtil.getTenantIdOfDomain(tenantDomainName)).thenReturn(tenantId);
     }
@@ -86,6 +89,10 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         provisioningEntity = new ProvisioningEntity((ProvisioningEntityType) entityType,
                 (ProvisioningOperation) entityOperation, attributeMap);
         System.setProperty("carbon.home", "");
+        CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgDAO = mock(CacheBackedProvisioningMgtDAO.class);
+        mockCarbonContext();
+        doNothing().when(mockCacheBackedProvisioningMgDAO).addProvisioningEntity(idPName, connectorType,
+                provisioningEntity, -1234, tenantDomainName);
         ProvisioningThread provisioningThread =
                 new ProvisioningThread(provisioningEntity, tenantDomainName, mockConnector, connectorType,
                         idPName, mockCacheBackedProvisioningMgDAO);
@@ -94,18 +101,31 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         Assert.assertTrue(result);
     }
 
-    @Test
+    @Test(expectedExceptions = IdentityProvisioningException.class)
     public void testCallForInvalidTenant()
             throws Exception {
 
         provisioningEntity = new ProvisioningEntity(USER, DELETE, null);
         System.setProperty("carbon.home", "");
+
+        CacheBackedProvisioningMgtDAO cacheBackedProvisioningMgtDAO = mockCacheBackedProvisioningMgtDAO();
         ProvisioningThread provisioningThread =
                 new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
-                        idPName, mockCacheBackedProvisioningMgDAO);
+                        idPName, cacheBackedProvisioningMgtDAO);
 
         provisioningThread.call();
-        Assert.assertEquals(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(), -1);
+    }
+
+    private CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgtDAO() {
+
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockStatic(ProvisioningEntityCache.class);
+        ProvisioningEntityCache provisioningEntityCache = spy(ProvisioningEntityCache.class);
+        when(ProvisioningEntityCache.getInstance()).thenReturn(provisioningEntityCache);
+        ProvisioningManagementDAO provisioningManagementDAO = mock(ProvisioningManagementDAO.class);
+        return  new CacheBackedProvisioningMgtDAO(provisioningManagementDAO);
     }
 
     @DataProvider(name = "provisioningData")
@@ -129,6 +149,17 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
+    }
+
+    private void mockCarbonContext() {
+
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomainName);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(-1234);
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 }

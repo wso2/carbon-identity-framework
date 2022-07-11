@@ -116,13 +116,6 @@
   "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
   "authentication.authenticator.facebook.parameters.Tags": "Social-Login",
 
-  "authentication.authenticator.yahoo.name": "YahooOAuth2Authenticator",
-  "authentication.authenticator.yahoo.enable": true,
-  "authentication.authenticator.yahoo.parameters.YahooTokenEndpoint": "https://api.login.yahoo.com/oauth2/get_token",
-  "authentication.authenticator.yahoo.parameters.YahooOAuthzEndpoint": "https://api.login.yahoo.com/oauth2/request_auth",
-  "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://api.login.yahoo.com/openid/v1/userinfo",
-  "authentication.authenticator.yahoo.parameters.Tags": "Social-Login",
-
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
@@ -159,9 +152,9 @@
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
   "authentication.authenticator.sms_otp.enable": true,
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "smsotpauthenticationendpoint/smsotp.jsp",
-  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "smsotpauthenticationendpoint/smsotpError.jsp",
-  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "smsotpauthenticationendpoint/mobile.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "authenticationendpoint/smsOtp.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "authenticationendpoint/smsOtpError.jsp",
+  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "authenticationendpoint/mobile.jsp",
   "authentication.authenticator.sms_otp.parameters.RetryEnable": true,
   "authentication.authenticator.sms_otp.parameters.ResendEnable": true,
   "authentication.authenticator.sms_otp.parameters.BackupCode": true,

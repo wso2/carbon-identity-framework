@@ -280,4 +280,18 @@ public interface ApplicationDAO {
 
         return false;
     }
+
+    /**
+     * Method that returns service provider with required attributes.
+     *
+     * @param applicationId       Application identifier.
+     * @param requiredAttributes  List of required attributes.
+     * @return  ServiceProvider with required attributes added.
+     * @throws IdentityApplicationManagementException   Error when obtaining Sp with required attributes.
+     */
+    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        return new ServiceProvider();
+    }
 }

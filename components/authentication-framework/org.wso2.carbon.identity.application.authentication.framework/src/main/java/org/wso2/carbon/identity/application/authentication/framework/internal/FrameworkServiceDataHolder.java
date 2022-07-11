@@ -106,6 +106,8 @@ public class FrameworkServiceDataHolder {
     private IdpManager idPManager;
     private ApplicationManagementService applicationManagementService;
 
+    private boolean isAdaptiveAuthenticationAvailable = false;
+
     private FrameworkServiceDataHolder() {
 
         setNanoTimeReference(System.nanoTime());
@@ -588,6 +590,26 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionSerializer(SessionSerializer sessionSerializer) {
         this.sessionSerializer = sessionSerializer;
+    }
+
+    /**
+     * Get adaptive authentication available or not.
+     *
+     * @return isAdaptiveAuthenticationAvailable
+     */
+    public boolean isAdaptiveAuthenticationAvailable() {
+
+        return isAdaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Set adaptive authentication availability.
+     *
+     * @param adaptiveAuthenticationAvailable adaptiveAuthenticationAvailable
+     */
+    public void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
+
+        isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
     }
 
     public void setIdPManager(IdpManager idPManager) {

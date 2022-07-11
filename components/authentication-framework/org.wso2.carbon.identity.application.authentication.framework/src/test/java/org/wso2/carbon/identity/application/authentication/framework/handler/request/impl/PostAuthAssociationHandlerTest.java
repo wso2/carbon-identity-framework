@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -63,9 +64,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -77,7 +79,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
  */
 @PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class
         , IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.xml.*"})
+@PowerMockIgnore({"javax.xml.*", "org.mockito.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
     public static final String LOCAL_USER = "local-user";
@@ -130,8 +132,8 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
         claims.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, String.format("%s,%s", ORI_ROLE_1, ORI_ROLE_2));
-        PowerMockito.doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class),
-                any(AuthenticationContext.class), any(Map.class), anyBoolean());
+        when(claimHandler.handleClaimMappings(any(StepConfig.class),
+                any(AuthenticationContext.class), eq(null), anyBoolean())).thenReturn(claims);
         PowerMockito.when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
     }
 
@@ -146,7 +148,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
         when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
         doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
-                (Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+                (Mockito.anyString(), eq(null), Mockito.anyString());
         PowerMockito.when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
 
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
@@ -184,6 +186,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
             withAuthenticatedUser, boolean isFederated, boolean withSpRoleMapping) throws FrameworkException {
 
         AuthenticationContext context = getAuthenticationContext(sp1);
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         sequenceConfig.getApplicationConfig().setAlwaysSendMappedLocalSubjectId(true);

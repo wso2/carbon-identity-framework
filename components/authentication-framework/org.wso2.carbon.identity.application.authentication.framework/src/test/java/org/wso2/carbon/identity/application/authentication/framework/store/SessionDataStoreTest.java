@@ -37,8 +37,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;

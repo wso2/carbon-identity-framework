@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -59,6 +60,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -92,6 +94,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -123,6 +126,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -156,6 +160,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);

@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.DataProvider;
@@ -38,7 +39,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
@@ -54,6 +55,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 @WithCarbonHome
 @PrepareForTest({IdentityUtil.class, IdentityApplicationConstants.class, IdentityProviderManager.class,
         IdentityApplicationManagementUtil.class, IdPManagementServiceComponent.class})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
+        ".*", "org.apache.xerces.*","org.mockito.*"})
 public class IdPManagementUtilTest extends PowerMockTestCase {
 
     @Mock
