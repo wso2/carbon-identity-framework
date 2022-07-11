@@ -2926,6 +2926,15 @@
      <!--This enables federated user's role based authorization -->
      <EnableFederatedIDPRoleBasedAuthorization>{{federated.idp.role_based_authorization}}</EnableFederatedIDPRoleBasedAuthorization>
 
+      <!-- Following applications can use federated user's role based authorization -->
+     {% if federated.idp.role_based_authorization_apps is defined %}
+         <FederatedIDPRoleBasedAuthorizationApplications>
+             {% for application in federated.idp.role_based_authorization_apps %}
+             <ApplicationName>{{application}}</ApplicationName>
+             {% endfor %}
+         </FederatedIDPRoleBasedAuthorizationApplications>
+     {% endif %}
+
     <!--This configuration is used for X509 Certificate based authentication. -->
 
     {% if x509.request_header_name is defined and x509.request_header_name|length %}

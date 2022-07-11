@@ -2151,6 +2151,10 @@
 
     <!--This enables federated user's role based authorization -->
     <EnableFederatedIDPRoleBasedAuthorization>false</EnableFederatedIDPRoleBasedAuthorization>
+    <!-- Following applications can use federated user's role based authorization -->
+    <FederatedIDPRoleBasedAuthorizationApplications>
+        <ApplicationName></ApplicationName>
+    </FederatedIDPRoleBasedAuthorizationApplications>
 
     <!--This configuration is used for X509 Certificate based authentication. -->
     <!--<X509>-->
