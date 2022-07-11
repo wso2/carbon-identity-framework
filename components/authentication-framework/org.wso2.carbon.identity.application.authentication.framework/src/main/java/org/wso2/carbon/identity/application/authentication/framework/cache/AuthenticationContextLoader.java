@@ -182,35 +182,39 @@ public class AuthenticationContextLoader {
     private void optimizeApplicationConfig(AuthenticationContext context) throws
             AuthenticationContextLoaderException {
 
-        ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
-        if (applicationConfig != null) {
-            OptimizedApplicationConfig optApplicationConfig = new OptimizedApplicationConfig(applicationConfig,
-                    context.getTenantDomain());
-            context.getSequenceConfig().setOptApplicationConfig(optApplicationConfig);
-            context.getSequenceConfig().setApplicationConfig(null);
+        if (context.getSequenceConfig() != null) {
+            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+            if (applicationConfig != null) {
+                OptimizedApplicationConfig optApplicationConfig = new OptimizedApplicationConfig(applicationConfig,
+                        context.getTenantDomain());
+                context.getSequenceConfig().setOptApplicationConfig(optApplicationConfig);
+                context.getSequenceConfig().setApplicationConfig(null);
+            }
         }
     }
 
     private void loadApplicationConfig(AuthenticationContext context)
             throws AuthenticationContextLoaderException {
 
-        ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
-        OptimizedApplicationConfig optApplicationConfig = context.getSequenceConfig().getOptApplicationConfig();
-        if (applicationConfig == null && optApplicationConfig != null) {
-            ServiceProvider serviceProvider = reconstructServiceProvider(optApplicationConfig,
-                    context.getTenantDomain());
-            if (serviceProvider == null) {
-                throw new AuthenticationContextLoaderException(
-                        String.format("Cannot find the Service Provider by the resource ID: %s tenant domain: %s",
-                                optApplicationConfig.getServiceProviderResourceId(), context.getTenantDomain()));
+        if (context.getSequenceConfig() != null) {
+            ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
+            OptimizedApplicationConfig optApplicationConfig = context.getSequenceConfig().getOptApplicationConfig();
+            if (applicationConfig == null && optApplicationConfig != null) {
+                ServiceProvider serviceProvider = reconstructServiceProvider(optApplicationConfig,
+                        context.getTenantDomain());
+                if (serviceProvider == null) {
+                    throw new AuthenticationContextLoaderException(
+                            String.format("Cannot find the Service Provider by the resource ID: %s tenant domain: %s",
+                                    optApplicationConfig.getServiceProviderResourceId(), context.getTenantDomain()));
+                }
+                ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, context.getTenantDomain());
+                appConfig.setMappedSubjectIDSelected(optApplicationConfig.isMappedSubjectIDSelected());
+                appConfig.setClaimMappings(optApplicationConfig.getClaimMappings());
+                appConfig.setRoleMappings(optApplicationConfig.getRoleMappings());
+                appConfig.setMandatoryClaims(optApplicationConfig.getMandatoryClaims());
+                appConfig.setRequestedClaims(optApplicationConfig.getRequestedClaims());
+                context.getSequenceConfig().setApplicationConfig(appConfig);
             }
-            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, context.getTenantDomain());
-            appConfig.setMappedSubjectIDSelected(optApplicationConfig.isMappedSubjectIDSelected());
-            appConfig.setClaimMappings(optApplicationConfig.getClaimMappings());
-            appConfig.setRoleMappings(optApplicationConfig.getRoleMappings());
-            appConfig.setMandatoryClaims(optApplicationConfig.getMandatoryClaims());
-            appConfig.setRequestedClaims(optApplicationConfig.getRequestedClaims());
-            context.getSequenceConfig().setApplicationConfig(appConfig);
         }
     }
 
@@ -224,8 +228,6 @@ public class AuthenticationContextLoader {
         try {
             serviceProvider = applicationManager.getApplicationByResourceId(
                     optApplicationConfig.getServiceProviderResourceId(), tenantDomain);
-            /*serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().
-                    getApplicationByResourceId(optApplicationConfig.getServiceProviderResourceId(), tenantDomain);*/
             if (serviceProvider == null) {
                 return null;
             }

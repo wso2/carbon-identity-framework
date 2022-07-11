@@ -234,6 +234,7 @@ public class ServiceProvider implements Serializable {
             }
         }
 
+        serviceProvider.setApplicationResourceId(serviceProvider.getApplicationName());
         return serviceProvider;
     }
 

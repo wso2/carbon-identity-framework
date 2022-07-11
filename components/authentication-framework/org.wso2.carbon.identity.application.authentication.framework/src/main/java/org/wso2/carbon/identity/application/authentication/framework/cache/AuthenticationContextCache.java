@@ -107,6 +107,11 @@ public class AuthenticationContextCache extends
                 }
                 SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
                         entry, tenantId);
+                try {
+                    AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+                } catch (AuthenticationContextLoaderException e) {
+                    log.debug("Error occurred while loading optimized authentication context", e);
+                }
             }
         }
     }
