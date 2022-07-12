@@ -452,7 +452,7 @@ function postbackUpdatedPolicy() {
         + '<input type="hidden" name="policyid" value="' + policyId + '"/>';
 
     YAHOO.util.Event.onDOMReady(function() {
-        document.getElementById("policy-content").value = currentPolicyDoc.toString();
+        document.getElementById("policy-content").value = btoa(currentPolicyDoc.toString());
         document.postbackForm.submit();
     });
 

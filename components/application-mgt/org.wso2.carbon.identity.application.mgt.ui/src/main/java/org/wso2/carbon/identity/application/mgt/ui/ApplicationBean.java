@@ -1139,7 +1139,9 @@ public class ApplicationBean {
         // update basic info.
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
-        serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
+        String spCertificate = request.getParameter("sp-certificate");
+        spCertificate = new String(Base64.getDecoder().decode(spCertificate), StandardCharsets.UTF_8);
+        serviceProvider.setCertificateContent(spCertificate);
 
         String jwks = request.getParameter("jwksUri");
         serviceProvider.setJwksUri(jwks);

@@ -233,6 +233,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -278,6 +279,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
             }
         }
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
