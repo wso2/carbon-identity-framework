@@ -2164,19 +2164,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private boolean isOrganization(String tenantDomain) throws IdentityApplicationManagementException {
+    private boolean isOrganization(String tenantDomain) {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        try {
-            Tenant tenant =
-                    ApplicationManagementServiceComponentHolder.getInstance().getRealmService().getTenantManager()
-                            .getTenant(tenantID);
-            return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
-        } catch (UserStoreException e) {
-            String errorMsg =
-                    String.format("Error while retrieving details of the application tenant: %s", tenantDomain);
-            throw new IdentityApplicationManagementException(errorMsg, e);
-        }
+        Tenant tenant = IdentityTenantUtil.getTenant(tenantID);
+        return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
     }
 
     private void setDefaultAuthenticationSeq(String sequenceName, String tenantDomain, ServiceProvider serviceProvider)

@@ -4229,13 +4229,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
         if (tenantName != null) {
-            try {
-                tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                        .getTenantManager().getTenantId(tenantName);
-            } catch (UserStoreException e1) {
-                log.error("Error in reading application", e1);
-                throw new IdentityApplicationManagementException("Error while reading application", e1);
-            }
+            tenantID = IdentityTenantUtil.getTenantId(tenantName);
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
