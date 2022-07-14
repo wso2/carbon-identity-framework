@@ -2019,7 +2019,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         validateAttributesForPagination(offset, limit);
 
-        if ("*".equals(filter)) {
+        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
             return getApplicationBasicInfo(offset, limit);
         }
 
@@ -2041,36 +2041,32 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (databaseProductName.contains("MySQL")
                     || databaseProductName.contains("MariaDB")
                     || databaseProductName.contains("H2")) {
-                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
+                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL, filterResolvedForSQL);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, offset, limit);
             } else if (databaseProductName.contains("Oracle")) {
-                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
+                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE, filterResolvedForSQL);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + limit,
-                        offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, offset + limit, offset);
             } else if (databaseProductName.contains("Microsoft")) {
-                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
+                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL, filterResolvedForSQL);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, offset, limit);
             } else if (databaseProductName.contains("PostgreSQL")) {
-                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
+                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL, filterResolvedForSQL);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, limit, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, limit, offset);
             } else if (databaseProductName.contains("DB2")) {
-                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
+                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL, filterResolvedForSQL);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + 1,
-                        offset + limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, offset + 1, offset + limit);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, offset);
                 getAppNamesStmt.setInt(2, limit);
                 getAppNamesStmt.setInt(3, tenantID);
-                getAppNamesStmt.setString(4, filterResolvedForSQL);
-                getAppNamesStmt.setString(5, LOCAL_SP);
-
+                getAppNamesStmt.setString(4, LOCAL_SP);
             } else {
                 log.error("Error while loading applications from DB: Database driver could not be identified or " +
                         "not supported.");
@@ -2099,18 +2095,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * Set values to the prepare statement for searching applications
      * @param getAppNamesStmt
      * @param tenantID
-     * @param filterResolvedForSQL
      * @param start
      * @param end
      * @throws SQLException
      */
-    private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID, String
-            filterResolvedForSQL, int start, int end) throws SQLException {
+    private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID, int start, int end)
+            throws SQLException {
         getAppNamesStmt.setInt(1, tenantID);
-        getAppNamesStmt.setString(2, filterResolvedForSQL);
-        getAppNamesStmt.setString(3, LOCAL_SP);
-        getAppNamesStmt.setInt(4, start);
-        getAppNamesStmt.setInt(5, end);
+        getAppNamesStmt.setString(2, LOCAL_SP);
+        getAppNamesStmt.setInt(3, start);
+        getAppNamesStmt.setInt(4, end);
     }
 
     @Override
@@ -3298,7 +3292,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String resolveSQLFilter(String filter) {
 
         //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
-        String sqlfilter = "%";
+        String sqlfilter = "SP_APP.APP_NAME LIKE '%'";
         if (StringUtils.isNotBlank(filter)) {
             sqlfilter = filter.trim()
                     .replace("*", "%")
@@ -3336,10 +3330,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             getAppNamesStmt = connection
-                    .prepareStatement(LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME);
+                    .prepareStatement(String.format(LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME, filterResolvedForSQL));
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, filterResolvedForSQL);
-            getAppNamesStmt.setString(3, LOCAL_SP);
+            getAppNamesStmt.setString(2, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
