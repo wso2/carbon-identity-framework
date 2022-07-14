@@ -88,8 +88,10 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
-    private static final String APPLICATION_NAME_1 = "Test application 1";
-    private static final String APPLICATION_NAME_2 = "Test application 2";
+    private static final String APPLICATION_NAME_1 = "Test application1";
+    private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_NAME_1_Filter = "SP_APP.APP_NAME LIKE '%application1'";
+    private static final String APPLICATION_NAME_2_Filter = "SP_APP.APP_NAME LIKE '%2%'";
     private static final String IDP_NAME_1 = "Test IdP 1";
     private static final String IDP_NAME_2 = "Test IdP 2";
     private static final String USERNAME_1 = "user 1";
@@ -260,12 +262,11 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
 
         // Adding new application.
-        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
-                username);
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain, username);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getPaginatedApplicationBasicInfo
-                (tenantDomain, username, 1, inputSP.getApplicationName());
+                (tenantDomain, username, 1, "SP_APP.APP_NAME LIKE '%" + inputSP.getApplicationName() + "%'");
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
@@ -338,11 +339,11 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         addApplications();
 
         ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2, 0, 1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2_Filter, 0, 1);
         Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_2);
 
         ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1, 0, 1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1_Filter, 0, 1);
         Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_1);
 
         // Deleting all added applications.
@@ -365,9 +366,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         addApplications();
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_1), 1);
+                USERNAME_1, APPLICATION_NAME_1_Filter), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_2), 1);
+                USERNAME_1, APPLICATION_NAME_2_Filter), 1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
