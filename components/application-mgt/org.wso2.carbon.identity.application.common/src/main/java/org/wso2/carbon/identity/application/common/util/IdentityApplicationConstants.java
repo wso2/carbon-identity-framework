@@ -588,8 +588,8 @@ public class IdentityApplicationConstants {
         APPLICATION_NOT_FOUND("60006"),
         APPLICATION_ALREADY_EXISTS("60007"),
         OPERATION_FORBIDDEN("60008"),
-        INBOUND_KEY_ALREADY_EXISTS("60009");
-
+        INBOUND_KEY_ALREADY_EXISTS("60009"),
+        EXPIRED_CERTIFICATE("60010");
         private final String code;
         private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP-";
 
