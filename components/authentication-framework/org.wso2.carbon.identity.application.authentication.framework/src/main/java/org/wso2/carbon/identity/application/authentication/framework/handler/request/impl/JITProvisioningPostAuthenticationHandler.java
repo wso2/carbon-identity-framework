@@ -487,7 +487,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
                     "sp=" + context.getServiceProviderName());
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage,
-                    "authFlowId=" + context.getContextIdentifier());
+                    String.format("%s=", FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID)
+                            + context.getContextIdentifier());
             if (!showAuthFailureReason) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
