@@ -414,7 +414,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return result.getApplicationId();
-        } catch (SQLException e) {
+        } catch (SQLException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             if (isApplicationConflict(e)) {
                 throw new IdentityApplicationManagementClientException(APPLICATION_ALREADY_EXISTS.getCode(),
