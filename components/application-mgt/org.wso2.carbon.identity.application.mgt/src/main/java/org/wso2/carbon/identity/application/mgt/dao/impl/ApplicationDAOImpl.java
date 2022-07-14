@@ -229,6 +229,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
@@ -394,7 +395,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return result.getApplicationId();
-        } catch (SQLException e) {
+        } catch (SQLException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
             if (isApplicationConflict(e)) {
                 throw new IdentityApplicationManagementClientException(APPLICATION_ALREADY_EXISTS.getCode(),
@@ -421,12 +422,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private ApplicationCreateResult persistBasicApplicationInformation(Connection connection,
                                                                        ServiceProvider application,
-                                                                       String tenantDomain) throws SQLException {
+                                                                       String tenantDomain)
+            throws IdentityApplicationManagementException, SQLException {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        String qualifiedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String qualifiedUsername;
         if (LOCAL_SP.equals(application.getApplicationName())) {
             qualifiedUsername = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        } else {
+            qualifiedUsername = ApplicationMgtUtil.getUsername(tenantDomain);
         }
 
         String username = UserCoreUtil.removeDomainFromName(qualifiedUsername);
@@ -1942,22 +1946,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
 
-                String tenantDomain;
-                try {
-                    tenantDomain = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                            .getTenantManager()
-                            .getDomain(
-                                    basicAppDataResultSet.getInt(2));
-                } catch (UserStoreException e) {
-                    log.error("Error while reading tenantDomain", e);
-                    throw new IdentityApplicationManagementException("Error while reading tenant " +
-                            "domain for application " +
-                            applicationName);
-                }
-
                 User owner = new User();
                 owner.setUserName(basicAppDataResultSet.getString(5));
-                owner.setTenantDomain(tenantDomain);
+                owner.setTenantDomain(getUser(basicAppDataResultSet.getString(5),
+                        IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)))
+                        .getTenantDomain());
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
 
@@ -2279,7 +2272,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 User owner = new User();
                 owner.setUserName(rs.getString(ApplicationTableColumns.USERNAME));
                 owner.setUserStoreDomain(rs.getString(ApplicationTableColumns.USER_STORE));
-                owner.setTenantDomain(IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)));
+                owner.setTenantDomain(getUser(rs.getString(ApplicationTableColumns.USERNAME),
+                                IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)))
+                                .getTenantDomain());
                 serviceProvider.setOwner(owner);
 
                 ClaimConfig claimConfig = new ClaimConfig();
@@ -5220,7 +5215,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)
-            throws SQLException {
+            throws SQLException, IdentityApplicationManagementException {
 
         ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
@@ -5240,7 +5235,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             User appOwner = new User();
             appOwner.setUserStoreDomain(userStoreDomain);
             appOwner.setUserName(username);
-            appOwner.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
+            appOwner.setTenantDomain(getUser(username, IdentityTenantUtil.getTenantDomain(tenantId)).getTenantDomain());
 
             basicInfo.setAppOwner(appOwner);
         }

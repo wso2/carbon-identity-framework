@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.internal;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -50,6 +51,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ConsentManager consentManager;
 
     private ClaimMetadataManagementService claimMetadataManagementService;
+
+    private OrganizationUserResidentResolverService organizationUserResidentResolverService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -183,5 +186,16 @@ public class ApplicationManagementServiceComponentHolder {
             ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    public OrganizationUserResidentResolverService getOrganizationUserResidentResolverService() {
+
+        return organizationUserResidentResolverService;
+    }
+
+    public void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        this.organizationUserResidentResolverService = organizationUserResidentResolverService;
     }
 }

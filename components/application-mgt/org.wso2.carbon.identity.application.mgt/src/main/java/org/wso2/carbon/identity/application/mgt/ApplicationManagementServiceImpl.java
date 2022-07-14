@@ -83,7 +83,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -2128,12 +2127,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @param username     username
      * @return User
      */
-    private User getUser(String tenantDomain, String username) {
+    private User getUser(String tenantDomain, String username) throws IdentityApplicationManagementException {
 
         User user = new User();
-        user.setUserName(UserCoreUtil.removeDomainFromName(username));
-        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(username));
-        user.setTenantDomain(tenantDomain);
+        org.wso2.carbon.user.core.common.User resolvedUser = ApplicationMgtUtil.getUser(username, tenantDomain);
+        user.setUserName(resolvedUser.getUsername());
+        user.setUserStoreDomain(resolvedUser.getUserStoreDomain());
+        user.setTenantDomain(resolvedUser.getTenantDomain());
+
         return user;
     }
 
