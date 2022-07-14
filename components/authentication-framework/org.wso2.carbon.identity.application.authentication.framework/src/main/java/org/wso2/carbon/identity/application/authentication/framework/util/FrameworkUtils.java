@@ -623,8 +623,8 @@ public class FrameworkUtils {
                 if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
                 }
-                String sessionDataKey = context.getContextIdentifier();
-                uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, sessionDataKey);
+                String authFlowId = context.getContextIdentifier();
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
