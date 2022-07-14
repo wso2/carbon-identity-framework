@@ -73,6 +73,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -520,15 +521,27 @@
                             }%>/> Enable Script Based Adaptive Authentication
                         </label>
                     </div>
+                    <div class="script-select-container" style="display: none;">
+                        <label class="noselect">
+                            <input id="enableAdaptive" name="enableAdaptive" type="checkbox" value="true"
+                            <%
+                                 if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+                            %>
+                                   checked="checked"
+                            <% } %>/> Enable Adaptive Authentication
+                        </label>
+                    </div>
                 </div>
-
                 <div style="clear:both"></div>
                 <!-- sectionSub Div -->
                 <br/>
+                <%
+                    if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+                %>
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Script Based Adaptive Authentication</a>
                 </h2>
-
+                <% } %>
                 <div class="toggle_container sectionSub" id="editorRow">
                     <div class="err_warn_container">
                         <div class="disable_status">

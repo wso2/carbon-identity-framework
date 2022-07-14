@@ -61,7 +61,7 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
         AuthenticationContext context = getAuthenticationContext(sp1);
-
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);

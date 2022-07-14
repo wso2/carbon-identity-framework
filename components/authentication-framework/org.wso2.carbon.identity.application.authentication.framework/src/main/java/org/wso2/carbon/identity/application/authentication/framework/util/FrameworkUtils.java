@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -29,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
@@ -204,6 +204,7 @@ public class FrameworkUtils {
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
+    private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
 
     private FrameworkUtils() {
@@ -2416,6 +2417,16 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;
@@ -2753,6 +2764,24 @@ public class FrameworkUtils {
                     "Identity database.");
         }
         return false;
+    }
+
+    /**
+     * Checking whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     */
+    public static void checkIfTenantIdColumnIsAvailableInFedAuthTable() {
+
+        isTenantIdColumnAvailableInFedAuthTable = isTableColumnExists("IDN_FED_AUTH_SESSION_MAPPING", "TENANT_ID");
+    }
+
+    /**
+     * Return whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     *
+     * @return True if tenant id is available in IDN_FED_AUTH_SESSION_MAPPING table. Else return false.
+     */
+    public static boolean isTenantIdColumnAvailableInFedAuthTable() {
+
+        return isTenantIdColumnAvailableInFedAuthTable;
     }
 
     /**

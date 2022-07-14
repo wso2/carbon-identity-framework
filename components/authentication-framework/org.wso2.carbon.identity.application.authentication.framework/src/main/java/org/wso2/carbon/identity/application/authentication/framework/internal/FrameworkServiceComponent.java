@@ -138,6 +138,7 @@ public class FrameworkServiceComponent {
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
+    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
     private String requireCode;
@@ -214,7 +215,16 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+        if (checkAdaptiveAuthenticationAvailable()) {
+            dataHolder.setAdaptiveAuthenticationAvailable(true);
+            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+            JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
+            jsGraphBuilderFactory.init();
+            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        } else {
+            dataHolder.setAdaptiveAuthenticationAvailable(false);
+            log.warn("Adaptive authentication is disabled.");
+        }
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
         bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
@@ -283,11 +293,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
-        dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
@@ -348,6 +355,9 @@ public class FrameworkServiceComponent {
          * Load and reade the require.js file in resources.
          */
         this.loadCodeForRequire();
+
+        // Check whether the TENANT_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+        FrameworkUtils.checkIfTenantIdColumnIsAvailableInFedAuthTable();
 
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
@@ -933,5 +943,20 @@ public class FrameworkServiceComponent {
     protected void unsetSessionContextListener(SessionContextMgtListener sessionListener) {
 
         FrameworkServiceDataHolder.getInstance().removeSessionContextMgtListener(sessionListener.getInboundType());
+    }
+
+    /**
+     * This method is to check Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    private boolean checkAdaptiveAuthenticationAvailable() {
+
+        try {
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

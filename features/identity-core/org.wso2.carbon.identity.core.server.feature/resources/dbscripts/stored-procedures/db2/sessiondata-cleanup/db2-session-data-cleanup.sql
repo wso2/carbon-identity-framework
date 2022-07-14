@@ -21,6 +21,8 @@ BEGIN
 	DECLARE @sessionMetadataCleanupCount INT;
 	DECLARE @operationalSessionMetadataCleanupCount INT;
 	DECLARE @operationCleanupCount INT;
+	DECLARE @sessionFederatedMappingsCleanupCount INT;
+	DECLARE @operationalFederatedSessionMappingsCleanupCount INT;
 	DECLARE @tracingEnabled INT;
 	DECLARE @sleepTime VARCHAR(8);
 	DECLARE @batchSize INT;
@@ -51,6 +53,8 @@ BEGIN
 	SET @deletedOperationalSessionAppInfo = 0;
 	SET @deletedSessionMetadata = 0;
 	SET @deletedOperationalSessionMetadata = 0;
+	SET @deletedFederatedSessionMappings = 0;
+	SET @deletedOperationalFederatedSessionMappings = 0;
 	SET @deletedStoreOperations = 0;
 	SET @deletedDeleteOperations = 0;
 	SET @sessionCleanupCount = 1;
@@ -60,6 +64,8 @@ BEGIN
 	SET @operationalSessionAppInfoCleanupCount = 1;
 	SET @sessionMetadataCleanupCount = 1;
 	SET @operationalSessionMetadataCleanupCount = 1;
+	SET @sessionFederatedMappingsCleanupCount = 1;
+	SET @operationalFederatedSessionMappingsCleanupCount = 1;
 	SET @operationCleanupCount = 1;
 	SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
 	SET @sleepTime = '00:00:02.000';          -- Sleep time in seconds.
@@ -124,6 +130,12 @@ BEGIN
 			    GET DIAGNOSTICS @sessionMetadataCleanupCount = ROW_COUNT;
 			END IF;
 
+			-- Deleting federation auth session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_FED_AUTH_SESSION_MAPPING') THEN
+				DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH);
+				GET DIAGNOSTICS @sessionFederatedMappingsCleanupCount = ROW_COUNT;
+			END IF;
+
 			DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH);
 
 			DROP TABLE TEMP_SESSION_BATCH;
@@ -180,6 +192,12 @@ BEGIN
 			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_AUTH_SESSION_META_DATA') THEN
 				DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);
 			    GET DIAGNOSTICS @operationalSessionMetadataCleanupCount = ROW_COUNT;
+			END IF;
+
+			-- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_FED_AUTH_SESSION_MAPPING') THEN
+			    DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);
+			    GET DIAGNOSTICS @operationalFederatedSessionMappingsCleanupCount = ROW_COUNT;
 			END IF;
 
 			DELETE FROM IDN_AUTH_SESSION_STORE_TMP2 WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);

@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -38,6 +39,7 @@ import static org.testng.Assert.assertNotNull;
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
                 files = { "dbScripts/claim_properties.sql" })
 @WithCarbonHome
+@PowerMockIgnore("org.mockito.*")
 public class LocalClaimDAOTest {
 
     private static final int TEST_LOCAL_TENANT_ID = -1234;

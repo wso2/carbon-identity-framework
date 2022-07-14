@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
@@ -85,6 +87,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
+@PowerMockIgnore({"org.mockito.*"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
@@ -667,6 +670,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Collection mockPermissionNode = mock(Collection.class);
         when(mockRegistry.newCollection()).thenReturn(mockPermissionNode);
         when(mockRegistry.get(anyString())).thenReturn(mockPermissionNode);
+        when(CarbonContext.getThreadLocalCarbonContext().getRegistry(
+                RegistryType.USER_GOVERNANCE)).thenReturn(mockRegistry);
+        when(mockRegistry.resourceExists(anyString())).thenReturn(FALSE);
     }
 
     private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {
