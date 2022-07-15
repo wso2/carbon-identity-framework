@@ -331,6 +331,12 @@
 <!--                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>-->
 <!--                <IdTokenAllowed>true</IdTokenAllowed>-->
 <!--            </SupportedGrantType>-->
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
         </SupportedGrantTypes>
 
         <!--
