@@ -190,6 +190,9 @@
             <Parameter name="AllowSendingVerificationCodeByEmail">false</Parameter>
             <Parameter name="HideUserStoreFromDisplayInQRUrl">false</Parameter>
         </AuthenticatorConfig>
+        <AuthenticatorConfig name="MagicLinkAuthenticator" enabled="true">
+            <Parameter name="ExpiryTime">300</Parameter>
+        </AuthenticatorConfig>
     </AuthenticatorConfigs>
 
     <!--
