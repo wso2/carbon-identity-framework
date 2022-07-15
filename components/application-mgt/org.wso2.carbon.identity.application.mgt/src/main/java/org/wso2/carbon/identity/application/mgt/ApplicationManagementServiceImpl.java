@@ -1930,6 +1930,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
+        if (StringUtils.isNotEmpty(serviceProvider.getCertificateContent())) {
+            try {
+                X509Certificate cert = extractCertificate(serviceProvider.getCertificateContent());
+                if (isCertificateExpired(cert)) {
+                    String msg = "Application with name: '" + appName + "' has an expired application certificate.";
+                    throw buildClientException(EXPIRED_CERTIFICATE, msg);
+                }
+            } catch (CertificateException e) {
+                String msg = "Application with name: '" + appName + "' has malformed application certificate.";
+                throw buildClientException(INVALID_REQUEST, msg);
+            }
+        }
+
         addUserIdAsDefaultSubject(serviceProvider);
 
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
