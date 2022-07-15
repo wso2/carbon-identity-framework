@@ -443,6 +443,12 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
