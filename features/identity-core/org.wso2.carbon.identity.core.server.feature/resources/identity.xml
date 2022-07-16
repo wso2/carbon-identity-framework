@@ -2070,7 +2070,7 @@
     </OrgRoutingOnlySupportedAPIPaths>
 
     <OrganizationManagement>
-        <Enable>false</Enable>
+        <Enable>true</Enable>
     </OrganizationManagement>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
