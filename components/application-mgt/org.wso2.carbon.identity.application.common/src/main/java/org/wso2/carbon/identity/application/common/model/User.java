@@ -43,6 +43,16 @@ public class User implements Serializable {
     protected String userName;
     protected boolean isUsernameCaseSensitive = true;
 
+    public User() {
+
+    }
+
+    public User(org.wso2.carbon.user.core.common.User commonUser) {
+        this.setUserName(commonUser.getUsername());
+        this.setUserStoreDomain(commonUser.getUserStoreDomain());
+        this.setTenantDomain(commonUser.getTenantDomain());
+    }
+
     /**
      * Returns a User instance populated from the given OMElement
      * The OMElement is of the form below

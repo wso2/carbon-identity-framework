@@ -136,6 +136,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTen
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
@@ -201,7 +202,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProvider.setOwner(getUser(tenantDomain, username));
+        serviceProvider.setOwner(getUser(tenantDomain, username)
+                .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user.")));
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
@@ -1309,7 +1311,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
-            serviceProvider.setOwner(getUser(tenantDomain, username));
+            serviceProvider.setOwner(getUser(tenantDomain, username)
+                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
 
             for (ApplicationMgtListener listener : listeners) {
@@ -2118,24 +2121,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw new IdentityApplicationManagementException(String.format("Error in exporting Service Provider %s@%s",
                     serviceProvider.getApplicationName(), tenantDomain), e);
         }
-    }
-
-    /**
-     * Create user object from user name and tenantDomain.
-     *
-     * @param tenantDomain tenantDomain
-     * @param username     username
-     * @return User
-     */
-    private User getUser(String tenantDomain, String username) throws IdentityApplicationManagementException {
-
-        User user = new User();
-        org.wso2.carbon.user.core.common.User resolvedUser = ApplicationMgtUtil.getUser(username, tenantDomain);
-        user.setUserName(resolvedUser.getUsername());
-        user.setUserStoreDomain(resolvedUser.getUserStoreDomain());
-        user.setTenantDomain(resolvedUser.getTenantDomain());
-
-        return user;
     }
 
     /**
