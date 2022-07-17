@@ -85,6 +85,7 @@
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.common; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.caching.impl; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",

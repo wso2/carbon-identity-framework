@@ -229,7 +229,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
@@ -1948,9 +1948,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 User owner = new User();
                 owner.setUserName(basicAppDataResultSet.getString(5));
-                owner.setTenantDomain(getUser(basicAppDataResultSet.getString(5),
-                        IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)))
-                        .getTenantDomain());
+                owner.setTenantDomain(getUserTenantDomain(
+                        IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)),
+                        basicAppDataResultSet.getString(5)));
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
 
@@ -2272,9 +2272,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 User owner = new User();
                 owner.setUserName(rs.getString(ApplicationTableColumns.USERNAME));
                 owner.setUserStoreDomain(rs.getString(ApplicationTableColumns.USER_STORE));
-                owner.setTenantDomain(getUser(rs.getString(ApplicationTableColumns.USERNAME),
-                                IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)))
-                                .getTenantDomain());
+                owner.setTenantDomain(getUserTenantDomain(
+                        IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)),
+                        rs.getString(ApplicationTableColumns.USERNAME)));
                 serviceProvider.setOwner(owner);
 
                 ClaimConfig claimConfig = new ClaimConfig();
@@ -5235,7 +5235,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             User appOwner = new User();
             appOwner.setUserStoreDomain(userStoreDomain);
             appOwner.setUserName(username);
-            appOwner.setTenantDomain(getUser(username, IdentityTenantUtil.getTenantDomain(tenantId)).getTenantDomain());
+            appOwner.setTenantDomain(getUserTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId), username));
 
             basicInfo.setAppOwner(appOwner);
         }
