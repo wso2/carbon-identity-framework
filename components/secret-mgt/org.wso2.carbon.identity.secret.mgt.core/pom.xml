@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>secret-mgt</artifactId>
-        <version>5.21.14-SNAPSHOT</version>
+        <version>5.21.14</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
