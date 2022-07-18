@@ -538,6 +538,14 @@
         </OpenIDConnect>
 
         <!--
+            FAPI Support.
+            Supported versions: IS 5.11.0 onwards
+        -->
+        <!-- <FAPI>
+            <CIBA>true</CIBA>
+        </FAPI> -->
+
+        <!--
             Configs related to OAuth2 Device Code Grant.
             Supported versions: IS 5.12.0 onwards
         -->
