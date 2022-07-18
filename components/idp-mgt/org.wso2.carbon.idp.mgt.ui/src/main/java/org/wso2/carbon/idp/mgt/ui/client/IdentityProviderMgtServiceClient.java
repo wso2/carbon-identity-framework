@@ -365,7 +365,8 @@ public class IdentityProviderMgtServiceClient {
                 for (ProvisioningConnectorConfig config : provisioningConnectorConfigs) {
                     if (!(StringUtils.equals("scim", config.getName()) ||
                             StringUtils.equals("salesforce", config.getName()) ||
-                            StringUtils.equals("googleapps" , config.getName()))) {
+                            StringUtils.equals("googleapps" , config.getName()) ||
+                            StringUtils.equals("SCIM2", config.getName()))) {
                         provisioningConnectors.put(config.getName(), config);
                     }
 
