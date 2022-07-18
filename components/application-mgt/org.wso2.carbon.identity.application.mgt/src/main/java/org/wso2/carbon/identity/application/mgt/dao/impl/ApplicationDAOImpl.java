@@ -1342,7 +1342,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (NullPointerException nullPointerException) {
             // if the service provider do not have local and outbound authentication is set should return false
             return false;
-
         }
     }
 
