@@ -34,6 +34,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
@@ -296,6 +297,31 @@ public class IdentityTenantUtil {
             return tenantDomain;
         }
 
+    }
+
+    /**
+     * Retrieve Tenant object for a given tenant ID.
+     *
+     * @param tenantId  Tenant ID.
+     * @return          Tenant object.
+     * @throws IdentityRuntimeException Error when retrieve tenant information.
+     */
+    public static Tenant getTenant(int tenantId) throws IdentityRuntimeException {
+
+        Tenant tenant = null;
+        try {
+            if (realmService != null) {
+                tenant = realmService.getTenantManager().getTenant(tenantId);
+            }
+        } catch (UserStoreException e) {
+            throw IdentityRuntimeException.error("Error occurred while retrieving tenant for tenantId: " +
+                    tenantId + e.getMessage(), e);
+        }
+        if (tenant == null){
+            throw IdentityRuntimeException.error("Invalid tenantId: " + tenantId);
+        } else {
+            return tenant;
+        }
     }
 
     /**
