@@ -826,6 +826,9 @@
   "console.organizations.scopes.read": ["internal_organization_view"],
   "console.organizations.scopes.update": ["internal_organization_update"],
   "console.organizations.scopes.delete": ["internal_organization_delete"],
+  "console.idp_configs.authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut=${userTenantDomain}",
+  "console.idp_configs.logoutEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/logout",
+  "console.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
