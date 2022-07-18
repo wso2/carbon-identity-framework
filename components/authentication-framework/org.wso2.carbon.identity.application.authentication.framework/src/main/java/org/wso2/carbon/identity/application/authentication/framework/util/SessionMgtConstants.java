@@ -34,6 +34,20 @@ public class SessionMgtConstants {
     public static final String FEDERATED_IDP_NAME = "IDP_NAME";
     public static final String FEDERATED_AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
     public static final String FEDERATED_PROTOCOL_TYPE = "PROTOCOL_TYPE";
+    public static final String AUDIT_MESSAGE_TEMPLATE = "Initiator : %s | Action : %s | Data : { %s } | Result : %s ";
+    public static final String SESSION_CONTEXT_ID = "sessionContextId";
+    public static final String REMEMBER_ME = "RememberMe";
+    public static final String SUCCESS = "Success";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String AUTHENTICATED_USER_TENANT_DOMAIN = "AuthenticatedUserTenantDomain";
+    public static final String TRACE_ID = "traceId";
+    public static final String STORE_SESSION_ACTION = "StoreSession";
+    public static final String UPDATE_SESSION_ACTION = "UpdateSession";
+    public static final String TERMINATE_SESSION_ACTION = "TerminateSession";
+    public static final String SESSION_LAST_ACCESSED_TIMESTAMP = "LastAccessedTimestamp";
+    public static final String SESSION_TERMINATE_TIMESTAMP = "TerminatedTimestamp";
+
+
 
     /**
      * Session management error messages.
