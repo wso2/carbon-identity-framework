@@ -101,6 +101,20 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.organization.management</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Adding dependency to identity.core temporary -->
