@@ -174,20 +174,6 @@
     String googleProvisioningSeparator = null;
     String googleProvPrivateKeyData = null;
 
-    boolean isSfProvEnabled = false;
-
-    boolean isScimProvEnabled = false;
-    boolean isScimProvDefault = false;
-    String scimUserName = null;
-    String scimPassword = null;
-    String scimGroupEp = null;
-    String scimUserEp = null;
-    String scimUserStoreDomain = null;
-    boolean isSCIMPwdProvEnabled = false;
-    String scimDefaultPwd = null;
-    String disableDefaultPwd = "";
-    String scimUniqueID = null;
-    
     String samlQueryParam = "";
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
@@ -674,6 +660,7 @@
         ProvisioningConnectorConfig googleApps = null;
         ProvisioningConnectorConfig salesforce = null;
         ProvisioningConnectorConfig scim = null;
+        ProvisioningConnectorConfig scim2 = null;
 
         if (provisioningConnectors != null) {
             for (ProvisioningConnectorConfig provisioningConnector : provisioningConnectors) {
@@ -683,6 +670,8 @@
                     salesforce = provisioningConnector;
                 } else if (provisioningConnector != null && "googleapps".equals(provisioningConnector.getName())) {
                     googleApps = provisioningConnector;
+                } else if (provisioningConnector != null && "SCIM2".equals(provisioningConnector.getName())) {
+                    scim2 = provisioningConnector;
                 } else {
                     if (customProvisioningConnectors.containsKey(provisioningConnector.getName())) {
 
@@ -705,45 +694,6 @@
                     }
                 }
             }
-        }
-
-        if (scim != null) {
-
-            if (identityProvider.getDefaultProvisioningConnectorConfig() != null
-                    && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
-                isScimProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(scim.getName());
-            }
-
-            Property[] scimProperties = scim.getProvisioningProperties();
-            if (scimProperties != null && scimProperties.length > 0) {
-                for (Property scimProperty : scimProperties) {
-                    //This is a safety to check to avoid NPE
-                    if (scimProperty != null) {
-                        if ("scim-username".equals(scimProperty.getName())) {
-                            scimUserName = scimProperty.getValue();
-                        } else if ("scim-password".equals(scimProperty.getName())) {
-                            scimPassword = scimProperty.getValue();
-                        } else if ("scim-user-ep".equals(scimProperty.getName())) {
-                            scimUserEp = scimProperty.getValue();
-                        } else if ("scim-group-ep".equals(scimProperty.getName())) {
-                            scimGroupEp = scimProperty.getValue();
-                        } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
-                            scimUserStoreDomain = scimProperty.getValue();
-                        } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
-                            isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
-                        } else if ("scim-default-pwd".equals(scimProperty.getName())) {
-                            scimDefaultPwd = scimProperty.getValue();
-                        } else if ("UniqueID".equals(scimProperty.getName())) {
-                            scimUniqueID = scimProperty.getValue();
-                        }
-                    }
-                }
-            }
-
-            if (scim.getEnabled()) {
-                isScimProvEnabled = true;
-            }
-
         }
 
         // Provisioning
@@ -1175,24 +1125,6 @@
         googleProvisioningSeparator = "";
     }
 
-    String scimProvEnabledChecked = "";
-    String scimProvDefaultDisabled = "";
-    String scimPwdProvEnabledChecked = "";
-    String scimProvDefaultChecked = "disabled=\'disabled\'";
-    if (identityProvider != null) {
-        if (isScimProvEnabled) {
-            scimProvEnabledChecked = "checked=\'checked\'";
-            scimProvDefaultChecked = "";
-            if (isScimProvDefault) {
-                scimProvDefaultChecked = "checked=\'checked\'";
-            }
-        }
-        if (isSCIMPwdProvEnabled) {
-            scimPwdProvEnabledChecked = "checked=\'checked\'";
-            disableDefaultPwd = "disabled=\'disabled\'";
-        }
-    }
-
     if (artifactResolveUrl == null) {
         artifactResolveUrl = "";
     }
@@ -1216,31 +1148,6 @@
         if (isArtifactResponseSigned) {
             isArtifactResponseSignedChecked = "checked=\'checked\'";
         }
-    }
-
-    // If SCIM Provisioning has not been Configured at all,
-    // make password provisioning enable by default.
-    // Since scimUserName is a required field,
-    // it being blank means that SCIM Provisioning has not been configured at all.
-    if (scimUserName == null) {
-        scimUserName = "";
-        scimPwdProvEnabledChecked = "checked=\'checked\'";
-        disableDefaultPwd = "disabled=\'disabled\'";
-    }
-    if (scimPassword == null) {
-        scimPassword = "";
-    }
-    if (scimGroupEp == null) {
-        scimGroupEp = "";
-    }
-    if (scimUserEp == null) {
-        scimUserEp = "";
-    }
-    if (scimUserStoreDomain == null) {
-        scimUserStoreDomain = "";
-    }
-    if (scimDefaultPwd == null) {
-        scimDefaultPwd = "";
     }
 
 %>
@@ -1501,6 +1408,7 @@
         jQuery('#googleProvDefault').attr('disabled', 'disabled');
         jQuery('#sfProvDefault').attr('disabled', 'disabled');
         jQuery('#scimProvDefault').attr('disabled', 'disabled');
+        jQuery('#scim2ProvDefault').attr('disabled', 'disabled');
         jQuery('#openIdDefault').attr('disabled', 'disabled');
         jQuery('#saml2SSODefault').attr('disabled', 'disabled');
         jQuery('#oidcDefault').attr('disabled', 'disabled');
@@ -1545,12 +1453,6 @@
             jQuery('#google_enable_logo').show();
         } else {
             jQuery('#google_enable_logo').hide();
-        }
-
-        if (<%=isScimProvEnabled%>) {
-            jQuery('#scim_enable_logo').show();
-        } else {
-            jQuery('#scim_enable_logo').hide();
         }
 
         jQuery('h2.trigger').click(function () {
@@ -3035,6 +2937,7 @@
         jQuery('#googleProvDefault').removeAttr('disabled');
         jQuery('#sfProvDefault').removeAttr('disabled');
         jQuery('#scimProvDefault').removeAttr('disabled');
+        jQuery('#scim2ProvDefault').removeAttr('disabled');
 
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
@@ -5486,125 +5389,7 @@
                         </table>
                     </div>
 
-                        <%--<%@ include file="salesforce.jsp"%>--%>
-                    <jsp:include page="salesforce.jsp"></jsp:include>
-
-                    <h2 id="scim_prov_head" class="sectionSeperator trigger active"
-                        style="background-color: beige;">
-                        <a href="#"><fmt:message key="scim.provisioning.connector"/></a>
-
-                        <div id="scim_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-
-                    </h2>
-                    <div class="toggle_container sectionSub"
-                         style="margin-bottom: 10px; display: none;" id="scimProvRow">
-
-                        <table class="carbonFormTable">
-                            <tr>
-                                <td class="leftCol-med labelField"><label
-                                        for="scimProvEnabled"><fmt:message
-                                        key='scim.provisioning.enabled'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="scimProvEnabled" name="scimProvEnabled"
-                                               type="checkbox" <%=scimProvEnabledChecked%>
-                                               onclick="checkProvEnabled(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='scim.provisioning.enabled.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="display:none;">
-                                <td class="leftCol-med labelField"><label
-                                        for="scimProvDefault"><fmt:message
-                                        key='scim.provisioning.default'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="scimProvDefault" name="scimProvDefault"
-                                               type="checkbox" <%=scimProvDefaultChecked%>
-                                                <%=scimProvDefaultDisabled%>
-                                               onclick="checkProvDefault(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='scim.provisioning.default.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='scim.provisioning.user.name'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="scim-username"
-                                           name="scim-username" type="text"
-                                           value=<%=Encode.forHtmlAttribute(scimUserName) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='scim.provisioning.user.password'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="scim-password"
-                                           name="scim-password" type="password" autocomplete="off"
-                                           value=<%=Encode.forHtmlAttribute(scimPassword) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='scim.provisioning.user.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="scim-user-ep"
-                                           name="scim-user-ep" type="text"
-                                           value=<%=Encode.forHtmlAttribute(scimUserEp) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='scim.provisioning.group.endpoint'/>:
-                                </td>
-                                <td><input class="text-box-big" id="scim-group-ep"
-                                           name="scim-group-ep" type="text"
-                                           value=<%=Encode.forHtmlAttribute(scimGroupEp) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='scim.provisioning.userStore.domain'/>:
-                                </td>
-                                <td><input class="text-box-big" id="scim-user-store-domain"
-                                           name="scim-user-store-domain" type="text"
-                                           value=<%=Encode.forHtmlAttribute(scimUserStoreDomain)%>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><label><fmt:message
-                                        key='scim.password.provisioning.enabled'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="scimPwdProvEnabled" name="scimPwdProvEnabled"
-                                               type="checkbox" <%=scimPwdProvEnabledChecked%>
-                                               onclick="disableDefaultPwd(this);"/>
-                                        <span style="display: inline-block" class="sectionHelp"> <fmt:message
-                                                key='scim.password.provisioning.enabled.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <fmt:message key='scim.default.password'/>:
-                                </td>
-                                <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
-                                           name="scim-default-pwd" type="text" value=<%=Encode.forHtmlAttribute(scimDefaultPwd)%>></td>
-                                <%if (scimUniqueID != null) {%>
-                                <input type="hidden" id="scim-unique-id" name="scim-unique-id"
-                                       value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>
-                                <%}%>
-                            </tr>
-                        </table>
-
-                    </div>
+                    <jsp:include page="outbound-connectors.jsp"></jsp:include>
 
                     <%
 
