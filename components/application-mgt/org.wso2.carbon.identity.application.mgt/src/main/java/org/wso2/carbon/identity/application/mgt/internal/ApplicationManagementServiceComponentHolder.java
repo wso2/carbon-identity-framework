@@ -233,12 +233,23 @@ public class ApplicationManagementServiceComponentHolder {
 
         isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
     }
-
+    
+    /**
+     * Get organization user resident resolver service instance.
+     *
+     * @return User resident resolver service instance.
+     */
     public OrganizationUserResidentResolverService getOrganizationUserResidentResolverService() {
 
         return organizationUserResidentResolverService;
     }
 
+    /**
+     * Set organization user resident resolver service instance.
+     *
+     * @param organizationUserResidentResolverService OrganizationUserResidentResolverService user resident resolver
+     *                                                service instance.
+     */
     public void setOrganizationUserResidentResolverService(
             OrganizationUserResidentResolverService organizationUserResidentResolverService) {
 
