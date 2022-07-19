@@ -2492,7 +2492,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                             "' has an expired application certificate.";
                     throw buildClientException(EXPIRED_CERTIFICATE, msg);
                 }
-
             } catch (CertificateException e) {
                 String msg = "Application with name: '" + serviceProvider.getApplicationName() +
                         "' has a malformed application certificate.";
