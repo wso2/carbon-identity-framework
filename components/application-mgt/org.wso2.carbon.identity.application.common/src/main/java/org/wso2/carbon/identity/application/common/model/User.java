@@ -48,6 +48,7 @@ public class User implements Serializable {
     }
 
     public User(org.wso2.carbon.user.core.common.User commonUser) {
+
         this.setUserName(commonUser.getUsername());
         this.setUserStoreDomain(commonUser.getUserStoreDomain());
         this.setTenantDomain(commonUser.getTenantDomain());
