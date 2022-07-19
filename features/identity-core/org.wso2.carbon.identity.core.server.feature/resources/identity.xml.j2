@@ -2572,8 +2572,8 @@
             <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
-            <Scopes>internal_organization_view</Scopes>
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view/switch</Permissions>
+            <Scopes>internal_organization_switch</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
