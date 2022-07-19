@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
@@ -115,9 +116,13 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         return "Undefined";
     }
 
-    private String buildInitiatorUsername(String tenantDomain, String userName) {
+    private String buildInitiatorUsername(String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
 
         // Append tenant domain to username build the full qualified username of initiator.
+        if (StringUtils.isEmpty(userName)) {
+            return getUsernameWithUserTenantDomain(tenantDomain);
+        }
         return UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
     }
 

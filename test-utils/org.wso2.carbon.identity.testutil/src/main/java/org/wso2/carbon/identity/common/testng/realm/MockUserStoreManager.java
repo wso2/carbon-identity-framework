@@ -192,7 +192,7 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
 
     @Override
     public boolean isExistingUser(String s) throws UserStoreException {
-        return false;
+        return true;
     }
 
     @Override
