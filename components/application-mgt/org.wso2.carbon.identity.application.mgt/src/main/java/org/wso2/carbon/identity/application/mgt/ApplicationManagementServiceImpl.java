@@ -2510,6 +2510,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private static boolean isCertificateExpired(X509Certificate certificate) {
+
         if (certificate != null) {
             Date expiresOn = certificate.getNotAfter();
             Date now = new Date();
