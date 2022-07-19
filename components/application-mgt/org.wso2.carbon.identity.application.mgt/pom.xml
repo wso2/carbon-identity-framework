@@ -242,9 +242,7 @@
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.version.range}",
-                            org.wso2.carbon.identity.organization.management.service.*; version="${org.wso2.carbon.identity.organization.management.version.range}",
-                            org.wso2.carbon.identity.organization.management.authz.service; version="${org.wso2.carbon.identity.organization.management.version.range}",
-                            org.wso2.carbon.identity.organization.management.authz.service.*; version="${org.wso2.carbon.identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,

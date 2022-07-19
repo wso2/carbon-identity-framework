@@ -834,10 +834,18 @@ public class ApplicationMgtUtil {
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
         }
     }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static Optional<User> getUser (String tenantDomain, String username)
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param tenantDomain          tenantDomain which user is trying to access
+     * @param username              username of resolving user
+     * @return User object from where the user resides
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     */
+    public static Optional<User> getUser(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
+
         User user = null;
         try {
             int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -872,8 +880,18 @@ public class ApplicationMgtUtil {
         return Optional.ofNullable(user);
     }
 
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param username              username
+     * @param userId                userId
+     * @param tenantId              tenantId where user resides
+     * @return User object from tenant userStoreManager
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     */
     private static User getUserFromTenant (String username, String userId, int tenantId)
             throws IdentityApplicationManagementException {
+
         User user = null;
         try {
             AbstractUserStoreManager userStoreManager =
@@ -890,17 +908,30 @@ public class ApplicationMgtUtil {
         return user;
     }
 
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param tenantDomain          tenantDomain which user is trying to access
+     * @param username              username of resolving user
+     * @return tenantDomain where the user resides
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     */
     public static String getUserTenantDomain (String tenantDomain, String username)
             throws IdentityApplicationManagementException {
-        Optional<User> user = getUser(tenantDomain, username);
-        if (user.isPresent()) {
-            return user.get().getTenantDomain();
-        } else {
-            throw new IdentityApplicationManagementException("Error resolving user.");
-        }
+
+        return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException("Error " +
+                "resolving user.")).getTenantDomain();
     }
 
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param tenantDomain          tenantDomain which user is trying to access
+     * @return username
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     */
     public static String getUsername (String tenantDomain) throws IdentityApplicationManagementException {
+
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (username == null) {
             Optional<User> user = getUser(tenantDomain, null);
@@ -913,8 +944,16 @@ public class ApplicationMgtUtil {
         return username;
     }
 
+    /**
+     * Get Service provider name from XML configuration file
+     *
+     * @param tenantDomain          tenantDomain which user is trying to access
+     * @return username with tenant domain
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     */
     public static String getUsernameWithUserTenantDomain (String tenantDomain)
             throws IdentityApplicationManagementException {
+
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (username == null) {
             Optional<User> user = getUser(tenantDomain, null);
