@@ -680,7 +680,7 @@
   "console.session.params.sessionRefreshTimeOut": 300,
   "console.session.params.checkSessionInterval": 3,
   "console.applications.enabled": true,
-  "console.product_version.configs.productVersion": "BETA",
+  "console.product_version.configs.productVersion": "",
   "console.applications.scopes.feature": ["console:applications"],
   "console.applications.scopes.create": ["internal_application_mgt_create"],
   "console.applications.scopes.read": [
