@@ -566,9 +566,5 @@ public class IdentityConstants {
         public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
-
-        // Enable federated user's role based authorization
-        public static final String ENABLE_FEDERATED_IDP_ROLE_BASED_AUTHORIZATION =
-                "EnableFederatedIDPRoleBasedAuthorization";
     }
 }

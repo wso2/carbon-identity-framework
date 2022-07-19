@@ -611,7 +611,6 @@
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
-  "federated.idp.role_based_authorization": false,
   "configuration.store.query_length.max": "4194304",
   "configuration.store.allow_cross_tenant_search": false,
 

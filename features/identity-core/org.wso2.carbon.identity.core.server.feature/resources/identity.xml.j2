@@ -2923,16 +2923,13 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
-     <!--This enables federated user's role based authorization -->
-     <EnableFederatedIDPRoleBasedAuthorization>{{federated.idp.role_based_authorization}}</EnableFederatedIDPRoleBasedAuthorization>
-
-      <!-- Following applications can use federated user's role based authorization -->
-     {% if federated.idp.role_based_authorization_apps is defined %}
-         <FederatedIDPRoleBasedAuthorizationApplications>
-             {% for application in federated.idp.role_based_authorization_apps %}
-             <ApplicationName>{{application}}</ApplicationName>
-             {% endfor %}
-         </FederatedIDPRoleBasedAuthorizationApplications>
+     {% if system_applications.fidp.role_based_authz_apps is defined %}
+     <!-- Following applications can use federated user role based authorization -->
+     <FIdPRoleBasedAuthzApplications>
+         {% for application in system_applications.fidp.role_based_authz_apps %}
+         <AppName>{{application}}</AppName>
+         {% endfor %}
+     </FIdPRoleBasedAuthzApplications>
      {% endif %}
 
     <!--This configuration is used for X509 Certificate based authentication. -->

@@ -147,11 +147,6 @@ public class IdentityUtil {
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
             "org.wso2.carbon.identity.core.util.TRUST_STORE_UPDATE_REQUIRED";
 
-    // FIdp Role Based authentication application config elements
-    private static final String FIDP_ROLE_BASED_AUTHORIZATION_APPLICATIONS_CONFIG_ELEMENT =
-            "FederatedIDPRoleBasedAuthorizationApplications";
-    private static final String FIDP_ROLE_BASED_AUTHORIZATION_APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
-
 
     /**
      * @return
@@ -1711,45 +1706,5 @@ public class IdentityUtil {
             propertyList.add(String.valueOf(value));
         }
         return propertyList;
-    }
-
-    /**
-     * Get set of federated role based authorization enabled applications.
-     *
-     * @return Set<String> of applications.
-     */
-    public static Set<String> getFederatedRoleBasedAuthorizationEnabledApplications() {
-
-        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        OMElement authorizationApplicationsConfig = configParser
-                .getConfigElement(FIDP_ROLE_BASED_AUTHORIZATION_APPLICATIONS_CONFIG_ELEMENT);
-        if (authorizationApplicationsConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + FIDP_ROLE_BASED_AUTHORIZATION_APPLICATIONS_CONFIG_ELEMENT + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
-
-        Iterator applicationIdentifierIterator = authorizationApplicationsConfig
-                .getChildrenWithLocalName(FIDP_ROLE_BASED_AUTHORIZATION_APPLICATION_NAME_CONFIG_ELEMENT);
-        if (applicationIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + FIDP_ROLE_BASED_AUTHORIZATION_APPLICATION_NAME_CONFIG_ELEMENT
-                        + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
-
-        Set<String> authorizationApplications = new HashSet<>();
-
-        while (applicationIdentifierIterator.hasNext()) {
-            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
-            String applicationName = applicationIdentifierConfig.getText();
-            if (StringUtils.isNotBlank(applicationName)) {
-                authorizationApplications.add(applicationName.trim());
-            }
-        }
-
-        return authorizationApplications;
     }
 }
