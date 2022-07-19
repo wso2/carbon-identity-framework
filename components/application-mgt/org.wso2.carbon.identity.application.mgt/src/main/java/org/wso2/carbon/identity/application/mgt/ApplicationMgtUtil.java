@@ -836,12 +836,12 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Get Service provider name from XML configuration file
+     * Resolve user.
      *
-     * @param tenantDomain          tenantDomain which user is trying to access
-     * @param username              username of resolving user
-     * @return User object from where the user resides
-     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @param username     The username of resolving user.
+     * @return User object.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
      */
     public static Optional<User> getUser(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
@@ -860,10 +860,6 @@ public class ApplicationMgtUtil {
                 if (accessedOrganizationId == null) {
                     user = getUserFromTenant(username, userId, tenantID);
                 } else {
-                    if (username != null) {
-                        userId = null;
-                    }
-                    // Resolve username from user ID using organization user resident resolver service
                     Optional<org.wso2.carbon.user.core.common.User> resolvedUser =
                             ApplicationManagementServiceComponentHolder.getInstance()
                                     .getOrganizationUserResidentResolverService()
@@ -873,7 +869,6 @@ public class ApplicationMgtUtil {
                     }
                 }
             }
-
         } catch (UserStoreException | OrganizationManagementException e) {
             throw new IdentityApplicationManagementException("Error resolving user.", e);
         }
@@ -881,15 +876,15 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Get Service provider name from XML configuration file
+     * Get user from tenant by username or user id.
      *
-     * @param username              username
-     * @param userId                userId
-     * @param tenantId              tenantId where user resides
-     * @return User object from tenant userStoreManager
-     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     * @param username The username.
+     * @param userId   The user id.
+     * @param tenantId The tenant id where user resides.
+     * @return User object from tenant userStoreManager.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
      */
-    private static User getUserFromTenant (String username, String userId, int tenantId)
+    private static User getUserFromTenant(String username, String userId, int tenantId)
             throws IdentityApplicationManagementException {
 
         User user = null;
@@ -909,14 +904,14 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Get Service provider name from XML configuration file
+     * Get user's tenant domain.
      *
-     * @param tenantDomain          tenantDomain which user is trying to access
-     * @param username              username of resolving user
-     * @return tenantDomain where the user resides
-     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @param username     The username of the user.
+     * @return The tenant domain where the user resides.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
      */
-    public static String getUserTenantDomain (String tenantDomain, String username)
+    public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException("Error " +
@@ -924,45 +919,41 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Get Service provider name from XML configuration file
+     * Get user's username.
      *
-     * @param tenantDomain          tenantDomain which user is trying to access
-     * @return username
-     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @return username  The username.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
      */
-    public static String getUsername (String tenantDomain) throws IdentityApplicationManagementException {
+    public static String getUsername(String tenantDomain) throws IdentityApplicationManagementException {
 
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (username == null) {
-            Optional<User> user = getUser(tenantDomain, null);
-            if (user.isPresent()) {
-                username = IdentityUtil.addDomainToName(user.get().getUserName(), user.get().getUserStoreDomain());
-            } else {
-                throw new IdentityApplicationManagementException("Error resolving user.");
-            }
+            Optional<User> maybeUser = getUser(tenantDomain, null);
+            User user = maybeUser
+                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user."));
+            username = IdentityUtil.addDomainToName(user.getUserName(), user.getUserStoreDomain());
         }
         return username;
     }
 
     /**
-     * Get Service provider name from XML configuration file
+     * Get username with user's tenant domain appended.
      *
-     * @param tenantDomain          tenantDomain which user is trying to access
-     * @return username with tenant domain
-     * @throws IdentityApplicationManagementException Error when user cannot be resolved
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @return The username with tenant domain.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
      */
-    public static String getUsernameWithUserTenantDomain (String tenantDomain)
+    public static String getUsernameWithUserTenantDomain(String tenantDomain)
             throws IdentityApplicationManagementException {
 
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (username == null) {
-            Optional<User> user = getUser(tenantDomain, null);
-            if (user.isPresent()) {
-                username = UserCoreUtil.addTenantDomainToEntry(IdentityUtil.addDomainToName(user.get().getUserName(),
-                        user.get().getUserStoreDomain()), user.get().getTenantDomain());
-            } else {
-                throw new IdentityApplicationManagementException("Error resolving user.");
-            }
+            Optional<User> maybeUser = getUser(tenantDomain, null);
+            User user = maybeUser
+                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user."));
+            username = UserCoreUtil.addTenantDomainToEntry(IdentityUtil.addDomainToName(user.getUserName(),
+                    user.getUserStoreDomain()), user.getTenantDomain());
         }
         return UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
     }
@@ -1061,7 +1052,7 @@ public class ApplicationMgtUtil {
             try {
                 userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
             } catch (IdentityException e) {
-               log.error("Error occurred while resolving Id for the user: " + username);
+                log.error("Error occurred while resolving Id for the user: " + username);
             }
         }
         return userId;
