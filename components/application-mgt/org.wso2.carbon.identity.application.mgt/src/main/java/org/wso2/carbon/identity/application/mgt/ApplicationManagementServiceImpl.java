@@ -2488,11 +2488,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             try {
                 X509Certificate cert = extractCertificate(serviceProvider.getCertificateContent());
                 if (isCertificateExpired(cert)) {
-                    if (isCertificateExpired(cert)) {
-                        String msg = "Application with name: '" + serviceProvider.getApplicationName() +
-                                "' has an expired application certificate.";
-                        throw buildClientException(EXPIRED_CERTIFICATE, msg);
-                    }
+                    String msg = "Application with name: '" + serviceProvider.getApplicationName() +
+                            "' has an expired application certificate.";
+                    throw buildClientException(EXPIRED_CERTIFICATE, msg);
                 }
 
             } catch (CertificateException e) {
