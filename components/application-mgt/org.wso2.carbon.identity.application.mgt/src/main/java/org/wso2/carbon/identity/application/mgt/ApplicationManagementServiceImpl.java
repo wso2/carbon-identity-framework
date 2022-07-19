@@ -1930,18 +1930,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
-        if (StringUtils.isNotEmpty(serviceProvider.getCertificateContent())) {
-            try {
-                X509Certificate cert = extractCertificate(serviceProvider.getCertificateContent());
-                if (isCertificateExpired(cert)) {
-                    String msg = "Application with name: '" + appName + "' has an expired application certificate.";
-                    throw buildClientException(EXPIRED_CERTIFICATE, msg);
-                }
-            } catch (CertificateException e) {
-                String msg = "Application with name: '" + appName + "' has malformed application certificate.";
-                throw buildClientException(INVALID_REQUEST, msg);
-            }
-        }
+        validateApplicationCertificate(serviceProvider, tenantDomain);
 
         addUserIdAsDefaultSubject(serviceProvider);
 
@@ -2486,31 +2475,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void validateApplicationCertificate(ServiceProvider updatedApp,
+    private void validateApplicationCertificate(ServiceProvider serviceProvider,
                                                 String tenantDomain) throws IdentityApplicationManagementException {
 
-        if (!isValidPEMCertificate(updatedApp.getCertificateContent())) {
+        if (!isValidPEMCertificate(serviceProvider.getCertificateContent())) {
             String error = "Provided application certificate for application with name: %s in tenantDomain: %s " +
                     "is malformed.";
             throw buildClientException(INVALID_REQUEST,
-                    String.format(error, updatedApp.getApplicationName(), tenantDomain));
+                    String.format(error, serviceProvider.getApplicationName(), tenantDomain));
         }
-        if (StringUtils.isNotEmpty(updatedApp.getCertificateContent())) {
+        if (StringUtils.isNotEmpty(serviceProvider.getCertificateContent())) {
             try {
-                X509Certificate cert = extractCertificate(updatedApp.getCertificateContent());
+                X509Certificate cert = extractCertificate(serviceProvider.getCertificateContent());
                 if (isCertificateExpired(cert)) {
-                    String error =
-                            "Provided application certificate for application with name: %s in tenantDomain: %s " +
-                                    "is expired.";
-                    throw buildClientException(EXPIRED_CERTIFICATE,
-                            String.format(error, updatedApp.getApplicationName(), tenantDomain));
+                    if (isCertificateExpired(cert)) {
+                        String msg = "Application with name: '" + serviceProvider.getApplicationName() +
+                                "' has an expired application certificate.";
+                        throw buildClientException(EXPIRED_CERTIFICATE, msg);
+                    }
                 }
 
             } catch (CertificateException e) {
-                String error = "Provided application certificate for application with name: %s in tenantDomain: %s " +
-                        "is malformed.";
-                throw buildClientException(INVALID_REQUEST,
-                        String.format(error, updatedApp.getApplicationName(), tenantDomain));
+                String msg = "Application with name: '" + serviceProvider.getApplicationName() +
+                        "' has a malformed application certificate.";
+                throw buildClientException(INVALID_REQUEST, msg);
             }
         }
     }
