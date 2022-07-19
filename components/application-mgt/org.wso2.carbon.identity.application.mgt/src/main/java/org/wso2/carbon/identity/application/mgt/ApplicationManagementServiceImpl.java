@@ -202,8 +202,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProvider.setOwner(getUser(tenantDomain, username)
-                .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user.")));
+        serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                new IdentityApplicationManagementException("Error resolving service provider owner.")));
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
@@ -1311,8 +1311,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
-            serviceProvider.setOwner(getUser(tenantDomain, username)
-                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user.")));
+            serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                            new IdentityApplicationManagementException("Error resolving service provider owner.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
 
             for (ApplicationMgtListener listener : listeners) {
