@@ -1325,18 +1325,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
-
-        if (authSteps == null || authSteps.length == 0) {
-            // if no authentication steps defined - it should be the default behavior.
-            localAndOutboundAuthConfig
-                    .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
-        }
-
         PreparedStatement storeLocalAndOutboundConfigs = null;
 
         try {
-            if (localAndOutboundAuthConfig.getAuthenticationType() == null) {
-                // no authentication type defined - set to default.
+            if (authSteps == null || authSteps.length == 0 ||localAndOutboundAuthConfig.getAuthenticationType() == null) {
+                // no authentication type or authentication steps defined - set to default.
                 localAndOutboundAuthConfig
                         .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
             }
