@@ -21,13 +21,14 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +47,7 @@ import java.nio.charset.Charset;
 public class IdentityProviderDataRetrievalClient {
 
     private static final String CLIENT = "Client ";
-    private static final Logger log = Logger.getLogger(IdentityProviderDataRetrievalClient.class);
+    private static final Log log = LogFactory.getLog(IdentityProviderDataRetrievalClient.class);
     private static final String IDP_API_RELATIVE_PATH = "/api/server/v1/identity-providers";
     private static final String IDP_FILTER = "?filter=name+eq+";
     private static final String IDP_KEY = "identityProviders";
