@@ -1324,17 +1324,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
-        PreparedStatement storeLocalAndOutboundConfigs = null;
-
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
 
-        if (authSteps == null || authSteps.length == 0 || localAndOutboundAuthConfig.getAuthenticationType() == null) {
+        if (authSteps == null || authSteps.length == 0) {
             // if no authentication steps defined - it should be the default behavior.
             localAndOutboundAuthConfig
                     .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
         }
 
+        PreparedStatement storeLocalAndOutboundConfigs = null;
+
         try {
+            if (localAndOutboundAuthConfig.getAuthenticationType() == null) {
+                // no authentication type defined - set to default.
+                localAndOutboundAuthConfig
+                        .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
+            }
             storeLocalAndOutboundConfigs = connection
                     .prepareStatement(UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION);
             // IS_SEND_AUTH_LIST_OF_IDPS=?
