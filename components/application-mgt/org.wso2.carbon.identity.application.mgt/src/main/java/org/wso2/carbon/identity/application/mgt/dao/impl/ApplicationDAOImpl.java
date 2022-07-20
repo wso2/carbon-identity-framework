@@ -1338,7 +1338,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
                     .getAuthenticationScriptConfig();
-            return  ApplicationMgtUtil.isAdaptiveAuthenticationAvailable() && !(authenticationScriptConfig.isEnabled());
+            return  !(ApplicationMgtUtil.isAdaptiveAuthenticationAvailable()) && authenticationScriptConfig.isEnabled();
         } catch (NullPointerException nullPointerException) {
             // if the service provider do not have local and outbound authentication is set should return false
             return false;
