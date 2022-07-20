@@ -94,8 +94,6 @@ public class ApplicationMgtUtil {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
 
-    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
-
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
     private ApplicationMgtUtil() {
