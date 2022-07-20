@@ -37,22 +37,22 @@ public class SessionMgtConstants {
 
     // Filtering constants.
     public static final String COL_IP_ADDRESS = "IP_ADDRESS";
-    public static final String FLD_IP_ADDRESS = "ipAddress";
+    public static final String FLD_IP_ADDRESS_LOWERCASE = "ipaddress";
     public static final String COL_APPLICATION = "LOWER(APP_NAME)";
-    public static final String FLD_APPLICATION = "appName";
+    public static final String FLD_APPLICATION_LOWERCASE = "appname";
     public static final String COL_LOGIN_ID = "LOWER(SUBJECT)";
-    public static final String FLD_LOGIN_ID = "loginId";
+    public static final String FLD_LOGIN_ID_LOWERCASE = "loginid";
     public static final String COL_SESSION_ID = "SESSION_ID";
-    public static final String FLD_SESSION_ID = "sessionId";
+    public static final String FLD_SESSION_ID_LOWERCASE = "sessionid";
     public static final String COL_USER_AGENT = "LOWER(USER_AGENT)";
-    public static final String FLD_USER_AGENT = "userAgent";
+    public static final String FLD_USER_AGENT_LOWERCASE = "useragent";
     public static final String COL_LOGIN_TIME = "LOGIN_TIME";
-    public static final String FLD_LOGIN_TIME = "loginTime";
+    public static final String FLD_LOGIN_TIME_LOWERCASE = "logintime";
     public static final String COL_LAST_ACCESS_TIME = "LAST_ACCESS_TIME";
-    public static final String FLD_LAST_ACCESS_TIME = "lastAccessTime";
+    public static final String FLD_LAST_ACCESS_TIME_LOWERCASE = "lastaccesstime";
     public static final String COL_TIME_CREATED = "TIME_CREATED";
-    public static final String FLD_TIME_CREATED_SINCE = "since";
-    public static final String FLD_TIME_CREATED_UNTIL = "until";
+    public static final String FLD_TIME_CREATED_SINCE_LOWERCASE = "since";
+    public static final String FLD_TIME_CREATED_UNTIL_LOWERCASE = "until";
     public static final String WHERE = "WHERE {0} ";
     public static final String AND = " AND ";
     public static final String ASC = "ASC";

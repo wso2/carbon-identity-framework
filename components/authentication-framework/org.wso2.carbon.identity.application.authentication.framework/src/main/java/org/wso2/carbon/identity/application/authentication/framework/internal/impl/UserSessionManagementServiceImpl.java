@@ -231,7 +231,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (log.isDebugEnabled()) {
             log.debug("Retrieving session: " + sessionId + " of user: " + userId + ".");
         }
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                FrameworkUtils.getLoginTenantDomainFromContext());
         if (sessionContext != null) {
             UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
             return Optional.ofNullable(userSessionDAO.getSession(sessionId));
@@ -283,7 +284,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (log.isDebugEnabled()) {
                 log.debug("Searching active sessions on the system.");
             }
-            return UserSessionStore.getInstance().getSessions(getTenantId(tenantDomain), filter, limit, sortOrder);
+            UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+
+            return userSessionDAO.getSessions(getTenantId(tenantDomain), filter, limit, sortOrder);
         } catch (UserSessionException e) {
             throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, e.getMessage(), e);
         }
