@@ -90,3 +90,7 @@ function getSelectedRange() {
 function checkEmptyEditorContent() {
     document.getElementById('scriptTextArea').value = doc.getValue();
 }
+
+function encodeFunctionLibScript() {
+    doc.setValue(btoa(doc.getValue()));
+}

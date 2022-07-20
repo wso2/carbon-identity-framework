@@ -106,6 +106,8 @@ function importAppOnclick() {
         location.href = '#';
         return false;
     } else {
+        var content = document.getElementById('sp-file-content').value;
+        document.getElementById('sp-file-content').value = btoa(content);
         $("#upload-sp-form").submit();
         return true;
     }

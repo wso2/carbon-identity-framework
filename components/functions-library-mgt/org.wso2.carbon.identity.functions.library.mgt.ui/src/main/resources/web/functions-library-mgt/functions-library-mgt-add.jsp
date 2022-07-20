@@ -79,6 +79,7 @@
                 } else {
                     try {
                         eval(prepareScript(content));
+                        encodeFunctionLibScript();
                         $("#add-functionlib-form").submit();
                         return true;
                     } catch (e) {
