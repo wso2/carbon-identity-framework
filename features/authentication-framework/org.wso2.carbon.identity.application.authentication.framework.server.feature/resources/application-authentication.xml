@@ -166,6 +166,7 @@
            <Parameter name="CaptureAndUpdateMobileNumber">true</Parameter>
            <Parameter name="SendOTPDirectlyToMobile">false</Parameter>
            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+           <Parameter name="TokenExpiryTime">900</Parameter>
        </AuthenticatorConfig>
        <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
            <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
