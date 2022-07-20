@@ -51,10 +51,10 @@ public interface ApplicationDAO {
     /**
      * Get service provider when the application resides in the same tenant of the request initiated.
      *
-     * @param applicationId
-     * @return
+     * @param applicationId The application id.
+     * @return Service provider.
      * @throws IdentityApplicationManagementException
-     * @deprecated please use #getApplication(applicationId, tenantDomain)
+     * @deprecated with getApplication(applicationId, tenantDomain) method.
      */
     @Deprecated
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
@@ -64,7 +64,7 @@ public interface ApplicationDAO {
      *
      * @param applicationId The application id.
      * @param tenantDomain  The tenant domain of the application resides.
-     * @return
+     * @return Service provider.
      * @throws IdentityApplicationManagementException
      */
     default ServiceProvider getApplication(int applicationId, String tenantDomain)
