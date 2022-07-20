@@ -51,6 +51,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+
 /**
  * Sequence Configuration loader, loads the sequence configuration from the database.
  * <p>
@@ -80,6 +82,12 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
 
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
+
+        if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(
+                localAndOutboundAuthenticationConfig)) {
+            throw new FrameworkException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Install Nashron to perform this task.");
+        }
 
         //Use script based evaluation if script is present.
         if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
@@ -119,6 +127,26 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         } else {
             return false;
         }
+    }
+
+    private boolean isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig) {
+        // checks whether AuthenticationScriptConfig is enabled without adaptive authentication being available
+        return (!FrameworkUtils.isAdaptiveAuthenticationAvailable()) &&
+                isAuthenticationScriptConfigEnabled(localAndOutboundAuthenticationConfig);
+    }
+
+    private boolean isAuthenticationScriptConfigEnabled(LocalAndOutboundAuthenticationConfig
+                                                                localAndOutboundAuthenticationConfig) {
+        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(
+                localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
+                ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
+                        localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                    .getAuthenticationScriptConfig();
+            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        }
+        return false;
     }
 
     /**

@@ -119,6 +119,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
@@ -1331,6 +1332,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return outBoundProvisioningConfig;
     }
 
+    private boolean isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable
+            (LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig) {
+        // return true if script based auth is enabled without adaptive auth is available
+        try {
+            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
+                    .getAuthenticationScriptConfig();
+            return  ApplicationMgtUtil.isAdaptiveAuthenticationAvailable() && !(authenticationScriptConfig.isEnabled());
+        } catch (NullPointerException nullPointerException) {
+            // if the service provider do not have local and outbound authentication is set should return false
+            return false;
+
+        }
+    }
+
     /**
      * @param applicationId
      * @param localAndOutboundAuthConfig
@@ -1348,6 +1363,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (localAndOutboundAuthConfig == null) {
             // no local or out-bound configuration for this service provider.
             return;
+        }
+
+        if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(localAndOutboundAuthConfig)) {
+            throw new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Adaptive Authentication needed to be available to proceed.");
         }
 
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);

@@ -535,13 +535,11 @@
                 <div style="clear:both"></div>
                 <!-- sectionSub Div -->
                 <br/>
-                <%
-                    if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
-                %>
+
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Script Based Adaptive Authentication</a>
                 </h2>
-                <% } %>
+
                 <div class="toggle_container sectionSub" id="editorRow">
                     <div class="err_warn_container">
                         <div class="disable_status">
