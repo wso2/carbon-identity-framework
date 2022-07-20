@@ -891,5 +891,5 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
-  "organization_management.enable": true
+  "organization_management.enable": false
 }
