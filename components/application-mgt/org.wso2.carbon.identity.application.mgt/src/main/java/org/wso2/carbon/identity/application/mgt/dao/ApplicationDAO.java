@@ -53,7 +53,20 @@ public interface ApplicationDAO {
      * @return
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
+
+    /**
+     * @param applicationId The application id.
+     * @param tenantDomain  The tenant domain of the application resides.
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    default ServiceProvider getApplication(int applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
 
     /**
      * @return
