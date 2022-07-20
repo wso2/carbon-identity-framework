@@ -107,7 +107,8 @@ public class IdentityProviderDataRetrievalClient {
      * @return A tenant qualified endpoint.
      * @throws IdentityProviderDataRetrievalClientException
      */
-    private String getIdPEndpoint(String tenantDomain) throws IdentityProviderDataRetrievalClientException {
+    private String getIdPEndpoint(String tenantDomain)
+            throws IdentityProviderDataRetrievalClientException {
 
         return getEndpoint(tenantDomain, IDP_API_RELATIVE_PATH);
     }
@@ -120,7 +121,8 @@ public class IdentityProviderDataRetrievalClient {
      * @return A resolved endpoint.
      * @throws IdentityProviderDataRetrievalClientException
      */
-    private String getEndpoint(String tenantDomain, String context) throws IdentityProviderDataRetrievalClientException {
+    private String getEndpoint(String tenantDomain, String context)
+            throws IdentityProviderDataRetrievalClientException {
 
         try {
             return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
