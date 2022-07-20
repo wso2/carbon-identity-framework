@@ -914,8 +914,12 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException("Error " +
-                "resolving user.")).getTenantDomain();
+        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username)) {
+            return tenantDomain;
+        } else {
+            return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
+                    "Error resolving user.")).getTenantDomain();
+        }
     }
 
     /**
