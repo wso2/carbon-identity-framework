@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
@@ -27,6 +28,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+
+import java.util.List;
 
 /**
  * Perform operations for {@link UserSession}.
@@ -34,6 +38,19 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 public interface UserSessionDAO {
 
     UserSession getSession(String sessionId) throws SessionManagementServerException;
+
+    /**
+     * Method to search active sessions on the system.
+     *
+     * @param tenantId  Context tenant ID.
+     * @param filter    Filter expression nodes.
+     * @param limit     Limit.
+     * @param sortOrder Order direction (ASC, DESC).
+     * @return The list of sessions found.
+     * @throws UserSessionException if an error occurs when retrieving the sessions from the database.
+     */
+    public List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
+            throws UserSessionException;
 
     /**
      * Get federated user session details mapped for federated IDP sessionId.
