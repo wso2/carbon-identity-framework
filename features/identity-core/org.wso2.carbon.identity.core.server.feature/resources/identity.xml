@@ -331,6 +331,12 @@
 <!--                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>-->
 <!--                <IdTokenAllowed>true</IdTokenAllowed>-->
 <!--            </SupportedGrantType>-->
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
         </SupportedGrantTypes>
 
         <!--
@@ -2053,14 +2059,22 @@
                 <SubPaths>
                     <Path>/scim2/Groups</Path>
                     <Path>/scim2/Users</Path>
+                    <Path>/scim2/Schemas</Path>
                 </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
                     <Path>/api/server/v1/organizations</Path>
+                    <Path>/api/server/v1/applications</Path>
                 </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/console/</BasePath>
             </Context>
         </WebApp>
     </OrgContextsToRewrite>
@@ -2068,6 +2082,10 @@
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
+
+    <OrganizationManagement>
+        <Enable>true</Enable>
+    </OrganizationManagement>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>

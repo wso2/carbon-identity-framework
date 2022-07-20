@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -46,13 +47,17 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.AuthorizationManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.nio.file.Paths;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -81,9 +86,15 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
+    @Mock
+    ApplicationManagementServiceComponentHolder mockApplicationManagementServiceComponentHolder;
+
     private CarbonContext mockCarbonContext;
     private UserStoreManager mockUserStoreManager;
+    private AbstractUserStoreManager mockAbstractUserStoreManager;
     private UserRealm mockUserRealm;
+    private UserRealm mockUserRealmFromRealmService;
+    private RealmService mockRealmService;
     private RealmConfiguration mockRealmConfiguration;
     private Registry mockTenantRegistry;
     private Collection mockAppRootNode;
@@ -462,6 +473,27 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockRealmConfiguration.getAdminUserName()).thenReturn("admin");
         when(mockRealmConfiguration.getUserStoreProperty(anyString())).thenReturn("property");
         when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(-1234);
+
+        mockRealmService = mock(RealmService.class);
+        mockUserRealmFromRealmService = mock(UserRealm.class);
+        mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance())
+                .thenReturn(mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getRealmService()).thenReturn(mockRealmService);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealmFromRealmService);
+        when(mockUserRealmFromRealmService.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
+        when(mockAbstractUserStoreManager.isExistingUser(anyString())).thenReturn(TRUE);
+
+        org.wso2.carbon.user.core.common.User user = new org.wso2.carbon.user.core.common.User();
+        user.setUsername(UserCoreUtil.removeDomainFromName(USERNAME));
+        user.setTenantDomain(tenantDomain);
+        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(USERNAME));
+        when(mockAbstractUserStoreManager.getUser(any(), anyString())).thenReturn(user);
 
         assertEquals(ApplicationMgtUtil.isValidApplicationOwner(serviceProvider), expected);
     }
