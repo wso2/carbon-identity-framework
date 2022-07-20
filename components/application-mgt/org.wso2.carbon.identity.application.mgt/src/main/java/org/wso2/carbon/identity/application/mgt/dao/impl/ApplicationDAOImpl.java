@@ -2132,9 +2132,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public ServiceProvider getApplication(int applicationId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        try {
-
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
             if (serviceProvider == null) {
@@ -2192,8 +2190,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException | CertificateRetrievingException e) {
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
-        } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
         }
     }
 
