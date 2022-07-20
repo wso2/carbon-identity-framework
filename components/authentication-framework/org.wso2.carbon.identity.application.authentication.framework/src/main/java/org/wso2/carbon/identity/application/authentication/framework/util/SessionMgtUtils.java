@@ -97,8 +97,8 @@ public class SessionMgtUtils {
                 case SessionMgtConstants.FLD_LAST_ACCESS_TIME_LOWERCASE:
                     attribute = SessionMgtConstants.COL_LAST_ACCESS_TIME;
                     break;
-                case SessionMgtConstants.FLD_TIME_CREATED_SINCE_LOWERCASE:
-                case SessionMgtConstants.FLD_TIME_CREATED_UNTIL_LOWERCASE:
+                case SessionMgtConstants.FLD_TIME_CREATED_SINCE:
+                case SessionMgtConstants.FLD_TIME_CREATED_UNTIL:
                     attribute = SessionMgtConstants.COL_TIME_CREATED;
                     isString = false;
                     break;

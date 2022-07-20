@@ -106,6 +106,60 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
+    public UserSession getSession(String userId, String sessionId) throws SessionManagementServerException {
+
+        HashMap<String, String> propertiesMap = new HashMap<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+
+        try {
+            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_SESSION_META_DATA_FOR_USER_ID_AND_SESSION_ID_H2 :
+                    SQLQueries.SQL_GET_SESSION_META_DATA_FOR_USER_ID_AND_SESSION_ID;
+            jdbcTemplate.executeQuery(sqlStmt, (
+                    (resultSet, rowNumber) -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, userId);
+                    });
+
+            if (propertiesMap.isEmpty()) {
+                return null;
+            }
+
+            UserSession userSession = new UserSession();
+            userSession.setSessionId(sessionId);
+
+            propertiesMap.forEach((key, value) -> {
+                switch (key) {
+                    case SessionMgtConstants.USER_AGENT:
+                        userSession.setUserAgent(value);
+                        break;
+                    case SessionMgtConstants.IP_ADDRESS:
+                        userSession.setIp(value);
+                        break;
+                    case SessionMgtConstants.LAST_ACCESS_TIME:
+                        userSession.setLastAccessTime(value);
+                        break;
+                    case SessionMgtConstants.LOGIN_TIME:
+                        userSession.setLoginTime(value);
+                        break;
+                }
+            });
+
+            List<Application> applicationList = getApplicationsForSessionID(sessionId);
+            generateApplicationFromAppID(applicationList);
+
+            if (!applicationList.isEmpty()) {
+                userSession.setApplications(applicationList);
+                return userSession;
+            }
+        } catch (DataAccessException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
+        }
+        return null;
+    }
+
     @Override
     public List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
             throws UserSessionException {
