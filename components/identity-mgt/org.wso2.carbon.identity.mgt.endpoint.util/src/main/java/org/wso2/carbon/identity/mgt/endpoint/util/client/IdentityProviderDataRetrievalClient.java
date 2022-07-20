@@ -46,8 +46,10 @@ import java.nio.charset.Charset;
  */
 public class IdentityProviderDataRetrievalClient {
 
-    private static final String CLIENT = "Client ";
+    
     private static final Log log = LogFactory.getLog(IdentityProviderDataRetrievalClient.class);
+    
+    private static final String CLIENT = "Client ";
     private static final String IDP_API_RELATIVE_PATH = "/api/server/v1/identity-providers";
     private static final String IDP_FILTER = "?filter=name+eq+";
     private static final String IDP_KEY = "identityProviders";
