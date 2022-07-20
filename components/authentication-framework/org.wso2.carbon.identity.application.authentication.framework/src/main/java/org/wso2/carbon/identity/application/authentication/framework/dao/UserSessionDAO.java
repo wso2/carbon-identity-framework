@@ -37,7 +37,24 @@ import java.util.List;
  */
 public interface UserSessionDAO {
 
+    /**
+     * Method to retrieve session information for a given session id.
+     *
+     * @param sessionId Id of the session.
+     * @return User session.
+     * @throws SessionManagementServerException
+     */
     UserSession getSession(String sessionId) throws SessionManagementServerException;
+
+    /**
+     * Method to retrieve session information for a given user and session id.
+     *
+     * @param userId Id of the user.
+     * @param sessionId Id of the session.
+     * @return User session.
+     * @throws SessionManagementServerException
+     */
+    UserSession getSession(String userId, String sessionId) throws SessionManagementServerException;
 
     /**
      * Method to search active sessions on the system.
@@ -49,7 +66,7 @@ public interface UserSessionDAO {
      * @return The list of sessions found.
      * @throws UserSessionException if an error occurs when retrieving the sessions from the database.
      */
-    public List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
+    List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
             throws UserSessionException;
 
     /**

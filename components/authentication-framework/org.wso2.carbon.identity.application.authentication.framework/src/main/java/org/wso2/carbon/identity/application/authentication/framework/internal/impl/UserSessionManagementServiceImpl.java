@@ -235,7 +235,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 FrameworkUtils.getLoginTenantDomainFromContext());
         if (sessionContext != null) {
             UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
-            return Optional.ofNullable(userSessionDAO.getSession(sessionId));
+            return Optional.ofNullable(userSessionDAO.getSession(userId, sessionId));
         }
         return Optional.empty();
     }
