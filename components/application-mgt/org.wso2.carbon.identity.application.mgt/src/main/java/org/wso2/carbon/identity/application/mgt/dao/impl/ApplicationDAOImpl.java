@@ -2108,6 +2108,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    @Deprecated
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -2118,7 +2119,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
-            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
+            return getApplication(applicationId, serviceProvider.getOwner().getTenantDomain());
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
+                    e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public ServiceProvider getApplication(int applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            // Load basic application data
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (serviceProvider == null) {
+                return null;
+            }
+            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
@@ -2170,8 +2190,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException | CertificateRetrievingException e) {
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
-        } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
         }
     }
 
@@ -4870,7 +4888,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             int appId = getAppIdUsingResourceId(resourceId, tenantDomain);
-            ServiceProvider application = getApplication(appId);
+            // Pass tenant domain as the service provider admin's tenant domain can be different.
+            ServiceProvider application = getApplication(appId, tenantDomain);
             if (application == null) {
                 if (log.isDebugEnabled()) {
                     log.debug(
