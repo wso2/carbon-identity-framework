@@ -77,6 +77,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -377,6 +379,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
             ApplicationConfig appConfig = sequenceConfig.getApplicationConfig();
+
+            // Adding user organization properties to the authentication result, such as scopes.
+            if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
+                authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
+                        context.getProperty(ORGANIZATION_USER_PROPERTIES));
+            }
 
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                     .isAlwaysSendBackAuthenticatedListOfIdPs()) {
