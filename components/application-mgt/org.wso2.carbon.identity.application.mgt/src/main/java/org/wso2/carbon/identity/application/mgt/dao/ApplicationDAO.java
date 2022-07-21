@@ -63,9 +63,10 @@ public interface ApplicationDAO {
      * Get service provider resides in given tenant domain.
      *
      * @param applicationId The application id.
-     * @param tenantDomain  The tenant domain of the application resides.
+     * @param tenantDomain  The tenant domain where the application resides.
      * @return Service provider.
-     * @throws IdentityApplicationManagementException
+     * @throws IdentityApplicationManagementException throws when an error occurs in retrieving service provider with
+     *                                                all the configurations.
      */
     default ServiceProvider getApplication(int applicationId, String tenantDomain)
             throws IdentityApplicationManagementException {
