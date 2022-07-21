@@ -1110,13 +1110,18 @@ public class ApplicationMgtUtil {
      * @return AdaptiveAuthentication Available or not.
      */
     public static boolean isAdaptiveAuthenticationAvailable() {
+        return ApplicationManagementServiceComponentHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
 
-        try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-        
+
+    /**
+     * Set adaptive authentication availability.
+     *
+     * @param adaptiveAuthenticationAvailable adaptiveAuthenticationAvailable
+     */
+    public static void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().
+                setAdaptiveAuthenticationAvailable(adaptiveAuthenticationAvailable);
     }
 }

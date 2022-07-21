@@ -54,6 +54,8 @@ public class ApplicationManagementServiceComponentHolder {
 
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
 
+    private boolean isAdaptiveAuthenticationAvailable = false;
+
     private ApplicationManagementServiceComponentHolder() {
 
     }
@@ -208,5 +210,25 @@ public class ApplicationManagementServiceComponentHolder {
             OrganizationUserResidentResolverService organizationUserResidentResolverService) {
 
         this.organizationUserResidentResolverService = organizationUserResidentResolverService;
+    }
+
+    /**
+     * Get adaptive authentication available or not.
+     *
+     * @return isAdaptiveAuthenticationAvailable
+     */
+    public boolean isAdaptiveAuthenticationAvailable() {
+
+        return isAdaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Set adaptive authentication availability.
+     *
+     * @param adaptiveAuthenticationAvailable adaptiveAuthenticationAvailable
+     */
+    public void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
+
+        isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
     }
 }
