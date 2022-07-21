@@ -361,12 +361,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
-        //TODO: Check whether we should add these as a new parameter in AuthenticationResult.
-        if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
-            authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
-                    context.getProperty(ORGANIZATION_USER_PROPERTIES));
-        }
-
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
 
         if (isAuthenticated) {
@@ -385,6 +379,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
             ApplicationConfig appConfig = sequenceConfig.getApplicationConfig();
+
+            // Adding user organization properties to the authentication result, such as scopes.
+            if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
+                authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
+                        context.getProperty(ORGANIZATION_USER_PROPERTIES));
+            }
 
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                     .isAlwaysSendBackAuthenticatedListOfIdPs()) {
