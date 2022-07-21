@@ -1816,7 +1816,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             localServiceProvider.setDescription("Local Service Provider");
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
-        return getApplication(applicationId);
+        return getApplication(applicationId, tenantDomain);
     }
 
     /**
