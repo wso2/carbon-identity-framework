@@ -61,7 +61,7 @@
   "oauth.hash_tokens_and_secrets": false,
   "oauth.hash_token_algorithm": "SHA-256",
   "oauth.map_federated_users_to_local": "$ref{authentication.map_federated_users_to_local}",
-  "oauth.enable_password_reset_enforcement": false,
+  "oauth.enable_expired_password_reset_enforcement_for_password_grant": false,
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
   "oauth.introspect.allow_cross_tenant": true,
