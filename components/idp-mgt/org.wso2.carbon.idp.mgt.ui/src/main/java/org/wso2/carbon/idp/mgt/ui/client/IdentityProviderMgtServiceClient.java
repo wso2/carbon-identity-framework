@@ -52,6 +52,11 @@ public class IdentityProviderMgtServiceClient {
 
     private UserAdminStub userAdminStub;
 
+    private static final String SALESFORCE = "salesforce";
+    private static final String GOOGLE = "googleapps";
+    private static final String SCIM = "scim";
+    private static final String SCIM2 = "SCIM2";
+
     /**
      * @param cookie           HttpSession cookie
      * @param backendServerURL Backend Carbon server URL
@@ -363,13 +368,12 @@ public class IdentityProviderMgtServiceClient {
             if (provisioningConnectorConfigs != null && provisioningConnectorConfigs.length > 0
                     && provisioningConnectorConfigs[0] != null) {
                 for (ProvisioningConnectorConfig config : provisioningConnectorConfigs) {
-                    if (!(StringUtils.equals("scim", config.getName()) ||
-                            StringUtils.equals("salesforce", config.getName()) ||
-                            StringUtils.equals("googleapps" , config.getName()) ||
-                            StringUtils.equals("SCIM2", config.getName()))) {
+                    if (!(StringUtils.equals(SCIM, config.getName()) ||
+                            StringUtils.equals(SALESFORCE, config.getName()) ||
+                            StringUtils.equals(GOOGLE , config.getName()) ||
+                            StringUtils.equals(SCIM2, config.getName()))) {
                         provisioningConnectors.put(config.getName(), config);
                     }
-
                 }
             }
         } catch (Exception e) {

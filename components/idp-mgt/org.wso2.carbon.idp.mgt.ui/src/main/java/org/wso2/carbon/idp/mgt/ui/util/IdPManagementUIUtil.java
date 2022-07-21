@@ -691,7 +691,7 @@ public class IdPManagementUIUtil {
 
         ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
 
-        if (proConnector.getName() != null) {
+        if (StringUtils.isNotBlank(proConnector.getName())) {
             if (proConnectors == null || proConnectors.length == 0) {
                 fedIdp.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{proConnector});
             } else {
