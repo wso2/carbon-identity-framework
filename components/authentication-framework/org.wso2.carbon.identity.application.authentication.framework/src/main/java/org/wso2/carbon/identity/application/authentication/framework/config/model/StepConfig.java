@@ -238,11 +238,19 @@ public class StepConfig implements Serializable {
         this.forced = forced;
     }
 
+    /**
+     * This method is used to set the name of the authenticated authenticator config.
+     * @param name name of the authenticated authenticator config
+     */
     public void setAuthenticatedAuthenticatorName(String name) {
 
         this.authenticatedAuthenticatorName = name;
     }
 
+    /**
+     * This method is used to get the name of the authenticated authenticator config.
+     * @return name of the authenticated authenticator config
+     */
     public String getAuthenticatedAuthenticatorName() {
 
         return this.authenticatedAuthenticatorName;

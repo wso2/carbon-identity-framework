@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -37,6 +39,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +49,8 @@ import java.util.Map;
  */
 public class AuthenticationContextLoader {
 
-    private static volatile AuthenticationContextLoader instance;
+    private static final AuthenticationContextLoader instance = new AuthenticationContextLoader();
+    private static final Log log = LogFactory.getLog(AuthenticationContextLoader.class);
 
     private AuthenticationContextLoader() { }
 
@@ -56,13 +60,6 @@ public class AuthenticationContextLoader {
      */
     public static AuthenticationContextLoader getInstance() {
 
-        if (instance == null) {
-            synchronized (AuthenticationContextLoader.class) {
-                if (instance == null) {
-                    instance = new AuthenticationContextLoader();
-                }
-            }
-        }
         return instance;
     }
 
@@ -74,6 +71,10 @@ public class AuthenticationContextLoader {
     public void optimizeAuthenticationContext(AuthenticationContext context)
             throws AuthenticationContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Optimization process for the authentication context with context id : %s " +
+                    "has started", context.getContextIdentifier()));
+        }
         optimizeExternalIdP(context);
         optimizeAuthenticatorConfig(context);
         optimizeApplicationConfig(context);
@@ -87,6 +88,10 @@ public class AuthenticationContextLoader {
     public void loadAuthenticationContext(AuthenticationContext context) throws
             AuthenticationContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Loading process for the authentication context with context id : %s " +
+                    "has started", context.getContextIdentifier()));
+        }
         loadExternalIdP(context);
         loadAuthenticatorConfig(context);
         loadApplicationConfig(context);
@@ -103,7 +108,7 @@ public class AuthenticationContextLoader {
     private void loadExternalIdP(AuthenticationContext context) throws AuthenticationContextLoaderException {
 
         if (context.getExternalIdP() == null && context.getExternalIdPResourceId() != null) {
-            IdentityProvider idp = getIdPsByResourceID(context.getExternalIdPResourceId(), context.getTenantDomain());
+            IdentityProvider idp = getIdPByResourceID(context.getExternalIdPResourceId(), context.getTenantDomain());
             context.setExternalIdP(new ExternalIdPConfig(idp));
             context.setExternalIdPResourceId(null);
         }
@@ -122,14 +127,14 @@ public class AuthenticationContextLoader {
                 }
                 List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
                 for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
-                    authenticatorConfig.setIdPResourceIds(new ArrayList<>());
+                    authenticatorConfig.setIdPResourceIds(Collections.emptyList());
                     authenticatorConfig.setApplicationAuthenticator(null);
                     List<String> idPResourceId = new ArrayList<>();
                     for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
                         String idpName = entry.getKey();
                         IdentityProvider idp = entry.getValue();
                         if (idp.getResourceId() == null) {
-                            idPResourceId.add(getIdPsByIdPName(idpName, context.getTenantDomain()).getResourceId());
+                            idPResourceId.add(getIdPByIdPName(idpName, context.getTenantDomain()).getResourceId());
                         } else {
                             idPResourceId.add(idp.getResourceId());
                         }
@@ -155,12 +160,12 @@ public class AuthenticationContextLoader {
                                 getAppAuthenticatorByName(authenticatorConfig.getName()));
                     }
                     if (authenticatorConfig.getIdps() == null && authenticatorConfig.getIdpNames() == null) {
-                        authenticatorConfig.setIdPs(new HashMap<>());
-                        authenticatorConfig.setIdPNames(new ArrayList<>());
+                        authenticatorConfig.setIdPs(Collections.emptyMap());
+                        authenticatorConfig.setIdPNames(Collections.emptyList());
                         HashMap<String, IdentityProvider> idPs = new HashMap<>();
                         List<String> idPNames = new ArrayList<>();
                         for (String resourceId : authenticatorConfig.getIdPResourceIds()) {
-                            IdentityProvider idp = getIdPsByResourceID(resourceId, context.getTenantDomain());
+                            IdentityProvider idp = getIdPByResourceID(resourceId, context.getTenantDomain());
                             idPs.put(idp.getIdentityProviderName(), idp);
                             idPNames.add(idp.getIdentityProviderName());
                         }
@@ -241,12 +246,11 @@ public class AuthenticationContextLoader {
         return serviceProvider;
     }
 
-    private IdentityProvider getIdPsByIdPName(String idPName, String tenantDomain)
+    private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)
             throws AuthenticationContextLoaderException {
 
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
-        //IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByName(idPName, tenantDomain);
@@ -261,7 +265,7 @@ public class AuthenticationContextLoader {
         return idp;
     }
 
-    private IdentityProvider getIdPsByResourceID(String resourceId, String tenantDomain)
+    private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
             throws AuthenticationContextLoaderException {
 
         if (resourceId == null) {
@@ -269,7 +273,6 @@ public class AuthenticationContextLoader {
         }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
-        //IdentityProviderManager manager = IdentityProviderManager.getInstance();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
