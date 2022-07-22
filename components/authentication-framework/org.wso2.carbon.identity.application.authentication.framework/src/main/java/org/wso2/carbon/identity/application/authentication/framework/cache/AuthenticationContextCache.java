@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -53,8 +52,10 @@ public class AuthenticationContextCache extends
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
         }
-        if (!FrameworkUtils.isSessionDataStorageOptimizationEnabled()) {
-            isSessionDataStorageOptimizationEnabled = FrameworkUtils.isSessionDataStorageOptimizationEnabled();
+        if (IdentityUtil.getProperty(
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable") != null) {
+            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable"));
         }
     }
 

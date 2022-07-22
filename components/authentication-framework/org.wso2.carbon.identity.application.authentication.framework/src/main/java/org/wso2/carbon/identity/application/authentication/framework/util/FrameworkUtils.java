@@ -174,7 +174,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
@@ -3311,14 +3310,4 @@ public class FrameworkUtils {
         }
         return callerPath;
     }
-
-    /**
-     * This method is used to check whether session data storage optimization is enabled or not.
-     * @return true if the session data storage optimization is enabled
-     */
-    public static boolean isSessionDataStorageOptimizationEnabled() {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION));
-    }
-
 }
