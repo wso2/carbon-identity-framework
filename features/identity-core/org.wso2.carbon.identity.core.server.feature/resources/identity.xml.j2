@@ -443,6 +443,8 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
+            {% endif %}
+            {% if organization_management.enable is true %}
             <SupportedGrantType>
                 <GrantTypeName>organization_switch</GrantTypeName>
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
