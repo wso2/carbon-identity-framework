@@ -329,11 +329,6 @@ public abstract class FrameworkConstants {
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
 
         /**
-         * Configuration used to enable optimization of the session data storage.
-         */
-        public static final String SESSION_DATA_STORAGE_OPTIMIZATION =
-                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable";
-        /**
          * Configuration to enable publishing the active session count in analytics event.
          */
         public static final String PUBLISH_ACTIVE_SESSION_COUNT = "Analytics.PublishActiveSessionCount";
