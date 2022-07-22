@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -46,6 +49,8 @@ public class OptimizedApplicationConfig implements Serializable {
     private Map<String, String> requestedClaims;
     private Map<String, String> mandatoryClaims;
 
+    private static final Log log = LogFactory.getLog(OptimizedApplicationConfig.class);
+
     private class OptimizedAuthStep implements Serializable {
 
         private int stepOrder;
@@ -58,8 +63,8 @@ public class OptimizedApplicationConfig implements Serializable {
                 AuthenticationContextLoaderException {
 
             this.stepOrder = authStep.getStepOrder();
-            this.localAuthenticatorConfigNames = setLocalAuthenticatorConfigNames
-                    (authStep.getLocalAuthenticatorConfigs());
+            this.localAuthenticatorConfigNames =
+                    setLocalAuthenticatorConfigNames(authStep.getLocalAuthenticatorConfigs());
             this.federatedIdPResourceIds = setFederatedIdPResourceIds(authStep.getFederatedIdentityProviders(),
                     tenantDomain);
             this.subjectStep = authStep.isSubjectStep();
@@ -159,6 +164,9 @@ public class OptimizedApplicationConfig implements Serializable {
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
             AuthenticationContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Optimization process for the application config has started");
+        }
         this.serviceProviderResourceId = applicationConfig.getServiceProvider().getApplicationResourceId();
         List<OptimizedAuthStep> optimizedAuthSteps = new ArrayList<>();
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = applicationConfig.
@@ -207,6 +215,9 @@ public class OptimizedApplicationConfig implements Serializable {
             authenticationStep.setAttributeStep(authStep.isAttributeStep());
             authenticationSteps[i] = authenticationStep;
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Loading the optimized authentication steps is completed successfully");
+        }
         return authenticationSteps;
     }
 
@@ -225,7 +236,8 @@ public class OptimizedApplicationConfig implements Serializable {
             throws FrameworkException {
 
         IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
-        IdentityProviderManager manager = IdentityProviderManager.getInstance();
+        IdentityProviderManager manager =
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
         for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
             try {
                 IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
