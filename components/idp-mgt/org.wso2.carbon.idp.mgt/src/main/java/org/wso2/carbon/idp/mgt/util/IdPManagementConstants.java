@@ -91,6 +91,12 @@ public class IdPManagementConstants {
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
 
+    // Outbound Provisioning Connectors
+    public static final String GOOGLE = "googleapps";
+    public static final String SALESFORCE = "salesforce";
+    public static final String SCIM = "scim";
+    public static final String SCIM2 = "SCIM2";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

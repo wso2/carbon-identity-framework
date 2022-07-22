@@ -41,6 +41,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.GOOGLE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SALESFORCE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCIM;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCIM2;
+
 /**
  * Client class for IdentityProviderMgtServiceStub.
  */
@@ -51,11 +56,6 @@ public class IdentityProviderMgtServiceClient {
     private IdentityProviderMgtServiceStub idPMgtStub;
 
     private UserAdminStub userAdminStub;
-
-    private static final String SALESFORCE = "salesforce";
-    private static final String GOOGLE = "googleapps";
-    private static final String SCIM = "scim";
-    private static final String SCIM2 = "SCIM2";
 
     /**
      * @param cookie           HttpSession cookie
