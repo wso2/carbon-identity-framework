@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -48,7 +49,7 @@ import java.util.UUID;
 public class WorkflowManagementAdminService {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementAdminService.class);
-
+    private static boolean simpleWorkflowEngine;
 
     private WorkflowWizard getWorkflow(org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean)
             throws WorkflowException {
@@ -184,9 +185,18 @@ public class WorkflowManagementAdminService {
      * @throws WorkflowException
      */
     public WorkflowImpl[] listWorkflowImpls(String templateId) throws WorkflowException {
+
         List<WorkflowImpl> workflowList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflowImpls(templateId);
-        return workflowList.toArray(new WorkflowImpl[workflowList.size()]);
+        String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
+        WorkflowImpl[] listWorkflowImpls = workflowList.toArray(new WorkflowImpl[workflowList.size()]);
+        if (StringUtils.isNotBlank(enableSimpleWorkflowEngine)) {
+            simpleWorkflowEngine = Boolean.parseBoolean(enableSimpleWorkflowEngine);
+        }
+        if (simpleWorkflowEngine == true) {
+            return new WorkflowImpl[]{listWorkflowImpls[1]};
+        }
+        return new WorkflowImpl[]{listWorkflowImpls[0]};
     }
 
     /**
