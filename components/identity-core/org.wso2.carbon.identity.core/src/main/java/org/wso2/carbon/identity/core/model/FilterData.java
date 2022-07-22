@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FilterData implements Serializable {
+public class FilterData {
 
     private String filterString;
     private List<String> filterValues = new ArrayList<>();

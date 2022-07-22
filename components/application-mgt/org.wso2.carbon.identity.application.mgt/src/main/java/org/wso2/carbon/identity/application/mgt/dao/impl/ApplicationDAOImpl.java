@@ -2037,7 +2037,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         validateAttributesForPagination(offset, limit);
 
-        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
+        if (StringUtils.isBlank(filter)) {
             return getApplicationBasicInfo(offset, limit);
         }
 
@@ -2068,7 +2068,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             } else if (databaseProductName.contains("Oracle")) {
                 sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_ORACLE, filterString);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues,offset + limit, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset + limit, offset);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_MSSQL, filterString);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
@@ -3344,38 +3344,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         FilterData filterData = new FilterData();
 
-        // Not repeating validations as all validations are handled in the Identity API Server.
-        try {
-            FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
-            Node rootNode = filterTreeBuilder.buildTree();
-            if (rootNode instanceof ExpressionNode) {
-                ExpressionNode expressionNode = (ExpressionNode) rootNode;
+        if (StringUtils.isBlank(filter) || filter.equals("*")) {
+            filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
+            filterData.addFilterValue("%");
+        } else {
+            // Not repeating validations as all validations are handled in the Identity API Server.
+            try {
+                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                if (rootNode instanceof ExpressionNode) {
+                    ExpressionNode expressionNode = (ExpressionNode) rootNode;
 
-                filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
-                        expressionNode.getOperation()));
-                filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
-                        expressionNode.getValue()));
-            } else {
-                // Currently, supports only filters with one AND/OR operation.
-                // Have to recursively traverse the filter tree to support more than one operation.
-                OperationNode operationNode = (OperationNode) rootNode;
-                ExpressionNode expressionLeftNode = (ExpressionNode) rootNode.getLeftNode();
-                ExpressionNode expressionRightNode = (ExpressionNode) rootNode.getRightNode();
+                    filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
+                            expressionNode.getOperation()));
+                    filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
+                            expressionNode.getValue()));
+                } else {
+                    // Currently, supports only filters with one AND/OR operation.
+                    // Have to recursively traverse the filter tree to support more than one operation.
+                    OperationNode operationNode = (OperationNode) rootNode;
+                    ExpressionNode expressionLeftNode = (ExpressionNode) rootNode.getLeftNode();
+                    ExpressionNode expressionRightNode = (ExpressionNode) rootNode.getRightNode();
 
-                String formattedLeftNodeString = generateFilterStringForBackend(
-                        expressionLeftNode.getAttributeValue(), expressionLeftNode.getOperation());
-                String formattedRightNodeString = generateFilterStringForBackend(
-                        expressionRightNode.getAttributeValue(), expressionRightNode.getOperation());
+                    String formattedLeftNodeString = generateFilterStringForBackend(
+                            expressionLeftNode.getAttributeValue(), expressionLeftNode.getOperation());
+                    String formattedRightNodeString = generateFilterStringForBackend(
+                            expressionRightNode.getAttributeValue(), expressionRightNode.getOperation());
 
-                filterData.setFilterString(formattedLeftNodeString + " " +
-                        operationNode.getOperation() + " " + formattedRightNodeString);
-                filterData.addFilterValue(generateFilterValueForBackend(expressionLeftNode.getOperation(),
+                    filterData.setFilterString(formattedLeftNodeString + " " +
+                            operationNode.getOperation() + " " + formattedRightNodeString);
+                    filterData.addFilterValue(generateFilterValueForBackend(expressionLeftNode.getOperation(),
                             expressionLeftNode.getValue()));
-                filterData.addFilterValue(generateFilterValueForBackend(expressionRightNode.getOperation(),
+                    filterData.addFilterValue(generateFilterValueForBackend(expressionRightNode.getOperation(),
                             expressionRightNode.getValue()));
+                }
+            } catch (IOException | IdentityException e) {
+                log.error("Error occurred while converting filter for backend.", e);
             }
-        } catch (IOException | IdentityException e) {
-            log.error("Error occurred while converting filter for backend.", e);
         }
         return filterData;
     }

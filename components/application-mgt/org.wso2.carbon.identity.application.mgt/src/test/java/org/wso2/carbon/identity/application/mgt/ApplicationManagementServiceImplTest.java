@@ -90,8 +90,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
-    private static final String APPLICATION_NAME_1_Filter = "SP_APP.APP_NAME LIKE '*application1'";
-    private static final String APPLICATION_NAME_2_Filter = "SP_APP.APP_NAME LIKE '*2*'";
+    private static final String APPLICATION_NAME_1_Filter = "name ew application1";
+    private static final String APPLICATION_NAME_2_Filter = "name co 2";
     private static final String IDP_NAME_1 = "Test IdP 1";
     private static final String IDP_NAME_2 = "Test IdP 2";
     private static final String USERNAME_1 = "user 1";
@@ -235,24 +235,24 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "getApplicationDataProvider")
-    public void testGetApplicationBasicInfoWithFilter(Object serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
+    @Test
+    public void testGetApplicationBasicInfoWithFilter() throws IdentityApplicationManagementException {
 
-        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
 
-        // Adding new application.
-        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
-                username);
+        // Adding application.
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
-                (tenantDomain, username, inputSP.getApplicationName());
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, "name eq " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
-        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
     @Test
@@ -268,8 +268,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getPaginatedApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 1,
-                        "SP_APP.APP_NAME LIKE '*" + inputSP.getApplicationName() + "*'");
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 1, "name co " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
 
         // Deleting added application.
@@ -292,7 +291,18 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllApplicationBasicInfo
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
