@@ -24,14 +24,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.jcajce.provider.drbg.DRBG;
 import org.jaxen.JaxenException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
-import org.wso2.carbon.identity.workflow.mgt.bean.metadata.MetaData;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowDAO;
 import org.wso2.carbon.identity.workflow.mgt.dao.WorkflowRequestAssociationDAO;
@@ -43,11 +42,13 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
 import org.wso2.carbon.identity.workflow.mgt.util.ExecutorResultState;
+import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestBuilder;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,6 +56,7 @@ import java.util.UUID;
 public class WorkFlowExecutorManager {
 
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
+    private static boolean simpleWorkflowEngine;
 
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
 
@@ -96,12 +98,31 @@ public class WorkFlowExecutorManager {
         List<WorkflowAssociation> associations =
                 requestAssociationDAO.getWorkflowAssociationsForRequest(workFlowRequest.getEventType(), workFlowRequest
                         .getTenantId());
-        if (CollectionUtils.isEmpty(associations)) {
+        String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
+        if (StringUtils.isNotBlank(enableSimpleWorkflowEngine)) {
+            simpleWorkflowEngine = Boolean.parseBoolean(enableSimpleWorkflowEngine);
+        }
+        List<WorkflowAssociation> associationList=new ArrayList<>();
+        for (WorkflowAssociation workflowAssociation : associations) {
+            Workflow workflow = workflowDAO.getWorkflow(workflowAssociation.getWorkflowId());
+            if (!simpleWorkflowEngine) {
+                if (workflow.getWorkflowImplId().equals(WFConstant.SIMPLE_WORKFLOW_IMPL_ID)) {
+                    continue;
+                }
+            } else {
+                if (workflow.getWorkflowImplId().equals(WFConstant.BPS_WORKFLOW_IMPL_ID)) {
+                    continue;
+                }
+            }
+            associationList.add(workflowAssociation);
+        }
+
+        if (CollectionUtils.isEmpty(associationList)) {
             return new WorkflowExecutorResult(ExecutorResultState.NO_ASSOCIATION);
         }
         boolean workflowEngaged = false;
         boolean requestSaved = false;
-        for (WorkflowAssociation association : associations) {
+        for (WorkflowAssociation association : associationList) {
             try {
                 AXIOMXPath axiomxPath = new AXIOMXPath(association.getAssociationCondition());
                 if (axiomxPath.booleanValueOf(xmlRequest)) {

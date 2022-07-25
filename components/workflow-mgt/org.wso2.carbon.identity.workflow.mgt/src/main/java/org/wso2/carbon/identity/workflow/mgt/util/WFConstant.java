@@ -25,6 +25,8 @@ public class WFConstant {
 
     public static final String REQUEST_ID = "REQUEST ID";
     public static final String SIMPLE_WORKFLOW_ENGINE = "Workflow.SimpleWorkflow.Enable";
+    public static final String SIMPLE_WORKFLOW_IMPL_ID = "workflowImplSimple";
+    public static final String BPS_WORKFLOW_IMPL_ID = "ApprovalWorkflow";
 
     public static final String HT_STATE_SKIPPED = "SKIPPED";
     public static final String HT_STATE_PENDING = "PENDING";

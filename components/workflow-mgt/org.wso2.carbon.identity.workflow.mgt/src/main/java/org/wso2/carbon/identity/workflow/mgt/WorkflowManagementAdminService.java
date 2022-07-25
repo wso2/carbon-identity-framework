@@ -49,7 +49,6 @@ import java.util.UUID;
 public class WorkflowManagementAdminService {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementAdminService.class);
-    private static boolean simpleWorkflowEngine;
 
     private WorkflowWizard getWorkflow(org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean)
             throws WorkflowException {
@@ -188,12 +187,9 @@ public class WorkflowManagementAdminService {
 
         List<WorkflowImpl> workflowList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflowImpls(templateId);
-        String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
+        boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
         WorkflowImpl[] listWorkflowImpls = workflowList.toArray(new WorkflowImpl[workflowList.size()]);
-        if (StringUtils.isNotBlank(enableSimpleWorkflowEngine)) {
-            simpleWorkflowEngine = Boolean.parseBoolean(enableSimpleWorkflowEngine);
-        }
-        if (simpleWorkflowEngine == true) {
+        if (enableSimpleWorkflowEngine) {
             return new WorkflowImpl[]{listWorkflowImpls[1]};
         }
         return new WorkflowImpl[]{listWorkflowImpls[0]};
