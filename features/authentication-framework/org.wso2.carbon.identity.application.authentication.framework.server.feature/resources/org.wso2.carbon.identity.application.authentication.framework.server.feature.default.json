@@ -122,6 +122,10 @@
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
   "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless",
 
+  "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
+  "authentication.authenticator.magiclink.enable": true,
+  "authentication.authenticator.magiclink.ExpiryTime": "300",
+
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
   "authentication.authenticator.mobile_connect.parameters.MCAuthenticationEndpointURL": "mobileconnectauthenticationendpoint/mobileconnect.jsp",
