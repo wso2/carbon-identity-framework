@@ -535,15 +535,15 @@
             Disable this config if additional params are not needed post logout redirect URL.
             -->
             <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
-        </OpenIDConnect>
 
-        <!--
-            FAPI Support.
-            Supported versions: IS 5.11.0 onwards
-        -->
-        <!-- <FAPI>
-            <CIBA>true</CIBA>
-        </FAPI> -->
+            <!--
+                FAPI Profile Support.
+            -->
+            <!-- <FAPI>
+                <EnableCibaProfile>{{fapi.enable_ciba_profile}}</EnableCibaProfile>
+                <EnableSecurityProfile>{{fapi.enable_security_profile}}</EnableSecurityProfile>
+            </FAPI> -->
+        </OpenIDConnect>
 
         <!--
             Configs related to OAuth2 Device Code Grant.
