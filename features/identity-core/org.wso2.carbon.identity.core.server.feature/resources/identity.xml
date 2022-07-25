@@ -2217,4 +2217,7 @@
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
 
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
+
 </Server>

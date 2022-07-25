@@ -3179,4 +3179,18 @@
     <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
 
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    {% if email_templates.branding.organization is defined %}
+    <EnableOrganizationLevelEmailBranding>{{email_templates.branding.organization.enable}}</EnableOrganizationLevelEmailBranding>
+    {% endif %}
+
+    <!-- Configuration to set up fallback configs for organization level branding configs   -->
+    <!-- to be used in the case where branding configs are not defined by the tenant users. -->
+    <OrganizationLevelEmailBrandingFallbacks>
+        {% for key,value in email_templates.branding.fallbacks.items() %}
+            <OrganizationLevelEmailBrandingFallback key="{{key}}">{{value}}</OrganizationLevelEmailBrandingFallback>
+        {% endfor %}
+    </OrganizationLevelEmailBrandingFallbacks>
+
+
 </Server>
