@@ -102,7 +102,7 @@ public class WorkFlowExecutorManager {
         if (StringUtils.isNotBlank(enableSimpleWorkflowEngine)) {
             simpleWorkflowEngine = Boolean.parseBoolean(enableSimpleWorkflowEngine);
         }
-        List<WorkflowAssociation> associationList=new ArrayList<>();
+        List<WorkflowAssociation> associationList = new ArrayList<>();
         for (WorkflowAssociation workflowAssociation : associations) {
             Workflow workflow = workflowDAO.getWorkflow(workflowAssociation.getWorkflowId());
             if (!simpleWorkflowEngine) {
@@ -224,6 +224,7 @@ public class WorkFlowExecutorManager {
 
     private boolean isAllWorkflowsCompleted(WorkflowRequestAssociationDAO workflowRequestAssociationDAO, String
             requestId) throws InternalWorkflowException {
+
         List<String> statesOfRequest = workflowRequestAssociationDAO.getWorkflowStatesOfRequest(requestId);
         for (int i = 0; i < statesOfRequest.size(); i++) {
             if (!statesOfRequest.get(i).equals(WorkflowRequestStatus.APPROVED.toString())) {
@@ -264,7 +265,6 @@ public class WorkFlowExecutorManager {
             }
         }
 
-
     }
 
     /**
@@ -275,7 +275,6 @@ public class WorkFlowExecutorManager {
      * @throws InternalWorkflowException
      */
     private void updateDBAtWorkflowCompletion(String requestId, String status) throws InternalWorkflowException {
-
 
         RequestEntityRelationshipDAO requestEntityRelationshipDAO = new RequestEntityRelationshipDAO();
         WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();

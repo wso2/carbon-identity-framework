@@ -52,6 +52,7 @@ public class WorkflowManagementAdminService {
 
     private WorkflowWizard getWorkflow(org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean)
             throws WorkflowException {
+
         try {
 
             WorkflowWizard workflow = null;
@@ -78,7 +79,6 @@ public class WorkflowManagementAdminService {
 
                 workflow.setTemplate(template);
 
-
                 AbstractWorkflow abstractWorkflow =
                         WorkflowServiceDataHolder.getInstance().getWorkflowImpls()
                                 .get(workflowBean.getTemplateId()).get(workflowBean.getWorkflowImplId());
@@ -104,7 +104,7 @@ public class WorkflowManagementAdminService {
                 }
                 workflow.setTemplateParameters(templateParams.toArray(new Parameter[templateParams.size()]));
                 workflow.setWorkflowImplParameters(workflowImplParams
-                                                           .toArray(new Parameter[workflowImplParams.size()]));
+                        .toArray(new Parameter[workflowImplParams.size()]));
 
             }
             return workflow;
@@ -120,11 +120,12 @@ public class WorkflowManagementAdminService {
     /**
      * Retrieve workflow from workflow ID
      *
-     * @param workflowId  workflow id
+     * @param workflowId workflow id
      * @return
      * @throws WorkflowException
      */
     public WorkflowWizard getWorkflow(String workflowId) throws WorkflowException {
+
         org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean =
                 WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflow(workflowId);
         return getWorkflow(workflowBean);
@@ -148,6 +149,7 @@ public class WorkflowManagementAdminService {
      * @throws WorkflowException
      */
     public Template[] listTemplates() throws WorkflowException {
+
         List<Template> templates = WorkflowServiceDataHolder.getInstance().getWorkflowService().listTemplates();
         return templates.toArray(new Template[templates.size()]);
     }
@@ -155,31 +157,33 @@ public class WorkflowManagementAdminService {
     /**
      * Retrieve workflow template using workflow ID
      *
-     * @param templateId  template id
+     * @param templateId template id
      * @return
      * @throws WorkflowException
      */
     public Template getTemplate(String templateId) throws WorkflowException {
+
         return WorkflowServiceDataHolder.getInstance().getWorkflowService().getTemplate(templateId);
     }
 
     /**
      * Retrieve worklflow impl object
      *
-     * @param templateId     template id
+     * @param templateId       template id
      * @param implementationId workflow impl id
      * @return
      * @throws WorkflowException
      */
     public WorkflowImpl getWorkflowImpl(String templateId, String implementationId) throws WorkflowException {
+
         return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowImpl(templateId,
-                                                                                            implementationId);
+                implementationId);
     }
 
     /**
      * List implementations of a workflow template
      *
-     * @param templateId  ID of template
+     * @param templateId ID of template
      * @return
      * @throws WorkflowException
      */
@@ -198,7 +202,7 @@ public class WorkflowManagementAdminService {
     /**
      * Add new workflow
      *
-     * @param workflow  Workflow details
+     * @param workflow Workflow details
      * @throws WorkflowException
      */
     public void addWorkflow(WorkflowWizard workflow) throws WorkflowException {
@@ -215,14 +219,14 @@ public class WorkflowManagementAdminService {
             workflowBean.setWorkflowName(workflow.getWorkflowName());
             workflowBean.setWorkflowDescription(workflow.getWorkflowDescription());
             String templateId = workflow.getTemplateId() == null ? workflow.getTemplate().getTemplateId() :
-                                workflow.getTemplateId();
+                    workflow.getTemplateId();
             if (templateId == null) {
                 throw new WorkflowException("template id can't be empty");
             }
             workflowBean.setTemplateId(templateId);
             String workflowImplId =
                     workflow.getWorkflowImplId() == null ? workflow.getWorkflowImpl().getWorkflowImplId() :
-                    workflow.getWorkflowImplId();
+                            workflow.getWorkflowImplId();
             if (workflowImplId == null) {
                 throw new WorkflowException("workflowimpl id can't be empty");
             }
@@ -251,10 +255,10 @@ public class WorkflowManagementAdminService {
     /**
      * Add new workflow association
      *
-     * @param associationName  Name for the association
-     * @param workflowId  Workflow to associate
-     * @param eventId  Event to associate
-     * @param condition  Condition to check the event for associating
+     * @param associationName Name for the association
+     * @param workflowId      Workflow to associate
+     * @param eventId         Event to associate
+     * @param condition       Condition to check the event for associating
      * @throws WorkflowException
      */
     public void addAssociation(String associationName, String workflowId, String eventId, String condition)
@@ -275,11 +279,12 @@ public class WorkflowManagementAdminService {
     /**
      * Enable or disable association
      *
-     * @param associationId  Association ID
-     * @param isEnable  New state
+     * @param associationId Association ID
+     * @param isEnable      New state
      * @throws WorkflowException
      */
     public void changeAssociationState(String associationId, boolean isEnable) throws WorkflowException {
+
         try {
             WorkflowServiceDataHolder.getInstance().getWorkflowService()
                     .changeAssociationState(associationId, isEnable);
@@ -320,7 +325,7 @@ public class WorkflowManagementAdminService {
     /**
      * Remove a workflow
      *
-     * @param id  ID of workflow to remove
+     * @param id ID of workflow to remove
      * @throws WorkflowException
      */
     public void removeWorkflow(String id) throws WorkflowException {
@@ -352,7 +357,7 @@ public class WorkflowManagementAdminService {
     /**
      * Remove association
      *
-     * @param associationId  ID of association to remove
+     * @param associationId ID of association to remove
      * @throws WorkflowException
      */
     public void removeAssociation(String associationId) throws WorkflowException {
@@ -369,7 +374,7 @@ public class WorkflowManagementAdminService {
     /**
      * List associations of a specific workflow
      *
-     * @param workflowId  Workflow ID
+     * @param workflowId Workflow ID
      * @return
      * @throws WorkflowException
      */
@@ -414,7 +419,7 @@ public class WorkflowManagementAdminService {
     /**
      * Retrieve workflow event object from ID
      *
-     * @param eventId  Workflow event ID
+     * @param eventId Workflow event ID
      * @return
      */
     public WorkflowEvent getEvent(String eventId) {
@@ -425,17 +430,16 @@ public class WorkflowManagementAdminService {
     /**
      * Returns array of requests initiated by a user.
      *
-     * @param user  User to retrieve requests of
-     * @param beginDate  Lower limit of date range
-     * @param endDate  Upper limit of date range
-     * @param dateCategory  Filter by created date or last updated date
-     * @param status  Status of requests to filter
+     * @param user         User to retrieve requests of
+     * @param beginDate    Lower limit of date range
+     * @param endDate      Upper limit of date range
+     * @param dateCategory Filter by created date or last updated date
+     * @param status       Status of requests to filter
      * @return
      * @throws WorkflowException
      */
     public WorkflowRequest[] getRequestsCreatedByUser(String user, String beginDate, String endDate, String
             dateCategory, String status) throws WorkflowException {
-
 
         int tenant = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         return WorkflowServiceDataHolder.getInstance().getWorkflowService()
@@ -445,10 +449,10 @@ public class WorkflowManagementAdminService {
     /**
      * Return array of requests according to createdAt and updatedAt filter
      *
-     * @param beginDate  Lower limit of date range
-     * @param endDate  Upper limit of date range
-     * @param dateCategory  Filter by created date or last updated date
-     * @param status  Status of requests to filter
+     * @param beginDate    Lower limit of date range
+     * @param endDate      Upper limit of date range
+     * @param dateCategory Filter by created date or last updated date
+     * @param status       Status of requests to filter
      * @return
      * @throws WorkflowException
      */
@@ -483,6 +487,5 @@ public class WorkflowManagementAdminService {
 
         return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowsOfRequest(requestId);
     }
-
 
 }
