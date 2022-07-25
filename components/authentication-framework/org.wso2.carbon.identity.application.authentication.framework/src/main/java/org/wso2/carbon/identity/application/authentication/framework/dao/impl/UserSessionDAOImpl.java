@@ -30,11 +30,11 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,8 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * Default implementation of {@link UserSessionDAO}. This handles {@link UserSession} related DB operations.
@@ -68,8 +66,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         try {
             List<Application> applicationList = getApplicationsForSessionID(sessionId);
             generateApplicationFromAppID(applicationList);
-            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2 :
-                    SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
+            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                    ? SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA_H2
+                    : SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA;
             jdbcTemplate.executeQuery(sqlStmt, ((resultSet, rowNumber)
                     -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
                     preparedStatement.setString(1, sessionId));
@@ -112,7 +111,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
 
         try {
-            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_SESSION_META_DATA_FOR_USER_ID_AND_SESSION_ID_H2 :
+            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION) ?
+                    SQLQueries.SQL_GET_SESSION_META_DATA_FOR_USER_ID_AND_SESSION_ID_H2 :
                     SQLQueries.SQL_GET_SESSION_META_DATA_FOR_USER_ID_AND_SESSION_ID;
             jdbcTemplate.executeQuery(sqlStmt, (
                     (resultSet, rowNumber) -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))),
@@ -185,7 +185,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
 
         try {
-            if (JdbcUtils.isH2(JdbcUtils.Database.SESSION)) {
+            if (JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)) {
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_H2, sqlFilters[0],
                         appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
             } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION)) {

@@ -26,9 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
-import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.util.List;
 

@@ -27,12 +27,12 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * Class to store and retrieve user related data.
@@ -564,7 +562,7 @@ public class UserSessionStore {
         try {
             jdbcTemplate.withTransaction(template -> {
                 String query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2;
-                if (JdbcUtils.isOracleDB()) {
+                if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
                     query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     template.executeUpdate(query, preparedStatement -> {
                         preparedStatement.setString(1, sessionId);
@@ -577,13 +575,15 @@ public class UserSessionStore {
                         preparedStatement.setString(8, inboundAuth);
                     });
                 } else {
-                    if (JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                    if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION) ||
+                            JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
-                    } else if (JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+                    } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION) ||
+                            JdbcUtils.isMariaDB(JdbcUtils.Database.SESSION)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
-                    } else if (JdbcUtils.isPostgreSQLDB()) {
+                    } else if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.SESSION)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_POSTGRES;
-                    } else if (JdbcUtils.isOracleDB()) {
+                    } else if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_ORACLE;
                     }
                     template.executeUpdate(query, preparedStatement -> {
@@ -709,8 +709,8 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
         try {
-            String sqlStmt = isH2DB() ? SQLQueries.SQL_INSERT_SESSION_META_DATA_H2 :
-                    SQLQueries.SQL_INSERT_SESSION_META_DATA;
+            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION) ?
+                    SQLQueries.SQL_INSERT_SESSION_META_DATA_H2 : SQLQueries.SQL_INSERT_SESSION_META_DATA;
             jdbcTemplate.executeBatchInsert(sqlStmt, (preparedStatement -> {
                 for (Map.Entry<String, String> entry : metaData.entrySet()) {
                     preparedStatement.setString(1, sessionId);
@@ -741,8 +741,8 @@ public class UserSessionStore {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
         try {
-            String sqlStmt = isH2DB() ? SQLQueries.SQL_UPDATE_SESSION_META_DATA_H2 :
-                    SQLQueries.SQL_UPDATE_SESSION_META_DATA;
+            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION) ?
+                    SQLQueries.SQL_UPDATE_SESSION_META_DATA_H2 : SQLQueries.SQL_UPDATE_SESSION_META_DATA;
             jdbcTemplate.executeUpdate(sqlStmt, preparedStatement -> {
                 preparedStatement.setString(1, value);
                 preparedStatement.setString(2, sessionId);
@@ -1061,8 +1061,9 @@ public class UserSessionStore {
         long minTimestamp = currentTime - idleSessionTimeOut;
 
         try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
-            String sqlStmt = isH2DB() ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2 :
-                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
+            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                    ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2
+                    : SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
             try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStmt)) {
                 preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
                 preparedStatement.setString(2, String.valueOf(minTimestamp));
