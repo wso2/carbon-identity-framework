@@ -22,9 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,16 +61,6 @@ public class SessionContext implements Serializable {
     public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp(String app) {
 
         return authenticatedIdPsOfApp.get(app);
-    }
-
-    /**
-     * Retrieve the names of authenticated applications of the session.
-     *
-     * @return a list of names of authenticated applications.
-     */
-    public List<String> getAuthenticatedIdPsOfApp() {
-
-        return new ArrayList<>(authenticatedIdPsOfApp.keySet());
     }
 
     public void setAuthenticatedIdPsOfApp(String app, Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
