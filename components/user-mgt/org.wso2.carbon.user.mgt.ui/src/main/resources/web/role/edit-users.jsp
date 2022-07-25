@@ -350,7 +350,7 @@
                         <td>
                             <input type="text" name="<%=UserAdminUIConstants.ROLE_LIST_UNASSIGNED_USER_FILTER%>"
                                    value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message key="list.users"/>"
-                                   black-list-patterns="xml-meta-exists"/>
+                                   autocomplete="off" black-list-patterns="xml-meta-exists"/>
                         </td>
                         <td>
                             <input class="button" type="submit"
