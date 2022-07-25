@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt;
+package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 /**
  * This class contains default SQL queries
  * <p/>
+ * TODO : Make the queries configurable from a file TODO : Use transactions and joins
  */
-@Deprecated
-public class ApplicationMgtDBQueries {
+class ApplicationMgtDBQueries {
 
     // STORE Queries
     public static final String STORE_BASIC_APPINFO = "INSERT INTO SP_APP (TENANT_ID, APP_NAME, USER_STORE, USERNAME, " +
@@ -39,25 +39,11 @@ public class ApplicationMgtDBQueries {
             "ACCESS_URL=:ACCESS_URL; WHERE TENANT_ID=:TENANT_ID; AND ID=:ID;";
     public static final String UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM = "UPDATE SP_APP SET ROLE_CLAIM=? WHERE TENANT_ID" +
             "= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT =
-            "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +
-                    "WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID =
-            "UPDATE SP_APP SET IS_SEND_LOCAL_SUBJECT_" +
-                    "ID=? WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_USE_TENANT_DOMAIN_LOCAL_SUBJECT_ID = "UPDATE SP_APP SET " +
-            "IS_USE_TENANT_DOMAIN_SUBJECT=? WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_USE_USERSTORE_DOMAIN_LOCAL_SUBJECT_ID = "UPDATE SP_APP SET " +
-            "IS_USE_USER_DOMAIN_SUBJECT=? WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION = "UPDATE SP_APP SET " +
-            "ENABLE_AUTHORIZATION=? WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_SEND_AUTH_LIST_OF_IDPS = "UPDATE SP_APP SET " +
-            "IS_SEND_AUTH_LIST_OF_IDPS=? WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_SUBJECT_CLAIM_URI = "UPDATE SP_APP SET SUBJECT_CLAIM_URI=? " +
-            "WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE =
-            "UPDATE SP_APP SET AUTH_TYPE=? WHERE TENANT_ID= ? " +
-                    "AND ID = ?";
+    public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT_AND_SEND_LOCAL_SUB_ID =
+            "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=?, IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?";
+    public static final String UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION = "UPDATE SP_APP SET " +
+            "IS_SEND_AUTH_LIST_OF_IDPS=?, IS_USE_TENANT_DOMAIN_SUBJECT=?, IS_USE_USER_DOMAIN_SUBJECT=?, " +
+            "ENABLE_AUTHORIZATION=?, SUBJECT_CLAIM_URI=?, AUTH_TYPE=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
             "ID = ?";
     public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
@@ -79,7 +65,7 @@ public class ApplicationMgtDBQueries {
             "APP_ID, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE) VALUES (?,?,?,?,?,?,?)";
     public static final String STORE_ROLE_MAPPING =
             "INSERT INTO SP_ROLE_MAPPING (TENANT_ID, IDP_ROLE, SP_ROLE, APP_ID)" +
-            " VALUES (?,?,?,?)";
+                    " VALUES (?,?,?,?)";
     public static final String STORE_REQ_PATH_AUTHENTICATORS = "INSERT INTO SP_REQ_PATH_AUTHENTICATOR (TENANT_ID, " +
             "AUTHENTICATOR_NAME, APP_ID) VALUES (?,?,?)";
     public static final String STORE_PRO_CONNECTORS = "INSERT INTO SP_PROVISIONING_CONNECTOR (TENANT_ID, IDP_NAME, " +
@@ -91,7 +77,7 @@ public class ApplicationMgtDBQueries {
             "TENANT_ID = ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME =
             "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
-            "TENANT_ID = ? AND APP_NAME LIKE ? AND APP_NAME != ? ORDER BY ID DESC";
+                    "TENANT_ID = ? AND APP_NAME LIKE ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ? AND " +
             "APP_NAME != ? ";
     public static final String LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME = "SELECT COUNT(*) FROM SP_APP WHERE " +
@@ -155,7 +141,7 @@ public class ApplicationMgtDBQueries {
 
     public static final String LOAD_APP_ID_BY_CLIENT_ID_AND_TYPE =
             "SELECT APP_ID FROM SP_AUTH_STEP WHERE CLIENT_ID = ? "
-            + "AND CLIENT_TYPE= ? AND TENANT_ID = ?";
+                    + "AND CLIENT_TYPE= ? AND TENANT_ID = ?";
     public static final String LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE = "SELECT APP_NAME "
             + "FROM SP_APP INNER JOIN SP_INBOUND_AUTH "
             + "ON SP_APP.ID = SP_INBOUND_AUTH.APP_ID "
@@ -200,7 +186,7 @@ public class ApplicationMgtDBQueries {
             + "FROM SP_CLAIM_MAPPING WHERE APP_ID = (SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?)";
     public static final String LOAD_ROLE_MAPPING_BY_APP_ID =
             "SELECT IDP_ROLE, SP_ROLE FROM SP_ROLE_MAPPING WHERE APP_ID" +
-            " = ? AND TENANT_ID = ?";
+                    " = ? AND TENANT_ID = ?";
 
     public static final String LOAD_CLAIM_CONIFG_BY_APP_ID = "SELECT ROLE_CLAIM, IS_LOCAL_CLAIM_DIALECT, " +
             "IS_SEND_LOCAL_SUBJECT_ID FROM SP_APP WHERE TENANT_ID= ? AND ID = ?";
@@ -209,7 +195,7 @@ public class ApplicationMgtDBQueries {
             " TENANT_ID= ? AND APP_ID = ?";
     public static final String STORE_SP_DIALECTS_BY_APP_ID =
             "INSERT INTO SP_CLAIM_DIALECT (TENANT_ID, SP_DIALECT, APP_ID)" +
-            " VALUES (?,?,?)";
+                    " VALUES (?,?,?)";
     public static final String DELETE_SP_DIALECTS_BY_APP_ID = "DELETE FROM SP_CLAIM_DIALECT WHERE" +
             " APP_ID = ? AND TENANT_ID= ?";
     public static final String LOAD_LOCAL_AND_OUTBOUND_CONFIG_BY_APP_ID = "SELECT IS_USE_TENANT_DOMAIN_SUBJECT, " +
@@ -221,7 +207,7 @@ public class ApplicationMgtDBQueries {
             "SP_REQ_PATH_AUTHENTICATOR WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_PRO_PROPERTIES_BY_APP_ID =
             "SELECT PROVISIONING_USERSTORE_DOMAIN, IS_DUMB_MODE FROM " +
-            "SP_APP WHERE TENANT_ID= ? AND ID = ?";
+                    "SP_APP WHERE TENANT_ID= ? AND ID = ?";
     public static final String LOAD_PRO_CONNECTORS_BY_APP_ID = "SELECT IDP_NAME, CONNECTOR_NAME, IS_JIT_ENABLED, " +
             "BLOCKING, RULE_ENABLED FROM " +
             "SP_PROVISIONING_CONNECTOR WHERE " +
@@ -298,7 +284,7 @@ public class ApplicationMgtDBQueries {
 
     public static final String DELETE_SP_CONSENT_PURPOSES =
             "DELETE FROM SP_CONSENT_PURPOSE_ASSOC WHERE APP_ID = ? AND " +
-            "TENANT_ID = ?";
+                    "TENANT_ID = ?";
 
     public static final String LOAD_SP_CONSENT_PURPOSES = "SELECT APP_ID, PURPOSE_ID, DISPLAY_ORDER, TENANT_ID FROM " +
             "SP_CONSENT_PURPOSE_ASSOC WHERE APP_ID = ? AND TENANT_ID = ?";
@@ -385,9 +371,9 @@ public class ApplicationMgtDBQueries {
 
     public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL =
             "SELECT ID, APP_NAME, DESCRIPTION" +
-            " , UUID, IMAGE_URL, ACCESS_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP " +
-            "WHERE TENANT_ID = :TENANT_ID; " +
-            "AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID DESC LIMIT :OFFSET;, :LIMIT;";
+                    " , UUID, IMAGE_URL, ACCESS_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP " +
+                    "WHERE TENANT_ID = :TENANT_ID; " +
+                    "AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID DESC LIMIT :OFFSET;, :LIMIT;";
 
     public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE = "SELECT ID, APP_NAME, " +
             "DESCRIPTION, UUID, IMAGE_URL, ACCESS_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
