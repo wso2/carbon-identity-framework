@@ -2104,7 +2104,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
+                appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
@@ -5320,6 +5320,36 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+        // basicInfo.setInboundKey(appNameResultSet.getString(ApplicationTableColumns.INBOUND_AUTH_KEY));
+
+        String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
+        String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
+        int tenantId = appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID);
+
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(userStoreDomain)
+                && !(tenantId == MultitenantConstants.INVALID_TENANT_ID)) {
+            User appOwner = new User();
+            appOwner.setUserStoreDomain(userStoreDomain);
+            appOwner.setUserName(username);
+            appOwner.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
+
+            basicInfo.setAppOwner(appOwner);
+        }
+
+        return basicInfo;
+    }
+
+    private ApplicationBasicInfo buildApplicationBasicInfoWithInboundConfig(ResultSet appNameResultSet)
+            throws SQLException {
+
+        ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+        basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
+        basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
+        basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+        basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
+        basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
+        basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationTableColumns.INBOUND_AUTH_KEY));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
