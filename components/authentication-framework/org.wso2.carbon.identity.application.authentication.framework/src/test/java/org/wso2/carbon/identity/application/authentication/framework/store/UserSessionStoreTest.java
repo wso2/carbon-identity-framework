@@ -29,8 +29,8 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
-import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -52,7 +52,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @PrepareForTest({
         IdentityDatabaseUtil.class,
-        org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils.class,
         org.wso2.carbon.identity.core.util.JdbcUtils.class
 })
 @PowerMockIgnore({"javax.xml.*"})
@@ -304,10 +303,9 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     private void mockJdbcUtilsTemplate(DataSource dataSource) throws DataAccessException {
 
         DataSource dataSource1 = spy(dataSource);
-        mockStatic(org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils.class);
         mockStatic(org.wso2.carbon.identity.core.util.JdbcUtils.class);
-        when(org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB()).thenReturn(true);
-        when(JdbcUtils.getNewTemplate()).thenReturn(new JdbcTemplate(dataSource1));
+        when(org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)).thenReturn(true);
+        when(JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION)).thenReturn(new JdbcTemplate(dataSource1));
         when(JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION)).thenReturn(new JdbcTemplate(dataSource1));
     }
 }
