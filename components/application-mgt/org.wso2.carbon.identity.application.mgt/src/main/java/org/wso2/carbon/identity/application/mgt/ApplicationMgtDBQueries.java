@@ -41,10 +41,10 @@ public class ApplicationMgtDBQueries {
             "= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT =
             "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +
-                    "WHERE TENANT_ID= ? AND ID = ?";
+            "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_SEND_LOCAL_SUB_ID =
             "UPDATE SP_APP SET IS_SEND_LOCAL_SUBJECT_" +
-                    "ID=? WHERE TENANT_ID= ? AND ID = ?";
+            "ID=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_USE_TENANT_DOMAIN_LOCAL_SUBJECT_ID = "UPDATE SP_APP SET " +
             "IS_USE_TENANT_DOMAIN_SUBJECT=? WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_USE_USERSTORE_DOMAIN_LOCAL_SUBJECT_ID = "UPDATE SP_APP SET " +
@@ -57,7 +57,7 @@ public class ApplicationMgtDBQueries {
             "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_AUTH_TYPE =
             "UPDATE SP_APP SET AUTH_TYPE=? WHERE TENANT_ID= ? " +
-                    "AND ID = ?";
+            "AND ID = ?";
     public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
             "ID = ?";
     public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
