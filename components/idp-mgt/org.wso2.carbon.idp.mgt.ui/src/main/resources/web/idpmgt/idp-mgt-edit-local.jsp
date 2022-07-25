@@ -999,7 +999,10 @@ function removeDefaultAuthSeq() {
                                 name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                 id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                         style="width:400px"
-                                value="<%=Encode.forHtmlAttribute(value)%>"/>
+                                value="<%=Encode.forHtmlAttribute(value)%>"
+                                <% if("SelfRegistration.AutoLogin.AliasName".equals(connectorProperties[k].getName()) ||
+                                    "EmailVerification.AskPassword".equals(connectorProperties[k].getName())){ %>
+                                    autocomplete="off" <% } %>/>
                             <%
                                 if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
                             <div class="sectionHelp">
