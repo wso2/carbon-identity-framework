@@ -116,4 +116,16 @@ public interface UserSessionManagementService {
 
         return false;
     }
+
+    /**
+     * Returns the user session of the given session id.
+     *
+     * @param sessionId session id.
+     * @return user session of the given session id.
+     * @throws SessionManagementException if an error occured while retrieving the user session.
+     */
+    default UserSession getUserSessionBySessionId(String sessionId) throws SessionManagementException {
+
+        return null;
+    }
 }

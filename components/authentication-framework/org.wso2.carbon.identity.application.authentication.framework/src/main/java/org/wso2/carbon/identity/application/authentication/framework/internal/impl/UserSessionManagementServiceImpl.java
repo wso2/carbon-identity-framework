@@ -302,6 +302,27 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     /**
+     * Returns the user session of the given session id.
+     *
+     * @param sessionId session id.
+     * @return user session of the given session id.
+     * @throws SessionManagementClientException if the session cannot be found for the given session id.
+     * @throws SessionManagementServerException if an error occurred while retrieving federated
+     * authentication session information.
+     */
+    @Override
+    public UserSession getUserSessionBySessionId(String sessionId) throws SessionManagementClientException,
+            SessionManagementServerException {
+
+        if (StringUtils.isBlank(sessionId)) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages
+                            .ERROR_CODE_INVALID_SESSION_ID, null);
+        }
+        UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
+        return userSessionDTO.getSession(sessionId);
+    }
+
+    /**
      * Returns the session id list for a given user id.
      *
      * @param userId user id for which the sessions should be retrieved.
