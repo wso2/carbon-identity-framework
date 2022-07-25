@@ -77,7 +77,10 @@ public class SessionMgtConstants {
                 "Session ID is not provided to perform session termination."),
         ERROR_CODE_UNABLE_TO_GET_APP_DATA("USM-10010",
                 "SQL Error",
-                "Error while retrieving application data.");
+                "Error while retrieving application data."),
+        ERROR_CODE_INVALID_SESSION_ID("USM-10011",
+                "Invalid Session",
+                "Session cannot be found for the given session ID.");
 
         private final String code;
         private final String message;
