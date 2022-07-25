@@ -46,6 +46,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
@@ -308,10 +309,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * @return user session of the given session id.
      * @throws SessionManagementClientException if the session cannot be found for the given session id.
      * @throws SessionManagementServerException if an error occurred while retrieving federated
-     * authentication session information.
+     *                                          authentication session information.
      */
     @Override
-    public UserSession getUserSessionBySessionId(String sessionId) throws SessionManagementClientException,
+    public Optional<UserSession> getUserSessionBySessionId(String sessionId) throws SessionManagementClientException,
             SessionManagementServerException {
 
         if (StringUtils.isBlank(sessionId)) {
@@ -319,7 +320,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                             .ERROR_CODE_INVALID_SESSION_ID, null);
         }
         UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
-        return userSessionDTO.getSession(sessionId);
+        return Optional.ofNullable(userSessionDTO.getSession(sessionId));
     }
 
     /**
