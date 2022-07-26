@@ -69,6 +69,9 @@ public class ServiceProvider implements Serializable {
     @XmlTransient
     private User owner;
 
+    @XmlTransient
+    private String tenantDomain;
+
     @XmlElement(name = "InboundAuthenticationConfig")
     private InboundAuthenticationConfig inboundAuthenticationConfig;
 
@@ -378,6 +381,24 @@ public class ServiceProvider implements Serializable {
      */
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    /**
+     * Gets the Service Provider tenant domain.
+     *
+     * @return Service Provider tenant domain
+     */
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the Service Provider tenant domain.
+     *
+     * @param tenantDomain  Service Provider tenant domain
+     */
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 
     public String getDescription() {
