@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -44,8 +43,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +60,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     public UserSessionDAOImpl() {
     }
 
+    @Override
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
 
         HashMap<String, String> propertiesMap = new HashMap<>();
@@ -105,7 +108,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
-    public UserSession getSession(String userId, String sessionId) throws SessionManagementServerException {
+    @Override
+    public Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
 
         HashMap<String, String> propertiesMap = new HashMap<>();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
@@ -122,7 +126,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     });
 
             if (propertiesMap.isEmpty()) {
-                return null;
+                return Optional.empty();
             }
 
             UserSession userSession = new UserSession();
@@ -150,14 +154,16 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-                return userSession;
+                return Optional.of(userSession);
             }
         } catch (DataAccessException e) {
             throw new SessionManagementServerException(
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
+                    String.format("%s userId %s",
+                            SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), userId
+                    ), e);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -170,42 +176,61 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         String sqlOrder = StringUtils.isNotBlank(sortOrder) ? sortOrder : SessionMgtConstants.DESC;
         String sqlQuery;
 
-        // This method returns an array of sql filters in the order of session, app, user and main filters.
-        String[] sqlFilters = SessionMgtUtils.getSQLFiltersFromExpressionNodes(filter);
+        Map<SessionMgtConstants.FilterType, String> sqlFilters =
+                SessionMgtUtils.getSQLFiltersFromExpressionNodes(filter);
 
         try {
-            if (StringUtils.isNotEmpty(sqlFilters[1])) {
-                appDetails = getApplicationsForFilter(String.format("%s%s(TENANT_ID = %s OR TENANT_ID = %s)",
-                        sqlFilters[1], SessionMgtConstants.AND, tenantId, MultitenantConstants.SUPER_TENANT_ID));
+            if (StringUtils.isNotEmpty(sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION))) {
+                appDetails = getApplicationsForFilter(String.format("%s AND (TENANT_ID = %s OR IS_SAAS_APP = 1)",
+                        sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION), tenantId));
                 appIdFilter = String.format("WHERE APP_ID IN (%s)", StringUtils.join(appDetails.keySet(), ","));
             }
         } catch (DataAccessException e) {
             throw new UserSessionException(
-                    "Error while loading sessions from DB: Error while retrieving application details.", e);
+                    String.format("Error while loading sessions from DB: Error while retrieving application details " +
+                            "for the tenant with id: %s.", tenantId), e);
         }
 
         try {
             if (JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_H2, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_H2,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MYSQL, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MYSQL,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_ORACLE, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_ORACLE,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MSSQL, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MSSQL,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_POSTGRESQL, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_POSTGRESQL,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else if (JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
-                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_DB2, sqlFilters[0],
-                        appIdFilter, sqlFilters[2], sqlFilters[3], sqlOrder, limit);
+                sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_DB2,
+                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
+                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                );
             } else {
-                throw new UserSessionException("Error while loading sessions from DB: Database driver could not " +
-                        "be identified or not supported.");
+                throw new UserSessionException(String.format("Error while loading sessions from DB: Database driver " +
+                        "could not be identified or not supported. TenantId: %s", tenantId));
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while loading sessions from DB: Database driver could not be " +
@@ -226,15 +251,27 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             // Application details will be incomplete if an application filter is not provided. In that case
             // requires to query for missing application details.
             if (!userSessionsList.isEmpty() && finalAppDetails.isEmpty()) {
+                Set<String> appIdList = new HashSet<>();
                 for (UserSession userSession : userSessionsList) {
-                    generateApplicationFromAppID(userSession.getApplications());
+                    appIdList.addAll(userSession.getApplications().stream().map(Application::getAppId)
+                            .collect(Collectors.toList()));
+                }
+                Map<String, Application> applicationMap = getApplicationsFromAppID(appIdList);
+
+                for (UserSession userSession : userSessionsList) {
+                    for (Application app : userSession.getApplications()) {
+                        Application appFromMap = applicationMap.get(app.getAppId());
+                        app.setAppName(appFromMap.getAppName());
+                        app.setResourceId(appFromMap.getResourceId());
+                    }
                 }
             }
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while retrieving sessions from the database.", e);
+            throw new UserSessionException(String.format("Error while retrieving sessions from the database for the " +
+                    "tenant with id: %s.", tenantId), e);
         } catch (SessionManagementServerException e) {
-            throw new UserSessionException(
-                    "Error while retrieving application details for the retrieved sessions.", e);
+            throw new UserSessionException(String.format("Error while retrieving application details for the " +
+                    "retrieved sessions for the tenant with id: %s.", tenantId), e);
         }
 
         return userSessionsList;
@@ -245,6 +282,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         Map<String, List<Application>> appIdMap =
                 applications.stream().collect(Collectors.groupingBy(Application::getAppId));
         String placeholder = String.join(", ", Collections.nCopies(appIdMap.keySet().size(), "?"));
+        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
         String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -273,6 +311,24 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         applications.removeIf(application -> application.getAppName() == null);
     }
 
+    private Map<String, Application> getApplicationsFromAppID(Set<String> applicationIds)
+            throws SessionManagementServerException, DataAccessException {
+
+        Map<String, Application> applications = new HashMap<>();
+        String placeholder = String.join(", ", applicationIds);
+        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
+        String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
+        List<Application> result = jdbcTemplate.executeQuery(sql, (rs, rowNumber) ->
+                new Application(null, rs.getString("APP_NAME"), rs.getString("ID"), rs.getString("UUID"))
+        );
+        for (Application app : result) {
+            applications.put(app.getAppId(), app);
+        }
+
+        return applications;
+    }
+
     private List<Application> getApplicationsForSessionID(String sessionId) throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
@@ -286,6 +342,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private Map<String, Application> getApplicationsForFilter(String appFilter)
             throws DataAccessException {
 
+        // TODO:: Get applications using application-mgt services and remove component unrelated queries.
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         List<Application> applicationsList = jdbcTemplate.executeQuery(
                 MessageFormat.format(SQLQueries.SQL_GET_APPLICATIONS_BY_FILTER_AND_TENANT, appFilter),

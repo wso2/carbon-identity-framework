@@ -60,8 +60,6 @@ public class SessionMgtConstants {
     public static final String COL_TIME_CREATED = "TIME_CREATED";
     public static final String FLD_TIME_CREATED_SINCE = "since";
     public static final String FLD_TIME_CREATED_UNTIL = "until";
-    public static final String WHERE = "WHERE {0} ";
-    public static final String AND = " AND ";
     public static final String ASC = "ASC";
     public static final String DESC = "DESC";
     public static final String EQ = "eq";
@@ -72,6 +70,37 @@ public class SessionMgtConstants {
     public static final String LT = "lt";
     public static final String GE = "ge";
     public static final String GT = "gt";
+
+    /**
+     * Enum defining filter types available for sessions.
+     */
+    public enum FilterType {
+        DEFAULT,
+        SESSION,
+        APPLICATION,
+        USER,
+        MAIN
+    }
+
+    /**
+     * Enum defining SQL query operations.
+     */
+    public enum QueryOperations {
+        AND (" AND "),
+        WHERE("WHERE {0} ");
+
+        private final String queryString;
+
+        QueryOperations(String queryString) {
+
+            this.queryString = queryString;
+        }
+
+        public String getQueryString() {
+
+            return queryString;
+        }
+    }
 
     /**
      * Session management error messages.
