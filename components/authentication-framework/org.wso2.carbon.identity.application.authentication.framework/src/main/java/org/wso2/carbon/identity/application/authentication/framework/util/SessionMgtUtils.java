@@ -160,12 +160,16 @@ public class SessionMgtUtils {
         if (sessionJoiner.length() > 0) {
             filterMap.put(SessionMgtConstants.FilterType.SESSION,
                     SessionMgtConstants.QueryOperations.AND.getQueryString() + sessionJoiner);
+        } else {
+            filterMap.put(SessionMgtConstants.FilterType.SESSION, "");
         }
         if (appJoiner.length() > 0) {
             appFilter = MessageFormat.format(SessionMgtConstants.QueryOperations.WHERE.getQueryString(),
                     appJoiner.toString());
             filterMap.put(SessionMgtConstants.FilterType.APPLICATION, MessageFormat.format(
                     SessionMgtConstants.QueryOperations.WHERE.getQueryString(), appJoiner.toString()));
+        } else {
+            filterMap.put(SessionMgtConstants.FilterType.APPLICATION, "");
         }
         if (userJoiner.length() > 0) {
             if (StringUtils.isEmpty(appFilter)) {
@@ -175,10 +179,14 @@ public class SessionMgtUtils {
                 filterMap.put(SessionMgtConstants.FilterType.USER,
                         SessionMgtConstants.QueryOperations.AND.getQueryString() + userJoiner);
             }
+        } else {
+            filterMap.put(SessionMgtConstants.FilterType.USER, "");
         }
         if (mainJoiner.length() > 0) {
             filterMap.put(SessionMgtConstants.FilterType.MAIN,
                     SessionMgtConstants.QueryOperations.AND.getQueryString() + mainJoiner);
+        } else {
+            filterMap.put(SessionMgtConstants.FilterType.MAIN, "");
         }
 
         return filterMap;
