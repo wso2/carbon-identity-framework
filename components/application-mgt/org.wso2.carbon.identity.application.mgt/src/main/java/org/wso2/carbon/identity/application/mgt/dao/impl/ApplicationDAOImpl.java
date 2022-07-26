@@ -1366,7 +1366,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(localAndOutboundAuthConfig)) {
             throw new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Adaptive Authentication needed to be available to proceed.");
+                    "Required Library OpenJDK Nashorn not found");
         }
 
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);

@@ -86,7 +86,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(
                 localAndOutboundAuthenticationConfig)) {
             throw new FrameworkException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Install Nashron to perform this task.");
+                    "Required Library OpenJDK Nashorn not found");
         }
 
         //Use script based evaluation if script is present.
