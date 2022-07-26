@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.common.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Defines the session management service operations.
@@ -115,5 +116,17 @@ public interface UserSessionManagementService {
             SessionManagementException {
 
         return false;
+    }
+
+    /**
+     * Returns the user session of the given session id.
+     *
+     * @param sessionId session id.
+     * @return user session of the given session id.
+     * @throws SessionManagementException if an error occured while retrieving the user session.
+     */
+    default Optional<UserSession> getUserSessionBySessionId(String sessionId) throws SessionManagementException {
+
+        return Optional.empty();
     }
 }
