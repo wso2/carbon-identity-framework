@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Perform operations for {@link UserSession}.
@@ -44,7 +46,10 @@ public interface UserSessionDAO {
      * @return User session.
      * @throws SessionManagementServerException
      */
-    UserSession getSession(String sessionId) throws SessionManagementServerException;
+    default UserSession getSession(String sessionId) throws SessionManagementServerException {
+
+        return null;
+    }
 
     /**
      * Method to retrieve session information for a given user and session id.
@@ -54,7 +59,10 @@ public interface UserSessionDAO {
      * @return User session.
      * @throws SessionManagementServerException
      */
-    UserSession getSession(String userId, String sessionId) throws SessionManagementServerException;
+    default Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
+
+        return Optional.empty();
+    }
 
     /**
      * Method to search active sessions on the system.
@@ -66,8 +74,11 @@ public interface UserSessionDAO {
      * @return The list of sessions found.
      * @throws UserSessionException if an error occurs when retrieving the sessions from the database.
      */
-    List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
-            throws UserSessionException;
+    default List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
+            throws UserSessionException {
+
+        return Collections.emptyList();
+    }
 
     /**
      * Get federated user session details mapped for federated IDP sessionId.

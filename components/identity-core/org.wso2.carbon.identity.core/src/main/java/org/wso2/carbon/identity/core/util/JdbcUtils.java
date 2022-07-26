@@ -46,19 +46,19 @@ public class JdbcUtils {
     }
 
     /**
-     * Get a new Jdbc Template.
+     * Get a new Jdbc Template. Identity database is used.
      *
      * @return a new Jdbc Template.
      */
-    @Deprecated
     public static JdbcTemplate getNewTemplate() {
 
         return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
     }
 
     /**
-     * Get a new Jdbc Template.
+     * Get a new Jdbc Template for the given database type.
      *
+     * @param database Database type.
      * @return a new Jdbc Template.
      */
     public static JdbcTemplate getNewTemplate(Database database) {
@@ -73,22 +73,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is H2.
-     * @deprecated Please use {@link #isH2DB(Database)} instead.
+     * Check if the DB is H2. Identity database is used.
      *
      * @return true if H2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isH2DB() throws DataAccessException {
 
         return isDBTypeOf(H2, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is H2.
+     * Check if the DB is H2 for the given database type.
+     *
      * @param database database type.
-     * 
      * @return true if H2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -98,22 +96,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is DB2.
-     * @deprecated Please use {@link #isDB2DB(Database)} instead.
+     * Check if the DB is DB2. Identity database is used.
      *
      * @return true if DB2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isDB2DB() throws DataAccessException {
 
         return isDBTypeOf(DB2, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is DB2.
-     * @param database database type.
+     * Check if the DB is DB2 for the given database type.
      *
+     * @param database database type.
      * @return true if DB2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -123,22 +119,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is MySQL.
-     * @deprecated Please use {@link #isMySQLDB(Database)} instead.
+     * Check if the DB is MySQL. Identity database is used.
      *
      * @return true if DB is MySQL.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isMySQLDB() throws DataAccessException {
 
         return isDBTypeOf(MY_SQL, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is MySQL.
-     * @param database database type.
+     * Check if the DB is MySQL for the given database type.
      *
+     * @param database database type.
      * @return true if DB is MySQL.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -148,22 +142,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is MSSql.
-     * @deprecated Please use {@link #isMSSqlDB(Database)} instead.
+     * Check if the DB is MSSql. Identity database is used.
      *
      * @return true if DB is MSSql, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isMSSqlDB() throws DataAccessException {
 
         return isDBTypeOf(MICROSOFT, Database.IDENTITY) || isDBTypeOf(S_MICROSOFT, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is MSSql.
-     * @param database database type.
+     * Check if the DB is MSSql for the given database type.
      *
+     * @param database database type.
      * @return true if DB is MSSql, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -173,22 +165,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is Maria DB.
-     * @deprecated Please use {@link #isMariaDB(Database)} instead.
+     * Check if the DB is Maria DB. Identity database is used.
      *
      * @return true if DB is Maria DB.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isMariaDB() throws DataAccessException {
 
         return isDBTypeOf(MARIADB, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is Maria DB.
-     * @param database database type.
+     * Check if the DB is Maria DB for the given database type.
      *
+     * @param database database type.
      * @return true if DB is Maria DB.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -198,22 +188,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is PostgreSQL.
-     * @deprecated Please use {@link #isPostgreSQLDB(Database)} instead.
+     * Check if the DB is PostgreSQL. Identity database is used.
      *
      * @return true if DB is PostgreSQL, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isPostgreSQLDB() throws DataAccessException {
 
         return isDBTypeOf(POSTGRE_SQL, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is PostgreSQL.
-     * @param database database type.
+     * Check if the DB is PostgreSQL for the given database type.
      *
+     * @param database database type.
      * @return true if DB is PostgreSQL, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -223,22 +211,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is Informix.
-     * @deprecated Please use {@link #isInformixDB(Database)} instead.
+     * Check if the DB is Informix. Identity database is used.
      *
      * @return true if DB is Informix, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isInformixDB() throws DataAccessException {
 
         return isDBTypeOf(INFORMIX, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is Informix.
-     * @param database database type.
+     * Check if the DB is Informix for the given database type.
      *
+     * @param database database type.
      * @return true if DB is Informix, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
@@ -248,22 +234,20 @@ public class JdbcUtils {
     }
 
     /**
-     * Check if the DB is Oracle.
-     * @deprecated Please use {@link #isOracleDB(Database)} instead.
+     * Check if the DB is Oracle. Identity database is used.
      *
      * @return true if DB is Oracle, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */
-    @Deprecated
     public static boolean isOracleDB() throws DataAccessException {
 
         return isDBTypeOf(ORACLE, Database.IDENTITY);
     }
 
     /**
-     * Check if the DB is Oracle.
-     * @param database database type.
+     * Check if the DB is Oracle for the given database type.
      *
+     * @param database database type.
      * @return true if DB is Oracle, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
      */

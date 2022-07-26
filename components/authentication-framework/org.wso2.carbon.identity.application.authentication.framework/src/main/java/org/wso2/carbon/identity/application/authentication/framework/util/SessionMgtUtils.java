@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -45,26 +46,24 @@ public class SessionMgtUtils {
      * Transform a list of filter expressions into SQL query strings.
      *
      * @param expressionNodes list of filter expressions.
-     * @return An array of SQL query strings.
+     * @return SQL query strings map.
      * @throws UserSessionException if an error occurs while parsing the filter criteria.
      */
-    public static String[] getSQLFiltersFromExpressionNodes(List<ExpressionNode> expressionNodes)
-            throws UserSessionException {
+    public static Map<SessionMgtConstants.FilterType, String> getSQLFiltersFromExpressionNodes(
+            List<ExpressionNode> expressionNodes) throws UserSessionException {
 
-        String sessionFilter = "";
+        Map<SessionMgtConstants.FilterType, String> filterMap = new HashMap<>();
         String appFilter = "";
-        String userFilter = "";
-        String mainFilter = "";
-        StringJoiner sessionJoiner = new StringJoiner(SessionMgtConstants.AND);
-        StringJoiner appJoiner = new StringJoiner(SessionMgtConstants.AND);
-        StringJoiner userJoiner = new StringJoiner(SessionMgtConstants.AND);
-        StringJoiner mainJoiner = new StringJoiner(SessionMgtConstants.AND);
+        StringJoiner sessionJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner appJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner userJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
+        StringJoiner mainJoiner = new StringJoiner(SessionMgtConstants.QueryOperations.AND.getQueryString());
 
         for (ExpressionNode expressionNode : expressionNodes) {
             String operation = expressionNode.getOperation();
             String value = expressionNode.getValue();
             String attribute = expressionNode.getAttributeValue();
-            String filterType = "default";
+            SessionMgtConstants.FilterType filterType = SessionMgtConstants.FilterType.DEFAULT;
 
             StringBuilder filter = new StringBuilder();
             boolean isString = true;
@@ -72,17 +71,17 @@ public class SessionMgtUtils {
             switch (attribute.toLowerCase()) {
                 case SessionMgtConstants.FLD_SESSION_ID_LOWERCASE:
                     attribute = SessionMgtConstants.COL_SESSION_ID;
-                    filterType = "session";
+                    filterType = SessionMgtConstants.FilterType.SESSION;
                     break;
                 case SessionMgtConstants.FLD_APPLICATION_LOWERCASE:
                     attribute = SessionMgtConstants.COL_APPLICATION;
                     value = value.toLowerCase();
-                    filterType = "app";
+                    filterType = SessionMgtConstants.FilterType.APPLICATION;
                     break;
                 case SessionMgtConstants.FLD_LOGIN_ID_LOWERCASE:
                     attribute = SessionMgtConstants.COL_LOGIN_ID;
                     value = value.toLowerCase();
-                    filterType = "user";
+                    filterType = SessionMgtConstants.FilterType.USER;
                     break;
                 case SessionMgtConstants.FLD_IP_ADDRESS_LOWERCASE:
                     attribute = SessionMgtConstants.COL_IP_ADDRESS;
@@ -144,13 +143,13 @@ public class SessionMgtUtils {
             }
 
             switch (filterType) {
-                case "session":
+                case SESSION:
                     sessionJoiner.add(filter.toString());
                     break;
-                case "app":
+                case APPLICATION:
                     appJoiner.add(filter.toString());
                     break;
-                case "user":
+                case USER:
                     userJoiner.add(filter.toString());
                     break;
                 default:
@@ -159,23 +158,30 @@ public class SessionMgtUtils {
         }
 
         if (sessionJoiner.length() > 0) {
-            sessionFilter = SessionMgtConstants.AND + sessionJoiner;
+            filterMap.put(SessionMgtConstants.FilterType.SESSION,
+                    SessionMgtConstants.QueryOperations.AND.getQueryString() + sessionJoiner);
         }
         if (appJoiner.length() > 0) {
-            appFilter = MessageFormat.format(SessionMgtConstants.WHERE, appJoiner.toString());
+            appFilter = MessageFormat.format(SessionMgtConstants.QueryOperations.WHERE.getQueryString(),
+                    appJoiner.toString());
+            filterMap.put(SessionMgtConstants.FilterType.APPLICATION, MessageFormat.format(
+                    SessionMgtConstants.QueryOperations.WHERE.getQueryString(), appJoiner.toString()));
         }
         if (userJoiner.length() > 0) {
             if (StringUtils.isEmpty(appFilter)) {
-                userFilter = MessageFormat.format(SessionMgtConstants.WHERE, userJoiner.toString());
+                filterMap.put(SessionMgtConstants.FilterType.USER, MessageFormat.format(
+                        SessionMgtConstants.QueryOperations.WHERE.getQueryString(), userJoiner.toString()));
             } else {
-                userFilter = SessionMgtConstants.AND + userJoiner;
+                filterMap.put(SessionMgtConstants.FilterType.USER,
+                        SessionMgtConstants.QueryOperations.AND.getQueryString() + userJoiner);
             }
         }
         if (mainJoiner.length() > 0) {
-            mainFilter = SessionMgtConstants.AND + mainJoiner;
+            filterMap.put(SessionMgtConstants.FilterType.MAIN,
+                    SessionMgtConstants.QueryOperations.AND.getQueryString() + mainJoiner);
         }
 
-        return new String[] {sessionFilter, appFilter, userFilter, mainFilter};
+        return filterMap;
     }
 
     /**
