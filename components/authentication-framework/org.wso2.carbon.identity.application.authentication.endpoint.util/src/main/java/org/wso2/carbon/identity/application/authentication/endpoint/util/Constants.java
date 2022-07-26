@@ -245,6 +245,8 @@ public class Constants {
                 "authentication.failed_no.registered.device.found";
         public static final String NO_REGISTERED_DEVICE_FOUND_I18N_KEY =
                 "no.registered.device.found";
+        public static final String INVALID_CLIENT_IN_TENANT = "invalid_client_no.valid.client.in.tenant";
+        public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
 
         private ErrorToi18nMappingConstants() {
 
