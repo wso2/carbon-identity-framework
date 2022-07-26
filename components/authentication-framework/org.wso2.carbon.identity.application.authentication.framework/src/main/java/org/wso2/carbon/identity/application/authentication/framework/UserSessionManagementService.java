@@ -149,4 +149,16 @@ public interface UserSessionManagementService {
 
         return Collections.emptyList();
     }
+
+    /**
+     * Returns the user session of the given session id.
+     *
+     * @param sessionId session id.
+     * @return user session of the given session id.
+     * @throws SessionManagementException if an error occured while retrieving the user session.
+     */
+    default Optional<UserSession> getUserSessionBySessionId(String sessionId) throws SessionManagementException {
+
+        return Optional.empty();
+    }
 }

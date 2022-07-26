@@ -41,6 +41,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.GOOGLE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SALESFORCE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCIM;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCIM2;
+
 /**
  * Client class for IdentityProviderMgtServiceStub.
  */
@@ -363,12 +368,12 @@ public class IdentityProviderMgtServiceClient {
             if (provisioningConnectorConfigs != null && provisioningConnectorConfigs.length > 0
                     && provisioningConnectorConfigs[0] != null) {
                 for (ProvisioningConnectorConfig config : provisioningConnectorConfigs) {
-                    if (!(StringUtils.equals("scim", config.getName()) ||
-                            StringUtils.equals("salesforce", config.getName()) ||
-                            StringUtils.equals("googleapps" , config.getName()))) {
+                    if (!(StringUtils.equals(SCIM, config.getName()) ||
+                            StringUtils.equals(SALESFORCE, config.getName()) ||
+                            StringUtils.equals(GOOGLE , config.getName()) ||
+                            StringUtils.equals(SCIM2, config.getName()))) {
                         provisioningConnectors.put(config.getName(), config);
                     }
-
                 }
             }
         } catch (Exception e) {

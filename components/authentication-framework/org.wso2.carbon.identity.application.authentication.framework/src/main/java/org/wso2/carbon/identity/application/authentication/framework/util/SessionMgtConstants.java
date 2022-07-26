@@ -34,6 +34,18 @@ public class SessionMgtConstants {
     public static final String FEDERATED_IDP_NAME = "IDP_NAME";
     public static final String FEDERATED_AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
     public static final String FEDERATED_PROTOCOL_TYPE = "PROTOCOL_TYPE";
+    public static final String AUDIT_MESSAGE_TEMPLATE = "Initiator : %s | Action : %s | Data : { %s } | Result : %s ";
+    public static final String SESSION_CONTEXT_ID = "sessionContextId";
+    public static final String REMEMBER_ME = "RememberMe";
+    public static final String SUCCESS = "Success";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String AUTHENTICATED_USER_TENANT_DOMAIN = "AuthenticatedUserTenantDomain";
+    public static final String TRACE_ID = "traceId";
+    public static final String STORE_SESSION_ACTION = "StoreSession";
+    public static final String UPDATE_SESSION_ACTION = "UpdateSession";
+    public static final String TERMINATE_SESSION_ACTION = "TerminateSession";
+    public static final String SESSION_LAST_ACCESSED_TIMESTAMP = "LastAccessedTimestamp";
+    public static final String SESSION_TERMINATE_TIMESTAMP = "TerminatedTimestamp";
 
     // Filtering constants.
     public static final String COL_IP_ADDRESS = "IP_ADDRESS";
@@ -133,7 +145,10 @@ public class SessionMgtConstants {
                 "Error while retrieving application data."),
         ERROR_CODE_INVALID_DATA("USM-10011",
                 "Invalid data",
-                "Data validation has failed, %s.");
+                "Data validation has failed, %s."),
+        ERROR_CODE_INVALID_SESSION_ID("USM-10011",
+                "Invalid Session",
+                "Session cannot be found for the given session ID.");
 
         private final String code;
         private final String message;
@@ -161,6 +176,5 @@ public class SessionMgtConstants {
         public String toString() {
             return code + " - " + message;
         }
-
     }
 }
