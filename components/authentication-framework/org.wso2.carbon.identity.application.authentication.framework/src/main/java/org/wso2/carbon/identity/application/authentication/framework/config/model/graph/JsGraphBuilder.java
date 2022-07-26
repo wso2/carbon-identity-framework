@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,24 +18,22 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openjdk.nashorn.api.scripting.JSObject;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -44,6 +42,7 @@ import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryM
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,12 +51,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -67,7 +63,7 @@ import javax.script.ScriptException;
  * Translate the authentication graph config to runtime model.
  * This is not thread safe. Should be discarded after each build.
  */
-public class JsGraphBuilder {
+public class JsGraphBuilder implements JsBaseGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsGraphBuilder.class);
     private Map<Integer, StepConfig> stepNamedMap;
@@ -179,7 +175,7 @@ public class JsGraphBuilder {
                 startScriptExecutionMonitor(identifier, authenticationContext);
                 engine.eval(script);
                 invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
-                        new JsAuthenticationContext(authenticationContext));
+                        new JsNashornAuthenticationContext(authenticationContext));
             } finally {
                 scriptExecutionData = endScriptExecutionMonitor(identifier);
             }
@@ -309,7 +305,7 @@ public class JsGraphBuilder {
      * @param params params
      */
     @SuppressWarnings("unchecked")
-    public final void executeStep(int stepId, Object... params) {
+    public void executeStep(int stepId, Object... params) {
 
         StepConfig stepConfig;
         stepConfig = stepNamedMap.get(stepId);
@@ -648,7 +644,7 @@ public class JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
+            newNode.setData((Map<String, Serializable>) toJsSerializable(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);
@@ -1040,6 +1036,63 @@ public class JsGraphBuilder {
         stepConfig.setSubjectAttributeStep(true);
     }
 
+    private static Object toJsSerializable(Object value) {
+
+        if (value instanceof Serializable) {
+            if (value instanceof HashMap) {
+                Map<String, Object> map = new HashMap<>();
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, toJsSerializable(v)));
+                return map;
+            } else {
+                return value;
+            }
+        } else if (value instanceof ScriptObjectMirror) {
+            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
+            if (scriptObjectMirror.isFunction()) {
+                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+            } else if (scriptObjectMirror.isArray()) {
+                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
+                scriptObjectMirror.values().forEach(v -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        arrayItems.add((Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value of array item as : " + serializedObj);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
+                                serializedObj));
+                    }
+                });
+                return arrayItems;
+            } else if (!scriptObjectMirror.isEmpty()) {
+                Map<String, Serializable> serializedMap = new HashMap<>();
+                scriptObjectMirror.forEach((k, v) -> {
+                    Object serializedObj = toJsSerializable(v);
+                    if (serializedObj instanceof Serializable) {
+                        serializedMap.put(k, (Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value for key : " + k);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
+                    }
+
+                });
+                return serializedMap;
+            } else {
+                return Collections.EMPTY_MAP;
+            }
+        }
+        return value;
+    }
+
+    @Override
+    public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
+
+        return new JsBasedEvaluator((SerializableJsFunction) fn);
+    }
+
     /**
      * Javascript based Decision Evaluator implementation.
      * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
@@ -1057,7 +1110,7 @@ public class JsGraphBuilder {
         }
 
         @Override
-        public Object evaluate(AuthenticationContext authenticationContext, Function<JSObject, Object> jsConsumer) {
+        public Object evaluate(AuthenticationContext authenticationContext,  Object... params) {
 
             JsGraphBuilder graphBuilder = JsGraphBuilder.this;
             Object result = null;
@@ -1089,18 +1142,18 @@ public class JsGraphBuilder {
                         functionMap.forEach(globalBindings::put);
                     }
                     removeDefaultFunctions(scriptEngine);
-                    Compilable compilable = (Compilable) scriptEngine;
+//                    Compilable compilable = (Compilable) scriptEngine;
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
-                    CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
+//                    CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
 
                     String identifier = UUID.randomUUID().toString();
                     JSExecutionMonitorData scriptExecutionData =
                             retrieveAuthScriptExecutionMonitorData(authenticationContext);
                     try {
                         startScriptExecutionMonitor(identifier, authenticationContext, scriptExecutionData);
-                        JSObject builderFunction = (JSObject) compiledScript.eval();
-                        result = jsConsumer.apply(builderFunction);
+//                        JSObject builderFunction = (JSObject) compiledScript.eval();
+                        result = jsFunction.apply(scriptEngine, params);
                     } finally {
                         scriptExecutionData = endScriptExecutionMonitor(identifier);
                     }
@@ -1138,8 +1191,8 @@ public class JsGraphBuilder {
         @Deprecated
         public Object evaluate(AuthenticationContext authenticationContext) {
 
-            return this.evaluate(authenticationContext, (fn) -> fn.call(null, new JsAuthenticationContext
-                    (authenticationContext)));
+            return this.evaluate(authenticationContext, new JsNashornAuthenticationContext(authenticationContext));
+
         }
 
         private boolean canInfuse(AuthGraphNode executingNode) {

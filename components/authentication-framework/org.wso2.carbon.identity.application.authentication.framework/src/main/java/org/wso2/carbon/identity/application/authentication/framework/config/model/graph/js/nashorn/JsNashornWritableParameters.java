@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,16 +16,18 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+
 
 import java.util.Map;
 
 /**
  * Parameters that can be modified from the authentication script.
+ * This wrapper uses jdk.nashorn engine.
  */
-public class JsWritableParameters extends JsParameters {
+public class JsNashornWritableParameters extends JsNashornParameters {
 
-    public JsWritableParameters(Map wrapped) {
+    public JsNashornWritableParameters(Map wrapped) {
 
         super(wrapped);
     }
