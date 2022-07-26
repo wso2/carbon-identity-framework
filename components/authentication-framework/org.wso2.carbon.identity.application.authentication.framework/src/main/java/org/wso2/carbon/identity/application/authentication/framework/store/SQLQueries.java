@@ -226,8 +226,8 @@ public class SQLQueries {
                     "BETWEEN ? AND ? AND IDN_AUTH_SESSION_STORE.TENANT_ID = ? ";
 
     private static final String SQL_LOAD_SESSION_STORE_DATA = "SELECT SESSION_ID, MAX(TIME_CREATED) AS TIME_CREATED " +
-            "FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME > ? AND SESSION_TYPE = ''AppAuthFrameworkSessionContextCache'' " +
-            "AND (TENANT_ID = ? OR TENANT_ID = -1){0} GROUP BY SESSION_ID";
+            "FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME > ? AND SESSION_TYPE = " +
+            "''AppAuthFrameworkSessionContextCache'' AND (TENANT_ID = ? OR TENANT_ID = -1){0} GROUP BY SESSION_ID";
     // TODO: remove TENANT_ID=-1 from clause when SessionDataStore.removeSessionData() had been updated
     //       to store session's actual tenant id (https://github.com/wso2/product-is/issues/12210).
 
