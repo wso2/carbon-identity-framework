@@ -1228,37 +1228,32 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateAuthenticationScriptConfiguration(applicationId, localAndOutboundAuthConfig, connection, tenantID);
 
         AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
-        PreparedStatement storeLocalAndOutboundConfigs = null;
-
-        try {
-            if (authSteps == null || authSteps.length == 0 ||
-                    localAndOutboundAuthConfig.getAuthenticationType() == null) {
-                // no authentication type or authentication steps defined - set to default.
-                localAndOutboundAuthConfig
-                        .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
-            }
-            storeLocalAndOutboundConfigs = connection.prepareStatement(
-                    ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION);
+        if (authSteps == null || authSteps.length == 0 ||
+                localAndOutboundAuthConfig.getAuthenticationType() == null) {
+            // no authentication type or authentication steps defined - set to default.
+            localAndOutboundAuthConfig
+                    .setAuthenticationType(ApplicationConstants.AUTH_TYPE_DEFAULT);
+        }
+        try (PreparedStatement statement = connection.prepareStatement(
+                ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION)) {
             // IS_SEND_AUTH_LIST_OF_IDPS=?
-            storeLocalAndOutboundConfigs.setString(1, localAndOutboundAuthConfig
+            statement.setString(1, localAndOutboundAuthConfig
                     .isAlwaysSendBackAuthenticatedListOfIdPs() ? "1" : "0");
             // IS_USE_TENANT_DOMAIN_SUBJECT=?
-            storeLocalAndOutboundConfigs.setString(2, localAndOutboundAuthConfig
+            statement.setString(2, localAndOutboundAuthConfig
                     .isUseTenantDomainInLocalSubjectIdentifier() ? "1" : "0");
             // IS_USE_USER_DOMAIN_LOCAL_SUBJECT_ID=?
-            storeLocalAndOutboundConfigs.setString(3, localAndOutboundAuthConfig
+            statement.setString(3, localAndOutboundAuthConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier() ? "1" : "0");
             // ENABLE_AUTHORIZATION=?
-            storeLocalAndOutboundConfigs.setString(4, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
+            statement.setString(4, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
             // SUBJECT_CLAIM_URI=?
-            storeLocalAndOutboundConfigs.setString(5, localAndOutboundAuthConfig.getSubjectClaimUri());
+            statement.setString(5, localAndOutboundAuthConfig.getSubjectClaimUri());
             // AUTH_TYPE=?
-            storeLocalAndOutboundConfigs.setString(6, localAndOutboundAuthConfig.getAuthenticationType());
-            storeLocalAndOutboundConfigs.setInt(7, tenantID);
-            storeLocalAndOutboundConfigs.setInt(8, applicationId);
-            storeLocalAndOutboundConfigs.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeLocalAndOutboundConfigs);
+            statement.setString(6, localAndOutboundAuthConfig.getAuthenticationType());
+            statement.setInt(7, tenantID);
+            statement.setInt(8, applicationId);
+            statement.executeUpdate();
         }
 
         if (authSteps != null && authSteps.length > 0) {
