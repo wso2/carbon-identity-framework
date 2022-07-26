@@ -75,9 +75,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     private WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
     private WorkflowRequestAssociationDAO workflowRequestAssociationDAO = new WorkflowRequestAssociationDAO();
 
-
     @Override
     public Workflow getWorkflow(String workflowId) throws WorkflowException {
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -96,7 +96,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
-        
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -113,7 +113,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         return workflowParams;
     }
-
 
     @Override
     public List<WorkflowEvent> listWorkflowEvents() {
@@ -292,7 +291,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return template;
     }
 
-
     @Override
     public WorkflowImpl getWorkflowImpl(String templateId, String workflowImplId) throws WorkflowException {
 
@@ -448,42 +446,43 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public void removeWorkflow(String workflowId) throws WorkflowException {
+
         Workflow workflow = workflowDAO.getWorkflow(workflowId);
         //Deleting the role that is created for per workflow
         if (workflow != null) {
-            String implId=workflow.getWorkflowImplId();
-        if (implId.equals("workflowImplSimple")) {
-            workflowDAO.removeWorkflowFromImpl(workflowId);
-            WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
-            workflowDAO.removeWorkflowParams(workflowId);
-            workflowDAO.removeWorkflow(workflowId);
-        } else {
-    List<WorkflowListener> workflowListenerList =
-            WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+            String implId = workflow.getWorkflowImplId();
+            if (WFConstant.SIMPLE_WORKFLOW_IMPL_ID.equals(implId)) {
+                workflowDAO.removeWorkflowFromImpl(workflowId);
+                WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+                workflowDAO.removeWorkflowParams(workflowId);
+                workflowDAO.removeWorkflow(workflowId);
+            } else {
+                List<WorkflowListener> workflowListenerList =
+                        WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
 
-    for (WorkflowListener workflowListener : workflowListenerList) {
-        if (workflowListener.isEnable()) {
-            workflowListener.doPreDeleteWorkflow(workflow);
-        }
-    }
+                for (WorkflowListener workflowListener : workflowListenerList) {
+                    if (workflowListener.isEnable()) {
+                        workflowListener.doPreDeleteWorkflow(workflow);
+                    }
+                }
 
-    WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
-    workflowDAO.removeWorkflowParams(workflowId);
-    workflowDAO.removeWorkflow(workflowId);
+                WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+                workflowDAO.removeWorkflowParams(workflowId);
+                workflowDAO.removeWorkflow(workflowId);
 
-    for (WorkflowListener workflowListener : workflowListenerList) {
-        if (workflowListener.isEnable()) {
-            workflowListener.doPostDeleteWorkflow(workflow);
-        }
-    }
-}
+                for (WorkflowListener workflowListener : workflowListenerList) {
+                    if (workflowListener.isEnable()) {
+                        workflowListener.doPostDeleteWorkflow(workflow);
+                    }
+                }
+            }
         }
     }
 
     /**
      * Remove all workflows by tenant id.
      *
-     * @param tenantId  Id of the tenant
+     * @param tenantId Id of the tenant
      * @throws WorkflowException
      */
     @Override
@@ -531,7 +530,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
     }
-
 
     @Override
     public List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException {
@@ -613,9 +611,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-
     }
-
 
     /**
      * Add a new relationship between a workflow request and an entity.
@@ -683,7 +679,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requestType) throws
             WorkflowException {
-        
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -818,10 +814,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return requestAssociations;
     }
 
-
     @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
-        
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
@@ -944,6 +939,5 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         return requestEntities;
     }
-
 
 }

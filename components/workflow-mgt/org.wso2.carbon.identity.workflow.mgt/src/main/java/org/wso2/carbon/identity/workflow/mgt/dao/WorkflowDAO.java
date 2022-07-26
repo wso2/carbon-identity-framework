@@ -157,6 +157,12 @@ public class WorkflowDAO {
         }
     }
 
+    /**
+     * Remove all workflows of a given workflow id.
+     *
+     * @param workflowId workflow ID.
+     * @throws InternalWorkflowException
+     */
     public void removeWorkflowFromImpl(String workflowId) throws InternalWorkflowException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {

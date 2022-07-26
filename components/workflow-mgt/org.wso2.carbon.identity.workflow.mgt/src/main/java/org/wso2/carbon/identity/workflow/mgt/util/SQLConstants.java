@@ -38,7 +38,6 @@ public class SQLConstants {
     public static final String USERNAME_COLUMN = "USERNAME";
     public static final String PASSWORD_COLUMN = "PASSWORD";
 
-
     public static final String WORKFLOW_ID_COLUMN = "WORKFLOW_ID";
     public static final String EVENT_ID_COLUMN = "EVENT_ID";
     public static final String PARAM_NAME_COLUMN = "PARAM_NAME";
@@ -57,7 +56,6 @@ public class SQLConstants {
     public static final String REQUEST_ID_COLUMN = "REQUEST_ID";
     public static final String CREATED_BY_COLUMN = "CREATED_BY";
 
-
     public static final String ADD_WORKFLOW_REQUEST_QUERY = "INSERT INTO WF_REQUEST(UUID, CREATED_BY, OPERATION_TYPE," +
             " CREATED_AT, UPDATED_AT, REQUEST, STATUS, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -74,7 +72,6 @@ public class SQLConstants {
 
     public static final String UPDATE_WORKFLOW_QUERY = "UPDATE WF_WORKFLOW SET WF_NAME=?, DESCRIPTION=?, " +
             "TEMPLATE_ID=?, IMPL_ID=?  WHERE ID=? ";
-
 
     public static final String ADD_WORKFLOW_PARAMS_QUERY = "INSERT INTO WF_WORKFLOW_CONFIG_PARAM(WORKFLOW_ID,  " +
             "PARAM_NAME, PARAM_VALUE, PARAM_QNAME, PARAM_HOLDER, TENANT_ID) VALUES(?, ?, ?, ?, ?, ?)";
@@ -118,11 +115,11 @@ public class SQLConstants {
     public static final String GET_WORKFLOW = "SELECT WF_WORKFLOW.WF_NAME, WF_WORKFLOW.DESCRIPTION, WF_WORKFLOW" +
             ".TEMPLATE_ID, WF_WORKFLOW.IMPL_ID, WF_WORKFLOW.TENANT_ID FROM WF_WORKFLOW WHERE WF_WORKFLOW.ID = ?";
 
-
     public static final String DELETE_WORKFLOW_QUERY = "DELETE FROM WF_WORKFLOW WHERE ID = ?";
 
     public static final String DELETE_WORKFLOW_BY_TENANT_ID_QUERY = "DELETE FROM WF_WORKFLOW WHERE TENANT_ID = ?";
-    public static final String DELETE_WORKFLOW_FROM_IMPL = "DELETE FROM WF_WORKFLOW WHERE ID=?";
+
+    public static final String DELETE_WORKFLOW_FROM_IMPL = "DELETE FROM WF_WORKFLOW WHERE ID = ?";
 
     public static final String ASSOCIATE_WF_TO_EVENT = "INSERT INTO WF_WORKFLOW_ASSOCIATION(EVENT_ID, ASSOC_NAME, " +
             "ASSOC_CONDITION, WORKFLOW_ID) VALUES (?, ?, ?, ?)";

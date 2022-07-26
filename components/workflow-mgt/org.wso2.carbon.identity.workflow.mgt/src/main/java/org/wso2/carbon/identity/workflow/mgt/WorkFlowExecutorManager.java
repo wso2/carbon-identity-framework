@@ -56,8 +56,7 @@ import java.util.UUID;
 public class WorkFlowExecutorManager {
 
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
-    private static boolean simpleWorkflowEngine;
-
+    boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
 
     private WorkFlowExecutorManager() {
@@ -98,14 +97,11 @@ public class WorkFlowExecutorManager {
         List<WorkflowAssociation> associations =
                 requestAssociationDAO.getWorkflowAssociationsForRequest(workFlowRequest.getEventType(), workFlowRequest
                         .getTenantId());
-        String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
-        if (StringUtils.isNotBlank(enableSimpleWorkflowEngine)) {
-            simpleWorkflowEngine = Boolean.parseBoolean(enableSimpleWorkflowEngine);
-        }
+        //String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
         List<WorkflowAssociation> associationList = new ArrayList<>();
         for (WorkflowAssociation workflowAssociation : associations) {
             Workflow workflow = workflowDAO.getWorkflow(workflowAssociation.getWorkflowId());
-            if (!simpleWorkflowEngine) {
+            if (!enableSimpleWorkflowEngine) {
                 if (workflow.getWorkflowImplId().equals(WFConstant.SIMPLE_WORKFLOW_IMPL_ID)) {
                     continue;
                 }

@@ -49,6 +49,7 @@ import java.util.UUID;
 public class WorkflowManagementAdminService {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementAdminService.class);
+    boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
 
     private WorkflowWizard getWorkflow(org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean)
             throws WorkflowException {
@@ -176,8 +177,7 @@ public class WorkflowManagementAdminService {
      */
     public WorkflowImpl getWorkflowImpl(String templateId, String implementationId) throws WorkflowException {
 
-        return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowImpl(templateId,
-                implementationId);
+        return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowImpl(templateId, implementationId);
     }
 
     /**
@@ -191,12 +191,21 @@ public class WorkflowManagementAdminService {
 
         List<WorkflowImpl> workflowList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflowImpls(templateId);
-        boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
         WorkflowImpl[] listWorkflowImpls = workflowList.toArray(new WorkflowImpl[workflowList.size()]);
         if (enableSimpleWorkflowEngine) {
-            return new WorkflowImpl[]{listWorkflowImpls[1]};
+            for (WorkflowImpl listWorkflowImpl : listWorkflowImpls) {
+                if (listWorkflowImpl.getWorkflowImplId().equals(WFConstant.SIMPLE_WORKFLOW_IMPL_ID)) {
+                    return new WorkflowImpl[]{listWorkflowImpl};
+                }
+            }
+        } else {
+            for (WorkflowImpl listWorkflowImpl : listWorkflowImpls) {
+                if (listWorkflowImpl.getWorkflowImplId().equals(WFConstant.BPS_WORKFLOW_IMPL_ID)) {
+                    return new WorkflowImpl[]{listWorkflowImpl};
+                }
+            }
         }
-        return new WorkflowImpl[]{listWorkflowImpls[0]};
+        return listWorkflowImpls;
     }
 
     /**
