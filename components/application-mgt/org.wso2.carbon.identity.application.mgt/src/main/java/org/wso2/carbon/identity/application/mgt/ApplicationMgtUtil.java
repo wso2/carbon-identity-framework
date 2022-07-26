@@ -92,7 +92,6 @@ public class ApplicationMgtUtil {
     public static final String MASKING_CHARACTER = "*";
     public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
     private static final int MAX_RETRY_ATTEMPTS = 3;
-    
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
     private ApplicationMgtUtil() {
