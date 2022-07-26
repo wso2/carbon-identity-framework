@@ -32,8 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -92,8 +92,8 @@ public class Util {
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
 
-        doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
-                any(Map.class), anyBoolean());
+        when(claimHandler.handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
+                any(Map.class), anyBoolean())).thenReturn(claims);
         return claimHandler;
     }
 }

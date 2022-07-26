@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -34,6 +35,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 @PrepareForTest(IdentityUtil.class)
+@PowerMockIgnore("org.mockito.*")
 public class HttpIdentityResponseFactoryTest {
 
     private HttpIdentityResponseFactory httpIdentityResponseFactory;

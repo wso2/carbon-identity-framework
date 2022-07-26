@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 
-import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 
 @PrepareForTest({MutualSSLManager.class})
 public class MutualSSLManagerTest extends PowerMockTestCase {
