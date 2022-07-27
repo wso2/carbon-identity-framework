@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.cors.mgt.core.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -28,7 +29,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -38,6 +39,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 /**
  * Utility class for database functions.
  */
+@PowerMockIgnore({"org.mockito.*", "javax.sql.Datasource.*"})
 public class DatabaseUtils {
 
     public static final String H2_SCRIPT_NAME = "h2.sql";

@@ -24,9 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -55,6 +52,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected String fragment;
     protected String[] urlPaths;
     protected String tenant;
+    protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
 
@@ -124,7 +122,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/")) {
-            if (isNotSuperTenant(tenantDomain)) {
+            if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
                 resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
             }
         }
@@ -192,6 +190,14 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURLBuilder setTenant(String tenantDomain) {
 
         this.tenant = tenantDomain;
+        return this;
+    }
+
+    @Override
+    public ServiceURLBuilder setTenant(String tenantDomain, boolean mandateTenantedPath) {
+
+        this.tenant = tenantDomain;
+        this.mandateTenantedPath = mandateTenantedPath;
         return this;
     }
 

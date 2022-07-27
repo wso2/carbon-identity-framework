@@ -35,6 +35,7 @@ public class ApplicationBasicInfo implements Serializable {
     private String accessUrl;
 
     private User appOwner;
+    private String inboundKey;
 
     /**
      * Get application id.
@@ -126,5 +127,15 @@ public class ApplicationBasicInfo implements Serializable {
     public void setAppOwner(User appOwner) {
 
         this.appOwner = appOwner;
+    }
+
+    public String getInboundKey() {
+
+        return inboundKey;
+    }
+
+    public  void setInboundKey(String inboundKey) {
+
+        this.inboundKey = inboundKey;
     }
 }

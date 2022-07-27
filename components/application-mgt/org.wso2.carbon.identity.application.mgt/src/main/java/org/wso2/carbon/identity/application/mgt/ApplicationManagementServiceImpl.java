@@ -78,11 +78,11 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -136,10 +136,12 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTen
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
  * Application management service implementation.
@@ -200,7 +202,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProvider.setOwner(getUser(tenantDomain, username));
+        serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                new IdentityApplicationManagementException("Error resolving service provider owner.")));
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
@@ -1131,6 +1134,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    @Override
+    public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+    }
+
     /**
      * @param appId
      * @return
@@ -1300,7 +1311,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
-            serviceProvider.setOwner(getUser(tenantDomain, username));
+            serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                            new IdentityApplicationManagementException("Error resolving service provider owner.")));
+            serviceProvider.setSpProperties(savedSP.getSpProperties());
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
@@ -1948,16 +1961,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
             ApplicationMgtUtil.createAppRole(applicationName, username);
-            try {
-                PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
-                ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
-            } catch (IdentityApplicationManagementException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially created data.");
+            if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain) || !isOrganization(tenantDomain)) {
+                try {
+                    PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
+                    ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
+                } catch (IdentityApplicationManagementException ex) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                                " failed. Rolling back by cleaning up partially created data.");
+                    }
+                    deleteApplicationRole(applicationName);
+                    throw ex;
                 }
-                deleteApplicationRole(applicationName);
-                throw ex;
             }
 
             try {
@@ -2109,22 +2124,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * Create user object from user name and tenantDomain.
-     *
-     * @param tenantDomain tenantDomain
-     * @param username     username
-     * @return User
-     */
-    private User getUser(String tenantDomain, String username) {
-
-        User user = new User();
-        user.setUserName(UserCoreUtil.removeDomainFromName(username));
-        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(username));
-        user.setTenantDomain(tenantDomain);
-        return user;
-    }
-
-    /**
      * Delete the newly created application, if there is an error
      *
      * @param savedSP      saved SP
@@ -2149,6 +2148,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw new IdentityApplicationManagementException(errorMsg, e);
             }
         }
+    }
+
+    private boolean isOrganization(String tenantDomain) {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        Tenant tenant = IdentityTenantUtil.getTenant(tenantID);
+        return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
     }
 
     private void setDefaultAuthenticationSeq(String sequenceName, String tenantDomain, ServiceProvider serviceProvider)

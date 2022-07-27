@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openjdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
@@ -1021,7 +1021,8 @@ public class JsGraphBuilder {
     }
 
     private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject identifier step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectIdentifierStep(false);
             }
@@ -1030,7 +1031,8 @@ public class JsGraphBuilder {
     }
 
     private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject attribute step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectAttributeStep(false);
             }

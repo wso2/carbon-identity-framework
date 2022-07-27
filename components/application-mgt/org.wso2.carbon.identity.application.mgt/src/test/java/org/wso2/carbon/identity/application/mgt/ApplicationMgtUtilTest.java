@@ -16,7 +16,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -46,22 +47,26 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.AuthorizationManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.nio.file.Paths;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
@@ -74,19 +79,30 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 
 @PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, CarbonContext.class, PrivilegedCarbonContext.class,
         ApplicationManagementServiceComponentHolder.class, ApplicationMgtSystemConfig.class, ServerConfiguration.class})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
+        ".*", "org.apache.xerces.*", "org.mockito.*"})
 /*
   Unit tests for ApplicationMgtUtil.
  */
 public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
+    @Mock
+    ApplicationManagementServiceComponentHolder mockApplicationManagementServiceComponentHolder;
+
     private CarbonContext mockCarbonContext;
     private UserStoreManager mockUserStoreManager;
+    private AbstractUserStoreManager mockAbstractUserStoreManager;
     private UserRealm mockUserRealm;
+    private UserRealm mockUserRealmFromRealmService;
+    private RealmService mockRealmService;
     private RealmConfiguration mockRealmConfiguration;
     private Registry mockTenantRegistry;
     private Collection mockAppRootNode;
     private ApplicationPermission applicationPermission;
     private ApplicationPermission[] applicationPermissions;
+    private UserStoreException mockUserStoreException;
+    private Collection mockAppCollection;
+    private Collection childCollection;
 
     private static final String USERNAME = "user";
     private static final String APPLICATION_NAME = "applicationName";
@@ -107,6 +123,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockAppRootNode = mock(Collection.class);
         mockRealmConfiguration = mock(RealmConfiguration.class);
+        mockAppCollection = mock(Collection.class);
+        childCollection = mock(Collection.class);
 
         applicationPermission = new ApplicationPermission();
         applicationPermission.setValue(USERNAME);
@@ -257,7 +275,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockUserStoreManager();
         UserStoreException mockUserStoreException = mock(UserStoreException.class);
-
         doThrow(mockUserStoreException).when(mockUserStoreManager).addRole(ROLE_NAME, new String[]{USERNAME},
                 null);
         when(mockUserStoreException.getMessage()).thenReturn(String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.
@@ -364,7 +381,6 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockTenantRegistry.resourceExists(anyString())).thenReturn(FALSE);
         when(mockTenantRegistry.newCollection()).thenReturn(mockAppRootNode);
 
-        Collection mockAppCollection = mock(Collection.class);
         when(mockTenantRegistry.get(applicationNode)).thenReturn(mockAppCollection);
         when(mockAppCollection.getChildren()).thenReturn(childPermissions);
         when(mockAppCollection.getChildCount()).thenReturn(childCount);
@@ -391,13 +407,11 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
         mockTenantRegistry();
         when(mockTenantRegistry.resourceExists(anyString())).thenReturn(TRUE);
-
         changeUserToAdmin();
-        Collection appCollection = mock(Collection.class);
-        Collection childCollection = mock(Collection.class);
+
         when(mockTenantRegistry.newCollection()).thenReturn(mockAppRootNode);
-        when(mockTenantRegistry.get(applicationNode)).thenReturn(appCollection);
-        when(appCollection.getChildren()).thenReturn(new String[]{PATH_CONSTANT + applicationPermissionPath});
+        when(mockTenantRegistry.get(applicationNode)).thenReturn(mockAppCollection);
+        when(mockAppCollection.getChildren()).thenReturn(new String[]{PATH_CONSTANT + applicationPermissionPath});
         when(mockTenantRegistry.get(PATH_CONSTANT + applicationPermissionPath)).thenReturn(childCollection);
         when(childCollection.getChildren()).thenReturn(new String[]{});
     }
@@ -460,6 +474,27 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         when(mockRealmConfiguration.getUserStoreProperty(anyString())).thenReturn("property");
         when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
 
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(-1234);
+
+        mockRealmService = mock(RealmService.class);
+        mockUserRealmFromRealmService = mock(UserRealm.class);
+        mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
+
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance())
+                .thenReturn(mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getRealmService()).thenReturn(mockRealmService);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealmFromRealmService);
+        when(mockUserRealmFromRealmService.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
+        when(mockAbstractUserStoreManager.isExistingUser(anyString())).thenReturn(TRUE);
+
+        org.wso2.carbon.user.core.common.User user = new org.wso2.carbon.user.core.common.User();
+        user.setUsername(UserCoreUtil.removeDomainFromName(USERNAME));
+        user.setTenantDomain(tenantDomain);
+        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(USERNAME));
+        when(mockAbstractUserStoreManager.getUser(any(), anyString())).thenReturn(user);
+
         assertEquals(ApplicationMgtUtil.isValidApplicationOwner(serviceProvider), expected);
     }
 
@@ -515,7 +550,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);

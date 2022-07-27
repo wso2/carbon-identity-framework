@@ -31,4 +31,5 @@ public class SelfRegistrationStatusCodes {
     public static final String ERROR_CODE_SELF_REGISTRATION_DISABLED = "60003";
     public static final String CODE_USER_NAME_INVALID = "60004";
     public static final String ERROR_CODE_INVALID_EMAIL_USERNAME = "60005";
+    public static final String ERROR_CODE_INVALID_USERSTORE = "60006";
 }

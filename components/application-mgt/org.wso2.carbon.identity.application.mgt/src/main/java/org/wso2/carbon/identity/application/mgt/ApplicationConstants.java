@@ -132,6 +132,8 @@ public class ApplicationConstants {
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String ACCESS_URL = "ACCESS_URL";
 
+        public static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
+
         private ApplicationTableColumns() {
 
         }
