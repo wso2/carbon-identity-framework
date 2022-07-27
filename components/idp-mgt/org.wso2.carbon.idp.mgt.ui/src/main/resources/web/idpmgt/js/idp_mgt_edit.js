@@ -197,12 +197,18 @@ function deleteRow(obj) {
 
 }
 
-
 function disableDefaultPwd(chkbx) {
-    document.getElementById("scim-default-pwd").value = "";
-    var disabled = chkbx.checked;
-    document.getElementById("scim-default-pwd").disabled = disabled;
+    if (jQuery(chkbx).prop('id') == 'scimPwdProvEnabled') {
+        document.getElementById("scim-default-pwd").value = "";
+        var disabled = chkbx.checked;
+        document.getElementById("scim-default-pwd").disabled = disabled;
+    } else if (jQuery(chkbx).prop('id') == 'scim2PwdProvEnabled') {
+        document.getElementById("scim2-default-pwd").value = "";
+        var disabled = chkbx.checked;
+        document.getElementById("scim2-default-pwd").disabled = disabled;
+    }
 }
+
 var deletedRoleRows = [];
 function deleteRoleRow(obj) {
     if (jQuery(obj).parent().prev().children()[0].value != '') {
@@ -461,7 +467,7 @@ function checkProvEnabled(obj) {
     if (jQuery(obj).prop('checked')) {
         if (jQuery(obj).prop('id') == 'googleProvEnabled') {
 
-            if (!jQuery('#sfProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked')) {
+            if (!jQuery('#sfProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked') && !jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 jQuery('#googleProvDefault').prop( "checked", true );
                 jQuery('#googleProvDefault').prop( "disabled", true );
@@ -473,7 +479,7 @@ function checkProvEnabled(obj) {
 
         } else if (jQuery(obj).prop('id') == 'sfProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked')) {
+            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked') && !jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 jQuery('#sfProvDefault').prop( "checked", true );
                 jQuery('#sfProvDefault').prop( "disabled", true );
@@ -485,7 +491,7 @@ function checkProvEnabled(obj) {
 
         } else if (jQuery(obj).prop('id') == 'scimProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#sfProvEnabled').prop('checked')) {
+            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#sfProvEnabled').prop('checked') && !jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 jQuery('#scimProvDefault').prop( "checked", true );
                 jQuery('#scimProvDefault').prop( "disabled", true );
@@ -495,13 +501,25 @@ function checkProvEnabled(obj) {
 
             jQuery('#scim_enable_logo').show();
 
+        } else if (jQuery(obj).prop('id') == 'scim2ProvEnabled') {
+
+            if (!jQuery('#googleProvEnabled').prop('checked') && !jQuery('#sfProvEnabled').prop('checked') && !jQuery('#scimProvEnabled').prop('checked')) {
+
+                jQuery('#scim2ProvDefault').prop( "checked", true );
+                jQuery('#scim2ProvDefault').prop( "disabled", true );
+            } else {
+                jQuery('#scim2ProvDefault').prop( "disabled", false );
+            }
+
+            jQuery('#scim2_enable_logo').show();
+
         }
     } else {
         if (jQuery(obj).prop('id') == 'googleProvEnabled') {
 
             if (jQuery('#sfProvEnabled').prop('checked') ||
-
-                jQuery('#scimProvEnabled').prop('checked')) {
+                jQuery('#scimProvEnabled').prop('checked') ||
+                jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 if (jQuery('#googleProvDefault').prop('checked')) {
                     //jQuery('#googleProvEnabled').prop('checked','checked');
@@ -520,7 +538,8 @@ function checkProvEnabled(obj) {
         } else if (jQuery(obj).prop('id') == 'sfProvEnabled') {
 
             if (jQuery('#googleProvEnabled').prop('checked') ||
-                jQuery('#scimProvEnabled').prop('checked')) {
+                jQuery('#scimProvEnabled').prop('checked') ||
+                jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 if (jQuery('#sfProvDefault').prop('checked')) {
                     // jQuery('#sfProvEnabled').prop('checked','checked');
@@ -539,7 +558,8 @@ function checkProvEnabled(obj) {
         } else if (jQuery(obj).prop('id') == 'scimProvEnabled') {
 
             if (jQuery('#sfProvEnabled').prop('checked') ||
-                jQuery('#googleProvEnabled').prop('checked')) {
+                jQuery('#googleProvEnabled').prop('checked') ||
+                jQuery('#scim2ProvEnabled').prop('checked')) {
 
                 if (jQuery('#scimProvDefault').prop('checked')) {
                     // jQuery('#scimProvEnabled').prop('checked','checked');
@@ -555,6 +575,25 @@ function checkProvEnabled(obj) {
                 jQuery('#scim_enable_logo').hide();
             }
 
+        } else if (jQuery(obj).prop('id') == 'scim2ProvEnabled') {
+
+            if (jQuery('#sfProvEnabled').prop('checked') ||
+                jQuery('#googleProvEnabled').prop('checked') ||
+                jQuery('#scimProvEnabled').prop('checked')) {
+
+                if (jQuery('#scim2ProvDefault').prop('checked')) {
+                    // jQuery('#scim2ProvEnabled').prop('checked','checked');
+                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                } else {
+                    jQuery('#scim2ProvDefault').prop( "disabled", true );
+                    jQuery('#scim2ProvDefault').prop( "checked", false );
+                    jQuery('#scim2_enable_logo').hide();
+                }
+            } else {
+                jQuery('#scim2ProvDefault').prop( "disabled", true );
+                jQuery('#scim2ProvDefault').prop( "checked", false );
+                jQuery('#scim2_enable_logo').hide();
+            }
         }
     }
 }
@@ -563,33 +602,59 @@ function checkProvDefault(obj) {
     if (jQuery(obj).prop('id') == 'googleProvDefault') {
         jQuery('#sfProvDefault').prop( "checked", false );
         jQuery('#scimProvDefault').prop( "checked", false );
+        jQuery('#scim2ProvDefault').prop( "checked", false );
         if (jQuery('#sfProvEnabled').prop('checked')) {
             jQuery('#sfProvDefault').prop( "disabled", false );
         }
         if (jQuery('#scimProvEnabled').prop('checked')) {
             jQuery('#scimProvDefault').prop( "disabled", false );
+        }
+        if (jQuery('#scim2ProvEnabled').prop('checked')) {
+            jQuery('#scim2ProvDefault').prop( "disabled", false );
         }
         jQuery('#googleProvDefault').prop( "disabled", true );
     } else if (jQuery(obj).prop('id') == 'sfProvDefault') {
         jQuery('#googleProvDefault').prop( "checked", false );
         jQuery('#scimProvDefault').prop( "checked", false );
+        jQuery('#scim2ProvDefault').prop( "checked", false );
         if (jQuery('#googleProvEnabled').prop('checked')) {
             jQuery('#googleProvDefault').prop( "disabled", false );
         }
         if (jQuery('#scimProvEnabled').prop('checked')) {
             jQuery('#scimProvDefault').prop( "disabled", false );
         }
+        if (jQuery('#scim2ProvEnabled').prop('checked')) {
+            jQuery('#scim2ProvDefault').prop( "disabled", false );
+        }
         jQuery('#sfProvDefault').prop( "disabled", true );
     } else if (jQuery(obj).prop('id') == 'scimProvDefault') {
         jQuery('#googleProvDefault').prop( "checked", false );
         jQuery('#sfProvDefault').prop( "checked", false );
+        jQuery('#scim2ProvDefault').prop( "checked", false );
         if (jQuery('#googleProvEnabled').prop('checked')) {
             jQuery('#googleProvDefault').prop( "disabled", false );
         }
         if (jQuery('#sfProvEnabled').prop('checked')) {
             jQuery('#sfProvDefault').prop( "disabled", false );
         }
+        if (jQuery('#scim2ProvEnabled').prop('checked')) {
+            jQuery('#scim2ProvDefault').prop( "disabled", false );
+        }
         jQuery('#scimProvDefault').prop( "disabled", true );
+    } else if (jQuery(obj).prop('id') == 'scim2ProvDefault') {
+        jQuery('#googleProvDefault').prop( "checked", false );
+        jQuery('#sfProvDefault').prop( "checked", false );
+        jQuery('#scimProvDefault').prop( "checked", false );
+        if (jQuery('#googleProvEnabled').prop('checked')) {
+            jQuery('#googleProvDefault').prop( "disabled", false );
+        }
+        if (jQuery('#sfProvEnabled').prop('checked')) {
+            jQuery('#sfProvDefault').prop( "disabled", false );
+        }
+        if (jQuery('#scimProvEnabled').prop('checked')) {
+            jQuery('#scimProvDefault').prop( "disabled", false );
+        }
+        jQuery('#scim2ProvDefault').prop( "disabled", true );
     }
 }
 
@@ -817,6 +882,24 @@ function doValidation() {
 
         if ($('#scim-user-ep').val() == "") {
             CARBON.showWarningDialog('Scim Configuration User endpoint cannot be empty');
+            return false;
+        }
+    }
+
+    if (jQuery('#scim2ProvEnabled').prop('checked')) {
+
+        if ($('#scim2-username').val() == "") {
+            CARBON.showWarningDialog('Scim2 Configuration username cannot be empty');
+            return false;
+        }
+
+        if ($('#scim2-password').val() == "") {
+            CARBON.showWarningDialog('Scim2 Configuration password cannot be empty');
+            return false;
+        }
+
+        if ($('#scim2-user-ep').val() == "") {
+            CARBON.showWarningDialog('Scim2 Configuration User endpoint cannot be empty');
             return false;
         }
     }
