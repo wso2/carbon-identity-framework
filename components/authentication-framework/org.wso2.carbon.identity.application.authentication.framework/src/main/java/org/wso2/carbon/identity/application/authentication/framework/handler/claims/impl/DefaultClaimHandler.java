@@ -197,6 +197,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims,
                 localUnfilteredClaimsForNullValues);
 
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        localUnfilteredClaims.putAll(context.getRuntimeClaims());
+
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
                                                                                       spClaimMappings);

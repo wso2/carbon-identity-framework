@@ -555,15 +555,22 @@
                 }
                 CARBON.showConfirmationDialog(confirmationMessage,
                     function () {
+                        encodeSPCertificate();
                         document.getElementById("configure-sp-form").submit();
                     },
                     function () {
                         return false;
                     });
             } else {
+                encodeSPCertificate();
                 document.getElementById("configure-sp-form").submit();
             }
         }
+    }
+
+    function encodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
     function updateBeanAndRedirect(redirectURL) {
@@ -1145,8 +1152,8 @@
         }).remove();
         $.each($('.spClaimVal'), function () {
             if ($(this).val().length > 0) {
-                $("#roleClaim").append('<option value="' + $(this).val() + '">' + $(this).val() + '</option>');
-                $('#subject_claim_uri').append('<option value="' + $(this).val() + '">' + $(this).val() + '</option>');
+                $("#roleClaim").append('<option value="' + encodeForHTML($(this).val()) + '">' + encodeForHTML($(this).val()) + '</option>');
+                $('#subject_claim_uri').append('<option value="' + encodeForHTML($(this).val()) + '">' + encodeForHTML($(this).val()) + '</option>');
             }
         });
     }

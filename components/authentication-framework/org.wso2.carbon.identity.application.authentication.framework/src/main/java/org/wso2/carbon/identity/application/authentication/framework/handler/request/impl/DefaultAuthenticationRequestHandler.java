@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -53,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -76,6 +78,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -377,6 +381,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
             ApplicationConfig appConfig = sequenceConfig.getApplicationConfig();
 
+            // Adding user organization properties to the authentication result, such as scopes.
+            if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
+                authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
+                        context.getProperty(ORGANIZATION_USER_PROPERTIES));
+            }
+
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                     .isAlwaysSendBackAuthenticatedListOfIdPs()) {
                 authenticationResult.setAuthenticatedIdPs(sequenceConfig.getAuthenticatedIdPs());
@@ -495,6 +505,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
                         context.getLoginTenantDomain());
+                // Since the session context is already available, audit log will be added with updated details.
+                addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION,
+                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
+                        updatedSessionTime, sessionContext.isRememberMe());
             } else {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
                 sessionContext = new SessionContext();
@@ -537,6 +552,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         request, response, context);
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
                         context.getLoginTenantDomain());
+                // The session context will be stored from here. Since the audit log will be logged as a storing
+                // operation.
+                addAuditLogs(SessionMgtConstants.STORE_SESSION_ACTION,
+                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
+                        createdTimeMillis, sessionContext.isRememberMe());
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
@@ -567,14 +588,31 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex())) {
-                                userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
-                            } else {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(String.format("Federated auth session with the id: %s already exists",
-                                            authHistory.getIdpSessionIndex()));
+                            if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
+                                int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+                                if (!userSessionStore.isExistingFederatedAuthSessionAvailable(
+                                        authHistory.getIdpSessionIndex(), tenantId)) {
+                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                                            tenantId);
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(String.format("Federated auth session with the id: %s already " +
+                                                "exists.", authHistory.getIdpSessionIndex()));
+                                    }
+                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                                            tenantId);
                                 }
-                                userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                            } else {
+                                if (!userSessionStore.hasExistingFederatedAuthSession(
+                                        authHistory.getIdpSessionIndex())) {
+                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(String.format("Federated auth session with the id: %s already " +
+                                                "exists.", authHistory.getIdpSessionIndex()));
+                                    }
+                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                }
                             }
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
@@ -744,19 +782,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth)
             throws UserSessionException {
 
-        for (int retryTimes = 0; retryTimes < FrameworkConstants.MAX_RETRY_TIME; retryTimes++) {
-            try {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
-                return;
-            } catch (DataAccessException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while storing Application session data in the database. Retrying to store the " +
-                            "data.", e);
-                }
+        storeAppSessionData(sessionContextKey, subject, appId, inboundAuth, 0);
+    }
+
+    /**
+     * Method to store app session data. If an error occurs, it tries maximum times and throws an error.
+     *
+     * @param sessionContextKey   Context of the authenticated session.
+     * @param subject             Username in application
+     * @param appId               ID of the application.
+     * @param inboundAuth         Protocol used in app.
+     * @param retryAttemptCounter The retry attempt number.
+     * @throws UserSessionException If storing app session data fails.
+     */
+    private void storeAppSessionData(String sessionContextKey, String subject, int appId, String inboundAuth,
+                                     int retryAttemptCounter) throws UserSessionException {
+
+        try {
+            UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+        } catch (DataAccessException e) {
+            if (retryAttemptCounter >= FrameworkConstants.MAX_RETRY_TIME) {
+                throw new UserSessionException("Error while storing Application session data in the database for " +
+                        "subject: " + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".", e);
             }
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Error while storing Application session data in the database. Retrying to " +
+                        "store the data for the %d time.", retryAttemptCounter + 1), e);
+            }
+            storeAppSessionData(sessionContextKey, subject, appId, inboundAuth,
+                    retryAttemptCounter + 1);
         }
-        throw new UserSessionException("Error while storing Application session data in the database for subject: "
-                + subject + ", app Id: " + appId + ", protocol: " + inboundAuth + ".");
     }
 
     /**
@@ -887,11 +942,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // redirect to the caller
-        String redirectURL;
-        String commonauthCallerPath = context.getCallerPath();
-
         try {
             String queryParamsString = "";
+            String redirectURL = FrameworkUtils.buildCallerPathRedirectURL(context.getCallerPath(), context);
             if (context.getCallerSessionKey() != null) {
                 queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
                         URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
@@ -900,9 +953,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (StringUtils.isNotEmpty(rememberMeParam)) {
                 queryParamsString += "&" + rememberMeParam;
             }
-            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, queryParamsString);
             response.sendRedirect(redirectURL);
-        } catch (IOException e) {
+        } catch (IOException | URLBuilderException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
     }
@@ -995,5 +1048,22 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         }
         sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
+    }
+
+    private void addAuditLogs(String sessionAction, String authenticatedUser, String sessionKey,
+                              String userTenantDomain, String traceId, Long lastAccessedTimestamp,
+                              boolean isRememberMe) {
+
+        JSONObject auditData = new JSONObject();
+        auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
+        auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);
+        auditData.put(SessionMgtConstants.AUTHENTICATED_USER, authenticatedUser);
+        auditData.put(SessionMgtConstants.AUTHENTICATED_USER_TENANT_DOMAIN, userTenantDomain);
+        auditData.put(SessionMgtConstants.TRACE_ID, traceId);
+        /* When the action is StoreSession, the LastAccessedTimestamp means the session created timestamp. If the
+         action is UpdateSession, the LastAccessedTimestamp means the session's last accessed timestamp. */
+        auditData.put(SessionMgtConstants.SESSION_LAST_ACCESSED_TIMESTAMP, lastAccessedTimestamp);
+        AUDIT_LOG.info(String.format(SessionMgtConstants.AUDIT_MESSAGE_TEMPLATE, authenticatedUser,
+                sessionAction, auditData, SessionMgtConstants.SUCCESS));
     }
 }

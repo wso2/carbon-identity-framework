@@ -20,12 +20,20 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ResourceBundle;
 
@@ -33,6 +41,8 @@ import java.util.ResourceBundle;
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
  */
 public class AuthenticationEndpointUtil {
+
+    private static final Log log = LogFactory.getLog(AuthenticationEndpointUtil.class);
     private static final String CUSTOM_PAGE_APP_SPECIFIC_CONFIG_KEY_SEPARATOR = "-";
     private static final String QUERY_STRING_APPENDER = "&";
     private static final String QUERY_STRING_INITIATOR = "?";
@@ -281,9 +291,55 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.POST_AUTH_COOKIE_NOT_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION:
                 return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND:
+                return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
     }
-}
 
+    /**
+     * This method is to validate a URL. This method validate both absolute & relative URLs.
+     *
+     * @param urlString URL String.
+     * @return true if valid URL, false otherwise.
+     */
+    public static boolean isValidURL(String urlString) {
+
+        if (StringUtils.isBlank(urlString)) {
+            String errorMsg = "Invalid URL.";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMsg);
+            }
+            return false;
+        }
+
+        try {
+            if (isURLRelative(urlString)) {
+                // Build Absolute URL using the relative url path.
+                urlString = buildAbsoluteURL(urlString);
+            }
+            /*
+              Validate URL string using the  java.net.URL class.
+              Create a URL object from the URL string representation. Throw MalformedURLException if not a valid URL.
+             */
+            new URL(urlString);
+        } catch (MalformedURLException | URISyntaxException | URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isURLRelative(String uriString) throws URISyntaxException {
+
+        return !new URI(uriString).isAbsolute();
+    }
+
+    private static String buildAbsoluteURL(String contextPath) throws URLBuilderException {
+
+        return ServiceURLBuilder.create().addPath(contextPath).build().getAbsolutePublicURL();
+    }
+}

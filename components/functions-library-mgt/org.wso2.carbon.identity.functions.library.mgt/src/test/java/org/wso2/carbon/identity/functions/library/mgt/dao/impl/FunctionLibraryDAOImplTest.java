@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.functions.library.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -49,6 +50,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";

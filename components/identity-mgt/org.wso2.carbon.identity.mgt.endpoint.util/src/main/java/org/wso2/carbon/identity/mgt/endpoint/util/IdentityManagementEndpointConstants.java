@@ -91,6 +91,7 @@ public class IdentityManagementEndpointConstants {
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
     public static final String TENANT_DOMAIN = "tenantdomain";
+    public static final String REALM = "realm";
 
     public static final String TENANT_DOMAIN_SEPARATOR = "@";
     public static final String USER_STORE_DOMAIN_SEPARATOR = "/";

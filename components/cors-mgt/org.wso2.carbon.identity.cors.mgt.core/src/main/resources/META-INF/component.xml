@@ -18,15 +18,15 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>CORS</DisplayName>
-            <ResourceId>/permission/admin/manage/cors</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/cors</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Origins</DisplayName>
-            <ResourceId>/permission/admin/manage/cors/origins</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/cors/origins</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/cors/origins/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/cors/origins/view</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 </component>

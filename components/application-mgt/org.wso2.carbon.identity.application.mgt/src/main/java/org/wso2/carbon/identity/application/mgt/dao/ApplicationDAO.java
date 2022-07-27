@@ -49,11 +49,30 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
-     * @param applicationId
-     * @return
+     * Get service provider when the application resides in the same tenant of the request initiated.
+     *
+     * @param applicationId The application id.
+     * @return Service provider.
      * @throws IdentityApplicationManagementException
+     * @deprecated with getApplication(applicationId, tenantDomain) method.
      */
+    @Deprecated
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
+
+    /**
+     * Get service provider resides in given tenant domain.
+     *
+     * @param applicationId The application id.
+     * @param tenantDomain  The tenant domain where the application resides.
+     * @return Service provider.
+     * @throws IdentityApplicationManagementException throws when an error occurs in retrieving service provider with
+     *                                                all the configurations.
+     */
+    default ServiceProvider getApplication(int applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
 
     /**
      * @return
@@ -279,5 +298,19 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return false;
+    }
+
+    /**
+     * Method that returns service provider with required attributes.
+     *
+     * @param applicationId       Application identifier.
+     * @param requiredAttributes  List of required attributes.
+     * @return  ServiceProvider with required attributes added.
+     * @throws IdentityApplicationManagementException   Error when obtaining Sp with required attributes.
+     */
+    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        return new ServiceProvider();
     }
 }
