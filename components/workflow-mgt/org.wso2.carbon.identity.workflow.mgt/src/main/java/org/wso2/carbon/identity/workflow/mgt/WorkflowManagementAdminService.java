@@ -180,7 +180,7 @@ public class WorkflowManagementAdminService {
 
         return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowImpl(templateId, implementationId);
     }
-private boolean simpleEngine=false;
+
     /**
      * List implementations of a workflow template
      *
