@@ -828,7 +828,7 @@
   "console.idp_configs.authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut=${userTenantDomain}",
   "console.idp_configs.logoutEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/logout",
   "console.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
-  "console.idp_configs.scope": [ "SYSTEM", "profile" ],
+  "console.idp_configs.scope": [ "SYSTEM", "profile", "openid" ],
   "console.get_profile_info_from_id_token": true,
 
   "myaccount.app_base_name": "myaccount",
