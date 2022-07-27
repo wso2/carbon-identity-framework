@@ -24,11 +24,11 @@
         <version>5.21.37-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>authentication-framework-feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Application Autentication Framework Feature Aggregator Module</name>
+    <name>WSO2 Carbon - Application Authentication Framework Feature Aggregator Module</name>
     <url>http://wso2.org</url>
 
     <modules>
