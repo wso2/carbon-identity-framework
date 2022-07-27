@@ -24,7 +24,9 @@ import java.util.Set;
 public class WFConstant {
 
     public static final String REQUEST_ID = "REQUEST ID";
-    public static final String SIMPLE_WORKFLOW_ENGINE = "Workflow.SimpleWorkflow.Enable";
+    public static final String SIMPLE_WORKFLOW_ENGINE = "WorkflowEngines.SimpleWorkflowEngine.Enable";
+    public static final String SIMPLE_WORKFLOW_ENGINE_Definitions = "WorkflowEngines.SimpleWorkflowEngine.AllowNewDefinitions";
+    public static final String BPEL_ENGINE_Definitions = "WorkflowEngines.BPELEngine.AllowNewDefinitions";
     public static final String SIMPLE_WORKFLOW_IMPL_ID = "workflowImplSimple";
     public static final String BPS_WORKFLOW_IMPL_ID = "ApprovalWorkflow";
 

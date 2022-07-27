@@ -97,7 +97,6 @@ public class WorkFlowExecutorManager {
         List<WorkflowAssociation> associations =
                 requestAssociationDAO.getWorkflowAssociationsForRequest(workFlowRequest.getEventType(), workFlowRequest
                         .getTenantId());
-        //String enableSimpleWorkflowEngine = IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE);
         List<WorkflowAssociation> associationList = new ArrayList<>();
         for (WorkflowAssociation workflowAssociation : associations) {
             Workflow workflow = workflowDAO.getWorkflow(workflowAssociation.getWorkflowId());

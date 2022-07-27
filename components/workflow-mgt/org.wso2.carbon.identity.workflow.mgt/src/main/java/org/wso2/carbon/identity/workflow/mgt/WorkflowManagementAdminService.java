@@ -49,7 +49,8 @@ import java.util.UUID;
 public class WorkflowManagementAdminService {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementAdminService.class);
-    boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
+    boolean allowCreatingSimpleWorkflowEngineDefinitions = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE_Definitions));
+    boolean allowCreatingBPELDefinitions = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.BPEL_ENGINE_Definitions));
 
     private WorkflowWizard getWorkflow(org.wso2.carbon.identity.workflow.mgt.bean.Workflow workflowBean)
             throws WorkflowException {
@@ -179,7 +180,7 @@ public class WorkflowManagementAdminService {
 
         return WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowImpl(templateId, implementationId);
     }
-
+private boolean simpleEngine=false;
     /**
      * List implementations of a workflow template
      *
@@ -192,18 +193,20 @@ public class WorkflowManagementAdminService {
         List<WorkflowImpl> workflowList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflowImpls(templateId);
         WorkflowImpl[] listWorkflowImpls = workflowList.toArray(new WorkflowImpl[workflowList.size()]);
-        if (enableSimpleWorkflowEngine) {
+        if (allowCreatingSimpleWorkflowEngineDefinitions && !allowCreatingBPELDefinitions) {
             for (WorkflowImpl listWorkflowImpl : listWorkflowImpls) {
                 if (listWorkflowImpl.getWorkflowImplId().equals(WFConstant.SIMPLE_WORKFLOW_IMPL_ID)) {
                     return new WorkflowImpl[]{listWorkflowImpl};
                 }
             }
-        } else {
+        } else if (allowCreatingBPELDefinitions && !allowCreatingSimpleWorkflowEngineDefinitions) {
             for (WorkflowImpl listWorkflowImpl : listWorkflowImpls) {
                 if (listWorkflowImpl.getWorkflowImplId().equals(WFConstant.BPS_WORKFLOW_IMPL_ID)) {
                     return new WorkflowImpl[]{listWorkflowImpl};
                 }
             }
+        } else {
+            return workflowList.toArray(new WorkflowImpl[workflowList.size()]);
         }
         return listWorkflowImpls;
     }
