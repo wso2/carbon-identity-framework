@@ -750,7 +750,7 @@
                         <!-- -->
                         <input id="scim2PwdProvEnabled" name="scim2PwdProvEnabled"
                                type="checkbox" <%=scim2PwdProvEnabledChecked%>
-                               onclick="scim2disableDefaultPwd(this);"/>
+                               onclick="disableDefaultPwd(this);"/>
                         <span style="display: inline-block" class="sectionHelp"> <fmt:message
                                 key='scim2.password.provisioning.enabled.help'/>
                         </span>
