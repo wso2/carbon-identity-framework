@@ -2087,10 +2087,6 @@
         <Path>/api/server/v1/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
-    <OrganizationManagement>
-        <Enable>true</Enable>
-    </OrganizationManagement>
-
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 

@@ -443,12 +443,6 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
-            <SupportedGrantType>
-                <GrantTypeName>organization_switch</GrantTypeName>
-                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
-                <IdTokenAllowed>true</IdTokenAllowed>
-            </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
@@ -2729,13 +2723,8 @@
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
-    {% if organization_management.enable is true %}
-        <EnableTenantQualifiedUrls>true</EnableTenantQualifiedUrls>
-        <EnableTenantedSessions>true</EnableTenantedSessions>
-    {% else %}
-        <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
-        <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
-    {% endif %}
+    <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
+    <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
 
     <!--
         When this property is set to 'true', if the username provided during the SaaS application authentication does
@@ -2822,10 +2811,6 @@
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
-
-    <OrganizationManagement>
-        <Enable>{{organization_management.enable}}</Enable>
-    </OrganizationManagement>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
