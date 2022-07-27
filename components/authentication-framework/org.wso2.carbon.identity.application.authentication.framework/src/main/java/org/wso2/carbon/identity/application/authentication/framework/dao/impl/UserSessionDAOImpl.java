@@ -204,6 +204,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
                         sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
+                sqlQuery = sqlQuery.replaceAll("\\\\", "\\\\\\\\");
             } else if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_ORACLE,
                         sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
