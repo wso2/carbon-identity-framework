@@ -92,7 +92,7 @@
       "console.certificates.enabled": true,
       "console.secrets_management.enabled": true,
       "console.oidc_scopes.enabled": true,
-      "console.remote_fetch.enabled": true, 
+      "console.remote_fetch.enabled": false,
       "console.governance_connectors.enabled": true,
       "console.email_templates.enabled": true,
       "console.attribute_dialects.enabled": true
@@ -102,7 +102,7 @@
       "console.certificates.enabled": false,
       "console.secrets_management.enabled": false,
       "console.oidc_scopes.enabled": false,
-      "console.remote_fetch.enabled": false, 
+      "console.remote_fetch.enabled": false,
       "console.governance_connectors.enabled": false,
       "console.email_templates.enabled": false,
       "console.attribute_dialects.enabled": false
