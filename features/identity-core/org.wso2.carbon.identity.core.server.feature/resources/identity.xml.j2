@@ -2923,10 +2923,10 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
-     {% if system_applications.fidp.role_based_authz_apps is defined %}
+     {% if system_applications.fidp_role_based_authz_enabled_apps is defined %}
      <!-- Following applications can use federated user role based authorization -->
      <FIdPRoleBasedAuthzApplications>
-         {% for application in system_applications.fidp.role_based_authz_apps %}
+         {% for application in system_applications.fidp_role_based_authz_enabled_apps %}
          <AppName>{{application}}</AppName>
          {% endfor %}
      </FIdPRoleBasedAuthzApplications>

@@ -2150,9 +2150,9 @@
     <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
 
     <!-- Following applications can use federated user role based authorization -->
-    <FIdPRoleBasedAuthzApplications>
-        <AppName></AppName>
-    </FIdPRoleBasedAuthzApplications>
+    <!--<FIdPRoleBasedAuthzApplications>-->
+       <!--<AppName>Console</AppName>-->
+    <!--</FIdPRoleBasedAuthzApplications>-->
 
     <!--This configuration is used for X509 Certificate based authentication. -->
     <!--<X509>-->
