@@ -57,6 +57,8 @@ public class WorkFlowExecutorManager {
 
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
     boolean enableSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE));
+    boolean engageSimpleWorkflowEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.SIMPLE_WORKFLOW_ENGINE_ENGAGEMENT));
+    boolean engageBPELEngine = Boolean.parseBoolean(IdentityUtil.getProperty(WFConstant.BPEL_ENGINE_Definitions_ENGAGEMENT));
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
 
     private WorkFlowExecutorManager() {
@@ -100,14 +102,17 @@ public class WorkFlowExecutorManager {
         List<WorkflowAssociation> associationList = new ArrayList<>();
         for (WorkflowAssociation workflowAssociation : associations) {
             Workflow workflow = workflowDAO.getWorkflow(workflowAssociation.getWorkflowId());
-            if (!enableSimpleWorkflowEngine) {
+            if (engageSimpleWorkflowEngine && !engageBPELEngine) {
+                if (workflow.getWorkflowImplId().equals(WFConstant.BPS_WORKFLOW_IMPL_ID)) {
+                    continue;
+                }
+            } else if(engageBPELEngine && !engageSimpleWorkflowEngine){
                 if (workflow.getWorkflowImplId().equals(WFConstant.SIMPLE_WORKFLOW_IMPL_ID)) {
                     continue;
                 }
             } else {
-                if (workflow.getWorkflowImplId().equals(WFConstant.BPS_WORKFLOW_IMPL_ID)) {
-                    continue;
-                }
+                String errorMsg = "Error when executing the association, Different types engines not enable.";
+                return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             }
             associationList.add(workflowAssociation);
         }

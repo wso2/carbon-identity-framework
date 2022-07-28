@@ -27,6 +27,9 @@ public class WFConstant {
     public static final String SIMPLE_WORKFLOW_ENGINE = "WorkflowEngines.SimpleWorkflowEngine.Enable";
     public static final String SIMPLE_WORKFLOW_ENGINE_Definitions = "WorkflowEngines.SimpleWorkflowEngine.AllowNewDefinitions";
     public static final String BPEL_ENGINE_Definitions = "WorkflowEngines.BPELEngine.AllowNewDefinitions";
+    public static final String SIMPLE_WORKFLOW_ENGINE_ENGAGEMENT = "WorkflowEngines.SimpleWorkflowEngine.EngageNewWorkflow";
+    public static final String BPEL_ENGINE_Definitions_ENGAGEMENT = "WorkflowEngines.BPELEngine.EngageNewWorkflow";
+
     public static final String SIMPLE_WORKFLOW_IMPL_ID = "workflowImplSimple";
     public static final String BPS_WORKFLOW_IMPL_ID = "ApprovalWorkflow";
 
