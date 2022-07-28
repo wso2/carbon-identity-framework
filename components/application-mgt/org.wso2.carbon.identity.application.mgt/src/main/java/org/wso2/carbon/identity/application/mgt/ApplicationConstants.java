@@ -100,7 +100,7 @@ public class ApplicationConstants {
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
     /**
-     * Grouping of constants related to database table names.
+     * Grouping of constants related to database SP_APP table.
      */
     public static class ApplicationTableColumns {
 
@@ -132,9 +132,20 @@ public class ApplicationConstants {
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String ACCESS_URL = "ACCESS_URL";
 
-        public static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
-
         private ApplicationTableColumns() {
+
+        }
+    }
+
+    /**
+     * Grouping of constants related to database SP_INBOUND_AUTH table.
+     */
+    public static class ApplicationInboundTableColumns {
+
+        public static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
+        public static final String INBOUND_AUTH_TYPE = "INBOUND_AUTH_TYPE";
+
+        private ApplicationInboundTableColumns() {
 
         }
     }

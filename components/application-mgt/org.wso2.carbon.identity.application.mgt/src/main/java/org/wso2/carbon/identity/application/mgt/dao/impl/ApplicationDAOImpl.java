@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationInboundTableColumns;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
@@ -277,7 +278,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final Map<String, String> SEARCH_SUPPORTED_FIELD_MAP = new HashMap<>();
 
     static {
-
         SEARCH_SUPPORTED_FIELD_MAP.put("name", "SP_APP.APP_NAME");
         SEARCH_SUPPORTED_FIELD_MAP.put("clientID", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
     }
@@ -5360,7 +5360,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-        // basicInfo.setInboundKey(appNameResultSet.getString(ApplicationTableColumns.INBOUND_AUTH_KEY));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
@@ -5389,7 +5388,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationTableColumns.INBOUND_AUTH_KEY));
+        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
