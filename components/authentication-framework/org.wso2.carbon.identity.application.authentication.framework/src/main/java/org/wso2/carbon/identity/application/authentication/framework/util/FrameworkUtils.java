@@ -2454,6 +2454,16 @@ public class FrameworkUtils {
         return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
     }
 
+    /**
+     * This method is to check whether organization management is enabled.
+     *
+     * @return Organization management feature is enabled or not.
+     */
+    public static boolean isOrganizationManagementEnable() {
+
+        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnable();
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;
