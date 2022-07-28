@@ -755,7 +755,7 @@
   "console.oidc_scopes.scopes.read": ["internal_oidc_scope_mgt_view", "internal_claim_meta_view"],
   "console.oidc_scopes.scopes.update": ["internal_oidc_scope_mgt_update"],
   "console.oidc_scopes.scopes.delete": ["internal_oidc_scope_mgt_delete"],
-  "console.remote_fetch.enabled": true,
+  "console.remote_fetch.enabled": false,
   "console.remote_fetch.scopes.create": [
       "internal_identity_mgt_view",
       "internal_identity_mgt_update",
