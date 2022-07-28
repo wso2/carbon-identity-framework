@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ public class FilterData {
     /**
      * Get where clause string for filtering.
      *
-     * @return where clause string for filtering
+     * @return where clause string for filtering.
      */
     public String getFilterString() {
 
@@ -41,7 +41,7 @@ public class FilterData {
     /**
      * Set where clause string for filtering.
      *
-     * @param filterString where clause string for filtering
+     * @param filterString  where clause string for filtering.
      */
     public void setFilterString(String filterString) {
 
@@ -51,7 +51,7 @@ public class FilterData {
     /**
      * Get list of filter values.
      *
-     * @return list of filter values
+     * @return list of filter values.
      */
     public List<String> getFilterValues() {
 
@@ -61,7 +61,7 @@ public class FilterData {
     /**
      * Set list of filter values.
      *
-     * @param filterValues list of filter values
+     * @param filterValues  list of filter values.
      */
     public void setFilterValues(List<String> filterValues) {
 
@@ -71,7 +71,7 @@ public class FilterData {
     /**
      * Add a filter value to list of filter values.
      *
-     * @param filterValue filter value
+     * @param filterValue   filter value.
      */
     public void addFilterValue(String filterValue) {
 

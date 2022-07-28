@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -265,6 +265,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
     private static final String AUDIT_FAIL = "Fail";
+    private static final String ASTERISK = "*";
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private List<String> standardInboundAuthTypes;
@@ -3374,7 +3375,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String sqlfilter = "SP_APP.APP_NAME LIKE '%'";
         if (StringUtils.isNotBlank(filter)) {
             sqlfilter = filter.trim()
-                    .replace("*", "%")
+                    .replace(ASTERISK, "%")
                     .replace("?", "_");
         }
 
@@ -3389,7 +3390,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         FilterData filterData = new FilterData();
 
-        if (StringUtils.isBlank(filter) || filter.equals("*")) {
+        if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
             filterData.addFilterValue("%");
         } else {
@@ -3449,13 +3450,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String formattedFilterValue;
         switch (searchOperation) {
             case FILTER_STARTS_WITH:
-                formattedFilterValue = searchValue + "*";
+                formattedFilterValue = searchValue + ASTERISK;
                 break;
             case FILTER_ENDS_WITH:
-                formattedFilterValue = "*" + searchValue;
+                formattedFilterValue = ASTERISK + searchValue;
                 break;
             case FILTER_CONTAINS:
-                formattedFilterValue = "*" + searchValue + "*";
+                formattedFilterValue = ASTERISK + searchValue + ASTERISK;
                 break;
             default:
                 formattedFilterValue = searchValue;
@@ -5078,7 +5079,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         validateAttributesForPagination(offset, limit);
 
         // TODO: 11/5/19 : Enforce a max limit
-        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
+        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
             return getDiscoverableApplicationBasicInfo(limit, offset, tenantDomain);
         }
 
@@ -5123,7 +5124,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     + tenantDomain);
         }
 
-        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
+        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
             return getCountOfDiscoverableApplications(tenantDomain);
         }
 
