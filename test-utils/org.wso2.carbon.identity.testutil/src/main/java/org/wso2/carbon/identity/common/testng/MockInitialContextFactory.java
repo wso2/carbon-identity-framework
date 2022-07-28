@@ -171,6 +171,12 @@ public class MockInitialContextFactory implements InitialContextFactory {
         dataSource.setPassword("password");
         dataSource.setUrl("jdbc:h2:mem:test" + dbName);
         try (Connection connection = dataSource.getConnection()) {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("DROP ALL OBJECTS");
+            } catch (SQLException e) {
+                throw new TestCreationException(
+                        "Error while dropping data in the in-memory H2 Database", e);
+            }
             for (String f : files) {
                 File fileFromClasspathResource = getClasspathAccessibleFile(f, clazz);
                 String scriptPath = null;
