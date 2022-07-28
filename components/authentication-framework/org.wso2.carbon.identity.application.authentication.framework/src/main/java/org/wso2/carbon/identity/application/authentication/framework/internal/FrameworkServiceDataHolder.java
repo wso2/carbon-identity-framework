@@ -615,7 +615,7 @@ public class FrameworkServiceDataHolder {
      *
      * @return True if organization management is enabled.
      */
-    public boolean isOrganizationManagementEnable() {
+    public boolean isOrganizationManagementEnabled() {
 
         return isOrganizationManagementEnable;
     }
