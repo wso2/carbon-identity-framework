@@ -114,6 +114,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     private final Map<String, List<String>> loggedOutAuthenticators = new HashMap<>();
 
+    private boolean sendToMultiOptionPage;
+
     public String getCallerPath() {
         return callerPath;
     }
@@ -436,6 +438,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             requestedAcr = new ArrayList<>();
         }
         requestedAcr.add(acr);
+    }
+
+    public boolean isSendToMultiOptionPage() {
+
+        return sendToMultiOptionPage;
+    }
+
+    public void setSendToMultiOptionPage(boolean sendToMultiOptionPage) {
+
+        this.sendToMultiOptionPage = sendToMultiOptionPage;
     }
 
     /**

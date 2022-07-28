@@ -87,6 +87,8 @@ public abstract class FrameworkConstants {
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
     public static final String LOCAL = "LOCAL";
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
+    public static final String SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF = "showAuthFailureReasonOnLoginPage";
+    public static final String REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF = "redirectToRetryPageOnAccountLock";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
