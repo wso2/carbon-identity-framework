@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitializeInstance;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -103,6 +104,7 @@ public class FrameworkServiceDataHolder {
     private JSExecutionSupervisor jsExecutionSupervisor;
 
     private boolean isAdaptiveAuthenticationAvailable = false;
+    private boolean isOrganizationManagementEnable = false;
 
     private FrameworkServiceDataHolder() {
 
@@ -606,5 +608,28 @@ public class FrameworkServiceDataHolder {
     public void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
 
         isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Get is organization management enabled.
+     *
+     * @return True if organization management is enabled.
+     */
+    public boolean isOrganizationManagementEnable() {
+
+        return isOrganizationManagementEnable;
+    }
+
+    /**
+     * Set organization management enable/disable state.
+     *
+     * @param organizationManagementInitializeInstance OrganizationManagementInitializeInstance.
+     */
+    public void setOrganizationManagementEnable(
+            OrganizationManagementInitializeInstance organizationManagementInitializeInstance) {
+
+        if (organizationManagementInitializeInstance != null) {
+            isOrganizationManagementEnable = organizationManagementInitializeInstance.isOrganizationManagementEnabled();
+        }
     }
 }
