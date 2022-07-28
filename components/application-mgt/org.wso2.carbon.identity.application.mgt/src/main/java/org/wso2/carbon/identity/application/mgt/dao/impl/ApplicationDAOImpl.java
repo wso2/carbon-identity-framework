@@ -2085,7 +2085,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 getAppNamesStmt.setString(4, LOCAL_SP);
                 for (int i = 0; i < filterValues.size(); i++) {
                     filterValueResolvedForSQL = resolveSQLFilter(filterValues.get(i));
-                    getAppNamesStmt.setString(4 + i, filterValueResolvedForSQL);
+                    getAppNamesStmt.setString(5 + i, filterValueResolvedForSQL);
                 }
 
             } else {
