@@ -103,7 +103,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
-import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitializeInstance;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -948,18 +948,20 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "organization.mgt.initialize.service",
-            service = OrganizationManagementInitializeInstance.class,
+            service = OrganizationManagementInitialize.class,
             cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetOrganizationManagementEnablingService"
     )
     protected void setOrganizationManagementEnablingService(
-            OrganizationManagementInitializeInstance organizationManagementInitializeInstance) {
+            OrganizationManagementInitialize organizationManagementInitializeService) {
 
-        FrameworkServiceDataHolder.getInstance().setOrganizationManagementEnable(organizationManagementInitializeInstance);
+        FrameworkServiceDataHolder.getInstance()
+                .setOrganizationManagementEnable(organizationManagementInitializeService);
     }
 
-    protected void unsetOrganizationManagementEnablingService(OrganizationManagementInitializeInstance organizationManagementInitializeInstance) {
+    protected void unsetOrganizationManagementEnablingService(
+            OrganizationManagementInitialize organizationManagementInitializeInstance) {
 
         FrameworkServiceDataHolder.getInstance().setOrganizationManagementEnable(null);
     }
