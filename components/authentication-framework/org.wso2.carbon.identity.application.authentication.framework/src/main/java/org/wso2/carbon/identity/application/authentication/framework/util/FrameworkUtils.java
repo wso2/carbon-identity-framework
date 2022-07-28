@@ -2434,9 +2434,9 @@ public class FrameworkUtils {
      *
      * @return Organization management feature is enabled or not.
      */
-    public static boolean isOrganizationManagementEnable() {
+    public static boolean isOrganizationManagementEnabled() {
 
-        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnable();
+        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled();
     }
 
     public static boolean promptOnLongWait() {
