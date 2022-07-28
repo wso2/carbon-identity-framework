@@ -293,6 +293,8 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND:
                 return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT:
+                return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
