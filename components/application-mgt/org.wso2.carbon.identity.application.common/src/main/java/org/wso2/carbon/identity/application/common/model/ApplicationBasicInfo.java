@@ -40,7 +40,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application id.
      *
-     * @return application id
+     * @return application id.
      */
     public int getApplicationId() {
 
@@ -50,7 +50,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application id.
      *
-     * @param applicationId application id
+     * @param applicationId application id.
      */
     public void setApplicationId(int applicationId) {
 
@@ -60,7 +60,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application name.
      *
-     * @return application name
+     * @return application name.
      */
     public String getApplicationName() {
 
@@ -68,9 +68,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set application name
+     * Set application name.
      *
-     * @param applicationName application name
+     * @param applicationName   application name.
      */
     public void setApplicationName(String applicationName) {
 
@@ -78,9 +78,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get application description
+     * Get application description.
      *
-     * @return description
+     * @return description.
      */
     public String getDescription() {
 
@@ -88,9 +88,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set application description
+     * Set application description.
      *
-     * @param description description
+     * @param description   description.
      */
     public void setDescription(String description) {
 
@@ -98,9 +98,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get application resource id
+     * Get application resource id.
      *
-     * @return application resource id
+     * @return application resource id.
      */
     public String getApplicationResourceId() {
 
@@ -108,9 +108,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set application resource id
+     * Set application resource id.
      *
-     * @param applicationResourceId application resource id
+     * @param applicationResourceId application resource id.
      */
     public void setApplicationResourceId(String applicationResourceId) {
 
@@ -118,9 +118,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get image URL
+     * Get image URL.
      *
-     * @return image URL
+     * @return image URL.
      */
     public String getImageUrl() {
 
@@ -128,9 +128,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set application image URL
+     * Set application image URL.
      *
-     * @param imageUrl application image URL
+     * @param imageUrl  application image URL.
      */
     public void setImageUrl(String imageUrl) {
 
@@ -138,9 +138,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get access URL
+     * Get access URL.
      *
-     * @return access URL
+     * @return access URL.
      */
     public String getAccessUrl() {
 
@@ -148,9 +148,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set access URL
+     * Set access URL.
      *
-     * @param accessUrl access URL
+     * @param accessUrl access URL.
      */
     public void setAccessUrl(String accessUrl) {
 
@@ -158,9 +158,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get app owner details
+     * Get app owner details.
      *
-     * @return app owner details
+     * @return app owner details.
      */
     public User getAppOwner() {
 
@@ -168,9 +168,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set application owner details
+     * Set application owner details.
      *
-     * @param appOwner application owner details
+     * @param appOwner  application owner details.
      */
     public void setAppOwner(User appOwner) {
 
@@ -178,9 +178,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get inbound auth key
+     * Get inbound auth key.
      *
-     * @return inbound auth key
+     * @return inbound auth key.
      */
     public String getInboundKey() {
 
@@ -188,9 +188,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set inbound auth key
+     * Set inbound auth key.
      *
-     * @param inboundKey inbound auth key
+     * @param inboundKey    inbound auth key.
      */
     public  void setInboundKey(String inboundKey) {
 
