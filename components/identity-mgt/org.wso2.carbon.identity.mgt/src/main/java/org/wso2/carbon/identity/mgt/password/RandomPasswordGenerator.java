@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.mgt.password;
 
 /**
  * This can be implemented to generate random password
+ * @deprecated use {@link org.wso2.carbon.user.mgt.common.RandomPasswordGenerator} instead.
  */
+@Deprecated
 public interface RandomPasswordGenerator {
 
     /**

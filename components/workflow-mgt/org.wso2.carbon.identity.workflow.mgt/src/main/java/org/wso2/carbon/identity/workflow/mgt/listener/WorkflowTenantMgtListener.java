@@ -27,12 +27,13 @@ import org.wso2.carbon.stratos.common.exception.StratosException;
  * Workflow Tenant Management Listener.
  */
 public class WorkflowTenantMgtListener extends AbstractIdentityTenantMgtListener {
+
     private static final int EXEC_ORDER = 12;
 
     /**
-     * Get listener order.
+     * Get the execution order of the listener.
      *
-     * @return
+     * @return int The order of the listener.
      */
     @Override
     public int getListenerOrder() {

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -43,8 +43,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,10 +86,12 @@ public class JsClaims extends AbstractJSContextMemberObject {
     public void initializeContext(AuthenticationContext context) {
 
         super.initializeContext(context);
-        if (StringUtils.isNotBlank(idp) && getContext().getCurrentAuthenticatedIdPs().containsKey(idp)) {
-            this.authenticatedUser = getContext().getCurrentAuthenticatedIdPs().get(idp).getUser();
-        } else {
-            this.authenticatedUser = getAuthenticatedUserFromSubjectIdentifierStep();
+        if (this.authenticatedUser == null) {
+            if (StringUtils.isNotBlank(idp) && getContext().getCurrentAuthenticatedIdPs().containsKey(idp)) {
+                this.authenticatedUser = getContext().getCurrentAuthenticatedIdPs().get(idp).getUser();
+            } else {
+                this.authenticatedUser = getAuthenticatedUserFromSubjectIdentifierStep();
+            }
         }
     }
 
@@ -144,7 +146,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
         this.authenticatedUser = authenticatedUser;
     }
 
-    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public JsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -234,16 +236,17 @@ public class JsClaims extends AbstractJSContextMemberObject {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
-        String usernameWithDomain = UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser
-            .getUserStoreDomain());
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
             Map<String, String> claimUriMap = new HashMap<>();
             claimUriMap.put(claimUri, String.valueOf(claimValue));
-            userRealm.getUserStoreManager().setUserClaimValues(usernameWithDomain, claimUriMap, null);
+            ((AbstractUserStoreManager) userRealm.getUserStoreManager())
+                    .setUserClaimValuesWithID(authenticatedUser.getUserId(), claimUriMap, null);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
                     authenticatedUser, String.valueOf(claimValue)), e);
+        } catch (UserIdNotFoundException e) {
+            LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
     }
 
@@ -425,16 +428,17 @@ public class JsClaims extends AbstractJSContextMemberObject {
     private String getLocalUserClaim(String claimUri) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
-        String usernameWithDomain = UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser
-            .getUserStoreDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
         try {
             UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-            Map<String, String> claimValues = userRealm.getUserStoreManager().getUserClaimValues(usernameWithDomain, new
-                String[]{claimUri}, null);
+            Map<String, String> claimValues =
+                    ((AbstractUserStoreManager) userRealm.getUserStoreManager())
+                            .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[] {claimUri}, null);
             return claimValues.get(claimUri);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
+        } catch (UserIdNotFoundException e) {
+            LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableUserId(), e);
         }
         return null;
     }

@@ -38,7 +38,9 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
+    public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
@@ -63,6 +65,9 @@ public abstract class FrameworkConstants {
     public static final String ERROR_CODE = "errorCode";
     public static final String ERROR_MESSAGE = "errorMessage";
     public static final String ERROR_URI = "errorURI";
+    public static final String REMAINING_ATTEMPTS = "remainingAttempts";
+    public static final String FAILED_USERNAME = "failedUsername";
+    public static final String LOCK_REASON = "lockedReason";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -75,7 +80,8 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ENDPOINT_QUERY_PARAMS_ACTION_INCLUDE = "include";
     public static final String AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE = "exclude";
 
-    public static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
+    public static final String AUDIT_MESSAGE
+            = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     public static final String AUDIT_SUCCESS = "Success";
     public static final String AUDIT_FAILED = "Failed";
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
@@ -86,6 +92,7 @@ public abstract class FrameworkConstants {
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
     public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String CURRENT_POST_AUTHENTICATION_HANDLER = "currentPostAuthHandler";
     public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String STEP_BASED_SEQUENCE_HANDLER_TRIGGERED = "stepBasedSequenceHandlerTriggered";
     public static final String IS_USER_CREATION_NEEDED = "isUserCreationNeeded";
@@ -95,12 +102,23 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD_PROVISION_REDIRECTION_TRIGGERED = "passwordProvisioningRedirectionTriggered";
     public static final String CHANGING_USERNAME_ALLOWED = "changingUserNameAllowed";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
+    public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
+    public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
 
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String REQUEST_PARAM_ERROR_KEY = "errorKey";
+    public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
     public static final String ASSOCIATED_ID = "associatedID";
+
+    public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
+    public static final String IDP_RESOURCE_ID = "IDPResourceID";
+    public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
+    public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
@@ -108,9 +126,11 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
+    public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
+    public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
 
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
@@ -125,7 +145,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
-    public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
+    public static final String BACK_TO_FIRST_STEP = "BACK_TO_FIRST_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
@@ -136,10 +156,40 @@ public abstract class FrameworkConstants {
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
+    // Idp to local role mapping thread local identifier.
+    public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
+
+    // Maximum retry times for session data store.
+    public static final int MAX_RETRY_TIME = 3;
+
+    public static final String TENANT_CONTEXT_PREFIX = "/t/";
+
+    public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
+
+    public static final String BASIC_AUTH_MECHANISM = "basic";
+    public static final String RECAPTCHA_PARAM = "reCaptcha";
+    public static final String RECAPTCHA_RESEND_CONFIRMATION_PARAM = "reCaptchaResend";
+    public static final String RECAPTCHA_KEY_PARAM = "reCaptchaKey";
+    public static final String RECAPTCHA_API_PARAM = "reCaptchaAPI";
+
+    // DB product names.
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
+
     private FrameworkConstants() {
 
     }
 
+    /**
+     * Authentication framework configurations.
+     */
     public static class Config {
 
         // Constant definitions for Elements
@@ -158,6 +208,10 @@ public abstract class FrameworkConstants {
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRoles";
+        public static final String SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnManuallyAddedLocalRoles";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
@@ -241,11 +295,21 @@ public abstract class FrameworkConstants {
         public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
                 "PasswordUpdate.PreserveLoggedInSession";
 
+        /**
+         * Configuration to avoid deleting claim mapping during existing claim mapping syncing process with idp claims.
+         */
+        public static final String JIT_PROVISIONING_CONFIG = "JITProvisioning";
+        public static final String INCREDIBLE_CLAIMS_CONFIG_ELEMENT = "IndelibleClaims";
+        public static final String CLAIM_URI_CONFIG_ELEMENT = "ClaimURI";
+
         private Config() {
         }
 
     }
 
+    /**
+     * Parameters used in authentication requests.
+     */
     public static class RequestParams {
 
         public static final String TYPE = "type";
@@ -271,11 +335,17 @@ public abstract class FrameworkConstants {
         public static final String AUTH_TYPE = "authType";
         public static final String IDF = "idf";
         public static final String IDENTIFIER_CONSENT = "identifier_consent";
+        public static final String RESTART_FLOW = "restart_flow";
+        public static final String LOGIN_TENANT_DOMAIN = "t";
+        public static final String USER_TENANT_DOMAIN_HINT = "ut";
 
         private RequestParams() {
         }
     }
 
+    /**
+     * Parameters used in authentication responses.
+     */
     public static class ResponseParams {
 
         public static final String AUTHENTICATED = "commonAuthAuthenticated";
@@ -288,6 +358,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Standard inbound authentication protocols.
+     */
     public static class StandardInboundProtocols {
 
         public static final String OAUTH2 = "oauth2";
@@ -300,6 +373,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Inbound authentication request types.
+     */
     public static class RequestType {
 
         public static final String CLAIM_TYPE_OPENID = "openid";
@@ -313,6 +389,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Request attributes.
+     */
     public static class RequestAttribute {
 
         public static final String SESSION_DATA = "sessionData";
@@ -326,6 +405,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Default context paths in authentication endpoint.
+     */
     public static class DefaultUrlContexts {
 
         public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
@@ -334,9 +416,13 @@ public abstract class FrameworkConstants {
         public static final String IDENTIFIER_FIRST_CONFIRMATION = "/authenticationendpoint/idf-confirm.do";
         public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
         public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
+        public static final String ACCOUNT_RECOVERY_ENDPOINT_PATH = "/accountrecoveryendpoint";
 
     }
 
+    /**
+     * Analytics related attributes.
+     */
     public static class AnalyticsAttributes {
 
         public static final String USER = "user";
@@ -352,10 +438,14 @@ public abstract class FrameworkConstants {
         public static final String ACTIVE_SESSION_COUNT = "activeSessionCount";
     }
 
+    /**
+     * Attribute names exposed for adaptive authentication script.
+     */
     public static class JSAttributes {
 
         public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "identifier";
         public static final String JS_USERNAME = "username";
+        public static final String JS_UNIQUE_ID = "uniqueId";
         public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
         public static final String JS_TENANT_DOMAIN = "tenantDomain";
         public static final String JS_SERVICE_PROVIDER_NAME = "serviceProviderName";
@@ -408,6 +498,7 @@ public abstract class FrameworkConstants {
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
         public static final String JS_AUTH_FAILURE = "fail";
+        public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -415,7 +506,13 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+        public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
+        public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
     }
+
+    /**
+     * Domain names of internal roles.
+     */
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
@@ -424,6 +521,9 @@ public abstract class FrameworkConstants {
         }
     }
 
+    /**
+     * Content types.
+     */
     public static class ContentTypes {
 
         public static final String TYPE_APPLICATION_JSON = "application/json";
@@ -446,15 +546,33 @@ public abstract class FrameworkConstants {
         public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
     }
 
+    /**
+     * Adaptive authentication related constants.
+     */
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.Enable";
+        public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
+                "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
+        public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
+                "AdaptiveAuth.ExecutionSupervisor.Timeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
+                "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
+        public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
+        public static final String PROP_EXECUTION_SUPERVISOR_RESULT
+                = "AdaptiveAuthExecutionSupervisorResult";
     }
 
+    /**
+     * Resident IDP related properties.
+     */
     public static class ResidentIdpPropertyName {
 
-        public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
-        public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
+       public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
     }
 
 
@@ -477,5 +595,26 @@ public abstract class FrameworkConstants {
         public static final String CUSTOM_PARAM_3 = CUSTOM_PARAM_PREFIX + "3";
         public static final String CUSTOM_PARAM_4 = CUSTOM_PARAM_PREFIX + "4";
         public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
+    }
+
+    /**
+     * Default application related constants.
+     */
+    public static class Application {
+
+        public static final String MY_ACCOUNT_APP = "My Account";
+        public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
+        public static final String CONSOLE_APP = "Console";
+        public static final String CONSOLE_APP_PATH = "/console";
+    }
+
+    /**
+     * Auto login related constants.
+     */
+    public static class AutoLoginConstant {
+
+        public static final String COOKIE_NAME = "ALOR";
+        public static final String CONTENT = "content";
+        public static final String DOMAIN = "domain";
     }
 }

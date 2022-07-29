@@ -16,13 +16,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import com.sun.net.httpserver.BasicAuthenticator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -47,7 +47,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -55,6 +54,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -64,35 +64,50 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
-@PrepareForTest({
-                        FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
-                        IdentityTenantUtil.class
-                })
+@PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
+        IdentityTenantUtil.class, IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class DefaultStepBasedSequenceHandlerTest {
+
+    private static final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
+    private static final String AUTH_USER_NAME_IN_SEQUENCE_CONFIG = "userNameInSeq";
+    private static final String SP_SUBJECT_CLAIM_VALUE = "spSubject";
+    private static final String subjectIdentifier = "subjectID";
+    private static final List<String> mappedRoles = Collections.emptyList();
+    private static final String TENANT_DOMAIN = "foo.com";
+    private static final String PROVISIONING_USERSTORE_CLAIM_URI = "provisioning_user_store_claimUri";
+    private static final String PROVISONING_USERSTORE_BY_ID = "PROVISIONING_USER_STORE1";
+    private static final String PROVISONING_USERSTORE_BY_CLAIM = "PROVISIONING_USER_STORE2";
+    private static final String IDP_ROLE_CLAIM_URI = "idpClaimURI";
+    private static final String MULTI_ATTRIBUTE_SEPARATOR_1 = ",";
+    private static final String MULTI_ATTRIBUTE_SEPARATOR_2 = ",,,";
 
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
 
@@ -126,11 +141,13 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     @BeforeMethod
     public void setUp() throws Exception {
+
         initMocks(this);
         stepBasedSequenceHandler = spy(new DefaultStepBasedSequenceHandler());
         context = spy(new AuthenticationContext());
@@ -142,6 +159,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testGetInstance() throws Exception {
+
         CommonTestUtils.testSingleton(
                 DefaultStepBasedSequenceHandler.getInstance(),
                 DefaultStepBasedSequenceHandler.getInstance()
@@ -158,6 +176,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                                                       List<String> localUserRoles,
                                                       String multiAttributeSeparator,
                                                       String expectedRoles) throws Exception {
+
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         mockStatic(ApplicationMgtSystemConfig.class);
         mockStatic(IdentityTenantUtil.class);
@@ -172,10 +191,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "spRoleClaimUriProvider")
     private Object[][] getSpRoleClaimUriData() {
+
+        Util.mockIdentityUtil();
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
-                {null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI},
-                {"", FrameworkConstants.LOCAL_ROLE_CLAIM_URI}
+                {null, getLocalGroupsClaimURI()},
+                {"", getLocalGroupsClaimURI()}
         };
     }
 
@@ -185,6 +206,8 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "spRoleClaimUriProvider")
     public void testGetSpRoleClaimUri(String spRoleClaimUri,
                                       String expectedRoleClaimUri) throws Exception {
+
+        Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getRoleClaim()).thenReturn(spRoleClaimUri);
         assertEquals(stepBasedSequenceHandler.getSpRoleClaimUri(appConfig), expectedRoleClaimUri);
@@ -192,10 +215,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "spClaimMappingProvider")
     public Object[][] getSpClaimMappingProvider() {
+
+        Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
                         new HashMap<String, String>() {{
-                            put("SP_ROLE_CLAIM", FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+                            put("SP_ROLE_CLAIM", getLocalGroupsClaimURI());
                         }},
                         "SP_ROLE_CLAIM"
                 },
@@ -203,13 +228,13 @@ public class DefaultStepBasedSequenceHandlerTest {
                         new HashMap<String, String>() {{
                             put("SP_CLAIM", "LOCAL_CLAIM");
                         }},
-                        FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        getLocalGroupsClaimURI()
                 },
                 {      // No SP mapped claims
-                        new HashMap<>(), FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        new HashMap<>(), getLocalGroupsClaimURI()
                 },
                 {
-                        null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        null, getLocalGroupsClaimURI()
                 }
         };
     }
@@ -220,6 +245,8 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "spClaimMappingProvider")
     public void testGetSpRoleClaimUriSpMappedClaim(Map<String, String> claimMappings,
                                                    String expectedRoleClaim) throws Exception {
+
+        Util.mockIdentityUtil();
         ApplicationConfig appConfig = mock(ApplicationConfig.class);
         when(appConfig.getClaimMappings()).thenReturn(claimMappings);
         String roleClaim = stepBasedSequenceHandler.getSpRoleClaimUri(appConfig);
@@ -228,6 +255,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "idpRoleClaimUriProvider")
     public Object[][] getIdpRoleClaimUriData() {
+
         return new Object[][]{
                 {"IDP_ROLE_CLAIM", "IDP_ROLE_CLAIM"},
                 {"", ""},
@@ -249,10 +277,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "idpClaimMappingProvider")
     public Object[][] getIdpClaimMappingsProvider() {
+
+        Util.mockIdentityUtil();
         return new Object[][]{
                 {       // SP mapped role claim
                         new ClaimMapping[]{
-                                ClaimMapping.build(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "IDP_ROLE_CLAIM", "", true)
+                                ClaimMapping.build(getLocalGroupsClaimURI(), "IDP_ROLE_CLAIM", "", true)
                         },
                         "IDP_ROLE_CLAIM"
                 },
@@ -264,7 +294,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                 },
                 {       // Role claim among claim mappings but remote claim is null
                         new ClaimMapping[]{
-                                ClaimMapping.build(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, null, null, true)
+                                ClaimMapping.build(getLocalGroupsClaimURI(), null, null, true)
                         },
                         null
                 },
@@ -281,6 +311,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     public void testGetIdpRoleClaimUriFromClaimMappings(Object claimMappings,
                                                         String expectedRoleClaimUri) throws Exception {
 
+        Util.mockIdentityUtil();
         ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
         when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
 
@@ -291,6 +322,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testHandleClaimMappings() throws Exception {
+
         ClaimHandler claimHandler = Util.mockClaimHandler();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
@@ -298,7 +330,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         Map<String, String> claims = stepBasedSequenceHandler.handleClaimMappings(
                 null,
                 new AuthenticationContext(),
-                new HashMap<String, String>(),
+                new HashMap<>(),
                 false);
         assertNotNull(claims);
     }
@@ -309,7 +341,8 @@ public class DefaultStepBasedSequenceHandlerTest {
         ClaimHandler claimHandler = mock(ClaimHandler.class);
         doThrow(new FrameworkException("Claim Handling failed"))
                 .when(claimHandler)
-                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class), any(Map.class), anyBoolean());
+                .handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
+                        any(Map.class), anyBoolean());
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
@@ -317,7 +350,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         Map<String, String> claims = stepBasedSequenceHandler.handleClaimMappings(
                 null,
                 new AuthenticationContext(),
-                new HashMap<String, String>(),
+                new HashMap<>(),
                 false);
 
         assertNotNull(claims);
@@ -327,11 +360,8 @@ public class DefaultStepBasedSequenceHandlerTest {
     @DataProvider(name = "idpMappedUserRoleDataProvider")
     public Object[][] getIdpMappedUserRolesData() {
 
-        final String IDP_ROLE_CLAIM_URI = "idpClaimURI";
         final String[] idpRoles = new String[]{"IDP_ROLE1", "IDP_ROLE2", "IDP_ROLE3"};
         final String[] localRoles = new String[]{"LOCAL_ROLE1", "LOCAL_ROLE2", "LOCAL_ROLE3"};
-        final String MULTI_ATTRIBUTE_SEPARATOR_1 = ",";
-        final String MULTI_ATTRIBUTE_SEPARATOR_2 = ",,,";
 
         return new Object[][]{
                 // AttributeValueMap, IDP Role Claim URI, Exclude Unmapped Roles, Multi Attribute Separator,
@@ -469,12 +499,13 @@ public class DefaultStepBasedSequenceHandlerTest {
         context.setRetrying(true);
         context.setCurrentAuthenticator("OIDCAuthenticator");
 
-        stepBasedSequenceHandler.resetAuthenticationContext(context);
+        FrameworkUtils.resetAuthenticationContext(context);
 
         assertResetContext(context);
     }
 
     private void assertResetContext(AuthenticationContext context) {
+
         assertNull(context.getSubject());
         assertNull(context.getStateInfo());
         assertNull(context.getExternalIdP());
@@ -486,10 +517,6 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "jitProvisioningDataProvider")
     public Object[][] getJitProvisioningData() {
-
-        final String PROVISIONING_USERSTORE_CLAIM_URI = "provisioning_user_store_claimUri";
-        final String PROVISONING_USERSTORE_BY_ID = "PROVISIONING_USER_STORE1";
-        final String PROVISONING_USERSTORE_BY_CLAIM = "PROVISIONING_USER_STORE2";
 
         return new Object[][]{
                 // Provisioning User Store ID , Provisioning User Store Claim URI, External Attribute Map, expected
@@ -526,23 +553,22 @@ public class DefaultStepBasedSequenceHandlerTest {
                                           Map<String, String> externalAttributeValues,
                                           String expectedUserStoreToBeProvisioned) throws Exception {
 
-        final String subjectIdentifier = "subjectID";
-        final List<String> mappedRoles = Collections.emptyList();
-        final String TENANT_DOMAIN = "foo.com";
-
-        context = getMockedContextForJitProvisioning(provisioningUserStoreId, provisioningUserStoreClaimUri, TENANT_DOMAIN);
+        context = getMockedContextForJitProvisioning(provisioningUserStoreId, provisioningUserStoreClaimUri,
+                TENANT_DOMAIN);
 
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // Mock the provisioning handler
         ProvisioningHandler provisioningHandler = mock(ProvisioningHandler.class);
-        doNothing().when(provisioningHandler).handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
+        doNothing().when(provisioningHandler)
+                .handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
 
         // Mock framework util to returned mocked provisoning handler
         returnMockProvisioningHandler(provisioningHandler);
         mockHandlerThreadLocalProvisioningServiceProvider();
 
-        stepBasedSequenceHandler.handleJitProvisioning(subjectIdentifier, context, mappedRoles, externalAttributeValues);
+        stepBasedSequenceHandler
+                .handleJitProvisioning(subjectIdentifier, context, mappedRoles, externalAttributeValues);
         verify(provisioningHandler).handle(anyList(), anyString(), anyMap(), captor.capture(), anyString());
 
         // check whether the user is provisioned to correct user store
@@ -574,7 +600,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         when(externalIdPConfig.getProvisioningUserStoreId()).thenReturn(provisioningUserStoreId);
         when(externalIdPConfig.getProvisioningUserStoreClaimURI()).thenReturn(provisioningUserStoreClaimUri);
 
-        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
         applicationConfig.setApplicationName("DUMMY_NAME");
 
         SequenceConfig sequenceConfig = new SequenceConfig();
@@ -597,8 +623,8 @@ public class DefaultStepBasedSequenceHandlerTest {
         context = getMockedContextForJitProvisioning(null, null, null);
         // Mock the provisioning handler
         ProvisioningHandler provisioningHandler = mock(ProvisioningHandler.class);
-        doThrow(new FrameworkException("Provisioning Failed"))
-                .when(provisioningHandler).handle(anyList(), anyString(), anyMap(), anyString(), anyString());
+        doThrow(new FrameworkException("Provisioning Failed")).when(provisioningHandler)
+                .handle(anyList(), anyString(), anyMap(), anyString(), anyString());
 
         returnMockProvisioningHandler(provisioningHandler);
 
@@ -611,6 +637,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private void returnMockProvisioningHandler(ProvisioningHandler mockProvisioningHandler) throws FrameworkException {
+        
         // Mock framework util to returned mocked provisioning handler
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getProvisioningHandler()).thenReturn(mockProvisioningHandler);
@@ -621,6 +648,7 @@ public class DefaultStepBasedSequenceHandlerTest {
      */
     @Test
     public void testHandleSingleStep() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = getMockedStepHandlerForIncompleteStep(true);
 
@@ -639,6 +667,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test
     public void testHandleSingleStepFinish() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
@@ -649,8 +678,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         sequenceConfig.getStepMap().put(1, stepConfig);
         context.setSequenceConfig(sequenceConfig);
 
-        doNothing().when(stepBasedSequenceHandler).handlePostAuthentication(any(HttpServletRequest.class), any
-                (HttpServletResponse.class), any(AuthenticationContext.class));
+        doNothing().when(stepBasedSequenceHandler).handlePostAuthentication(request, response, context);
         stepBasedSequenceHandler.handle(request, response, context);
 
         assertTrue(context.getSequenceConfig().isCompleted());
@@ -659,12 +687,13 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private StepHandler getMockedStepHandlerForSuccessfulRequestAuthentication() throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = mock(StepHandler.class);
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(true);
                 context.setRequestAuthenticated(true);
@@ -677,12 +706,13 @@ public class DefaultStepBasedSequenceHandlerTest {
     }
 
     private StepHandler getMockedStepHandlerForIncompleteStep(final boolean isRequestAuthenticated) throws Exception {
+
         // mock the step handler
         StepHandler stepHandler = mock(StepHandler.class);
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(false);
                 context.setRequestAuthenticated(isRequestAuthenticated);
@@ -695,6 +725,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @DataProvider(name = "stepData")
     public Object[][] provideStepData() {
+
         return new Object[][]{
                 {
                         // Intermediate step is authenticated
@@ -710,6 +741,7 @@ public class DefaultStepBasedSequenceHandlerTest {
     @Test(dataProvider = "stepData")
     public void testHandleLastStep(boolean isRequestAuthenticated,
                                    boolean isOverallAuthenticationSucceeded) throws Exception {
+
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepHandler()).thenReturn(stepHandler);
@@ -825,10 +857,6 @@ public class DefaultStepBasedSequenceHandlerTest {
     @DataProvider(name = "postAuthenticationDataProvider")
     public Object[][] providePostAuthenticationSubjectIdentifierData() {
 
-        final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
-        final String AUTH_USER_NAME_IN_SEQUENCE_CONFIG = "userNameInSeq";
-        final String SP_SUBJECT_CLAIM_VALUE = "spSubject";
-
         return new Object[][]{
                 // subjectClaimUriFromAppConfig,
                 // spSubjectClaimValue,
@@ -933,14 +961,15 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Test(dataProvider = "postAuthenticationDataProvider")
     public void testHandlePostUserName(String subjectClaimUriFromAppConfig,
-                                                              String spSubjectClaimValue,
-                                                              boolean appendTenantDomainToSubject,
-                                                              boolean appendUserStoreDomainToSubject,
-                                                              String authenticatedUserNameInSequence,
-                                                              String expectedSubjectIdentifier) throws Exception {
+                                       String spSubjectClaimValue,
+                                       boolean appendTenantDomainToSubject,
+                                       boolean appendUserStoreDomainToSubject,
+                                       String authenticatedUserNameInSequence,
+                                       String expectedSubjectIdentifier) throws Exception {
 
         stepBasedSequenceHandler = new DefaultStepBasedSequenceHandler();
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(new ServiceProvider()));
+        ApplicationConfig applicationConfig =
+                spy(new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME));
         when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUriFromAppConfig);
         when(applicationConfig.isUseTenantDomainInLocalSubjectIdentifier()).thenReturn(appendTenantDomainToSubject);
         when(applicationConfig.isUseUserstoreDomainInLocalSubjectIdentifier())

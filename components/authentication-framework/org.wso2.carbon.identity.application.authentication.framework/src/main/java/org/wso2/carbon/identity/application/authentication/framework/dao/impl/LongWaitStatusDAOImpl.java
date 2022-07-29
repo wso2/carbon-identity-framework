@@ -31,6 +31,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
+/**
+ * Long wait status DAO implementation.
+ */
 public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
     private static final Log log = LogFactory.getLog(LongWaitStatusDAOImpl.class);
 
@@ -40,7 +43,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
         String query = "INSERT INTO IDN_AUTH_WAIT_STATUS (TENANT_ID, LONG_WAIT_KEY, WAIT_STATUS, TIME_CREATED, " +
                 "EXPIRE_TIME) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setInt(1, tenantId);
@@ -70,7 +73,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
 
         String query = "DELETE FROM IDN_AUTH_WAIT_STATUS WHERE LONG_WAIT_KEY=?";
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setString(1, waitKey);
@@ -94,20 +97,20 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
 
         LongWaitStatus longWaitStatus = new LongWaitStatus();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setString(1, waitKey);
                 try (ResultSet resultSet = addPrepStmt.executeQuery()) {
                     if (resultSet.next()) {
-                        String wait_status = resultSet.getString("WAIT_STATUS");
+                        String waitStatus = resultSet.getString("WAIT_STATUS");
                         if (log.isDebugEnabled()) {
                             log.debug("Searched for wait status for wait key: " + waitKey + ". Result: "
-                                    + ("1".equals(wait_status) ? "WAITING" : "COMPLETED"));
+                                    + ("1".equals(waitStatus) ? "WAITING" : "COMPLETED"));
                         }
-                        if(wait_status.equals("1")) {
+                        if (waitStatus.equals("1")) {
                             longWaitStatus.setStatus(LongWaitStatus.Status.WAITING);
-                        }else {
+                        } else {
                             longWaitStatus.setStatus(LongWaitStatus.Status.COMPLETED);
                         }
                     } else {

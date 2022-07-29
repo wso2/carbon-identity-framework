@@ -27,7 +27,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AuthenticatedIdPData implements Serializable {
+/**
+ * Authenticated IDP data.
+ */
+public class AuthenticatedIdPData implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 5576595024956777804L;
 
@@ -44,8 +47,8 @@ public class AuthenticatedIdPData implements Serializable {
     private List<AuthenticatorConfig> authenticators;
     private AuthenticatedUser user;
 
-    public AuthenticatedIdPData(){
-        authenticators = new ArrayList<AuthenticatorConfig>();
+    public AuthenticatedIdPData() {
+        authenticators = new ArrayList<>();
     }
 
     public String getIdpName() {
@@ -162,7 +165,7 @@ public class AuthenticatedIdPData implements Serializable {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
                                     "IDP : '%s'and the authenticator : '%s'.",
-                            user.getUserName(), idpName, authenticator.getName()));
+                            user.getLoggableUserId(), idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -171,7 +174,7 @@ public class AuthenticatedIdPData implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
-                    user.getUserName(), idpName, authenticatorName));
+                    user.getLoggableUserId(), idpName, authenticatorName));
         }
 
         return false;
@@ -187,9 +190,9 @@ public class AuthenticatedIdPData implements Serializable {
      */
     public boolean isAlreadyAuthenticatedUsing(String authenticatorName, String authMechanism) {
 
-        String username = null;
+        String loggableUserId = null;
         if (user != null) {
-            username = user.getUserName();
+            loggableUserId = user.getLoggableUserId();
         }
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)
@@ -197,8 +200,8 @@ public class AuthenticatedIdPData implements Serializable {
                             && authenticator.getApplicationAuthenticator().getAuthMechanism().equals(authMechanism))) {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
-                                    "IDP : '%s'and the authenticator : '%s'.",
-                            username, idpName, authenticator.getName()));
+                                    "IDP : '%s' and the authenticator : '%s'.",
+                            loggableUserId, idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -206,10 +209,19 @@ public class AuthenticatedIdPData implements Serializable {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
-                            "IDP : '%s'and the authenticator : '%s' before.",
-                    username, idpName, authenticatorName));
+                            "IDP : '%s' and the authenticator : '%s' before.",
+                    loggableUserId, idpName, authenticatorName));
         }
 
         return false;
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+
+        AuthenticatedIdPData authenticatedIdPData = (AuthenticatedIdPData) super.clone();
+        authenticatedIdPData.setUser(new AuthenticatedUser(this.user));
+        authenticatedIdPData.setIdpName(this.idpName);
+        authenticatedIdPData.authenticators = new ArrayList<>(this.authenticators);
+        return authenticatedIdPData;
     }
 }

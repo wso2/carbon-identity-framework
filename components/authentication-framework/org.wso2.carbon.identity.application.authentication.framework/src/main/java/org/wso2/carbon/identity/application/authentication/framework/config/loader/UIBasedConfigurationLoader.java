@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -53,7 +54,8 @@ import java.util.Map;
 /**
  * Sequence Configuration loader, loads the sequence configuration from the database.
  * <p>
- * History: The main logic was moved from @see {@link org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder},
+ * History: The main logic was moved from @see
+ * {@link org.wso2.carbon.identity.application.authentication.framework.config.builder.UIBasedConfigurationBuilder},
  * This is one step to move away from Singleton pattern used throughout the code.
  * Few other singletons should be removed and passed relevant information as setters or constructor arguments here.
  */
@@ -104,14 +106,19 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
                                                                 localAndOutboundAuthenticationConfig) {
 
-        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
-                ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
-                        localAndOutboundAuthenticationConfig.getAuthenticationType())) {
-            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
-                    .getAuthenticationScriptConfig();
-            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        if (FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+            if (ApplicationConstants.AUTH_TYPE_FLOW.equals(
+                    localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
+                    ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
+                            localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+                AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                        .getAuthenticationScriptConfig();
+                return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+            }
+            return false;
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
@@ -154,7 +161,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         }
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setApplicationId(serviceProvider.getApplicationName());
-        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider));
+        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider, tenantDomain));
 
         // setting request path authenticators
         loadRequestPathAuthenticators(sequenceConfig, serviceProvider);

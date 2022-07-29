@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.core.util;
 
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
@@ -29,28 +30,33 @@ import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
+import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
-import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -70,18 +76,24 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
@@ -111,6 +123,7 @@ public class IdentityUtil {
     private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
+    private static final String DISABLE_EMAIL_USERNAME_VALIDATION = "DisableEmailUserNameValidation";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -119,6 +132,8 @@ public class IdentityUtil {
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
+    private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
+    private static Map<String, Boolean> storeProcedureBasedDAOConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -126,6 +141,7 @@ public class IdentityUtil {
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
+    private static Boolean groupsVsRolesSeparationImprovementsEnabled;
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -218,6 +234,16 @@ public class IdentityUtil {
         return identityCookiesConfigurationHolder;
     }
 
+    public static List<String> getCookiesToInvalidateConfigurationHolder() {
+
+        return cookiesToInvalidateConfigurationHolder;
+    }
+
+    public static Map<String, Boolean> getStoreProcedureBasedDAOConfigurationHolder() {
+
+        return storeProcedureBasedDAOConfigurationHolder;
+    }
+
     /**
      * This method can use to check whether the legacy feature for the given legacy feature id is enabled or not
      *
@@ -289,6 +315,10 @@ public class IdentityUtil {
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
         legacyFeatureConfigurationHolder = IdentityConfigParser.getLegacyFeatureConfigurationHolder();
         reverseProxyConfigurationHolder = IdentityConfigParser.getInstance().getReverseProxyConfigurationHolder();
+        cookiesToInvalidateConfigurationHolder =
+                IdentityConfigParser.getInstance().getCookiesToInvalidateConfigurationHolder();
+        storeProcedureBasedDAOConfigurationHolder =
+                IdentityConfigParser.getInstance().getStoreProcedureBasedDAOConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
@@ -449,6 +479,39 @@ public class IdentityUtil {
             throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
         }
 
+        StringBuilder serverUrl = getServerUrlWithPort(hostName);
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
+    }
+
+    /**
+     * Returns the Management console URL for the endpoint with the proxy context and the web context root.
+     *
+     * @param endpoint            Endpoint that needs to be called.
+     * @param addProxyContextPath Flag that defines to add the proxy context path.
+     * @param addWebContextRoot   Flag that defines to add the web context root.
+     * @return Full path for the endpoint.
+     * @throws IdentityRuntimeException When an exception is occurred.
+     */
+    public static String getMgtConsoleURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+            throws IdentityRuntimeException {
+
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(
+                IdentityCoreConstants.MGT_CONSOLE_HOST_NAME);
+
+        if (StringUtils.isBlank(hostName)) {
+            hostName = NetworkUtils.getMgtHostName();
+        }
+
+        StringBuilder serverUrl = getServerUrlWithPort(hostName);
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
+    }
+
+    private static StringBuilder getServerUrlWithPort(String hostName) {
+
         String mgtTransport = CarbonUtils.getManagementTransport();
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
                 getServerConfigContext().getAxisConfiguration();
@@ -464,9 +527,7 @@ public class IdentityUtil {
         if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
             serverUrl.append(":").append(mgtTransportPort);
         }
-
-        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
-        return serverUrl.toString();
+        return serverUrl;
     }
 
     private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
@@ -1159,6 +1220,18 @@ public class IdentityUtil {
         return Boolean.parseBoolean(enableEmailUsernameProperty);
     }
 
+    /**
+     * Returns whether the email based username validation is disabled or not.
+     *
+     * @return true if the email username validation is disabled. False if it is not.
+     */
+    public static boolean isEmailUsernameValidationDisabled() {
+
+        String disableEmailUsernameValidationProperty = ServerConfiguration.getInstance()
+                .getFirstProperty(DISABLE_EMAIL_USERNAME_VALIDATION);
+        return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
+    }
+
      /**
      *
      * Converts and returns a {@link Certificate} object for given PEM content.
@@ -1387,5 +1460,251 @@ public class IdentityUtil {
             // Ignore.
         }
         return defaultItemsPerPage;
+    }
+
+    /**
+     * Check with authorization manager whether groups vs roles separation config is set to true.
+     *
+     * @return Where groups vs separation enabled or not.
+     */
+    public static boolean isGroupsVsRolesSeparationImprovementsEnabled() {
+
+        try {
+            UserRealm userRealm = AdminServicesUtil.getUserRealm();
+            if (userRealm == null) {
+                log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
+                return Boolean.FALSE;
+            }
+            if (groupsVsRolesSeparationImprovementsEnabled == null) {
+                groupsVsRolesSeparationImprovementsEnabled = UserCoreUtil.isGroupsVsRolesSeparationImprovementsEnabled(
+                        userRealm.getRealmConfiguration());
+            }
+            return groupsVsRolesSeparationImprovementsEnabled;
+
+        } catch (UserStoreException | CarbonException e) {
+            log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
+            return Boolean.FALSE;
+        }
+    }
+
+    /**
+     * With group role separation, user roles are separated into groups and internal roles and, to support backward
+     * compatibility, the legacy wso2.role claim still returns both groups and internal roles. This method provides
+     * claim URIs of these group, role claims.
+     *
+     * @return An unmodifiable set of claim URIs which contain user groups, roles, or both.
+     */
+    public static Set<String> getRoleGroupClaims() {
+
+        Set<String> roleGroupClaimURIs = new HashSet<>();
+        roleGroupClaimURIs.add(UserCoreConstants.ROLE_CLAIM);
+        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+            roleGroupClaimURIs.add(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+            roleGroupClaimURIs.add(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
+        }
+        return Collections.unmodifiableSet(roleGroupClaimURIs);
+    }
+
+    /**
+     * With group role separation, user roles are separated into groups and internal roles and, to support backward
+     * compatibility, the legacy wso2.role claim still returns both groups and internal roles. This method provides
+     * the claim URI which contain internal roles, or both groups and roles in a backward compatible manner.
+     *
+     * @return Claim URI for the user groups, or both groups and roles based on the backward compatibility.
+     */
+    public static String getLocalGroupsClaimURI() {
+
+        return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ?
+                UserCoreConstants.INTERNAL_ROLES_CLAIM : UserCoreConstants.ROLE_CLAIM;
+    }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopes() {
+
+        Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser
+                .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemRolesConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptyMap();
+        }
+
+        Iterator roleIdentifierIterator = systemRolesConfig
+                .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
+        if (roleIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptyMap();
+        }
+
+        while (roleIdentifierIterator.hasNext()) {
+            OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+            String roleName = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+            OMElement mandatoryScopesIdentifierIterator = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT));
+            Iterator scopeIdentifierIterator = mandatoryScopesIdentifierIterator
+                    .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_SCOPE_CONFIG_ELEMENT);
+
+            Set<String> scopes = new HashSet<>();
+            while (scopeIdentifierIterator.hasNext()) {
+                OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
+                String scopeName = scopeIdentifierConfig.getText();
+                if (StringUtils.isNotBlank(scopeName)) {
+                    scopes.add(scopeName.trim().toLowerCase());
+                }
+            }
+            if (StringUtils.isNotBlank(roleName)) {
+                systemRolesWithScopes.put(roleName.trim(), scopes);
+            }
+        }
+        return systemRolesWithScopes;
+    }
+
+    /**
+     * Check whether the system roles are enabled in the environment.
+     *
+     * @return {@code true} if the the system roles are enabled.
+     */
+    public static boolean isSystemRolesEnabled() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(IdentityConstants.SystemRoles.SYSTEM_ROLES_ENABLED_CONFIG_ELEMENT));
+    }
+
+    /**
+     * Check whether the system is set to use Claim locality to store localization code as its legacy implementation.
+     * Or set to use Claim local to store localization
+     *
+     * @return 'http://wso2.org/claims/locality' or 'http://wso2.org/claims/local' based on the configuration.
+     */
+    public static String getClaimUriLocale() {
+
+        if (Boolean.parseBoolean(IdentityUtil.getProperty("UseLegacyLocalizationClaim"))) {
+            return "http://wso2.org/claims/locality";
+        } else {
+            return "http://wso2.org/claims/local";
+        }
+    }
+
+    /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param tenantId        Id of the tenant domain of the user.
+     * @param userStoreDomain Userstore of the user.
+     * @param username        Username.
+     * @return Unique user id of the user.
+     * @throws IdentityException When error occurred while retrieving the user id.
+     */
+    @Deprecated
+    public static String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
+            IdentityException {
+
+        try {
+            if (StringUtils.isEmpty(userStoreDomain)) {
+                userStoreDomain = IdentityCoreServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId).
+                        getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                if (StringUtils.isEmpty(userStoreDomain)) {
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                }
+            }
+            org.wso2.carbon.user.api.UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
+            try {
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                    // If the user id could not be resolved, probably user does not exist in the user store.
+                    if (StringUtils.isBlank(userId)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User id could not be resolved for username: " + username + " in user store " +
+                                    "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
+                                    "user does not exist in the user store.");
+                        }
+                    }
+                    return userId;
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                            "AbstractUserStore manager");
+                }
+                throw new IdentityException("Unable to get the unique id of the user: " + username + ".");
+            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while resolving Id for the user: " + username, e);
+                }
+                throw new IdentityException("Error occurred while resolving Id for the user: " + username, e);
+            }
+        } catch (UserStoreException e) {
+            throw new IdentityException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
+        }
+    }
+
+    private static org.wso2.carbon.user.api.UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
+            throws UserStoreException {
+
+        org.wso2.carbon.user.api.UserStoreManager userStoreManager =
+                IdentityCoreServiceDataHolder.getInstance().getRealmService().getTenantUserRealm(tenantId)
+                        .getUserStoreManager();
+        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
+            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
+                    userStoreDomain);
+        }
+        if (log.isDebugEnabled()) {
+            String debugLog = String.format(
+                    "Unable to resolve the corresponding user store manager for the domain: %s, " +
+                            "as the provided user store manager: %s, is not an instance of " +
+                            "org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store manager: %s," +
+                            " from the realm.", userStoreDomain, userStoreManager.getClass(),
+                    userStoreManager.getClass());
+            log.debug(debugLog);
+        }
+        return userStoreManager;
+    }
+
+    /**
+     * Read configuration elements defined as lists from the identity.xml
+     *
+     * @param key Element Name as specified from the parent elements in the XML structure.
+     *            To read the element value of b in {@code <a><b>t1</b><b>t2</b></a>},
+     *            the property name should be passed as "a.b" to get a list of b
+     * @return String list from the config element passed in as key.
+     */
+    public static List<String> getPropertyAsList(String key) {
+
+        List<String> propertyList = new ArrayList<>();
+        Object value = configuration.get(key);
+
+        if (value == null) {
+            return propertyList;
+        }
+        if (value instanceof List) {
+            List rawProps = (List) value;
+            for (Object rawProp: rawProps ) {
+                if (rawProp instanceof String) {
+                    propertyList.add((String) rawProp);
+                } else {
+                    propertyList.add(String.valueOf(rawProp));
+                }
+            }
+        } else if (value instanceof String) {
+            propertyList.add((String) value);
+        } else {
+            propertyList.add(String.valueOf(value));
+        }
+        return propertyList;
     }
 }

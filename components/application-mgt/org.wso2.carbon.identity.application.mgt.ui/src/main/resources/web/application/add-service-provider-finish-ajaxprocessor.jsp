@@ -35,12 +35,14 @@
     String appid = request.getParameter("spName");
     String description = request.getParameter("sp-description");
     String templateName = request.getParameter("sp-template");
+    String isManagementApp = request.getParameter("is-management-app");
     
     if (appid != null && !"".equals(appid)) {
         
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationName(appid);
         serviceProvider.setDescription(description);
+        serviceProvider.setManagementApp(isManagementApp != null && "on".equals(isManagementApp));
         
         try {
             

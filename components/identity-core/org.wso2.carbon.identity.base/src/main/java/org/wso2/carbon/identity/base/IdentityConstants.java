@@ -123,6 +123,13 @@ public class IdentityConstants {
     public final static String COOKIE_SECURE = "secure";
     public final static String COOKIE_HTTP_ONLY = "httpOnly";
     public final static String COOKIE_SAME_SITE = "sameSite";
+    public final static String COOKIES_TO_INVALIDATE_CONFIG = "CookiesToInvalidate";
+
+    // Store Procedure Based DAO Configuration Constants
+    public final static String STORED_PROCEDURE_DAO_CONFIG = "StoredProcedureDAO";
+    public final static String DAO_CONFIG = "DAO";
+    public final static String DAO_NAME = "name";
+    public final static String DAO_ENABLE = "enable";
 
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {
@@ -148,6 +155,9 @@ public class IdentityConstants {
 
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
+
+    // Configuration constants of authentication authenticator in identity.xml file.
+    public static final String TAGS = "Tags";
 
     private IdentityConstants() {
     }
@@ -293,6 +303,7 @@ public class IdentityConstants {
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION = "EnableFederatedUserAssociation";
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
 
+        public static final String ADAPTIVE_AUTH_ALLOW_LOOPS = "AdaptiveAuth.AllowLoops";
     }
 
     /**
@@ -541,5 +552,19 @@ public class IdentityConstants {
         public final static String REVERSE_PROXY = "ReverseProxy";
         public final static String PROXY_CONTEXT = "ProxyContext";
         public final static String DEFAULT_CONTEXT = "DefaultContext";
+    }
+
+    /**
+     * Contains the constants related to System roles configs elements.
+     */
+    public static class SystemRoles {
+
+        // System roles config element.
+        public static final String SYSTEM_ROLES_CONFIG_ELEMENT = "SystemRoles";
+        public static final String SYSTEM_ROLES_ENABLED_CONFIG_ELEMENT = "SystemRoles.Enabled";
+        public static final String ROLE_CONFIG_ELEMENT = "Role";
+        public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
+        public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
+        public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
     }
 }

@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp1;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp2;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleTenant;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
@@ -65,6 +67,7 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERRO
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_CORS_ORIGINS_BY_APPLICATION_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ORIGIN;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ID;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.INSERT_APPLICATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SAMPLE_ORIGIN_LIST_1;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SAMPLE_ORIGIN_LIST_2;
@@ -83,6 +86,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     private ConfigurationManager configurationManager;
     private Connection connection;
     private CORSManagementService corsManagementService;
+    private CORSOriginDAO corsOriginDAO;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -100,6 +104,10 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
 
         corsManagementService = new CORSManagementServiceImpl();
         CORSManagementServiceHolder.getInstance().setConfigurationManager(configurationManager);
+
+        // Skip caches for testing.
+        corsOriginDAO = new CORSOriginDAOImpl();
+        CORSManagementServiceHolder.getInstance().setCorsOriginDAO(corsOriginDAO);
     }
 
     @AfterMethod
@@ -150,7 +158,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
             try {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
                     try (NamedPreparedStatement namedPreparedStatement =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN, ID)) {
                         // Origin is not present. Therefore add an origin.
                         namedPreparedStatement.setInt(1, SampleTenant.ID);
                         namedPreparedStatement.setString(2, origin);
@@ -268,7 +276,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
                     // Origin is not present. Therefore add the origin.
                     try (NamedPreparedStatement namedPreparedStatement =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN, ID)) {
                         namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
                         namedPreparedStatement.setString(2, origin);
                         namedPreparedStatement.setString(3, UUID.randomUUID().toString());
@@ -348,7 +356,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
 
                 String origin = SAMPLE_ORIGIN_LIST_1.get(0);
                 try (NamedPreparedStatement namedPreparedStatement =
-                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN, ID)) {
                     // Origin is not present. Therefore add an origin.
                     namedPreparedStatement.setInt(1, SampleTenant.ID);
                     namedPreparedStatement.setString(2, origin);

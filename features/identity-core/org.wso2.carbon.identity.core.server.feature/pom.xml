@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core-feature</artifactId>
-        <version>5.18.187</version>
+        <version>5.21.35-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -58,6 +58,10 @@
             <groupId>commons-collections.wso2</groupId>
             <artifactId>commons-collections</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -83,6 +87,7 @@
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                         <include>identity.xml.j2</include>
+                                        <include>schemas.xml.j2</include>
                                         <include>org.wso2.carbon.identity.core.server.feature.default.json</include>
                                         <include>org.wso2.carbon.identity.core.server.feature.infer.json</include>
                                         <include>org.wso2.carbon.identity.core.server.feature.key-mappings.json</include>
@@ -119,6 +124,7 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.core</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.common</bundleDef>
                                 <bundleDef>ua.parser.wso2:ua-parser:${ua_parser.version}</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.apache.commons:commons-collections4:${apache.common.collections4.version}</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
@@ -151,5 +157,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>

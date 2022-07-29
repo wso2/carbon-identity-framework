@@ -215,4 +215,30 @@ public interface ApplicationResourceManagementListener {
                                                       String tenantDomain)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Define any additional actions before retrieving basic information an application by name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the user
+     * @return Whether execution of this operation is allowed to continue.
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPreGetApplicationBasicInfoByName(String name, String tenantDomain) {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after retrieving basic information an application by name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the user
+     * @return Whether execution of this operation is allowed to continue.
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPostGetApplicationBasicInfoByName(ApplicationBasicInfo basicAppInfo, String name,
+                                                        String tenantDomain) {
+
+        return true;
+    }
 }

@@ -26,9 +26,12 @@ import javax.cache.event.CacheEntryListener;
 /**
  * Abstract implementation of the listener operations for cache entries.
  *
+ * Deprecated use {@link org.wso2.carbon.identity.core.cache.AbstractCacheListener}.
+ *
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
+@Deprecated
 public abstract class AbstractCacheListener<K, V> implements CacheEntryListener<K, V> {
 
     /**

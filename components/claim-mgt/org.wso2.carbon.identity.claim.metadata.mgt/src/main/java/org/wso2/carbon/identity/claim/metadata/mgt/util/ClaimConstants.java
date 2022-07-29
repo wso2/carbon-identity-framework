@@ -67,11 +67,23 @@ public class ClaimConstants {
                 "Claim URI : %s already exists for claim dialect : %s"),
         ERROR_CODE_EXISTING_LOCAL_CLAIM_URI("100011",
                 "Local claim URI : %s already exists."),
+        ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI("100012",
+                "Local claim URI : %s does not exist."),
+        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_APPLICATION("10013",
+                "Unable to delete claim as it is referred by an application"),
+        ERROR_CODE_LOCAL_CLAIM_REFERRED_BY_AN_IDP("10014",
+                "Unable to delete claim as it is referred by an IDP"),
+        ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI("10015",
+                "External claim URI contains invalid characters"),
 
         // Client errors.
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
         ERROR_CODE_INVALID_TENANT_DOMAIN("CMT-60001", "Invalid tenant domain: %s"),
         ERROR_CODE_EXISTING_CLAIM_DIALECT("CMT-60002", "Claim dialect: %s already exists"),
+        ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED("CMT-60003", "Claim property: %s has " +
+                "exceeded maximum character limit of: %s"),
+        ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING("CMT-60004", "Local claim URI : %s is already mapped in claim " +
+                "dialect: %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +

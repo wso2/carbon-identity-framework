@@ -110,7 +110,7 @@ public class AuthHistory implements Serializable {
     public String toTranslatableString() {
         StringBuilder builder = new StringBuilder();
         builder.append(authenticatorName);
-        if(code != null) {
+        if (code != null) {
             builder.append("_").append(code);
         }
         return builder.toString();
@@ -135,8 +135,11 @@ public class AuthHistory implements Serializable {
 
         if (obj instanceof AuthHistory) {
             AuthHistory rhs = (AuthHistory) obj;
-            return new EqualsBuilder().appendSuper(super.equals(obj)).append(authenticatorName, rhs.authenticatorName)
-                    .append(idpName, rhs.idpName).append(code, rhs.code).isEquals();
+            return new EqualsBuilder()
+                    .append(authenticatorName, rhs.authenticatorName)
+                    .append(idpName, rhs.idpName)
+                    .append(code, rhs.code)
+                    .isEquals();
         }
         return false;
     }

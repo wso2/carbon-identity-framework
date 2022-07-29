@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
+import org.openjdk.nashorn.api.scripting.AbstractJSObject;
+
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map;
 
 /**
  * Javascript wrapper for Java level HashMap of HTTP headers.

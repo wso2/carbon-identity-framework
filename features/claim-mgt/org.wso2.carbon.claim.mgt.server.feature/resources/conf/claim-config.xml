@@ -42,7 +42,6 @@
 				<AttributeID>organizationName</AttributeID>
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -76,6 +75,7 @@
 				<AttributeID>telephoneNumber</AttributeID>
 				<Description>Telephone</Description>
 				<DisplayOrder>7</DisplayOrder>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<SupportedByDefault />
 			</Claim>
 			<Claim>
@@ -84,6 +84,7 @@
 				<AttributeID>mobile</AttributeID>
 				<Description>Mobile</Description>
 				<DisplayOrder>8</DisplayOrder>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<SupportedByDefault />
 			</Claim>
 			<Claim>
@@ -92,7 +93,6 @@
 				<AttributeID>im</AttributeID>
 				<Description>IM</Description>
 				<DisplayOrder>9</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/url</ClaimURI>
@@ -116,10 +116,17 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/role</ClaimURI>
-				<DisplayName>Role</DisplayName>
+				<DisplayName>Roles and groups</DisplayName>
 				<AttributeID>role</AttributeID>
-				<Description>Role</Description>
-	            		<SupportedByDefault />
+				<Description>Include both userstore groups and internal roles</Description>
+				<ReadOnly />
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/roles</ClaimURI>
+				<DisplayName>Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>Roles</Description>
+				<SupportedByDefault/>
 				<ReadOnly />
 			</Claim>
 			<Claim>
@@ -139,7 +146,7 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/locality</ClaimURI>
 				<DisplayName>Locality</DisplayName>
-				<AttributeID>local</AttributeID>
+				<AttributeID>localityAddress</AttributeID>
 				<Description>Locality</Description>
 			</Claim>
 			<Claim>
@@ -153,6 +160,8 @@
 				<DisplayName>Birth Date</DisplayName>
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Birth Date</Description>
+				<RegEx>^\d{4}-\d{2}-\d{2}$</RegEx>
+				<RegExValidationError>Date of Birth is not in the correct format of YYYY-MM-DD</RegExValidationError>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/nickname</ClaimURI>
@@ -216,6 +225,13 @@
 				<DisplayName>Last Modified Time</DisplayName>
 				<AttributeID>lastModifiedDate</AttributeID>
 				<Description>Last Modified timestamp of the user</Description>
+				<ReadOnly/>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/metadata.version</ClaimURI>
+				<DisplayName>User Metadata - Version</DisplayName>
+				<AttributeID>meta.version</AttributeID>
+				<Description>User Account Metadata - Version</Description>
 				<ReadOnly/>
 			</Claim>
 			<Claim>
@@ -303,7 +319,7 @@
 				<DisplayName>Phone Numbers</DisplayName>
 				<AttributeID>phoneNumbers</AttributeID>
 				<Description>Phone Numbers</Description>
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.home</ClaimURI>
@@ -360,6 +376,12 @@
 				<Description>Photo URL</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/websiteurl</ClaimURI>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
+				<Description>Website URL</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
 				<DisplayName>Photo - Thumbnail</DisplayName>
 				<AttributeID>thumbnail</AttributeID>
@@ -395,6 +417,8 @@
 				<DisplayName>Groups</DisplayName>
 				<AttributeID>groups</AttributeID>
 				<Description>Groups</Description>
+				<SupportedByDefault />
+				<ReadOnly />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
@@ -745,6 +769,54 @@
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/userSourceId</ClaimURI>
+				<DisplayName>User Source ID</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>userSourceId</AttributeID>
+				<Description>Claim to represent the provisioned IDP ID of the user.</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/totpEnabled</ClaimURI>
+				<DisplayName>TOTP Enabled</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>totpEnabled</AttributeID>
+				<Description>Claim to represent whether user has configured TOTP Authenticator</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/backupCodeEnabled</ClaimURI>
+				<DisplayName>Backup Code Enabled</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+				<AttributeID>backupCodeEnabled</AttributeID>
+				<Description>Claim to represent whether user has configured Backup Code authenticator</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/enabledAuthenticators</ClaimURI>
+				<DisplayName>Enabled Authenticators</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+				<AttributeID>enabledAuthenticators</AttributeID>
+				<Description>Claim to represent enabled second factor authenticators in My Account.</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/backupCodes</ClaimURI>
+				<DisplayName>Backup Codes</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+				<AttributeID>backupCodes</AttributeID>
+				<Description>Claim to store Backup Codes of the user</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/failedBackupCodeAttempts</ClaimURI>
+				<DisplayName>Failed Backup Code Attempts</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>failedBackupCodeAttempts</AttributeID>
+				<Description>Claim to store failed Backup Code Attempts</Description>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -1031,7 +1103,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-        <Dialect dialectURI="urn:scim:schemas:core:1.0">
+        <Dialect dialectURI="urn:scim:schemas:core:1.0"
+				 claimURIRegex="urn:scim:schemas:core:1.0:[a-zA-Z0-9$\-_\.]*$">
 			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1288,7 +1361,7 @@
                 <DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
-                <RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+                <RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1501,10 +1574,10 @@
 		</Dialect>
 		<Dialect dialectURI="http://wso2.org/oidc/claim">
 			<Claim>
-				<ClaimURI>sub</ClaimURI>
-				<DisplayName>Subject</DisplayName>
+				<ClaimURI>username</ClaimURI>
+				<DisplayName>Username</DisplayName>
 				<AttributeID>uid</AttributeID>
-				<Description>Identifier for the End-User at the Issuer</Description>
+				<Description>Username of the End-User</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
@@ -1586,12 +1659,12 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>website</ClaimURI>
-				<DisplayName>URL</DisplayName>
-				<AttributeID>url</AttributeID>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
 				<Description>URL of the End-User's Web page or blog. This Web page SHOULD contain information published by the End-User or an organization that the End-User is affiliated with.</Description>
 				<DisplayOrder>10</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/websiteurl</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>upn</ClaimURI>
@@ -1609,7 +1682,16 @@
 				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>roles</ClaimURI>
+				<DisplayName>User Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>List of role names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
+				<DisplayOrder>13</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>email</ClaimURI>
@@ -1726,7 +1808,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 		    </Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-zA-Z0-9$\-_\.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:id</ClaimURI>
 				<DisplayName>Id</DisplayName>
@@ -1795,7 +1878,7 @@
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/metadata.version</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</ClaimURI>
@@ -1804,7 +1887,7 @@
 				<Description>Fax Phone Number</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1814,11 +1897,12 @@
 				<Description>Pager Phone Number</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User"
+				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:User:[a-zA-Z0-9$\-_\.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:userName</ClaimURI>
 				<DisplayName>User Name</DisplayName>
@@ -2026,7 +2110,7 @@
 				<Description>Phone Numbers</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault/>
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2036,7 +2120,7 @@
 				<Description>Mobile Number</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/mobile</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2046,7 +2130,7 @@
 				<Description>Home Phone</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.home</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2056,7 +2140,7 @@
 				<Description>Work Phone</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.work</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2066,7 +2150,7 @@
 				<Description>Other Phone Number</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.other</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2166,7 +2250,7 @@
 				<Description>Roles</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</ClaimURI>
@@ -2178,7 +2262,8 @@
 				<MappedLocalClaim>http://wso2.org/claims/x509Certificates</MappedLocalClaim>
 			</Claim>
 		</Dialect>
-		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">
+		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
+				 claimURIRegex="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:[a-zA-Z0-9$\-_\.]*$">
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber</ClaimURI>
 				<DisplayName>Employee Number</DisplayName>
@@ -2578,6 +2663,46 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId</ClaimURI>
+				<DisplayName>User Source ID</DisplayName>
+				<AttributeID>userSourceId</AttributeID>
+				<Description>User Provisioned IDP ID</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/userSourceId</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:totpEnabled</ClaimURI>
+				<DisplayName>TOTP Enabled</DisplayName>
+				<AttributeID>totpEnabled</AttributeID>
+				<Description>TOTP Authenticator Enabled</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/totpEnabled</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:backupCodeEnabled</ClaimURI>
+				<DisplayName>Backup Code Enabled</DisplayName>
+				<AttributeID>backupCodeEnable</AttributeID>
+				<Description>Whether user has configured backup code authenticator or not.</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/backupCodeEnabled</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedBackupCodeAttempts</ClaimURI>
+				<DisplayName>Failed Backup Code Attempts</DisplayName>
+				<AttributeID>failedBackupCodeAttempts</AttributeID>
+				<Description>Number of failed backup code attempts</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">

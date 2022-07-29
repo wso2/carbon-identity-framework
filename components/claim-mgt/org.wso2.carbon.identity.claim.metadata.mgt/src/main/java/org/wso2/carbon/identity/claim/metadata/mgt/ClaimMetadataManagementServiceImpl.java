@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -29,18 +30,27 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI;
@@ -49,11 +59,14 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -66,7 +79,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
-
+    private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
 
     @Override
     public List<ClaimDialect> getClaimDialects(String tenantDomain) throws ClaimMetadataException {
@@ -107,11 +120,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EXISTING_CLAIM_DIALECT.getMessage(), claimDialect.getClaimDialectURI()));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreAddClaimDialect(tenantId, claimDialect);
 
         this.claimDialectDAO.addClaimDialect(claimDialect, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddClaimDialect(tenantId, claimDialect);
 
     }
 
@@ -129,11 +142,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateClaimDialect(tenantId, oldClaimDialect, newClaimDialect);
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
         externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
-        // Add listener
+
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateClaimDialect(tenantId, oldClaimDialect, newClaimDialect);
 
     }
 
@@ -150,13 +164,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteClaimDialect(tenantId, claimDialect);
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
         // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
         // ON DELETE CASCADE. Here we are removing the relevant cache entry.
         externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteClaimDialect(tenantId, claimDialect);
 
     }
 
@@ -171,8 +185,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // Add listener
 
-
-        return localClaims;
+        return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ? localClaims.stream().filter(
+                localClaim -> !UserCoreConstants.ROLE_CLAIM.equals(localClaim.getClaimURI())).collect(
+                Collectors.toList()) : localClaims;
     }
 
     @Override
@@ -185,6 +200,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
                             .getClaimDialectURI(), localClaim.getClaimURI()));
         }
+        validateClaimProperties(localClaim.getClaimProperties());
 
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -194,11 +210,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
         this.localClaimDAO.addLocalClaim(localClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddLocalClaim(tenantId, localClaim);
     }
 
     @Override
@@ -211,17 +227,36 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
                             .getClaimDialectURI(), localClaim.getClaimURI()));
         }
+        validateClaimProperties(localClaim.getClaimProperties());
 
         // TODO : validate claim URI already exists?
 
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
         this.localClaimDAO.updateLocalClaim(localClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateLocalClaim(tenantId, localClaim);
+    }
+
+    @Override
+    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, String tenantDomain, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        ClaimMetadataEventPublisherProxy claimMetadataEventPublisherProxy =
+                ClaimMetadataEventPublisherProxy.getInstance();
+        for (LocalClaim localClaim : localClaimList) {
+            claimMetadataEventPublisherProxy.publishPreUpdateLocalClaim(tenantId, localClaim);
+        }
+
+        this.localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
+
+        for (LocalClaim localClaim : localClaimList) {
+            claimMetadataEventPublisherProxy.publishPostUpdateLocalClaim(tenantId, localClaim);
+        }
     }
 
     @Override
@@ -243,11 +278,23 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM.getMessage(), localClaimURI));
         }
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteLocalClaim(tenantId, localClaimURI);
+        Collection<ClaimMetadataMgtListener> listeners =
+                IdentityClaimManagementServiceComponent.getClaimMetadataMgtListeners();
+        for (ClaimMetadataMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteClaim(localClaimURI, tenantDomain)) {
+                return;
+            }
+        }
 
         this.localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteLocalClaim(tenantId, localClaimURI);
+        for (ClaimMetadataMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteClaim(localClaimURI, tenantDomain)) {
+                return;
+            }
+        }
     }
 
     @Override
@@ -292,6 +339,16 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
+        ClaimConfig claimConfig = IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfig();
+        String claimURIRegex = null;
+        if (claimConfig != null) {
+            claimURIRegex = claimConfig.getClaimUriRegex(externalClaim.getClaimDialectURI());
+        }
+
+        if (claimURIRegex != null && !externalClaim.getClaimURI().matches(claimURIRegex)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI);
+        }
+
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
@@ -301,11 +358,21 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                             externalClaim.getClaimDialectURI()));
         }
 
+        boolean isLocalClaimAlreadyMapped =
+                this.externalClaimDAO.isLocalClaimMappedWithinDialect(externalClaim.getMappedLocalClaim(),
+                        externalClaim.getClaimDialectURI(), tenantId);
+
+        if (isLocalClaimAlreadyMapped) {
+            throw new ClaimMetadataClientException((ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING.getCode()),
+                    String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING.getMessage(),
+                            externalClaim.getMappedLocalClaim(), externalClaim.getClaimDialectURI()));
+        }
+
         // Add listener
 
         this.externalClaimDAO.addExternalClaim(externalClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostAddExternalClaim(tenantId, externalClaim);
     }
 
     @Override
@@ -333,11 +400,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateExternalClaim(tenantId, externalClaim);
 
         this.externalClaimDAO.updateExternalClaim(externalClaim, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostUpdateExternalClaim(tenantId, externalClaim);
     }
 
     @Override
@@ -357,17 +424,18 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
-
         // TODO : validate claim URI already exists?
 
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPreDeleteExternalClaim(tenantId,
+                externalClaimDialectURI, externalClaimURI);
 
         this.externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
 
-        // Add listener
+        ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteExternalClaim(tenantId,
+                externalClaimDialectURI, externalClaimURI);
     }
 
     @Override
@@ -392,13 +460,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     /**
      * Remove all claims of a given tenant.
      *
-     * @param tenantId Id of the tenant
-     * @throws ClaimMetadataException
+     * @param tenantId The id of the tenant.
+     * @throws ClaimMetadataException throws when an error occurs in removing claims.
      */
     @Override
     public void removeAllClaims(int tenantId) throws ClaimMetadataException {
 
-        // The relevant external claim deletions are handled by the DB through ON DELETE CASCADE
+        // The relevant external claim deletions are handled by the DB through ON DELETE CASCADE.
         this.claimDialectDAO.removeAllClaimDialects(tenantId);
     }
 
@@ -417,16 +485,56 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         return null;
     }
 
+    @Override
+    public void validateClaimAttributeMapping(List<LocalClaim> localClaimList,  String tenantDomain)
+            throws ClaimMetadataException {
+
+        for (LocalClaim localClaim : localClaimList) {
+            if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
+            } else if (localClaim.getMappedAttributes().isEmpty()) {
+                throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getCode(),
+                        String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
+                                .getClaimDialectURI(), localClaim.getClaimURI()));
+            }
+            if (!isExistingLocalClaimURI(localClaim.getClaimURI(), IdentityTenantUtil.getTenantId(tenantDomain))) {
+                throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getCode(),
+                        String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
+            }
+        }
+    }
+
+    /**
+     * Check whether the properties are valid.
+     *
+     * @param claimProperties List of claim properties.
+     * @throws ClaimMetadataClientException If any property is not valid.
+     */
+    private void validateClaimProperties(Map<String, String> claimProperties) throws ClaimMetadataClientException {
+
+        if (MapUtils.isEmpty(claimProperties)) {
+            return;
+        }
+        for (Map.Entry<String, String> property : claimProperties.entrySet()) {
+            String value = property.getValue();
+            if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
+                        String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(), property.getKey(),
+                                MAX_CLAIM_PROPERTY_LENGTH));
+            }
+        }
+    }
+
     private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
         return this.externalClaimDAO.getExternalClaims(externalClaimDialectURI, tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(externalClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(externalClaimURI)).findFirst().isPresent();
     }
 
     private boolean isExistingLocalClaimURI(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
-                claim -> claim.getClaimURI().equals(localClaimURI)).findFirst().isPresent();
+                claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI)).findFirst().isPresent();
     }
 }

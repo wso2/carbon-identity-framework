@@ -25,7 +25,10 @@ import java.io.Serializable;
 /**
  * Cache key class. Any value that acts as a cache key must encapsulated with a class overriding
  * from this class.
- */
+ *
+ * Deprecated use {@link org.wso2.carbon.identity.core.cache.CacheKey}.
+ **/
+@Deprecated
 public abstract class CacheKey implements Serializable {
 
     private static final long serialVersionUID = 659646764466611338L;

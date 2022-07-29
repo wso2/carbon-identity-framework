@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.mgt.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,11 +49,30 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
-     * @param applicationId
-     * @return
+     * Get service provider when the application resides in the same tenant of the request initiated.
+     *
+     * @param applicationId The application id.
+     * @return Service provider.
      * @throws IdentityApplicationManagementException
+     * @deprecated with getApplication(applicationId, tenantDomain) method.
      */
+    @Deprecated
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
+
+    /**
+     * Get service provider resides in given tenant domain.
+     *
+     * @param applicationId The application id.
+     * @param tenantDomain  The tenant domain where the application resides.
+     * @return Service provider.
+     * @throws IdentityApplicationManagementException throws when an error occurs in retrieving service provider with
+     *                                                all the configurations.
+     */
+    default ServiceProvider getApplication(int applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
 
     /**
      * @return
@@ -75,8 +96,8 @@ public interface ApplicationDAO {
     /**
      * Delete applications of a given tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
      */
     default void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
 
@@ -151,6 +172,20 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return null;
+    }
+
+    /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    default ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
     }
 
     default String addApplication(ServiceProvider application, String tenantDomain)
@@ -236,5 +271,46 @@ public interface ApplicationDAO {
             IdentityApplicationManagementException {
 
         return 0;
+    }
+
+    /**
+     * Method that can be run after updating components related to the service provider. Contains post application
+     * dependency update tasks.
+     *
+     * @param serviceProvider   Service provider application.
+     * @param tenantDomain      Tenant domain of the service provider.
+     */
+    default void clearApplicationFromCache(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+    }
+
+    /**
+     * Method that checks whether a claim is associated with any service provider.
+     *
+     * @param dbConnection  Optional DB connection.
+     * @param claimUri      Claim URI.
+     * @param tenantId      ID of the tenant.
+     * @return  True if claim is referred by a service provider.
+     * @throws IdentityApplicationManagementException   Error when obtaining claim references.
+     */
+    default boolean isClaimReferredByAnySp(Connection dbConnection, String claimUri, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return false;
+    }
+
+    /**
+     * Method that returns service provider with required attributes.
+     *
+     * @param applicationId       Application identifier.
+     * @param requiredAttributes  List of required attributes.
+     * @return  ServiceProvider with required attributes added.
+     * @throws IdentityApplicationManagementException   Error when obtaining Sp with required attributes.
+     */
+    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        return new ServiceProvider();
     }
 }

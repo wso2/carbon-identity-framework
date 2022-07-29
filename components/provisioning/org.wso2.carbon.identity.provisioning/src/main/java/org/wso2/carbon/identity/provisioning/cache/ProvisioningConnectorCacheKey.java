@@ -18,20 +18,18 @@
 
 package org.wso2.carbon.identity.provisioning.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 public class ProvisioningConnectorCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -1414485745666304223L;
-
     private String provisioningConnectorKey;
 
     /**
      * @param provisioningConnectorKey
      */
-    public ProvisioningConnectorCacheKey(String provisioningConnectorKey, String tenantDomain) {
+    public ProvisioningConnectorCacheKey(String provisioningConnectorKey) {
         this.provisioningConnectorKey = provisioningConnectorKey;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**
@@ -49,17 +47,13 @@ public class ProvisioningConnectorCacheKey extends CacheKey {
 
         ProvisioningConnectorCacheKey that = (ProvisioningConnectorCacheKey) o;
 
-        if (!provisioningConnectorKey.equals(that.provisioningConnectorKey)) return false;
-        if (!tenantDomain.equals(that.tenantDomain)) return false;
-
-        return true;
+        return provisioningConnectorKey.equals(that.provisioningConnectorKey);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + provisioningConnectorKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

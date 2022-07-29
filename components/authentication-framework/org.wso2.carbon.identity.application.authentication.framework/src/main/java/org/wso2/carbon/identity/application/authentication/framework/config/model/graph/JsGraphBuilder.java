@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openjdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
@@ -49,9 +50,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -75,6 +78,17 @@ public class JsGraphBuilder {
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
+    private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
+            "var exit=function(){Log.error('exit function is restricted.')};" +
+            "var print=function(){Log.error('print function is restricted.')};" +
+            "var echo=function(){Log.error('echo function is restricted.')};" +
+            "var readFully=function(){Log.error('readFully function is restricted.')};" +
+            "var readLine=function(){Log.error('readLine function is restricted.')};" +
+            "var load=function(){Log.error('load function is restricted.')};" +
+            "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
+            "var $ARG=null;var $ENV=null;var $EXEC=null;" +
+            "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
+            "Object.defineProperty(this, 'engine', {});";
 
     /**
      * Constructs the builder with the given authentication context.
@@ -140,7 +154,6 @@ public class JsGraphBuilder {
         try {
             currentBuilder.set(this);
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-            Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                     this::sendError);
@@ -150,8 +163,6 @@ public class JsGraphBuilder {
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
                     (LoadExecutor) this::loadLocalLibrary);
-            engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
-            engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -160,9 +171,21 @@ public class JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
-            engine.eval(script);
-            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
-                    new JsAuthenticationContext(authenticationContext));
+            removeDefaultFunctions(engine);
+
+            String identifier = UUID.randomUUID().toString();
+            JSExecutionMonitorData scriptExecutionData;
+            try {
+                startScriptExecutionMonitor(identifier, authenticationContext);
+                engine.eval(script);
+                invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
+                        new JsAuthenticationContext(authenticationContext));
+            } finally {
+                scriptExecutionData = endScriptExecutionMonitor(identifier);
+            }
+            if (scriptExecutionData != null) {
+                storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            }
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
@@ -359,6 +382,12 @@ public class JsGraphBuilder {
     private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
+            setCurrentStepAsSubjectIdentifier(stepConfig);
+        }
+        if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
+            setCurrentStepAsSubjectAttribute(stepConfig);
+        }
     }
 
     /**
@@ -380,7 +409,7 @@ public class JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator);
+                    filteredOptions.get(idp).add(authenticator.toLowerCase());
                 }
             }
         });
@@ -415,7 +444,7 @@ public class JsGraphBuilder {
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
                             if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
@@ -430,9 +459,10 @@ public class JsGraphBuilder {
                             }
                         }
                     } else {
-                        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                        for (FederatedAuthenticatorConfig federatedAuthConfig
+                                : idp.getFederatedAuthenticatorConfigs()) {
                             if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
@@ -559,10 +589,21 @@ public class JsGraphBuilder {
         }
 
         StepConfig stepConfig = graph.getStepMap().get(stepId);
+        if (stepConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("The stepConfig of the step ID : " + stepId + " is null");
+            }
+            return;
+        }
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
         StepConfig clonedStepConfig = new StepConfig(stepConfig);
-        clonedStepConfig
-                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
+        StepConfig stepConfigFromContext = null;
+        if (MapUtils.isNotEmpty(context.getSequenceConfig().getStepMap())) {
+            stepConfigFromContext = context.getSequenceConfig().getStepMap().values().stream()
+                    .filter(contextStepConfig -> (stepConfig.getOrder() == contextStepConfig.getOrder()))
+                    .findFirst().orElse(null);
+        }
+        clonedStepConfig.applyStateChangesToNewObjectFromContextStepMap(stepConfigFromContext);
         if (log.isDebugEnabled()) {
             log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
         }
@@ -865,44 +906,138 @@ public class JsGraphBuilder {
         return new StepConfigGraphNode(stepConfig);
     }
 
+    /**
+     * Functional interface for authentication failed callback.
+     */
     @FunctionalInterface
     public interface FailAuthenticationFunction {
 
         void fail(Object... parameterMap);
     }
 
+    /**
+     * Functional interface for executeStep function.
+     */
     @FunctionalInterface
     public interface StepExecutor {
 
         void executeStep(Integer stepId, Object... parameterMap);
     }
 
+    /**
+     * Functional interface for prompt in the authentication.
+     */
     @FunctionalInterface
     public interface PromptExecutor {
 
         void prompt(String template, Object... parameterMap);
     }
 
+    /**
+     * Functional interface for restricted functions in authentication script.
+     */
+    @Deprecated
     @FunctionalInterface
     public interface RestrictedFunction {
 
         void exit(Object... arg);
     }
 
+    /**
+     * Functional interface to load authentication library.
+     */
     @FunctionalInterface
     public interface LoadExecutor {
 
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
+    @Deprecated
     public void exitFunction(Object... arg) {
 
         log.error("Exit function is restricted.");
     }
 
+    @Deprecated
     public void quitFunction(Object... arg) {
 
         log.error("Quit function is restricted.");
+    }
+
+    private void removeDefaultFunctions(ScriptEngine engine) throws ScriptException {
+
+        engine.eval(REMOVE_FUNCTIONS);
+    }
+
+    private JSExecutionSupervisor getJSExecutionSupervisor() {
+
+        return FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor();
+    }
+
+    private void storeAuthScriptExecutionMonitorData(AuthenticationContext context,
+                                                     JSExecutionMonitorData jsExecutionMonitorData) {
+
+        context.setProperty(FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_RESULT,
+                jsExecutionMonitorData);
+    }
+
+    private JSExecutionMonitorData retrieveAuthScriptExecutionMonitorData(AuthenticationContext context) {
+
+        JSExecutionMonitorData jsExecutionMonitorData;
+        Object storedResult = context.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.PROP_EXECUTION_SUPERVISOR_RESULT);
+        if (storedResult != null) {
+            jsExecutionMonitorData = (JSExecutionMonitorData) storedResult;
+        } else {
+            jsExecutionMonitorData = new JSExecutionMonitorData(0L, 0L);
+        }
+        return jsExecutionMonitorData;
+    }
+
+    private void startScriptExecutionMonitor(String identifier, AuthenticationContext context,
+                                             JSExecutionMonitorData previousExecutionResult) {
+
+        JSExecutionSupervisor jsExecutionSupervisor = getJSExecutionSupervisor();
+        if (jsExecutionSupervisor == null) {
+            return;
+        }
+        getJSExecutionSupervisor().monitor(identifier, context.getServiceProviderName()
+                , context.getTenantDomain(), previousExecutionResult.getElapsedTime(),
+                previousExecutionResult.getConsumedMemory());
+    }
+
+    private void startScriptExecutionMonitor(String identifier, AuthenticationContext context) {
+
+        startScriptExecutionMonitor(identifier, context, new JSExecutionMonitorData(0L, 0L));
+    }
+
+    private JSExecutionMonitorData endScriptExecutionMonitor(String identifier) {
+
+        JSExecutionSupervisor executionSupervisor = getJSExecutionSupervisor();
+        if (executionSupervisor == null) {
+            return null;
+        }
+        return getJSExecutionSupervisor().completed(identifier);
+    }
+
+    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectIdentifierStep(false);
+            }
+        });
+        stepConfig.setSubjectIdentifierStep(true);
+    }
+
+    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
+            if (config.isSubjectIdentifierStep()) {
+                config.setSubjectAttributeStep(false);
+            }
+        });
+        stepConfig.setSubjectAttributeStep(true);
     }
 
     /**
@@ -953,13 +1088,25 @@ public class JsGraphBuilder {
                                 .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
                         functionMap.forEach(globalBindings::put);
                     }
+                    removeDefaultFunctions(scriptEngine);
                     Compilable compilable = (Compilable) scriptEngine;
                     JsGraphBuilder.contextForJs.set(authenticationContext);
 
                     CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
-                    JSObject builderFunction = (JSObject) compiledScript.eval();
-                    result = jsConsumer.apply(builderFunction);
 
+                    String identifier = UUID.randomUUID().toString();
+                    JSExecutionMonitorData scriptExecutionData =
+                            retrieveAuthScriptExecutionMonitorData(authenticationContext);
+                    try {
+                        startScriptExecutionMonitor(identifier, authenticationContext, scriptExecutionData);
+                        JSObject builderFunction = (JSObject) compiledScript.eval();
+                        result = jsConsumer.apply(builderFunction);
+                    } finally {
+                        scriptExecutionData = endScriptExecutionMonitor(identifier);
+                    }
+                    if (scriptExecutionData != null) {
+                        storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+                    }
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext

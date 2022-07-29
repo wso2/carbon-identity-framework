@@ -70,6 +70,10 @@ import java.util.Map;
 /**
  * This service provides the services needed to recover user password and user
  * account information.
+ * @deprecated use identity management REST API implementation available in
+ * org.wso2.carbon.identity.rest.api.user.recovery.v1.impl.core.UsernameRecoveryService,
+ * org.wso2.carbon.identity.rest.api.user.recovery.v1.impl.core.PasswordRecoveryService,
+ * org.wso2.carbon.identity.user.endpoint.impl.MeApiServiceImpl instead.
  */
 public class UserInformationRecoveryService {
 

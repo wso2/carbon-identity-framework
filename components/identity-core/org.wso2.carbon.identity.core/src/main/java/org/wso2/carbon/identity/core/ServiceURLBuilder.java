@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.core;
 
-import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 
 /**
@@ -70,6 +69,31 @@ public interface ServiceURLBuilder {
      * @return {@link ServiceURLBuilder}.
      */
     ServiceURLBuilder addFragmentParameter(String key, String value);
+
+
+    /**
+     * Returns {@link ServiceURLBuilder} with tenant domain set for the context.
+     *
+     * @param tenantDomain Tenant domain
+     * @return {@link ServiceURLBuilder}.
+     */
+    default ServiceURLBuilder setTenant(String tenantDomain) {
+
+        return this;
+    }
+
+    /**
+     * This is an overload of method setTenant(String tenantDomain). This method has an additional param to mandate
+     * tenanted path appending for URLs.
+     *
+     * @param tenantDomain          Tenant domain.
+     * @param mandateTenantedPath   Mandate tenanted path appending for the URL.
+     * @return  {@link ServiceURLBuilder}
+     */
+    default ServiceURLBuilder setTenant(String tenantDomain, boolean mandateTenantedPath) {
+
+        return this;
+    }
 
     /**
      * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context

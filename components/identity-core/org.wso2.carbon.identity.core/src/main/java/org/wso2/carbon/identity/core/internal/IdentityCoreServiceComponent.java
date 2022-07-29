@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.KeyProviderService;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.identity.core.ServiceURLBuilderFactory;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
+import org.wso2.carbon.identity.core.migrate.MigrationClientStartupObserver;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
@@ -147,6 +149,8 @@ public class IdentityCoreServiceComponent {
                 } else {
                     log.info("Executing Migration client : " + migrationClient.getClass().getName());
                     migrationClient.execute();
+                    ctxt.getBundleContext().registerService(ServerStartupObserver.class.getName(),
+                            new MigrationClientStartupObserver(migrationClient), null) ;
                 }
             }
 
@@ -168,14 +172,15 @@ public class IdentityCoreServiceComponent {
                 }
             }
 
+            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
+                    defaultKeyProviderService, null);
+
             // Register initialize service To guarantee the activation order. Component which is referring this
             // service will wait until this component activated.
             ctxt.getBundleContext().registerService(IdentityCoreInitializedEvent.class.getName(),
                     new IdentityCoreInitializedEventImpl(), null);
-
-
-            defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
-                    defaultKeyProviderService, null);
+            // Note : DO NOT add any activation related code below this point (after core initialized event registration),
+            // to make sure the server doesn't start up if any activation failures
         } catch (MigrationClientException e) {
             // Throwing migration client exception to wait till migration client implementation bundle starts if
             // -Dmigrate option is used.
@@ -225,6 +230,7 @@ public class IdentityCoreServiceComponent {
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
         defaultKeystoreManagerExtension.setRealmService(realmService);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
     /**
@@ -233,6 +239,7 @@ public class IdentityCoreServiceComponent {
     protected void unsetRealmService(RealmService realmService) {
         defaultKeystoreManagerExtension.setRealmService(null);
         IdentityTenantUtil.setRealmService(null);
+        IdentityCoreServiceDataHolder.getInstance().setRealmService(null);
     }
 
     @Reference(

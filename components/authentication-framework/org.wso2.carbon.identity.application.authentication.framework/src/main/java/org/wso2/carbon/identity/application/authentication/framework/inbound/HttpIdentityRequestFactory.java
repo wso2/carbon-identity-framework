@@ -32,10 +32,14 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * HTTP identity request factory.
+ */
 public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
@@ -131,7 +135,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
         return builder;
@@ -141,7 +146,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder
+                = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
     }

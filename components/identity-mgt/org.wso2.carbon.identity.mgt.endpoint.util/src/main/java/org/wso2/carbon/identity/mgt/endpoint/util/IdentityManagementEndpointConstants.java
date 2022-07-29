@@ -91,6 +91,7 @@ public class IdentityManagementEndpointConstants {
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
     public static final String TENANT_DOMAIN = "tenantdomain";
+    public static final String REALM = "realm";
 
     public static final String TENANT_DOMAIN_SEPARATOR = "@";
     public static final String USER_STORE_DOMAIN_SEPARATOR = "/";
@@ -99,6 +100,9 @@ public class IdentityManagementEndpointConstants {
 
     public static final String DEFAULT_USER_PORTAL_URL = "../myaccount";
     public static final String USER_PORTAL_URL = "/myaccount";
+    public static final String My_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String CONSOLE_APPLICATION_NAME = "Console";
+    public static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
 
     public static final String RELATIVE_PATH_START_CHAR = ".";
     public static final String SERVICE_CONFIG_RELATIVE_PATH =

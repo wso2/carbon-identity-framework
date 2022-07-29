@@ -48,8 +48,8 @@ public class TenantConsentMgtListener extends AbstractIdentityTenantMgtListener 
     /**
      * Delete all consents belongs to a given tenant before deleting the tenant.
      *
-     * @param tenantId Id of the tenant
-     * @throws StratosException
+     * @param tenantId The id of the tenant.
+     * @throws StratosException throws when an error occurs in deleting consents.
      */
     @Override
     public void onPreDelete(int tenantId) throws StratosException {
@@ -63,8 +63,8 @@ public class TenantConsentMgtListener extends AbstractIdentityTenantMgtListener 
     /**
      * Delete all consents belongs to a given tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws StratosException
+     * @param tenantId The id of the tenant.
+     * @throws StratosException throws when an error occurs in deleting consents.
      */
     protected void deleteAllConsents(int tenantId) throws StratosException {
 

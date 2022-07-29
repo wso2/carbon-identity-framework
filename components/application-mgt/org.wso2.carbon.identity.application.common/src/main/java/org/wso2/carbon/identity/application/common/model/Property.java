@@ -72,6 +72,9 @@ public class Property implements Serializable {
     @XmlElement(name = "IsAdvanced")
     private boolean isAdvanced;
 
+    @XmlElement(name = "GroupID")
+    private int groupId;
+
     @IgnoreNullElement
     @XmlElement(name = "Regex")
     private String regex;
@@ -301,6 +304,16 @@ public class Property implements Serializable {
 
     public void setAdvanced(boolean isAdvanced) {
         this.isAdvanced = isAdvanced;
+    }
+
+    public int getGroupId() {
+
+        return groupId;
+    }
+
+    public void setGroupId(int groupId) {
+
+        this.groupId =  groupId;
     }
 
     public String getRegex() {

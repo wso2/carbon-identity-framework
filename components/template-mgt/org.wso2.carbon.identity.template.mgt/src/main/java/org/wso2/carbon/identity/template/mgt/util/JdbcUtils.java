@@ -19,29 +19,29 @@ package org.wso2.carbon.identity.template.mgt.util;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.DB2;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.H2;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MARIADB;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MICROSOFT;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MY_SQL;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.POSTGRE_SQL;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.S_MICROSOFT;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB;
 
 /**
  * A util class to support the Jdbc executions.
+ * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils} instead.
  */
+@Deprecated
 public class JdbcUtils {
 
     /**
      * Get a new Jdbc Template.
      *
      * @return a new Jdbc Template.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#getNewTemplate()} instead.
      */
+    @Deprecated
     public static JdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        return org.wso2.carbon.identity.core.util.JdbcUtils.getNewTemplate();
     }
 
     /**
@@ -49,10 +49,12 @@ public class JdbcUtils {
      *
      * @return true if DB is H2, MySQL or Postgres, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated
      */
+    @Deprecated
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIADB);
+        return isMySQLDB() || isH2DB() || isPostgreSQLDB() || isMariaDB();
     }
 
     /**
@@ -60,10 +62,12 @@ public class JdbcUtils {
      *
      * @return true if DB2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isDB2DB()} instead.
      */
+    @Deprecated
     public static boolean isDB2DB() throws DataAccessException {
 
-        return isDBTypeOf(DB2);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isDB2DB();
     }
 
     /**
@@ -71,10 +75,12 @@ public class JdbcUtils {
      *
      * @return true if DB is MSSql, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isMSSqlDB()} instead.
      */
+    @Deprecated
     public static boolean isMSSqlDB() throws DataAccessException {
 
-        return isDBTypeOf(MICROSOFT) || isDBTypeOf(S_MICROSOFT);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB();
     }
 
     /**

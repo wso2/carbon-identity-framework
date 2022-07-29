@@ -35,10 +35,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.I18nErrorCodeWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -57,7 +60,8 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -80,14 +84,15 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
 /**
@@ -96,7 +101,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
-    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
@@ -180,13 +184,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
 
-                    FrameworkUtils.sendToRetryPage(request, response);
+                    FrameworkUtils.sendToRetryPage(request, response, context);
                 }
 
                 // if there is a cache entry, wrap the original request with params in cache entry
                 if (authRequest != null) {
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
-                    FrameworkUtils.removeAuthenticationRequestFromCache(sessionDataKey);
                 }
                 context = initializeFlow(request, responseWrapper);
                 context.initializeAnalyticsData();
@@ -222,17 +225,47 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                     "Request Headers: " + getHeaderString(request) + "\n" +
                                     "Thread Id: " + Thread.currentThread().getId());
                         }
-                        FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                        FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
                         return;
                     }
                 }
 
-                if (isIdentifierFirstRequest(request)) {
-                    StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-                    boolean isIDFAuthenticatorInCurrentStep = isIDFAuthenticatorFoundInStep(stepConfig);
-                    //Current step cannot handle the IDF request. This is probably user has clicked on the back button.
-                    if (!isIDFAuthenticatorInCurrentStep) {
-                        handleIdentifierRequestInPreviousSteps(context);
+
+                /*
+                If
+                 Request specify to restart the flow again from first step by passing `restart_flow`.
+                 OR
+                 Identifier first request received and current step does not contains any flow handler.
+                    (To handle browser back with only with identifier-first and basic)
+                */
+                if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
+                        && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
+                    if (isCompletedStepsAreFlowHandlersOnly(context)) {
+                        // If the incoming request is restart and all the completed steps have only flow handlers as the
+                        // authenticated authenticator, then we reset the current step to 1.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Restarting the authentication flow from step 1 for  " +
+                                    context.getContextIdentifier());
+                        }
+                        context.setCurrentStep(0);
+                        context.setProperty(BACK_TO_FIRST_STEP, true);
+                        Map<String, String> runtimeParams =
+                                context.getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+                        runtimeParams.put(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME, null);
+                        FrameworkUtils.resetAuthenticationContext(context);
+                        returning = false;
+
+                        // IDF should be the first step.
+                        context.getCurrentAuthenticatedIdPs().clear();
+                    } else {
+                        // If the incoming request is restart and the completed steps have authenticators as the
+                        // authenticated authenticator, then we redirect to retry page.
+                        String msg = "Restarting the authentication flow failed because there is/are authenticator/s " +
+                                "available in the completed steps for  " + context.getContextIdentifier();
+                        if (log.isDebugEnabled()) {
+                            log.debug(msg);
+                        }
+                        throw new MisconfigurationException(msg);
                     }
                 }
 
@@ -266,7 +299,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -278,31 +311,33 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
         } catch (MisconfigurationException e) {
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error","something.went.wrong.contact" +
-                    ".admin");
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context, "misconfiguration.error",
+                    "something.went.wrong.contact.admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
             }
+            I18nErrorCodeWrapper errorWrapper = ErrorToI18nCodeTranslator.translate(e.getErrorCode());
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
-            FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, errorWrapper.getStatus(),
+                    errorWrapper.getStatusMsg());
         } catch (Throwable e) {
-            log.error("Exception in Authentication Framework", e);
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                FrameworkUtils.sendToRetryPage(request, response, "suspicious.authentication.attempts",
+                FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
                         "suspicious.authentication.attempts.description");
             } else {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                log.error("Exception in Authentication Framework", e);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
+            UserCoreUtil.setDomainInThreadLocal(null);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -318,6 +353,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     if (log.isDebugEnabled()) {
                         log.debug("Context with id: " + context.getContextIdentifier() + " added to the cache.");
                     }
+                }
+                // Clear the auto login related cookies only during none passive authentication flow.
+                if (!context.isPassiveAuthenticate()) {
+                    FrameworkUtils.removeALORCookie(request, response);
                 }
             }
             unwrapResponse(responseWrapper, sessionDataKey, response, context);
@@ -347,55 +386,48 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void handleIdentifierRequestInPreviousSteps(AuthenticationContext context) {
-
-        boolean isIDFAuthenticatorFound = false;
-        int currentStep = context.getCurrentStep();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Started to handle the IDF request as previous steps since the current steps cannot handle the" +
-                    " IDF request");
-        }
-        while (currentStep > 1 && !isIDFAuthenticatorFound) {
-            currentStep = currentStep - 1;
-            isIDFAuthenticatorFound = isIDFAuthenticatorFoundInStep(context.getSequenceConfig().getStepMap().get(currentStep));
-        }
-
-        if (isIDFAuthenticatorFound) {
-            context.setCurrentStep(currentStep);
-            context.setProperty(BACK_TO_PREVIOUS_STEP, true);
-            //IDF should be the first step.
-            context.getCurrentAuthenticatedIdPs().clear();
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("IDF requests cannot handle in any of the previous steps.");
-            }
-        }
-    }
-
-    private boolean isIDFAuthenticatorFoundInStep( StepConfig stepConfig) {
-
-        boolean isIDFAuthenticatorInCurrentStep = false;
-        if (stepConfig != null) {
-            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
-            for (AuthenticatorConfig config : authenticatorList) {
-                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
-                    isIDFAuthenticatorInCurrentStep = true;
-                }
-            }
-        }
-        return isIDFAuthenticatorInCurrentStep;
-    }
-
-    /**
-     * This method is used to identify the Identifier First requests.
-     * @param request HttpServletRequest
-     * @return true or false.
-     */
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
 
         String authType = request.getParameter(AUTH_TYPE);
         return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
+    }
+
+    private boolean isFlowHandlerInCurrentStepCanHandleRequest(AuthenticationContext context,
+                                                               HttpServletRequest request) {
+
+        StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+        if (stepConfig != null) {
+            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+            for (AuthenticatorConfig config : authenticatorList) {
+                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler &&
+                        config.getApplicationAuthenticator().canHandle(request)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isBackToFirstStepRequest(HttpServletRequest request) {
+
+        String authType = request.getParameter(RESTART_FLOW);
+        return Boolean.parseBoolean(authType);
+    }
+
+    private boolean isCompletedStepsAreFlowHandlersOnly(AuthenticationContext context) {
+
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        for (int i = context.getCurrentStep() - 1; i >= 0; i--) {
+            StepConfig stepConfig = stepMap.get(i);
+            if (stepConfig != null) {
+                AuthenticatorConfig authenticatedAuthenticator = stepConfig.getAuthenticatedAutenticator();
+                if (!(authenticatedAuthenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                    return false;
+
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -425,7 +457,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private void associateTransientRequestData(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) {
 
-        if(context == null) {
+        if (context == null) {
             return;
         }
         // set current request and response to the authentication context.
@@ -457,6 +489,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         AuthenticationRequestCacheEntry authRequest = getAuthenticationRequestFromRequest(request);
         if (authRequest == null) {
             authRequest = FrameworkUtils.getAuthenticationRequestFromCache(sessionDataKey);
+            if (authRequest != null) {
+                FrameworkUtils.removeAuthenticationRequestFromCache(sessionDataKey);
+            }
         }
         return authRequest;
     }
@@ -494,13 +529,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // tenant domain
         String tenantDomain = getTenantDomain(request);
 
+        String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
+
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
         context.setCallerSessionKey(callerSessionDataKey);
-        context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
         context.setTenantDomain(tenantDomain);
+        context.setLoginTenantDomain(loginDomain);
+        context.setUserTenantDomainHint(userDomain);
+
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String loginTenantDomain = context.getLoginTenantDomain();
+            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/")) {
+                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+            }
+        }
+        context.setCallerPath(callerPath);
 
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
@@ -685,10 +732,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setPreviousSessionFound(true);
 
                     effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
-                    effectiveSequence.setReqPathAuthenticators(new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
+                    effectiveSequence.setReqPathAuthenticators(
+                            new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
                     effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
                     effectiveSequence.setAuthenticatedIdPs(previousAuthenticatedSeq.getAuthenticatedIdPs());
-                    effectiveSequence.setAuthenticatedReqPathAuthenticator(previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
+                    effectiveSequence.setAuthenticatedReqPathAuthenticator(
+                            previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
 
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
@@ -718,17 +767,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                         authenticatedUser.toString()));
                             }
                             context.setPreviousSessionFound(false);
-                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey);
+                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey,
+                                    context.getLoginTenantDomain());
                             sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }
-                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim updates,
-                    // authentication step updates will be reflected.
+                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim
+                    // updates, authentication step updates will be reflected.
                     refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
                             context.getRequestType(), context.getTenantDomain());
+                    context.setAuthenticatedIdPsOfApp(sessionContext.getAuthenticatedIdPsOfApp(appName));
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                context.setProperty(FrameworkConstants.RUNTIME_CLAIMS,
+                        sessionContext.getProperty(FrameworkConstants.RUNTIME_CLAIMS));
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
@@ -812,7 +865,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         try {
             ServiceProvider serviceProvider = getServiceProvider(clientType, clientId, tenantDomain);
-            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider);
+            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, tenantDomain);
             sequenceConfig.setApplicationConfig(appConfig);
             if (log.isDebugEnabled()) {
                 log.debug("Refresh application config in sequence config for application id: " + sequenceConfig
@@ -871,20 +924,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         try {
             UserRealm userRealm = (UserRealm) FrameworkServiceComponent.getRealmService().
                     getTenantUserRealm(tenantId);
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager().
-                    getSecondaryUserStoreManager(user.getUserStoreDomain());
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
 
-            if (userStoreManager.isExistingUser(user.getUserName())) {
-                return !(isUserDisabled(userStoreManager, user) ||
-                        isUserLocked(userStoreManager, user));
-
+            if (userStoreManager.isExistingUserWithID(user.getUserId())) {
+                return !(isUserDisabled(userStoreManager, user) || isUserLocked(userStoreManager, user));
             } else {
-                log.error("Trying to authenticate non existing user: " + user.getUserName());
+                log.error("Trying to authenticate non existing user: " + user.getLoggableUserId());
             }
         } catch (UserStoreException e) {
-            log.error("Error while checking existence of user: " + user.getUserName(), e);
+            log.error("Error while checking existence of user: " + user.getLoggableUserId(), e);
         } catch (FrameworkException e) {
-            log.error("Error while validating user: " + user.getUserName(), e);
+            log.error("Error while validating user: " + user.getLoggableUserId(), e);
+        } catch (UserIdNotFoundException e) {
+            log.error("User id is not available for user: " + user.getLoggableUserId(), e);
         }
         return false;
     }
@@ -897,19 +949,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return boolean
      * @throws FrameworkException
      */
-    private boolean isUserLocked(UserStoreManager userStoreManager, AuthenticatedUser user) throws FrameworkException {
+    private boolean isUserLocked(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
+            throws FrameworkException, UserIdNotFoundException {
 
-        if (!isAccountLockingEnabled(user.getTenantDomain())) {
-            return false;
-        }
-
-        String accountLockedClaimValue = getClaimValue(user.getUserName(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
+        String accountLockedClaimValue = getClaimValue(user.getUserId(), userStoreManager, ACCOUNT_LOCKED_CLAIM_URI);
         boolean accountLocked = Boolean.parseBoolean(accountLockedClaimValue);
 
         if (accountLocked) {
             long unlockTime = 0;
             String accountUnlockTimeClaimValue = getClaimValue(
-                    user.getUserName(), userStoreManager, ACCOUNT_UNLOCK_TIME_CLAIM);
+                    user.getUserId(), userStoreManager, ACCOUNT_UNLOCK_TIME_CLAIM);
 
             if (NumberUtils.isNumber(accountUnlockTimeClaimValue)) {
                 unlockTime = Long.parseLong(accountUnlockTimeClaimValue);
@@ -929,25 +978,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return boolean
      * @throws FrameworkException
      */
-    private boolean isUserDisabled(UserStoreManager userStoreManager, AuthenticatedUser user)
-            throws FrameworkException {
+    private boolean isUserDisabled(AbstractUserStoreManager userStoreManager, AuthenticatedUser user)
+            throws FrameworkException, UserIdNotFoundException {
 
         if (!isAccountDisablingEnabled(user.getTenantDomain())) {
             return false;
         }
 
         String accountDisabledClaimValue = getClaimValue(
-                user.getUserName(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
+                user.getUserId(), userStoreManager, ACCOUNT_DISABLED_CLAIM_URI);
         return Boolean.parseBoolean(accountDisabledClaimValue);
-
-    }
-
-    private boolean isAccountLockingEnabled(String tenantDomain) throws FrameworkException {
-
-        Property accountLockConfigProperty = FrameworkUtils.getResidentIdpConfiguration(
-                ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY, tenantDomain);
-
-        return accountLockConfigProperty != null && Boolean.parseBoolean(accountLockConfigProperty.getValue());
     }
 
     private boolean isAccountDisablingEnabled(String tenantDomain) throws FrameworkException {
@@ -961,21 +1001,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     /**
      * This method retrieves requested claim value from the user store
      *
-     * @param username
+     * @param userId
      * @param userStoreManager
      * @param claimURI
      * @return claim value as a String
      * @throws FrameworkException
      */
-    private String getClaimValue(String username, UserStoreManager userStoreManager, String claimURI) throws
+    private String getClaimValue(String userId, AbstractUserStoreManager userStoreManager, String claimURI) throws
             FrameworkException {
 
         try {
-            Map<String, String> values = userStoreManager.getUserClaimValues(username, new String[]{claimURI},
+            Map<String, String> values = userStoreManager.getUserClaimValuesWithID(userId, new String[]{claimURI},
                     UserCoreConstants.DEFAULT_PROFILE);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%s claim value of user %s is set to: " + values.get(claimURI),
-                        claimURI, username));
+                        claimURI, userId));
             }
             return values.get(claimURI);
 

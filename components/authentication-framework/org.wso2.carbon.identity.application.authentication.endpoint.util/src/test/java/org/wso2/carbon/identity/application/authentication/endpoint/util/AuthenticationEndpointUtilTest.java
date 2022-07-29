@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -23,9 +24,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
@@ -34,6 +37,9 @@ import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @PrepareForTest(IdentityUtil.class)
+@PowerMockIgnore("org.mockito.*")
+@WithCarbonHome
+@WithAxisConfiguration
 public class AuthenticationEndpointUtilTest {
 
     final String USERNAME = "TestUser";
@@ -165,4 +171,26 @@ public class AuthenticationEndpointUtilTest {
         Assert.assertEquals(userDTO.getRealm(), userStoreDomain);
     }
 
+    @DataProvider(name = "url-provider")
+    public Object[][] isValidURLData() {
+
+        return new Object[][]{
+                // Todo : following test case is failing for JDK 11 support. Ref: @thumimku
+                // we will fix it later. Ref: https://github.com/wso2/product-is/issues/14073
+//                {"/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
+                {"https://localhost:9443/authenticationendpoint/samlsso_login.do?&type=samlsso&sp=app", true},
+                {"javascript:alert(document.domain)", false},
+                {"abc\"><img%20src/onerror%2f\"alert(document.domain)\"<%20\"", false},
+                {"https:// www.wso2.org/", false},
+                {"   ", false},
+                {null, false}
+        };
+    }
+
+    @Test(dataProvider = "url-provider")
+    public void testIsValidURL(String urlString, boolean expectedValidity) throws Exception {
+
+        boolean validity = AuthenticationEndpointUtil.isValidURL(urlString);
+        Assert.assertEquals(validity, expectedValidity, "URL validity failed for " + urlString);
+    }
 }

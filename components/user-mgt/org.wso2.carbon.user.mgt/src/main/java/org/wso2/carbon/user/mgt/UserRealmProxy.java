@@ -84,7 +84,9 @@ public class UserRealmProxy {
     public static final String PERMISSION = "/permission";
     public static final String PERMISSION_TREE = "/permission/";
     public static final String PERMISSION_ADMIN = "/permission/admin";
+    public static final String PERMISSION_ADMIN_TREE = "/permission/admin/";
     public static final String PERMISSION_PROTECTED = "/permission/protected";
+    public static final String PERMISSION_PROTECTED_TREE = "/permission/protected/";
     private UserRealm realm = null;
 
     public UserRealmProxy(UserRealm userRealm) {
@@ -186,6 +188,7 @@ public class UserRealmProxy {
         try {
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             String[] users = userStoreManager.listUsers(filter, maxLimit);
+            RealmConfiguration realmConfig = userStoreManager.getRealmConfiguration();
             flaggedNames = new FlaggedName[users.length + 1];
             int i = 0;
             for (String user : users) {
@@ -205,6 +208,9 @@ public class UserRealmProxy {
                         ? flaggedNames[i].getItemName().indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
                 boolean domainProvided = index1 > 0;
                 String domain = domainProvided ? flaggedNames[i].getItemName().substring(0, index1) : null;
+                if (StringUtils.isBlank(domain)) {
+                    domain = UserCoreUtil.getDomainName(realmConfig);
+                }
                 if (domain != null && !UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) &&
                         !UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
                     UserStoreManager secondaryUM =
@@ -954,10 +960,14 @@ public class UserRealmProxy {
                 throw new UserAdminException("Read only user store or Role creation is disabled");
             }
         } catch (UserStoreException e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Failed to add the role: %s, to the user store", roleName), e);
+            }
             throw new UserAdminException(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Failed to add the role: %s", roleName), e);
+            }
             throw new UserAdminException(e.getMessage(), e);
         }
     }
@@ -2155,11 +2165,7 @@ public class UserRealmProxy {
             if (rawResources != null &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
                 Arrays.sort(rawResources);
-                if (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1) {
-
+                if (isPermissionsListHasAdminPermissions(rawResources)) {
                     log.warn("An attempt to Assign admin permission for role by user : " +
                             loggedInUserName);
                     throw new UserStoreException("Can not assign Admin for permission role");
@@ -2184,6 +2190,22 @@ public class UserRealmProxy {
             log.error(e.getMessage(), e);
             throw new UserAdminException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Check whether the admin permissions are available in the rawResources.
+     *
+     * @param rawResources Resource permissions list.
+     * @return True if the permissions list contains any admin root permissions.
+     */
+    private boolean isPermissionsListHasAdminPermissions(String[] rawResources) {
+
+        return (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_ADMIN_TREE) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_PROTECTED_TREE) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1);
     }
 
     public void bulkImportUsers(String userStoreDomain, String fileName, InputStream inStream, String defaultPassword)

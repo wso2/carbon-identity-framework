@@ -39,12 +39,14 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PlaceholderSQL;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveConditionValidator;
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
-import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -150,7 +152,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
@@ -158,6 +159,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_TYPE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
@@ -215,13 +218,13 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.useCreatedTimeField;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMariaDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMySQLDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isPostgreSQLDB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isDB2DB;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isOracleDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 
 /**
  * {@link ConfigurationDAO} implementation.
@@ -475,6 +478,32 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     /**
+     * Get resourceId for the {@link Resource}.
+     *
+     * @param tenantId              Tenant Id of the {@link Resource}.
+     * @param resourceTypeId        Type Id of the {@link Resource}.
+     * @param resourceName          Name of the {@link Resource}.
+     * @return resourceId for the given resource.
+     * @throws TransactionException Transaction Exception.
+     */
+    private String getResourceId(int tenantId, String resourceTypeId, String resourceName) throws TransactionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        return jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(
+                        GET_RESOURCE_ID_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID),
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resourceName);
+                            preparedStatement.setInt(++initialParameterIndex,tenantId);
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }
+                )
+        );
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -483,13 +512,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            if (isMySQLDB()) {
+                String resourceId = getResourceId(tenantId, resourceTypeId, resourceName);
+                deleteFiles(resourceId);
+            }
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_SQL, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, resourceName);
                 preparedStatement.setInt(++initialParameterIndex, tenantId);
                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
             });
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_RESOURCE_TYPE, resourceName, e);
         }
     }
@@ -502,6 +535,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            if (isMySQLDB()) {
+                deleteFiles(resourceId);
+            }
             jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_BY_ID_SQL, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, resourceId);
@@ -525,7 +561,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
-                if (isH2()) {
+                if (isH2DB()) {
                     updateMetadataForH2(
                             resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
                     );
@@ -587,12 +623,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
                     ));
                     for (ResourceFile file : resource.getFiles()) {
-                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
-                            preparedStatement.setString(1, file.getId());
-                            preparedStatement.setBlob(2, file.getInputStream());
-                            preparedStatement.setString(3, resource.getResourceId());
-                            preparedStatement.setString(4, file.getName());
-                        });
+                        insertResourceFile(template, resource, file.getId(), file.getName(), file.getInputStream());
                     }
                 }
                 updateResourceMetadata(template, resource, isAttributeExists, isFileExists, currentTime);
@@ -646,6 +677,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
+                boolean isFileExists = resource.getFiles() != null && !resource.getFiles().isEmpty();
 
                 // Insert resource metadata.
                 template.executeInsert(
@@ -661,16 +693,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             }
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            /*
-                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
-                            not create files. It is allowed to create a resource without files or attributes in order
-                            to allow file upload after resource creation.
-                            */
                             if (isOracleOrMssql) {
-                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
                                 preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
                             } else {
-                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
                                 preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                             }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
@@ -679,6 +706,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 // Insert attributes.
                 if (isAttributeExists) {
                     insertResourceAttributes(template, resource);
+                }
+                // Insert files.
+                if (isFileExists) {
+                    for (ResourceFile file : resource.getFiles()) {
+                        insertResourceFile(template, resource, file.getId(), file.getName(),
+                                file.getInputStream());
+                    }
                 }
                 return null;
             });
@@ -721,7 +755,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             String query = SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_MYSQL;
-            if (isH2()) {
+            if (isH2DB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
             } else if (isPostgreSQLDB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_TYPE_POSTGRESQL;
@@ -765,6 +799,35 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      */
     @Override
     public void deleteResourceTypeByName(String resourceTypeName) throws ConfigurationManagementException {
+
+        try {
+            if (isMySQLDB()) {
+                JdbcTemplate jdbcTemplateGetResourceTypeId = JdbcUtils.getNewTemplate();
+                String resourceTypeId = jdbcTemplateGetResourceTypeId.withTransaction(template ->
+                        template.fetchSingleRecord(GET_RESOURCE_TYPE_ID_BY_NAME_SQL,
+                                (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID),
+                                preparedStatement -> {
+                                    int initialParameterIndex = 1;
+                                    preparedStatement.setString(initialParameterIndex, resourceTypeName);
+                                }
+                        )
+                );
+                JdbcTemplate jdbcTemplateGetIds = JdbcUtils.getNewTemplate();
+                jdbcTemplateGetIds.executeQuery(GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL, ((resultSet, rowNumber) -> {
+                    String ResourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                    int TenantId = resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID);
+                    try {
+                        CachedBackedConfigurationDAO cachedBackedConfigurationDAO = new CachedBackedConfigurationDAO(this);
+                        cachedBackedConfigurationDAO.deleteResourceById(TenantId, ResourceId);
+                    } catch (ConfigurationManagementException e) {
+                        log.error(ERROR_CODE_DELETE_RESOURCE + ResourceId, e);
+                    }
+                    return null;
+                }), preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+            }
+        } catch (TransactionException | DataAccessException e) {
+            throw handleServerException(ERROR_CODE_DELETE_RESOURCE_TYPE, resourceTypeName, e);
+        }
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -872,7 +935,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 String query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
-                if (isH2()) {
+                if (isH2DB()) {
                     query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
                 } else if (isPostgreSQLDB()) {
                     query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
@@ -1229,7 +1292,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             DataAccessException {
 
         StringBuilder sb = new StringBuilder();
-        if (isH2()) {
+        if (isH2DB()) {
             sb.append(SQLConstants.UPDATE_ATTRIBUTES_H2);
         } else if (isMySQLDB() || isPostgreSQLDB() || isMariaDB()) {
             sb.append(SQLConstants.INSERT_ATTRIBUTES_SQL);
@@ -1326,10 +1389,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            boolean isPostgreSQL = isPostgreSQLDB();
+            String sqlStmt = isH2DB() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
+
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                template.executeUpdate(sqlStmt, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
-                    preparedStatement.setBlob(2, fileStream);
+                    if (isPostgreSQL) {
+                        preparedStatement.setBinaryStream(2, fileStream);
+                    } else {
+                        preparedStatement.setBlob(2, fileStream);
+                    }
                     preparedStatement.setString(3, resourceId);
                     preparedStatement.setString(4, fileName);
                 });
@@ -1356,20 +1426,16 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
-                    (resultSet, rowNumber) -> {
-                        Blob fileBlob = resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE);
-                        if (fileBlob == null) {
-                            return null;
-                        }
-                        return fileBlob.getBinaryStream();
-                    },
-                    preparedStatement -> {
-                        preparedStatement.setString(1, fileId);
-                        preparedStatement.setString(2, resourceName);
-                        preparedStatement.setString(3, resourceType);
-                    });
-        } catch (DataAccessException e) {
+            if (isPostgreSQLDB()) {
+                return jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(), (resultSet, rowNumber) ->
+                                resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                        setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+            }
+            Blob fileBlob = jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(),
+                    (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                            setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+            return fileBlob != null ? fileBlob.getBinaryStream() : null;
+        } catch (DataAccessException | SQLException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
         }
     }
@@ -1383,7 +1449,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
-                String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
+                String sqlStmt = isH2DB() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
+
+                String resourceId = template.fetchSingleRecord(sqlStmt,
                         (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
                         preparedStatement -> {
                             preparedStatement.setString(1, fileId);
@@ -1506,6 +1574,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String resourceTypeName = jdbcTemplate.fetchSingleRecord(SQLConstants.GET_RESOURCE_TYPE_BY_ID_SQL,
+                    (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME),
+                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
             return jdbcTemplate.executeQuery(GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL,
                     (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
                         String resourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
@@ -1525,13 +1596,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         resource.setLastModified(resourceLastModified);
                         resource.setHasFile(Boolean.valueOf(resourceHasFile));
                         resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        resource.setFiles(getFilesByResourceType(resourceTypeId, tenantId));
+                        resource.setFiles(getFiles(resourceId, resourceTypeName, resourceName));
                         resource.setAttributes(getAttributesByResourceId(resourceId));
                         return resource;
                     })),
                     preparedStatement -> {
                         preparedStatement.setString(1, resourceTypeId);
-                        preparedStatement.setString(2, Integer.toString(tenantId));
+                        preparedStatement.setInt(2, tenantId);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
@@ -1582,4 +1653,39 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }, resource, false);
     }
 
+    private void insertResourceFile(Template<?> template, Resource resource, String fileId, String fileName,
+                                    InputStream fileStream)
+            throws ConfigurationManagementServerException {
+
+        try {
+            boolean isPostgreSQL = isPostgreSQLDB();
+            String sqlStmt = isH2DB() ? SQLConstants.INSERT_FILE_SQL_H2 : SQLConstants.INSERT_FILE_SQL;
+
+            template.executeUpdate(sqlStmt, preparedStatement -> {
+                preparedStatement.setString(1, fileId);
+                if (isPostgreSQL) {
+                    preparedStatement.setBinaryStream(2, fileStream);
+                } else {
+                    preparedStatement.setBlob(2, fileStream);
+                }
+                preparedStatement.setString(3, resource.getResourceId());
+                preparedStatement.setString(4, fileName);
+            });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
+    }
+
+    private void setPreparedStatementForFileGetById(String resourceType, String resourceName, String fileId,
+                                                    PreparedStatement preparedStatement) throws SQLException {
+
+        preparedStatement.setString(1, fileId);
+        preparedStatement.setString(2, resourceName);
+        preparedStatement.setString(3, resourceType);
+    }
+
+    private String getFileGetByIdSQL() throws DataAccessException{
+
+        return isH2DB() ? SQLConstants.GET_FILE_BY_ID_SQL_H2 : SQLConstants.GET_FILE_BY_ID_SQL;
+    }
 }

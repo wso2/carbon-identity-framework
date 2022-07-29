@@ -77,6 +77,10 @@
             <DisplayName>Delete</DisplayName>
             <ResourceId>/permission/admin/manage/identity/workflow/monitor/delete</ResourceId>
         </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete Any</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/workflow/monitor/anydelete</ResourceId>
+        </ManagementPermission>
     </ManagementPermissions>
 
 </component>

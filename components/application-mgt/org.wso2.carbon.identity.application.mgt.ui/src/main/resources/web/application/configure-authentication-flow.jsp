@@ -50,7 +50,7 @@
 <script src="codemirror/addon/dialog/dialog.js"></script>
 <script src="codemirror/addon/display/panel.js"></script>
 <script src="codemirror/util/formatting.js"></script>
-<script src="js/handlebars.min-v4.0.11.js"></script>
+<script src="js/handlebars.min-v4.7.7.js"></script>
 
 <script src="../admin/js/main.js" type="text/javascript"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
@@ -73,6 +73,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -81,6 +82,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%!public static final String IS_HANDLER = "IS_HANDLER";%>
+<%!public static final String BACKUP_CODE_AUTHENTICATOR = "backup-code-authenticator";%>
 <carbon:breadcrumb label="breadcrumb.advanced.auth.step.config"
                    resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
@@ -92,6 +94,7 @@
     ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, request.getParameter("spName"));
     String spName = appBean.getServiceProvider().getApplicationName();
     Map<String, String> claimMapping = appBean.getClaimMapping();
+
     
     LocalAuthenticatorConfig[] localAuthenticatorConfigs = appBean.getLocalAuthenticatorConfigs();
     IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
@@ -105,6 +108,9 @@
     
     if (localAuthenticatorConfigs != null && localAuthenticatorConfigs.length > 0) {
         for (LocalAuthenticatorConfig auth : localAuthenticatorConfigs) {
+            if (auth.getName().equals(BACKUP_CODE_AUTHENTICATOR)) {
+                continue;
+            }
             localAuthTypes.append(startOption).append(Encode.forHtmlAttribute(auth.getName())).append(middleOption)
                 .append(Encode.forHtmlContent(auth.getDisplayName())).append(endOption);
         }
@@ -334,7 +340,7 @@
             <fmt:message key='breadcrumb.advanced.auth.step.config.for'/><%=Encode.forHtmlContent(spName)%>
         </h2>
         <div id="workArea">
-            <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post"
+            <form id="configure-auth-flow-form" name="configure-auth-flow-form" method="post"
                   action="configure-authentication-flow-finish-ajaxprocessor.jsp">
                 <input type=hidden name=spName value='<%=Encode.forHtmlAttribute(spName)%>'/>
 
@@ -515,15 +521,27 @@
                             }%>/> Enable Script Based Adaptive Authentication
                         </label>
                     </div>
+                    <div class="script-select-container" style="display: none;">
+                        <label class="noselect">
+                            <input id="enableAdaptive" name="enableAdaptive" type="checkbox" value="true"
+                            <%
+                                 if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+                            %>
+                                   checked="checked"
+                            <% } %>/> Enable Adaptive Authentication
+                        </label>
+                    </div>
                 </div>
-
                 <div style="clear:both"></div>
                 <!-- sectionSub Div -->
                 <br/>
+                <%
+                    if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+                %>
                 <h2 id="authentication_step_config_head" class="sectionSeperator trigger active">
                     <a href="#">Script Based Adaptive Authentication</a>
                 </h2>
-
+                <% } %>
                 <div class="toggle_container sectionSub" id="editorRow">
                     <div class="err_warn_container">
                         <div class="disable_status">

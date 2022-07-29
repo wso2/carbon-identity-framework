@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.cache;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 import java.util.ArrayList;
 

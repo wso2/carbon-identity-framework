@@ -71,7 +71,10 @@ import java.util.Map.Entry;
  * This is an implementation of UserOperationEventListener. This defines
  * additional operations
  * for some of the core user management operations
+ *
+ * @deprecated use {@link org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener} instead.
  */
+@Deprecated
 public class IdentityMgtEventListener extends AbstractIdentityUserOperationEventListener {
 
     /*
@@ -517,10 +520,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                                 UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
-            if (credential == null || StringUtils.isBlank(credential.toString())) {
-                log.error("Identity Management listener is disabled");
-                throw new UserStoreException(PASSWORD_INVALID + ASK_PASSWORD_FEATURE_IS_DISABLED);
-            }
             return true;
         }
 
@@ -531,7 +530,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         //Removing existing thread local before setting
         IdentityUtil.threadLocalProperties.get().remove(EMPTY_PASSWORD_USED);
         IdentityUtil.threadLocalProperties.get().remove(USER_IDENTITY_DO);
-        
+
         IdentityMgtConfig config = IdentityMgtConfig.getInstance();
         try {
             // Enforcing the password policies.

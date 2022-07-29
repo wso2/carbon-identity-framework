@@ -18,9 +18,8 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.cache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,20 +28,16 @@ import java.util.List;
  * Caches the claim dialect.
  * Cache can be configured with "identity.xml".
  */
-public class ClaimDialectCache {
-
-    private static final Log log = LogFactory.getLog(ClaimDialectCache.class);
+public class ClaimDialectCache extends BaseCache<Integer, Serializable> {
 
     private static final String CACHE_NAME = "ClaimDialectCache";
-    private static final BaseCache<Integer, Serializable> cacheImpl = new BaseCache<>(CACHE_NAME);
-
     private static final ClaimDialectCache instance = new ClaimDialectCache();
 
     /*
      * Prevents instantiation.
      */
     private ClaimDialectCache() {
-
+        super(CACHE_NAME);
     }
 
     public static ClaimDialectCache getInstance() {
@@ -52,16 +47,16 @@ public class ClaimDialectCache {
 
     public List<ClaimDialect> getClaimDialects(int tenantId) {
 
-        return (List<ClaimDialect>) cacheImpl.getValueFromCache(tenantId);
+        return (List<ClaimDialect>) super.getValueFromCache(tenantId, tenantId);
     }
 
     public void putClaimDialects(int tenantId, List<ClaimDialect> claimDialectList) {
 
-        cacheImpl.addToCache(tenantId, (Serializable) claimDialectList);
+        super.addToCache(tenantId, (Serializable) claimDialectList, tenantId);
     }
 
     public void clearClaimDialects(int tenantId) {
 
-        cacheImpl.clearCacheEntry(tenantId);
+        super.clearCacheEntry(tenantId, tenantId);
     }
 }

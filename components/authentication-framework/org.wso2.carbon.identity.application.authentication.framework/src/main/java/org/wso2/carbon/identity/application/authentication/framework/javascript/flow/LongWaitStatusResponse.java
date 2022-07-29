@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.javascript.flow;
 
-/* Response object of a long wait status.
+/**
+ * Response object of a long wait status.
  * Generally this is communicated over JSON.
  */
 public class LongWaitStatusResponse {

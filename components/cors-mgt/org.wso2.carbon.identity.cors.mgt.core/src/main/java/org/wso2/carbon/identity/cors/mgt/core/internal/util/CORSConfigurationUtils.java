@@ -25,7 +25,9 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
+import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
+import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,5 +132,33 @@ public class CORSConfigurationUtils {
         } else {
             return new ArrayList<>(Collections.singletonList((String) value));
         }
+    }
+
+    /**
+     * Check for duplicate entries of origins.
+     *
+     * @param origins List of the origin names.
+     * @return Whether the list has duplicate entries or not.
+     */
+    public static boolean hasDuplicates(List<String> origins) {
+
+        Set<String> originsHashSet = new HashSet<>(origins);
+        return origins.size() != originsHashSet.size();
+    }
+
+    /**
+     * Convert origin strings to Origin instances.
+     *
+     * @param originNames List of origin names.
+     * @return Origins as a list.
+     * @throws CORSManagementServiceClientException
+     */
+    public static List<Origin> createOriginList(List<String> originNames) throws CORSManagementServiceClientException {
+
+        List<Origin> originList = new ArrayList<>();
+        for (String origin : originNames) {
+            originList.add(new Origin(origin));
+        }
+        return originList;
     }
 }

@@ -18,15 +18,14 @@
 
 package org.wso2.carbon.idp.mgt.cache;
 
-import org.wso2.carbon.identity.application.common.cache.CacheKey;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 public class IdPNameCacheKey extends CacheKey {
 
     private String idPName;
 
-    public IdPNameCacheKey(String idPName, String tenantDomain) {
+    public IdPNameCacheKey(String idPName) {
         this.idPName = idPName;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     public String getIdPName() {
@@ -47,21 +46,13 @@ public class IdPNameCacheKey extends CacheKey {
 
         IdPNameCacheKey that = (IdPNameCacheKey) o;
 
-        if (!idPName.equals(that.idPName)) {
-            return false;
-        }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
-
-        return true;
+        return idPName.equals(that.idPName);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + idPName.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

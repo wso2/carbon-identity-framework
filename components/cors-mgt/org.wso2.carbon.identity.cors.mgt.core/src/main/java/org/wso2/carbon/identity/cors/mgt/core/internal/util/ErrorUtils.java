@@ -39,7 +39,7 @@ public class ErrorUtils {
      */
     public static CORSManagementServiceServerException handleServerException(ErrorMessages error, String... data) {
 
-        return new CORSManagementServiceServerException(error.getCode(), String.format(error.getDescription(), data));
+        return new CORSManagementServiceServerException(String.format(error.getDescription(), data), error.getCode());
     }
 
     /**
@@ -53,7 +53,7 @@ public class ErrorUtils {
     public static CORSManagementServiceServerException handleServerException(ErrorMessages error, Throwable e,
                                                                              String... data) {
 
-        return new CORSManagementServiceServerException(error.getCode(), String.format(error.getDescription(), data),
+        return new CORSManagementServiceServerException(String.format(error.getDescription(), data), error.getCode(),
                 e);
     }
 
@@ -66,7 +66,7 @@ public class ErrorUtils {
      */
     public static CORSManagementServiceClientException handleClientException(ErrorMessages error, String... data) {
 
-        return new CORSManagementServiceClientException(error.getCode(), String.format(error.getDescription(), data));
+        return new CORSManagementServiceClientException(String.format(error.getDescription(), data), error.getCode());
     }
 
     /**
@@ -80,7 +80,7 @@ public class ErrorUtils {
     public static CORSManagementServiceClientException handleClientException(ErrorMessages error, Throwable e,
                                                                              String... data) {
 
-        return new CORSManagementServiceClientException(error.getCode(), String.format(error.getDescription(), data),
+        return new CORSManagementServiceClientException(String.format(error.getDescription(), data), error.getCode(),
                 e);
     }
 }

@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.core.handler.IdentityHandler;
 

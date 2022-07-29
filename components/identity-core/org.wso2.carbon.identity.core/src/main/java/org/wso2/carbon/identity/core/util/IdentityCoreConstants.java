@@ -25,12 +25,18 @@ public class IdentityCoreConstants {
     public static final String IDENTITY_CONFIG = "identity.xml";
     public static final String IDENTITY_DEFAULT_NAMESPACE = "http://wso2.org/projects/carbon/carbon.xml";
     public static final String HOST_NAME = "HostName";
+    public static final String MGT_CONSOLE_HOST_NAME = "MgtHostName";
     public static final String SERVER_HOST_NAME = "ServerHostName";
+    public static final String AUTHENTICATION_ENDPOINT_HOST_NAME = "AuthenticationEndpoint.HostName";
+    public static final String AUTHENTICATION_ENDPOINT_PATH = "AuthenticationEndpoint.Path";
+    public static final String RECOVERY_ENDPOINT_HOST_NAME = "RecoveryEndpoint.HostName";
+    public static final String RECOVERY_ENDPOINT_PATH = "RecoveryEndpoint.Path";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String ENABLE_TENANT_QUALIFIED_URLS = "EnableTenantQualifiedUrls";
+    public static final String ENABLE_TENANTED_SESSIONS = "EnableTenantedSessions";
     public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
     public static final int DEFAULT_HTTPS_PORT = 443;
     public static final String UTF_8 = "UTF-8";
@@ -56,11 +62,14 @@ public class IdentityCoreConstants {
     public static final String USER_ACCOUNT_DISABLED = " User account is disabled";
 
     //UserCoreConstants class define the rest of the relevant error codes.
+    public static final String USER_ACCOUNT_LOCKED_ERROR_CODE = "17003";
     public static final String USER_ACCOUNT_DISABLED_ERROR_CODE = "17004";
     public static final String USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE = "17005";
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_EMAIL_LINK_ERROR_CODE = "17006";
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE = "17007";
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
+    public static final String USER_ACCOUNT_PENDING_APPROVAL_ERROR_CODE = "17009";
+    public static final String USER_INVALID_CREDENTIALS = "17010";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
@@ -69,6 +78,17 @@ public class IdentityCoreConstants {
     public static final int DEFAULT_ITEMS_PRE_PAGE = 15;
     public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
+
+    //DB constants
+    public static final String H2 = "H2";
+    public static final String INFORMIX = "Informix";
+    public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
+    public static final String ORACLE = "Oracle";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
 
     public static class Filter {
 

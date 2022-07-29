@@ -40,9 +40,13 @@ import javax.cache.Caching;
 /**
  * A base class for all cache implementations in Identity Application Management modules.
  *
+ * Deprecated This base cache always uses super tenant space to maintain all the cache. Hence deprecating this class to
+ * use {@link org.wso2.carbon.identity.core.cache.BaseCache}.
+ *
  * @param <K> cache key type.
  * @param <V> cache value type.
  */
+@Deprecated
 public class BaseCache<K extends Serializable, V extends Serializable> {
 
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";

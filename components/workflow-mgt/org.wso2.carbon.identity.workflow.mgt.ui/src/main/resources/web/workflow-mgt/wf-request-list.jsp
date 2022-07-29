@@ -21,6 +21,7 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.AxisFault" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
@@ -54,10 +55,6 @@
     private static final String REQUEST_TYPE_FILTER = "requestTypeFilter";
 %>
 <jsp:include page="../dialog/display_messages.jsp"/>
-
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
-<script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
     String taskTypeFilter = request.getParameter(REQUEST_TYPE_FILTER);
@@ -96,20 +93,46 @@
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
 
         if (taskTypeFilter == null) {
-            taskTypeFilter = "";
+            if ((String) session.getAttribute(REQUEST_TYPE_FILTER) != null) {
+                taskTypeFilter = (String) session.getAttribute(REQUEST_TYPE_FILTER);
+            } else {
+                 taskTypeFilter = StringUtils.EMPTY;
+            }
         }
         if (statusToFilter == null) {
-            statusToFilter = "";
+             if ((String) session.getAttribute(REQUEST_STATUS_FILTER) != null) {
+                statusToFilter = (String) session.getAttribute(REQUEST_STATUS_FILTER);
+            } else {
+                statusToFilter = StringUtils.EMPTY;
+            }
         }
         if (lowerBound == null) {
-            lowerBound = "";
+            if ((String) session.getAttribute(CREATED_AT_FROM) != null) {
+                lowerBound = (String) session.getAttribute(CREATED_AT_FROM);
+            } else {
+                lowerBound = StringUtils.EMPTY;
+            }
         }
         if (upperBound == null) {
-            upperBound = "";
+            if ((String) session.getAttribute(CREATED_AT_TO) != null) {
+                upperBound = (String) session.getAttribute(CREATED_AT_TO);
+            } else {
+                upperBound = StringUtils.EMPTY;
+            }
         }
         if (timeFilterCategory == null) {
-            timeFilterCategory = CREATED_AT;
+            if ((String) session.getAttribute(TIME_CATEGORY_TO_FILTER) != null) {
+                timeFilterCategory = (String) session.getAttribute(TIME_CATEGORY_TO_FILTER);
+            } else {
+                timeFilterCategory = CREATED_AT;
+            }
         }
+
+        session.setAttribute(REQUEST_TYPE_FILTER, taskTypeFilter);
+        session.setAttribute(REQUEST_STATUS_FILTER, statusToFilter);
+        session.setAttribute(CREATED_AT_FROM, lowerBound);
+        session.setAttribute(CREATED_AT_TO, upperBound);
+        session.setAttribute(TIME_CATEGORY_TO_FILTER, timeFilterCategory);
 
 
         if (ALL_TASKS.equals(taskTypeFilter)) {
@@ -142,10 +165,22 @@
             events.get(category).add(event);
         }
     } catch (WorkflowAdminServiceWorkflowException e) {
+        // Removing the filter attributed from the session if an exception occurred.
+        session.removeAttribute(REQUEST_TYPE_FILTER);
+        session.removeAttribute(REQUEST_STATUS_FILTER);
+        session.removeAttribute(CREATED_AT_FROM);
+        session.removeAttribute(CREATED_AT_TO);
+        session.removeAttribute(TIME_CATEGORY_TO_FILTER);
         String message = resourceBundle.getString("workflow.error.when.listing.services");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo = ADMIN_ERROR_PAGE;
     } catch (AxisFault e) {
+        // Removing the filter attributed from the session if an exception occurred.
+        session.removeAttribute(REQUEST_TYPE_FILTER);
+        session.removeAttribute(REQUEST_STATUS_FILTER);
+        session.removeAttribute(CREATED_AT_FROM);
+        session.removeAttribute(CREATED_AT_TO);
+        session.removeAttribute(TIME_CATEGORY_TO_FILTER);
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         forwardTo = ADMIN_ERROR_PAGE;
@@ -173,9 +208,9 @@
                        resourceBundle="org.wso2.carbon.identity.workflow.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <link rel="stylesheet" href="/carbon/styles/css/main.css">
 
 
@@ -419,9 +454,9 @@
                                 <td style="border:0; !important">
                                     <nobr>
                                         <label for="createdAtFrom">From</label>
-                                        <input type="text" id="createdAtFrom" name="createdAtFrom">
+                                        <input type="text" id="createdAtFrom" value="<%=lowerBound%>" name="createdAtFrom">
                                         <label for="createdAtTo">to</label>
-                                        <input type="text" id="createdAtTo" name="createdAtTo">
+                                        <input type="text" id="createdAtTo" value="<%=upperBound%>" name="createdAtTo">
                                     </nobr>
                                 </td>
                             </tr>
@@ -473,8 +508,20 @@
                            onclick="listWorkflows('<%=workflowReq.getRequestId()%>');return false;"
                            href="#" style="background-image: url(images/list.png);"
                            class="icon-link"><fmt:message key='workflows'/></a>
-                        <% if (PENDING_STATUS.equals(workflowReq.getStatus()) && CarbonUIUtil.isUserAuthorized(request,
-                                "/permission/admin/manage/identity/workflow/monitor/delete")) { %>
+                        <%
+                            Boolean authorizedToDelete = false;
+                            if (PENDING_STATUS.equals(workflowReq.getStatus())) {
+                                if (CarbonUIUtil.isUserAuthorized(request,
+                                        "/permission/admin/manage/identity/workflow/monitor/anydelete")) {
+                                    authorizedToDelete = true;
+                                }
+                                else if (workflowReq.getCreatedBy() != null && CarbonUIUtil.isUserAuthorized(request,
+                                        "/permission/admin/manage/identity/workflow/monitor/delete") &&
+                                        workflowReq.getCreatedBy().equals(loggedUser)) {
+                                    authorizedToDelete = true;
+                                }
+                            }
+                            if (authorizedToDelete) { %>
                         <a title="<fmt:message key='workflow.request.delete.title'/>"
                            onclick="removeRequest('<%=workflowReq.getRequestId()%>');return false;"
                            href="#" style="background-image: url(images/delete.gif);"

@@ -27,12 +27,15 @@ import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This audit logger logs the User Management success activities.
@@ -50,6 +53,15 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
     private final String USER_NAME_KEY = "UserName";
     private final String USER_NAME_QUERY_KEY = "userName";
+
+    @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !isLegacyAuditLogsDisabled();
+        }
+        return false;
+    }
 
     @Override
     public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
@@ -204,6 +216,30 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             if (ArrayUtils.isNotEmpty(userList)) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+            }
+            if (ArrayUtils.isNotEmpty(permissions)) {
+                JSONArray permissionsArray = new JSONArray(permissions);
+                dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+            }
+            if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+                audit.warn(createAuditMessage(ListenerUtils.ADD_GROUP_ACTION,
+                        ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            } else {
+                audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                        ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean doPostAddInternalRoleWithID(String roleName, String[] userIDs, Permission[] permissions,
+                                               UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (ArrayUtils.isNotEmpty(userIDs)) {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIDs));
             }
             if (ArrayUtils.isNotEmpty(permissions)) {
                 JSONArray permissionsArray = new JSONArray(permissions);

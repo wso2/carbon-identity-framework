@@ -41,14 +41,19 @@
     "identity_mgt.user_self_registration.verification_email_validity": "m",
     "identity_mgt.user_claim_update.email.verification_email_validity": "m",
     "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity":"m",
+    "identity_mgt.password_reset_by_admin.code_validity_period": "m",
 
     "identity_mgt.tenant_registration.ask_password_email_validity": "m",
 
+    "identity_mgt.lite_user_registration.verification_email_validity": "m",
+    "identity_mgt.lite_user_registration.verification_sms_validity": "m",
+    
     "cache.default_timeout": "ms",
     "cache.framework_session_context_cache.timeout": "ms",
     "cache.authentication_context_cache.timeout": "ms",
     "cache.authentication_request_cache.timeout": "ms",
     "cache.authentication_result_cache.timeout": "ms",
+    "cache.authentication_error_cache.timeout": "ms",
     "cache.app_info_cache.timeout": "ms",
     "cache.authorization_grant_cache.timeout": "ms",
     "cache.jwks_cache.timeout": "ms",
@@ -71,12 +76,15 @@
     "oauth.jwks_endpoint.connection_timeout": "ms",
     "oauth.jwks_endpoint.read_timeout": "ms",
     "oauth.token.validation.validation_response_jwt_validity": "m",
+    "oauth.grant_type.device_code.expiry_time": "ms",
+    "oauth.grant_type.device_code.polling_interval": "ms",
 
     "authentication.adaptive.http_connections.default_timeout": "ms",
     "authentication.adaptive.http_connections.connection_timeout": "ms",
     "authentication.adaptive.http_connections.read_timeout": "ms",
     "authentication.adaptive.http_connections.request_timeout": "ms",
     "authentication.adaptive.long_wait.page_refresh_interval": "ms",
-    "authentication.adaptive.long_wait.timout": "ms"
+    "authentication.adaptive.long_wait.timout": "ms",
+    "authentication.adaptive.execution_supervisor.timeout": "ms"
   }
 }

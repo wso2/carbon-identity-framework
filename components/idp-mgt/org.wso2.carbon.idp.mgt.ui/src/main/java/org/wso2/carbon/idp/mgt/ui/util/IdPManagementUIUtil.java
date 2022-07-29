@@ -51,6 +51,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -345,6 +346,9 @@ public class IdPManagementUIUtil {
         // build SCIM provisioning configuration.
         buildSCIMProvisioningConfiguration(fedIdp, paramMap);
 
+        // build SCIM2 provisioning configuration.
+        buildSCIM2ProvisioningConfiguration(fedIdp, paramMap);
+
         // build Salesforce provisioning configuration.
         buildSalesforceProvisioningConfiguration(fedIdp, paramMap);
 
@@ -589,6 +593,105 @@ public class IdPManagementUIUtil {
         ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
 
         if (proConnector.getName() != null) {
+            if (proConnectors == null || proConnectors.length == 0) {
+                fedIdp.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{proConnector});
+            } else {
+                fedIdp.setProvisioningConnectorConfigs(concatArrays(
+                        new ProvisioningConnectorConfig[]{proConnector}, proConnectors));
+            }
+        }
+
+    }
+
+    /**
+     * @param fedIdp
+     * @param paramMap
+     * @throws IdentityApplicationManagementException
+     */
+    private static void buildSCIM2ProvisioningConfiguration(IdentityProvider fedIdp,
+                                                           Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
+
+        ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
+        proConnector.setName("SCIM2");
+
+        Property userNameProp = null;
+        Property passwordProp = null;
+        Property userEpProp = null;
+        Property groupEpProp = null;
+        Property scim2UserStoreDomain = null;
+        Property scim2EnablePwdProvisioning = null;
+        Property defaultPwdProp = null;
+        Property uniqueID = null;
+
+        if (paramMap.get("scim2ProvEnabled") != null && "on".equals(paramMap.get("scim2ProvEnabled"))) {
+            proConnector.setEnabled(true);
+        } else {
+            proConnector.setEnabled(false);
+        }
+
+        if (paramMap.get("scim2ProvDefault") != null && "on".equals(paramMap.get("scim2ProvDefault"))) {
+            fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
+        }
+
+        if (paramMap.get("scim2-username") != null) {
+            userNameProp = new Property();
+            userNameProp.setName("scim2-username");
+            userNameProp.setValue(paramMap.get("scim2-username"));
+        }
+
+        if (paramMap.get("scim2-password") != null) {
+            passwordProp = new Property();
+            passwordProp.setConfidential(true);
+            passwordProp.setName("scim2-password");
+            passwordProp.setValue(paramMap.get("scim2-password"));
+        }
+
+        if (paramMap.get("scim2-user-ep") != null) {
+            userEpProp = new Property();
+            userEpProp.setName("scim2-user-ep");
+            userEpProp.setValue(paramMap.get("scim2-user-ep"));
+        }
+
+        if (paramMap.get("scim2-group-ep") != null) {
+            groupEpProp = new Property();
+            groupEpProp.setName("scim2-group-ep");
+            groupEpProp.setValue(paramMap.get("scim2-group-ep"));
+        }
+
+        if (paramMap.get("scim2-user-store-domain") != null) {
+            scim2UserStoreDomain = new Property();
+            scim2UserStoreDomain.setName("scim2-user-store-domain");
+            scim2UserStoreDomain.setValue(paramMap.get("scim2-user-store-domain"));
+        }
+
+        if (paramMap.get("scim2PwdProvEnabled") != null && "on".equals(paramMap.get("scim2PwdProvEnabled"))) {
+            scim2EnablePwdProvisioning = new Property();
+            scim2EnablePwdProvisioning.setName("scim2-enable-pwd-provisioning");
+            scim2EnablePwdProvisioning.setDefaultValue("false");
+            scim2EnablePwdProvisioning.setValue("true");
+        }
+
+        if (paramMap.get("scim2-default-pwd") != null) {
+            defaultPwdProp = new Property();
+            defaultPwdProp.setName("scim2-default-pwd");
+            defaultPwdProp.setValue(paramMap.get("scim2-default-pwd"));
+        }
+
+        if (paramMap.get("scim2-unique-id") != null) {
+            uniqueID = new Property();
+            uniqueID.setName("UniqueID");
+            uniqueID.setValue(paramMap.get("scim2-unique-id"));
+        }
+
+        Property[] proProperties = new Property[]{userNameProp, passwordProp, userEpProp,
+                groupEpProp, scim2UserStoreDomain, scim2EnablePwdProvisioning, defaultPwdProp, uniqueID};
+
+        proConnector.setProvisioningProperties(proProperties);
+
+        ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
+
+        if (StringUtils.isNotBlank(proConnector.getName())) {
             if (proConnectors == null || proConnectors.length == 0) {
                 fedIdp.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{proConnector});
             } else {
@@ -1662,15 +1765,22 @@ public class IdPManagementUIUtil {
         String authenticationContextClass = paramMap.get(
                 IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
 
-        if (IdentityApplicationConstants.Authenticator.SAML2SSO.
-                CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
-            authenticationContextClass = paramMap.get(IdentityApplicationConstants.
-                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
-        }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         property.setValue(authenticationContextClass);
         properties.add(property);
+
+        String[] authnContextClassList = StringUtils.split(authenticationContextClass, ",");
+
+        if (authnContextClassList != null && Arrays.asList(authnContextClassList).contains(
+            IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION)) {
+            property = new Property();
+            property.setName(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+            property.setValue(paramMap.get(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS));
+            properties.add(property);
+        }
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);

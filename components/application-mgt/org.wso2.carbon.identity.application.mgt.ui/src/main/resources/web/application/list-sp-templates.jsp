@@ -17,7 +17,8 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@page import="org.apache.log4j.Logger" %>
+<%@ page import="org.slf4j.Logger"%>
+<%@ page import="org.slf4j.LoggerFactory"%>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
@@ -30,8 +31,6 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
 
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
@@ -137,7 +136,7 @@
                 }
             </script>
             <%
-                Logger logger = Logger.getLogger(this.getClass());
+                Logger logger = LoggerFactory.getLogger(this.getClass());
                 SpTemplate[] spTemplates = null;
                 SpTemplate[] templatesToDisplay = new SpTemplate[0];
                 String paginationValue = "region=region1&item=sp_template_list";

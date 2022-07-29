@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -88,6 +90,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private List<String> requestedAcr;
     private AcrRule acrRule = AcrRule.EXACT;
     private String selectedAcr;
+    private Map<String,  AuthenticatedIdPData> authenticatedIdPsOfApp = new HashMap<>();
 
     /** The user/subject known at the latest authentication step */
     private AuthenticatedUser lastAuthenticatedUser;
@@ -103,7 +106,13 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      */
     private AuthenticatorStateInfo stateInfo;
 
+    private String userTenantDomainHint;
+
+    private String loginTenantDomain;
+
     private List<String> executedPostAuthHandlers = new ArrayList<>();
+
+    private final Map<String, List<String>> loggedOutAuthenticators = new HashMap<>();
 
     public String getCallerPath() {
         return callerPath;
@@ -171,7 +180,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
-        if(subject != null) {
+        if (subject != null) {
             lastAuthenticatedUser = subject;
         }
     }
@@ -331,6 +340,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setPreviousAuthenticatedIdPs(Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs) {
         this.previousAuthenticatedIdPs = previousAuthenticatedIdPs;
+    }
+
+    public void setAuthenticatedIdPsOfApp(Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
+
+        this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
+    }
+
+    public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp() {
+
+        return authenticatedIdPsOfApp;
     }
 
     public boolean isRetrying() {
@@ -519,7 +538,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters at once.
+     * Similar to {@link #addEndpointParam(String, Serializable)}. Provide the ability to add multiple parameters
+     * at once.
      * @param params Map of parameters to add
      */
     public void addEndpointParams(Map<String, Serializable> params) {
@@ -528,7 +548,8 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
-     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)} for more details.
+     * Get the endpoint parameters in the context. Refer {@link #addEndpointParam(String, Serializable)}
+     * for more details.
      * @return
      */
     public Map<String, Serializable> getEndpointParams() {
@@ -558,8 +579,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Initialize the authentication time related parameter maps so that in later we don't need to
      * check whether it is initialized.
-     *
-     * @return the map consists of authentication related parameters.
      */
     public void initializeAnalyticsData() {
 
@@ -635,7 +654,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Get the Runtime claims map.
      *
-     * @return  Map of Claim URI and value
+     * @return Map of Claim URI and value
      */
     public Map<String, String> getRuntimeClaims() {
 
@@ -644,5 +663,109 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             return (Map<String, String>) parameter;
         }
         return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the potential tenant domain of the user who is going to login. This will return the first non-empty
+     * value of userTenantDomainHint, loginTenantDomain or tenant domain in the respective order.
+     *
+     * This will be used to populate the FQN of the user (if user/client didn't provide explicitly) when logging in.
+     * This should ideally be the tenant domain user is going to log into (the one where the session will be created)
+     * , but may be overridden for any special call applications with the domain hint.
+     *
+     * @return The most possible tenant domain of the user who will be logging in
+     */
+    public String getUserTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(userTenantDomainHint)) {
+            return userTenantDomainHint;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Set the user's tenant domain hint. Should only be used if different from the tenant domain where the session
+     * would be created
+     *
+     * @param userTenantDomainHint The possible tenant domain of the user
+     */
+    public void setUserTenantDomainHint(String userTenantDomainHint) {
+
+        this.userTenantDomainHint = userTenantDomainHint;
+    }
+
+    /**
+     * Gets the tenant domain to which the user should get logged into and the session should get created. For a
+     * non-saas application this should be the user's and application's tenant domain. For a saas application, this
+     * will be the user's tenant domain for most cases.
+     *
+     * @return the tenant domain the user's session should be created
+     */
+    public String getLoginTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the tenant domain where the user's session should be created
+     *
+     * @param loginTenantDomain the tenant domain where the user's session is created
+     */
+    public void setLoginTenantDomain(String loginTenantDomain) {
+
+        this.loginTenantDomain = loginTenantDomain;
+    }
+
+    /**
+     * Add a logged out authenticator providing the IDP name. Method creates a new list and appends the
+     * authenticator if no entry for the IDP.
+     *
+     * @param idpName Identity provider name.
+     * @param  authenticatorName Authenticator name.
+     */
+    public void addLoggedOutAuthenticator(String idpName, String authenticatorName) {
+
+        if (loggedOutAuthenticators.containsKey(idpName)) {
+            loggedOutAuthenticators.get(idpName).add(authenticatorName);
+        } else {
+            List<String> authenticators = new ArrayList<>();
+            authenticators.add(authenticatorName);
+            loggedOutAuthenticators.put(idpName, authenticators);
+        }
+    }
+
+    /**
+     * Check whether the authenticator is already logged out.
+     *
+     * @param idpName Identity provider name.
+     * @param authenticatorName Authenticator name.
+     * @return true if the authenticator already logged out. False otherwise.
+     */
+    public boolean isLoggedOutAuthenticator(String idpName, String authenticatorName) {
+
+        if (loggedOutAuthenticators.containsKey(idpName)) {
+            return loggedOutAuthenticators.get(idpName).contains(authenticatorName);
+        }
+        return false;
+    }
+
+    /**
+     * Clears all currently logged out authenticators from the context.
+     */
+    public void clearLoggedOutAuthenticators() {
+
+        loggedOutAuthenticators.clear();
     }
 }

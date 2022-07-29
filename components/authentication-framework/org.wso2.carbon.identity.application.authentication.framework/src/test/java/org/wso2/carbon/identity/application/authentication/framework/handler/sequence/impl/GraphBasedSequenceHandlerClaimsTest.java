@@ -24,25 +24,27 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.common.testng.WithRealmService;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Collections;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests the claims in the Javascript.
  */
 @Test
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
+@WithCarbonHome
+@WithRealmService(injectToSingletons =
+        {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
 public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     public void testHandleClaimHandling() throws Exception {
@@ -51,8 +53,9 @@ public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandl
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
-            .getSequenceConfig(context, Collections.emptyMap(), sp1);
+                .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = createMockHttpServletRequest();
@@ -60,17 +63,6 @@ public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandl
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
-
-        RealmService currentRealmService = FrameworkServiceDataHolder.getInstance().getRealmService();
-
-        RealmService mockRealmService = mock(RealmService.class);
-        UserRealm mockUserRealm = mock(UserRealm.class);
-        UserStoreManager mockUserStoreManager = mock(UserStoreManager.class);
-        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-        FrameworkServiceDataHolder.getInstance().setRealmService(mockRealmService);
-        when(mockUserStoreManager.getUserClaimValues(anyString(), eq(new String[]{"http://wso2.org/claims/lastname"})
-            , anyString())).thenReturn(Collections.singletonMap("http://wso2.org/claims/lastname", "lastNameValue"));
 
         graphBasedSequenceHandler.handle(req, resp, context);
 

@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -91,13 +92,11 @@ public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMet
 
         String uri = amrEntryElement.getAttributeValue(URI_ATTR_QNAME);
         String method = amrEntryElement.getAttributeValue(METHOD_ATTR_QNAME);
+        Set<String> externalMappings = amrInternalToExternalMap.computeIfAbsent(method, k -> new HashSet<>());
         if (amrEntryElement.getAttribute(NIL_QNAME) == null) {
-            Set<String> externalMappings = amrInternalToExternalMap.get(method);
-            if (externalMappings == null) {
-                externalMappings = new HashSet<>();
-                amrInternalToExternalMap.put(method, externalMappings);
-            }
             externalMappings.add(uri);
+        } else {
+            externalMappings.add(String.valueOf(Character.MIN_VALUE));
         }
         amrExternalToInternalMap.put(uri, method);
     }

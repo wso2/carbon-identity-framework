@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,9 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
@@ -68,11 +69,13 @@ public class Util {
     }
 
     public static void mockMultiAttributeSeparator(String multiAttributeSeparator) {
+
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
     }
 
     public static SequenceConfig mockSequenceConfig(Map<String, String> spRoleMappings) {
+
         SequenceConfig sequenceConfig = spy(new SequenceConfig());
         ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
@@ -82,18 +85,26 @@ public class Util {
         when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
         when(applicationConfig.getRoleMappings()).thenReturn(spRoleMappings);
         when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
-        when(serviceProvider.getLocalAndOutBoundAuthenticationConfig()).thenReturn(localAndOutboundAuthenticationConfig);
+        when(serviceProvider.getLocalAndOutBoundAuthenticationConfig())
+                .thenReturn(localAndOutboundAuthenticationConfig);
         when(localAndOutboundAuthenticationConfig.isUseUserstoreDomainInRoles()).thenReturn(false);
         return sequenceConfig;
     }
 
     public static ClaimHandler mockClaimHandler() throws FrameworkException {
+
         ClaimHandler claimHandler = mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
 
-        doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
-                any(Map.class), anyBoolean());
+        when(claimHandler.handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
+                any(Map.class), anyBoolean())).thenReturn(claims);
         return claimHandler;
+    }
+
+    public static void mockIdentityUtil() {
+
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getLocalGroupsClaimURI()).thenReturn(UserCoreConstants.ROLE_CLAIM);
     }
 }

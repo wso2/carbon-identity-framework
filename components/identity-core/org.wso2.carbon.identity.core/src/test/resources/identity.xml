@@ -577,4 +577,12 @@
             <ProxyContext>/logout</ProxyContext>
         </ReverseProxy>
     </ReverseProxyConfig>
+
+    <CookiesToInvalidate>
+        <Cookie name="commonAuthId"/>
+        <Cookie name="opbs"/>
+        <Cookie name="pastr"/>
+        <Cookie name="sessionNonceCookie"/>
+        <Cookie name="ALOR"/>
+    </CookiesToInvalidate>
 </Server>

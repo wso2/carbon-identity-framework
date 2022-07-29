@@ -29,10 +29,13 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
+
 public class ProvisioningThread implements Callable<Boolean> {
 
     private ProvisioningEntity provisioningEntity;
     private String tenantDomainName;
+    private String provisioningEntityTenantDomainName;
     private AbstractOutboundProvisioningConnector connector;
     private String connectorType;
     private String idPName;
@@ -51,18 +54,32 @@ public class ProvisioningThread implements Callable<Boolean> {
         this.dao = dao;
     }
 
+    public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
+                              String provisioningEntityTenantDomainName,
+                              AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
+                              CacheBackedProvisioningMgtDAO dao) {
+
+        this(provisioningEntity, spTenantDomainName, connector, connectorType, idPName, dao);
+        this.provisioningEntityTenantDomainName = provisioningEntityTenantDomainName;
+    }
+
     @Override
     public Boolean call() throws IdentityProvisioningException {
 
         boolean success = false;
         String tenantDomainName = this.tenantDomainName;
+        String provisioningEntityTenantDomainName = this.provisioningEntityTenantDomainName;
+        boolean isUserTenantBasedOutboundProvisioningEnabled = isUserTenantBasedOutboundProvisioningEnabled();
 
         try {
 
             PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(getTenantIdFromDomain(tenantDomainName));
-
+            if (isUserTenantBasedOutboundProvisioningEnabled && provisioningEntityTenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .setTenantDomain(provisioningEntityTenantDomainName, true);
+            } else {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
+            }
             ProvisionedIdentifier provisionedIdentifier = null;
             // real provisioning happens now.
             provisionedIdentifier = connector.provision(provisioningEntity);
@@ -102,11 +119,10 @@ public class ProvisioningThread implements Callable<Boolean> {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
 
-            if (tenantDomainName != null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(
-                        tenantDomainName);
-                PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                       .setTenantId(getTenantIdFromDomain(tenantDomainName));
+            if (isUserTenantBasedOutboundProvisioningEnabled && provisioningEntityTenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(provisioningEntityTenantDomainName, true);
+            }else if (tenantDomainName != null) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
             }
         }
 
@@ -153,19 +169,4 @@ public class ProvisioningThread implements Callable<Boolean> {
                     "Error while deleting provisioning identifier.", e);
         }
     }
-
-    private int getTenantIdFromDomain(String tenantDomainName) throws IdentityProvisioningException {
-
-        if (StringUtils.isBlank(tenantDomainName)) {
-            throw new IdentityProvisioningException("Provided tenant domain is invalid");
-        }
-
-        try {
-            return IdPManagementUtil.getTenantIdOfDomain(tenantDomainName);
-        } catch (UserStoreException e) {
-            throw new IdentityProvisioningException(
-                    "Error occurred while resolving tenant Id from tenant domain :" + tenantDomainName, e);
-        }
-    }
-
 }

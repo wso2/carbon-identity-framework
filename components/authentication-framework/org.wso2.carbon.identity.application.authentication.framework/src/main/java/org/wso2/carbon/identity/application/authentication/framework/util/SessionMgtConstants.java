@@ -28,6 +28,30 @@ public class SessionMgtConstants {
     public static final String IP_ADDRESS = "IP";
     public static final String LOGIN_TIME = "Login Time";
 
+    // Federated authentication session details column names.
+    public static final String FEDERATED_IDP_SESSION_ID = "IDP_SESSION_ID";
+    public static final String FEDERATED_SESSION_ID = "SESSION_ID";
+    public static final String FEDERATED_IDP_NAME = "IDP_NAME";
+    public static final String FEDERATED_AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
+    public static final String FEDERATED_PROTOCOL_TYPE = "PROTOCOL_TYPE";
+    public static final String AUDIT_MESSAGE_TEMPLATE = "Initiator : %s | Action : %s | Data : { %s } | Result : %s ";
+    public static final String SESSION_CONTEXT_ID = "sessionContextId";
+    public static final String REMEMBER_ME = "RememberMe";
+    public static final String SUCCESS = "Success";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String AUTHENTICATED_USER_TENANT_DOMAIN = "AuthenticatedUserTenantDomain";
+    public static final String TRACE_ID = "traceId";
+    public static final String STORE_SESSION_ACTION = "StoreSession";
+    public static final String UPDATE_SESSION_ACTION = "UpdateSession";
+    public static final String TERMINATE_SESSION_ACTION = "TerminateSession";
+    public static final String SESSION_LAST_ACCESSED_TIMESTAMP = "LastAccessedTimestamp";
+    public static final String SESSION_TERMINATE_TIMESTAMP = "TerminatedTimestamp";
+
+
+
+    /**
+     * Session management error messages.
+     */
     public enum ErrorMessages {
 
         ERROR_CODE_UNABLE_TO_GET_SESSION("USM-15001",
@@ -39,6 +63,9 @@ public class SessionMgtConstants {
         ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-15006",
                 "Unable to validate user",
                 "Server encountered an error while authorizing user, %s."),
+        ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION("USM-15007",
+                "Unable to retrieve federated authentication session information",
+                "Server encountered an error while retrieving federated authentication session information."),
         ERROR_CODE_FORBIDDEN_ACTION("USM-10007",
                 "Action forbidden",
                 "User is not authorized to terminate this session."),
@@ -47,7 +74,13 @@ public class SessionMgtConstants {
                 "User is not provided to perform session management tasks."),
         ERROR_CODE_INVALID_SESSION("USM-10009",
                 "Invalid session",
-                "Session ID is not provided to perform session termination.");
+                "Session ID is not provided to perform session termination."),
+        ERROR_CODE_UNABLE_TO_GET_APP_DATA("USM-10010",
+                "SQL Error",
+                "Error while retrieving application data."),
+        ERROR_CODE_INVALID_SESSION_ID("USM-10011",
+                "Invalid Session",
+                "Session cannot be found for the given session ID.");
 
         private final String code;
         private final String message;

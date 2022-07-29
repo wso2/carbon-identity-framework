@@ -5,13 +5,15 @@
     "PRE_AUTHENTICATION",
     "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIMS"
+    "POST_SET_USER_CLAIMS",
+    "POST_NON_BASIC_AUTHENTICATION"
   ],
-  "identity_mgt.events.schemes.'account.lock.handler'.properties.enable": false,
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'lock.on.max.failed.attempts.enable'": false,
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'": "2",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'On.Failure.Max.Attempts'": "5",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.Time": "5m",
   "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.manageInternally'": true,
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.notifyOnLockIncrement'": false,
   "identity_mgt.events.schemes.emailSend.module_index": "2",
   "identity_mgt.events.schemes.emailSend.subscriptions": [
     "TRIGGER_NOTIFICATION"
@@ -36,6 +38,7 @@
   "identity_mgt.events.schemes.'account.disable.handler'.module_index": "5",
   "identity_mgt.events.schemes.'account.disable.handler'.subscriptions": [
     "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
   ],
@@ -56,7 +59,8 @@
   "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
     "PRE_UPDATE_CREDENTIAL",
     "PRE_UPDATE_CREDENTIAL_BY_ADMIN",
-    "PRE_ADD_USER"
+    "PRE_ADD_USER",
+    "VALIDATE_PASSWORD"
   ],
   "identity_mgt.events.schemes.passwordPolicy.properties.'min.length'": "6",
   "identity_mgt.events.schemes.passwordPolicy.properties.'max.length'": "12",
@@ -69,7 +73,8 @@
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
     "PRE_SET_USER_CLAIMS",
-    "PRE_AUTHENTICATION"
+    "PRE_AUTHENTICATION",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
   "identity_mgt.events.schemes.'suspension.notification'.subscriptions": [
@@ -100,6 +105,7 @@
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.module_index": "14",
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_authentication_event_types}",
   "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enableMultipleEventPublishingForSaasApps": true,
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.module_index": "15",
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.subscriptions": "$ref{authentication.analytics.publish_session_event_types}",
   "identity_mgt.events.schemes.analyticsSessionDataPublisher.properties.enable": false,
@@ -166,7 +172,10 @@
   "identity_mgt.events.schemes.identityOauthEventHandler.module_index": "28",
   "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [
     "POST_SET_USER_CLAIMS",
-    "POST_SET_USER_CLAIM"
+    "POST_SET_USER_CLAIM",
+    "POST_UPDATE_USER_LIST_OF_ROLE_EVENT",
+    "PRE_DELETE_ROLE_EVENT",
+    "POST_SET_PERMISSIONS_FOR_ROLE_EVENT"
   ],
   "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
   "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,
@@ -176,5 +185,47 @@
     "POST_UPDATE_CREDENTIAL",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.module_index": "30",
+  "identity_mgt.events.schemes.'multiattribute.login.handler'.subscriptions": [
+    "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.module_index": "31",
+  "identity_mgt.events.schemes.SCIMClaimOperationEventHandler.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT"
+  ],
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.module_index": "32",
+  "identity_mgt.events.schemes.ClaimMetadataManagementAuditLogger.subscriptions": [
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_LOCAL_CLAIM_ADD",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_UPDATE_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_CLAIM_DIALECT"
+  ],
+  "identity_mgt.events.schemes.CentralLogger.module_index": "33",
+  "identity_mgt.events.schemes.CentralLogger.subscriptions": [
+    "PUBLISH_AUDIT_LOG",
+    "PUBLISH_DIAGNOSTIC_LOG"
+  ],
+  "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.module_index": "34",
+  "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.subscriptions": [
+    "POST_DELETE_EXTERNAL_CLAIM"
+  ],
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.module_index": "35",
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
+    "PRE_AUTHENTICATION"
   ]
 }

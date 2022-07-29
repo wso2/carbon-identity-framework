@@ -187,6 +187,8 @@ public class SQLConstants {
     public static final String DELETE_ATTRIBUTE_SQL = "DELETE FROM IDN_CONFIG_ATTRIBUTE WHERE ID = ?";
     public static final String GET_RESOURCE_TYPE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION FROM IDN_CONFIG_TYPE " +
             "WHERE NAME = ? ";
+    public static final String GET_RESOURCE_TYPE_ID_BY_NAME_SQL = "SELECT ID FROM IDN_CONFIG_TYPE " +
+            "WHERE NAME = ? ";
     public static final String GET_RESOURCE_TYPE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM IDN_CONFIG_TYPE WHERE" +
             " ID = ? ";
     public static final String DELETE_RESOURCE_TYPE_BY_NAME_SQL = "DELETE FROM IDN_CONFIG_TYPE WHERE NAME = ?";
@@ -195,6 +197,8 @@ public class SQLConstants {
             "TENANT_ID = ?";
     public static final String GET_RESOURCE_ID_BY_NAME_SQL = "SELECT ID FROM IDN_CONFIG_RESOURCE WHERE NAME = ? AND " +
             "TENANT_ID = ? AND TYPE_ID = ?";
+    public static final String GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL = "SELECT ID, TENANT_ID FROM " +
+            "IDN_CONFIG_RESOURCE WHERE TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_NAME_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -452,7 +456,14 @@ public class SQLConstants {
 
     public static final String INSERT_FILE_SQL = "INSERT INTO IDN_CONFIG_FILE(ID, VALUE, RESOURCE_ID, NAME) VALUES(?, "
             + "?, ?, ?)";
+    public static final String INSERT_FILE_SQL_H2 = "INSERT INTO IDN_CONFIG_FILE(ID, `VALUE`, RESOURCE_ID, NAME) VALUES(?, "
+            + "?, ?, ?)";
     public static final String GET_FILE_BY_ID_SQL = "SELECT IDN_CONFIG_FILE.ID, IDN_CONFIG_FILE.VALUE, "
+            + "IDN_CONFIG_FILE.RESOURCE_ID, IDN_CONFIG_FILE.NAME FROM IDN_CONFIG_FILE INNER JOIN IDN_CONFIG_RESOURCE ON "
+            + "IDN_CONFIG_FILE.RESOURCE_ID = IDN_CONFIG_RESOURCE.ID INNER JOIN IDN_CONFIG_TYPE ON "
+            + "IDN_CONFIG_RESOURCE.TYPE_ID = IDN_CONFIG_TYPE.ID where IDN_CONFIG_FILE.ID = ? and "
+            + "IDN_CONFIG_RESOURCE.NAME = ? and IDN_CONFIG_TYPE.NAME = ?";
+    public static final String GET_FILE_BY_ID_SQL_H2 = "SELECT IDN_CONFIG_FILE.ID, IDN_CONFIG_FILE.`VALUE`, "
             + "IDN_CONFIG_FILE.RESOURCE_ID, IDN_CONFIG_FILE.NAME FROM IDN_CONFIG_FILE INNER JOIN IDN_CONFIG_RESOURCE ON "
             + "IDN_CONFIG_FILE.RESOURCE_ID = IDN_CONFIG_RESOURCE.ID INNER JOIN IDN_CONFIG_TYPE ON "
             + "IDN_CONFIG_RESOURCE.TYPE_ID = IDN_CONFIG_TYPE.ID where IDN_CONFIG_FILE.ID = ? and "

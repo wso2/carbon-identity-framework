@@ -68,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -93,7 +95,13 @@ public class IdentityApplicationManagementUtil {
     private static final Map<String, String> samlAuthnContextClasses;
     private static final List<String> samlAuthnContextComparisonLevels;
     private static HashMap<CertData, String> certificalteValMap = new HashMap<>();
-    
+    private static final int MODE_DEFAULT = 1;
+    private static final int MODE_ESCAPE = 2;
+    private static final int MODE_STRING = 3;
+    private static final int MODE_SINGLE_LINE = 4;
+    private static final int MODE_MULTI_LINE = 5;
+    private static final Pattern JS_LOOP_PATTERN = Pattern.compile("\\b(for|while|forEach)\\b");
+
     static {
         //initialize xmlSignatureAlgorithms
         Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<>();
@@ -735,16 +743,19 @@ public class IdentityApplicationManagementUtil {
 
         }
 
-        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + new Date().getTime() + 3000 + ",\"iat\":"
+        long expiryTime = new Date().getTime() + 3000;
+        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + expiryTime + ",\"iat\":"
                 + new Date().getTime() + "," + jsonObj + "}";
-        String jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"HS256\"}";
+        String jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
 
         if (oauthConsumerSecret == null) {
-            jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
+            jwtHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
         }
 
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes(StandardCharsets.UTF_8));
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedHeader = java.util.Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtHeader.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedBody = java.util.Base64.getUrlEncoder().withoutPadding().
+                encodeToString(jwtBody.getBytes(StandardCharsets.UTF_8));
 
         if (log.isDebugEnabled()) {
             log.debug("JWT Header :" + jwtHeader);
@@ -758,13 +769,36 @@ public class IdentityApplicationManagementUtil {
         } else {
             String signedAssertion;
             try {
-                signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
+                signedAssertion = calculateHmacSha256(oauthConsumerSecret, assertion);
                 return assertion + "." + signedAssertion;
             } catch (SignatureException e) {
                 log.error("Error while signing the assertion", e);
                 return assertion + ".";
             }
         }
+    }
+
+    private static String calculateHmacSha256(String key, String value) throws SignatureException {
+
+        String result;
+        try {
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(signingKey);
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            result = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(rawHmac);
+        } catch (NoSuchAlgorithmException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Invalid algorithm provided while calculating HMAC signature.", e);
+        } catch (InvalidKeyException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Failed to calculate HMAC signature.", e);
+        }
+        return result;
     }
 
     /**
@@ -926,5 +960,83 @@ public class IdentityApplicationManagementUtil {
             }
         }
         return propertyList.toArray(new Property[0]);
+    }
+
+    /**
+     * Used to check if a given adaptive auth script contains loops.
+     *
+     * @param script Adaptive auth script.
+     * @return True if a loop is present.
+     */
+    public static boolean isLoopsPresentInAdaptiveAuthScript(String script) {
+
+        script = getCleanedAdaptiveAuthScript(script);
+        Matcher matcher = JS_LOOP_PATTERN.matcher(script);
+        return matcher.find();
+    }
+
+    /**
+     * Check if loops are allowed in adaptive auth scripts.
+     *
+     * @return true is loops are allowed.
+     */
+    public static boolean isLoopsInAdaptiveAuthScriptAllowed() {
+
+        String confAllowLoops = IdentityUtil.getProperty(IdentityConstants.ServerConfig.ADAPTIVE_AUTH_ALLOW_LOOPS);
+
+        // By default allow loops.
+        if (StringUtils.isBlank(confAllowLoops)) {
+            return true;
+        }
+
+        return Boolean.parseBoolean(confAllowLoops);
+    }
+
+    /**
+     * Remove comments and strings from a script
+     * and get only the script code.
+     *
+     * @param script script.
+     * @return cleaned script.
+     */
+    private static String getCleanedAdaptiveAuthScript(String script) {
+
+        StringBuilder cleanedScript = new StringBuilder();
+        int mode = MODE_DEFAULT;
+        for (int i = 0; i < script.length(); i++) {
+            String subString = script.substring(i, Math.min(i + 2, script.length()));
+            char c = script.charAt(i);
+            switch (mode) {
+                case MODE_DEFAULT: // Checks if start of a comment if not checks if start of a string.
+                    mode = subString.equals("/*") ? MODE_MULTI_LINE
+                            : (subString.equals("//") ? MODE_SINGLE_LINE
+                            : (((c == '"') || (c == '\'')) ? MODE_STRING : MODE_DEFAULT));
+                    break;
+                case MODE_STRING: // Checks if end of a string if not checks if a char is a escape character.
+                    mode = ((c == '"') || (c == '\'')) ? MODE_DEFAULT : ((c == '\\') ? MODE_ESCAPE : MODE_STRING);
+                    if (mode == MODE_DEFAULT) {
+                        continue;
+                    }
+                    break;
+                case MODE_ESCAPE: // Marks end of escape character.
+                    mode = MODE_STRING;
+                    break;
+                case MODE_SINGLE_LINE: // Checks to see if new line which marks end of a single line comment.
+                    mode = (c == '\n') ? MODE_DEFAULT : MODE_SINGLE_LINE;
+                    continue;
+                case MODE_MULTI_LINE: // Checks to see if end of a new line comment.
+                    mode = subString.equals("*/") ? MODE_DEFAULT : MODE_MULTI_LINE;
+                    if (mode == MODE_DEFAULT) {
+                        i += 1;
+                    }
+                    continue;
+            }
+            // If char is not part of a comment or part
+            // of a string then append to cleaned script.
+            if (mode < 2) {
+                cleanedScript.append(c);
+            }
+        }
+        return cleanedScript.toString();
     }
 }

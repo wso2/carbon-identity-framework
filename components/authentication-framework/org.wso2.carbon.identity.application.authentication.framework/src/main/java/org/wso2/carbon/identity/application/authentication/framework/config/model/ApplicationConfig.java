@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -42,6 +44,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Authentication configuration of an application.
+ */
 public class ApplicationConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 8082478632322393384L;
@@ -64,10 +69,28 @@ public class ApplicationConfig implements Serializable, Cloneable {
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
     private boolean useUserstoreDomainInRole = false;
+    private boolean useUserIdForDefaultSubject = false;
 
     private static final Log log = LogFactory.getLog(ApplicationConfig.class);
 
+    /**
+     * @param application Application details.
+     * @deprecated Use {@link #ApplicationConfig(ServiceProvider, String)} instead.
+     */
+    @Deprecated
     public ApplicationConfig(ServiceProvider application) {
+
+        this(application, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+    }
+
+    /**
+     * Initialize application (service provider) configurations.
+     *
+     * @param application Application details.
+     * @param tenantDomain Tenant domain of the application.
+     */
+    public ApplicationConfig(ServiceProvider application, String tenantDomain) {
+
         this.serviceProvider = application;
         applicationID = application.getApplicationID();
         applicationName = application.getApplicationName();
@@ -90,7 +113,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
             alwaysSendMappedLocalSubjectId = claimConfig.isAlwaysSendMappedLocalSubjectId();
 
             List<ClaimMapping> spClaimMappings = new ArrayList<>(Arrays.asList(claimConfig.getClaimMappings()));
-            setSpDialectClaims(claimConfig, spClaimMappings);
+            setSpDialectClaims(claimConfig, spClaimMappings, tenantDomain);
             if (CollectionUtils.isNotEmpty(spClaimMappings)) {
                 for (ClaimMapping claim : spClaimMappings) {
                     if (claim.getRemoteClaim() != null
@@ -147,6 +170,16 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 for (RoleMapping roleMapping : tempRoleMappings) {
                     this.roleMappings.put(roleMapping.getLocalRole().getLocalRoleName(),
                                           roleMapping.getRemoteRole());
+                }
+            }
+        }
+
+        ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
+        if (spProperties != null) {
+            for (ServiceProviderProperty prop: spProperties) {
+                if (IdentityApplicationConstants.USE_USER_ID_FOR_DEFAULT_SUBJECT.equals(prop.getName())) {
+                    useUserIdForDefaultSubject = Boolean.parseBoolean(prop.getValue());
+                    break;
                 }
             }
         }
@@ -323,14 +356,13 @@ public class ApplicationConfig implements Serializable, Cloneable {
      * @param claimConfig Application claim configuration
      * return Application claim mappings
      */
-    private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings) {
+    private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings, String tenantDomain) {
 
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
         if (!ArrayUtils.isEmpty(spClaimDialects)) {
             List<String> spClaimDialectsList = Arrays.asList(spClaimDialects);
             spClaimDialectsList.forEach(spClaimDialect -> {
                 try {
-                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
                     if (ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT.equals(spClaimDialect)) {
                         List<LocalClaim> localClaims = FrameworkServiceDataHolder.getInstance()
                                 .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
@@ -349,5 +381,9 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 }
             });
         }
+    }
+
+    public boolean isUseUserIdForDefaultSubject() {
+        return useUserIdForDefaultSubject;
     }
 }

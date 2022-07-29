@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStore
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
@@ -53,10 +54,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .triggerListnersOnUserStorePreDelete;
@@ -189,6 +192,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 triggerListnersOnUserStorePreDelete(domainName);
                 // Delete persisted domain name
                 deletePersitedDomain(tenantId, domainName);
+            } catch (UserStoreClientException e) {
+                throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be deleted.", e);
             } catch (UserStoreException e) {
                 String errorMessage = "Error while deleting user store : " + domainName;
                 log.error(errorMessage, e);
@@ -372,7 +377,10 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             triggerListnersOnUserStorePreUpdate(previousDomainName, domainName);
             // Update persisted domain name
             updatePersistedDomainName(previousDomainName, domainName, tenantId);
-
+            // Run post userstore name update listeners.
+            triggerListenersOnUserStorePostUpdate(previousDomainName, domainName);
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be updated.", e);
         } catch (UserStoreException e) {
             String errorMessage = "Error while updating user store domain : " + domainName;
             log.error(errorMessage, e);

@@ -25,6 +25,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.*" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
@@ -32,8 +33,6 @@
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources" topPage="true" request="<%=request%>" />
 <jsp:include page="../dialog/display_messages.jsp"/>
 
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp" />
@@ -107,6 +106,8 @@ function importAppOnclick() {
         location.href = '#';
         return false;
     } else {
+        var content = document.getElementById('sp-file-content').value;
+        document.getElementById('sp-file-content').value = btoa(content);
         $("#upload-sp-form").submit();
         return true;
     }
@@ -205,7 +206,7 @@ window.onload = function() {
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.name'/>:<span class="required">*</span></td>
                         <td>
-                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
+                            <input id="spName" name="spName" type="text" value="" white-list-patterns="<%=Encode.forHtmlContent(ApplicationMgtUIUtil.getSPValidatorJavascriptRegex())%>" autofocus/>
                             <div class="sectionHelp">
                                 <fmt:message key='help.name'/>
                             </div>
@@ -217,6 +218,15 @@ window.onload = function() {
                         <textarea maxlength="1023" style="width:50%" type="text" name="sp-description" id="sp-description" class="text-box-big"></textarea>
                         <div class="sectionHelp">
                                 <fmt:message key='help.desc'/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="leftCol-med labelField">Management Application:</td>
+                        <td>
+                            <input type="checkbox" name="is-management-app" id="is-management-app"/>
+                            <div class="sectionHelp">
+                                <fmt:message key='help.management.app'/>
                             </div>
                         </td>
                     </tr>

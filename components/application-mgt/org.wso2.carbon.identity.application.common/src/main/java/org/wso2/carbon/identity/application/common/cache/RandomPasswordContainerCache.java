@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
+import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.cache.BaseCache;
+
 /**
  * Cache to contain randomized passwords.
  */
@@ -47,17 +50,18 @@ public class RandomPasswordContainerCache
 
     public void addToCache(RandomPasswordContainerCacheKey key, RandomPasswordContainerCacheEntry entry) {
 
-        super.addToCache(key, entry);
+        super.addToCache(key, entry, CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
     public RandomPasswordContainerCacheEntry getValueFromCache(RandomPasswordContainerCacheKey key) {
 
-        RandomPasswordContainerCacheEntry cacheEntry = super.getValueFromCache(key);
+        RandomPasswordContainerCacheEntry cacheEntry = super.getValueFromCache(key,
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         return cacheEntry;
     }
 
     public void clearCacheEntry(RandomPasswordContainerCacheKey key) {
 
-        super.clearCacheEntry(key);
+        super.clearCacheEntry(key, CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 }

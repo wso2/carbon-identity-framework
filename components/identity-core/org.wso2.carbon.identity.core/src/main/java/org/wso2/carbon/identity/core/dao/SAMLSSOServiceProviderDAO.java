@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.CertificateRetriever;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
@@ -47,19 +48,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+
 public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProviderDO> {
 
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
-            "META.VALUE " +
-            "FROM " +
-            "SP_INBOUND_AUTH INBOUND," +
-            "SP_APP SP," +
-            "SP_METADATA META " +
-            "WHERE SP.ID = INBOUND.APP_ID AND " +
-            "SP.ID = META.SP_ID AND " +
-            "META.NAME = ? AND " +
-            "INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
+            "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
+
+    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
+            "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
     private static Log log = LogFactory.getLog(SAMLSSOServiceProviderDAO.class);
 
@@ -622,21 +622,28 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
      */
     private int getApplicationCertificateId(String issuer, int tenantId) throws SQLException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement statementToGetApplicationCertificate =
-                     connection.prepareStatement(QUERY_TO_GET_APPLICATION_CERTIFICATE_ID)) {
-            statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
-            statementToGetApplicationCertificate.setString(2, issuer);
-            statementToGetApplicationCertificate.setInt(3, tenantId);
+        try {
+            String sqlStmt = isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 :
+                    QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+                 PreparedStatement statementToGetApplicationCertificate =
+                         connection.prepareStatement(sqlStmt)) {
+                statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
+                statementToGetApplicationCertificate.setString(2, issuer);
+                statementToGetApplicationCertificate.setInt(3, tenantId);
 
-            try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
-                if (queryResults.next()) {
-                    return queryResults.getInt(1);
+                try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
+                    if (queryResults.next()) {
+                        return queryResults.getInt(1);
+                    }
                 }
             }
+            return -1;
+        } catch (DataAccessException e) {
+            String errorMsg = "Error while retrieving application certificate data for issuer: " + issuer +
+                    " and tenant Id: " + tenantId;
+            throw new SQLException(errorMsg, e);
         }
-
-        return -1;
     }
 
     public boolean isServiceProviderExists(String issuer) throws IdentityException {

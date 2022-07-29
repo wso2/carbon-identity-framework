@@ -167,13 +167,13 @@
             topPage="false"
             request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
 
     <!-- Override carbon jquery from latest release of it, because this tokenizer support for latest one -->
-    <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-1.11.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.6.0.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.13.0.min.js"></script>
     <script type="text/javascript" src="js/tokenizer.js"></script>
     <link rel="stylesheet" type="text/css" href="css/input_style.css">
 

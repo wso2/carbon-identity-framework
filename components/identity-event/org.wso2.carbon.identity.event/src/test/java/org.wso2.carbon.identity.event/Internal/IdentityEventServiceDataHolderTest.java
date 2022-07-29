@@ -21,13 +21,11 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.event.internal.IdentityEventServiceDataHolder;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.idp.mgt.IdpManager;
 import java.util.concurrent.ExecutorService;
 
 public class IdentityEventServiceDataHolderTest {
 
     ExecutorService executorService;
-    IdpManager idpManager;
     IdentityEventService identityEventService;
 
 
@@ -37,13 +35,6 @@ public class IdentityEventServiceDataHolderTest {
         IdentityEventServiceDataHolder identityEventServiceDataHolder = IdentityEventServiceDataHolder.getInstance();
         identityEventServiceDataHolder.setThreadPool(executorService);
         Assert.assertEquals(identityEventServiceDataHolder.getThreadPool(),executorService);
-    }
-
-    @Test
-    public void testGetIdpManager(){
-        IdentityEventServiceDataHolder identityEventServiceDataHolder = IdentityEventServiceDataHolder.getInstance();
-        identityEventServiceDataHolder.setIdpManager(idpManager);
-        Assert.assertEquals(identityEventServiceDataHolder.getIdpManager(),idpManager);
     }
 
     @Test

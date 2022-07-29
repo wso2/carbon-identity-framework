@@ -17,6 +17,8 @@
   --%>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.Base64" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.axis2.transport.http.HTTPConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
@@ -46,6 +48,7 @@
     String functionLibName = request.getParameter(FUNCTION_LIBRARY_NAME);
     String description = request.getParameter(DESCRIPTION);
     String content = request.getParameter(SCRIPT_CONTENT);
+    content = new String(Base64.getDecoder().decode(content), StandardCharsets.UTF_8);
     
     if (StringUtils.isNotBlank(functionLibName) && StringUtils.isNotBlank(content)) {
         FunctionLibrary functionLibrary = new FunctionLibrary();

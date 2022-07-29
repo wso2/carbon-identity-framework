@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.template.mgt.handler.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCache;
@@ -73,7 +74,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
         ConfigStoreBasedTemplateCacheKey cacheKey = new ConfigStoreBasedTemplateCacheKey(templateId);
-        ConfigStoreBasedTemplateCacheEntry entry = configStoreBasedTemplateCache.getValueFromCache(cacheKey);
+        ConfigStoreBasedTemplateCacheEntry entry = configStoreBasedTemplateCache.getValueFromCache(cacheKey,
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
 
         if (entry != null) {
             if (log.isDebugEnabled()) {
@@ -93,7 +95,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
             if (log.isDebugEnabled()) {
                 log.debug("Entry fetched from Config store for Template " + templateId + ". Updating cache");
             }
-            configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template));
+            configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template),
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Entry for Template with id " + templateId + " not found in cache or config store");
@@ -174,7 +177,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
                 log.debug("Removing entry for Template with id " + templateId + " from cache.");
             }
             ConfigStoreBasedTemplateCacheKey cacheKey = new ConfigStoreBasedTemplateCacheKey(templateId);
-            configStoreBasedTemplateCache.clearCacheEntry(cacheKey);
+            configStoreBasedTemplateCache.clearCacheEntry(cacheKey,
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Entry for Template with id " + templateId + " not found in cache or DB");

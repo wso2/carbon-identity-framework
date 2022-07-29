@@ -66,6 +66,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -85,7 +86,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.xml.stream.XMLStreamException;
+
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
 public class IdentityProviderManager implements IdpManager {
 
@@ -179,28 +186,30 @@ public class IdentityProviderManager implements IdpManager {
             oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
         }
 
-        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl);
-        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl);
-        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl);
-        oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl);
+        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, tenantDomain);
+        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, tenantDomain);
+        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, tenantDomain);
+        oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl,
+                tenantDomain);
         oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
-        oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl);
-        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl);
-        oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl);
-        oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl);
+        oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, tenantDomain);
+        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
+                tenantDomain);
+        oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl,tenantDomain);
+        oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, tenantDomain);
         oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
-        oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage);
+        oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, tenantDomain);
         oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
-        oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl);
+        oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, tenantDomain);
         oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl);
+        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, tenantDomain);
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
+            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, getTenantContextFromTenantDomain(tenantDomain) +
                     IdentityConstants.STS.WSO2_CARBON_STS);
         } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + IdPManagementUtil.getTenantContext() +
+            stsUrl = IdentityUtil.getServerURL("services/" + getTenantContextFromTenantDomain(tenantDomain) +
                     IdentityConstants.STS.WSO2_CARBON_STS, true, true);
         }
 
@@ -353,8 +362,15 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList = new ArrayList<Property>();
 
-        Property idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
-                OPENID_IDP_ENTITY_ID);
+        Property idPEntityIdProp;
+        // When the tenant qualified urls are enabled, we need to see the oauth2 token endpoint.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
+                    OPENID_IDP_ENTITY_ID);
+        } else {
+            idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+                    OPENID_IDP_ENTITY_ID);
+        }
         propertiesList.add(idPEntityIdProp);
 
         Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
@@ -569,7 +585,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        return resolveAbsoluteURL(defaultContext, url);
+        return resolveAbsoluteURL(defaultContext, url, tenantDomain);
     }
 
     private boolean isNotSuperTenant(String tenantDomain) {
@@ -628,10 +644,8 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList.add(idPEntityIdProperty);
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // Add SSO URL as a destination URL if not already available.
-            addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
-        }
+        // Add SSO URL as a destination URL if not already available.
+        addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
 
         for (Property property : samlFederatedAuthConfig.getProperties()) {
             if (property != null &&
@@ -772,7 +786,13 @@ public class IdentityProviderManager implements IdpManager {
         if (!idPEntityIdAvailable) {
             Property property = new Property();
             property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            property.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            if (tenantId != MultitenantConstants.SUPER_TENANT_ID && IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                property.setValue(IdPManagementUtil.getResidentIdPEntityId() + "/t/" + tenantDomain);
+            } else {
+                property.setValue(IdPManagementUtil.getResidentIdPEntityId());
+            }
+
             if (saml2SSOResidentAuthenticatorConfig.getProperties().length > 0) {
                 List<Property> properties = Arrays.asList(saml2SSOResidentAuthenticatorConfig.getProperties());
                 properties.add(property);
@@ -1060,6 +1080,33 @@ public class IdentityProviderManager implements IdpManager {
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+                result.getSortOrder(), result.getSortBy(), requiredAttributes));
+        return result;
+    }
+
+    /**
+     * Get basic information of identity providers along with additionally requested information.
+     *
+     * @param limit              The limit per page.
+     * @param offset             The offset value.
+     * @param sortOrder          The order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       The tenant domain of the user.
+     * @param requiredAttributes The required attributes which needs to be returned.
+     * @param expressionNodes    The list of filters.
+     * @return The basic information of identity providers along with requested attributes.
+     * @throws IdentityProviderManagementException Server/client related errors when getting list of identity providers.
+     */
+    @Override
+    public IdpSearchResult getIdPs(Integer limit, Integer offset, String sortOrder, String sortBy, String tenantDomain,
+                                   List<String> requiredAttributes, List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        IdpSearchResult result = new IdpSearchResult();
+        setParameters(limit, offset, null, sortBy, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
@@ -1395,6 +1442,13 @@ public class IdentityProviderManager implements IdpManager {
         validateGetIdPInputValues(resourceId);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+    }
+
+    @Override
+    public String getIdPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        validateGetIdPInputValues(resourceId);
+        return dao.getIdPNameByResourceId(resourceId);
     }
 
     /**
@@ -2005,7 +2059,7 @@ public class IdentityProviderManager implements IdpManager {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, identityProvider.getPermissionAndRoleConfig());
         }
 
-        validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
+        validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
@@ -2318,7 +2372,7 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
-        return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        return dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
     }
 
     private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
@@ -2393,7 +2447,7 @@ public class IdentityProviderManager implements IdpManager {
                                             "An Identity Provider Entity ID has already been registered with the " +
                                                     "name '" + property.getValue() + "' for tenant '" + tenantDomain +
                                                     "'";
-                                    throw new IdentityProviderManagementException(msg);
+                                    throw new IdentityProviderManagementClientException(msg);
                                 }
                                 return true;
                             }
@@ -2451,7 +2505,7 @@ public class IdentityProviderManager implements IdpManager {
                                         String msg = "An Identity Provider Entity ID has already been registered " +
                                                 "with the name '" +
                                                 property.getValue() + "' for tenant '" + tenantDomain + "'";
-                                        throw new IdentityProviderManagementException(msg);
+                                        throw new IdentityProviderManagementClientException(msg);
                                     }
                                     return true;
                                 }
@@ -2478,7 +2532,8 @@ public class IdentityProviderManager implements IdpManager {
     public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
 
         if (IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().isEmpty()) {
-            throw new IdentityProviderManagementException("Error receiving Metadata object");
+            throw new IdentityProviderManagementException(
+                    "Error receiving Metadata object for tenant: " + tenantDomain);
         }
 
         IdentityProvider residentIdentityProvider = this.getResidentIdP(tenantDomain);
@@ -2505,12 +2560,12 @@ public class IdentityProviderManager implements IdpManager {
                     }
                 }
             } catch (IdentityProviderSAMLException e) {
-                throw new IdentityProviderManagementException(e.getMessage());
+                throw new IdentityProviderManagementException(
+                        "Error in retrieving metadata string for tenant:" + tenantDomain, e.getMessage());
             }
         }
 
         return null;
-
     }
 
     @Override
@@ -2546,7 +2601,7 @@ public class IdentityProviderManager implements IdpManager {
      * from the file config.
      * @throws IdentityProviderManagementServerException When fail to build the absolute public url.
      */
-    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig) throws IdentityProviderManagementServerException {
+    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String tenantDomain) throws IdentityProviderManagementServerException {
 
         if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
             if (log.isDebugEnabled()) {
@@ -2557,7 +2612,8 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         try {
-            return ServiceURLBuilder.create().addPath(defaultUrlContext).build().getAbsolutePublicURL();
+             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().setTenant(tenantDomain);
+            return serviceURLBuilder.addPath(defaultUrlContext).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
                     "Error while building URL: " + defaultUrlContext, e);
@@ -2605,6 +2661,18 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isNotBlank(mapping.getLocalRole().getUserStoreId())) {
                     role = IdentityUtil.addDomainToName(role, mapping.getLocalRole().getUserStoreId());
                 }
+
+                if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+                    // Only roles are allowed for role mapping.
+                    if (isGroup(role)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Groups including: " + role + ", are not allowed for the identity " +
+                                    "provider role mapping.");
+                        }
+                        continue;
+                    }
+                }
+
                 // Remove invalid mappings if local role does not exists.
                 if (usm.isExistingRole(role)) {
                     validRoleMappings.add(mapping);
@@ -2920,5 +2988,115 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleServerException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
         }
+    }
+
+    private boolean isGroup(String localRoleName) {
+
+        return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
+                .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
+    }
+
+    /**
+     * Get tenant context using tenant domain.
+     *
+     * @param tenantDomain Tenant domain of the tenant.
+     * @return Tenant context of the tenant.
+     */
+    private String getTenantContextFromTenantDomain(String tenantDomain) {
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            return MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
+        }
+        return "";
+    }
+
+    /**
+     * Extracts IdpEntityId property from metadata and adds it to the existing properties of the
+     * federatedAuthenticatorConfigs.
+     *
+     * @param identityProvider IdentityProvider.
+     * @return federatedAuthenticatorConfigs - FederatedAuthenticatorConfig[] of the given identityProvider with the
+     * IdPEntityId property added by extracting from metadata.
+     * @throws IdentityProviderManagementException If the IdpMgtServiceComponentHolder does not contain any
+     *                                             metadataConverters.
+     */
+    private FederatedAuthenticatorConfig[] extractIdpEntityIdFromMetadata(IdentityProvider identityProvider)
+            throws IdentityProviderManagementException {
+
+        List<MetadataConverter> metadataConverters = IdpMgtServiceComponentHolder.getInstance().getMetadataConverters();
+        if (metadataConverters.isEmpty()) {
+            throw new IdentityProviderManagementException("Metadata Converter is not set");
+        }
+
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
+                identityProvider.getFederatedAuthenticatorConfigs();
+
+        for (FederatedAuthenticatorConfig federatedAuthenticatorConfig : federatedAuthenticatorConfigs) {
+            Property[] properties = federatedAuthenticatorConfig.getProperties();
+            if (ArrayUtils.isEmpty(properties)) {
+                return federatedAuthenticatorConfigs;
+            }
+            for (Property property : properties) {
+                if (property == null) {
+                    continue;
+                }
+                // Searching for the metadata property to extract data.
+                // Ignoring the properties with blank names and names not equal to meta_data.
+                if (StringUtils.isBlank(property.getName()) ||
+                        !property.getName().contains((IdPManagementConstants.META_DATA))) {
+                    continue;
+                }
+                for (MetadataConverter metadataConverter : metadataConverters) {
+                    if (!metadataConverter.canHandle(property)) {
+                        continue;
+                    }
+                    // Extracting IdpEntityId property and adding to properties of federatedAuthenticatorConfig.
+                    Property idpEntityIdFromMetadata = extractPropertyFromMetadata(metadataConverter, properties,
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
+                    if (idpEntityIdFromMetadata != null) {
+                        ArrayList<Property> propertiesList = new ArrayList<>(Arrays.asList(properties));
+                        propertiesList.add(idpEntityIdFromMetadata);
+                        properties = propertiesList.toArray(properties);
+                        federatedAuthenticatorConfig.setProperties(properties);
+                        break;
+                    }
+                }
+            }
+        }
+        return federatedAuthenticatorConfigs;
+    }
+
+    /**
+     * Extracts and returns the property from metadata with the given property name.
+     * If the property with the given name is not included in metadata, returns null.
+     *
+     * @param metadataConverter MetadataConverter to convert the metadata.
+     * @param properties        Property[] from which the property should be extracted.
+     * @param propertyName      String which is the property name.
+     * @return propertyWithName Property with the propertyName is equal to the given property name.
+     * @throws IdentityProviderManagementException If an error occurs when converting or configuring metadata.
+     */
+    private Property extractPropertyFromMetadata(MetadataConverter metadataConverter, Property[] properties,
+                                                 String propertyName) throws IdentityProviderManagementException {
+
+        Property propertyWithName = null;
+        StringBuilder certificate = new StringBuilder();
+        try {
+            FederatedAuthenticatorConfig metaFederated =
+                    metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
+            Property[] metadataProperties = metaFederated.getProperties();
+            for (Property metadataProperty : metadataProperties) {
+                // Searching for the property.
+                if (propertyName.equals(metadataProperty.getName())) {
+                    propertyWithName = metadataProperty;
+                    break;
+                }
+            }
+        } catch (IdentityProviderManagementException ex) {
+            throw new IdentityProviderManagementException("Error converting metadata", ex);
+        } catch (XMLStreamException e) {
+            throw new IdentityProviderManagementException("Error while configuring metadata", e);
+        }
+        return propertyWithName;
     }
 }

@@ -60,6 +60,14 @@ public class Application {
         return appId;
     }
 
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
     public String getResourceId() {
 
         return resourceId;

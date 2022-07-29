@@ -226,7 +226,7 @@ public class TenantDataManager {
      */
     public static List<String> getAllActiveTenantDomains() {
 
-        if (initialized && tenantDomainList.isEmpty()) {
+        if (initialized) {
             refreshActiveTenantDomainsList();
         }
         return tenantDomainList;

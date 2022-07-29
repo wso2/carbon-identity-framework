@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.core.tenant.TenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -32,6 +33,7 @@ import java.security.cert.X509Certificate;
  */
 public class KeyStoreCertificateRetriever implements CertificateRetriever {
 
+    private static final Log LOG = LogFactory.getLog(KeyStoreCertificateRetriever.class);
 
     /**
      * @param certificateId Alias of the certificate to be retrieved.
@@ -41,6 +43,14 @@ public class KeyStoreCertificateRetriever implements CertificateRetriever {
      */
     @Override
     public X509Certificate getCertificate(String certificateId, Tenant tenant) throws CertificateRetrievingException {
+
+        if (StringUtils.isBlank(certificateId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Invalid alias received for retrieving a certificate in tenant domain: "
+                        + tenant.getDomain());
+            }
+            return null;
+        }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenant.getId());
 
@@ -58,7 +68,7 @@ public class KeyStoreCertificateRetriever implements CertificateRetriever {
             return certificate;
         } catch (Exception e) {
             String errorMsg = String.format("Error occurred while retrieving the certificate for the alias '%s' " +
-                    "of the tenant domain '%s'." + certificateId, tenant.getDomain());
+                    "of the tenant domain '%s'.", certificateId, tenant.getDomain());
             throw new CertificateRetrievingException(errorMsg, e);
         }
     }

@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.hr
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
 
+/**
+ * Default home realm discoverer implementation.
+ */
 public class DefaultHomeRealmDiscoverer implements HomeRealmDiscoverer {
 
     private static volatile DefaultHomeRealmDiscoverer instance;

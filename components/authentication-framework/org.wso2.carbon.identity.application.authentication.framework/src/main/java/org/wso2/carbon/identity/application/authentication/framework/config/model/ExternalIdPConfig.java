@@ -32,6 +32,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * External identity provider configuration.
+ */
 public class ExternalIdPConfig implements Serializable {
 
     private static final long serialVersionUID = 8406982734621371639L;
@@ -57,7 +60,7 @@ public class ExternalIdPConfig implements Serializable {
         roleConfiguration = identityProvider.getPermissionAndRoleConfig();
         justInTimeProConfig = identityProvider.getJustInTimeProvisioningConfig();
 
-        if(roleConfiguration != null) {
+        if (roleConfiguration != null) {
             RoleMapping[] mappings = roleConfiguration.getRoleMappings();
 
             if (mappings != null && mappings.length > 0) {
@@ -67,7 +70,8 @@ public class ExternalIdPConfig implements Serializable {
                                 .addDomainToName(roleMapping.getLocalRole().getLocalRoleName(),
                                         roleMapping.getLocalRole().getUserStoreId()));
                     } else {
-                        this.roleMappings.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole().getLocalRoleName());
+                        this.roleMappings.put(roleMapping.getRemoteRole(),
+                                roleMapping.getLocalRole().getLocalRoleName());
                     }
                 }
             }

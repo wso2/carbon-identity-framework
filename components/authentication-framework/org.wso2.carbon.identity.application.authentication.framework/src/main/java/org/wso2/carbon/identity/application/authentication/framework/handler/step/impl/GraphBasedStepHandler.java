@@ -51,7 +51,7 @@ public class GraphBasedStepHandler extends DefaultStepHandler implements StepHan
         super.handleFailedAuthentication(request, response, context, authenticatorConfig, user);
 
         if (user != null) {
-            AuthenticatedUser lastAttemptedUser = buildAuthenticatedUser(user);
+            AuthenticatedUser lastAttemptedUser = new AuthenticatedUser(user);
             context.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
             if (log.isDebugEnabled()) {
                 log.debug("Last attempted user : " + lastAttemptedUser.toFullQualifiedUsername() + " is set in the " +
@@ -65,14 +65,5 @@ public class GraphBasedStepHandler extends DefaultStepHandler implements StepHan
             log.debug("Authentication flow status set to '" + AuthenticatorFlowStatus.FAIL_COMPLETED + "' for " +
                     "authentication attempt made to service provider: " + context.getServiceProviderName());
         }
-    }
-
-    private AuthenticatedUser buildAuthenticatedUser(User user) {
-
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setUserName(user.getUserName());
-        authenticatedUser.setTenantDomain(user.getTenantDomain());
-        authenticatedUser.setUserStoreDomain(user.getUserStoreDomain());
-        return authenticatedUser;
     }
 }

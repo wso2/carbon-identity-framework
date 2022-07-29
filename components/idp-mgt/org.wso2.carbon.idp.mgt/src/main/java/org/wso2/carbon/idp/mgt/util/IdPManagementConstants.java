@@ -35,6 +35,8 @@ public class IdPManagementConstants {
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
+    public static final String ID = "ID";
+    public static final String MySQL = "MySQL";
 
     public static final String RESIDENT_IDP = "LOCAL";
     public static final String EQ = "eq";
@@ -83,6 +85,18 @@ public class IdPManagementConstants {
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
+
+    public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
+    public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
+            + ".ResetProvisioningEntitiesOnConfigUpdate";
+
+    // Outbound Provisioning Connectors
+    public static final String GOOGLE = "googleapps";
+    public static final String SALESFORCE = "salesforce";
+    public static final String SCIM = "scim";
+    public static final String SCIM2 = "SCIM2";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -155,6 +169,8 @@ public class IdPManagementConstants {
                 "UUID FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) " +
                 "AND UUID = ?";
 
+        public static final String GET_IDP_NAME_BY_RESOURCE_ID_SQL = "SELECT NAME FROM IDP WHERE UUID = ?";
+
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
@@ -174,11 +190,16 @@ public class IdPManagementConstants {
                 + "PROVISIONING_CONFIG_ID, PROPERTY_KEY, PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, " +
                 "IS_SECRET FROM IDP_PROV_CONFIG_PROPERTY WHERE TENANT_ID=? AND PROVISIONING_CONFIG_ID=?";
 
+        public static final String GET_IDP_PROVISIONING_CONFIGS_ID = "SELECT ID " +
+                "FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=?";
 
         public static final String GET_LOCAL_IDP_DEFAULT_CLAIM_VALUES_SQL = "SELECT CLAIM_URI,DEFAULT_VALUE," +
                 "IS_REQUESTED FROM IDP_LOCAL_CLAIM " + " WHERE IDP_ID = ? AND TENANT_ID =?";
 
         public static final String DELETE_PROVISIONING_CONNECTORS = "DELETE FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=?";
+
+        public static final String DELETE_IDP_PROV_CONFIG_PROPERTY = "DELETE FROM IDP_PROV_CONFIG_PROPERTY WHERE " +
+                "PROVISIONING_CONFIG_ID=?";
 
         public static final String GET_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
                 "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID=?";
@@ -280,15 +301,27 @@ public class IdPManagementConstants {
                 + "PROVISIONING_CONFIG_ID, PROPERTY_KEY, PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, IS_SECRET) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        public static final String UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL = "UPDATE IDP_PROV_CONFIG_PROPERTY SET "
+                + "PROPERTY_KEY=?, PROPERTY_VALUE=?, PROPERTY_BLOB_VALUE=?, PROPERTY_TYPE = ?, IS_SECRET=? "
+                + "WHERE PROVISIONING_CONFIG_ID=(SELECT ID FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=? "
+                + "AND TENANT_ID = ? AND PROVISIONING_CONNECTOR_TYPE=?) AND TENANT_ID = ? AND PROPERTY_KEY=?";
+
         public static final String UPDATE_IDP_PROVISIONING_CONFIG_SQL = "UPDATE IDP_PROVISIONING_CONFIG SET "
-                + "PROV_CONNECTOR_TYPE=?, PROV_CONFIG_KEY=? PROV_CONFIG_VALUE=?, "
-                + "PROV_CONFIG_IS_SECRET = ? WHERE IDP_ID=?";
+                + "IS_ENABLED=?, IS_BLOCKING=? WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
+
+        public static final String GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL = "SELECT ID FROM "
+                + "IDP_PROVISIONING_CONFIG WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
 
         public static final String DELETE_ALL_IDP_BY_TENANT_ID_SQL = "DELETE FROM IDP WHERE TENANT_ID = ?";
 
         public static final String DELETE_IDP_BY_RESOURCE_ID_SQL = "DELETE FROM IDP WHERE UUID=?";
+
+        public static final String GET_IDP_CONFIGS_ID_FROM_UUID = "SELECT ID FROM IDP WHERE UUID=?";
+
+        public static final String GET_IDP_CONFIGS_ID_FROM_TENANT_ID_AND_NAME =
+                "SELECT ID FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
         public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +
                 "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
@@ -366,7 +399,11 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_METADATA_BY_IDP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM " +
                 "IDP_METADATA WHERE IDP_ID = ?";
+        public static final String GET_IDP_METADATA_BY_IDP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
+                "IDP_METADATA WHERE IDP_ID = ?";
         public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, VALUE, DISPLAY_NAME, " +
+                "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
+        public static final String ADD_IDP_METADATA_H2 = "INSERT INTO IDP_METADATA (IDP_ID, NAME, `VALUE`, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
 
@@ -412,6 +449,11 @@ public class IdPManagementConstants {
         public static final String GET_IDP_NAME_BY_METADATA = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
                 "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.VALUE = ? AND " +
                 "IDP_METADATA.TENANT_ID = ?";
+        public static final String GET_IDP_NAME_BY_METADATA_H2 = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
+                "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.`VALUE` = ? AND " +
+                "IDP_METADATA.TENANT_ID = ?";
+        public static final String GET_TOTAL_IDP_CLAIM_USAGES = "SELECT COUNT(*) FROM IDP_CLAIM_MAPPING WHERE " +
+                "TENANT_ID = ? AND LOCAL_CLAIM = ?";
     }
 
     public enum ErrorMessage {

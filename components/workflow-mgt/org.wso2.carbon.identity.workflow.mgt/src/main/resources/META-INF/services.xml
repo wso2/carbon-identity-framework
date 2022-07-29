@@ -121,6 +121,11 @@
                        locked="true">/permission/admin/manage/identity/workflow/monitor/delete
             </parameter>
         </operation>
+        <operation name="deleteWorkflowRequestCreatedByAnyUser">
+            <parameter name="AuthorizationAction"
+                       locked="true">/permission/admin/manage/identity/workflow/monitor/anydelete
+            </parameter>
+        </operation>
         <operation name="getWorkflowsOfRequest">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/workflow/monitor/view
             </parameter>

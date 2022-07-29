@@ -43,6 +43,17 @@ public class User implements Serializable {
     protected String userName;
     protected boolean isUsernameCaseSensitive = true;
 
+    public User() {
+
+    }
+
+    public User(org.wso2.carbon.user.core.common.User commonUser) {
+
+        this.setUserName(commonUser.getUsername());
+        this.setUserStoreDomain(commonUser.getUserStoreDomain());
+        this.setTenantDomain(commonUser.getTenantDomain());
+    }
+
     /**
      * Returns a User instance populated from the given OMElement
      * The OMElement is of the form below
@@ -113,7 +124,10 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+
+        if (StringUtils.isNotEmpty(userStoreDomain)) {
+            this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
+        }
         updateCaseSensitivity();
     }
 
@@ -223,6 +237,11 @@ public class User implements Serializable {
             }
         }
         return username;
+    }
+
+    public String getLoggableUserId() {
+
+        return toFullQualifiedUsername();
     }
 
     /**

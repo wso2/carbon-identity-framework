@@ -25,7 +25,9 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
  * This interface provides to plug module for preferred persistence store.
+ * @deprecated use {@link org.wso2.carbon.identity.governance.store.UserIdentityDataStore} instead.
  */
+@Deprecated
 public abstract class UserIdentityDataStore {
 
     public static final String ONE_TIME_PASSWORD = "http://wso2.org/claims/identity/otp";

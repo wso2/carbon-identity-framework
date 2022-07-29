@@ -18,11 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import jdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.JSObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**

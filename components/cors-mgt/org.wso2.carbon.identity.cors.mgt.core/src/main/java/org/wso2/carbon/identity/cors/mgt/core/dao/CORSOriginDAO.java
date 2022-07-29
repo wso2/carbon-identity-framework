@@ -56,7 +56,7 @@ public interface CORSOriginDAO {
             throws CORSManagementServiceServerException;
 
     /**
-     * Set the CORS origins of an application.
+     * Set the CORS origins of an application. This will replace the existing CORS origin list of that application.
      *
      * @param applicationId The application ID.
      * @param corsOrigins   The CORS origins to be set, associated with the application.
@@ -67,7 +67,8 @@ public interface CORSOriginDAO {
             throws CORSManagementServiceServerException;
 
     /**
-     * Add the CORS origins of an application.
+     * Add the CORS origins of an application. This will append the new origins to the existing CORS origin list
+     * of that application.
      *
      * @param applicationId The application ID.
      * @param corsOrigins   The CORS origins to be add, associated with the application.

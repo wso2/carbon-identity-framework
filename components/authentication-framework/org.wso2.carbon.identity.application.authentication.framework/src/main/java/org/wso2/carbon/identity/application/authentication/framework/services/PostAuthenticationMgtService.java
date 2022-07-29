@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.List;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -126,12 +127,15 @@ public class PostAuthenticationMgtService {
                             .getContextIdentifier());
                 }
                 authenticationContext.setExecutedPostAuthHandler(currentHandler.getName());
+                authenticationContext.setProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER, null);
 
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Post authentication handler " + currentHandler.getName() + " is not completed yet. Hence"
                             + " returning for context : " + authenticationContext.getContextIdentifier());
                 }
+                authenticationContext.setProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER,
+                        currentHandler.getName());
                 return true;
             }
         } else {

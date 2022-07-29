@@ -42,6 +42,7 @@ public class ListenerUtils {
     public static final String CHANGE_PASSWORD_BY_ADMIN_ACTION = "Change-Password-by-Administrator";
     public static final String DELETE_ROLE_ACTION = "Delete-Role";
     public static final String ADD_ROLE_ACTION = "Add-Role";
+    public static final String ADD_GROUP_ACTION = "Add-Group";
     public static final String UPDATE_ROLE_NAME_ACTION = "Update-Role-Name";
     public static final String UPDATE_USERS_OF_ROLE_ACTION = "Update-Users-of-Role";
     public static final String UPDATE_ROLES_OF_USER_ACTION = "Update-Roles-of-User";

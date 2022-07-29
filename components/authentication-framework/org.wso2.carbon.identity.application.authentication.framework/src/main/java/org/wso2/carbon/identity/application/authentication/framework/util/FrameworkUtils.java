@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -27,16 +27,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.json.JSONObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheKey;
@@ -82,6 +91,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -94,8 +104,12 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -106,6 +120,7 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -114,6 +129,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
@@ -133,6 +150,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,6 +159,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -151,13 +170,21 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
+/**
+ * Utility methods for authentication framework.
+ */
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
@@ -169,12 +196,20 @@ public class FrameworkUtils {
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
-    private static final String QUERY_SEPARATOR = "&";
+    public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
-    private static final String REQUEST_PARAM_APPLICATION = "application";
+    public static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
+
+    private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
+    public static final String ROOT_DOMAIN = "/";
+
+    private static final String HASH_CHAR = "#";
+    private static final String HASH_CHAR_ENCODED = "%23";
+    private static final String QUESTION_MARK = "?";
 
     private FrameworkUtils() {
     }
@@ -184,7 +219,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To add authentication request cache entry to cache
+     * To add authentication request cache entry to cache.
      *
      * @param key          cache entry key
      * @param authReqEntry AuthenticationReqCache Entry.
@@ -195,7 +230,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache request from cache
+     * To get authentication cache request from cache.
      *
      * @param key Key of the cache entry
      * @return
@@ -203,8 +238,7 @@ public class FrameworkUtils {
     public static AuthenticationRequestCacheEntry getAuthenticationRequestFromCache(String key) {
 
         AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
-        AuthenticationRequestCacheEntry authRequest = AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
-        return authRequest;
+        return AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
     }
 
     /**
@@ -221,7 +255,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Builds the wrapper, wrapping incoming request and information take from cache entry
+     * Builds the wrapper, wrapping incoming request and information take from cache entry.
      *
      * @param request    Original request coming to authentication framework
      * @param cacheEntry Cache entry from the cache, which is added from calling servlets
@@ -522,31 +556,97 @@ public class FrameworkUtils {
      * @param request
      * @param response
      * @throws IOException
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext)}.
      */
+    @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         // TODO read the URL from framework config file rather than carbon.xml
-        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        response.sendRedirect(getRedirectURL(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(),
-                request));
+        sendToRetryPage(request, response, null, null);
     }
 
-
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param status        Failure status.
+     * @param statusMsg     Failure status message.
+     * @throws IOException
+     * @deprecated use
+     * {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext, String, String)}.
+     */
+    @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
+                                       String statusMsg) throws IOException {
+
+        sendToRetryPage(request, response, null, status, statusMsg);
+    }
+
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param context       Authentication Context.
+     * @throws IOException
+     */
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws IOException {
+
+        sendToRetryPage(request, response, context, null, null);
+    }
+
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param context       Authentication Context.
+     * @param status        Failure status.
+     * @param statusMsg     Failure status message.
+     * @throws IOException
+     */
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context, String status,
                                        String statusMsg) throws IOException {
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
-            uriBuilder.addParameter("status", status);
-            uriBuilder.addParameter("statusMsg", statusMsg);
+            if (status != null && statusMsg != null) {
+                uriBuilder.addParameter("status", status);
+                uriBuilder.addParameter("statusMsg", statusMsg);
+            }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+            if (context != null) {
+                if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                    uriBuilder.addParameter(USER_TENANT_DOMAIN_HINT, context.getUserTenantDomain());
+                }
+                uriBuilder.addParameter(REQUEST_PARAM_SP, context.getServiceProviderName());
+                if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
+                }
+                String authFlowId = context.getContextIdentifier();
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
+                response.sendRedirect(uriBuilder.build().toString());
+            } else {
+                response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+            }
         } catch (URISyntaxException e) {
             log.error("Error building redirect url for failure", e);
             FrameworkUtils.sendToRetryPage(request, response);
+        } finally {
+            List<String> cookiesToInvalidateConfig = IdentityUtil.getCookiesToInvalidateConfigurationHolder();
+            if (ArrayUtils.isNotEmpty(request.getCookies())) {
+                Arrays.stream(request.getCookies())
+                        .filter(cookie -> cookiesToInvalidateConfig.stream()
+                                .anyMatch(cookieToInvalidate -> cookie.getName().contains(cookieToInvalidate)))
+                        .forEach(cookie -> removeCookie(request, response, cookie.getName()));
+            }
         }
     }
+
     /**
      * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
      * be fetched from request parameters or referer.
@@ -634,7 +734,8 @@ public class FrameworkUtils {
 
     /**
      * Removes commonAuthCookie.
-     * @param req Incoming HttpServletRequest.
+     *
+     * @param req  Incoming HttpServletRequest.
      * @param resp HttpServlet response which the cookie must be written.
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
@@ -643,9 +744,23 @@ public class FrameworkUtils {
     }
 
     /**
+     * Remove the auth cookie in the tenanted path.
+     *
+     * @param req    HTTP request
+     * @param resp   HTTP response
+     * @param tenantDomain Tenant domain
+     */
+    public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
+
+        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
+    }
+
+    /**
      * Removes a cookie which is already stored.
-     * @param req Incoming HttpServletRequest.
-     * @param resp HttpServletResponse which should be stored.
+     *
+     * @param req        Incoming HttpServletRequest.
+     * @param resp       HttpServletResponse which should be stored.
      * @param cookieName Name of the cookie which should be removed.
      */
     public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName) {
@@ -662,11 +777,11 @@ public class FrameworkUtils {
                             (cookieName);
 
                     if (cookieConfig != null) {
-                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0, ROOT_DOMAIN);
                     } else {
                         cookieBuilder.setHttpOnly(true);
                         cookieBuilder.setSecure(true);
-                        cookieBuilder.setPath("/");
+                        cookieBuilder.setPath(ROOT_DOMAIN);
                     }
 
                     cookieBuilder.setMaxAge(0);
@@ -688,6 +803,13 @@ public class FrameworkUtils {
     public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName,
                                     SameSiteCookie sameSiteCookie) {
 
+        removeCookie(req, resp, cookieName, sameSiteCookie, ROOT_DOMAIN);
+    }
+
+
+    public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName,
+                                    SameSiteCookie sameSiteCookie, String path) {
+
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -696,11 +818,11 @@ public class FrameworkUtils {
                             cookie.getValue());
                     IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
                     if (cookieConfig != null) {
-                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0, path);
                     } else {
                         cookieBuilder.setHttpOnly(true);
                         cookieBuilder.setSecure(true);
-                        cookieBuilder.setPath("/");
+                        cookieBuilder.setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN);
                         cookieBuilder.setSameSite(sameSiteCookie);
                     }
                     cookieBuilder.setMaxAge(0);
@@ -716,8 +838,9 @@ public class FrameworkUtils {
      * @param resp
      * @param id
      */
+    @Deprecated
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id) {
-        storeAuthCookie(req, resp, id, null);
+        storeAuthCookie(req, resp, id, null, ROOT_DOMAIN);
     }
 
     /**
@@ -731,13 +854,20 @@ public class FrameworkUtils {
         setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE);
     }
 
+    public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age,
+                                       String path) {
+
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE, path);
+    }
+
     /**
      * Stores a cookie to the response taking configurations from identity.xml file.
-     * @param req Incoming HttpSerletRequest.
-     * @param resp Outgoing HttpServletResponse.
+     *
+     * @param req        Incoming HttpSerletRequest.
+     * @param resp       Outgoing HttpServletResponse.
      * @param cookieName Name of the cookie to be stored.
-     * @param id Cookie id.
-     * @param age Max age of the cookie.
+     * @param id         Cookie id.
+     * @param age        Max age of the cookie.
      */
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
                                  Integer age) {
@@ -748,12 +878,12 @@ public class FrameworkUtils {
 
         if (cookieConfig != null) {
 
-            updateCookieConfig(cookieBuilder, cookieConfig, age);
+            updateCookieConfig(cookieBuilder, cookieConfig, age, null);
         } else {
 
             cookieBuilder.setSecure(true);
             cookieBuilder.setHttpOnly(true);
-            cookieBuilder.setPath("/");
+            cookieBuilder.setPath(ROOT_DOMAIN);
 
             if (age != null) {
                 cookieBuilder.setMaxAge(age);
@@ -776,14 +906,20 @@ public class FrameworkUtils {
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
                                  Integer age, SameSiteCookie setSameSite) {
 
+        setCookie(req, resp, cookieName, id, age, setSameSite, null);
+    }
+
+    public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
+                                 Integer age, SameSiteCookie setSameSite, String path) {
+
         CookieBuilder cookieBuilder = new CookieBuilder(cookieName, id);
         IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
         if (cookieConfig != null) {
-            updateCookieConfig(cookieBuilder, cookieConfig, age);
+            updateCookieConfig(cookieBuilder, cookieConfig, age, path);
         } else {
             cookieBuilder.setSecure(true);
             cookieBuilder.setHttpOnly(true);
-            cookieBuilder.setPath("/");
+            cookieBuilder.setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN);
             cookieBuilder.setSameSite(setSameSite);
             if (age != null) {
                 cookieBuilder.setMaxAge(age);
@@ -793,7 +929,6 @@ public class FrameworkUtils {
     }
 
     /**
-     *
      * @param req Incoming HttpServletRequest.
      * @return CommonAuthID cookie.
      */
@@ -851,7 +986,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache result from cache
+     * To get authentication cache result from cache.
      * @param key
      * @return
      */
@@ -902,7 +1037,14 @@ public class FrameworkUtils {
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
+    @Deprecated
     public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain) {
+
+        addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
+    }
+
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain,
+                                                String loginTenantDomain) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
@@ -936,19 +1078,33 @@ public class FrameworkUtils {
 
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
     }
 
     /**
      * @param key
      * @return
+     *
+     * @deprecated to use {{@link #getSessionContextFromCache(String, String)}} to support maintaining cache in
+     * tenant space.
      */
+    @Deprecated
     public static SessionContext getSessionContextFromCache(String key) {
+
+        return getSessionContextFromCache(key, getLoginTenantDomainFromContext());
+    }
+
+    /**
+     * @param key
+     * @param loginTenantDomain
+     * @return
+     */
+    public static SessionContext getSessionContextFromCache(String key, String loginTenantDomain) {
 
         SessionContext sessionContext = null;
         if (StringUtils.isNotBlank(key)) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
+            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey, loginTenantDomain);
 
             if (cacheEntryObj != null) {
                 sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
@@ -973,7 +1129,8 @@ public class FrameworkUtils {
         if (StringUtils.isNotBlank(sessionContextKey)) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(sessionContextKey);
             SessionContextCache sessionContextCache = SessionContextCache.getInstance();
-            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey);
+            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey,
+                    context.getLoginTenantDomain());
 
             if (cacheEntry != null) {
                 sessionContext = cacheEntry.getContext();
@@ -989,6 +1146,48 @@ public class FrameworkUtils {
             }
         }
         return sessionContext;
+    }
+
+    /**
+     * To add authentication error to cache.
+     *
+     * @param key   Error key.
+     */
+    public static void addAuthenticationErrorToCache(String key, AuthenticationError authenticationError,
+                                                     String tenantDomain) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry cacheEntry = new AuthenticationErrorCacheEntry(authenticationError, tenantDomain);
+        AuthenticationErrorCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * To get authentication error from cache.
+     *
+     * @param key   Error key.
+     * @return      AuthenticationError.
+     */
+    public static AuthenticationError getAuthenticationErrorFromCache(String key) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry authResult = AuthenticationErrorCache.getInstance().getValueFromCache(cacheKey);
+        if (authResult != null) {
+            return authResult.getAuthenticationError();
+        }
+        return null;
+    }
+
+    /**
+     * To remove authentication error from cache.
+     *
+     * @param key   Error key.
+     */
+    public static void removeAuthenticationErrorFromCache(String key) {
+
+        if (StringUtils.isNotEmpty(key)) {
+            AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+            AuthenticationErrorCache.getInstance().clearCacheEntry(cacheKey);
+        }
     }
 
     /**
@@ -1033,13 +1232,48 @@ public class FrameworkUtils {
 
     /**
      * @param key
+     * @deprecated to use {{@link #removeSessionContextFromCache(String, String)}} to support maintaining cache in
+     * tenant space.
      */
+    @Deprecated
     public static void removeSessionContextFromCache(String key) {
+
+        removeSessionContextFromCache(key, getLoginTenantDomainFromContext());
+    }
+
+    /**
+     * @param key
+     * @param loginTenantDomain
+     */
+    public static void removeSessionContextFromCache(String key, String loginTenantDomain) {
 
         if (key != null) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-            SessionContextCache.getInstance().clearCacheEntry(cacheKey);
+            SessionContextCache.getInstance().clearCacheEntry(cacheKey, loginTenantDomain);
         }
+    }
+
+    /**
+     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super.
+     *
+     * @return tenant domain
+     */
+    public static String getLoginTenantDomainFromContext() {
+
+        // We use the tenant domain set in context only in tenanted session is enabled.
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantedSessionsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
     /**
@@ -1249,14 +1483,15 @@ public class FrameworkUtils {
     }
 
     public static Map<String, AuthenticatorConfig> getAuthenticatedStepIdPs(StepConfig stepConfig,
-                                                                            Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+                                                                            Map<String, AuthenticatedIdPData>
+                                                                                    authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
                     stepConfig.getOrder()));
         }
 
-        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
+        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<>();
         List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
 
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
@@ -1365,7 +1600,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * when getting query params through this, only configured params will be appended as query params
+     * when getting query params through this, only configured params will be appended as query params.
      * The required params can be configured from application-authenticators.xml
      *
      * @param request
@@ -1492,8 +1727,20 @@ public class FrameworkUtils {
                 .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
         try {
-            uriBuilder = new URIBuilder(redirectUrl);
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
         } catch (URISyntaxException e) {
             log.warn("Unable to filter redirect params for url." + redirectUrl, e);
             return redirectUrl;
@@ -1501,7 +1748,8 @@ public class FrameworkUtils {
 
         // If the host name is not white listed then the query params will not be removed from the redirect url.
         List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
-        if (CollectionUtils.isNotEmpty(filteringEnabledHosts) && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts)
+                && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
             return redirectUrl;
         }
 
@@ -1557,7 +1805,16 @@ public class FrameworkUtils {
         }
         uriBuilder.clearParameters();
         uriBuilder.setParameters(queryParamsList);
-        return uriBuilder.toString();
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
     }
 
     public static boolean isRemoveAPIParamsOnConsume() {
@@ -1587,8 +1844,8 @@ public class FrameworkUtils {
             }
         } else if (authenticatedSubject.indexOf(CarbonConstants.DOMAIN_SEPARATOR) == 0) {
             throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
-                                               + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
-                                               + "\'");
+                                               + authenticatedSubject + " begins with '"
+                                               + CarbonConstants.DOMAIN_SEPARATOR + "'");
         }
         return authenticatedSubject;
     }
@@ -1642,7 +1899,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Starts the tenant flow for the given tenant domain
+     * Starts the tenant flow for the given tenant domain.
      *
      * @param tenantDomain tenant domain
      */
@@ -1669,14 +1926,14 @@ public class FrameworkUtils {
     }
 
     /**
-     * Ends the tenant flow
+     * Ends the tenant flow.
      */
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
     /**
-     * create a nano time stamp relative to Unix Epoch
+     * create a nano time stamp relative to Unix Epoch.
      */
     public static long getCurrentStandardNano() {
 
@@ -1689,7 +1946,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param to the URL (URL may already contain query params)
+     * Append a query param to the URL (URL may already contain query params).
      */
     public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
         String queryAppendedUrl = url;
@@ -1715,7 +1972,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -1747,7 +2004,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -1823,7 +2080,7 @@ public class FrameworkUtils {
     }
 
     private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
-            cookieConfig, Integer age) {
+            cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
             cookieBuilder.setDomain(cookieConfig.getDomain());
@@ -1831,6 +2088,8 @@ public class FrameworkUtils {
 
         if (cookieConfig.getPath() != null) {
             cookieBuilder.setPath(cookieConfig.getPath());
+        } else if (StringUtils.isNotBlank(path)) {
+            cookieBuilder.setPath(path);
         }
 
         if (cookieConfig.getComment() != null) {
@@ -1916,7 +2175,8 @@ public class FrameworkUtils {
                 federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
                         .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
                 if (log.isDebugEnabled()) {
-                    log.debug("The IDP side role claim value separator is configured as : " + federatedIDPRoleClaimAttributeSeparator);
+                    log.debug("The IDP side role claim value separator is configured as : "
+                            + federatedIDPRoleClaimAttributeSeparator);
                 }
             } else {
                 federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
@@ -1972,7 +2232,7 @@ public class FrameworkUtils {
             ClaimMapping[] idpToLocalClaimMapping = externalIdPConfig.getClaimMappings();
             if (idpToLocalClaimMapping != null && idpToLocalClaimMapping.length > 0) {
                 for (ClaimMapping mapping : idpToLocalClaimMapping) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(mapping.getLocalClaim().getClaimUri())
+                    if (getLocalGroupsClaimURI().equals(mapping.getLocalClaim().getClaimUri())
                             && mapping.getRemoteClaim() != null) {
                         return mapping.getRemoteClaim().getClaimUri();
                     }
@@ -1983,7 +2243,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the mapped URI for the IDP role mapping
+     * Get the mapped URI for the IDP role mapping.
      * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
      * @param stepConfig Relevant stepConfig
      * @param context Relevant authentication context
@@ -2035,8 +2295,8 @@ public class FrameworkUtils {
 
     /**
      * Returns the local claim uri that is mapped for the IdP role claim uri configured.
-     * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
-     *
+     * If no role claim uri is configured for the IdP returns the local claim by calling 'IdentityUtils
+     * .#getLocalGroupsClaimURI()'.
      * @param externalIdPConfig IdP configurations
      * @return local claim uri mapped for the IdP role claim uri.
      */
@@ -2056,7 +2316,7 @@ public class FrameworkUtils {
                 }
             }
         }
-        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+        return getLocalGroupsClaimURI();
     }
 
     /**
@@ -2090,16 +2350,14 @@ public class FrameworkUtils {
      */
     public static String[] getMissingClaims(AuthenticationContext context) {
 
-        StringBuilder missingClaimsString = new StringBuilder();
-        StringBuilder missingClaimValuesString = new StringBuilder();
+        StringJoiner missingClaimsString = new StringJoiner(",");
+        StringJoiner missingClaimValuesString = new StringJoiner(",");
 
         Map<String, String> missingClaims = getMissingClaimsMap(context);
 
         for (Map.Entry<String, String> entry : missingClaims.entrySet()) {
-            missingClaimsString.append(entry.getKey());
-            missingClaimValuesString.append(entry.getValue());
-            missingClaimsString.append(",");
-            missingClaimValuesString.append(",");
+            missingClaimsString.add(entry.getKey());
+            missingClaimValuesString.add(entry.getValue());
         }
 
         return new String[]{missingClaimsString.toString(), missingClaimValuesString.toString()};
@@ -2184,6 +2442,16 @@ public class FrameworkUtils {
             userNamePrvisioningUrl = FrameworkConstants.REGISTRATION_ENDPOINT;
         }
         return userNamePrvisioningUrl;
+    }
+
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
     }
 
     public static boolean promptOnLongWait() {
@@ -2306,7 +2574,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the configurations of a tenant from cache or database
+     * Get the configurations of a tenant from cache or database.
      *
      * @param tenantDomain Domain name of the tenant
      * @return Configurations belong to the tenant
@@ -2369,8 +2637,8 @@ public class FrameworkUtils {
      */
     public static boolean isUserSessionMappingEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExists(
-                "IDN_AUTH_USER") && isTableExists("IDN_AUTH_USER_SESSION_MAPPING");
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExistsInSessionDB(
+                "IDN_AUTH_USER") && isTableExistsInSessionDB("IDN_AUTH_USER_SESSION_MAPPING");
     }
 
     /**
@@ -2378,40 +2646,48 @@ public class FrameworkUtils {
      *
      * @param tableName name of the table.
      * @return true if table exists.
+     *
+     * @deprecated Please use IdentityDatabaseUtil.isTableExists(String tableName) instead.
      */
+    @Deprecated
     public static boolean isTableExists(String tableName) {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        return IdentityDatabaseUtil.isTableExists(tableName);
+    }
+
+    /**
+     * Check whether the specified table exists in the Session database.
+     *
+     * @param tableName name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExistsInSessionDB(String tableName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
 
             DatabaseMetaData metaData = connection.getMetaData();
             if (metaData.storesLowerCaseIdentifiers()) {
                 tableName = tableName.toLowerCase();
             }
 
-            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]{ "TABLE" })) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Table - " + tableName + " available in the Identity database.");
+                        log.debug("Table - " + tableName + " available in the Session database.");
                     }
                     IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    log.debug("Table - " + tableName + " not available in the Identity database.");
-                }
-                return false;
             }
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Table - " + tableName + " not available in the Identity database.");
+                log.debug("Table - " + tableName + " not available in the Session database.");
             }
             return false;
         }
         if (log.isDebugEnabled()) {
-            log.debug("Table - " + tableName + " not available in the Identity database.");
+            log.debug("Table - " + tableName + " not available in the Session database.");
         }
         return false;
     }
@@ -2476,7 +2752,7 @@ public class FrameworkUtils {
             }
 
             String schemaPattern = null;
-            if (metaData.getDriverName().contains("Oracle")){
+            if (metaData.getDriverName().contains("Oracle")) {
                 if (log.isDebugEnabled()) {
                     log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
                 }
@@ -2515,6 +2791,24 @@ public class FrameworkUtils {
                     "Identity database.");
         }
         return false;
+    }
+
+    /**
+     * Checking whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     */
+    public static void checkIfTenantIdColumnIsAvailableInFedAuthTable() {
+
+        isTenantIdColumnAvailableInFedAuthTable = isTableColumnExists("IDN_FED_AUTH_SESSION_MAPPING", "TENANT_ID");
+    }
+
+    /**
+     * Return whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     *
+     * @return True if tenant id is available in IDN_FED_AUTH_SESSION_MAPPING table. Else return false.
+     */
+    public static boolean isTenantIdColumnAvailableInFedAuthTable() {
+
+        return isTenantIdColumnAvailableInFedAuthTable;
     }
 
     /**
@@ -2569,35 +2863,82 @@ public class FrameworkUtils {
             UserSessionException {
 
         try {
-            if (userStoreDomain == null) {
-                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
-            }
-            UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
-            try {
-                if (userStoreManager instanceof AbstractUserStoreManager) {
-                    String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+            return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+        } catch (IdentityException e) {
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+        }
+    }
 
-                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
-                    // userstore is read-only, we cannot add the id and empty user id will returned.
-                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
-                        userId = addUserId(username, userStoreManager);
+    /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param username         username.
+     * @return user id of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserIdFromUsername(UserStoreManager userStoreManager, String username) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                // If the user id is could not be resolved, probably user does not exist in the user store.
+                if (StringUtils.isBlank(userId)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User id could not be resolved for username: " + username + ". Probably" +
+                                " user does not exist in the user store.");
                     }
-                    return userId;
                 }
-                if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
-                }
-                throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while resolving Id for the user: " + username, e);
-                }
-                throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+                return userId;
             }
-        } catch (UserStoreException e) {
-            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
-                    "the user: " + username, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                        "AbstractUserStore manager");
+            }
+            throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving Id for the user: " + username, e);
+            }
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+        }
+    }
+
+    /**
+     * Retrieves the username of the given userid.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param userId           userid.
+     * @return username of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserNameFromUserId(UserStoreManager userStoreManager, String userId) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userId);
+
+                if (StringUtils.isBlank(userName)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User Name could not be resolved for userid: " + userId + ".");
+                    }
+                }
+                return userName;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + userId + ", is not an instance of the " +
+                        "AbstractUserStore manager.");
+            }
+            throw new UserSessionException("Unable to get the user name of the user Id: " + userId + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving user name for the user Id: " + userId, e);
+            }
+            throw new UserSessionException("Error occurred while resolving user name for the user Id: " + userId, e);
         }
     }
 
@@ -2618,18 +2959,69 @@ public class FrameworkUtils {
 
         if (IdentityUtil.isEmailUsernameEnabled()) {
             if (StringUtils.countMatches(username, "@") == 1) {
-                return username + "@" + context.getTenantDomain();
+                return username + "@" + context.getUserTenantDomain();
             }
-        } else if (!username.endsWith(context.getTenantDomain())) {
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
 
             // If the username is email-type (without enabling email username option) or belongs to a tenant which is
             // not the app owner.
             if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
                 return username;
             }
-            return username + "@" + context.getTenantDomain();
+            return username + "@" + context.getUserTenantDomain();
         }
         return username;
+    }
+
+    /**
+     * Pre-process user's username considering the service provider.
+     *
+     * @param username Username of the user.
+     * @param serviceProvider The service provider.
+     * @return preprocessed username
+     */
+    public static String preprocessUsername(String username, ServiceProvider serviceProvider) {
+
+        boolean isSaaSApp = serviceProvider.isSaasApp();
+        String appTenantDomain = serviceProvider.getOwner().getTenantDomain();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + appTenantDomain;
+            }
+        } else if (!username.endsWith(appTenantDomain)) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + appTenantDomain;
+        }
+        return username;
+    }
+
+    /**
+     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     *
+     * @param loginIdentifier login identifier for multi attribute login
+     * @param tenantDomain    user tenant domain
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
+                                                                              String tenantDomain) {
+
+        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
+        if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
+                    resolveUser(loginIdentifier, tenantDomain);
+        }
+        return resolvedUserResult;
     }
 
     /**
@@ -2646,6 +3038,23 @@ public class FrameworkUtils {
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
                 context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
+                throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
+            }
+        }
+    }
+
+    /**
+     * Validate the username.
+     *
+     * @param username Username of the user.
+     * @throws InvalidCredentialsException when username is not valid.
+     */
+    public static void validateUsername(String username) throws InvalidCredentialsException {
+
+        // Validate username as an email when email username is enabled.
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+            if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
                 throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
         }
@@ -2668,24 +3077,6 @@ public class FrameworkUtils {
         return userId;
     }
 
-    private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
-            throws UserStoreException {
-
-        UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService().getTenantUserRealm(tenantId)
-                .getUserStoreManager();
-        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
-            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
-                    userStoreDomain);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
-                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
-                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
-                    "manager: " + userStoreManager.getClass() + ", from the realm.");
-        }
-        return userStoreManager;
-    }
-
     /**
      * Check whether the authentication flow should continue upon facing a claim handling error.
      *
@@ -2697,5 +3088,253 @@ public class FrameworkUtils {
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
         return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
+    }
+
+    /**
+     * Returns the end user portal url.
+     *
+     * @param myAccountUrl end user portal url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getMyAccountURL(String myAccountUrl) {
+
+        if (StringUtils.isNotBlank(myAccountUrl)) {
+            return myAccountUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath(MY_ACCOUNT_APP_PATH).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + MY_ACCOUNT_APP_PATH);
+        }
+    }
+
+    /**
+     * Returns the console url.
+     *
+     * @param consoleUrl  console url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getConsoleURL(String consoleUrl) {
+
+        if (StringUtils.isNotBlank(consoleUrl)) {
+            return consoleUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath(CONSOLE_APP_PATH).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + CONSOLE_APP_PATH);
+        }
+    }
+
+    /**
+     * Updates the last accessed time of the session in the UserSessionStore.
+     *
+     * @param sessionContextKey     Session context cache entry identifier.
+     * @param lastAccessedTime    New value of the last accessed time of the session.
+     */
+    public static void updateSessionLastAccessTimeMetadata(String sessionContextKey, Long lastAccessedTime) {
+
+        if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+            try {
+                UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
+                        .LAST_ACCESS_TIME, Long.toString(lastAccessedTime));
+            } catch (UserSessionException e) {
+                log.error("Updating session meta data failed.", e);
+            }
+        }
+    }
+
+    /**
+     * Returns the hash value of the cookie.
+     *
+     * @param cookie    Cookie to be hashed.
+     * @return          Hash value of cookie.
+     */
+    public static String getHashOfCookie(Cookie cookie) {
+
+        if (cookie != null) {
+            String cookieValue = cookie.getValue();
+            if (cookieValue != null) {
+                return DigestUtils.sha256Hex(cookieValue);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get correlation id of current thread.
+     *
+     * @return correlation-id.
+     */
+    public static String getCorrelation() {
+
+        String ref;
+        if (isCorrelationIDPresent()) {
+            ref = MDC.get(CORRELATION_ID_MDC);
+        } else {
+            ref = UUID.randomUUID().toString();
+        }
+        return ref;
+    }
+
+    /**
+     * Check whether correlation id present in the log MDC.
+     *
+     * @return True if correlation id present in the log MDC.
+     */
+    public static boolean isCorrelationIDPresent() {
+
+        return MDC.get(CORRELATION_ID_MDC) != null;
+    }
+
+    /**
+     * Remove the ALOR cookie used by the auto login flow in the first time authentication framework receives
+     * the request. Regardless of the authentication state, this cookie will be cleared to make sure it won't be reused.
+     *
+     * @param request HttpServletRequest
+     * @param response  HttpServletRequest.
+     */
+    public static void removeALORCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        if (request == null || request.getCookies() == null || request.getCookies().length == 0) {
+            return;
+        }
+
+        Arrays.stream(request.getCookies())
+                .filter(cookie -> FrameworkConstants.AutoLoginConstant.COOKIE_NAME.equals(cookie.getName()))
+                .findFirst()
+                .ifPresent((cookie -> {
+                    try {
+                        String decodedValue = new String(Base64.getDecoder().decode(cookie.getValue()));
+                        JSONObject cookieValueJSON = new JSONObject(decodedValue);
+                        String content = (String) cookieValueJSON.get(FrameworkConstants.AutoLoginConstant.CONTENT);
+                        JSONObject contentJSON = new JSONObject(content);
+                        String domainInCookie = (String) contentJSON.get(FrameworkConstants.AutoLoginConstant.DOMAIN);
+                        if (StringUtils.isNotEmpty(domainInCookie)) {
+                            cookie.setDomain(domainInCookie);
+                        }
+                    } catch (Exception e) {
+                        // Resolving the domain from the cookie failed. But we will try to to delete the cookie.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Resolving the domain from the ALOR cookie failed.");
+                        }
+                    }
+                    cookie.setMaxAge(0);
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }));
+    }
+
+    /*
+    TODO: This needs to be refactored so that there is a separate context object for each authentication step,
+     rather than resetting.
+    */
+    /**
+     * Reset authentication context.
+     *
+     * @param context Authentication Context.
+     * @throws FrameworkException
+     */
+    public static void resetAuthenticationContext(AuthenticationContext context) {
+
+        context.setSubject(null);
+        context.setStateInfo(null);
+        context.setExternalIdP(null);
+        context.setAuthenticatorProperties(new HashMap<String, String>());
+        context.setRetryCount(0);
+        context.setRetrying(false);
+        context.setCurrentAuthenticator(null);
+    }
+
+    /**
+     * Check whether the JIT provisioning enhanced feature is enabled.
+     *
+     * @return true if the JIT provisioning enhanced features is enabled else return false.
+     */
+    public static boolean isJITProvisionEnhancedFeatureEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                    getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Return a filtered list of requested scope claims.
+     *
+     * @param claimListOfScopes Claims list of requested scopes.
+     * @param claimMappings     Claim mappings list of service provider.
+     * @throws ClaimManagementException
+     */
+    public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
+                                                            List<ClaimMapping> claimMappings, String tenantDomain)
+            throws ClaimManagementException {
+
+        List<String> claimMappingListOfScopes = new ArrayList<>();
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            if (claimManager != null) {
+                for (String claim : claimListOfScopes) {
+                    org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
+                    if (currentMapping != null && currentMapping.getClaim() != null &&
+                            currentMapping.getClaim().getClaimUri() != null) {
+                        claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+                    } else {
+                        throw new ClaimManagementException("No claim mapping are found for claim :" +
+                                claim + " in :" + tenantDomain);
+                    }
+                }
+            }
+        } catch (CarbonException | UserStoreException e) {
+            throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
+                    tenantDomain, e);
+        }
+
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
+        for (ClaimMapping claim : claimMappings) {
+            if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
+                requestedScopeClaims.add(claim);
+            }
+        }
+        return requestedScopeClaims;
+    }
+
+    /**
+     * Util function to build caller patch redirect URLs using ServiceURLBuilder.
+     *
+     * @param callerPath        Application caller path.
+     * @param context           Authentication context.
+     * @return  reirect URL.
+     * @throws URLBuilderException  throw if an error occurred during URL generation.
+     */
+    public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
+            throws URLBuilderException {
+
+        String serviceProvider = null;
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+            serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        }
+        /*
+         Skip My Account application redirections to use ServiceURLBuilder for URL generation
+         since My Account is SaaS.
+         */
+        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+            if (callerPath != null && callerPath.startsWith("/t/")) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant, true)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
+            }
+        }
+        return callerPath;
     }
 }

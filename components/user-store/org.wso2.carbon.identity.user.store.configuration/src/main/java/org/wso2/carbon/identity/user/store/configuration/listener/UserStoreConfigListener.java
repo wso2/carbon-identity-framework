@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.user.store.configuration.listener;
 
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
+import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.user.api.UserStoreException;
 
 /**
@@ -41,15 +42,65 @@ public interface UserStoreConfigListener {
     }
 
     /**
-     * Called before adding a userstore.
+     * Called before adding a userstore configuration.
      *
      * @param tenantId Tenant id.
      * @param userStoreName Userstore domain name.
-     * @throws UserStoreException throws when an error occurrs in the listener.
+     * @throws UserStoreException throws when an error occurs in the listener.
      */
     default void onUserStorePreAdd(int tenantId, String userStoreName) throws UserStoreException {
 
         // Not implemented.
     }
 
+    /**
+     * Called after retrieving a userstore configurations for a given name.
+     *
+     * @param tenantId Tenant id.
+     * @param userStoreDTO Retrieved userstore configuration.
+     * @throws UserStoreException throws when an error occurs in the listener.
+     */
+    default void onUserStorePostGet(int tenantId, UserStoreDTO userStoreDTO) throws UserStoreException {
+
+        // Not implemented.
+    }
+
+    /**
+     * Called after retrieving all userstore configurations.
+     *
+     * @param tenantId Tenant id.
+     * @param userStoreDTOS Array of userstore configurations.
+     * @throws UserStoreException throws when an error occurs in the listener.
+     */
+    default void onUserStoresPostGet(int tenantId, UserStoreDTO[] userStoreDTOS) throws UserStoreException {
+
+        // Not implemented.
+    }
+
+    /**
+     * Called before adding a userstore configuration.
+     *
+     * @param tenantId Tenant id.
+     * @param userStoreDTO Userstore configuration to be added.
+     * @throws UserStoreException throws when an error occurs in the listener.
+     */
+    default void onUserStorePreAdd(int tenantId, UserStoreDTO userStoreDTO) throws UserStoreException {
+
+        // Not implemented.
+    }
+
+    /**
+     * Called before updating a userstore configuration.
+     *
+     * @param tenantId Tenant id.
+     * @param userStoreDTO Userstore configuration to be updated.
+     * @param isStateChange Boolean flag denoting whether the
+     *                      update is a userstore state change.
+     * @throws UserStoreException throws when an error occurs in the listener.
+     */
+    default void onUserStorePreUpdate(int tenantId, UserStoreDTO userStoreDTO, boolean isStateChange)
+            throws UserStoreException {
+
+        // Not implemented.
+    }
 }

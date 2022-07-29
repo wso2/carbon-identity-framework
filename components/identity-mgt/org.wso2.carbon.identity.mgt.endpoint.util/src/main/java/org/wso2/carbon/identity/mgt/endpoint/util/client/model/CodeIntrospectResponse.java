@@ -30,6 +30,8 @@ public class CodeIntrospectResponse {
 
     private String recoveryStep = null;
 
+    private boolean isExpired = false;
+
     /**
      *
      **/
@@ -72,6 +74,20 @@ public class CodeIntrospectResponse {
         this.recoveryStep = recoveryStep;
     }
 
+    /**
+     *
+     **/
+    @JsonProperty("isExpired")
+    public boolean isExpired() {
+
+        return isExpired;
+    }
+
+    public void setIsExpired(boolean isExpired) {
+
+        this.isExpired = isExpired;
+    }
+
     @Override
     public String toString() {
 
@@ -81,6 +97,7 @@ public class CodeIntrospectResponse {
         sb.append("  user: ").append(user).append("\n");
         sb.append("  recoveryScenario: ").append(recoveryScenario).append("\n");
         sb.append("  recoveryStep: ").append(recoveryStep).append("\n");
+        sb.append("  isExpired: ").append(isExpired).append("\n");
         sb.append("}\n");
         return sb.toString();
     }

@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -136,8 +137,8 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Delete Applications by tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract void deleteApplications(int tenantId) throws IdentityApplicationManagementException;
 
@@ -226,6 +227,18 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
 
     public abstract ServiceProvider getServiceProviderByClientId(String clientId, String clientType,
                                                                  String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Export Service Provider application with required attributes.
+     *
+     * @param applicationId      ID of the SP
+     * @param requiredAttributes List of required attributes.
+     * @return SP with required attributes attached.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
+                                                                         List<String> requiredAttributes)
             throws IdentityApplicationManagementException;
 
     /**
@@ -363,6 +376,20 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException {
 
         return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Retrieve application basic information using the application name.
+     *
+     * @param name          Name of the application
+     * @param tenantDomain  Tenant domain of the application
+     * @return ApplicationBasicInfo containing the basic app information
+     * @throws IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
     }
 
     /**

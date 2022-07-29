@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +36,17 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -104,6 +115,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setRetrying(retryAuthenticationEnabled());
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Error occurred during the authentication process, hence retrying.", e);
+                        }
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
@@ -133,6 +147,39 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 }
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
+        }
+    }
+
+    private void handlePostAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        String username = MultitenantUtils.getTenantAwareUsername(context.getSubject().toFullQualifiedUsername());
+        if (context.getSubject().isFederatedUser()) {
+            username = UserCoreUtil.removeDomainFromName(username);
+        }
+        String tenantDomain = context.getTenantDomain();
+        IdentityEventService identityEventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+        RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+        try {
+            UserRealm userRealm = realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, username);
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userRealm
+                    .getUserStoreManager());
+            eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+            if (context.isRequestAuthenticated()) {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
+            } else {
+                eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            }
+            Event event = new Event(IdentityEventConstants.Event.POST_AUTHENTICATION, eventProperties);
+            identityEventService.handleEvent(event);
+        } catch (UserStoreException e) {
+            throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                    " Error in accessing user store in tenant: " + tenantDomain, e);
+        } catch (IdentityEventException e) {
+            throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                    " Error while handling post authentication event for user: " + username + " in tenant: " +
+                            tenantDomain, e);
         }
     }
 
@@ -334,5 +381,18 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             authMechanism = getName();
         }
         return authMechanism;
+    }
+
+    @Override
+    public String[] getTags() {
+
+        String tags = getAuthenticatorConfig().getParameterMap().get(IdentityConstants.TAGS);
+        String[] tagsArray = StringUtils.split(tags, ",");
+        if (ArrayUtils.isNotEmpty(tagsArray)) {
+            for (int i = 0; i < tagsArray.length; i++) {
+                tagsArray[i] = tagsArray[i].trim();
+            }
+        }
+        return tagsArray;
     }
 }

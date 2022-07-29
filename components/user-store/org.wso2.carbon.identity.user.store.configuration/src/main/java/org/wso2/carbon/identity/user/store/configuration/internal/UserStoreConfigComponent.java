@@ -17,7 +17,10 @@
 */
 package org.wso2.carbon.identity.user.store.configuration.internal;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,13 +42,25 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreHashProviderConfigListenerImpl;
+import org.wso2.carbon.identity.user.store.configuration.model.ChangedUserStoreAttribute;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttribute;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.user.store.configuration.utils.DefaultUserStoreAttributeConfigLoader;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
+import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreAttributeMappingChangesLoader;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -128,6 +143,12 @@ public class UserStoreConfigComponent {
             ctxt.getBundleContext().registerService(UserStoreConfigService.class.getName(), userStoreConfigService,
                     null);
             UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
+            UserStoreHashProviderConfigListenerImpl userStoreHashProviderListener =
+                    new UserStoreHashProviderConfigListenerImpl();
+            ctxt.getBundleContext().registerService(UserStoreConfigListener.class.getName(),
+                    userStoreHashProviderListener, null);
+            UserStoreConfigListenersHolder.getInstance().
+                    setUserStoreConfigListenerService(userStoreHashProviderListener);
             if (serviceRegistration != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("FileBasedUserStoreDAOFactory is successfully registered.");
@@ -136,6 +157,7 @@ public class UserStoreConfigComponent {
                 log.error("FileBasedUserStoreDAOFactory could not be registered.");
             }
             readAllowedUserstoreConfiguration();
+            readUserStoreAttributeMappingConfigs();
 
         } catch (Throwable e) {
             log.error("Failed to load user store org.wso2.carbon.identity.user.store.configuration details.", e);
@@ -264,6 +286,83 @@ public class UserStoreConfigComponent {
         UserStoreConfigListenersHolder.getInstance().setAllowedUserstores(allowedUserstores);
     }
 
+    private void readUserStoreAttributeMappingConfigs() {
+
+        UserStoreAttributeMappings mappings = new UserStoreAttributeMappings();
+        Map<String, Map<String, UserStoreAttribute>> userStoreAttributeMappings = new HashMap<>();
+        Map<String, UserStoreAttribute> defaultAttributeMappings = null;
+        Map<String, Map<String, ChangedUserStoreAttribute>> attributeMappingChanges = null;
+        try {
+            defaultAttributeMappings =
+                    new DefaultUserStoreAttributeConfigLoader().loadDefaultUserStoreAttributeMappings();
+            attributeMappingChanges =
+                    new UserStoreAttributeMappingChangesLoader().loadUserStoreAttributeMappingChanges();
+
+        } catch (IdentityUserStoreServerException e) {
+            log.error("Error occurred while reading userstore attribute mappings configuration files.", e);
+        }
+        if (MapUtils.isNotEmpty(defaultAttributeMappings) && MapUtils.isNotEmpty(attributeMappingChanges)) {
+            for (Map.Entry<String, Map<String, ChangedUserStoreAttribute>> entry :
+                    attributeMappingChanges.entrySet()) {
+                Map<String, UserStoreAttribute> tempMap =
+                        getModifiedAttributeMap(defaultAttributeMappings, entry.getValue());
+                userStoreAttributeMappings.put(entry.getKey(), tempMap);
+            }
+        }
+        if (MapUtils.isNotEmpty(defaultAttributeMappings)) {
+            mappings.setDefaultUserStoreAttributeMappings(defaultAttributeMappings);
+        } else {
+            mappings.setDefaultUserStoreAttributeMappings(Collections.emptyMap());
+        }
+        if (MapUtils.isNotEmpty(userStoreAttributeMappings)) {
+            mappings.setUserStoreAttributeMappings(userStoreAttributeMappings);
+        } else {
+            mappings.setUserStoreAttributeMappings(Collections.emptyMap());
+        }
+        UserStoreConfigListenersHolder.getInstance().setUserStoreAttributeMappings(mappings);
+    }
+
+    /**
+     * To merge default attribute mappings and mappings changes of other user stores.
+     *
+     * @param defaultUserStoreAttrMapping Default userstore attribute mappings.
+     * @param changedUserStoreAttrMap     Userstore attribute mapping changes.
+     * @return Map of user store type and their attribute mappings.
+     */
+    private Map<String, UserStoreAttribute> getModifiedAttributeMap(
+            Map<String, UserStoreAttribute> defaultUserStoreAttrMapping,
+            Map<String, ChangedUserStoreAttribute> changedUserStoreAttrMap) {
+
+        if (defaultUserStoreAttrMapping == null) {
+            return null;
+        }
+        Gson gson = new Gson();
+        String serializedDefaultAttrMappings = gson.toJson(defaultUserStoreAttrMapping);
+        // To deserialize a hashmap using Gson, need a type object of the hashmap.
+        Type type = new TypeToken<HashMap<String, UserStoreAttribute>>() {
+        }.getType();
+        Map<String, UserStoreAttribute> clonedAttrMap = gson.fromJson(serializedDefaultAttrMappings, type);
+        for (Map.Entry<String, ChangedUserStoreAttribute> entry : changedUserStoreAttrMap.entrySet()) {
+            if (!clonedAttrMap.containsKey(entry.getKey())) {
+                continue;
+            }
+            if (entry.getValue().getOperation() == UserStoreConfigurationConstant.UserStoreOperation.UPDATE) {
+                UserStoreAttribute defaultUserStoreAttribute = clonedAttrMap.get(entry.getKey());
+                UserStoreAttribute newUserStoreAttribute = entry.getValue().getUsAttribute();
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(newUserStoreAttribute.getMappedAttribute())) {
+                    defaultUserStoreAttribute.setMappedAttribute(newUserStoreAttribute.getMappedAttribute());
+                }
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(newUserStoreAttribute.getDisplayName())) {
+                    defaultUserStoreAttribute.setDisplayName(newUserStoreAttribute.getDisplayName());
+                }
+                clonedAttrMap.put(entry.getKey(), defaultUserStoreAttribute);
+            } else if (entry.getValue().getOperation() == UserStoreConfigurationConstant.UserStoreOperation.DELETE) {
+                clonedAttrMap.remove(entry.getKey());
+            }
+        }
+        return clonedAttrMap;
+    }
+
     @Reference(
             name = "config.context.service",
             service = ConfigurationContextService.class,
@@ -285,5 +384,22 @@ public class UserStoreConfigComponent {
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService Instance was unset.");
         }
+    }
+
+    @Reference(
+            name = "hash.provider.component",
+            service = org.wso2.carbon.user.core.hash.HashProviderFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetHashProviderFactory"
+    )
+    protected void setHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().setHashProviderFactory(hashProviderFactory);
+    }
+
+    protected void unsetHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().unbindHashProviderFactory(hashProviderFactory);
     }
 }

@@ -482,8 +482,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     /**
      * Remove all workflows by tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws WorkflowException
+     * @param tenantId The id of the tenant.
+     * @throws WorkflowException throws when an error occurs in removing workflows.
      */
     @Override
     public void removeWorkflows(int tenantId) throws WorkflowException {
@@ -494,7 +494,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
         List<WorkflowListener> workflowListenerList = WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
 
-        // Invoke onPreDelete on workflow listeners
+        // Invoke onPreDelete on workflow listeners.
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPreDeleteWorkflows(tenantId);
@@ -504,7 +504,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         workflowDAO.removeWorkflowParams(tenantId);
         workflowDAO.removeWorkflows(tenantId);
 
-        // Invoke onPostDelete on workflow listeners
+        // Invoke onPostDelete on workflow listeners.
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostDeleteWorkflows(tenantId);
@@ -827,6 +827,39 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         WorkflowRequest workflowRequest = new WorkflowRequest();
         workflowRequest.setRequestId(requestId);
         workflowRequest.setCreatedBy(createdUser);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.DELETED.toString());
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+    }
+
+    /**
+     * Move workflow request created by any user to DELETED state.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+        workflowRequest.setCreatedBy(workflowRequestDAO.retrieveCreatedUserOfRequest(requestId));
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {

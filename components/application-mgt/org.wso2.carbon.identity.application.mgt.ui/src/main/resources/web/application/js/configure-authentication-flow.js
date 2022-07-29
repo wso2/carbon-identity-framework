@@ -256,12 +256,19 @@ function checkAuthenticators() {
 
 function submitFormWithDisabledScript() {
     $("#enableScript").prop("checked", false);
+    encodeAuthScript();
     $("#configure-auth-flow-form").submit();
 }
 
 function submitFormWithEnabledScript() {
     $("#enableScript").prop("checked", true);
+    encodeAuthScript();
     $("#configure-auth-flow-form").submit();
+}
+
+// Encode the auth script with Base64 encoding.
+function encodeAuthScript() {
+    doc.setValue(btoa(doc.getValue()));
 }
 
 $(".CodeMirror").append('<div id="toggleEditorSize" class="maximizeIcon" title="Toggle Full Screen"></div>');
@@ -457,7 +464,7 @@ function addNewSteps(templateObj) {
             addNewUIStep();
             $.each(stepConfig.local, function (idx, value) {
                 if ($.inArray(value, localAuthenticators) > -1) {
-                    $("'select[name=step_" + i + "_local_oauth_select] option[value=" + value + "]'")
+                    $("select[name=step_" + i + "_local_oauth_select] option[value=" + value + "]")
                         .attr('selected', 'selected');
                     $('#localOptionAddLinkStep_' + i).click();
                 }
@@ -615,6 +622,14 @@ $("#enableScript").click(function () {
 
 $("#editorRow").hide();
 checkScriptEnabled();
+checkAdaptiveEnabled();
+
+function checkAdaptiveEnabled() {
+    adaptiveEnabled = $("#enableAdaptive").is(":checked");
+    if (!adaptiveEnabled) {
+        $("#editorRow").hide();
+    }
+}
 
 function checkScriptEnabled() {
     scriptEnabled = $("#enableScript").is(":checked");
@@ -888,14 +903,23 @@ function addLocalRow(obj, stepId) {
         CARBON.showWarningDialog("This is a handler. Make sure you add authenticators in other steps.");
     }
 
+    var parentElement = jQuery(obj)
+                              .parent()
+                              .parent()
+                              .parent()
+                              .parent();
 
-    jQuery(obj)
-        .parent()
-        .parent()
-        .parent()
-        .parent()
-        .append(
-            jQuery('<tr><td><input name="step_' + stepId + '_local_auth" id="" type="hidden" value="' + selectedAuthenticatorName + '" />' + selectedAuthenticatorDisplayName + '</td><td class="leftCol-small" ><a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>'));
+    if (parentElement.children('tbody').length == 0) {
+        parentElement.append(jQuery('<tbody></tbody>'));
+    }
+
+    parentElement.children('tbody').append(
+            jQuery('<tr><td><input name="step_'
+            + stepId + '_local_auth" id="" type="hidden" value="'
+            + selectedAuthenticatorName + '" />'
+            + selectedAuthenticatorDisplayName
+            + '</td><td class="leftCol-small" ><a onclick="deleteLocalAuthRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>'
+            ));
 }
 
 function addIDPRow(obj, stepID) {
@@ -905,6 +929,16 @@ function addIDPRow(obj, stepID) {
         return false;
     }
 
+     var parentElement = jQuery(obj)
+                                  .parent()
+                                  .parent()
+                                  .parent()
+                                  .parent();
+
+     if (parentElement.children('tbody').length == 0) {
+          parentElement.append(jQuery('<tbody></tbody>'));
+     }
+
     var dataArray = selectedObj.attr('data').split('%fed_auth_sep_%');
     var valuesArray = selectedObj.attr('data-values').split('%fed_auth_sep_%');
     var newRow = '<tr><td><input name="step_' + stepID + '_fed_auth" id="" type="hidden" value="' + selectedIDPName + '" />' + selectedIDPName + ' </td><td> <select name="step_' + stepID + '_idp_' + selectedIDPName + '_fed_authenticator" style="float: left; min-width: 150px;font-size:13px;">';
@@ -912,13 +946,7 @@ function addIDPRow(obj, stepID) {
         newRow += '<option value="' + valuesArray[i] + '">' + dataArray[i] + '</option>';
     }
     newRow += '</select></td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
-    jQuery(obj)
-        .parent()
-        .parent()
-        .parent()
-        .parent()
-        .append(
-            jQuery(newRow));
+    parentElement.children('tbody').append(jQuery(newRow));
 }
 
 function validateAuthenticators(itemName, authenticatorName) {

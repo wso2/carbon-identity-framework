@@ -46,11 +46,17 @@ import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
+import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
+import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -83,6 +89,16 @@ public class ApplicationManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
         try {
+            buildFileBasedSPList();
+            if (log.isDebugEnabled()) {
+                log.debug("File based SP building completed");
+            }
+
+            loadAuthenticationTemplates();
+            if (log.isDebugEnabled()) {
+                log.debug("Authentication templates are loaded");
+            }
+
             bundleContext = context.getBundleContext();
             // Registering Application management service as a OSGIService
             bundleContext.registerService(ApplicationManagementService.class.getName(),
@@ -101,9 +117,13 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(DiscoverableApplicationManager.class.getName(),
                     new DiscoverableApplicationManagerImpl(), null);
-            buildFileBasedSPList();
-            loadAuthenticationTemplates();
 
+            bundleContext.registerService(ClaimMetadataMgtListener.class.getName(), new ApplicationClaimMgtListener(),
+                    null);
+
+            // Register the ApplicationValidator.
+            context.getBundleContext().registerService(ApplicationValidator.class,
+                    new DefaultApplicationValidator(), null);
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -330,5 +350,49 @@ public class ApplicationManagementServiceComponent {
         objForUncategorized.put(ApplicationConstants.CATEGORY_ORDER, ApplicationConstants.ORDER_FOR_UNCATEGORIZED);
         categoriesObj.put(ApplicationConstants.UNCATEGORIZED, objForUncategorized);
         return categoriesObj;
+    }
+
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setClaimMetadataManagementService(
+                claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "identity.organization.management.component",
+            service = OrganizationUserResidentResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationUserResidentResolverService"
+    )
+    protected void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Setting the organization management service.");
+        }
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setOrganizationUserResidentResolverService(organizationUserResidentResolverService);
+    }
+
+    protected void unsetOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unset organization management service.");
+        }
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationUserResidentResolverService(null);
     }
 }
