@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -50,6 +51,11 @@ import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_AUTHORIZE_USER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSIONS;
 
 /**
  * This a service class used to manage user sessions.
@@ -91,7 +97,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionException {
 
         try {
-            if (userStoreDomain == null) {
+            if (StringUtils.isBlank(userStoreDomain)) {
                 userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
             }
             UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
@@ -167,9 +173,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
 
-        if (userId == null || userId.isEmpty()) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+        if (StringUtils.isBlank(userId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + userId + ".");
@@ -180,9 +185,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
-        if (userId == null || userId.isEmpty()) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+        if (StringUtils.isBlank(userId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         List<String> sessionIdList = getSessionIdListByUserId(userId);
 
@@ -215,15 +219,35 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
+    public Optional<UserSession> getSessionBySessionId(String userId, String sessionId)
+            throws SessionManagementException {
+
+        if (StringUtils.isBlank(userId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
+        }
+        if (StringUtils.isBlank(sessionId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving session: " + sessionId + " of user: " + userId + ".");
+        }
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                FrameworkUtils.getLoginTenantDomainFromContext());
+        if (sessionContext != null) {
+            UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+            return userSessionDAO.getSession(userId, sessionId);
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public boolean terminateSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
 
-        if (userId == null || userId.isEmpty()) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+        if (StringUtils.isBlank(userId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
-        if (sessionId == null || sessionId.isEmpty()) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION,
-                    null);
+        if (StringUtils.isBlank(sessionId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
         }
         if (isUserSessionMappingExist(userId, sessionId)) {
             if (log.isDebugEnabled()) {
@@ -235,8 +259,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_FORBIDDEN_ACTION, userId);
+            throw handleSessionManagementClientException(ERROR_CODE_FORBIDDEN_ACTION, userId);
         }
     }
 
@@ -244,8 +267,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     public List<UserSession> getSessionsByUser(User user, int idpId) throws SessionManagementException {
 
         if (user == null) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
@@ -255,11 +277,26 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
+    public List<UserSession> getSessions(String tenantDomain, List<ExpressionNode> filter, Integer limit,
+                                         String sortOrder) throws SessionManagementException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Searching active sessions on the system.");
+            }
+            UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+
+            return userSessionDAO.getSessions(getTenantId(tenantDomain), filter, limit, sortOrder);
+        } catch (UserSessionException e) {
+            throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, e.getMessage(), e);
+        }
+    }
+
+    @Override
     public boolean terminateSessionsByUser(User user, int idpId) throws SessionManagementException {
 
         if (user == null) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
         if (log.isDebugEnabled()) {
@@ -278,12 +315,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             SessionManagementException {
 
         if (user == null) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
-                    null);
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
-        if (sessionId == null || sessionId.isEmpty()) {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION,
-                    null);
+        if (StringUtils.isBlank(sessionId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
         }
 
         if (isUserSessionMappingExist(user, idpId, sessionId)) {
@@ -297,8 +332,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
-            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_FORBIDDEN_ACTION, user.getUserName());
+            throw handleSessionManagementClientException(ERROR_CODE_FORBIDDEN_ACTION, user.getUserName());
         }
     }
 
@@ -338,8 +372,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
             return UserSessionStore.getInstance().getSessionId(userId);
         } catch (UserSessionException e) {
-            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
         }
     }
 
@@ -359,8 +392,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
             return UserSessionStore.getInstance().getSessionId(user, idpId);
         } catch (UserSessionException e) {
-            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, user.getUserName(), e);
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, user.getUserName(), e);
         }
     }
 
@@ -379,8 +411,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
-                    UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
-                    UserSession userSession = userSessionDTO.getSession(sessionId);
+                    UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+                    UserSession userSession = userSessionDAO.getSession(sessionId);
                     if (userSession != null) {
                         sessionsList.add(userSession);
                     }
@@ -405,8 +437,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(userId, sessionId);
         } catch (UserSessionException e) {
-            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, userId, e);
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, userId, e);
         }
         return isUserAuthorized;
     }
@@ -427,8 +458,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(user, idpId, sessionId);
         } catch (UserSessionException e) {
-            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, user.getUserName(), e);
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, user.getUserName(), e);
         }
         return isUserAuthorized;
     }
