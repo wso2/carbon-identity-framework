@@ -262,9 +262,15 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                 for (UserSession userSession : userSessionsList) {
                     for (Application app : userSession.getApplications()) {
                         Application appFromMap = applicationMap.get(app.getAppId());
-                        app.setAppName(appFromMap.getAppName());
-                        app.setResourceId(appFromMap.getResourceId());
+                        if (appFromMap != null) {
+                            app.setAppName(appFromMap.getAppName());
+                            app.setResourceId(appFromMap.getResourceId());
+                        }
                     }
+
+                    // If application is not present in the SP_APP table but has a session associated with it,
+                    // that application should not be considered for the session object.
+                    userSession.getApplications().removeIf(application -> application.getAppName() == null);
                 }
             }
         } catch (DataAccessException e) {
