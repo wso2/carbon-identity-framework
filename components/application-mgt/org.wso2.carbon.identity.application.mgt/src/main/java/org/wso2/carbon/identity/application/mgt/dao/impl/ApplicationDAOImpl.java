@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,7 +64,6 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationInboundTableColumns;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
@@ -73,13 +72,7 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.model.FilterData;
-import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
-import org.wso2.carbon.identity.core.model.Node;
-import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -141,17 +134,17 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_COUNT_BY_TENANT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_COUNT_BY_TENANT_AND_FILTER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_ID_BY_APP_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_DB2SQL;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_INFORMIX;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_MSSQL;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_MYSQL;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_ORACLE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_POSTGRESQL;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_DB2SQL;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_INFORMIX;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MSSQL;
@@ -265,23 +258,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
     private static final String AUDIT_FAIL = "Fail";
-    private static final String ASTERISK = "*";
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
     public static final String USE_DOMAIN_IN_ROLE_DISPLAY_NAME = "DOMAIN_IN_ROLES";
-
-    private static final String FILTER_STARTS_WITH = "sw";
-    private static final String FILTER_ENDS_WITH = "ew";
-    private static final String FILTER_EQUALS = "eq";
-    private static final String FILTER_CONTAINS = "co";
-    private static final Map<String, String> SEARCH_SUPPORTED_FIELD_MAP = new HashMap<>();
-
-    static {
-        SEARCH_SUPPORTED_FIELD_MAP.put("name", "SP_APP.APP_NAME");
-        SEARCH_SUPPORTED_FIELD_MAP.put("clientID", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
-    }
 
     public ApplicationDAOImpl() {
 
@@ -2032,7 +2013,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         validateAttributesForPagination(offset, limit);
 
-        if (StringUtils.isBlank(filter)) {
+        if ("*".equals(filter)) {
             return getApplicationBasicInfo(offset, limit);
         }
 
@@ -2046,48 +2027,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String sqlQuery;
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
 
-        FilterData filterData = getFilterDataForDBQuery(filter);
-
         try {
 
-            List<String> filterValues = filterData.getFilterValues();
-            String filterString = filterData.getFilterString();
+            String filterResolvedForSQL = resolveSQLFilter(filter);
 
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             if (databaseProductName.contains("MySQL")
                     || databaseProductName.contains("MariaDB")
                     || databaseProductName.contains("H2")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_MYSQL, filterString);
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
             } else if (databaseProductName.contains("Oracle")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_ORACLE, filterString);
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset + limit, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + limit,
+                        offset);
             } else if (databaseProductName.contains("Microsoft")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_MSSQL, filterString);
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
             } else if (databaseProductName.contains("PostgreSQL")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_POSTGRESQL, filterString);
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, limit, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, limit, offset);
             } else if (databaseProductName.contains("DB2")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_DB2SQL, filterString);
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset + 1, offset + limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + 1,
+                        offset + limit);
             } else if (databaseProductName.contains("INFORMIX")) {
-                sqlQuery = String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER_INFORMIX, filterString);
-                String filterValueResolvedForSQL;
+                sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, offset);
                 getAppNamesStmt.setInt(2, limit);
                 getAppNamesStmt.setInt(3, tenantID);
-                getAppNamesStmt.setString(4, LOCAL_SP);
-                for (int i = 0; i < filterValues.size(); i++) {
-                    filterValueResolvedForSQL = resolveSQLFilter(filterValues.get(i));
-                    getAppNamesStmt.setString(5 + i, filterValueResolvedForSQL);
-                }
+                getAppNamesStmt.setString(4, filterResolvedForSQL);
+                getAppNamesStmt.setString(5, LOCAL_SP);
 
             } else {
                 log.error("Error while loading applications from DB: Database driver could not be identified or " +
@@ -2099,7 +2075,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
@@ -2117,23 +2093,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * Set values to the prepare statement for searching applications
      * @param getAppNamesStmt
      * @param tenantID
+     * @param filterResolvedForSQL
      * @param start
      * @param end
      * @throws SQLException
      */
-    private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID,
-                                                List<String> filterValues, int start, int end) throws SQLException {
-        String filterValueResolvedForSQL;
+    private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID, String
+            filterResolvedForSQL, int start, int end) throws SQLException {
         getAppNamesStmt.setInt(1, tenantID);
-        getAppNamesStmt.setString(2, LOCAL_SP);
-        int j = 3;
-        for (int i = 0; i < filterValues.size(); i++) {
-            filterValueResolvedForSQL = resolveSQLFilter(filterValues.get(i));
-            getAppNamesStmt.setString(j, filterValueResolvedForSQL);
-            j++;
-        }
-        getAppNamesStmt.setInt(j, start);
-        getAppNamesStmt.setInt(j + 1, end);
+        getAppNamesStmt.setString(2, filterResolvedForSQL);
+        getAppNamesStmt.setString(3, LOCAL_SP);
+        getAppNamesStmt.setInt(4, start);
+        getAppNamesStmt.setInt(5, end);
     }
 
     @Override
@@ -3372,10 +3343,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String resolveSQLFilter(String filter) {
 
         //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
-        String sqlfilter = "SP_APP.APP_NAME LIKE '%'";
+        String sqlfilter = "%";
         if (StringUtils.isNotBlank(filter)) {
             sqlfilter = filter.trim()
-                    .replace(ASTERISK, "%")
+                    .replace("*", "%")
                     .replace("?", "_");
         }
 
@@ -3384,85 +3355,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return sqlfilter;
-    }
-
-    private FilterData getFilterDataForDBQuery(String filter) {
-
-        FilterData filterData = new FilterData();
-
-        if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
-            filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
-            filterData.addFilterValue("%");
-        } else {
-            // Not repeating validations as all validations are handled in the Identity API Server.
-            try {
-                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
-                Node rootNode = filterTreeBuilder.buildTree();
-                if (rootNode instanceof ExpressionNode) {
-                    ExpressionNode expressionNode = (ExpressionNode) rootNode;
-
-                    filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
-                            expressionNode.getOperation()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
-                            expressionNode.getValue()));
-                } else {
-                    // Currently, supports only filters with one AND/OR operation.
-                    // Have to recursively traverse the filter tree to support more than one operation.
-                    OperationNode operationNode = (OperationNode) rootNode;
-                    ExpressionNode expressionLeftNode = (ExpressionNode) rootNode.getLeftNode();
-                    ExpressionNode expressionRightNode = (ExpressionNode) rootNode.getRightNode();
-
-                    String formattedLeftNodeString = generateFilterStringForBackend(
-                            expressionLeftNode.getAttributeValue(), expressionLeftNode.getOperation());
-                    String formattedRightNodeString = generateFilterStringForBackend(
-                            expressionRightNode.getAttributeValue(), expressionRightNode.getOperation());
-
-                    filterData.setFilterString(formattedLeftNodeString + " " +
-                            operationNode.getOperation() + " " + formattedRightNodeString);
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionLeftNode.getOperation(),
-                            expressionLeftNode.getValue()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionRightNode.getOperation(),
-                            expressionRightNode.getValue()));
-                }
-            } catch (IOException | IdentityException e) {
-                log.error("Error occurred while converting filter for backend.", e);
-            }
-        }
-        return filterData;
-    }
-
-    private String generateFilterStringForBackend(String searchField, String searchOperation) {
-
-        // Format the filter attribute and condition to fit in a SQL where clause.
-        String formattedFilterString;
-        String realSearchField = SEARCH_SUPPORTED_FIELD_MAP.get(searchField);
-        if (searchOperation.equals(FILTER_EQUALS)) {
-            formattedFilterString = realSearchField + " = ?";
-        } else {
-            formattedFilterString = realSearchField + " LIKE ?";
-        }
-        return formattedFilterString;
-    }
-
-    private String generateFilterValueForBackend(String searchOperation, String searchValue) {
-
-        // Format the filter value to fit in a SQL where clause.
-        String formattedFilterValue;
-        switch (searchOperation) {
-            case FILTER_STARTS_WITH:
-                formattedFilterValue = searchValue + ASTERISK;
-                break;
-            case FILTER_ENDS_WITH:
-                formattedFilterValue = ASTERISK + searchValue;
-                break;
-            case FILTER_CONTAINS:
-                formattedFilterValue = ASTERISK + searchValue + ASTERISK;
-                break;
-            default:
-                formattedFilterValue = searchValue;
-        }
-
-        return formattedFilterValue;
     }
 
     /**
@@ -3486,18 +3378,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
 
-        FilterData filterData = getFilterDataForDBQuery(filter);
-
         try {
-            String filterValueResolvedForSQL;
-            getAppNamesStmt = connection.prepareStatement(
-                    String.format(LOAD_APP_COUNT_BY_TENANT_AND_FILTER, filterData.getFilterString()));
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+            getAppNamesStmt = connection
+                    .prepareStatement(LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, LOCAL_SP);
-            for (int i = 0; i < filterData.getFilterValues().size(); i++) {
-                filterValueResolvedForSQL = resolveSQLFilter(filterData.getFilterValues().get(i));
-                getAppNamesStmt.setString(3 + i, filterValueResolvedForSQL);
-            }
+            getAppNamesStmt.setString(2, filterResolvedForSQL);
+            getAppNamesStmt.setString(3, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
@@ -3533,20 +3420,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
+
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
-        FilterData filterData = getFilterDataForDBQuery(filter);
-
         try {
-            String filterValueResolvedForSQL;
-            getAppNamesStmt = connection.prepareStatement(
-                    String.format(LOAD_APP_NAMES_BY_TENANT_AND_FILTER, filterData.getFilterString()));
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+            getAppNamesStmt = connection
+                    .prepareStatement(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, LOCAL_SP);
-            for (int i = 0; i < filterData.getFilterValues().size(); i++) {
-                filterValueResolvedForSQL = resolveSQLFilter(filterData.getFilterValues().get(i));
-                getAppNamesStmt.setString(3 + i, filterValueResolvedForSQL);
-            }
+            getAppNamesStmt.setString(2, filterResolvedForSQL);
+            getAppNamesStmt.setString(3, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
@@ -5079,7 +4962,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         validateAttributesForPagination(offset, limit);
 
         // TODO: 11/5/19 : Enforce a max limit
-        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
+        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
             return getDiscoverableApplicationBasicInfo(limit, offset, tenantDomain);
         }
 
@@ -5124,7 +5007,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     + tenantDomain);
         }
 
-        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
+        if (StringUtils.isBlank(filter) || "*".equals(filter)) {
             return getCountOfDiscoverableApplications(tenantDomain);
         }
 
@@ -5361,35 +5244,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-
-        String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
-        String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
-        int tenantId = appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID);
-
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(userStoreDomain)
-                && !(tenantId == MultitenantConstants.INVALID_TENANT_ID)) {
-            User appOwner = new User();
-            appOwner.setUserStoreDomain(userStoreDomain);
-            appOwner.setUserName(username);
-            appOwner.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-
-            basicInfo.setAppOwner(appOwner);
-        }
-
-        return basicInfo;
-    }
-
-    private ApplicationBasicInfo buildApplicationBasicInfoWithInboundConfig(ResultSet appNameResultSet)
-            throws SQLException, IdentityApplicationManagementException {
-
-        ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-        basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
-        basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
-        basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
-        basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
-        basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-        basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
