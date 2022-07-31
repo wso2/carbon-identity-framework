@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;

@@ -16,20 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
-import java.util.Map;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
- * Interface for Javascript wrapper for Java level HashMap of HTTP headers/cookies.
- * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
- * syntax.
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
+ * Interface for JavaScript Authenticated User Wrapper.
  */
-public interface JsBaseParameters {
+public interface JsBaseAuthenticatedUser {
 
     /**
-     * @return Wrapped HashMap of HTTP headers/cookies
+     * @return Wrapped Authenticated User
      */
-    Map getWrapped();
+    AuthenticatedUser getWrapped();
 }

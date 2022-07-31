@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseCookie;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import javax.servlet.http.Cookie;

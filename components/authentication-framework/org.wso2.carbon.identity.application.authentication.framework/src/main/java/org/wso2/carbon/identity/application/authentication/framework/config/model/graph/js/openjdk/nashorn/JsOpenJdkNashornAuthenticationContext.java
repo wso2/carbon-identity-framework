@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractOpenJdkNashornJsObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 

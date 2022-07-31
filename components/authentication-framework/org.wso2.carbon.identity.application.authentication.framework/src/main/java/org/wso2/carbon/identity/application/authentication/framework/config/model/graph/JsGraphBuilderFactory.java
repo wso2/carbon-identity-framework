@@ -52,7 +52,8 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
 
     private static final Log LOG = LogFactory.getLog(JsGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
-    private static final String[] NASHORN_ARGS = {"--no-java"};
+    private static final String[] NASHORN_ARGS = {"--no-java", "--no-deprecation-warning"};
+
     private ClassFilter classFilter;
 
     // Suppress the Nashorn deprecation warnings in jdk 11

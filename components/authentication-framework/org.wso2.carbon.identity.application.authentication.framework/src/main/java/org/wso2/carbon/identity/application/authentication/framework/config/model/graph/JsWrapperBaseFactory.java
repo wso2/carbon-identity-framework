@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseCookie;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseParameters;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsBaseServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;

@@ -16,17 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * Interface for JavaScript Authenticated User Wrapper.
+ * Interface for JavaScript Servlet Response Wrapper.
  */
-public interface JsBaseAuthenticatedUser {
+public interface JsBaseServletResponse {
 
     /**
-     * @return Wrapped Authenticated User
+     * @return Wrapped Servlet Response
      */
-    AuthenticatedUser getWrapped();
+    TransientObjectWrapper<HttpServletResponse> getWrapped();
+
+    /**
+     * Adds Cookie to Servlet Response.
+     * @param cookie HTTP Cookie
+     */
+    void addCookie(Cookie cookie);
 }

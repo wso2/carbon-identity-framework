@@ -54,7 +54,6 @@ public class JsBuilderStaticWrapper {
             JsOpenJdkNashornGraphBuilder.addLongWaitProcess(asyncProcess, parameterMap);
         } else {
             JsGraphBuilder.addLongWaitProcess(asyncProcess, parameterMap);
-
         }
     }
 }

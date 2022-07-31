@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.OpenJdkSelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -172,7 +172,7 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
         Bindings bindings = engine.createBindings();
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
         engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+        OpenJdkSelectAcrFromFunction selectAcrFromFunction = new OpenJdkSelectAcrFromFunction();
 //        todo move to functions registry
         bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
             (SelectOneFunction) selectAcrFromFunction::evaluate);

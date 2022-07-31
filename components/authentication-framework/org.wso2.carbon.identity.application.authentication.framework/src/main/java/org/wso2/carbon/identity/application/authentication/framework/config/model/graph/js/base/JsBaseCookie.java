@@ -16,14 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import javax.servlet.http.Cookie;
 
 /**
- * Interface for JavaScript Authentication Context Wrapper.
+ * Interface for Javascript wrapper for Java level Cookie.
+ * This provides controlled access to Cookie object via provided javascript native syntax.
+ * e.g
+ * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
-public interface JsBaseAuthenticationContext {
+public interface JsBaseCookie {
 
-    AuthenticationContext getWrapped();
+    Cookie getWrapped();
 }

@@ -16,10 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.internal.runtime.JSType;
+import org.openjdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.internal.runtime.JSType;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,10 +27,11 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Abstract JavaScript Proxy Object for Nashorn Implementation.
- * Interface Created from modifying jdk.nashorn.api.scripting.AbstractJsObject
+ * Abstract JavaScript Proxy Object for OpenJDk Nashorn Implementation.
+ * Interface Created from modifying openjdk.nashorn.api.scripting.AbstractJsObject
+ * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public interface AbstractJsObject extends JSObject {
+public interface AbstractOpenJdkNashornJsObject extends JSObject {
 
     @Override
     default Object call(final Object thiz, final Object... args) {

@@ -16,26 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
- * Interface for JavaScript Servlet Response Wrapper.
+ * Interface for Javascript wrapper for Java level HashMap of HTTP headers/cookies.
+ * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
+ * syntax.
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public interface JsBaseServletResponse {
+public interface JsBaseParameters {
 
     /**
-     * @return Wrapped Servlet Response
+     * @return Wrapped HashMap of HTTP headers/cookies
      */
-    TransientObjectWrapper<HttpServletResponse> getWrapped();
-
-    /**
-     * Adds Cookie to Servlet Response.
-     * @param cookie HTTP Cookie
-     */
-    void addCookie(Cookie cookie);
+    Map getWrapped();
 }

@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractOpenJdkNashornJsObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 
 import java.util.Map;
