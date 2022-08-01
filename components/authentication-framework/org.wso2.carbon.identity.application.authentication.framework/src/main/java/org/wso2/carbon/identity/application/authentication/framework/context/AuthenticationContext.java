@@ -440,11 +440,19 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         requestedAcr.add(acr);
     }
 
+    /**
+     * Get value of sendToMultiOptionPage from the authentication context.
+     * @return boolean Whether the user should be redirected to the login page to retry the authentication.
+     */
     public boolean isSendToMultiOptionPage() {
 
         return sendToMultiOptionPage;
     }
 
+    /**
+     * Add value of sendToMultiOptionPage to the authentication context.
+     * @param sendToMultiOptionPage Whether the user should be redirected to the login page to retry the authentication.
+     */
     public void setSendToMultiOptionPage(boolean sendToMultiOptionPage) {
 
         this.sendToMultiOptionPage = sendToMultiOptionPage;

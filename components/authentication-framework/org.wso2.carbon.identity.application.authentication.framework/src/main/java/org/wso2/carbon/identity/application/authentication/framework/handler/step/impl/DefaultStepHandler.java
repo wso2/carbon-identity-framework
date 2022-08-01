@@ -1082,18 +1082,19 @@ public class DefaultStepHandler implements StepHandler {
     private boolean isRedirectionToRetryPage(AuthenticationContext context) {
 
         boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
-        if (!sendToMultiOptionPage) {
-            Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
-            if (MapUtils.isNotEmpty(parameterMap)) {
-                String showAuthFailureReasonOnLoginPage =
-                        parameterMap.get(FrameworkConstants.SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF);
-                if (Boolean.parseBoolean(showAuthFailureReasonOnLoginPage)) {
-                    return false;
-                }
-                String redirectToRetryPageOnAccountLock =
-                        parameterMap.get(FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF);
-                return Boolean.parseBoolean(redirectToRetryPageOnAccountLock);
+        if (sendToMultiOptionPage) {
+            return false;
+        }
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            String showAuthFailureReasonOnLoginPage =
+                    parameterMap.get(FrameworkConstants.SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF);
+            if (Boolean.parseBoolean(showAuthFailureReasonOnLoginPage)) {
+                return false;
             }
+            String redirectToRetryPageOnAccountLock =
+                    parameterMap.get(FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF);
+            return Boolean.parseBoolean(redirectToRetryPageOnAccountLock);
         }
         return false;
     }
