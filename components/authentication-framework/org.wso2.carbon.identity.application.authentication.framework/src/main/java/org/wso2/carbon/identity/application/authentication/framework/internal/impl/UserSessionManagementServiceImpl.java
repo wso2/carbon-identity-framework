@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -39,11 +40,15 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,6 +127,43 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
     }
 
+    /**
+     * Retrieves the username of the given userId.
+     *
+     * @param tenantId Id of the tenant domain of the user.
+     * @param userId Id of the user.
+     * @return username.
+     * @throws UserSessionException
+     */
+    private String getUsernameFromUserId(int tenantId, String userId) throws
+            UserSessionException {
+
+        try {
+            UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService()
+                    .getTenantUserRealm(tenantId).getUserStoreManager();
+            try {
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    return ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userId);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Provided user store manager for the tenantId: " + tenantId + ", is not an instance " +
+                            "of the AbstractUserStore manager.");
+                }
+                throw new UserSessionException("Unable to get the username for the userId: " + userId + ".");
+            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                String message = String.format("Error occurred while retrieving username for the userId: %s of " +
+                        "tenantId: %s", userId, tenantId);
+                if (log.isDebugEnabled()) {
+                    log.debug(message, e);
+                }
+                throw new UserSessionException(message, e);
+            }
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve " +
+                    "username for the userId: " + userId, e);
+        }
+    }
+
     private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
             throws UserStoreException {
 
@@ -133,8 +175,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
         if (log.isDebugEnabled()) {
             log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
-                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
-                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
+                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an " +
+                    "instance of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
                     "manager: " + userStoreManager.getClass() + ", from the realm.");
         }
         return userStoreManager;
@@ -179,6 +221,21 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + userId + ".");
         }
+
+        // Check whether a federated association exists for the userId.
+        try {
+            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            String fedAssociatedUserId = getUserIdsFromFederatedMapping(tenantId, userId);
+
+            if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
+                return getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId));
+            }
+        } catch (UserSessionException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
+            }
+        }
+
         return getActiveSessionList(getSessionIdListByUserId(userId));
     }
 
@@ -485,5 +542,59 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             description = error.getDescription();
         }
         return new SessionManagementClientException(error, description);
+    }
+
+    /**
+     * This method checks whether federated associations exist for the given userId and if so returns the
+     * internal userId stored in IDN_AUTH_USER table.
+     *
+     * @param userId User Id.
+     * @param tenantId Tenant Id.
+     * @return User id to which sessions are stored against.
+     */
+    private String getUserIdsFromFederatedMapping(int tenantId, String userId) throws UserSessionException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Searching federated association for the userId.");
+        }
+
+        // Retrieve the username for the userId.
+        String username = getUsernameFromUserId(tenantId, userId);
+        if (StringUtils.isBlank(username)) {
+            throw new UserSessionException("username not found for the userId: " + userId);
+        }
+        username = UserCoreUtil.removeDomainFromName(username);
+
+        try {
+            // Retrieve the federated associations for the username.
+            FederatedAssociation[] federatedAssociations = getFederatedAssociationManager()
+                    .getFederatedAssociationsOfUser(tenantId, username);
+
+            // Get IDP_USER_ID for the retrieved idpId, username and tenant.
+            if (federatedAssociations.length != 0) {
+                return UserSessionStore.getInstance().getUserId(username, tenantId, null,
+                        Integer.parseInt(federatedAssociations[0].getIdp().getId()));
+            }
+        } catch (FederatedAssociationManagerException e) {
+            throw new UserSessionException("Error while retrieving federated associations.", e);
+        }
+
+        return null;
+    }
+
+    private FederatedAssociationManager getFederatedAssociationManager() throws UserSessionException {
+
+        FederatedAssociationManager federatedAssociationManager =
+                FrameworkServiceDataHolder.getInstance().getFederatedAssociationManager();
+        if (federatedAssociationManager == null) {
+            String messge = "Error while retrieving federated associations. FederatedAssociationManager is not " +
+                    "available in the OSGi framework.";
+            if (log.isDebugEnabled()) {
+                log.debug(messge);
+            }
+            throw new UserSessionException(messge);
+        }
+
+        return federatedAssociationManager;
     }
 }

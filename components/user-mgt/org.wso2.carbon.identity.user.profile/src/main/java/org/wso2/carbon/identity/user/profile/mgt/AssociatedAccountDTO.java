@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.user.profile.mgt;
 public class AssociatedAccountDTO {
 
     private String id;
+    private int identityProviderId;
     private String identityProviderName;
     private String username;
 
@@ -34,6 +35,13 @@ public class AssociatedAccountDTO {
 
         this.id = id;
         this.identityProviderName = identityProviderName;
+        this.username = username;
+    }
+
+    public AssociatedAccountDTO(String id, int identityProviderId, String username) {
+
+        this.id = id;
+        this.identityProviderId = identityProviderId;
         this.username = username;
     }
 
@@ -61,5 +69,10 @@ public class AssociatedAccountDTO {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public int getIdentityProviderId() {
+
+        return identityProviderId;
     }
 }
