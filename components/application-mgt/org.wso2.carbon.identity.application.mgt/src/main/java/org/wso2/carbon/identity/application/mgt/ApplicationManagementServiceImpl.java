@@ -1157,7 +1157,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         ServiceProvider serviceProvider = appDAO.getApplication(appId);
         String serviceProviderName = serviceProvider.getApplicationName();
-        String tenantDomain = serviceProvider.getTenantDomain();
+        String tenantDomain = serviceProvider.getOwner().getTenantDomain();
 
         // TODO: Since we didn't add post listener methods to the ApplicationMgtListener API to avoid API changes, we
         // TODO: are invoking doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain) listener

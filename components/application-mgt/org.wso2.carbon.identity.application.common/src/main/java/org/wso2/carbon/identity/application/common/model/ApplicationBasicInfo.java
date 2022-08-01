@@ -35,7 +35,6 @@ public class ApplicationBasicInfo implements Serializable {
     private String accessUrl;
 
     private User appOwner;
-    private String tenantDomain;
 
     /**
      * Get application id.
@@ -127,25 +126,5 @@ public class ApplicationBasicInfo implements Serializable {
     public void setAppOwner(User appOwner) {
 
         this.appOwner = appOwner;
-    }
-
-    /**
-     * Get application tenant domain.
-     *
-     * @return tenantDomain
-     */
-    public String getTenantDomain() {
-
-        return tenantDomain;
-    }
-
-    /**
-     * Set application tenant domain.
-     *
-     * @param tenantDomain application tenant domain
-     */
-    public void setTenantDomain(String tenantDomain) {
-
-        this.tenantDomain = tenantDomain;
     }
 }
