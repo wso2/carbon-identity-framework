@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,11 +35,12 @@ public class ApplicationBasicInfo implements Serializable {
     private String accessUrl;
 
     private User appOwner;
+    private String inboundKey;
 
     /**
      * Get application id.
      *
-     * @return application id
+     * @return application id.
      */
     public int getApplicationId() {
 
@@ -49,7 +50,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application id.
      *
-     * @param applicationId application id
+     * @param applicationId application id.
      */
     public void setApplicationId(int applicationId) {
 
@@ -57,7 +58,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * @return
+     * Get application name.
+     *
+     * @return application name.
      */
     public String getApplicationName() {
 
@@ -65,7 +68,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * @param applicationName
+     * Set application name.
+     *
+     * @param applicationName   application name.
      */
     public void setApplicationName(String applicationName) {
 
@@ -73,7 +78,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * @return
+     * Get application description.
+     *
+     * @return description.
      */
     public String getDescription() {
 
@@ -81,50 +88,112 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * @param description
+     * Set application description.
+     *
+     * @param description   description.
      */
     public void setDescription(String description) {
 
         this.description = description;
     }
 
+    /**
+     * Get application resource id.
+     *
+     * @return application resource id.
+     */
     public String getApplicationResourceId() {
 
         return applicationResourceId;
     }
 
+    /**
+     * Set application resource id.
+     *
+     * @param applicationResourceId application resource id.
+     */
     public void setApplicationResourceId(String applicationResourceId) {
 
         this.applicationResourceId = applicationResourceId;
     }
 
+    /**
+     * Get image URL.
+     *
+     * @return image URL.
+     */
     public String getImageUrl() {
 
         return imageUrl;
     }
 
+    /**
+     * Set application image URL.
+     *
+     * @param imageUrl  application image URL.
+     */
     public void setImageUrl(String imageUrl) {
 
         this.imageUrl = imageUrl;
     }
 
+    /**
+     * Get access URL.
+     *
+     * @return access URL.
+     */
     public String getAccessUrl() {
 
         return accessUrl;
     }
 
+    /**
+     * Set access URL.
+     *
+     * @param accessUrl access URL.
+     */
     public void setAccessUrl(String accessUrl) {
 
         this.accessUrl = accessUrl;
     }
 
+    /**
+     * Get app owner details.
+     *
+     * @return app owner details.
+     */
     public User getAppOwner() {
 
         return appOwner;
     }
 
+    /**
+     * Set application owner details.
+     *
+     * @param appOwner  application owner details.
+     */
     public void setAppOwner(User appOwner) {
 
         this.appOwner = appOwner;
+    }
+
+    /**
+     * Get inbound auth key.
+     *
+     * @return inbound auth key.
+     */
+    public String getInboundKey() {
+
+        return inboundKey;
+    }
+
+    /**
+     * Set inbound auth key.
+     *
+     * @param inboundKey    inbound auth key.
+     */
+    public  void setInboundKey(String inboundKey) {
+
+        this.inboundKey = inboundKey;
     }
 }
