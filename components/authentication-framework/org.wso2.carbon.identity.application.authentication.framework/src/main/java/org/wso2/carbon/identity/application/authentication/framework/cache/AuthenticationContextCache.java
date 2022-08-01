@@ -123,8 +123,8 @@ public class AuthenticationContextCache extends
                         AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
                     } catch (AuthenticationContextLoaderException e) {
                         if (log.isDebugEnabled()) {
-                            log.debug(String.format("Error occurred while loading optimized authentication context with " +
-                                    "context id: %s", entry.getContext().getContextIdentifier()), e);
+                            log.debug(String.format("Error occurred while loading optimized authentication context " +
+                                    "with context id: %s", entry.getContext().getContextIdentifier()), e);
                         }
                     }
                 }
