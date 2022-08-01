@@ -1972,7 +1972,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         basicAppDataResultSet.getString(5)));
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
-                serviceProvider.setTenantDomain(IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)));
 
                 ClaimConfig claimConfig = new ClaimConfig();
                 claimConfig.setRoleClaimURI(basicAppDataResultSet.getString(7));
@@ -2138,6 +2137,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    @Deprecated
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -2148,7 +2148,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
-            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
+            return getApplication(applicationId, serviceProvider.getOwner().getTenantDomain());
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
+                    e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public ServiceProvider getApplication(int applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            // Load basic application data
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (serviceProvider == null) {
+                return null;
+            }
+            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
@@ -2304,8 +2323,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)),
                         rs.getString(ApplicationTableColumns.USERNAME)));
                 serviceProvider.setOwner(owner);
-                serviceProvider.setTenantDomain(
-                        IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)));
 
                 ClaimConfig claimConfig = new ClaimConfig();
                 claimConfig.setRoleClaimURI(rs.getString(ApplicationTableColumns.ROLE_CLAIM));
@@ -4801,7 +4818,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(serviceProvider.getTenantDomain());
+            ApplicationMgtUtil.startTenantFlow(serviceProvider.getOwner().getTenantDomain());
             List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
 
             if (permissionList != null) {
@@ -4989,7 +5006,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             int appId = getAppIdUsingResourceId(resourceId, tenantDomain);
             // Pass tenant domain as the service provider admin's tenant domain can be different.
-            ServiceProvider application = getApplication(appId);
+            ServiceProvider application = getApplication(appId, tenantDomain);
             if (application == null) {
                 if (log.isDebugEnabled()) {
                     log.debug(
@@ -5387,7 +5404,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             basicInfo.setAppOwner(appOwner);
         }
-        basicInfo.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
 
         return basicInfo;
     }
