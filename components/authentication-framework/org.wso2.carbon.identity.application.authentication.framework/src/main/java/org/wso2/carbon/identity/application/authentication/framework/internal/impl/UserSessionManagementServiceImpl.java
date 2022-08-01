@@ -222,10 +222,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Retrieving all the active sessions of user: " + userId + ".");
         }
 
-        // Check whether a federated association exists for the userId.
+        // First check whether a federated association exists for the userId.
         try {
             int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-            String fedAssociatedUserId = getUserIdsFromFederatedMapping(tenantId, userId);
+            String fedAssociatedUserId = getUserIdFromFederatedMapping(tenantId, userId);
 
             if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
                 return getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId));
@@ -242,10 +242,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
+        List<String> sessionIdList = null;
+
         if (StringUtils.isBlank(userId)) {
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
-        List<String> sessionIdList = getSessionIdListByUserId(userId);
+
+        // First check whether a federated association exists for the userId.
+        try {
+            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            String fedAssociatedUserId = getUserIdFromFederatedMapping(tenantId, userId);
+
+            if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
+                sessionIdList = getSessionIdListByUserId(fedAssociatedUserId);
+            }
+        } catch (UserSessionException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
+            }
+        }
+
+        if (sessionIdList == null) {
+            sessionIdList = getSessionIdListByUserId(userId);
+        }
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
                 Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
@@ -292,8 +311,24 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 FrameworkUtils.getLoginTenantDomainFromContext());
         if (sessionContext != null) {
             UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
+
+            // First check whether a federated association exists for the userId.
+            try {
+                int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                String fedAssociatedUserId = getUserIdFromFederatedMapping(tenantId, userId);
+
+                if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
+                    return userSessionDAO.getSession(fedAssociatedUserId, sessionId);
+                }
+            } catch (UserSessionException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
+                }
+            }
+
             return userSessionDAO.getSession(userId, sessionId);
         }
+
         return Optional.empty();
     }
 
@@ -306,7 +341,23 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (StringUtils.isBlank(sessionId)) {
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
         }
-        if (isUserSessionMappingExist(userId, sessionId)) {
+        String userIdToSearch = userId;
+
+        // First check whether a federated association exists for the userId.
+        try {
+            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            String fedAssociatedUserId = getUserIdFromFederatedMapping(tenantId, userId);
+
+            if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
+                userIdToSearch = fedAssociatedUserId;
+            }
+        } catch (UserSessionException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
+            }
+        }
+
+        if (isUserSessionMappingExist(userIdToSearch, sessionId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
@@ -552,7 +603,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * @param tenantId Tenant Id.
      * @return User id to which sessions are stored against.
      */
-    private String getUserIdsFromFederatedMapping(int tenantId, String userId) throws UserSessionException {
+    private String getUserIdFromFederatedMapping(int tenantId, String userId) throws UserSessionException {
 
         if (log.isDebugEnabled()) {
             log.debug("Searching federated association for the userId.");
@@ -572,6 +623,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
             // Get IDP_USER_ID for the retrieved idpId, username and tenant.
             if (federatedAssociations.length != 0) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("A federated association found for the userId: %s of tenantId: %s.",
+                            userId, tenantId));
+                }
                 return UserSessionStore.getInstance().getUserId(username, tenantId, null,
                         Integer.parseInt(federatedAssociations[0].getIdp().getId()));
             }
