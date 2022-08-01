@@ -110,7 +110,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                 throw new IdentityApplicationManagementException(
                         "Error while getting the service provider for appId: " + appId);
             }
-            addToCache(serviceProvider, serviceProvider.getTenantDomain());
+            addToCache(serviceProvider, serviceProvider.getOwner().getTenantDomain());
         }
         return serviceProvider;
     }
