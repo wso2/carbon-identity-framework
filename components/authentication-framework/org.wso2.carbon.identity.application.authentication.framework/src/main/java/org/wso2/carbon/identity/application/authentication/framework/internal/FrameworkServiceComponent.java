@@ -291,7 +291,7 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
 
-        JsBaseGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactory();
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactoryFromConfig();
         if (jsGraphBuilderFactory != null) {
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             dataHolder.setAdaptiveAuthenticationAvailable(true);
@@ -970,6 +970,18 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setOrganizationManagementEnable(null);
     }
+
+    private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
+
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.JSAttributes.SCRIPT_ENGINE_CONFIG);
+        if (scriptEngineName != null) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.JSAttributes.OPENJDK_NASHORN, scriptEngineName)) {
+                return new JsOpenJdkNashornGraphBuilderFactory();
+            }
+        }
+        // Config is not set. Hence going with class for name approach.
+        return createJsGraphBuilderFactory();
+    };
 
     private JsBaseGraphBuilderFactory createJsGraphBuilderFactory() {
 
