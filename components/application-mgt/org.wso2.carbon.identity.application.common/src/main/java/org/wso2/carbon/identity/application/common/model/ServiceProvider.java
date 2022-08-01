@@ -151,6 +151,7 @@ public class ServiceProvider implements Serializable {
             } else if ("ApplicationName".equals(elementName)) {
                 if (element.getText() != null) {
                     serviceProvider.setApplicationName(element.getText());
+                    serviceProvider.setApplicationResourceId(serviceProvider.getApplicationName());
                 } else {
                     log.error("Service provider not loaded from the file. Application Name is null.");
                     return null;
@@ -234,7 +235,6 @@ public class ServiceProvider implements Serializable {
             }
         }
 
-        serviceProvider.setApplicationResourceId(serviceProvider.getApplicationName());
         return serviceProvider;
     }
 

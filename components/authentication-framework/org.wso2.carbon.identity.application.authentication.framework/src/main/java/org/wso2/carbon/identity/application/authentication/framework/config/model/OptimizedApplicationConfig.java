@@ -111,6 +111,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         /**
          * This method is used to get the step order of the authentication step.
+         *
          * @return step order
          */
         public int getStepOrder() {
@@ -120,6 +121,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         /**
          * This method is used to get the local authenticator config names of authentication step.
+         *
          * @return list of authenticator config names
          */
         public List<String> getLocalAuthenticatorConfigNames() {
@@ -129,6 +131,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         /**
          * This method is used to get the resource ids of the federated IdPs of authentication step.
+         *
          * @return list of resource ids
          */
         public List<String> getFederatedIdPResourceIds() {
@@ -138,6 +141,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         /**
          * This method is used to get the subject step of the authentication step.
+         *
          * @return subject step
          */
         public boolean isSubjectStep() {
@@ -147,6 +151,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         /**
          * This method is used to get the attribute step of the authentication step.
+         *
          * @return attribute step
          */
         public boolean isAttributeStep() {
@@ -157,9 +162,10 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * Initialize optimized application config.
+     *
      * @param applicationConfig application config
      * @param tenantDomain tenant domain of the application
-     * @throws AuthenticationContextLoaderException Authentication Context Loader exception
+     * @throws AuthenticationContextLoaderException Error when optimizing authentication step
      */
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
             AuthenticationContextLoaderException {
@@ -187,6 +193,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get the service provider's resource id.
+     *
      * @return resource id of the service provider
      */
     public String getServiceProviderResourceId() {
@@ -196,9 +203,10 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get the array of authentication steps using optimized authentication steps.
+     *
      * @param tenantDomain tenant domain of the application
      * @return array of authentication step
-     * @throws FrameworkException Framework Exception
+     * @throws FrameworkException Error when getting federated identity providers
      */
     public AuthenticationStep[] getAuthenticationSteps(String tenantDomain) throws FrameworkException {
 
@@ -259,6 +267,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get is the mapped subject id selected.
+     *
      * @return mapped subject id selected
      */
     public boolean isMappedSubjectIDSelected() {
@@ -268,6 +277,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get the claim mappings.
+     *
      * @return claim mappings
      */
     public Map<String, String> getClaimMappings() {
@@ -277,6 +287,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get the role mappings.
+     *
      * @return role mappings
      */
     public Map<String, String> getRoleMappings() {
@@ -286,6 +297,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to the requested claims.
+     *
      * @return requested claims
      */
     public Map<String, String> getRequestedClaims() {
@@ -295,6 +307,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
     /**
      * This method is used to get the mandatory claims.
+     *
      * @return mandatory claims.
      */
     public Map<String, String> getMandatoryClaims() {

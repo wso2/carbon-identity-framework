@@ -83,7 +83,6 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -137,6 +136,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTen
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
@@ -202,7 +202,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProvider.setOwner(getUser(tenantDomain, username));
+        serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                new IdentityApplicationManagementException("Error resolving service provider owner.")));
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
@@ -1310,7 +1311,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
-            serviceProvider.setOwner(getUser(tenantDomain, username));
+            serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
+                            new IdentityApplicationManagementException("Error resolving service provider owner.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
 
             for (ApplicationMgtListener listener : listeners) {
@@ -2122,22 +2124,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * Create user object from user name and tenantDomain.
-     *
-     * @param tenantDomain tenantDomain
-     * @param username     username
-     * @return User
-     */
-    private User getUser(String tenantDomain, String username) {
-
-        User user = new User();
-        user.setUserName(UserCoreUtil.removeDomainFromName(username));
-        user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(username));
-        user.setTenantDomain(tenantDomain);
-        return user;
-    }
-
-    /**
      * Delete the newly created application, if there is an error
      *
      * @param savedSP      saved SP
@@ -2164,19 +2150,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private boolean isOrganization(String tenantDomain) throws IdentityApplicationManagementException {
+    private boolean isOrganization(String tenantDomain) {
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        try {
-            Tenant tenant =
-                    ApplicationManagementServiceComponentHolder.getInstance().getRealmService().getTenantManager()
-                            .getTenant(tenantID);
-            return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
-        } catch (UserStoreException e) {
-            String errorMsg =
-                    String.format("Error while retrieving details of the application tenant: %s", tenantDomain);
-            throw new IdentityApplicationManagementException(errorMsg, e);
-        }
+        Tenant tenant = IdentityTenantUtil.getTenant(tenantID);
+        return tenant != null && StringUtils.isNotBlank(tenant.getAssociatedOrganizationUUID());
     }
 
     private void setDefaultAuthenticationSeq(String sequenceName, String tenantDomain, ServiceProvider serviceProvider)

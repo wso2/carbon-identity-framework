@@ -65,15 +65,17 @@ public class AuthenticationContextLoader {
 
     /**
      * This method is used to optimize the authentication context object.
+     *
      * @param context Authentication context
-     * @throws AuthenticationContextLoaderException Authentication Context Loader Exception
+     * @throws AuthenticationContextLoaderException Error when optimizing the authenticator configs and
+     * application config
      */
     public void optimizeAuthenticationContext(AuthenticationContext context)
             throws AuthenticationContextLoaderException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Optimization process for the authentication context with context id : %s " +
-                    "has started", context.getContextIdentifier()));
+                    "has started.", context.getContextIdentifier()));
         }
         optimizeExternalIdP(context);
         optimizeAuthenticatorConfig(context);
@@ -82,15 +84,17 @@ public class AuthenticationContextLoader {
 
     /**
      * This method is used to load the authentication context from optimized authentication context's references.
+     *
      * @param context Authentication context
-     * @throws AuthenticationContextLoaderException Authentication Context Loader Exception
+     * @throws AuthenticationContextLoaderException Error when loading the external idp, authenticator configs,
+     * and application config
      */
     public void loadAuthenticationContext(AuthenticationContext context) throws
             AuthenticationContextLoaderException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Loading process for the authentication context with context id : %s " +
-                    "has started", context.getContextIdentifier()));
+                    "has started.", context.getContextIdentifier()));
         }
         loadExternalIdP(context);
         loadAuthenticatorConfig(context);
@@ -173,7 +177,8 @@ public class AuthenticationContextLoader {
                         authenticatorConfig.setIdPNames(idPNames);
                     }
                 }
-                if (stepConfig.getAuthenticatedAutenticator() == null) {
+                if (stepConfig.getAuthenticatedAutenticator() == null &&
+                        stepConfig.getAuthenticatedAuthenticatorName() != null) {
                     stepConfig.getAuthenticatorList().forEach(authConfig -> {
                         if (authConfig.getName().equals(stepConfig.getAuthenticatedAuthenticatorName())) {
                             stepConfig.setAuthenticatedAutenticator(authConfig);
