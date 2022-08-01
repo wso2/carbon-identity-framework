@@ -162,6 +162,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.script.ScriptEngine;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -2505,6 +2506,29 @@ public class FrameworkUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Serialize the object using selected serializable function.
+     * @param value Object to evaluate.
+     * @return Serialized Object.
+     */
+    public static Object toJsSerializable(Object value) {
+
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().toJsSerializable(value);
+    }
+
+    /**
+     * De-Serialize the object using selected serializable function.
+     * @param value Serialized Object.
+     * @param engine Js Engine.
+     * @return De-Serialize object.
+     * @throws FrameworkException FrameworkException.
+     */
+    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
+
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().
+                fromJsSerializable(value, engine);
     }
 
     /**

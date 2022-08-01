@@ -40,4 +40,8 @@ public interface JsBaseGraphBuilderFactory {
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
     ScriptEngine createEngine(AuthenticationContext authenticationContext);
+
+    JsUtil getJsUtil();
+
+    JsBaseGraphBuilder getCurrentBuilder();
 }

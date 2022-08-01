@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+
+import java.util.Map;
 
 /**
  * Interface for Sequence Graph Builder.
@@ -37,4 +40,10 @@ public interface JsBaseGraphBuilder {
     AuthenticationGraph build();
 
     AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn);
+
+    void addLongWaitProcessInternal(AsyncProcess asyncProcess,
+                       Map<String, Object> parameterMap);
+
+    void addPromptInternal(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
+                                 Map<String, Object> callbacks);
 }

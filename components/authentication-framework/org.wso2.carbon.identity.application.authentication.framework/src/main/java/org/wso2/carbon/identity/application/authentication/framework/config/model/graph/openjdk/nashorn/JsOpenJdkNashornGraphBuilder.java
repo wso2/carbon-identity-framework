@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionMonitorData;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryM
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,7 +76,7 @@ import javax.script.ScriptException;
  *
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornGraphBuilder implements JsBaseGraphBuilder {
+public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsOpenJdkNashornGraphBuilder.class);
     private Map<Integer, StepConfig> stepNamedMap;
@@ -666,7 +665,7 @@ public class JsOpenJdkNashornGraphBuilder implements JsBaseGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) toJsSerializable(parameters[0]));
+            newNode.setData((Map<String, Serializable>) JsOpenJdkNashornUtil.toJsSerializableInternal(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);
@@ -685,55 +684,32 @@ public class JsOpenJdkNashornGraphBuilder implements JsBaseGraphBuilder {
         }
     }
 
-    private static Object toJsSerializable(Object value) {
 
-        if (value instanceof Serializable) {
-            if (value instanceof HashMap) {
-                Map<String, Object> map = new HashMap<>();
-                ((HashMap) value).forEach((k, v) -> map.put((String) k, toJsSerializable(v)));
-                return map;
-            } else {
-                return value;
-            }
-        } else if (value instanceof ScriptObjectMirror) {
-            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
-            if (scriptObjectMirror.isFunction()) {
-                return OpenJdkNashornSerializableJsFunction.toSerializableForm(scriptObjectMirror);
-            } else if (scriptObjectMirror.isArray()) {
-                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
-                scriptObjectMirror.values().forEach(v -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        arrayItems.add((Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value of array item as : " + serializedObj);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
-                                serializedObj));
-                    }
-                });
-                return arrayItems;
-            } else if (!scriptObjectMirror.isEmpty()) {
-                Map<String, Serializable> serializedMap = new HashMap<>();
-                scriptObjectMirror.forEach((k, v) -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        serializedMap.put(k, (Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value for key : " + k);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
-                    }
+    /**
+     * @param templateId Identifier of the template.
+     * @param parameters Parameters.
+     * @param handlers   Handlers to run before and after the prompt.
+     * @param callbacks  Callbacks to run after the prompt.
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public void addPromptInternal(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
+                                  Map<String, Object> callbacks) {
 
-                });
-                return serializedMap;
-            } else {
-                return Collections.EMPTY_MAP;
-            }
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+        newNode.setParameters(parameters);
+
+        JsOpenJdkNashornGraphBuilder currentBuilder = getCurrentBuilder();
+        if (currentBuilder.currentNode == null) {
+            currentBuilder.result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentBuilder.currentNode, newNode);
         }
-        return value;
+
+        currentBuilder.currentNode = newNode;
+        addEventListeners(newNode, callbacks);
+        addHandlers(newNode, handlers);
     }
 
     /**
@@ -795,7 +771,24 @@ public class JsOpenJdkNashornGraphBuilder implements JsBaseGraphBuilder {
     public static void addLongWaitProcess(AsyncProcess asyncProcess,
                                           Map<String, Object> parameterMap) {
 
-        addLongWaitProcess(getCurrentBuilder(), asyncProcess, parameterMap);
+        getCurrentBuilder().addLongWaitProcessInternal(asyncProcess, parameterMap);
+    }
+
+    @Override
+    public void addLongWaitProcessInternal(AsyncProcess asyncProcess, Map<String, Object> parameterMap) {
+
+        LongWaitNode newNode = new LongWaitNode(asyncProcess);
+
+        if (parameterMap != null) {
+            addEventListeners(newNode, parameterMap);
+        }
+        if (this.currentNode == null) {
+            this.result.setStartNode(newNode);
+        } else {
+            attachToLeaf(this.currentNode, newNode);
+        }
+
+        this.currentNode = newNode;
     }
 
     private static void addLongWaitProcess(JsOpenJdkNashornGraphBuilder jsGraphBuilder, AsyncProcess asyncProcess,
