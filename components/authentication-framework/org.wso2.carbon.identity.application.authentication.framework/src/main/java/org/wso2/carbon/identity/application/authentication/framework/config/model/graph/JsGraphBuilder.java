@@ -1142,17 +1142,13 @@ public class JsGraphBuilder implements JsBaseGraphBuilder {
                         functionMap.forEach(globalBindings::put);
                     }
                     removeDefaultFunctions(scriptEngine);
-//                    Compilable compilable = (Compilable) scriptEngine;
                     JsGraphBuilder.contextForJs.set(authenticationContext);
-
-//                    CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
 
                     String identifier = UUID.randomUUID().toString();
                     JSExecutionMonitorData scriptExecutionData =
                             retrieveAuthScriptExecutionMonitorData(authenticationContext);
                     try {
                         startScriptExecutionMonitor(identifier, authenticationContext, scriptExecutionData);
-//                        JSObject builderFunction = (JSObject) compiledScript.eval();
                         result = jsFunction.apply(scriptEngine, params);
                     } finally {
                         scriptExecutionData = endScriptExecutionMonitor(identifier);
