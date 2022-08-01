@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,7 +100,7 @@ public class ApplicationConstants {
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
     /**
-     * Grouping of constants related to database SP_APP table.
+     * Grouping of constants related to database table names.
      */
     public static class ApplicationTableColumns {
 
@@ -133,19 +133,6 @@ public class ApplicationConstants {
         public static final String ACCESS_URL = "ACCESS_URL";
 
         private ApplicationTableColumns() {
-
-        }
-    }
-
-    /**
-     * Grouping of constants related to database SP_INBOUND_AUTH table.
-     */
-    public static class ApplicationInboundTableColumns {
-
-        public static final String INBOUND_AUTH_KEY = "INBOUND_AUTH_KEY";
-        public static final String INBOUND_AUTH_TYPE = "INBOUND_AUTH_TYPE";
-
-        private ApplicationInboundTableColumns() {
 
         }
     }
