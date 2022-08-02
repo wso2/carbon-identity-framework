@@ -1006,7 +1006,7 @@ public class DefaultStepHandler implements StepHandler {
                 if (errorContextParams.stream().anyMatch(nameValuePair ->
                         FrameworkConstants.ERROR_CODE.equals(nameValuePair.getName()) &&
                                 UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(nameValuePair.getValue()))) {
-                    if (isRedirectionToRetryPage(context)) {
+                    if (isRedirectionToRetryPageOnAccountLock(context)) {
                         String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
                         return response.encodeRedirectURL(retryPage
                                 + ("?" + context.getContextIdIncludedQueryParams()))
@@ -1079,7 +1079,7 @@ public class DefaultStepHandler implements StepHandler {
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
      */
-    private boolean isRedirectionToRetryPage(AuthenticationContext context) {
+    private boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
 
         boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
         if (sendToMultiOptionPage) {
