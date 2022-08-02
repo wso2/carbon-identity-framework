@@ -2386,6 +2386,61 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * This method will be heavily used by the Authentication Framework. The framework would ask for
+     * application data with the given client key and secrete
+     *
+     * @param clientId
+     * @param type
+     * @param tenantDomain
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public ServiceProvider getApplicationData(String clientId, String type, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Loading Application Data of Client " + clientId);
+        }
+
+        int tenantID = -123;
+
+        try {
+            tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e1) {
+            log.error("Error while reading application", e1);
+            throw new IdentityApplicationManagementException("Error while reading application", e1);
+        }
+
+        String applicationName = null;
+
+        // Reading application name from the database
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement storeAppPrepStmt = null;
+        ResultSet appNameResult = null;
+        try {
+            storeAppPrepStmt = connection
+                    .prepareStatement(LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE);
+            storeAppPrepStmt.setString(1, clientId);
+            storeAppPrepStmt.setString(2, type);
+            storeAppPrepStmt.setInt(3, tenantID);
+            appNameResult = storeAppPrepStmt.executeQuery();
+            if (appNameResult.next()) {
+                applicationName = appNameResult.getString(1);
+            }
+
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while reading application", e);
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(appNameResult);
+            IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+
+        return getApplication(applicationName, tenantDomain);
+    }
+
+    /**
      * @param applicationID
      * @return
      * @throws IdentityApplicationManagementException
