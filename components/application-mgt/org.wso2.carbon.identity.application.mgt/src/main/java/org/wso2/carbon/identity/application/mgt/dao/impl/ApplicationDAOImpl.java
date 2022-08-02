@@ -194,7 +194,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_STEPS_INFO_BY_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UUID_BY_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP_WITH_ID;
@@ -2140,8 +2139,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     @Override
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
@@ -2354,11 +2352,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return "1".equals(booleanValueAsString);
     }
 
-    private String getStringValueForBoolean(boolean booleanValue) throws SQLException {
-
-        return booleanValue ? "1" : "0";
-    }
-
     /**
      * @param applicationid
      * @param connection
@@ -2390,61 +2383,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(authTypeStmt);
         }
 
-    }
-
-    /**
-     * This method will be heavily used by the Authentication Framework. The framework would ask for
-     * application data with the given client key and secrete
-     *
-     * @param clientId
-     * @param type
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    public ServiceProvider getApplicationData(String clientId, String type, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Loading Application Data of Client " + clientId);
-        }
-
-        int tenantID = -123;
-
-        try {
-            tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e1) {
-            log.error("Error while reading application", e1);
-            throw new IdentityApplicationManagementException("Error while reading application", e1);
-        }
-
-        String applicationName = null;
-
-        // Reading application name from the database
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement storeAppPrepStmt = null;
-        ResultSet appNameResult = null;
-        try {
-            storeAppPrepStmt = connection
-                    .prepareStatement(LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE);
-            storeAppPrepStmt.setString(1, clientId);
-            storeAppPrepStmt.setString(2, type);
-            storeAppPrepStmt.setInt(3, tenantID);
-            appNameResult = storeAppPrepStmt.executeQuery();
-            if (appNameResult.next()) {
-                applicationName = appNameResult.getString(1);
-            }
-
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while reading application", e);
-        } finally {
-            IdentityApplicationManagementUtil.closeResultSet(appNameResult);
-            IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
-            IdentityApplicationManagementUtil.closeConnection(connection);
-        }
-
-        return getApplication(applicationName, tenantDomain);
     }
 
     /**
@@ -5424,40 +5362,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return applicationId;
-    }
-
-    /**
-     * Returns the internal application id for a given resourceId in a tenant.
-     *
-     * @param appId        Internal Application ID
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    private String getResourceIdUsingAppId(int appId,
-                                           String tenantDomain) throws IdentityApplicationManagementException {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, LOAD_UUID_BY_APP_ID)) {
-
-                statement.setInt(ApplicationTableColumns.ID, appId);
-                statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return resultSet.getString(ApplicationTableColumns.UUID);
-                    } else {
-                        String msg = "Cannot find the application resourceId for appId: %s in tenantDomain: %s";
-                        throw new IdentityApplicationManagementException(String.format(msg, appId, tenantDomain));
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            String msg = "Error while retrieving the application resourceId for appId: %s in tenantDomain: %s";
-            throw new IdentityApplicationManagementException(String.format(msg, appId, tenantDomain), e);
-        }
     }
 
     private void deleteApplicationCertificate(Connection connection, ServiceProvider application) throws SQLException {
