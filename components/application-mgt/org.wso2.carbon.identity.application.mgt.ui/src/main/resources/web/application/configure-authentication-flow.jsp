@@ -521,6 +521,16 @@
                             }%>/> Enable Script Based Adaptive Authentication
                         </label>
                     </div>
+                    <div class="script-select-container" style="display: none;">
+                        <label class="noselect">
+                            <input id="enableAdaptive" name="enableAdaptive" type="checkbox" value="true"
+                            <%
+                                 if(FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+                            %>
+                                   checked="checked"
+                            <% } %>/> Enable Adaptive Authentication
+                        </label>
+                    </div>
                 </div>
                 <div style="clear:both"></div>
                 <!-- sectionSub Div -->

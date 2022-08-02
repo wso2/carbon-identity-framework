@@ -49,9 +49,12 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
-     * @param applicationId
-     * @return
-     * @throws IdentityApplicationManagementException
+     * Get service provider when the application resides in the same tenant of the request initiated.
+     *
+     * @param applicationId The application id.
+     * @return Service provider.
+     * @throws IdentityApplicationManagementException throws when an error occurs in retrieving service provider with
+     *                                                all the configurations.
      */
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
 

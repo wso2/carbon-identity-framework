@@ -72,6 +72,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
         ServiceProvider sp1 = getTestServiceProvider("js-sp-longwait-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
         context.setSessionIdentifier("1234");
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);

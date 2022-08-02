@@ -470,7 +470,7 @@
                         <td>
                             <input type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
                                    value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message key="list.users"/>"
-                                   black-list-patterns="invalid-username-search"/>
+                                   autocomplete="off" black-list-patterns="invalid-username-search"/>
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="user.search"/>"/>
