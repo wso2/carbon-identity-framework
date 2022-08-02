@@ -750,13 +750,13 @@
             <!--
                 FAPI Profile Support.
             -->
-            {% if fapi is defined %}
+            {% if oauth.oidc.fapi is defined %}
             <FAPI>
-                {% if fapi.enable_ciba_profile is defined %}
-                <EnableCibaProfile>{{fapi.enable_ciba_profile}}</EnableCibaProfile>
+                {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
+                <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
                 {% endif %}
-                {% if fapi.enable_security_profile is defined %}
-                <EnableSecurityProfile>{{fapi.enable_security_profile}}</EnableSecurityProfile>
+                {% if oauth.oidc.fapi.enable_security_profile is defined %}
+                <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
             </FAPI>
             {% endif %}

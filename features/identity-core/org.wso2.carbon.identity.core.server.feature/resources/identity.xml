@@ -539,10 +539,10 @@
             <!--
                 FAPI Profile Support.
             -->
-            <!-- <FAPI>
-                <EnableCibaProfile>{{fapi.enable_ciba_profile}}</EnableCibaProfile>
-                <EnableSecurityProfile>{{fapi.enable_security_profile}}</EnableSecurityProfile>
-            </FAPI> -->
+            <FAPI>
+                <EnableCibaProfile>false</EnableCibaProfile>
+                <EnableSecurityProfile>false</EnableSecurityProfile>
+            </FAPI>
         </OpenIDConnect>
 
         <!--
