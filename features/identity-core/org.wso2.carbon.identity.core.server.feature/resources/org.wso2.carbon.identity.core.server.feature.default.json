@@ -205,6 +205,9 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
+  "oauth.oidc.fapi.enable_ciba_profile": false,
+  "oauth.oidc.fapi.enable_security_profile": false,
+
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
   "saml.slo.retry_attempts": "5",

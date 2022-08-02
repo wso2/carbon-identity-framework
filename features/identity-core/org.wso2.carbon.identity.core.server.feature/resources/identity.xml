@@ -542,6 +542,14 @@
             Disable this config if additional params are not needed post logout redirect URL.
             -->
             <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
+
+            <!--
+                FAPI Profile Support.
+            -->
+            <FAPI>
+                <EnableCibaProfile>false</EnableCibaProfile>
+                <EnableSecurityProfile>false</EnableSecurityProfile>
+            </FAPI>
         </OpenIDConnect>
 
         <!--
