@@ -3052,8 +3052,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             claimConfig.setClaimMappings(claimMappingList.toArray(new ClaimMapping[claimMappingList
                     .size()]));
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(get);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3076,7 +3075,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         .getString(3)));
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
@@ -3100,7 +3099,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             claimConfig.setSpClaimDialects(spDialectList.toArray(new String[spDialectList.size()]));
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
@@ -3136,8 +3135,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 authenticators.add(reqAuth);
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadReqPathAuthenticators);
             IdentityApplicationManagementUtil.closeResultSet(authResultSet);
@@ -3173,8 +3171,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 storeReqPathAuthenticators.executeBatch();
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeReqPathAuthenticators);
         }
@@ -3249,8 +3246,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getClientInfo);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3335,7 +3331,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while Reading all Applications");
+            throw new IdentityApplicationManagementException("Error while Reading all Applications", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
@@ -3724,7 +3720,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             deleteClientPrepStmt.execute();
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(String.format("Error while deleting application: %s " +
-                    "in tenant: %s from SP_APP", appName, tenantId));
+                    "in tenant: %s from SP_APP", appName, tenantId), e);
         }
     }
 
@@ -3771,8 +3767,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            log.error(e.getMessage(), e);
-            throw new IdentityApplicationManagementException("Error deleting application");
+            throw new IdentityApplicationManagementException("Error deleting application", e);
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
@@ -4167,7 +4162,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
 
@@ -4218,7 +4213,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
         Map<String, String> claimMapping = new HashMap<String, String>();
@@ -4261,8 +4256,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             return getClaimMapping(serviceProviderName, tenantDomain, false);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving claim mapping", e);
+            throw new IdentityApplicationManagementException("Error while retrieving claim mapping", e);
         }
     }
 
@@ -4291,7 +4285,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
         List<String> reqClaimUris = new ArrayList<String>();
