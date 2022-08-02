@@ -644,7 +644,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
 
         if (parameters.length == 2) {
             newNode.setData((Map<String, Serializable>)
-                    JsNashornUtil.toJsSerializableInternal(parameters[0]));
+                    JsNashornSerializer.toJsSerializableInternal(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);

@@ -184,6 +184,10 @@ public abstract class FrameworkConstants {
     public static final String H2 = "H2";
     public static final String ORACLE = "Oracle";
 
+    public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
+    public static final String OPENJDK_NASHORN = "openjdkNashorn";
+    public static final String NASHORN = "nashorn";
+
     private FrameworkConstants() {
 
     }
@@ -509,10 +513,6 @@ public abstract class FrameworkConstants {
         public static final String FORCE_AUTH_PARAM = "forceAuth";
         public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
         public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
-
-        public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
-        public static final String OPENJDK_NASHORN = "openjdkNashorn";
-        public static final String NASHORN = "nashorn";
     }
 
     /**

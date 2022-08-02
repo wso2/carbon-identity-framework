@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsUtil;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.io.Serializable;
@@ -35,17 +35,17 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 /**
- * Util class supports Open JDK Nashorn Engine.
+ * Serializer class supports Open JDK Nashorn Engine.
  */
-public class JsOpenJdkNashornUtil implements JsUtil {
+public class JsOpenJdkNashornSerializer implements JsSerializer {
 
-    private static final Log log = LogFactory.getLog(JsOpenJdkNashornUtil.class);
+    private static final Log log = LogFactory.getLog(JsOpenJdkNashornSerializer.class);
 
-    private static JsOpenJdkNashornUtil jsNashornUtil = new JsOpenJdkNashornUtil();
+    private static JsOpenJdkNashornSerializer jsOpenJdkNashornSerializer = new JsOpenJdkNashornSerializer();
 
-    public static JsOpenJdkNashornUtil getInstance() {
+    public static JsOpenJdkNashornSerializer getInstance() {
 
-        return jsNashornUtil;
+        return jsOpenJdkNashornSerializer;
     }
 
     /**

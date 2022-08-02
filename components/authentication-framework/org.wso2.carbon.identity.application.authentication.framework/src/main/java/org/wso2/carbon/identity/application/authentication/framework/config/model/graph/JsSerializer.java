@@ -23,9 +23,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import javax.script.ScriptEngine;
 
 /**
- * Interface for Util class supports Multiple Nashorn Engines.
+ * Interface for serializer class supports Multiple JS Engines.
  */
-public interface JsUtil {
+public interface JsSerializer {
 
     /**
      * Serialize the object using selected serializable function.

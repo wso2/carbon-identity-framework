@@ -41,7 +41,7 @@ public interface JsBaseGraphBuilderFactory {
 
     ScriptEngine createEngine(AuthenticationContext authenticationContext);
 
-    JsUtil getJsUtil();
+    JsSerializer getJsUtil();
 
     JsBaseGraphBuilder getCurrentBuilder();
 }

@@ -68,7 +68,7 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = JsNashornUtil.fromJsSerializableInternal(entry.getValue(), engine);
+                Object deserializedValue = JsNashornSerializer.fromJsSerializableInternal(entry.getValue(), engine);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
                     ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
                 }
@@ -82,7 +82,7 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.forEach((key, value) -> persistableMap.put(key,
-                JsNashornUtil.toJsSerializableInternal(value)));
+                JsNashornSerializer.toJsSerializableInternal(value)));
         context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
@@ -103,9 +103,9 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
     }
 
     @Override
-    public JsUtil getJsUtil() {
+    public JsSerializer getJsUtil() {
 
-        return JsNashornUtil.getInstance();
+        return JsNashornSerializer.getInstance();
     }
 
     @Override

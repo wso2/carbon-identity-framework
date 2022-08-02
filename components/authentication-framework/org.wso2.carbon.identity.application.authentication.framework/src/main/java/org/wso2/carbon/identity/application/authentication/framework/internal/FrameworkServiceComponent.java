@@ -973,9 +973,9 @@ public class FrameworkServiceComponent {
 
     private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
 
-        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.JSAttributes.SCRIPT_ENGINE_CONFIG);
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
         if (scriptEngineName != null) {
-            if (StringUtils.equalsIgnoreCase(FrameworkConstants.JSAttributes.OPENJDK_NASHORN, scriptEngineName)) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
             }
         }

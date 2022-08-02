@@ -34,17 +34,17 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 /**
- * Util class supports JDK Nashorn Engine.
+ * Serializer class supports JDK Nashorn Engine.
  */
-public class JsNashornUtil implements JsUtil {
+public class JsNashornSerializer implements JsSerializer {
 
-    private static final Log log = LogFactory.getLog(JsNashornUtil.class);
+    private static final Log log = LogFactory.getLog(JsNashornSerializer.class);
 
-    private static JsNashornUtil jsNashornUtil = new JsNashornUtil();
+    private static JsNashornSerializer jsNashornSerializer = new JsNashornSerializer();
 
-    public static JsNashornUtil getInstance() {
+    public static JsNashornSerializer getInstance() {
 
-        return jsNashornUtil;
+        return jsNashornSerializer;
     }
 
     /**

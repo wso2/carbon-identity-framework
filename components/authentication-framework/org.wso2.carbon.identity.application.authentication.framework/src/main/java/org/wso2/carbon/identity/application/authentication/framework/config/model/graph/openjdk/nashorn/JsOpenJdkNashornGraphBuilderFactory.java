@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsUtil;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -73,7 +73,8 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = JsOpenJdkNashornUtil.fromJsSerializableInternal(entry.getValue(), engine);
+                Object deserializedValue = JsOpenJdkNashornSerializer.fromJsSerializableInternal(entry.getValue(),
+                        engine);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
                     ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
                 }
@@ -89,7 +90,7 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.forEach((key, value) -> persistableMap.put(key,
-                JsOpenJdkNashornUtil.toJsSerializableInternal(value)));
+                JsOpenJdkNashornSerializer.toJsSerializableInternal(value)));
         context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
@@ -130,9 +131,9 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
     }
 
     @Override
-    public JsUtil getJsUtil() {
+    public JsSerializer getJsUtil() {
 
-        return JsOpenJdkNashornUtil.getInstance();
+        return JsOpenJdkNashornSerializer.getInstance();
     }
 
     @Override

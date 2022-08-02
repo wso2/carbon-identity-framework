@@ -665,7 +665,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         newNode.setTemplateId(templateId);
 
         if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) JsOpenJdkNashornUtil.toJsSerializableInternal(parameters[0]));
+            newNode.setData((Map<String, Serializable>) JsOpenJdkNashornSerializer
+                    .toJsSerializableInternal(parameters[0]));
         }
         if (currentNode == null) {
             result.setStartNode(newNode);
