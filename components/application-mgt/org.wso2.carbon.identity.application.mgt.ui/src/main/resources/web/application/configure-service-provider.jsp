@@ -2400,10 +2400,10 @@
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts'/>
@@ -2422,10 +2422,10 @@
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts.wreply'/>
