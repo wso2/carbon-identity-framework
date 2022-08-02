@@ -1074,7 +1074,7 @@ public class DefaultStepHandler implements StepHandler {
     /**
      * Check whether the user should be redirected to the retry.jsp page when the user's account is locked.
      * This decision is taken based on three configuration options, redirectToMultiOptionPageOnFailure,
-     * showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
+       showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
      *
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
