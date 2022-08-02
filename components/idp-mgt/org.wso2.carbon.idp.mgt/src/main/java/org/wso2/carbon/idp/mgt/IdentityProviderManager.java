@@ -1345,6 +1345,14 @@ public class IdentityProviderManager implements IdpManager {
         return dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
     }
 
+    @Override
+    public List<IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPsById(null, tenantId, idpIds);
+    }
+
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *

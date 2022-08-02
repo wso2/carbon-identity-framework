@@ -159,6 +159,19 @@ public interface IdpManager {
     }
 
     /**
+     * Retrieves registered Identity providers for a given tenant by Identity Provider Ids.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param idpIds List of identity provider Ids.
+     * @return List of identity providers.
+     */
+    default List<IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        return Collections.emptyList();
+    }
+
+    /**
      * Retrieves registered Enabled Identity providers for a given tenant.
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
