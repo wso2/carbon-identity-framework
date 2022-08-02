@@ -34,7 +34,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.client.ClaimDataAdminClient" %>
-<%@ page import="org.apache.log4j.Logger"%>
+<%@ page import="org.slf4j.Logger"%>
+<%@ page import="org.slf4j.LoggerFactory"%>
 <%@ page import="org.wso2.carbon.user.mgt.ui.ClaimDataAdminException" %>
 
 <jsp:useBean id="userBean"
@@ -52,7 +53,7 @@
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
     UserStoreInfo[] allUserStoreInfo = null;
-    Logger logger = Logger.getLogger(this.getClass());
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     List<String> domainNames = null;
     String selectedDomain = null;
@@ -416,7 +417,7 @@
                                     <td><fmt:message key="user.name"/><font color="red">*</font>
                                     </td>
                                     <td><input type="text" name="username"
-                                               value=""
+                                               value="" autocomplete="off"
                                                style="width:150px"/></td>
                                 </tr>
                                 <%

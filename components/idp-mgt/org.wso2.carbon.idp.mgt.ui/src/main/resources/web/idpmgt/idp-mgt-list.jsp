@@ -28,6 +28,7 @@
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdentityException" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.idp.mgt.util.IdPManagementConstants"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -128,6 +129,49 @@
                 hasFilter = true;
             }
 
+            String formattedFilterString;
+            // The formattedFilterStringPrefix can be "name sw", "name ew", "name eq" and "name co".
+            String formattedFilterStringPrefix = IdPManagementConstants.IDP_NAME + " %s \"%s\"";
+            // With the defaultFormattedFilterString, it will check for eq operation to comply with the backend support.
+            String defaultFormattedFilterString =
+                    String.format(formattedFilterStringPrefix, IdPManagementConstants.EQ, filterString);
+            if (filterString.length() > 1) {
+               if (filterString.startsWith("*") && !filterString.substring(1).contains("*")) {
+                  // If filterString is "*_IDP_1", formattedFilterString will be "name ew _IDP_1".
+                  formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.EW,
+                          filterString.substring(1));
+               } else if (filterString.endsWith("*") &&
+                       !filterString.substring(0, filterString.length() - 1).contains("*")) {
+                  // If filterString is "My_IDP_*", formattedFilterString will be "name sw My_IDP_".
+                  formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.SW,
+                          filterString.substring(0, filterString.length() - 1));
+               } else if (filterString.startsWith("*") && filterString.endsWith("*")) {
+                  // If filterString is "*_IDP_*", formattedFilterString will be "name co _IDP_".
+                  formattedFilterString = String.format(formattedFilterStringPrefix, IdPManagementConstants.CO,
+                          filterString.substring(1, filterString.length() - 1));
+               } else if (filterString.contains("*")) {
+                  String[] filterSubStrings = filterString.split("\\*");
+                  int filterSubStringCount = filterSubStrings.length;
+                  if (filterSubStringCount == 2) {
+                     // If filterString is "My_*_1", formattedFilterString will be "name sw My_ and name ew _1".
+                     formattedFilterString =
+                             String.format(formattedFilterStringPrefix, IdPManagementConstants.SW, filterSubStrings[0]) +
+                                     " and " + String.format(formattedFilterStringPrefix, IdPManagementConstants.EW,
+                                     filterSubStrings[1]);
+                  } else {
+                     // If filterString is "My*IDP*1", formattedFilterString will be "name eq My*IDP*1" as complex
+                     // regex is not supported for IDP filtering.
+                     formattedFilterString = defaultFormattedFilterString;
+                  }
+               } else {
+                  // If filterString is "My_IDP_1", formattedFilterString will be "name eq My_IDP_1".
+                  formattedFilterString = defaultFormattedFilterString;
+               }
+            } else {
+               // If filterString is "M", formattedFilterString will be "name eq M".
+               formattedFilterString = defaultFormattedFilterString;
+            }
+
             int pageNumberInt = 0;
             int numberOfPages = 0;
             int resultsPerPageInt = IdentityUtil.getDefaultItemsPerPage();
@@ -149,9 +193,9 @@
                 IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
                 int numberOfIdps = 0;
                 if (hasFilter && !StringUtils.equals(filterString, DEFAULT_FILTER)) {
-                   numberOfIdps = client.getFilteredIdpCount(filterString);
+                   numberOfIdps = client.getFilteredIdpCount(formattedFilterString);
                    if (numberOfIdps > 0) {
-                      idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, filterString);
+                      idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, formattedFilterString);
                    }
                 } else {
                    numberOfIdps = client.getIdpCount();
@@ -279,7 +323,7 @@
                            <% } else { %>
                            <tbody>
                               <tr>
-                                 <td colspan="3"><i>No Service Providers registered</i></td>
+                                 <td colspan="3"><i>No Identity Providers registered</i></td>
                               </tr>
                            </tbody>
                            <% } %>

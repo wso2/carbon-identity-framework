@@ -306,6 +306,9 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                     throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
                             " as it is referred by service providers.");
                 }
+            } else {
+                throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
+                        " as it is referred by service providers.");
             }
         }
     }

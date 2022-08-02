@@ -31,7 +31,13 @@ module.name.{{event_value.module_index}}={{event_name}}
 {{event_name}}.subscription.{{loop.index}}={{subscription}}
 {% endfor %}
 {% for property_name,property_value in event_value.properties.items()%}
+{% if analytics.elk.enable is defined && analytics.elk.enable is sameas true &&
+(event_name == "analyticsSessionDataPublisher" || event_name == "analyticsLoginDataPublisher")
+&& property_name == "enable" %}
+{{event_name}}.{{property_name}}=true
+{% else %}
 {{event_name}}.{{property_name}}={{property_value}}
+{% endif %}
 {% endfor %}
 {% if count.append(1) %}{% endif %}
 {% endfor %}

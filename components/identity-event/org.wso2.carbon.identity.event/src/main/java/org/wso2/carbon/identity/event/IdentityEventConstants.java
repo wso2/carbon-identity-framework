@@ -86,6 +86,8 @@ public class IdentityEventConstants {
         public static final String POST_ADD_ROLE_EVENT = "POST_ADD_ROLE_EVENT";
         public static final String PRE_GET_ROLES_EVENT = "PRE_GET_ROLES_EVENT";
         public static final String POST_GET_ROLES_EVENT = "POST_GET_ROLES_EVENT";
+        public static final String PRE_GET_ROLES_COUNT_EVENT = "PRE_GET_ROLES_COUNT_EVENT";
+        public static final String POST_GET_ROLES_COUNT_EVENT = "POST_GET_ROLES_COUNT_EVENT";
         public static final String PRE_GET_ROLE_EVENT = "PRE_GET_ROLE_EVENT";
         public static final String POST_GET_ROLE_EVENT = "POST_GET_ROLE_EVENT";
         public static final String PRE_UPDATE_ROLE_NAME_EVENT = "PRE_UPDATE_ROLE_NAME_EVENT";
@@ -117,6 +119,7 @@ public class IdentityEventConstants {
         public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
         public static final String PRE_GET_USER_RECOVERY_DATA = "PRE_GET_USER_RECOVERY_DATA";
         public static final String POST_GET_USER_RECOVERY_DATA = "POST_GET_USER_RECOVERY_DATA";
+        public static final String VALIDATE_PASSWORD = "VALIDATE_PASSWORD";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
@@ -317,6 +320,7 @@ public class IdentityEventConstants {
         public static final String UPDATED_DISABLED_STATUS = "updatedDisableStatus";
         public static final String CORRELATION_ID = "correlation-id";
         public static final String APPLICATION_NAME = "application-name";
+        public static final String APPLICATION_ID = "application-id";
         public static final String USER_AGENT = "user-agent";
         public static final String RESEND_CODE = "resend-code";
         public static final String GENERATED_OTP = "generated-otp";

@@ -18,7 +18,8 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -26,7 +27,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -56,24 +56,27 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class})
 @WithCarbonHome
+@PowerMockIgnore("org.mockito.*")
 public class DefaultAuthenticationRequestHandlerTest {
 
     @Mock
@@ -82,6 +85,7 @@ public class DefaultAuthenticationRequestHandlerTest {
     @Mock
     HttpServletResponse response;
 
+    @Spy
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
 
     @ObjectFactory
@@ -94,7 +98,6 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void setUp() throws Exception {
 
         initMocks(this);
-        authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
     }
 
     @AfterMethod
@@ -116,9 +119,6 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         AuthenticationContext context = spy(new AuthenticationContext());
         context.setSequenceConfig(new SequenceConfig());
-
-        DefaultAuthenticationRequestHandler authenticationRequestHandler =
-                spy(new DefaultAuthenticationRequestHandler());
 
         // mock the conclude flow
         doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
@@ -159,7 +159,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
             .AUTH_TYPE_LOCAL);
         serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
         sequenceConfig.setApplicationConfig(applicationConfig);
 
         context.setSequenceConfig(sequenceConfig);
@@ -168,8 +168,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(context.isReturning()).thenReturn(true);
         when(context.getCurrentStep()).thenReturn(0);
 
-        DefaultAuthenticationRequestHandler authenticationRequestHandler =
-                spy(new DefaultAuthenticationRequestHandler());
 
         //mock session nonce cookie validation
         mockStatic(SessionNonceCookieUtil.class);
@@ -314,7 +312,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticationResultCacheEntry cacheEntry = spy(new AuthenticationResultCacheEntry());
         when(cacheEntry.getResult()).thenReturn(authenticationResult);
         mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getAuthenticationResultFromCache(anyString())).thenReturn(cacheEntry);
+        when(FrameworkUtils.getAuthenticationResultFromCache(isNull())).thenReturn(cacheEntry);
 
         authenticationRequestHandler.populateErrorInformation(request, response, context);
 
@@ -332,8 +330,6 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void testPostAuthenticationHandlers() throws Exception {
 
         Cookie[] cookies = new Cookie[1];
-        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
-        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
         AuthenticationContext context = prepareContextForPostAuthnTests();
         authenticationRequestHandler.handle(request, response, context);
         assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
@@ -341,7 +337,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
                 pastrCookie);
         when(request.getCookies()).thenReturn(cookies);
-        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
+        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), isNull())).thenReturn
                 (cookies[0]);
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
@@ -352,8 +348,6 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void testPostAuthenticationHandlerFailures() throws Exception {
 
         Cookie[] cookies = new Cookie[1];
-        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
-        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
         AuthenticationContext context = prepareContextForPostAuthnTests();
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
         authenticationRequestHandler.handle(request, response, context);
@@ -393,7 +387,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     private void addApplicationConfig(AuthenticationContext context) {
 
-        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider());
+        ApplicationConfig applicationConfig = new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new
                 LocalAndOutboundAuthenticationConfig();
         applicationConfig.getServiceProvider().setLocalAndOutBoundAuthenticationConfig
@@ -406,7 +400,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setAuthenticatedSubjectIdentifier(userName);
         authenticatedUser.setUserId("4b4414e1-916b-4475-aaee-6b0751c29ff6");
-        context.setProperty("user-tenant-domain", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        context.setProperty("user-tenant-domain", SUPER_TENANT_DOMAIN_NAME);
         context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
     }
 

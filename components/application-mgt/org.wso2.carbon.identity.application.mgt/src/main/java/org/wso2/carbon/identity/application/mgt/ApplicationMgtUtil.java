@@ -45,11 +45,13 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.registry.api.Collection;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -64,6 +66,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
@@ -605,18 +609,16 @@ public class ApplicationMgtUtil {
             applicationNode) throws RegistryException {
 
         Collection appCollection = (Collection) tenantGovReg.get(permissionPath);
-        String[] childern = appCollection.getChildren();
+        String[] children = appCollection.getChildren();
 
-        if (childern == null || childern.length == 0) {
+        if ((children == null || children.length == 0) && !Objects.equals(permissionPath, applicationNode)) {
             paths.add(permissionPath.replace(applicationNode, "").substring(2));
         }
 
-        while (childern != null && childern.length != 0) {
-            for (int i = 0; i < childern.length; i++) {
-                permissionPath(tenantGovReg, childern[i], paths, applicationNode);
+        if (children != null && children.length != 0) {
+            for (String child : children) {
+                permissionPath(tenantGovReg, child, paths, applicationNode);
             }
-            break;
-
         }
     }
 
@@ -776,22 +778,28 @@ public class ApplicationMgtUtil {
                 String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
 
-                org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-                if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
-                    return false;
-                }
-                boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
-                if (!isUserExist) {
+                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                Optional<User> user = getUser(tenantDomain, userNameWithDomain);
+                if (user.isPresent()) {
+                    return true;
+                } else {
+                    org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext()
+                            .getUserRealm();
+                    if (realm == null) {
+                        return false;
+                    }
+
                     if (log.isDebugEnabled()) {
                         log.debug("Owner does not exist for application: " + serviceProvider.getApplicationName() +
                                 ". Hence making the tenant admin the owner of the application.");
                     }
                     // Since the SP owner does not exist, set the tenant admin user as the owner.
                     User owner = new User();
-                    owner.setUserName(realm.getRealmConfiguration().getAdminUserName());
+                    String adminUserName = realm.getRealmConfiguration().getAdminUserName();
+                    owner.setUserName(adminUserName);
                     owner.setUserStoreDomain(realm.getRealmConfiguration().
                             getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
-                    owner.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    owner.setTenantDomain(getUserTenantDomain(tenantDomain, adminUserName));
                     serviceProvider.setOwner(owner);
                 }
             } else {
@@ -827,6 +835,133 @@ public class ApplicationMgtUtil {
         }
     }
 
+    /**
+     * Resolve user.
+     *
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @param username     The username of resolving user.
+     * @return User object.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
+     */
+    public static Optional<User> getUser(String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        User user = null;
+        try {
+            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+            String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+
+            if (tenantID == MultitenantConstants.SUPER_TENANT_ID) {
+                user = getUserFromTenant(username, userId, tenantID);
+            } else {
+                Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                        .getTenantManager().getTenant(tenantID);
+                String accessedOrganizationId = tenant.getAssociatedOrganizationUUID();
+                if (accessedOrganizationId == null) {
+                    user = getUserFromTenant(username, userId, tenantID);
+                } else {
+                    Optional<org.wso2.carbon.user.core.common.User> resolvedUser =
+                            ApplicationManagementServiceComponentHolder.getInstance()
+                                    .getOrganizationUserResidentResolverService()
+                                    .resolveUserFromResidentOrganization(username, userId, accessedOrganizationId);
+                    if (resolvedUser.isPresent()) {
+                        user = new User(resolvedUser.get());
+                    }
+                }
+            }
+        } catch (UserStoreException | OrganizationManagementException e) {
+            throw new IdentityApplicationManagementException("Error resolving user.", e);
+        }
+        return Optional.ofNullable(user);
+    }
+
+    /**
+     * Get user from tenant by username or user id.
+     *
+     * @param username The username.
+     * @param userId   The user id.
+     * @param tenantId The tenant id where user resides.
+     * @return User object from tenant userStoreManager.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
+     */
+    private static User getUserFromTenant(String username, String userId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        User user = null;
+        try {
+            AbstractUserStoreManager userStoreManager =
+                    (AbstractUserStoreManager) ApplicationManagementServiceComponentHolder.getInstance()
+                            .getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
+            if (username != null && userStoreManager.isExistingUser(username)) {
+                user = new User(userStoreManager.getUser(null, username));
+            } else if (userId != null && userStoreManager.isExistingUserWithID(userId)) {
+                user = new User(userStoreManager.getUser(userId, null));
+            }
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error finding user in tenant.", e);
+        }
+        return user;
+    }
+
+    /**
+     * Get user's tenant domain.
+     *
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @param username     The username of the user.
+     * @return The tenant domain where the user resides.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
+     */
+    public static String getUserTenantDomain(String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username)) {
+            return tenantDomain;
+        } else {
+            return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
+                    "Error resolving user.")).getTenantDomain();
+        }
+    }
+
+    /**
+     * Get user's username.
+     *
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @return username  The username.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
+     */
+    public static String getUsername(String tenantDomain) throws IdentityApplicationManagementException {
+
+        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (username == null) {
+            Optional<User> maybeUser = getUser(tenantDomain, null);
+            User user = maybeUser
+                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user."));
+            username = IdentityUtil.addDomainToName(user.getUserName(), user.getUserStoreDomain());
+        }
+        return username;
+    }
+
+    /**
+     * Get username with user's tenant domain appended.
+     *
+     * @param tenantDomain The tenant domain which user is trying to access.
+     * @return The username with tenant domain.
+     * @throws IdentityApplicationManagementException Error when user cannot be resolved.
+     */
+    public static String getUsernameWithUserTenantDomain(String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (username == null) {
+            Optional<User> maybeUser = getUser(tenantDomain, null);
+            User user = maybeUser
+                    .orElseThrow(() -> new IdentityApplicationManagementException("Error resolving user."));
+            username = UserCoreUtil.addTenantDomainToEntry(IdentityUtil.addDomainToName(user.getUserName(),
+                    user.getUserStoreDomain()), user.getTenantDomain());
+        }
+        return UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+    }
+
     public static void startTenantFlow(String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
@@ -836,16 +971,12 @@ public class ApplicationMgtUtil {
 
     public static void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
 
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
+        String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUserId(userId);
     }
 
     public static void endTenantFlow() {
@@ -925,7 +1056,7 @@ public class ApplicationMgtUtil {
             try {
                 userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
             } catch (IdentityException e) {
-               log.error("Error occurred while resolving Id for the user: " + username);
+                log.error("Error occurred while resolving Id for the user: " + username);
             }
         }
         return userId;

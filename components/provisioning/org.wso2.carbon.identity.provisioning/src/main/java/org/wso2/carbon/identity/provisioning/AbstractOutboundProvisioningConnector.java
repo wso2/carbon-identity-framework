@@ -68,6 +68,18 @@ public abstract class AbstractOutboundProvisioningConnector implements Serializa
     }
 
     /**
+     * Override only if needed - if claims are controlled by the identity provider, this will return null.
+     * If it is connector specific this must return the corresponding claim dialects.
+     *
+     * @return
+     * @throws IdentityProvisioningException
+     */
+    public String[] getClaimDialectUris() throws IdentityProvisioningException {
+
+        return null;
+    }
+
+    /**
      * @return
      * @throws IdentityProvisioningException
      */

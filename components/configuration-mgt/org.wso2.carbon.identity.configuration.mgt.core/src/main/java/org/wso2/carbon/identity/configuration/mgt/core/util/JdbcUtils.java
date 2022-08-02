@@ -18,31 +18,26 @@ package org.wso2.carbon.identity.configuration.mgt.core.util;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB2;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.H2;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.INFORMIX;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MARIA_DB;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MICROSOFT;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MY_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.POSTGRE_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.S_MICROSOFT;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ORACLE;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * A util class to support the Jdbc executions.
+ * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils} instead.
  */
+@Deprecated
 public class JdbcUtils {
 
     /**
      * Get a new Jdbc Template.
      *
      * @return a new Jdbc Template.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#getNewTemplate()} instead.
      */
+    @Deprecated
     public static JdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        return org.wso2.carbon.identity.core.util.JdbcUtils.getNewTemplate();
     }
 
     /**
@@ -50,10 +45,14 @@ public class JdbcUtils {
      *
      * @return true if DB is H2, MySQL or Postgres, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated
      */
+    @Deprecated
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIA_DB);
+        return isH2DB() || org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB() ||
+                org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB() ||
+                org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB();
     }
 
     /**
@@ -61,10 +60,12 @@ public class JdbcUtils {
      *
      * @return true if DB is H2.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isH2DB()} instead.
      */
+    @Deprecated
     public static boolean isH2() throws DataAccessException {
 
-        return isDBTypeOf(H2);
+        return isH2DB();
     }
 
     /**
@@ -72,10 +73,12 @@ public class JdbcUtils {
      *
      * @return true if DB is MySQL.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isMySQLDB()} instead.
      */
+    @Deprecated
     public static boolean isMySQLDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isMySQLDB();
     }
 
     /**
@@ -83,10 +86,12 @@ public class JdbcUtils {
      *
      * @return true if DB is Maria DB.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isMariaDB()} instead.
      */
+    @Deprecated
     public static boolean isMariaDB() throws DataAccessException {
 
-        return isDBTypeOf(MARIA_DB);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isMariaDB();
     }
 
     /**
@@ -94,10 +99,12 @@ public class JdbcUtils {
      *
      * @return true if DB2, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isDB2DB()} instead.
      */
+    @Deprecated
     public static boolean isDB2DB() throws DataAccessException {
 
-        return isDBTypeOf(DB2);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isDB2DB();
     }
 
     /**
@@ -105,10 +112,12 @@ public class JdbcUtils {
      *
      * @return true if DB is PostgreSQL, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isPostgreSQLDB()} instead.
      */
+    @Deprecated
     public static boolean isPostgreSQLDB() throws DataAccessException {
 
-        return isDBTypeOf(POSTGRE_SQL);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB();
     }
 
     /**
@@ -116,10 +125,12 @@ public class JdbcUtils {
      *
      * @return true if DB is MSSql, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isMSSqlDB()} instead.
      */
+    @Deprecated
     public static boolean isMSSqlDB() throws DataAccessException {
 
-        return isDBTypeOf(MICROSOFT) || isDBTypeOf(S_MICROSOFT);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isMSSqlDB();
     }
 
     /**
@@ -127,10 +138,12 @@ public class JdbcUtils {
      *
      * @return true if DB is Informix, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isInformixDB()} instead.
      */
+    @Deprecated
     public static boolean isInformixDB() throws DataAccessException {
 
-        return isDBTypeOf(INFORMIX);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isInformixDB();
     }
 
     /**
@@ -138,10 +151,12 @@ public class JdbcUtils {
      *
      * @return true if DB is Oracle, false otherwise.
      * @throws DataAccessException if error occurred while checking the DB metadata.
+     * @deprecated use {@link org.wso2.carbon.identity.core.util.JdbcUtils#isOracleDB()} instead.
      */
+    @Deprecated
     public static boolean isOracleDB() throws DataAccessException {
 
-        return isDBTypeOf(ORACLE);
+        return org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB();
     }
 
     /**

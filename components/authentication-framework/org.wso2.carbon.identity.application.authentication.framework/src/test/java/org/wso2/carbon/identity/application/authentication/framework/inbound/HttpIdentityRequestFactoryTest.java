@@ -44,7 +44,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -133,7 +133,7 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
         when(request.getHeader(anyString())).then(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return headers.get(invocationOnMock.getArgumentAt(0, String.class));
+                return headers.get(invocationOnMock.getArgument(0));
             }
         });
 
@@ -152,7 +152,7 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
         when(request.getAttribute(anyString())).then(new Answer<Object>() {
             @Override
             public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return attributes.get(invocationOnMock.getArgumentAt(0, String.class));
+                return attributes.get(invocationOnMock.getArgument(0));
             }
         });
 

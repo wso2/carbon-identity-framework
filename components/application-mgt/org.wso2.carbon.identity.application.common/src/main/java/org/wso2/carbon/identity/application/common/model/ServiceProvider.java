@@ -49,6 +49,7 @@ public class ServiceProvider implements Serializable {
     private static final String ACCESS_URL = "AccessUrl";
     private static final String IMAGE_URL = "ImageUrl";
     private static final String TEMPLATE_ID = "TemplateId";
+    private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     @XmlTransient
     private int applicationID = 0;
@@ -67,6 +68,9 @@ public class ServiceProvider implements Serializable {
 
     @XmlTransient
     private User owner;
+
+    @XmlTransient
+    private String tenantDomain;
 
     @XmlElement(name = "InboundAuthenticationConfig")
     private InboundAuthenticationConfig inboundAuthenticationConfig;
@@ -115,7 +119,9 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = TEMPLATE_ID)
     private String templateId;
 
-
+    @IgnoreNullElement
+    @XmlElement(name = IS_MANAGEMENT_APP)
+    private boolean isManagementApp;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -377,6 +383,24 @@ public class ServiceProvider implements Serializable {
         this.owner = owner;
     }
 
+    /**
+     * Gets the Service Provider tenant domain.
+     *
+     * @return Service Provider tenant domain
+     */
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the Service Provider tenant domain.
+     *
+     * @param tenantDomain  Service Provider tenant domain
+     */
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -479,6 +503,16 @@ public class ServiceProvider implements Serializable {
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
+    }
+
+    public boolean isManagementApp() {
+
+        return isManagementApp;
+    }
+
+    public void setManagementApp(boolean managementApp) {
+
+        isManagementApp = managementApp;
     }
 }
 

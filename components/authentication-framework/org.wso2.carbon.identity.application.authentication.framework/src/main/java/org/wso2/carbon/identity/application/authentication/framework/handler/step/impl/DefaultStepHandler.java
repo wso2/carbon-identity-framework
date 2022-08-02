@@ -439,6 +439,8 @@ public class DefaultStepHandler implements StepHandler {
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
                         .get(idpName));
                 stepConfig.setCompleted(true);
+                //add authenticated idp data to the session wise map
+                context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
                 return;
             }
 

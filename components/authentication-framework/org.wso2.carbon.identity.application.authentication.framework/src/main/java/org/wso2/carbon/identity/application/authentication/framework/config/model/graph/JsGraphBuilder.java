@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openjdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
@@ -183,7 +183,9 @@ public class JsGraphBuilder {
             } finally {
                 scriptExecutionData = endScriptExecutionMonitor(identifier);
             }
-            storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            if (scriptExecutionData != null) {
+                storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            }
             JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
         } catch (ScriptException e) {
             result.setBuildSuccessful(false);
@@ -407,7 +409,7 @@ public class JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator);
+                    filteredOptions.get(idp).add(authenticator.toLowerCase());
                 }
             }
         });
@@ -442,7 +444,7 @@ public class JsGraphBuilder {
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
                             if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
@@ -460,7 +462,7 @@ public class JsGraphBuilder {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
                             if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
                                 removeOption = false;
                                 break;
                             }
@@ -1013,13 +1015,14 @@ public class JsGraphBuilder {
 
         JSExecutionSupervisor executionSupervisor = getJSExecutionSupervisor();
         if (executionSupervisor == null) {
-            return new JSExecutionMonitorData(0, 0);
+            return null;
         }
         return getJSExecutionSupervisor().completed(identifier);
     }
 
     private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject identifier step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectIdentifierStep(false);
             }
@@ -1028,7 +1031,8 @@ public class JsGraphBuilder {
     }
 
     private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
-        stepNamedMap.forEach((integer, config) -> { // remove existing subject attribute step
+
+        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectAttributeStep(false);
             }
@@ -1100,8 +1104,9 @@ public class JsGraphBuilder {
                     } finally {
                         scriptExecutionData = endScriptExecutionMonitor(identifier);
                     }
-
-                    storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+                    if (scriptExecutionData != null) {
+                        storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+                    }
                     JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext

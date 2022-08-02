@@ -66,6 +66,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
         }
+        if (isDomainSeparatorPresent(roleName)) {
+            // SCIM2 API only adds roles to the internal domain.
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
+        }
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
@@ -112,6 +117,20 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy =
+                RoleManagementEventPublisherProxy.getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRolesCount(tenantDomain);
+        int count = roleDAO.getRolesCount(tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRolesCount(tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get roles count successfully.", getUser(tenantDomain)));
+        }
+        return count;
+    }
+
+    @Override
     public Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
@@ -132,6 +151,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreUpdateRoleName(roleID, newRoleName, tenantDomain);
+        if (isDomainSeparatorPresent(newRoleName)) {
+            // SCIM2 API only adds roles to the internal domain.
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + newRoleName + ".");
+        }
         RoleBasicInfo roleBasicInfo = roleDAO.updateRoleName(roleID, newRoleName, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdateRoleName(roleID, newRoleName, tenantDomain);
         if (log.isDebugEnabled()) {
@@ -284,6 +308,16 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public Set<String> getSystemRoles() {
 
         return roleDAO.getSystemRoles();
+    }
+
+    /**
+     * Check if the role name has a domain separator character.
+     * @param roleName Role name.
+     * @return True if the role name has a domain separator character.
+     */
+    private boolean isDomainSeparatorPresent(String roleName) {
+
+        return roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR);
     }
 
     private String getUser(String tenantDomain) {

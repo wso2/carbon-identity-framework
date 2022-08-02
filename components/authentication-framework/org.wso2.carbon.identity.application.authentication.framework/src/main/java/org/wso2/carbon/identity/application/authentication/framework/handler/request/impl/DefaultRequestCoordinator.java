@@ -35,7 +35,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.I18nErrorCodeWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
@@ -315,13 +317,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
             }
+            I18nErrorCodeWrapper errorWrapper = ErrorToI18nCodeTranslator.translate(e.getErrorCode());
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
-            FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, context, "authentication.attempt.failed",
-                        "authorization.failed");
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, errorWrapper.getStatus(),
+                    errorWrapper.getStatusMsg());
         } catch (Throwable e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
@@ -863,7 +865,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         try {
             ServiceProvider serviceProvider = getServiceProvider(clientType, clientId, tenantDomain);
-            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider);
+            ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, tenantDomain);
             sequenceConfig.setApplicationConfig(appConfig);
             if (log.isDebugEnabled()) {
                 log.debug("Refresh application config in sequence config for application id: " + sequenceConfig

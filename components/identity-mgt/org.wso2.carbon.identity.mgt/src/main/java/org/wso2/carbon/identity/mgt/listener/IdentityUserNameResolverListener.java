@@ -1141,6 +1141,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         String userName;
+        String userStoreDomainName = userStoreManager.getRealmConfiguration()
+                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        preferredUserNameValue = userStoreDomainName + UserCoreConstants.DOMAIN_SEPARATOR + preferredUserNameValue;
         String[] users = userStoreManager.getUserList(preferredUserNameClaim, preferredUserNameValue, null);
         if (users.length == 1) {
             userName = UserCoreUtil.removeDomainFromName(users[0]);

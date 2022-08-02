@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -59,22 +60,24 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
@@ -118,10 +121,8 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         // Mock authentication context and sequence config for request path authentication
         context = new AuthenticationContext();
 
-        authenticatorConfig = spy(new AuthenticatorConfig());
         doReturn(requestPathAuthenticator).when(authenticatorConfig).getApplicationAuthenticator();
 
-        sequenceConfig = spy(new SequenceConfig());
         doReturn(Arrays.asList(new AuthenticatorConfig[]{authenticatorConfig}))
                 .when(sequenceConfig).getReqPathAuthenticators();
 
@@ -325,7 +326,7 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
                 .getServiceProviderMappedUserRoles(any(SequenceConfig.class), anyList());
 
         ServiceProvider serviceProvider = new ServiceProvider();
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider));
+        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
         when(applicationConfig.getSubjectClaimUri()).thenReturn(subjectClaimUri);
 
         SequenceConfig sequenceConfig = new SequenceConfig();

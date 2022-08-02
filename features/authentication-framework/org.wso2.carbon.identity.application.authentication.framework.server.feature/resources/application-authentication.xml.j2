@@ -36,6 +36,15 @@
     <AuthenticationEndpointURL>{{authentication.endpoints.login_url}}</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>{{authentication.endpoints.retry_url}}</AuthenticationEndpointRetryURL>
     <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.request_missing_claims_url}}</AuthenticationEndpointMissingClaimsURL>
+    {% if authentication.endpoints.wait_url is defined %}
+    <AuthenticationEndpointWaitURL>{{authentication.endpoints.wait_url}}</AuthenticationEndpointWaitURL>
+    {% endif %}
+    {% if authentication.endpoints.prompt_url is defined %}
+    <AuthenticationEndpointPromptURL>{{authentication.endpoints.prompt_url}}</AuthenticationEndpointPromptURL>
+    {% endif %}
+    {% if authentication.identifier.first.endpoint.confirmation_url is defined %}
+    <IdentifierFirstConfirmationURL>{{authentication.identifier.first.endpoint.confirmation_url}}</IdentifierFirstConfirmationURL>
+    {% endif %}
 
     <!--
         Extensions allow extending the default behaviour of the authentication

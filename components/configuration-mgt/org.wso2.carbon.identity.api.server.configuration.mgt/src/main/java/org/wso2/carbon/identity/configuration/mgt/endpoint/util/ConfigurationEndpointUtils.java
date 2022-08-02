@@ -24,7 +24,7 @@ import org.apache.cxf.jaxrs.ext.search.SearchCondition;
 import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
-import org.apache.log4j.MDC;
+import org.slf4j.MDC;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -212,7 +212,7 @@ public class ConfigurationEndpointUtils {
     public static String getCorrelation() {
         String ref = null;
         if (isCorrelationIDPresent()) {
-            ref = MDC.get(ConfigurationConstants.CORRELATION_ID_MDC).toString();
+            ref = MDC.get(ConfigurationConstants.CORRELATION_ID_MDC);
         }
         return ref;
     }

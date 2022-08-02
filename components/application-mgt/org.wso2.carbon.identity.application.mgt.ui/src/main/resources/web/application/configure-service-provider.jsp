@@ -555,15 +555,22 @@
                 }
                 CARBON.showConfirmationDialog(confirmationMessage,
                     function () {
+                        encodeSPCertificate();
                         document.getElementById("configure-sp-form").submit();
                     },
                     function () {
                         return false;
                     });
             } else {
+                encodeSPCertificate();
                 document.getElementById("configure-sp-form").submit();
             }
         }
+    }
+
+    function encodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
     function updateBeanAndRedirect(redirectURL) {
@@ -1145,8 +1152,8 @@
         }).remove();
         $.each($('.spClaimVal'), function () {
             if ($(this).val().length > 0) {
-                $("#roleClaim").append('<option value="' + $(this).val() + '">' + $(this).val() + '</option>');
-                $('#subject_claim_uri').append('<option value="' + $(this).val() + '">' + $(this).val() + '</option>');
+                $("#roleClaim").append('<option value="' + encodeForHTML($(this).val()) + '">' + encodeForHTML($(this).val()) + '</option>');
+                $('#subject_claim_uri').append('<option value="' + encodeForHTML($(this).val()) + '">' + encodeForHTML($(this).val()) + '</option>');
             }
         });
     }
@@ -1569,6 +1576,20 @@
                                 <% } %>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.logout.return.url'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med">
+                                <label for="isManagementApp"><fmt:message key="config.application.isManagementApp"/></label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input type="checkbox" id="isManagementApp"
+                                           name="isManagementApp" <%=appBean.getServiceProvider().getManagementApp() ? "checked" : "" %> disabled/>
+                                    <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='help.management.app'/>
+                                </span>
                                 </div>
                             </td>
                         </tr>
@@ -2379,10 +2400,10 @@
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts'/>
@@ -2401,10 +2422,10 @@
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts.wreply'/>

@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 public class ApplicationManagementAdminService extends AbstractAdmin {
 
     private static Log log = LogFactory.getLog(ApplicationManagementAdminService.class);
+    private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private ApplicationManagementService applicationMgtService;
     private List<InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
 
@@ -240,8 +241,12 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                         totalFilteredSystemAppCount);
         int startIndexOfRequestedPage = (itemsPerPage * (pageNumber - 1));
         int endIndexOfRequestedPage = expectedFilteredAuthorizedAppInfoList.size();
-        return expectedFilteredAuthorizedAppInfoList.subList(startIndexOfRequestedPage, endIndexOfRequestedPage)
-                .toArray(new ApplicationBasicInfo[0]);
+        if (startIndexOfRequestedPage > endIndexOfRequestedPage) {
+            return new ApplicationBasicInfo[0];
+        } else {
+            return expectedFilteredAuthorizedAppInfoList.subList(startIndexOfRequestedPage, endIndexOfRequestedPage)
+                    .toArray(new ApplicationBasicInfo[0]);
+        }
     }
 
     /**
@@ -333,7 +338,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
              number of applications the user has access to, based
              on the application role. */
             List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
-            applicationCount = applicationRoles.size();
+            applicationCount = getSynchronizedApplicationCount(applicationRoles, null);
         }
 
         return applicationCount;
@@ -370,10 +375,39 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     filteredApplicationRoles.add(applicationRole);
                 }
             }
-            applicationCount = filteredApplicationRoles.size();
+            applicationCount = getSynchronizedApplicationCount(filteredApplicationRoles, filter);
         }
 
         return applicationCount;
+    }
+
+    /**
+     * Retrieves the proper application count by considering both the application roles and the service providers/
+     * applications currently available.
+     *
+     * @param applicationRoles Filtered/unfiltered application roles assigned for the user.
+     * @param filter Filter provided to isolate service providers.
+     * @return Synchronized application count according to the user roles and the available service providers.
+     * @throws IdentityApplicationManagementException if there is an error while retrieving the basic info of all the
+     * applications/service providers.
+     */
+    private int getSynchronizedApplicationCount(List<String> applicationRoles, String filter)
+            throws IdentityApplicationManagementException {
+
+        int synchronizedApplicationCount = 0;
+        ApplicationBasicInfo[] applications;
+        if (filter == null) {
+            applications = getAllApplicationBasicInfo();
+        } else {
+            applications = getApplicationBasicInfo(filter);
+        }
+        for (ApplicationBasicInfo applicationBasicInfo : applications) {
+            if (applicationRoles.contains(APPLICATION_ROLE_PREFIX + applicationBasicInfo.getApplicationName())) {
+                synchronizedApplicationCount += 1;
+            }
+        }
+
+        return synchronizedApplicationCount;
     }
 
     /**

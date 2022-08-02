@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -28,20 +27,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.log4j.MDC;
 import org.json.JSONObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheKey;
@@ -87,6 +91,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -124,6 +129,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
@@ -164,6 +171,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
@@ -196,7 +204,12 @@ public class FrameworkUtils {
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
+    private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
+
+    private static final String HASH_CHAR = "#";
+    private static final String HASH_CHAR_ENCODED = "%23";
+    private static final String QUESTION_MARK = "?";
 
     private FrameworkUtils() {
     }
@@ -614,6 +627,8 @@ public class FrameworkUtils {
                 if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
                 }
+                String authFlowId = context.getContextIdentifier();
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
@@ -1131,6 +1146,48 @@ public class FrameworkUtils {
             }
         }
         return sessionContext;
+    }
+
+    /**
+     * To add authentication error to cache.
+     *
+     * @param key   Error key.
+     */
+    public static void addAuthenticationErrorToCache(String key, AuthenticationError authenticationError,
+                                                     String tenantDomain) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry cacheEntry = new AuthenticationErrorCacheEntry(authenticationError, tenantDomain);
+        AuthenticationErrorCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * To get authentication error from cache.
+     *
+     * @param key   Error key.
+     * @return      AuthenticationError.
+     */
+    public static AuthenticationError getAuthenticationErrorFromCache(String key) {
+
+        AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+        AuthenticationErrorCacheEntry authResult = AuthenticationErrorCache.getInstance().getValueFromCache(cacheKey);
+        if (authResult != null) {
+            return authResult.getAuthenticationError();
+        }
+        return null;
+    }
+
+    /**
+     * To remove authentication error from cache.
+     *
+     * @param key   Error key.
+     */
+    public static void removeAuthenticationErrorFromCache(String key) {
+
+        if (StringUtils.isNotEmpty(key)) {
+            AuthenticationErrorCacheKey cacheKey = new AuthenticationErrorCacheKey(key);
+            AuthenticationErrorCache.getInstance().clearCacheEntry(cacheKey);
+        }
     }
 
     /**
@@ -1670,8 +1727,20 @@ public class FrameworkUtils {
                 .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
         try {
-            uriBuilder = new URIBuilder(redirectUrl);
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
         } catch (URISyntaxException e) {
             log.warn("Unable to filter redirect params for url." + redirectUrl, e);
             return redirectUrl;
@@ -1736,7 +1805,16 @@ public class FrameworkUtils {
         }
         uriBuilder.clearParameters();
         uriBuilder.setParameters(queryParamsList);
-        return uriBuilder.toString();
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
     }
 
     public static boolean isRemoveAPIParamsOnConsume() {
@@ -2366,6 +2444,26 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
+
+    /**
+     * This method is to check whether organization management is enabled.
+     *
+     * @return Organization management feature is enabled or not.
+     */
+    public static boolean isOrganizationManagementEnabled() {
+
+        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled();
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;
@@ -2703,6 +2801,24 @@ public class FrameworkUtils {
                     "Identity database.");
         }
         return false;
+    }
+
+    /**
+     * Checking whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     */
+    public static void checkIfTenantIdColumnIsAvailableInFedAuthTable() {
+
+        isTenantIdColumnAvailableInFedAuthTable = isTableColumnExists("IDN_FED_AUTH_SESSION_MAPPING", "TENANT_ID");
+    }
+
+    /**
+     * Return whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     *
+     * @return True if tenant id is available in IDN_FED_AUTH_SESSION_MAPPING table. Else return false.
+     */
+    public static boolean isTenantIdColumnAvailableInFedAuthTable() {
+
+        return isTenantIdColumnAvailableInFedAuthTable;
     }
 
     /**
@@ -3068,7 +3184,7 @@ public class FrameworkUtils {
 
         String ref;
         if (isCorrelationIDPresent()) {
-            ref = MDC.get(CORRELATION_ID_MDC).toString();
+            ref = MDC.get(CORRELATION_ID_MDC);
         } else {
             ref = UUID.randomUUID().toString();
         }
@@ -3164,15 +3280,33 @@ public class FrameworkUtils {
      * @throws ClaimManagementException
      */
     public static List<ClaimMapping> getFilteredScopeClaims(List<String> claimListOfScopes,
-                                                            List<ClaimMapping> claimMappings)
+                                                            List<ClaimMapping> claimMappings, String tenantDomain)
             throws ClaimManagementException {
 
-        ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
         List<String> claimMappingListOfScopes = new ArrayList<>();
-        for (String claim : claimListOfScopes) {
-            org.wso2.carbon.user.api.ClaimMapping currentMapping = handler.getClaimMapping(claim);
-            claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            if (claimManager != null) {
+                for (String claim : claimListOfScopes) {
+                    org.wso2.carbon.user.api.ClaimMapping currentMapping = claimManager.getClaimMapping(claim);
+                    if (currentMapping != null && currentMapping.getClaim() != null &&
+                            currentMapping.getClaim().getClaimUri() != null) {
+                        claimMappingListOfScopes.add(currentMapping.getClaim().getClaimUri());
+                    } else {
+                        throw new ClaimManagementException("No claim mapping are found for claim :" +
+                                claim + " in :" + tenantDomain);
+                    }
+                }
+            }
+        } catch (CarbonException | UserStoreException e) {
+            throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
+                    tenantDomain, e);
         }
+
         List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
@@ -3180,5 +3314,37 @@ public class FrameworkUtils {
             }
         }
         return requestedScopeClaims;
+    }
+
+    /**
+     * Util function to build caller patch redirect URLs using ServiceURLBuilder.
+     *
+     * @param callerPath        Application caller path.
+     * @param context           Authentication context.
+     * @return  reirect URL.
+     * @throws URLBuilderException  throw if an error occurred during URL generation.
+     */
+    public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
+            throws URLBuilderException {
+
+        String serviceProvider = null;
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+            serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        }
+        /*
+         Skip My Account application redirections to use ServiceURLBuilder for URL generation
+         since My Account is SaaS.
+         */
+        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+            if (callerPath != null && callerPath.startsWith("/t/")) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant, true)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
+            }
+        }
+        return callerPath;
     }
 }

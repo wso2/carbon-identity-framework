@@ -73,7 +73,24 @@ public class ApplicationConfig implements Serializable, Cloneable {
 
     private static final Log log = LogFactory.getLog(ApplicationConfig.class);
 
+    /**
+     * @param application Application details.
+     * @deprecated Use {@link #ApplicationConfig(ServiceProvider, String)} instead.
+     */
+    @Deprecated
     public ApplicationConfig(ServiceProvider application) {
+
+        this(application, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+    }
+
+    /**
+     * Initialize application (service provider) configurations.
+     *
+     * @param application Application details.
+     * @param tenantDomain Tenant domain of the application.
+     */
+    public ApplicationConfig(ServiceProvider application, String tenantDomain) {
+
         this.serviceProvider = application;
         applicationID = application.getApplicationID();
         applicationName = application.getApplicationName();
@@ -96,7 +113,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
             alwaysSendMappedLocalSubjectId = claimConfig.isAlwaysSendMappedLocalSubjectId();
 
             List<ClaimMapping> spClaimMappings = new ArrayList<>(Arrays.asList(claimConfig.getClaimMappings()));
-            setSpDialectClaims(claimConfig, spClaimMappings);
+            setSpDialectClaims(claimConfig, spClaimMappings, tenantDomain);
             if (CollectionUtils.isNotEmpty(spClaimMappings)) {
                 for (ClaimMapping claim : spClaimMappings) {
                     if (claim.getRemoteClaim() != null
@@ -339,14 +356,13 @@ public class ApplicationConfig implements Serializable, Cloneable {
      * @param claimConfig Application claim configuration
      * return Application claim mappings
      */
-    private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings) {
+    private void setSpDialectClaims(ClaimConfig claimConfig, List<ClaimMapping> spClaimMappings, String tenantDomain) {
 
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
         if (!ArrayUtils.isEmpty(spClaimDialects)) {
             List<String> spClaimDialectsList = Arrays.asList(spClaimDialects);
             spClaimDialectsList.forEach(spClaimDialect -> {
                 try {
-                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
                     if (ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT.equals(spClaimDialect)) {
                         List<LocalClaim> localClaims = FrameworkServiceDataHolder.getInstance()
                                 .getClaimMetadataManagementService().getLocalClaims(tenantDomain);

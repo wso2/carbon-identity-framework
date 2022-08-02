@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -77,6 +78,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
@@ -548,8 +550,12 @@ public class IdPManagementDAO {
             identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
             identityProvider.setResourceId(resultSet.getString("UUID"));
 
-            populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
-                    identityProvider);
+            try {
+                populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
+                        identityProvider);
+            } catch (IdentityProviderManagementClientException e) {
+                continue;
+            }
 
             if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                     .equals(identityProvider.getIdentityProviderName())) {
@@ -574,7 +580,7 @@ public class IdPManagementDAO {
     private void populateRequiredAttributesForIdentityProviderList(ResultSet resultSet, Connection dbConnection,
                                                                    List<String> requiredAttributes, int tenantId,
                                                                    IdentityProvider identityProvider)
-            throws SQLException, IdentityProviderManagementServerException {
+            throws SQLException, IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         int idpId = Integer.parseInt(identityProvider.getId());
         String idPName = identityProvider.getIdentityProviderName();
@@ -678,6 +684,8 @@ public class IdPManagementDAO {
                     }
                 }
             }
+        } catch (IdentityProviderManagementClientException e) {
+            throw e;
         } catch (IdentityProviderManagementException e) {
             throw new IdentityProviderManagementServerException("Error occurred while performing required " +
                     "attribute filter", e);
@@ -801,11 +809,13 @@ public class IdPManagementDAO {
     private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection, int idpId)
             throws SQLException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
+
         try {
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -816,6 +826,8 @@ public class IdPManagementDAO {
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
+        } catch (DataAccessException e) {
+            throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
@@ -834,9 +846,10 @@ public class IdPManagementDAO {
                                                List<IdentityProviderProperty> properties, int tenantId)
             throws SQLException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
         PreparedStatement prepStmt = null;
         try {
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+                    IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             for (IdentityProviderProperty property : properties) {
@@ -857,6 +870,9 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
+        } catch (DataAccessException e) {
+            String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
+            throw new SQLException(errorMsg, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
@@ -896,7 +912,7 @@ public class IdPManagementDAO {
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
             Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementException, SQLException {
+            throws IdentityProviderManagementClientException, SQLException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -2179,20 +2195,21 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Build templateId property for the IDP.
+     * Add templateId property for the IDP.
      *
-     * @param identityProvider Identity provider.
-     * @return templateId IdentityProviderProperty.
+     * @param identityProviderProperties List of IdP properties.
+     * @param identityProvider           Identity provider.
      */
-    private IdentityProviderProperty buildTemplateIdProperty(IdentityProvider identityProvider) {
+    private void addTemplateIdProperty(List<IdentityProviderProperty> identityProviderProperties,
+                                                           IdentityProvider identityProvider) {
 
-        IdentityProviderProperty templateIdProperty = new IdentityProviderProperty();
-        templateIdProperty.setName(TEMPLATE_ID_IDP_PROPERTY_NAME);
-        templateIdProperty.setDisplayName(TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME);
-        templateIdProperty
-                .setValue(StringUtils.isNotBlank(identityProvider.getTemplateId()) ? identityProvider.getTemplateId() :
-                        StringUtils.EMPTY);
-        return templateIdProperty;
+        if (StringUtils.isNotBlank(identityProvider.getTemplateId())) {
+            IdentityProviderProperty templateIdProperty = new IdentityProviderProperty();
+            templateIdProperty.setName(TEMPLATE_ID_IDP_PROPERTY_NAME);
+            templateIdProperty.setDisplayName(TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME);
+            templateIdProperty.setValue(identityProvider.getTemplateId());
+            identityProviderProperties.add(templateIdProperty);
+        }
     }
 
     /**
@@ -2765,7 +2782,7 @@ public class IdPManagementDAO {
             }
             List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
                     .getJustInTimeProvisioningConfig(), idpProperties);
-            identityProviderProperties.add(buildTemplateIdProperty(identityProvider));
+            addTemplateIdProperty(identityProviderProperties, identityProvider);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
             return resourceId;
@@ -2902,10 +2919,13 @@ public class IdPManagementDAO {
                     && newIdentityProvider.getJustInTimeProvisioningConfig()
                     .isProvisioningEnabled()) {
                 prepStmt1.setString(6, IdPManagementConstants.IS_TRUE_VALUE);
-                prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore
-                        ());
             } else {
                 prepStmt1.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
+            }
+            // user will be provisioned to the configured user store.
+            if (newIdentityProvider.getJustInTimeProvisioningConfig() != null) {
+                prepStmt1.setString(7, newIdentityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore());
+            } else {
                 prepStmt1.setString(7, null);
             }
 
@@ -4022,7 +4042,7 @@ public class IdPManagementDAO {
      * @throws IdentityProviderManagementException
      */
     private int getIdentityProviderIdentifier(Connection dbConnection, String idPName, int tenantId)
-            throws SQLException, IdentityProviderManagementException {
+            throws SQLException, IdentityProviderManagementClientException {
 
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -4037,7 +4057,7 @@ public class IdPManagementDAO {
             if (rs.next()) {
                 return rs.getInt("ID");
             } else {
-                throw new IdentityProviderManagementException("Invalid Identity Provider Name "
+                throw new IdentityProviderManagementClientException("Invalid Identity Provider Name "
                         + idPName);
             }
         } finally {
@@ -4278,7 +4298,8 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -4290,7 +4311,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (SQLException e) {
+        } catch (DataAccessException | SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {

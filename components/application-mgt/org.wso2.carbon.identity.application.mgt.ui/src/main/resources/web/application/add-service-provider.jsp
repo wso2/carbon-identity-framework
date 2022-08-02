@@ -106,6 +106,8 @@ function importAppOnclick() {
         location.href = '#';
         return false;
     } else {
+        var content = document.getElementById('sp-file-content').value;
+        document.getElementById('sp-file-content').value = btoa(content);
         $("#upload-sp-form").submit();
         return true;
     }
@@ -216,6 +218,15 @@ window.onload = function() {
                         <textarea maxlength="1023" style="width:50%" type="text" name="sp-description" id="sp-description" class="text-box-big"></textarea>
                         <div class="sectionHelp">
                                 <fmt:message key='help.desc'/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="leftCol-med labelField">Management Application:</td>
+                        <td>
+                            <input type="checkbox" name="is-management-app" id="is-management-app"/>
+                            <div class="sectionHelp">
+                                <fmt:message key='help.management.app'/>
                             </div>
                         </td>
                     </tr>

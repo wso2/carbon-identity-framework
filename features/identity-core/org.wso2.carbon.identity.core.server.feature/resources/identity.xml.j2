@@ -249,7 +249,7 @@
         <OAuth2DCREPUrl>{{oauth.endpoints.oauth2_dcr_url}}</OAuth2DCREPUrl>
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
-
+        <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -739,12 +739,29 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            {% if oauth.oidc.extensions.oauth_authz_request_class is defined %}
+            <OAuthAuthzRequestClass>{{oauth.oidc.extensions.oauth_authz_request_class}}</OAuthAuthzRequestClass>
+            {% endif %}
             {% if oauth.oidc.extensions.ciba_request_object_validator is defined %}
                 <CIBARequestObjectValidator>{{oauth.oidc.extensions.ciba_request_object_validator}}</CIBARequestObjectValidator>
             {% endif %}
             <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
             {% if oauth.oidc.allow_additional_params_from_post_logout_redirect_uri is defined %}
             <AllowAdditionalParamsFromPostLogoutRedirectURI>{{oauth.oidc.allow_additional_params_from_post_logout_redirect_uri}}</AllowAdditionalParamsFromPostLogoutRedirectURI>
+            {% endif %}
+
+            <!--
+                FAPI Profile Support.
+            -->
+            {% if oauth.oidc.fapi is defined %}
+            <FAPI>
+                {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
+                <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
+                {% endif %}
+                {% if oauth.oidc.fapi.enable_security_profile is defined %}
+                <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
+                {% endif %}
+            </FAPI>
             {% endif %}
         </OpenIDConnect>
 
@@ -877,6 +894,10 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1086,6 +1107,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
         <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>
+
+        <!--
+             If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+             then enable this property value.
+             Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+             Default value : false
+             Supported versions : IS 5.10.0 onwards
+        -->
+        <ConsiderTotalRecordsForTotalResultOfLDAP>{{scim2.consider_total_records_for_total_results_of_ldap}}</ConsiderTotalRecordsForTotalResultOfLDAP>
+
     </SCIM2>
 
       <Recovery>
@@ -1154,7 +1185,7 @@
              <!--
                 The purpose of this property is to configure minimum number of challenge questions to be answered
                 by the user.
-                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                Default value : 1
                 If this property is configured to a positive integer, user must answer more or equal to that number of
                 questions.
              -->
@@ -1269,6 +1300,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
                 <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <EnableVerificationByPrivilegedUser>{{identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user}}</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
                 </VerificationCode>
@@ -1278,6 +1310,9 @@
         temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
         'UseVerifyClaim' should be set to true. -->
         <UseVerifyClaim>{{identity_mgt.user_claim_update.use_verify_claim}}</UseVerifyClaim>
+          <!-- When updating the claim value, it can be validated against the provided regex pattern.
+          To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
+          <EnableUserClaimInputRegexValidation>{{identity_mgt.enable_user_claim_input_regex_validation}}</EnableUserClaimInputRegexValidation>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -1592,18 +1627,34 @@
             {% endfor %}
         </EventListener>
         {% endfor %}
+        <EventListener id="provision_error_listener"
+                type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
+                name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
+                orderId="{{event.default_listener.outbound_provisioning_error_handler.priority}}"
+                enable="{{event.default_listener.outbound_provisioning_error_handler.enable}}">
+        </EventListener>
+        {% if analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
+        <EventListener id="authn_data_publisher_proxy"
+               type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
+               name = "org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
+               orderId="11"
+               enable="true"/>
+        {% endif %}
     </EventListeners>
 
-    {% if analytics.publish_active_session_count is defined %}
     <Analytics>
         <!-- By default value of analytics.publish_active_session_count is set to false so that the identity server
         publishes session data to the stream org.wso2.is.analytics.stream.OverallSession:1.0.0.
         When this configuration is enabled, the stream definition org.wso2.is.analytics.stream.OverallSession:1.0.1
         is used and the current active session count of the identity server will be added as an attribute. Enable it
         by setting analytics.publish_active_session_count = true -->
+        {% if analytics.publish_active_session_count is defined %}
         <PublishActiveSessionCount>{{analytics.publish_active_session_count}}</PublishActiveSessionCount>
+        {% endif %}
+        {% if analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
+        <PublishActiveSessionCount>true</PublishActiveSessionCount>
+        {% endif %}
     </Analytics>
-    {% endif %}
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
      file recorder. This recorder is disabled by default. Enable it by setting enable="true". To run these recorders,
@@ -1655,6 +1706,11 @@
                    enable="{{cache.authentication_result_cache.enable}}"
                    timeout="{{cache.authentication_result_cache.timeout}}"
                    capacity="{{cache.authentication_result_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="authentication_error_cache" name="AuthenticationErrorCache"
+                   enable="{{cache.authentication_error_cache.enable}}"
+                   timeout="{{cache.authentication_error_cache.timeout}}"
+                   capacity="{{cache.authentication_error_cache.capacity}}"
                    isDistributed="false"/>
             <Cache id="app_info_cache" name="AppInfoCache"
                    enable="{{cache.app_info_cache.enable}}"
@@ -1818,7 +1874,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
@@ -1836,24 +1898,24 @@
             <Scopes>internal_config_mgt_list</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
@@ -1861,7 +1923,7 @@
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
@@ -2029,7 +2091,7 @@
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
+        <Resource context="(.*)/scim2/Users(/?)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
@@ -2041,7 +2103,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/scim2/Users/(.+)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
             <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
@@ -2140,7 +2202,7 @@
         <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
@@ -2317,6 +2379,10 @@
             <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
             <Scopes>internal_keystore_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin</Permissions>
+            <Scopes>SYSTEM</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
             <Scopes>internal_application_mgt_create</Scopes>
@@ -2411,19 +2477,19 @@
             <Scopes>internal_idp_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/create</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/create</Permissions>
             <Scopes>internal_functional_lib_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/view</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/view</Permissions>
             <Scopes>internal_functional_lib_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt//update</Permissions>
             <Scopes>internal_functional_lib_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/functionsLibrarymgt/delete</Permissions>
+            <Permissions>/permission/admin/manage/identity/functionsLibrarymgt/delete</Permissions>
             <Scopes>internal_functional_lib_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="POST">
@@ -2588,10 +2654,10 @@
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
@@ -2620,9 +2686,7 @@
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
     <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
-
     <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
-
 
     <!--
         When this property is set to 'true', if the username provided during the SaaS application authentication does
@@ -2666,6 +2730,51 @@
             {% endfor %}
         </OverwriteDispatch>
     </TenantContextsToRewrite>
+
+    <OrgContextsToRewrite>
+        <WebApp>
+        {% for organization_context in organization_context.rewrite %}
+        {% for base_path in organization_context.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in organization_context.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
+            <Context>
+                <BasePath>/scim2/</BasePath>
+                <SubPaths>
+                    <Path>/scim2/Groups</Path>
+                    <Path>/scim2/Users</Path>
+                    <Path>/scim2/Schemas</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
+                    <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/console/</BasePath>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
@@ -2723,6 +2832,7 @@
         <AllowLoops>{{authentication.adaptive.allow_loops}}</AllowLoops>
         {% endif %}
         <ExecutionSupervisor>
+            <Enable>{{authentication.adaptive.execution_supervisor.enable}}</Enable>
             <ThreadCount>{{authentication.adaptive.execution_supervisor.thread_count}}</ThreadCount>
             <Timeout>{{authentication.adaptive.execution_supervisor.timeout}}</Timeout>
             {% if authentication.adaptive.execution_supervisor.memory_limit is defined %}
@@ -2765,6 +2875,15 @@
 
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
+
+     {% if system_applications.fidp_role_based_authz_enabled_apps is defined %}
+     <!-- Following applications can use federated user role based authorization -->
+     <FIdPRoleBasedAuthzApplications>
+         {% for application in system_applications.fidp_role_based_authz_enabled_apps %}
+         <AppName>{{application}}</AppName>
+         {% endfor %}
+     </FIdPRoleBasedAuthzApplications>
+     {% endif %}
 
     <!--This configuration is used for X509 Certificate based authentication. -->
 
@@ -2816,6 +2935,19 @@
             Time configurations are in milliseconds.
         -->
         <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
+
+        <!-- FIDO2 metadata service related configurations -->
+        <MetadataService>
+            <Enable>{{fido.metadata_service.enable}}</Enable>
+            <MDSEndpoints>
+                {% for endpoint in fido.metadata_service.mds_endpoints %}
+                    <Endpoint>{{endpoint}}</Endpoint>
+                {% endfor %}
+            </MDSEndpoints>
+            <MDSRootCertificateFilePath>{{fido.metadata_service.mds_root_certificate_file_path}}</MDSRootCertificateFilePath>
+            <MetadataStatementDirectory>{{fido.metadata_service.metadata_statement_directory}}</MetadataStatementDirectory>
+            <SchedulerInitialDelay>{{fido.metadata_service.mds_scheduler_initial_delay}}</SchedulerInitialDelay>
+        </MetadataService>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
@@ -2971,8 +3103,8 @@
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
+    <!-- Configuration to enable or disable claim filtering based on scope. -->
+    <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
@@ -2983,4 +3115,26 @@
         {% endfor %}
     </StoredProcedureDAO>
     {% endif %}
+
+    {% if authentication_context.method_refs is defined %}
+        <AuthenticationContext>
+            <MethodRefs>
+                {% for method_ref in authentication_context.method_refs %}
+                    {% if method_ref.amr_value is defined %}
+                    <MethodRef method="{{method_ref.method}}" uri="{{method_ref.amr_value}}" />
+                    {% elif method_ref.excluded_methods is defined %}
+                    {% for excluded_method in method_ref.excluded_methods %}
+                    <MethodRef method="{{excluded_method}}" xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </MethodRefs>
+        </AuthenticationContext>
+    {% endif %}
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
+    {% endif %}
+
 </Server>

@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -61,6 +62,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.xml.stream.XMLStreamException;
+
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -79,6 +82,7 @@ import static java.lang.Boolean.TRUE;
 @WithRealmService(injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/h2.sql"})
 @WithKeyStore
+@PowerMockIgnore("org.mockito.*")
 public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
     @Mock
@@ -1070,6 +1074,54 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         identityProviderManagementService.deleteIdP("LOCAL");
         // Remove shared idp.
         identityProviderManagementService.deleteIdP("SHARED_IDP");
+    }
+
+    @Test(expectedExceptions = {IdentityProviderManagementException.class}, expectedExceptionsMessageRegExp =
+            "An Identity Provider Entity ID has already been registered with the name 'localhost' for tenant .*")
+    public void testAddIdPWithResourceId() throws IdentityProviderManagementException, XMLStreamException {
+
+        when(mockMetadataConverter.canHandle((Property) anyObject())).thenReturn(TRUE);
+        when(mockMetadataConverter.getFederatedAuthenticatorConfig(anyObject(), anyObject())).thenReturn(
+                federatedAuthenticatorConfigWithIdpEntityIdPropertySet());
+        identityProviderManagementService.addIdP(addIdPDataWithSameIdpEntityId("idp1"));
+        identityProviderManagementService.addIdP(addIdPDataWithSameIdpEntityId("idp2"));
+    }
+
+    private IdentityProvider addIdPDataWithSameIdpEntityId(String idpName) {
+
+        // Initialize Test Identity Provider.
+        IdentityProvider idp = new IdentityProvider();
+        idp.setIdentityProviderName(idpName);
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setDisplayName("DisplayName");
+        federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
+        federatedAuthenticatorConfig.setEnabled(true);
+        Property property1 = new Property();
+        property1.setName("SPEntityId");
+        property1.setValue("wso2-is");
+        Property property2 = new Property();
+        property2.setName("meta_data_saml");
+        property2.setValue("dummyMetadataValue");
+
+        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
+
+        idp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
+
+        return idp;
+    }
+
+    private FederatedAuthenticatorConfig federatedAuthenticatorConfigWithIdpEntityIdPropertySet() {
+
+        // Initialize IdPEntityId Property.
+        Property property = new Property();
+        property.setName("IdPEntityId");
+        property.setValue("localhost");
+
+        // Add to and return federatedAuthenticatorConfig.
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setProperties(new Property[]{property});
+        return federatedAuthenticatorConfig;
     }
 
 }
