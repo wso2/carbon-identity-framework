@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
@@ -4359,6 +4360,62 @@ public class IdPManagementDAO {
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving IDP usages of the claim "
                     + claimUri, e);
+        } finally {
+            if (dbConnInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
+    }
+
+    public List<IdentityProvider> getIdPsById(Connection dbConnection, int tenantId, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        boolean dbConnInitialized = false;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        List<IdentityProvider> idps = new ArrayList<>();
+
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+            dbConnInitialized = true;
+        }
+
+        try {
+            String placeholder = String.join(", ", idpIds);
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDPS_BY_IDP_ID_LIST.replace(
+                    SCOPE_LIST_PLACEHOLDER, placeholder);
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
+
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                int idpId = rs.getInt("ID");
+                String idpName = rs.getString("NAME");
+
+                if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idpName)) {
+                    IdentityProvider idp = new IdentityProvider();
+                    idp.setId(Integer.toString(idpId));
+                    idp.setIdentityProviderName(idpName);
+                    idp.setPrimary((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY")));
+                    idp.setHomeRealmId(rs.getString("HOME_REALM_ID"));
+                    idp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
+                    idp.setEnable((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_ENABLED")));
+                    idp.setDisplayName(rs.getString("DISPLAY_NAME"));
+                    idp.setImageUrl(rs.getString("IMAGE_URL"));
+                    idp.setResourceId(rs.getString("UUID"));
+                    idps.add(idp);
+                }
+            }
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
+
+            return idps;
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
+                    "Providers for IDP IDs for tenantId: " + tenantId, e);
         } finally {
             if (dbConnInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);

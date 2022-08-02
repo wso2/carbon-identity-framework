@@ -47,6 +47,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Set;
 
 public class CacheBackedIdPMgtDAO {
 
@@ -936,5 +937,11 @@ public class CacheBackedIdPMgtDAO {
             }
         }
         return null;
+    }
+
+    public List<IdentityProvider> getIdPsById(Connection dbConnection, int tenantId, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getIdPsById(dbConnection, tenantId, idpIds);
     }
 }

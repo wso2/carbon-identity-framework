@@ -37,12 +37,15 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Se
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementService;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -51,8 +54,12 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
@@ -307,6 +314,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (log.isDebugEnabled()) {
             log.debug("Retrieving session: " + sessionId + " of user: " + userId + ".");
         }
+
+        UserSession userSession;
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                 FrameworkUtils.getLoginTenantDomainFromContext());
         if (sessionContext != null) {
@@ -318,15 +327,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 String fedAssociatedUserId = getUserIdFromFederatedMapping(tenantId, userId);
 
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    return userSessionDAO.getSession(fedAssociatedUserId, sessionId);
+                    userSession = userSessionDAO.getSession(fedAssociatedUserId, sessionId);
+                } else {
+                    userSession = userSessionDAO.getSession(userId, sessionId);
                 }
             } catch (UserSessionException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while retrieving federated associations for the userId: " + userId);
                 }
+                userSession = userSessionDAO.getSession(userId, sessionId);
             }
 
-            return userSessionDAO.getSession(userId, sessionId);
+            // Add identity provider information to the session list.
+            try {
+                parseIdpInfoToSessionResponse(userSession);
+                return Optional.of(userSession);
+            } catch (UserSessionException e) {
+                String msg = "Error while parsing idp information to the session objects.";
+                if (log.isDebugEnabled()) {
+                    log.debug(msg);
+                }
+                throw new SessionManagementServerException(
+                        SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION, msg, e);
+            }
         }
 
         return Optional.empty();
@@ -394,7 +417,22 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
             UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
 
-            return userSessionDAO.getSessions(getTenantId(tenantDomain), filter, limit, sortOrder);
+            List<UserSession> sessionsList = userSessionDAO.getSessions(getTenantId(tenantDomain),
+                    filter, limit, sortOrder);
+
+            // Add identity provider information to the session list.
+            try {
+                parseIdpInfoToSessionsResponse(sessionsList);
+
+                return sessionsList;
+            } catch (UserSessionException e) {
+                String msg = "Error while parsing idp information to the session objects.";
+                if (log.isDebugEnabled()) {
+                    log.debug(msg);
+                }
+                throw new SessionManagementServerException(
+                        ERROR_CODE_UNABLE_TO_GET_SESSIONS, msg, e);
+            }
         } catch (UserSessionException e) {
             throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, e.getMessage(), e);
         }
@@ -462,7 +500,21 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                             .ERROR_CODE_INVALID_SESSION_ID, null);
         }
         UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
-        return Optional.ofNullable(userSessionDTO.getSession(sessionId));
+        UserSession userSession = userSessionDTO.getSession(sessionId);
+
+        // Add identity provider information to the session list.
+        try {
+            parseIdpInfoToSessionResponse(userSession);
+        } catch (UserSessionException e) {
+            String msg = "Error while parsing idp information to the session objects.";
+            if (log.isDebugEnabled()) {
+                log.debug(msg);
+            }
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION, msg, e);
+        }
+
+        return Optional.ofNullable(userSession);
     }
 
     /**
@@ -527,6 +579,19 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             }
         }
+
+        // Add identity provider information to the session list.
+        try {
+            parseIdpInfoToSessionsResponse(sessionsList);
+        } catch (UserSessionException e) {
+            String msg = "Error while parsing idp information to the session objects.";
+            if (log.isDebugEnabled()) {
+                log.debug(msg);
+            }
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION, msg, e);
+        }
+
         return sessionsList;
     }
 
@@ -651,5 +716,79 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         return federatedAssociationManager;
+    }
+
+    /**
+     * Retrieve and set identity provider information to each session object. Currently, only the idpName is set.
+     *
+     * @param userSessions List of user sessions containing idpId.
+     * @throws UserSessionException Exception is thrown if any error occurred.
+     */
+    private void parseIdpInfoToSessionsResponse(List<UserSession> userSessions)
+            throws UserSessionException {
+
+        if (userSessions.isEmpty()) {
+            return;
+        }
+        Set<String> idpIdList = userSessions.stream().map(UserSession::getIdpId).collect(Collectors.toSet());
+        if (idpIdList.isEmpty()) {
+            return;
+        }
+        try {
+            Map<String, IdentityProvider> idpMap = getIDPManagementService().getIdPsById(idpIdList);
+            if (idpMap == null || idpMap.isEmpty()) {
+                return;
+            }
+            for (UserSession userSession : userSessions) {
+                IdentityProvider idpFromMap = idpMap.get(userSession.getIdpId());
+                if (idpFromMap != null) {
+                    userSession.setIdpName(idpFromMap.getIdentityProviderName());
+                }
+            }
+        } catch (IdentityProviderManagementException e) {
+            throw new UserSessionException(
+                    "Error when retrieving identity provider information for the sessions list", e);
+        }
+    }
+
+    /**
+     * Retrieve and set identity provider information to the session object. Currently, only the idpName is set.
+     *
+     * @param userSession User session containing idpId.
+     * @throws UserSessionException Exception is thrown if any error occurred.
+     */
+    private void parseIdpInfoToSessionResponse(UserSession userSession)
+            throws UserSessionException {
+
+        if (userSession == null || userSession.getIdpId() == null) {
+            return;
+        }
+        Set<String> idpIdList = new HashSet<>();
+        idpIdList.add(userSession.getIdpId());
+        try {
+            Map<String, IdentityProvider> idpMap = getIDPManagementService().getIdPsById(idpIdList);
+            if (!idpMap.isEmpty()) {
+                userSession.setIdpName(idpMap.get(userSession.getIdpId()).getIdentityProviderName());
+            }
+        } catch (IdentityProviderManagementException e) {
+            throw new UserSessionException(
+                    "Error when retrieving identity provider information for the sessions list", e);
+        }
+    }
+
+    private IdentityProviderManagementService getIDPManagementService() throws UserSessionException {
+
+        IdentityProviderManagementService idpManagementService =
+                FrameworkServiceDataHolder.getInstance().getIdentityProviderManagementService();
+        if (idpManagementService == null) {
+            String messge = "Error while retrieving idp management service. IdentityProviderManagementService is " +
+                    "not available in the OSGi framework.";
+            if (log.isDebugEnabled()) {
+                log.debug(messge);
+            }
+            throw new UserSessionException(messge);
+        }
+
+        return idpManagementService;
     }
 }

@@ -109,7 +109,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     @Override
-    public Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
+    public UserSession getSession(String userId, String sessionId) throws SessionManagementServerException {
 
         HashMap<String, String> propertiesMap = new HashMap<>();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
@@ -126,7 +126,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     });
 
             if (propertiesMap.isEmpty()) {
-                return Optional.empty();
+                return null;
             }
 
             UserSession userSession = new UserSession();
@@ -154,7 +154,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-                return Optional.of(userSession);
+                return userSession;
             }
         } catch (DataAccessException e) {
             throw new SessionManagementServerException(
@@ -163,7 +163,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), userId
                     ), e);
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override

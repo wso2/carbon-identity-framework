@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -155,6 +156,19 @@ public interface IdpManager {
             throws IdentityProviderManagementException {
 
 	    return null;
+    }
+
+    /**
+     * Retrieves registered Identity providers for a given tenant by Identity Provider Ids.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param idpIds List of identity provider Ids.
+     * @return List of identity providers.
+     */
+    default List<IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        return Collections.emptyList();
     }
 
     /**
