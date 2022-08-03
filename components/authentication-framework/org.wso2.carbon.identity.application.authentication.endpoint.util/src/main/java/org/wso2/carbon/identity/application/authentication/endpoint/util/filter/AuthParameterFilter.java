@@ -48,6 +48,9 @@ public class AuthParameterFilter implements Filter {
 
     private static final Log log = LogFactory.getLog(AuthParameterFilter.class);
     private ServletContext context = null;
+    private static final String SESSION_DATA_KEY = "sessionDataKey";
+    private final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
+    private final String ERROR_KEY = "errorKey";
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -64,24 +67,21 @@ public class AuthParameterFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
-
-        // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
-        if (servletRequest.getParameter("sessionDataKey") != null) {
-            if (servletRequest instanceof HttpServletRequest) {
+        if (servletRequest instanceof HttpServletRequest) {
+            // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
+            if (servletRequest.getParameter(SESSION_DATA_KEY) != null) {
                 // Cast ServletRequest to HttpServletRequest and get the wrapped request.
-                HttpServletRequest httpServletRequest = cacheParamsFromSessionDataKey((HttpServletRequest) servletRequest);
+                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, SESSION_DATA_KEY);
                 filterChain.doFilter(httpServletRequest, servletResponse);
                 return;
             }
-        } else if (servletRequest.getParameter("sessionDataKeyConsent") != null) {
-            if (servletRequest instanceof HttpServletRequest) {
-                HttpServletRequest httpServletRequest = cacheParamsFromConsentKey((HttpServletRequest) servletRequest);
+            if (servletRequest.getParameter(SESSION_DATA_KEY_CONSENT) != null) {
+                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, SESSION_DATA_KEY_CONSENT);
                 filterChain.doFilter(httpServletRequest, servletResponse);
                 return;
             }
-        } else if (servletRequest.getParameter("errorKey") != null) {
-            if (servletRequest instanceof HttpServletRequest) {
-                HttpServletRequest httpServletRequest = cacheParamsFromErrorKey((HttpServletRequest) servletRequest);
+            if (servletRequest.getParameter(ERROR_KEY) != null) {
+                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, ERROR_KEY);
                 filterChain.doFilter(httpServletRequest, servletResponse);
                 return;
             }
@@ -90,48 +90,18 @@ public class AuthParameterFilter implements Filter {
     }
 
     /**
-     * Cache the parameters retrieved from the API using SessionDataKey.
+     * Get HttpServletRequest with parameters retrieved from the API.
      *
-     * @param servletRequest - Received servlet request.
-     * @return - HttpServletRequestWrapper with cached parameter map.
+     * @param servletRequest - Received HttpServletRequest.
+     * @param key - Name of the key.
+     * @return - HttpServletRequest with parameters.
      */
-    private HttpServletRequest cacheParamsFromSessionDataKey(HttpServletRequest servletRequest) {
-
-        String authAPIURL = buildAPIPath("sessionDataKey", servletRequest.getParameter("sessionDataKey"));
+    private HttpServletRequest getServletRequestWithParams(ServletRequest servletRequest, String key) {
+        String authAPIURL = buildAPIPath(key, servletRequest.getParameter(key));
         String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
         Gson gson = new Gson();
         Map<String, Object> cachedParams = gson.fromJson(contextProperties, Map.class);
-
-        return new AuthenticationRequestWrapper(servletRequest, cachedParams);
-    }
-
-    /**
-     * Cache the parameters retrieved from the API using SessionDataKey.
-     *
-     * @param servletRequest - Received servlet request.
-     * @return - HttpServletRequestWrapper with cached parameter map.
-     */
-    private HttpServletRequest cacheParamsFromConsentKey(HttpServletRequest servletRequest) {
-
-        String authAPIURL = buildAPIPath("sessionDataKeyConsent", servletRequest.getParameter("sessionDataKeyConsent"));
-        String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
-        Gson gson = new Gson();
-        Map<String, Object> cachedParams = gson.fromJson(contextProperties, Map.class);
-        return new AuthenticationRequestWrapper(servletRequest, cachedParams);
-    }
-
-    /**
-     * Cache the parameters retrieved from the API using Error Key.
-     *
-     * @param servletRequest - Received servlet request.
-     * @return - HttpServletRequestWrapper with cached parameter map.
-     */
-    private HttpServletRequest cacheParamsFromErrorKey(HttpServletRequest servletRequest) {
-        String authAPIURL = buildAPIPath("errorKey", servletRequest.getParameter("errorKey"));
-        String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
-        Gson gson = new Gson();
-        Map<String, Object> cachedParams = gson.fromJson(contextProperties, Map.class);
-        return new AuthenticationRequestWrapper(servletRequest, cachedParams);
+        return new AuthenticationRequestWrapper((HttpServletRequest) servletRequest, cachedParams);
     }
 
     /**
@@ -165,15 +135,15 @@ public class AuthParameterFilter implements Filter {
         }
 
         switch (key) {
-            case "sessionDataKey":
+            case SESSION_DATA_KEY:
                 // Add 'sessionDataKey' to URL.
                 authAPIURL += "AuthRequestKey/" + value;
                 break;
-            case "sessionDataKeyConsent":
+            case SESSION_DATA_KEY_CONSENT:
                 // Add 'sessionDataKeyConsent' to URL.
                 authAPIURL += "OauthConsentKey/" + value;
                 break;
-            case "errorKey":
+            case ERROR_KEY:
                 authAPIURL += "AuthenticationError/" + value;
                 break;
         }
