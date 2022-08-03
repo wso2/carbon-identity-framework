@@ -2032,6 +2032,7 @@
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
                     <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
