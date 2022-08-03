@@ -896,6 +896,13 @@ public class ApplicationMgtUtil {
                 user = new User(userStoreManager.getUser(null, username));
             } else if (userId != null && userStoreManager.isExistingUserWithID(userId)) {
                 user = new User(userStoreManager.getUser(userId, null));
+            } else if (username != null && userStoreManager.isExistingUserWithID(username)) {
+                /*
+                For privileged business user, their user id will be sent to federated tenant as name.
+                Thus need to fetch user details using username as user id from their original
+                tenant's user-store manager.
+                */
+                user = new User(userStoreManager.getUser(username, null));
             }
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("Error finding user in tenant.", e);
