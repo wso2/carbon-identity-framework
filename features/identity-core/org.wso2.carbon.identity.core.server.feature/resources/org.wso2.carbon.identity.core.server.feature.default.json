@@ -63,7 +63,7 @@
   "oauth.map_federated_users_to_local": "$ref{authentication.map_federated_users_to_local}",
   "oauth.token_generation.include_username_in_access_token": false,
   "oauth.handle_logout_gracefully": true,
-  "oauth.introspect.allow_cross_tenant": true,
+  "oauth.introspect.allow_cross_tenant": false,
 
   "oauth.token.validation.include_validation_context_as_jwt_in_reponse": false,
   "oauth.extensions.token_context_generator": "org.wso2.carbon.identity.oauth2.authcontext.JWTTokenGenerator",
@@ -204,6 +204,9 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
+
+  "oauth.oidc.fapi.enable_ciba_profile": false,
+  "oauth.oidc.fapi.enable_security_profile": false,
 
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
@@ -673,7 +676,7 @@
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
   "console.ui.idp_templates.github.enabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
-  "console.ui.hiddenAuthenticators": ["MagicLinkAuthenticator"],
+  "console.ui.hiddenAuthenticators": [],
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
