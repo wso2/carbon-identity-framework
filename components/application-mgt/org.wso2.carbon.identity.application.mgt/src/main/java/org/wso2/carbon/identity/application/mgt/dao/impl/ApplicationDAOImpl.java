@@ -3393,6 +3393,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
             filterData.addFilterValue("%");
+        } else if (!(SEARCH_SUPPORTED_FIELD_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
+            // This formatting is to facilitate the search bar in carbon/application/list-service-providers.
+            if (filter.contains(ASTERISK)) {
+                filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
+            } else {
+                filterData.setFilterString("SP_APP.APP_NAME = ?");
+            }
+            filterData.addFilterValue(filter);
         } else {
             // Not repeating validations as all validations are handled in the Identity API Server.
             try {
