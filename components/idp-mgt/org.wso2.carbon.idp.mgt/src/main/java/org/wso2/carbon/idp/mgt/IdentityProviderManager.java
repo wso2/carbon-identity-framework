@@ -1346,11 +1346,24 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
-    public List<IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
+    public Map<String, IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
             throws IdentityProviderManagementException {
 
+        if (idpIds.isEmpty()) {
+            return null;
+        }
+        Map<String, IdentityProvider> idpMap = new HashMap<>();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        return dao.getIdPsById(null, tenantId, idpIds);
+        List<IdentityProvider> identityProviders = dao.getIdPsById(null, tenantId, idpIds);
+
+        for (IdentityProvider idp : identityProviders) {
+            String idpName = idp.getIdentityProviderName();
+            if (idpName != null && !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
+                idpMap.put(idp.getId(), idp);
+            }
+        }
+
+        return idpMap;
     }
 
     /**

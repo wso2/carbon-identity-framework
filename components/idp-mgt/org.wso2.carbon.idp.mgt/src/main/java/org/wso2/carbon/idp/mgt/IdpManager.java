@@ -163,12 +163,12 @@ public interface IdpManager {
      *
      * @param tenantDomain Tenant domain.
      * @param idpIds List of identity provider Ids.
-     * @return List of identity providers.
+     * @return A map of identity providers keyed by idpId.
      */
-    default List<IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
+    default Map<String, IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
             throws IdentityProviderManagementException {
 
-        return Collections.emptyList();
+        return Collections.emptyMap();
     }
 
     /**
