@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -29,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
@@ -206,6 +206,10 @@ public class FrameworkUtils {
 
     private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
+
+    private static final String HASH_CHAR = "#";
+    private static final String HASH_CHAR_ENCODED = "%23";
+    private static final String QUESTION_MARK = "?";
 
     private FrameworkUtils() {
     }
@@ -623,6 +627,8 @@ public class FrameworkUtils {
                 if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
                 }
+                String authFlowId = context.getContextIdentifier();
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
@@ -1721,8 +1727,20 @@ public class FrameworkUtils {
                 .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
         try {
-            uriBuilder = new URIBuilder(redirectUrl);
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
         } catch (URISyntaxException e) {
             log.warn("Unable to filter redirect params for url." + redirectUrl, e);
             return redirectUrl;
@@ -1787,7 +1805,16 @@ public class FrameworkUtils {
         }
         uriBuilder.clearParameters();
         uriBuilder.setParameters(queryParamsList);
-        return uriBuilder.toString();
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
     }
 
     public static boolean isRemoveAPIParamsOnConsume() {
@@ -2415,6 +2442,26 @@ public class FrameworkUtils {
             userNamePrvisioningUrl = FrameworkConstants.REGISTRATION_ENDPOINT;
         }
         return userNamePrvisioningUrl;
+    }
+
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
+
+    /**
+     * This method is to check whether organization management is enabled.
+     *
+     * @return Organization management feature is enabled or not.
+     */
+    public static boolean isOrganizationManagementEnabled() {
+
+        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled();
     }
 
     public static boolean promptOnLongWait() {

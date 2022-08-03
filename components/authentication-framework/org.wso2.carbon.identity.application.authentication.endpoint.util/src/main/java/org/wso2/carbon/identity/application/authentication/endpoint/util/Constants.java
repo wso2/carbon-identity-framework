@@ -243,6 +243,12 @@ public class Constants {
         public static final String INCORRECT_ERROR_MAPPING_KEY = "incorrect.error.mapping";
         public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION = "suspicious.authentication.attempts_suspicious.authentication.attempts.description";
         public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY = "suspicious.authentication.attempts";
+        public static final String AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND =
+                "authentication.failed_no.registered.device.found";
+        public static final String NO_REGISTERED_DEVICE_FOUND_I18N_KEY =
+                "no.registered.device.found";
+        public static final String INVALID_CLIENT_IN_TENANT = "invalid_client_no.valid.client.in.tenant";
+        public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
 
         private ErrorToi18nMappingConstants() {
 

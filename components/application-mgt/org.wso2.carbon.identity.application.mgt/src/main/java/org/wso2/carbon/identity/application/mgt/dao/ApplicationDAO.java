@@ -49,9 +49,12 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
-     * @param applicationId
-     * @return
-     * @throws IdentityApplicationManagementException
+     * Get service provider when the application resides in the same tenant of the request initiated.
+     *
+     * @param applicationId The application id.
+     * @return Service provider.
+     * @throws IdentityApplicationManagementException throws when an error occurs in retrieving service provider with
+     *                                                all the configurations.
      */
     ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
 
@@ -279,5 +282,19 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return false;
+    }
+
+    /**
+     * Method that returns service provider with required attributes.
+     *
+     * @param applicationId       Application identifier.
+     * @param requiredAttributes  List of required attributes.
+     * @return  ServiceProvider with required attributes added.
+     * @throws IdentityApplicationManagementException   Error when obtaining Sp with required attributes.
+     */
+    default ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
+            throws IdentityApplicationManagementException {
+
+        return new ServiceProvider();
     }
 }

@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.20.444-SNAPSHOT</version>
+        <version>5.21.60-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
@@ -98,6 +98,25 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Adding dependency to identity.core temporary -->
         <!-- 
          This should be removed once app.mgt component provide a listener model.
@@ -121,23 +140,23 @@
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -159,6 +178,11 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -217,6 +241,8 @@
                             org.wso2.carbon.consent.mgt.core.*; version="${carbon.consent.mgt.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,
@@ -230,6 +256,13 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <argLine>
+                        --add-opens=java.base/java.lang=ALL-UNNAMED
+                        --add-opens=java.base/java.util=ALL-UNNAMED
+                        --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+                        --add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
+                    </argLine>
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>

@@ -555,15 +555,22 @@
                 }
                 CARBON.showConfirmationDialog(confirmationMessage,
                     function () {
+                        encodeSPCertificate();
                         document.getElementById("configure-sp-form").submit();
                     },
                     function () {
                         return false;
                     });
             } else {
+                encodeSPCertificate();
                 document.getElementById("configure-sp-form").submit();
             }
         }
+    }
+
+    function encodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
     function updateBeanAndRedirect(redirectURL) {
@@ -2393,10 +2400,10 @@
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts'/>
@@ -2415,10 +2422,10 @@
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts.wreply'/>

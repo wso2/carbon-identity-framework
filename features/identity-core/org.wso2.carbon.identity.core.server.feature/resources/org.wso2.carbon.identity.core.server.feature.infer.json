@@ -85,7 +85,6 @@
       "event.default_recorder.user_delete_event.write_to_separate_csv.path": "${carbon.home}/repository/logs/delete-records.csv"
     }
   },
-
   "identity_mgt.email_sender": {
     "internal": {
       "identity_mgt.recovery.notification.manage_internally": true,

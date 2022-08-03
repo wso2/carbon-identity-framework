@@ -331,6 +331,12 @@
 <!--                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>-->
 <!--                <IdTokenAllowed>true</IdTokenAllowed>-->
 <!--            </SupportedGrantType>-->
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
         </SupportedGrantTypes>
 
         <!--
@@ -536,6 +542,14 @@
             Disable this config if additional params are not needed post logout redirect URL.
             -->
             <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
+
+            <!--
+                FAPI Profile Support.
+            -->
+            <FAPI>
+                <EnableCibaProfile>false</EnableCibaProfile>
+                <EnableSecurityProfile>false</EnableSecurityProfile>
+            </FAPI>
         </OpenIDConnect>
 
         <!--
@@ -1863,54 +1877,6 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
-            <Scopes>internal_role_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
-            <Scopes>internal_role_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
-            <Scopes>internal_role_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
-            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-            <Scopes>internal_role_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-            <Scopes>internal_role_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
-            <Scopes>internal_role_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
-            <Scopes>internal_organization_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
-            <Scopes>internal_organization_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/create</Permissions>
-            <Scopes>internal_organization_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
-            <Scopes>internal_organization_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
-            <Scopes>internal_organization_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
-            <Scopes>internal_organization_delete</Scopes>
-        </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -2050,19 +2016,34 @@
         <WebApp>
             <Context>
                 <BasePath>/scim2/</BasePath>
+                <SubPaths>
+                    <Path>/scim2/Groups</Path>
+                    <Path>/scim2/Users</Path>
+                    <Path>/scim2/Schemas</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
                     <Path>/api/server/v1/organizations</Path>
+                    <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
                 </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/console/</BasePath>
             </Context>
         </WebApp>
     </OrgContextsToRewrite>
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
@@ -2126,6 +2107,11 @@
 
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
+
+    <!-- Following applications can use federated user role based authorization -->
+    <!--<FIdPRoleBasedAuthzApplications>-->
+       <!--<AppName>Console</AppName>-->
+    <!--</FIdPRoleBasedAuthzApplications>-->
 
     <!--This configuration is used for X509 Certificate based authentication. -->
     <!--<X509>-->

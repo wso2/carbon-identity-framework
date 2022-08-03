@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
@@ -85,11 +87,14 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
+@PowerMockIgnore({"org.mockito.*"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
-    private static final String APPLICATION_NAME_1 = "Test application 1";
-    private static final String APPLICATION_NAME_2 = "Test application 2";
+    private static final String APPLICATION_NAME_1 = "Test application1";
+    private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_NAME_1_Filter = "name ew application1";
+    private static final String APPLICATION_NAME_2_Filter = "name co 2";
     private static final String IDP_NAME_1 = "Test IdP 1";
     private static final String IDP_NAME_2 = "Test IdP 2";
     private static final String USERNAME_1 = "user 1";
@@ -233,44 +238,45 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         };
     }
 
-    @Test(dataProvider = "getApplicationDataProvider")
-    public void testGetApplicationBasicInfoWithFilter(Object serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
+    @Test
+    public void testGetApplicationBasicInfoWithFilter() throws IdentityApplicationManagementException {
 
-        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
 
-        // Adding new application.
-        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
-                username);
+        // Adding application.
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
-                (tenantDomain, username, inputSP.getApplicationName());
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, "name eq " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
-        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
-    @Test(dataProvider = "getApplicationDataProvider")
-    public void testGetPaginatedApplicationBasicInfo(Object serviceProvider, String tenantDomain, String username)
+    @Test
+    public void testGetPaginatedApplicationBasicInfo()
             throws IdentityApplicationManagementException {
 
-        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
 
-        // Adding new application.
-        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
-                username);
+        // Adding application.
+        applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getPaginatedApplicationBasicInfo
-                (tenantDomain, username, 1, inputSP.getApplicationName());
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, 1, "name co " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
-        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
     private void addApplications() throws IdentityApplicationManagementException {
@@ -288,7 +294,18 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getAllApplicationBasicInfo
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
@@ -335,15 +352,25 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetApplicationBasicInfoFilterOffsetLimit() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
         ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2, 0, 1);
-        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_2);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1_Filter, 0, 10);
+        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_1);
 
         ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1, 0, 1);
-        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_1);
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2_Filter, 0, 10);
+        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_2);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -363,11 +390,23 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetCountOfApplicationsFilter() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_1), 1);
+                USERNAME_1, APPLICATION_NAME_1_Filter), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_2), 1);
+                USERNAME_1, APPLICATION_NAME_2_Filter), 1);
+
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -667,6 +706,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Collection mockPermissionNode = mock(Collection.class);
         when(mockRegistry.newCollection()).thenReturn(mockPermissionNode);
         when(mockRegistry.get(anyString())).thenReturn(mockPermissionNode);
+        when(CarbonContext.getThreadLocalCarbonContext().getRegistry(
+                RegistryType.USER_GOVERNANCE)).thenReturn(mockRegistry);
+        when(mockRegistry.resourceExists(anyString())).thenReturn(FALSE);
     }
 
     private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {

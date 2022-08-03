@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;

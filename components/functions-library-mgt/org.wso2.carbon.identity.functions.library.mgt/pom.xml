@@ -21,7 +21,7 @@
     <parent>
         <artifactId>functions-library-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.20.444-SNAPSHOT</version>
+        <version>5.21.60-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -191,13 +191,18 @@
             <classifier>runtime</classifier>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-testng</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -234,6 +239,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
