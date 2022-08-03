@@ -105,7 +105,7 @@ import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockSe
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementService;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -968,20 +968,20 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
-            name = "idp.mgt.dscomponent.service",
-            service = IdentityProviderManagementService.class,
+            name = "idp.mgt.dscomponent",
+            service = IdpManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityProviderManagementService"
+            unbind = "unsetIdentityProviderManager"
     )
-    protected void setIdentityProviderManagementService(IdentityProviderManagementService idpMgtService) {
+    protected void setIdentityProviderManager(IdpManager idpMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdentityProviderManagementService(idpMgtService);
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(idpMgtService);
     }
 
-    protected void unsetIdentityProviderManagementService(IdentityProviderManagementService idpMgtService) {
+    protected void unsetIdentityProviderManager(IdpManager idpMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdentityProviderManagementService(null);
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(null);
     }
 
     /**

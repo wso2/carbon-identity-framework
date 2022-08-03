@@ -37,10 +37,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class IdentityProviderManagementService extends AbstractAdmin {
 
@@ -426,35 +423,5 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             localClaimsArray.add(localClaim.getClaimURI());
         }
         return localClaimsArray.toArray(new String[0]);
-    }
-
-    /**
-     * Retrieves registered Identity providers for the logged-in tenant by Identity Provider Ids.
-     *
-     * @param idpIds List of identity provider Ids.
-     * @return Array of <code>IdentityProvider</code>.
-     * @throws IdentityProviderManagementException Error when getting list of Identity Providers
-     */
-    public Map<String, IdentityProvider> getIdPsById(Set<String> idpIds) throws IdentityProviderManagementException {
-
-        if (idpIds.isEmpty()) {
-            return null;
-        }
-
-        String tenantDomain = "";
-        Map<String, IdentityProvider> idpMap = new HashMap<>();
-
-        tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance()
-                .getIdPsById(tenantDomain, idpIds);
-
-        for (IdentityProvider idp : identityProviders) {
-            String idpName = idp.getIdentityProviderName();
-            if (idpName != null && !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
-                idpMap.put(idp.getId(), idp);
-            }
-        }
-
-        return idpMap;
     }
 }

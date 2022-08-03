@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -98,6 +97,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
+                String idpId = getIdpIdByUserId(userSession.getUserId());
+                if (StringUtils.isNotEmpty(idpId)) {
+                    userSession.setIdpId(idpId);
+                }
+
                 return userSession;
             }
         } catch (DataAccessException e) {
@@ -131,6 +135,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             UserSession userSession = new UserSession();
             userSession.setSessionId(sessionId);
+            userSession.setUserId(userId);
 
             propertiesMap.forEach((key, value) -> {
                 switch (key) {
@@ -154,6 +159,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
+                String idpId = getIdpIdByUserId(userSession.getUserId());
+                if (StringUtils.isNotEmpty(idpId)) {
+                    userSession.setIdpId(idpId);
+                }
+
                 return userSession;
             }
         } catch (DataAccessException e) {
@@ -249,28 +259,51 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                         preparedStatement.setInt(2, tenantId);
                     });
 
-            // Application details will be incomplete if an application filter is not provided. In that case
-            // requires to query for missing application details.
-            if (!userSessionsList.isEmpty() && finalAppDetails.isEmpty()) {
-                Set<String> appIdList = new HashSet<>();
-                for (UserSession userSession : userSessionsList) {
-                    appIdList.addAll(userSession.getApplications().stream().map(Application::getAppId)
-                            .collect(Collectors.toList()));
-                }
-                Map<String, Application> applicationMap = getApplicationsFromAppID(appIdList);
-
-                for (UserSession userSession : userSessionsList) {
-                    for (Application app : userSession.getApplications()) {
-                        Application appFromMap = applicationMap.get(app.getAppId());
-                        if (appFromMap != null) {
-                            app.setAppName(appFromMap.getAppName());
-                            app.setResourceId(appFromMap.getResourceId());
-                        }
+            /**
+             * Application details will be incomplete if an application filter is not provided. In that case
+             * requires to query for missing application details.
+             * Also requires to query and set idp information. Hence, perform in the same loop to reduce number of
+             * iterations.
+             */
+            if (!userSessionsList.isEmpty()) {
+                if (finalAppDetails.isEmpty()) {
+                    Set<String> appIdList = new HashSet<>();
+                    Set<String> userIdList = new HashSet<>();
+                    for (UserSession userSession : userSessionsList) {
+                        appIdList.addAll(userSession.getApplications().stream().map(Application::getAppId)
+                                .collect(Collectors.toList()));
+                        userIdList.add(userSession.getUserId());
                     }
+                    Map<String, Application> applicationMap = getApplicationsFromAppID(appIdList);
+                    Map<String, String> userIdpMap = getIdpIdsByUserIdList(userIdList);
 
-                    // If application is not present in the SP_APP table but has a session associated with it,
-                    // that application should not be considered for the session object.
-                    userSession.getApplications().removeIf(application -> application.getAppName() == null);
+                    for (UserSession userSession : userSessionsList) {
+                        for (Application app : userSession.getApplications()) {
+                            Application appFromMap = applicationMap.get(app.getAppId());
+                            if (appFromMap != null) {
+                                app.setAppName(appFromMap.getAppName());
+                                app.setResourceId(appFromMap.getResourceId());
+                            }
+                        }
+
+                        // If application is not present in the SP_APP table but has a session associated with it,
+                        // that application should not be considered for the session object.
+                        userSession.getApplications().removeIf(application -> application.getAppName() == null);
+
+                        // Add idp information to the session.
+                        userSession.setIdpId(userIdpMap.get(userSession.getUserId()));
+                    }
+                } else {
+                    // Set idp information.
+                    Set<String> userIdList = new HashSet<>();
+                    for (UserSession userSession : userSessionsList) {
+                        userIdList.add(userSession.getUserId());
+                    }
+                    Map<String, String> userIdpMap = getIdpIdsByUserIdList(userIdList);
+
+                    for (UserSession userSession : userSessionsList) {
+                        userSession.setIdpId(userIdpMap.get(userSession.getUserId()));
+                    }
                 }
             }
         } catch (DataAccessException e) {
@@ -358,5 +391,47 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             resultSet.getString("UUID")));
 
         return applicationsList.stream().collect(Collectors.toMap(Application::getAppId, app -> app));
+    }
+
+    @Override
+    public String getIdpIdByUserId(String userId) throws DataAccessException {
+
+        if (userId == null) {
+            return null;
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        List<String> idpIds = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_IDP_ID_BY_USER_ID,
+                ((resultSet, rowNumber) -> resultSet.getString("IDP_ID")),
+                preparedStatement -> preparedStatement.setString(1, userId)
+        );
+        if (idpIds == null || idpIds.isEmpty()) {
+            return null;
+        }
+
+        return idpIds.get(0);
+    }
+
+    private Map<String, String> getIdpIdsByUserIdList(Set<String> userIdList) throws DataAccessException {
+
+        if (userIdList == null || userIdList.isEmpty()) {
+            return null;
+        }
+        Map<String, String> userIdpMap = new HashMap<>();
+        String placeholder = userIdList.stream().collect(Collectors.joining("', '", "'", "'"));
+        String sql = SQLQueries.SQL_GET_IDP_IDS_BY_USER_ID_LIST.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        List<UserSession> userIdpList = jdbcTemplate.executeQuery(sql,
+                ((resultSet, rowNumber) -> {
+                    UserSession tempSession = new UserSession();
+                    tempSession.setUserId(resultSet.getString("USER_ID"));
+                    tempSession.setIdpId(Integer.toString(resultSet.getInt("IDP_ID")));
+                    return tempSession;
+                })
+        );
+        for (UserSession userIdpSession : userIdpList) {
+            userIdpMap.put(userIdpSession.getUserId(), userIdpSession.getIdpId());
+        }
+
+        return userIdpMap;
     }
 }
