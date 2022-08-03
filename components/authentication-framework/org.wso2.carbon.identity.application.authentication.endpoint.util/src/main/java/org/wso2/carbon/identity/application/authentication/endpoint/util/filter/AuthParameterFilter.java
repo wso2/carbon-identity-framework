@@ -65,7 +65,7 @@ public class AuthParameterFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
-        // Check if request contains 'sessionDataKey'.
+        // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
         if (servletRequest.getParameter("sessionDataKey") != null) {
             if (servletRequest instanceof HttpServletRequest) {
                 // Cast ServletRequest to HttpServletRequest and get the wrapped request.
@@ -120,6 +120,12 @@ public class AuthParameterFilter implements Filter {
         return new AuthenticationRequestWrapper(servletRequest, cachedParams);
     }
 
+    /**
+     * Cache the parameters retrieved from the API using Error Key.
+     *
+     * @param servletRequest - Received servlet request.
+     * @return - HttpServletRequestWrapper with cached parameter map.
+     */
     private HttpServletRequest cacheParamsFromErrorKey(HttpServletRequest servletRequest) {
         String authAPIURL = buildAPIPath("errorKey", servletRequest.getParameter("errorKey"));
         String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
@@ -158,14 +164,18 @@ public class AuthParameterFilter implements Filter {
             authAPIURL += "/";
         }
 
-        if (key.equals("sessionDataKey")) {
-            // Add 'sessionDataKey' to URL.
-            authAPIURL += "AuthRequestKey/" + value;
-        } else if (key.equals("sessionDataKeyConsent")) {
-            // Add 'sessionDataKeyConsent' to URL.
-            authAPIURL += "OauthConsentKey/" + value;
-        } else if (key.equals("errorKey")) {
-            authAPIURL += "AuthenticationError/" + value;
+        switch (key) {
+            case "sessionDataKey":
+                // Add 'sessionDataKey' to URL.
+                authAPIURL += "AuthRequestKey/" + value;
+                break;
+            case "sessionDataKeyConsent":
+                // Add 'sessionDataKeyConsent' to URL.
+                authAPIURL += "OauthConsentKey/" + value;
+                break;
+            case "errorKey":
+                authAPIURL += "AuthenticationError/" + value;
+                break;
         }
         return authAPIURL;
     }
