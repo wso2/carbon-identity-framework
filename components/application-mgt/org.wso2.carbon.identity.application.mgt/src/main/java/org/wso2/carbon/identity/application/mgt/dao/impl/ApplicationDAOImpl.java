@@ -194,7 +194,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_STEPS_INFO_BY_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UUID_BY_APP_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP_WITH_ID;
@@ -1972,6 +1971,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         basicAppDataResultSet.getString(5)));
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
+                serviceProvider.setTenantDomain(IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)));
 
                 ClaimConfig claimConfig = new ClaimConfig();
                 claimConfig.setRoleClaimURI(basicAppDataResultSet.getString(7));
@@ -2137,37 +2137,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    @Deprecated
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        try {
-
-            // Load basic application data
-            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
-            if (serviceProvider == null) {
-                return null;
-            }
-            return getApplication(applicationId, serviceProvider.getOwner().getTenantDomain());
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
-                    e);
-        } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
-        }
-    }
-
-    @Override
-    public ServiceProvider getApplication(int applicationId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
             if (serviceProvider == null) {
                 return null;
             }
-            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
@@ -2323,6 +2302,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)),
                         rs.getString(ApplicationTableColumns.USERNAME)));
                 serviceProvider.setOwner(owner);
+                serviceProvider.setTenantDomain(
+                        IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)));
 
                 ClaimConfig claimConfig = new ClaimConfig();
                 claimConfig.setRoleClaimURI(rs.getString(ApplicationTableColumns.ROLE_CLAIM));
@@ -2369,11 +2350,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private boolean getBooleanValue(String booleanValueAsString) throws SQLException {
 
         return "1".equals(booleanValueAsString);
-    }
-
-    private String getStringValueForBoolean(boolean booleanValue) throws SQLException {
-
-        return booleanValue ? "1" : "0";
     }
 
     /**
@@ -3076,8 +3052,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             claimConfig.setClaimMappings(claimMappingList.toArray(new ClaimMapping[claimMappingList
                     .size()]));
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(get);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3100,7 +3075,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         .getString(3)));
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
@@ -3124,7 +3099,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             claimConfig.setSpClaimDialects(spDialectList.toArray(new String[spDialectList.size()]));
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadClaimConfigsPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(loadClaimConfigsResultSet);
@@ -3160,8 +3135,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 authenticators.add(reqAuth);
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(loadReqPathAuthenticators);
             IdentityApplicationManagementUtil.closeResultSet(authResultSet);
@@ -3197,8 +3171,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 storeReqPathAuthenticators.executeBatch();
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeReqPathAuthenticators);
         }
@@ -3273,8 +3246,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving all application");
+            throw new IdentityApplicationManagementException("Error while retrieving all application", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getClientInfo);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3359,7 +3331,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while Reading all Applications");
+            throw new IdentityApplicationManagementException("Error while Reading all Applications", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
@@ -3756,7 +3728,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             deleteClientPrepStmt.execute();
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(String.format("Error while deleting application: %s " +
-                    "in tenant: %s from SP_APP", appName, tenantId));
+                    "in tenant: %s from SP_APP", appName, tenantId), e);
         }
     }
 
@@ -3803,8 +3775,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            log.error(e.getMessage(), e);
-            throw new IdentityApplicationManagementException("Error deleting application");
+            throw new IdentityApplicationManagementException("Error deleting application", e);
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
@@ -4199,7 +4170,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
 
@@ -4250,7 +4221,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
         Map<String, String> claimMapping = new HashMap<String, String>();
@@ -4293,8 +4264,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             return getClaimMapping(serviceProviderName, tenantDomain, false);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving claim mapping", e);
+            throw new IdentityApplicationManagementException("Error while retrieving claim mapping", e);
         }
     }
 
@@ -4323,7 +4293,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                         .getTenantManager().getTenantId(tenantDomain);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application");
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
         }
         List<String> reqClaimUris = new ArrayList<String>();
@@ -4826,7 +4796,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(serviceProvider.getOwner().getTenantDomain());
+            ApplicationMgtUtil.startTenantFlow(serviceProvider.getTenantDomain());
             List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
 
             if (permissionList != null) {
@@ -5014,7 +4984,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             int appId = getAppIdUsingResourceId(resourceId, tenantDomain);
             // Pass tenant domain as the service provider admin's tenant domain can be different.
-            ServiceProvider application = getApplication(appId, tenantDomain);
+            ServiceProvider application = getApplication(appId);
             if (application == null) {
                 if (log.isDebugEnabled()) {
                     log.debug(
@@ -5412,6 +5382,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             basicInfo.setAppOwner(appOwner);
         }
+        basicInfo.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
 
         return basicInfo;
     }
@@ -5448,40 +5419,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return applicationId;
-    }
-
-    /**
-     * Returns the internal application id for a given resourceId in a tenant.
-     *
-     * @param appId        Internal Application ID
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    private String getResourceIdUsingAppId(int appId,
-                                           String tenantDomain) throws IdentityApplicationManagementException {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, LOAD_UUID_BY_APP_ID)) {
-
-                statement.setInt(ApplicationTableColumns.ID, appId);
-                statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return resultSet.getString(ApplicationTableColumns.UUID);
-                    } else {
-                        String msg = "Cannot find the application resourceId for appId: %s in tenantDomain: %s";
-                        throw new IdentityApplicationManagementException(String.format(msg, appId, tenantDomain));
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            String msg = "Error while retrieving the application resourceId for appId: %s in tenantDomain: %s";
-            throw new IdentityApplicationManagementException(String.format(msg, appId, tenantDomain), e);
-        }
     }
 
     private void deleteApplicationCertificate(Connection connection, ServiceProvider application) throws SQLException {
