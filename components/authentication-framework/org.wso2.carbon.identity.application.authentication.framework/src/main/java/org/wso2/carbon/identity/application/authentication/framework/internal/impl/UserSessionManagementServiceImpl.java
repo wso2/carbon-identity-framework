@@ -243,6 +243,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)
                     );
+                    userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(userId), null, null));
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
@@ -683,6 +684,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         // Retrieve the username for the userId.
         String username = getUsernameFromUserId(userId, tenantId);
         if (StringUtils.isEmpty(username)) {
+            // Return null if the userId is existing in the IDN_AUTH_USER table. No need to check federated
+            // associations. Otherwise, throw an exception.
+            if (UserSessionStore.getInstance().isExistingUser(userId)) {
+                return null;
+            }
             throw new UserSessionException(String.format("Error while retrieving federated associations. " +
                     "Username not found for the userId: %s of tenantId: %s", userId, tenantId));
         }
