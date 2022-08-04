@@ -58,8 +58,8 @@ public class Constants {
     public static final String CONFIG_APP_NAME = "app.name";
     public static final String CONFIG_APP_PASSWORD = "app.password";
     public static final String CONFIG_SERVER_ORIGIN = "identity.server.origin";
-    public static final String CONFIG_BASIC_AUTH_NAME = "basic.auth.name";
-    public static final String CONFIG_BASIC_AUTH_PASSWORD = "basic.auth.password";
+    public static final String CONFIG_BASIC_AUTH_NAME = "identity.server.service.access.username";
+    public static final String CONFIG_BASIC_AUTH_PASSWORD = "identity.server.service.access.password";
 
     private Constants() {
 
