@@ -96,8 +96,11 @@ public interface FederatedAssociationManager {
      * @return An array of federated associations which contains the federated identifier info.
      * @throws FederatedAssociationManagerException
      */
-    FederatedAssociation[] getFederatedAssociationsOfUser(int tenantId, String domainFreeUsername) throws
-            FederatedAssociationManagerException;
+    default FederatedAssociation[] getFederatedAssociationsOfUser(int tenantId, String domainFreeUsername) throws
+            FederatedAssociationManagerException {
+
+        return null;
+    }
 
     /**
      * Remove the federated association with the given federated association for the given user.

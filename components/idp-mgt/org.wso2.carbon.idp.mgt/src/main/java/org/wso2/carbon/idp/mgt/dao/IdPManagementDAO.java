@@ -4369,6 +4369,15 @@ public class IdPManagementDAO {
         }
     }
 
+    /**
+     * Method that retrieves identityProvider details of a idpId list.
+     *
+     * @param dbConnection Optional DB connection.
+     * @param tenantId Tenant id.
+     * @param idpIds Set of identity provider ids.
+     * @return A list of identity providers.
+     * @throws IdentityProviderManagementException
+     */
     public List<IdentityProvider> getIdPsById(Connection dbConnection, int tenantId, Set<String> idpIds)
             throws IdentityProviderManagementException {
 
