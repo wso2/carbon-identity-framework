@@ -1345,27 +1345,6 @@ public class IdentityProviderManager implements IdpManager {
         return dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
     }
 
-    @Override
-    public Map<String, IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
-            throws IdentityProviderManagementException {
-
-        if (idpIds.isEmpty()) {
-            return null;
-        }
-        Map<String, IdentityProvider> idpMap = new HashMap<>();
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        List<IdentityProvider> identityProviders = dao.getIdPsById(null, tenantId, idpIds);
-
-        for (IdentityProvider idp : identityProviders) {
-            String idpName = idp.getIdentityProviderName();
-            if (idpName != null && !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
-                idpMap.put(idp.getId(), idp);
-            }
-        }
-
-        return idpMap;
-    }
-
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
@@ -1471,6 +1450,17 @@ public class IdentityProviderManager implements IdpManager {
 
         validateGetIdPInputValues(resourceId);
         return dao.getIdPNameByResourceId(resourceId);
+    }
+
+    @Override
+    public Map<String, String> getIdPNamesById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        if (idpIds.isEmpty()) {
+            return null;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPNamesById(tenantId, idpIds);
     }
 
     /**

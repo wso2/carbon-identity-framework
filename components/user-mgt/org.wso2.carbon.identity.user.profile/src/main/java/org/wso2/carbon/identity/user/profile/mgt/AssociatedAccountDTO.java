@@ -38,10 +38,11 @@ public class AssociatedAccountDTO {
         this.username = username;
     }
 
-    public AssociatedAccountDTO(String id, int identityProviderId, String username) {
+    public AssociatedAccountDTO(String id, int identityProviderId, String identityProviderName, String username) {
 
         this.id = id;
         this.identityProviderId = identityProviderId;
+        this.identityProviderName = identityProviderName;
         this.username = username;
     }
 

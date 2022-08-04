@@ -108,9 +108,8 @@ public class IdPManagementConstants {
                 "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
                 "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
 
-        public static final String GET_IDPS_BY_IDP_ID_LIST = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, " +
-                "DESCRIPTION, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID FROM IDP WHERE " +
-                "(TENANT_ID = ? OR TENANT_ID = ?) AND ID IN (" + SCOPE_LIST_PLACEHOLDER + ")";
+        public static final String GET_IDPS_BY_IDP_ID_LIST = "SELECT ID, NAME FROM IDP WHERE TENANT_ID = ? " +
+                "AND ID IN (" + SCOPE_LIST_PLACEHOLDER + ")";
 
         public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
 

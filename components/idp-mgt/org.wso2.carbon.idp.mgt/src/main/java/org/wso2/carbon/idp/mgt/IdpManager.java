@@ -159,19 +159,6 @@ public interface IdpManager {
     }
 
     /**
-     * Retrieves registered Identity providers for a given tenant by Identity Provider Ids.
-     *
-     * @param tenantDomain Tenant domain.
-     * @param idpIds List of identity provider Ids.
-     * @return A map of identity providers keyed by idpId.
-     */
-    default Map<String, IdentityProvider> getIdPsById(String tenantDomain, Set<String> idpIds)
-            throws IdentityProviderManagementException {
-
-        return Collections.emptyMap();
-    }
-
-    /**
      * Retrieves registered Enabled Identity providers for a given tenant.
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
@@ -227,6 +214,19 @@ public interface IdpManager {
     default String getIdPNameByResourceId(String resourceId) throws IdentityProviderManagementException {
 
         return null;
+    }
+
+    /**
+     * Retrieves registered Identity provider names for a given tenant by Identity Provider Ids.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param idpIds List of identity provider Ids.
+     * @return A map of identity provider names keyed by idp id.
+     */
+    default Map<String, String> getIdPNamesById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        return Collections.emptyMap();
     }
 
     /**

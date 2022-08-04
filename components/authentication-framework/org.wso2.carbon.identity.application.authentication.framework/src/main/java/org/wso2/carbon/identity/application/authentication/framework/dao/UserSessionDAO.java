@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.core.util.JdbcUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Perform operations for {@link UserSession}.
@@ -58,7 +59,7 @@ public interface UserSessionDAO {
      * @return User session.
      * @throws SessionManagementServerException
      */
-    default UserSession getSession(String userId, String sessionId) throws SessionManagementServerException {
+    default Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
 
         return null;
     }

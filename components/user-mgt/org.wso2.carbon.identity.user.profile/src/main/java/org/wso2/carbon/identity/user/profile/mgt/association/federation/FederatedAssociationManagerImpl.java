@@ -61,6 +61,7 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_DOMAIN_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_ID_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
+import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_STORE_DOMAIN_PROVIDED;
 
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
@@ -169,7 +170,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
-    public FederatedAssociation[] getFederatedAssociationsOfUser(int tenantId, String domainFreeUsername)
+    public List<AssociatedAccountDTO> getFederatedAssociationsOfUser(
+            int tenantId, String userStoreDomain, String domainFreeUsername)
             throws FederatedAssociationManagerException {
 
         if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
@@ -178,26 +180,16 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             }
             throw handleFederatedAssociationManagerClientException(INVALID_TENANT_ID_PROVIDED, null, true);
         }
+        if (StringUtils.isEmpty(userStoreDomain)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_USER_STORE_DOMAIN_PROVIDED, null, true);
+        }
         if (StringUtils.isEmpty(domainFreeUsername)) {
             throw handleFederatedAssociationManagerClientException(INVALID_USER_IDENTIFIER_PROVIDED, null, true);
         }
 
         try {
-            List<FederatedAssociation> federatedAssociations = new ArrayList<>();
-            List<AssociatedAccountDTO> associatedAccountDTOS = UserProfileMgtDAO.getInstance()
-                    .getAssociatedFederatedAccountsForUsername(tenantId, domainFreeUsername);
-            for (AssociatedAccountDTO associatedAccount : associatedAccountDTOS) {
-                AssociatedIdentityProvider idp = new AssociatedIdentityProvider();
-                idp.setId(Integer.toString(associatedAccount.getIdentityProviderId()));
-                federatedAssociations.add(
-                        new FederatedAssociation(
-                                associatedAccount.getId(),
-                                idp,
-                                associatedAccount.getUsername()
-                        )
-                );
-            }
-            return federatedAssociations.toArray(new FederatedAssociation[0]);
+            return UserProfileMgtDAO.getInstance()
+                    .getAssociatedFederatedAccountsForUser(tenantId, userStoreDomain, domainFreeUsername);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Error while retrieving federated account associations for user: %s of " +

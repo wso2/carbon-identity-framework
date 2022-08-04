@@ -19,9 +19,12 @@
 package org.wso2.carbon.identity.user.profile.mgt.association.federation;
 
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
+
+import java.util.List;
 
 /**
  * The service which exposes federated account association management APIs.
@@ -89,14 +92,15 @@ public interface FederatedAssociationManager {
     FederatedAssociation[] getFederatedAssociationsOfUser(User user) throws FederatedAssociationManagerException;
 
     /**
-     * Return an array of federated associations associated with the given user.
+     * Returns a list of federated associations associated with the given user.
      *
      * @param tenantId Id of the tenant.
      * @param domainFreeUsername username without domain.
      * @return An array of federated associations which contains the federated identifier info.
      * @throws FederatedAssociationManagerException
      */
-    default FederatedAssociation[] getFederatedAssociationsOfUser(int tenantId, String domainFreeUsername) throws
+    default List<AssociatedAccountDTO> getFederatedAssociationsOfUser(
+            int tenantId, String userStoreDomain, String domainFreeUsername) throws
             FederatedAssociationManagerException {
 
         return null;

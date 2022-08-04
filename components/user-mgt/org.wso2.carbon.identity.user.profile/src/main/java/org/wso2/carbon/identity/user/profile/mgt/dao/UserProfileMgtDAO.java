@@ -295,60 +295,21 @@ public class UserProfileMgtDAO {
                         while (resultSet.next()) {
                             associatedFederatedAccounts.add(new AssociatedAccountDTO(
                                     resultSet.getString("ASSOCIATION_ID"),
+                                    resultSet.getInt("ID"),
                                     resultSet.getString("NAME"),
                                     resultSet.getString("IDP_USER_ID")
                             ));
                         }
                     }
-                }catch (SQLException e1) {
+                } catch (SQLException ex) {
                     throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
                             + "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain +
-                            " in tenant: " + tenantId, e1);
+                            " in tenant: " + tenantId, ex);
                 }
         } catch (SQLException e) {
             throw new UserProfileException("Error occurred while retrieving federated accounts associated for " +
                     "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " +
                     tenantId, e);
-        }
-
-        return associatedFederatedAccounts;
-    }
-
-    /**
-     * Returns a list of federated identities associated with the given username and tenant id.
-     *
-     * @param tenantId           tenant identifier.
-     * @param domainFreeUsername username without user store domain.
-     * @return a list of AssociatedAccountDTO objects which includes federated identity info.
-     * @throws UserProfileException
-     */
-    public List<AssociatedAccountDTO> getAssociatedFederatedAccountsForUsername(
-            int tenantId, String domainFreeUsername) throws UserProfileException {
-
-        List<AssociatedAccountDTO> associatedFederatedAccounts = new ArrayList<>();
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement prepStmt = connection
-                    .prepareStatement(Constants.SQLQueries.RETRIEVE_ASSOCIATIONS_FOR_USER_BY_USERNAME)) {
-                prepStmt.setInt(1, tenantId);
-                prepStmt.setString(2, domainFreeUsername);
-
-                try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    while (resultSet.next()) {
-                        associatedFederatedAccounts.add(new AssociatedAccountDTO(
-                                resultSet.getString("ASSOCIATION_ID"),
-                                resultSet.getInt("IDP_ID"),
-                                resultSet.getString("IDP_USER_ID")
-                        ));
-                    }
-                }
-            }catch (SQLException e1) {
-                throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
-                        + "the user: " + domainFreeUsername + " in tenant: " + tenantId, e1);
-            }
-        } catch (SQLException e) {
-            throw new UserProfileException("Error occurred while retrieving federated accounts associated for " +
-                    "the user: " + domainFreeUsername + " in tenant: " + tenantId, e);
         }
 
         return associatedFederatedAccounts;

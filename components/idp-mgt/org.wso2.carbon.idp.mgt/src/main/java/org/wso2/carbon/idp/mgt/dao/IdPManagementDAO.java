@@ -4370,26 +4370,20 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Method that retrieves identityProvider details of a idpId list.
+     * Method that retrieves identityProvider names of a idpId list.
      *
-     * @param dbConnection Optional DB connection.
      * @param tenantId Tenant id.
      * @param idpIds Set of identity provider ids.
-     * @return A list of identity providers.
+     * @return A map of identity provider names keyed by idp id.
      * @throws IdentityProviderManagementException
      */
-    public List<IdentityProvider> getIdPsById(Connection dbConnection, int tenantId, Set<String> idpIds)
+    public Map<String, String> getIdPNamesById(int tenantId, Set<String> idpIds)
             throws IdentityProviderManagementException {
 
-        boolean dbConnInitialized = false;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        List<IdentityProvider> idps = new ArrayList<>();
-
-        if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-            dbConnInitialized = true;
-        }
+        Map<String, String> idpNameMap = new HashMap<>();
 
         try {
             String placeholder = String.join(", ", idpIds);
@@ -4397,40 +4391,26 @@ public class IdPManagementDAO {
                     SCOPE_LIST_PLACEHOLDER, placeholder);
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, tenantId);
-            prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
 
             rs = prepStmt.executeQuery();
             while (rs.next()) {
                 int idpId = rs.getInt("ID");
                 String idpName = rs.getString("NAME");
-
-                if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idpName)) {
-                    IdentityProvider idp = new IdentityProvider();
-                    idp.setId(Integer.toString(idpId));
-                    idp.setIdentityProviderName(idpName);
-                    idp.setPrimary((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY")));
-                    idp.setHomeRealmId(rs.getString("HOME_REALM_ID"));
-                    idp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
-                    idp.setEnable((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_ENABLED")));
-                    idp.setDisplayName(rs.getString("DISPLAY_NAME"));
-                    idp.setImageUrl(rs.getString("IMAGE_URL"));
-                    idp.setResourceId(rs.getString("UUID"));
-                    idps.add(idp);
+                if (idpId != 0 && StringUtils.isNotBlank(idpName) &&
+                        !IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idpName) &&
+                        !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
+                    idpNameMap.put(Integer.toString(idpId), idpName);
                 }
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-            return idps;
+            return idpNameMap;
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
                     "Providers for IDP IDs for tenantId: " + tenantId, e);
         } finally {
-            if (dbConnInitialized) {
-                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
-            } else {
-                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
-            }
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
         }
     }
 }
