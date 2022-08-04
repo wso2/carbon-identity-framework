@@ -295,10 +295,11 @@
                 </a>
                 <a href="#" class="icon-link deleteLink"
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
-                   onclick="removeItem(event, '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(localClaimURI))%>',
-                           '<%=Encode.forJavaScriptAttribute(localClaimURI)%>',
-                           '<%=Encode.forJavaScriptAttribute(String.valueOf(localClaims.length))%>');return
-                           false;"><fmt:message key='delete'/>
+                   onclick="removeItem(event, 
+                            '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(localClaimURI))%>',
+                            '<%=Encode.forJavaScriptAttribute(localClaimURI)%>',
+                            '<%=Encode.forJavaScriptAttribute(String.valueOf(localClaims.length))%>');return
+                            false;"><fmt:message key='delete'/>
                 </a>
 
                 <div style="clear:both"></div>
