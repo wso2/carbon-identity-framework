@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -44,7 +43,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
-import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -55,7 +53,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -243,27 +240,17 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
                     userSessions = getActiveSessionList(
                             getSessionIdListByUserId(fedAssociatedUserId),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID)
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)
                     );
                 } else {
-                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null);
+                    userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
                 }
             } else {
-                userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null);
+                userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
             }
         } catch (UserSessionException e) {
             String msg = "Error occurred while retrieving federated associations for the userId: " + userId;
-            if (log.isDebugEnabled()) {
-                log.debug(msg);
-            }
-            throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, msg, e);
-        }
-
-        // Add identity provider information to the session list.
-        try {
-            parseIdpInfoToSessionsResponse(tenantDomain, userSessions, userId);
-        } catch (UserSessionException e) {
-            String msg = "Error while parsing idp information to the session objects.";
             if (log.isDebugEnabled()) {
                 log.debug(msg);
             }
@@ -360,6 +347,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                             SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                     if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
                         userSession = userSessionDAO.getSession(fedAssociatedUserId, sessionId);
+                        userSession.ifPresent(session -> session.setIdpName(
+                                authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)));
                     } else {
                         userSession = userSessionDAO.getSession(userId, sessionId);
                     }
@@ -367,12 +356,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     userSession = userSessionDAO.getSession(userId, sessionId);
                 }
 
-                if (userSession.isPresent()) {
-                    // Add identity provider information to the session list.
-                    parseIdpInfoToSessionsResponse(tenantDomain, Collections.singletonList(userSession.get()), null);
-
-                    return userSession;
-                }
+                return userSession;
             } catch (UserSessionException e) {
                 String msg = SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription();
                 if (log.isDebugEnabled()) {
@@ -438,22 +422,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             log.debug("Retrieving all the active sessions of user: " + user.getLoggableUserId() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
         }
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        List<UserSession> userSessions = getActiveSessionList(
-                getSessionIdListByUser(user, idpId), Integer.toString(idpId));
 
-        // Add identity provider information to the session list.
-        try {
-            parseIdpInfoToSessionsResponse(tenantDomain, userSessions, null);
-        } catch (UserSessionException e) {
-            String msg = "Error while parsing idp information to the session objects.";
-            if (log.isDebugEnabled()) {
-                log.debug(msg);
-            }
-            throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, msg, e);
-        }
-
-        return userSessions;
+        return getActiveSessionList(getSessionIdListByUser(user, idpId),
+                Integer.toString(idpId), null);
     }
 
     @Override
@@ -551,19 +522,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
         UserSession userSession = userSessionDTO.getSession(sessionId);
 
-        // Add identity provider information to the session list.
-        try {
-            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            parseIdpInfoToSessionsResponse(tenantDomain, Collections.singletonList(userSession), null);
-        } catch (UserSessionException e) {
-            String msg = "Error while parsing idp information to the session objects.";
-            if (log.isDebugEnabled()) {
-                log.debug(msg);
-            }
-            throw new SessionManagementServerException(
-                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION, msg, e);
-        }
-
         return Optional.ofNullable(userSession);
     }
 
@@ -611,10 +569,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      *
      * @param sessionIdList list of sessionIds.
      * @param idpId Id of the authenticated idp.
+     * @param idpName Name of the authenticated idp.
      * @return list of user sessions.
      * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
      */
-    private List<UserSession> getActiveSessionList(List<String> sessionIdList, String idpId)
+    private List<UserSession> getActiveSessionList(List<String> sessionIdList, String idpId, String idpName)
             throws SessionManagementServerException {
 
         List<UserSession> sessionsList = new ArrayList<>();
@@ -626,9 +585,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDAO.getSession(sessionId);
                     if (userSession != null) {
-                        // Get authenticated idpId for the session.
                         if (StringUtils.isNotBlank(idpId)) {
                             userSession.setIdpId(idpId);
+                        }
+                        if (StringUtils.isNotBlank(idpName)) {
+                            userSession.setIdpName(idpName);
                         }
                         sessionsList.add(userSession);
                     }
@@ -721,13 +682,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         // Retrieve the username for the userId.
         String username = getUsernameFromUserId(userId, tenantId);
-        String userDomain;
-        if (StringUtils.isNotEmpty(username) && username.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
-            userDomain = UserCoreUtil.extractDomainFromName(username);
-            username = UserCoreUtil.removeDomainFromName(username);
-        } else {
-            throw new UserSessionException("username or userstore domain not found for the userId: " + userId);
+        if (StringUtils.isEmpty(username)) {
+            throw new UserSessionException(String.format("Error while retrieving federated associations. " +
+                    "Username not found for the userId: %s of tenantId: %s", userId, tenantId));
         }
+        String userDomain = UserCoreUtil.extractDomainFromName(username);
+        username = UserCoreUtil.removeDomainFromName(username);
 
         try {
             // Retrieve the federated associations for the username.
@@ -741,7 +701,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                             userId, tenantId));
                 }
                 String authSessionUserId = UserSessionStore.getInstance().getUserId(
-                        username, tenantId, userDomain, federatedAssociations.get(0).getIdentityProviderId());
+                        username, tenantId, null, federatedAssociations.get(0).getIdentityProviderId());
                 if (StringUtils.isNotEmpty(authSessionUserId)) {
                     Map<SessionMgtConstants.AuthSessionUserKeys, String> resultMap = new HashMap<>();
                     resultMap.put(SessionMgtConstants.AuthSessionUserKeys.USER_ID, authSessionUserId);

@@ -109,16 +109,4 @@ public interface UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION.getDescription(), e);
         }
     }
-
-    /**
-     * Get authenticated identity provider id by userId.
-     *
-     * @param userId user Id.
-     * @return Authenticated identity provider id.
-     * @throws DataAccessException
-     */
-    default String getIdpIdByUserId(String userId) throws DataAccessException {
-
-        return null;
-    }
 }

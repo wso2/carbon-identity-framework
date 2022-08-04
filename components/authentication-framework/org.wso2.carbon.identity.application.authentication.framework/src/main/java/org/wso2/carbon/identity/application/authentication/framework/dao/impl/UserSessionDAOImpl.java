@@ -98,10 +98,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-                String idpId = getIdpIdByUserId(userSession.getUserId());
-                if (StringUtils.isNotEmpty(idpId)) {
-                    userSession.setIdpId(idpId);
-                }
 
                 return userSession;
             }
@@ -160,10 +156,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-                String idpId = getIdpIdByUserId(userSession.getUserId());
-                if (StringUtils.isNotEmpty(idpId)) {
-                    userSession.setIdpId(idpId);
-                }
 
                 return Optional.of(userSession);
             }
@@ -392,24 +384,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             resultSet.getString("UUID")));
 
         return applicationsList.stream().collect(Collectors.toMap(Application::getAppId, app -> app));
-    }
-
-    @Override
-    public String getIdpIdByUserId(String userId) throws DataAccessException {
-
-        if (userId == null) {
-            return null;
-        }
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
-        List<String> idpIds = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_IDP_ID_BY_USER_ID,
-                ((resultSet, rowNumber) -> resultSet.getString("IDP_ID")),
-                preparedStatement -> preparedStatement.setString(1, userId)
-        );
-        if (idpIds == null || idpIds.isEmpty()) {
-            return null;
-        }
-
-        return idpIds.get(0);
     }
 
     private Map<String, String> getIdpIdsByUserIdList(Set<String> userIdList) throws DataAccessException {

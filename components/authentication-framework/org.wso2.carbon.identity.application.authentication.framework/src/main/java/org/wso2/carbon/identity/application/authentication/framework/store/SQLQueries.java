@@ -328,7 +328,6 @@ public class SQLQueries {
             "ss.TIME_CREATED = s.TIME_CREATED) AND OPERATION = ''STORE'' " +
             "AND SESSION_TYPE = ''AppAuthFrameworkSessionContextCache''{3} ORDER BY TIME_CREATED {4}";
 
-    public static final String SQL_GET_IDP_ID_BY_USER_ID = "SELECT IDP_ID FROM IDN_AUTH_USER WHERE USER_ID = ?";
     public static final String SQL_GET_IDP_IDS_BY_USER_ID_LIST = "SELECT USER_ID, IDP_ID FROM IDN_AUTH_USER WHERE " +
             "USER_ID IN (" + SCOPE_LIST_PLACEHOLDER + ")";
 }
