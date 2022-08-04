@@ -126,6 +126,7 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
+    public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -154,6 +155,7 @@ public abstract class FrameworkConstants {
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
+    public static final String CURRENT_TOKEN_IDENTIFIER = "currentTokenIdentifier";
 
     // Idp to local role mapping thread local identifier.
     public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
