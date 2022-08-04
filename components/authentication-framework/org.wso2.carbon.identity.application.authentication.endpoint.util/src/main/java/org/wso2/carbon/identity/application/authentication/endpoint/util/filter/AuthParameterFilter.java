@@ -49,8 +49,8 @@ public class AuthParameterFilter implements Filter {
     private static final Log log = LogFactory.getLog(AuthParameterFilter.class);
     private ServletContext context = null;
     private static final String SESSION_DATA_KEY = "sessionDataKey";
-    private final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
-    private final String ERROR_KEY = "errorKey";
+    private static final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
+    private static final String ERROR_KEY = "errorKey";
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -76,7 +76,8 @@ public class AuthParameterFilter implements Filter {
                 return;
             }
             if (servletRequest.getParameter(SESSION_DATA_KEY_CONSENT) != null) {
-                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, SESSION_DATA_KEY_CONSENT);
+                HttpServletRequest httpServletRequest =
+                        getServletRequestWithParams(servletRequest, SESSION_DATA_KEY_CONSENT);
                 filterChain.doFilter(httpServletRequest, servletResponse);
                 return;
             }

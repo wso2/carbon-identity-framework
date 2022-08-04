@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
  * Authentication endpoint request wrapper.
  */
 public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
+
     private Map<String, Object> cachedParams;
 
     public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> cachedParams) {
