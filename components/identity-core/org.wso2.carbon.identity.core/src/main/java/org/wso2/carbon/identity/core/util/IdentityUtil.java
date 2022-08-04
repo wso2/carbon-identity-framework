@@ -60,7 +60,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-//import sun.security.provider.X509Factory;
+import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -104,9 +104,6 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_Z
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
 
 public class IdentityUtil {
-
-    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
-    public static final String END_CERT = "-----END CERTIFICATE-----";
 
     public static final ThreadLocal<Map<String, Object>> threadLocalProperties = new
             ThreadLocal<Map<String, Object>>() {
@@ -1287,8 +1284,8 @@ public class IdentityUtil {
 
         byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
 
-        String encodedPEM = String.format("%s\n%s\n%s", BEGIN_CERT, new String(encodedCertificate),
-                END_CERT);
+        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
+                X509Factory.END_CERT);
 
         return encodedPEM;
     }
