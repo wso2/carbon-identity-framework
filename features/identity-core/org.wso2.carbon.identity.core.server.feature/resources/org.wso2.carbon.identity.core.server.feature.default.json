@@ -278,7 +278,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
-  "identity_mgt.recovery.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]",
+  "identity_mgt.recovery.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]*",
   "identity_mgt.recovery.enable_detailed_error_messages": false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
