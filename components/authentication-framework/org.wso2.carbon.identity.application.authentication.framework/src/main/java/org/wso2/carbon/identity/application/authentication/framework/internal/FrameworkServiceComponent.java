@@ -989,11 +989,6 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(null);
     }
 
-    /**
-     * This method is to check Adaptive authentication is availability.
-     *
-     * @return AdaptiveAuthentication Available or not.
-     */
     private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
 
         String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
