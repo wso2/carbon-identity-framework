@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.loader;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -89,7 +88,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
             // Adaptive Authentication is disabled but the application has AA scripts,
             // hence gracefully throw error.
-            if (!FrameworkUtils.isAdaptiveAuthenticationAvailable()){
+            if (!FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
                 throw new FrameworkException(UNEXPECTED_SERVER_ERROR.getCode(),
                         "Required Library OpenJDK Nashorn not found");
             }
