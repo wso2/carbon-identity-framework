@@ -98,7 +98,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-
                 return userSession;
             }
         } catch (DataAccessException e) {
@@ -156,7 +155,6 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
             if (!applicationList.isEmpty()) {
                 userSession.setApplications(applicationList);
-
                 return Optional.of(userSession);
             }
         } catch (DataAccessException e) {

@@ -61,7 +61,7 @@ public interface UserSessionDAO {
      */
     default Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
 
-        return null;
+        return Optional.empty();
     }
 
     /**
