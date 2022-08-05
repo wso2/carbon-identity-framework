@@ -89,7 +89,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "test";
 
-    private static final Integer SAMPLE_TENANT_ID = -1234;
+    private static final Integer SAMPLE_TENANT_ID1 = -1234;
 
     private static final Integer SAMPLE_TENANT_ID2 = 1;
 
@@ -160,14 +160,14 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPsData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, 2},
-                {SAMPLE_TENANT_ID2, TENANT_DOMAIN, 1},
-                {NOT_EXISTING_TENANT_ID, TENANT_DOMAIN, 0}
+                {SAMPLE_TENANT_ID1, 2},
+                {SAMPLE_TENANT_ID2, 1},
+                {NOT_EXISTING_TENANT_ID, 0}
         };
     }
 
     @Test(dataProvider = "getIdPsData")
-    public void testGetIdPs(int tenantId, String tenantDomain, int idpCount) throws Exception {
+    public void testGetIdPs(int tenantId, int idpCount) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -175,18 +175,18 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
 
-            // Directly providing initiated db connection as connection parameter
-            List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, tenantDomain);
+            // Directly providing initiated db connection as connection parameter.
+            List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, TENANT_DOMAIN);
             assertEquals(idpList1.size(), idpCount);
             // Providing null as connection parameter so value of connection parameter will be retrieved
-            // from the mock above
-            List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPs(null, tenantId, tenantDomain);
+            // from the mock above.
+            List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPs(null, tenantId, TENANT_DOMAIN);
             assertEquals(idpList2.size(), idpCount);
         }
     }
 
     @Test(dataProvider = "getIdPsData")
-    public void testGetIdPsException(int tenantId, String tenantDomain, int idpCount) throws Exception {
+    public void testGetIdPsException(int tenantId, int idpCount) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -195,26 +195,26 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             addTestIdps();
         }
         assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.getIdPs(null, tenantId, tenantDomain));
+                cacheBackedIdPMgtDAO.getIdPs(null, tenantId, TENANT_DOMAIN));
     }
 
     @DataProvider
     public Object[][] getIdPsSearchData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "testIdP1", 1},
-                {SAMPLE_TENANT_ID2, TENANT_DOMAIN, "testIdP3", 1},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "", 2},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "test*", 2},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "????IdP*", 2},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "tes_I*", 2},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "*1", 1},
-                {SAMPLE_TENANT_ID, TENANT_DOMAIN, "Notexist", 0},
+                {SAMPLE_TENANT_ID1, "testIdP1", 1},
+                {SAMPLE_TENANT_ID2, "testIdP3", 1},
+                {SAMPLE_TENANT_ID1, "", 2},
+                {SAMPLE_TENANT_ID1, "test*", 2},
+                {SAMPLE_TENANT_ID1, "????IdP*", 2},
+                {SAMPLE_TENANT_ID1, "tes_I*", 2},
+                {SAMPLE_TENANT_ID1, "*1", 1},
+                {SAMPLE_TENANT_ID1, "Notexist", 0},
         };
     }
 
     @Test(dataProvider = "getIdPsSearchData")
-    public void testGetIdPsSearch(int tenantId, String tenantDomain, String filter, int resultCount) throws Exception {
+    public void testGetIdPsSearch(int tenantId, String filter, int resultCount) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -223,20 +223,20 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
 
-            // Directly providing initiated db connection as connection parameter
+            // Directly providing initiated db connection as connection parameter.
             List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPsSearch(connection, tenantId,
-                    tenantDomain, filter);
+                    TENANT_DOMAIN, filter);
             assertEquals(idpList1.size(), resultCount);
             // Providing null as connection parameter so value of connection parameter will be retrieved
-            // from the mock above
+            // from the mock above.
             List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId,
-                    tenantDomain, filter);
+                    TENANT_DOMAIN, filter);
             assertEquals(idpList2.size(), resultCount);
         }
     }
 
     @Test(dataProvider = "getIdPsSearchData")
-    public void testGetIdPsSearchException(int tenantId, String tenantDomain, String filter, int resultCount)
+    public void testGetIdPsSearchException(int tenantId, String filter, int resultCount)
             throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -247,7 +247,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             addTestIdps();
         }
         assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, tenantDomain, filter));
+                cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, TENANT_DOMAIN, filter));
     }
 
     @DataProvider
@@ -262,45 +262,34 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
                 "claims", "roles", "federatedAuthenticators", "provisioning");
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, expressionNodeList, 2, 0, "ASC", "NAME", attributesList1, 2},
-                {SAMPLE_TENANT_ID, expressionNodeList, 1, 1, "ASC", "NAME", attributesList2, 1},
-                {SAMPLE_TENANT_ID, expressionNodeList, 2, 0, "DESC", "NAME", attributesList1, 2},
+                {expressionNodeList, 2, 0, "ASC", "NAME", attributesList1, 2},
+                {expressionNodeList, 1, 1, "ASC", "NAME", attributesList2, 1},
+                {expressionNodeList, 2, 0, "DESC", "NAME", attributesList1, 2},
         };
     }
 
     @Test(dataProvider = "getPaginatedIdPsSearchData")
-    public void testGetPaginatedIdPsSearch(int tenantId, List<ExpressionNode> expressionNodes, int limit,
-                                           int offset, String order, String sortBy, List<String> attributes,
-                                           int count) throws Exception {
+    public void testGetPaginatedIdPsSearch(List<ExpressionNode> expressionNodes, int limit, int offset, String order,
+                                           String sortBy, List<String> attributes, int count) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(tenantId, expressionNodes,
-                    limit, offset, order, sortBy, attributes);
+            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(SAMPLE_TENANT_ID1,
+                    expressionNodes, limit, offset, order, sortBy, attributes);
             assertEquals(idpList.size(), count);
         }
     }
 
-    @DataProvider
-    public Object[][] getPaginatedIdPsSearchExceptionData() {
+    @Test
+    public void testGetPaginatedIdPsSearchException() throws Exception {
 
         ExpressionNode expressionNode = new ExpressionNode();
         List<ExpressionNode> expressionNodes = new ArrayList<>();
         expressionNodes.add(expressionNode);
         List<String> attributes = Arrays.asList("WrongAttribute");
-
-        return new Object[][]{
-                {SAMPLE_TENANT_ID, expressionNodes, 2, 0, "ASC", "NAME", attributes}
-        };
-    }
-
-    @Test(dataProvider = "getPaginatedIdPsSearchExceptionData")
-    public void testGetPaginatedIdPsSearchException(int tenantId, List<ExpressionNode> expressionNodes, int limit,
-                                                    int offset, String order, String sortBy,
-                                                    List<String> attributes) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -309,8 +298,8 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             assertThrows(IdentityProviderManagementClientException.class, () ->
-                    cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(tenantId, expressionNodes, limit, offset,
-                            order, sortBy, attributes));
+                    cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(SAMPLE_TENANT_ID1, expressionNodes, 2, 0,
+                            "ASC", "NAME", attributes));
         }
     }
 
@@ -328,8 +317,8 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         expressionNodesList2.add(expressionNode2);
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, expressionNodesList1, 2},
-                {SAMPLE_TENANT_ID, expressionNodesList2, 2},
+                {SAMPLE_TENANT_ID1, expressionNodesList1, 2},
+                {SAMPLE_TENANT_ID1, expressionNodesList2, 2},
                 {SAMPLE_TENANT_ID2, expressionNodesList1, 1},
         };
     }
@@ -365,9 +354,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPByNameData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP1", SAMPLE_TENANT_ID1, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
-                {"notExist", SAMPLE_TENANT_ID, false},
+                {"notExist", SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -379,13 +368,14 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            //retrieving IDP from DB and adding to cache
+            
+            // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
                     tenantId, TENANT_DOMAIN);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
-                // retrieving IDP using cache entry
+                // Retrieving IDP using cache entry.
                 idpFromCache = idpFromCacheByName(idpName);
             }
             if (isExist) {
@@ -405,9 +395,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPByIdData() {
 
         return new Object[][]{
-                {"testIdP1", 1, SAMPLE_TENANT_ID, true},
+                {"testIdP1", 1, SAMPLE_TENANT_ID1, true},
                 {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
-                {"notExist", 4, SAMPLE_TENANT_ID, false},
+                {"notExist", 4, SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -419,12 +409,12 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP form DB and adding to cache
+            // Retrieving IDP form DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPById(connection, idpId, tenantId, TENANT_DOMAIN);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
-                // retrieving IDP using cache entry
+                // Retrieving IDP using cache entry.
                 idpFromCache = idpFromCacheByName(idpName);
             }
             if (isExist) {
@@ -442,9 +432,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIDPbyResourceIdData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP1", SAMPLE_TENANT_ID1, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
-                {"notExist", SAMPLE_TENANT_ID, false},
+                {"notExist", SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -457,16 +447,16 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             String uuid = "";
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpResults = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             IdentityProvider idpFromDB = new IdentityProvider();
             IdentityProvider idpFromCache = new IdentityProvider();
 
             if (idpResults != null) {
                 uuid = idpResults.getResourceId();
-                // retrieving IDP from DB and adds it to the cache
+                // Retrieving IDP from DB and adds it to the cache.
                 idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
-                // retrieving IDP using cache entry
+                // Retrieving IDP using cache entry.
                 idpFromCache = idpFromCacheByResourceId(uuid);
             }
             if (isExist) {
@@ -486,7 +476,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIDPNameByResourceIdData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID},
+                {"testIdP1", SAMPLE_TENANT_ID1},
                 {"testIdP3", SAMPLE_TENANT_ID2}
         };
     }
@@ -502,10 +492,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             addTestIdps();
 
             String uuid = "";
-            // getting IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idPResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             uuid = idPResult.getResourceId();
-            // getting IDP using resourceId from DB and adding to cache
+            // Retrieving IDP using resourceId from DB and adding to cache.
             IdentityProvider idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
 
@@ -513,7 +503,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             CarbonContext carbonContext = mock(CarbonContext.class);
             when(CarbonContext.getThreadLocalCarbonContext()).thenReturn(carbonContext);
             when(CarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn(TENANT_DOMAIN);
-            // retrieving IDP name from cache using resourceId as cache key
+            // Retrieving IDP name from cache using resourceId as cache key.
             String name = cacheBackedIdPMgtDAO.getIdPNameByResourceId(uuid);
 
             if (idpFromCache != null) {
@@ -530,29 +520,29 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPByAuthenticatorPropertyValueWithoutAuthenticatorData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", true},
-                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", true},
-                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", false},
+                {"testIdP1", "Property1", "value1", true},
+                {"testIdP1", "Property2", "value2", true},
+                {"NotExist", "Null", "Null", false},
         };
     }
 
     @Test(dataProvider = "getIdPByAuthenticatorPropertyValueWithoutAuthenticatorData")
-    public void testGetIdPByAuthenticatorPropertyValueWithoutAuthenticator(int tenantId, String idpName, 
-                                                                               String property, String value, 
-                                                                               boolean isExist) throws Exception {
+    public void testGetIdPByAuthenticatorPropertyValueWithoutAuthenticator(String idpName, String property,
+                                                                           String value, boolean isExist)
+            throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByAuthenticatorPropertyValue(connection, property,
-                    value, tenantId, TENANT_DOMAIN);
+                    value, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
 
             IdentityProvider idpFromCache = new IdentityProvider();
             if (isExist) {
-                // retrieving IDP from cache using name as cache key
+                // Retrieving IDP from cache using name as cache key.
                 idpFromCache = idpFromCacheByName(idpName);
             }
             if (isExist) {
@@ -572,14 +562,14 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPByAuthenticatorPropertyValueData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "testIdP1", "Property1", "value1", "Name", true},
-                {SAMPLE_TENANT_ID, "testIdP1", "Property2", "value2", "Name", true},
-                {SAMPLE_TENANT_ID, "NotExist", "Null", "Null", "Null", false},
+                {"testIdP1", "Property1", "value1", "Name", true},
+                {"testIdP1", "Property2", "value2", "Name", true},
+                {"NotExist", "Null", "Null", "Null", false},
         };
     }
 
     @Test(dataProvider = "getIdPByAuthenticatorPropertyValueData")
-    public void testGetIdPByAuthenticatorPropertyValue(int tenantId, String idpName, String property, String value,
+    public void testGetIdPByAuthenticatorPropertyValue(String idpName, String property, String value,
                                                        String authenticator, boolean isExist) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -587,12 +577,12 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByAuthenticatorPropertyValue(connection, property,
-                    value, authenticator, tenantId, TENANT_DOMAIN);
+                    value, authenticator, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
             IdentityProvider idpFromCache = new IdentityProvider();
             if (isExist) {
-                // retrieving IDP from cache using name as cache key
+                // Retrieving IDP from cache using name as cache key.
                 idpFromCache = idpFromCacheByName(idpName);                                           
             }
             if (isExist) {
@@ -613,8 +603,8 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPByRealmIdData() {
 
         return new Object[][]{
-                {"testIdP1", "1", SAMPLE_TENANT_ID, true},
-                {"testIdP2", "2", SAMPLE_TENANT_ID, true},
+                {"testIdP1", "1", SAMPLE_TENANT_ID1, true},
+                {"testIdP2", "2", SAMPLE_TENANT_ID1, true},
                 {"notExist", "4", SAMPLE_TENANT_ID2, false},
         };
     }
@@ -627,12 +617,12 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
-                // retrieving IDP from cache using realmID as cache key
+                // Retrieving IDP from cache using realmID as cache key.
                 IdPCacheByHRI idPCacheByHRI = IdPCacheByHRI.getInstance();
                 IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
                 IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, TENANT_DOMAIN);
@@ -730,9 +720,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
         return new Object[][]{
                 // IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfigs,ProvisioningConnectorConfigs,Claims.
-                {idp1, SAMPLE_TENANT_ID},
+                {idp1, SAMPLE_TENANT_ID1},
                 // IDP with Local Cliam Dialect ClaimConfigs.
-                {idp2, SAMPLE_TENANT_ID},
+                {idp2, SAMPLE_TENANT_ID1},
                 // IDP with Only name.
                 {idp3, SAMPLE_TENANT_ID2},
         };
@@ -747,11 +737,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             String resourceId = cacheBackedIdPMgtDAO.addIdP(((IdentityProvider) identityProvider),
                     tenantId, TENANT_DOMAIN);
-            // retrieving IDP from DB and adding to cache
+            // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(resourceId, tenantId, TENANT_DOMAIN);
             assertEquals(idpFromDB.getIdentityProviderName(),
                     ((IdentityProvider) identityProvider).getIdentityProviderName());
-            // retrieving IDP from cache using resourceId as cache key
+            // Retrieving IDP from cache using resourceId as cache key.
             IdentityProvider idpFromCache = idpFromCacheByResourceId(resourceId);
             if (idpFromCache != null) {
                 assertEquals(idpFromCache.getIdentityProviderName(),
@@ -882,9 +872,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
         return new Object[][]{
                 // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
-                {idp1, idp1New, SAMPLE_TENANT_ID},
+                {idp1, idp1New, SAMPLE_TENANT_ID1},
                 // Update name, LocalClaimDialect, ClaimConfig.
-                {idp2, idp2New, SAMPLE_TENANT_ID},
+                {idp2, idp2New, SAMPLE_TENANT_ID1},
                 // Update name.
                 {idp3, idp3New, SAMPLE_TENANT_ID2},
         };
@@ -905,11 +895,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
                     tenantId, TENANT_DOMAIN);
 
             String newIdpName = ((IdentityProvider)  newIdP).getIdentityProviderName();
-            // retrieving updated IDP from DB and adding to cache
+            // Retrieving updated IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, newIdpName,
                     tenantId, TENANT_DOMAIN);
             assertEquals(idpResult.getIdentityProviderName(), newIdpName);
-            // retrieving IDP from cache using name as cache key
+            // Retrieving IDP from cache using name as cache key.
             IdentityProvider idpFromCache = idpFromCacheByName(newIdpName);
             if (idpFromCache != null) {
                 assertEquals(idpFromCache.getIdentityProviderName(), newIdpName);
@@ -929,33 +919,33 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             String oldIdPName = ((IdentityProvider) oldIdP).getIdentityProviderName();
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpFromDB = idPManagementDAO.getIdPByName(connection, oldIdPName, tenantId, TENANT_DOMAIN);
             assertEquals(idpFromDB.getIdentityProviderName(), oldIdPName);
 
             String resourceId = idpFromDB.getResourceId();
-            // retrieving IDP from DB and adding cache using resourceId
+            // Retrieving IDP from DB and adding cache using resourceId.
             IdentityProvider idpFromDBByResourceId = cacheBackedIdPMgtDAO.getIdPByResourceId(resourceId,
                     tenantId, TENANT_DOMAIN);
-            // retrieving IDP from cache
+            // Retrieving IDP from cache.
             IdentityProvider idpFromCache = idpFromCacheByResourceId(resourceId);
             if (idpFromCache != null) {
                 assertEquals(idpFromCache.getIdentityProviderName(), oldIdPName);
             }
-            // updating IDP
+            // updating IDP.
             cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdP, (IdentityProvider) oldIdP,
                     tenantId, TENANT_DOMAIN);
             String newIdPName = ((IdentityProvider) newIdP).getIdentityProviderName();
-            // retrieving updated IDP from DB
+            // Retrieving updated IDP from DB.
             IdentityProvider updatedIDPFromDB = idPManagementDAO.getIdPByName(connection, newIdPName,
                     tenantId, TENANT_DOMAIN);
             assertEquals(updatedIDPFromDB.getIdentityProviderName(), newIdPName);
 
             String updatedIDPResourceId = updatedIDPFromDB.getResourceId();
-            // retrieving updated IDP from DB and adding cache using resourceId
+            // Retrieving updated IDP from DB and adding cache using resourceId.
             IdentityProvider updatedIdpByResourceId = cacheBackedIdPMgtDAO.getUpdatedIdPByResourceId(
                     updatedIDPResourceId, tenantId, TENANT_DOMAIN);
-            // retrieving updated IDP from cache
+            // Retrieving updated IDP from cache.
             IdentityProvider updatedIDPFromCache = idpFromCacheByResourceId(resourceId);
             if (updatedIDPFromCache != null) {
                 assertEquals(updatedIdpByResourceId.getIdentityProviderName(),
@@ -985,7 +975,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] deleteIdPData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID},
+                {"testIdP1", SAMPLE_TENANT_ID1},
                 {"testIdP3", SAMPLE_TENANT_ID2},
         };
     }
@@ -999,15 +989,15 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB and adding to cache
+            // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
                     tenantId, TENANT_DOMAIN);
-            // retrieving IDP from cache
+            // Retrieving IDP from cache.
             IdentityProvider idpFromCache = idpFromCacheByName(idpName);
             if (idpFromCache != null) {
                 assertEquals(idpFromCache.getIdentityProviderName(), idpName);
             }
-            // deleting IDP
+            // Deleting IDP.
             cacheBackedIdPMgtDAO.deleteIdP(idpName, tenantId, TENANT_DOMAIN);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'deleteIdP' method fails");
@@ -1020,7 +1010,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] deleteIdPsData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID},
+                {SAMPLE_TENANT_ID1},
                 {SAMPLE_TENANT_ID2},
         };
     }
@@ -1034,7 +1024,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // deleting multiple IDPs on a tenant
+            // Deleting multiple IDPs on a tenant.
             idPManagementDAO.deleteIdPs(tenantId);
         }
 
@@ -1062,10 +1052,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // resourceId of IDP retrieved from DB
+            // ResourceId of IDP retrieved from DB.
             String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN)
                     .getResourceId();
-            // delete IDP using resourceId
+            // Delete IDP using resourceId.
             cacheBackedIdPMgtDAO.deleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'deleteIdPByResourceId' method fails");
@@ -1083,10 +1073,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // resourceId of IDP retrieved from DB
+            // ResourceId of IDP retrieved from DB.
             String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN)
                     .getResourceId();
-            // force delete IDP using resourceId
+            // Force delete IDP using resourceId.
             cacheBackedIdPMgtDAO.forceDeleteIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
@@ -1099,9 +1089,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] addIdPCacheData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP1", SAMPLE_TENANT_ID1, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
-                {"notExist", SAMPLE_TENANT_ID, false},
+                {"notExist", SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -1114,12 +1104,12 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB
+            // Retrieving IDP from DB.
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             if (isExist) {
-                // adding IDP to cache
+                // Adding IDP to cache.
                 cacheBackedIdPMgtDAO.addIdPCache(idpResult, TENANT_DOMAIN);
-                // retrieving IDP from cache using name as cache key
+                // Retrieving IDP from cache using name as cache key.
                 IdentityProvider idpCacheResult = idpFromCacheByName(idpName);
                 if (idpCacheResult != null) {
                     assertEquals(idpCacheResult.getIdentityProviderName(), idpName,
@@ -1133,9 +1123,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] clearIdPCacheData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, true},
+                {"testIdP1", SAMPLE_TENANT_ID1, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
-                {"notExist", SAMPLE_TENANT_ID, false},
+                {"notExist", SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -1148,11 +1138,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB and adding to cache
+            // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
                     tenantId, TENANT_DOMAIN);
             if (idpResult != null) {
-                // clear cache entry of IDP
+                // Clear cache entry of IDP.
                 cacheBackedIdPMgtDAO.clearIdpCache(idpName, tenantId, TENANT_DOMAIN);
                 IdentityProvider idpCacheResult = idpFromCacheByName(idpName);
                 assertNull(idpCacheResult, "'clearIdpCache' method failed!");
@@ -1164,13 +1154,13 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] deleteTenantRoleData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "Role1"},
-                {SAMPLE_TENANT_ID, "Role2"},
+                {"Role1"},
+                {"Role2"},
         };
     }
 
     @Test(dataProvider = "deleteTenantRoleData")
-    public void testDeleteTenantRole(int tenantId, String role) throws Exception {
+    public void testDeleteTenantRole(String role) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -1178,11 +1168,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // deleting tenant role
-            cacheBackedIdPMgtDAO.deleteTenantRole(tenantId, role, TENANT_DOMAIN);
-            // retrieving list of IDPs on a tenant
-            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, TENANT_DOMAIN);
-            // validating IDPs are removed from cache
+            // Deleting tenant role.
+            cacheBackedIdPMgtDAO.deleteTenantRole(SAMPLE_TENANT_ID1, role, TENANT_DOMAIN);
+            // Retrieving list of IDPs on a tenant.
+            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getIdPs(connection, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            // Validating IDPs are removed from cache.
             for (IdentityProvider idp : idpList) {
                 IdentityProvider idpFromCache = idpFromCacheByName(idp.getIdentityProviderName());
                 assertNull(idpFromCache, "Idp not removed from cache!");
@@ -1192,7 +1182,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         try (Connection connection = getConnection(DB_NAME)) {
             String query = "SELECT * FROM IDP_ROLE WHERE TENANT_ID=? AND ROLE=?";
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, tenantId);
+            statement.setInt(1, SAMPLE_TENANT_ID1);
             statement.setString(2, role);
             ResultSet resultSet = statement.executeQuery();
             int resultSize = 0;
@@ -1208,14 +1198,14 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] renameTenantRoleData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "NewLocalRole1", "LocalRole1", 1},
-                {SAMPLE_TENANT_ID, "NewLocalRole2", "LocalRole2", 1},
-                {SAMPLE_TENANT_ID, "NewLocalRole2", "2", 0},
+                {"NewLocalRole1", "LocalRole1", 1},
+                {"NewLocalRole2", "LocalRole2", 1},
+                {"NewLocalRole2", "2", 0},
         };
     }
 
     @Test(dataProvider = "renameTenantRoleData")
-    public void testRenameTenantRoleData(int tenantId, String newRole, String oldRole, int count) throws Exception {
+    public void testRenameTenantRoleData(String newRole, String oldRole, int count) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         try (Connection connection = getConnection(DB_NAME)) {
@@ -1223,11 +1213,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // renaming tenant role
-            cacheBackedIdPMgtDAO.renameTenantRole(newRole, oldRole, tenantId, TENANT_DOMAIN);
-            // retrieving list of IDPs on a tenant
-            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, TENANT_DOMAIN);
-            // validating IDPs are removed from cache
+            // Renaming tenant role.
+            cacheBackedIdPMgtDAO.renameTenantRole(newRole, oldRole, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            // Retrieving list of IDPs on a tenant.
+            List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getIdPs(connection, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            // validating IDPs are removed from cache.
             for (IdentityProvider idp : idpList) {
                 IdentityProvider idpFromCache = idpFromCacheByName(idp.getIdentityProviderName());
                 assertNull(idpFromCache, "Idp not removed from cache!");
@@ -1235,7 +1225,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
             String query = "SELECT * FROM IDP_ROLE_MAPPING WHERE TENANT_ID=? AND LOCAL_ROLE=?";
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, tenantId);
+            statement.setInt(1, SAMPLE_TENANT_ID1);
             statement.setString(2, newRole);
             ResultSet resultSet = statement.executeQuery();
             int resultSize = 0;
@@ -1251,13 +1241,13 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] isIdPAvailableForAuthenticatorPropertyData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID, "Name", "Property1", "value1", true},
-                {SAMPLE_TENANT_ID, "Address", "Property2", "value2", false},
+                {"Name", "Property1", "value1", true},
+                {"Address", "Property2", "value2", false},
         };
     }
 
     @Test(dataProvider = "isIdPAvailableForAuthenticatorPropertyData")
-    public void testIsIdPAvailableForAuthenticatorProperty(int tenantId, String authenticator, String property,
+    public void testIsIdPAvailableForAuthenticatorProperty(String authenticator, String property,
                                                            String value, boolean isAvailable) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1267,13 +1257,13 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             boolean availabilityResult = cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator,
-                    property, value, tenantId);
+                    property, value, SAMPLE_TENANT_ID1);
             assertEquals(availabilityResult, isAvailable);
         }
     }
 
     @Test(dataProvider = "isIdPAvailableForAuthenticatorPropertyData")
-    public void testIsIdPAvailableForAuthenticatorPropertyException(int tenantId, String authenticator, String property,
+    public void testIsIdPAvailableForAuthenticatorPropertyException(String authenticator, String property,
                                                                     String value, boolean isAvailable)
                                                                     throws Exception {
 
@@ -1285,20 +1275,21 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             addTestIdps();
         }
         assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator, property, value, tenantId));
+                cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator, property, value,
+                        SAMPLE_TENANT_ID1));
     }
 
     @DataProvider
     public Object[][] getConnectedApplicationsData() {
 
         return new Object[][]{
-                {"testIdP1", SAMPLE_TENANT_ID, 2, 2, 0},
-                {"testIdP2", SAMPLE_TENANT_ID, 1, 1, 0},
+                {"testIdP1", 2, 2, 0},
+                {"testIdP2", 1, 1, 0},
         };
     }
 
     @Test(dataProvider = "getConnectedApplicationsData")
-    public void testGetConnectedApplications(String idpName, int tenantId, int limit, int offset, int count)
+    public void testGetConnectedApplications(String idpName, int limit, int offset, int count)
             throws  Exception{
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -1307,10 +1298,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB
-            IdentityProvider idp = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
+            // Retrieving IDP from DB.
+            IdentityProvider idp = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, SAMPLE_TENANT_ID1,
+                    TENANT_DOMAIN);
             String uuid = idp.getResourceId();
-            // retrieving connected IDPs
+            // Retrieving connected IDPs.
             ConnectedAppsResult result = cacheBackedIdPMgtDAO.getConnectedApplications(uuid, limit, offset);
             assertEquals(result.getTotalAppCount(), count);
         }
@@ -1320,7 +1312,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public Object[][] getIdPNameByMetadataPropertyData() {
 
         return new Object[][]{
-                {"testIdP1", "idpPropertyName", "idpPropertyValue", SAMPLE_TENANT_ID},
+                {"testIdP1", "idpPropertyName", "idpPropertyValue", SAMPLE_TENANT_ID1},
                 {null, "notExist", "4", SAMPLE_TENANT_ID2},
         };
     }
@@ -1335,11 +1327,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
             when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            // retrieving IDP from DB and adding to cache using Metadata property
+            // Retrieving IDP from DB and adding to cache using Metadata property.
             String outputName = cacheBackedIdPMgtDAO.getIdPNameByMetadataProperty(connection, property, value, tenantId,
                     TENANT_DOMAIN);
             assertEquals(outputName, idpName, "'getIdPNameByMetadataProperty' method failed!");
-            // retrieving IDP from cache using metadata property
+            // Retrieving IDP from cache using metadata property.
             IdPCacheByMetadataProperty idPCacheByMetadataProperty = IdPCacheByMetadataProperty.getInstance();
             IdPMetadataPropertyCacheKey cacheKey = new IdPMetadataPropertyCacheKey(property, value);
             String idPNameCache = idPCacheByMetadataProperty.getValueFromCache(cacheKey, TENANT_DOMAIN);
@@ -1438,9 +1430,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         idp3.setHomeRealmId("3");
 
         // IDP with PermissionsAndRoleConfig, FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs, ClaimConfigs.
-        idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID);
+        idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID1);
         // IDP with Local Cliam Dialect ClaimConfigs.
-        idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
+        idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID1);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
     }
@@ -1463,6 +1455,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     }
 
     private IdentityProvider idpFromCacheByName(String idpName) {
+
         IdPCacheByName idPCacheByName = IdPCacheByName.getInstance();
         IdPNameCacheKey cacheKey = new IdPNameCacheKey(idpName);
         IdPCacheEntry entry = idPCacheByName.getValueFromCache(cacheKey, TENANT_DOMAIN);
@@ -1474,6 +1467,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     }
 
     private IdentityProvider idpFromCacheByResourceId(String resourceId) {
+
         IdPCacheByResourceId idPCacheByResourceId = IdPCacheByResourceId.getInstance();
         IdPResourceIdCacheKey cacheKey = new IdPResourceIdCacheKey(resourceId);
         IdPCacheEntry entry = idPCacheByResourceId.getValueFromCache(cacheKey, TENANT_DOMAIN);
