@@ -2438,8 +2438,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updatedAppName);
         }
 
-        if (updatedApp.getPermissionAndRoleConfig() != null &&
-                ArrayUtils.isNotEmpty(updatedApp.getPermissionAndRoleConfig().getPermissions())) {
+        if (updatedApp.getPermissionAndRoleConfig() != null) {
             ApplicationMgtUtil.updatePermissions(updatedAppName,
                     updatedApp.getPermissionAndRoleConfig().getPermissions());
         }
