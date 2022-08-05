@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockSe
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -102,6 +103,7 @@ public class FrameworkServiceDataHolder {
 
     private AccountLockService accountLockService;
     private JSExecutionSupervisor jsExecutionSupervisor;
+    private IdpManager identityProviderManager = null;
 
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
@@ -631,5 +633,15 @@ public class FrameworkServiceDataHolder {
         if (organizationManagementInitializeService != null) {
             isOrganizationManagementEnable = organizationManagementInitializeService.isOrganizationManagementEnabled();
         }
+    }
+
+    public IdpManager getIdentityProviderManager() {
+
+        return identityProviderManager;
+    }
+
+    public void setIdentityProviderManager(IdpManager identityProviderManager) {
+
+        this.identityProviderManager = identityProviderManager;
     }
 }

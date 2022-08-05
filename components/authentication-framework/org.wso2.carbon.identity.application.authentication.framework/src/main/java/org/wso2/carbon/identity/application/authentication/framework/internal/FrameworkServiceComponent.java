@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockSe
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -969,6 +970,23 @@ public class FrameworkServiceComponent {
             OrganizationManagementInitialize organizationManagementInitializeInstance) {
 
         FrameworkServiceDataHolder.getInstance().setOrganizationManagementEnable(null);
+    }
+
+    @Reference(
+            name = "idp.mgt.dscomponent",
+            service = IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityProviderManager"
+    )
+    protected void setIdentityProviderManager(IdpManager idpMgtService) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(idpMgtService);
+    }
+
+    protected void unsetIdentityProviderManager(IdpManager idpMgtService) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(null);
     }
 
     private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
