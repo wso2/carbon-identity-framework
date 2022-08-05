@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
-
 /**
  * Client for calling /api/identity/auth/ with client authentication.
  */
@@ -37,6 +35,6 @@ public class AuthContextAPIClient {
      */
     public static String getContextProperties(String backendURL) {
 
-        return AuthenticationEndpointUtil.sendGetRequest(backendURL, AuthenticationEndpointUtil.CLIENT_AUTH_TYPE);
+        return AuthenticationEndpointUtil.sendGetRequest(backendURL);
     }
 }

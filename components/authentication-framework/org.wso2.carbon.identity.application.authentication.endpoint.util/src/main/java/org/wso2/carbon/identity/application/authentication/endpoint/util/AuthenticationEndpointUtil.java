@@ -26,17 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.owasp.encoder.Encode;
@@ -55,12 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -70,13 +55,10 @@ public class AuthenticationEndpointUtil {
 
     private static final Log log = LogFactory.getLog(AuthenticationEndpointUtil.class);
     public static final String CLIENT_AUTH_TYPE = "Client";
-    public static final String BASIC_AUTH_TYPE = "Basic";
     private static final String CLIENT = CLIENT_AUTH_TYPE + " ";
-    private static final String BASIC = BASIC_AUTH_TYPE + " ";
     private static final String COLON = ":";
     private static final String CUSTOM_PAGE_APP_SPECIFIC_CONFIG_KEY_SEPARATOR = "-";
     private static final String HTTP_METHOD_GET = "GET";
-    private static final String HTTP_METHOD_POST = "POST";
     private static final String QUERY_STRING_APPENDER = "&";
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
@@ -379,23 +361,18 @@ public class AuthenticationEndpointUtil {
     }
 
     /**
-     * Send GET request with client authentication/basic authentication and return data.
+     * Send GET request with client authentication and return data.
      *
      * @param backendURL The URL of the backend service.
-     * @param authType   The type of the authorization header to be used.
      * @return Data which was received from the backend service.
      */
-    public static String sendGetRequest(String backendURL, String authType) {
+    public static String sendGetRequest(String backendURL) {
 
         StringBuilder responseString = new StringBuilder();
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
 
             HttpGet httpGet = new HttpGet(backendURL);
-            if (authType.equals(CLIENT_AUTH_TYPE)) {
-                setAuthorizationHeader(httpGet, CLIENT_AUTH_TYPE);
-            } else {
-                setAuthorizationHeader(httpGet, BASIC_AUTH_TYPE);
-            }
+            setAuthorizationHeader(httpGet);
 
             try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
 
@@ -409,56 +386,6 @@ public class AuthenticationEndpointUtil {
             }
         } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
-        }
-        return responseString.toString();
-    }
-
-    /**
-     * Send POST request with client authentication and return data.
-     *
-     * @param backendURL The URL of the backend service.
-     * @param body       The body of the POST request.
-     * @param headers    The headers required for the POST request.
-     * @param authType   The type of the authorization header to be used.
-     * @return Data which was received from the backend service.
-     */
-    public static String sendPostRequest(String backendURL, String body, Map<String, String> headers, String authType) {
-
-        StringBuilder responseString = new StringBuilder();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-
-            HttpPost httpPost = new HttpPost(backendURL);
-            if (authType.equals(CLIENT_AUTH_TYPE)) {
-                setAuthorizationHeader(httpPost, CLIENT_AUTH_TYPE);
-            } else {
-                setAuthorizationHeader(httpPost, BASIC_AUTH_TYPE);
-            }
-
-            if (headers != null) {
-                if (!headers.isEmpty()) {
-                    for (Map.Entry<String, String> header : headers.entrySet()) {
-                        httpPost.addHeader(header.getKey(), header.getValue());
-                    }
-                }
-            }
-
-            if (body != null) {
-                StringEntity stringEntity = new StringEntity(body);
-                httpPost.setEntity(stringEntity);
-            }
-
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() +
-                            " when invoking " + HTTP_METHOD_POST + " for URL: " + backendURL);
-                }
-                responseString = handleHttpResponse(response, backendURL);
-            } finally {
-                httpPost.releaseConnection();
-            }
-        } catch (IOException e) {
-            log.error("Sending " + HTTP_METHOD_POST + " request to URL : " + backendURL + ", failed.", e);
         }
         return responseString.toString();
     }
@@ -483,8 +410,8 @@ public class AuthenticationEndpointUtil {
                 responseString.append(inputLine);
             }
         } else {
-            log.error("Sending " + HTTP_METHOD_POST + " request to URL : " + backendURL + ", failed. " +
-                    "Found http status " + response.getStatusLine());
+            log.error("Response received from the backendURL " + backendURL +" failed with status " +
+                    response.getStatusLine() + ".");
         }
 
         return responseString;
@@ -494,26 +421,16 @@ public class AuthenticationEndpointUtil {
      * Add OAuth authorization header to the httpMethod.
      *
      * @param httpMethod The HttpMethod which needs the authorization header.
-     * @param authType   The type of the authorization header to be used.
      */
-    private static void setAuthorizationHeader(HttpRequestBase httpMethod, String authType) {
+    private static void setAuthorizationHeader(HttpRequestBase httpMethod) {
 
-        String name;
-        String password;
-        String authValue;
+        String name = EndpointConfigManager.getAppName();
+        String password = String.valueOf(EndpointConfigManager.getAppPassword());
 
-        if (authType.equals(CLIENT_AUTH_TYPE)) {
-            name = EndpointConfigManager.getAppName();
-            password = String.valueOf(EndpointConfigManager.getAppPassword());
-            authValue = CLIENT;
-        } else {
-            name = EndpointConfigManager.getBasicAuthName();
-            password = String.valueOf(EndpointConfigManager.getBasicAuthPassword());
-            authValue = BASIC;
-        }
         String toEncode = name + COLON + password;
         byte[] encoding = org.apache.commons.codec.binary.Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
-        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, authValue + authHeader);
+
+        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
     }
 }
