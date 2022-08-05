@@ -48,8 +48,6 @@ public class EndpointConfigManager {
     private static Properties prop;
     private static String appName = null;
     private static char[] appPassword = null;
-    private static String basicAuthName = null;
-    private static char[] basicAuthPassword = null;
     private static String serverOrigin;
     private static boolean initialized = false;
 
@@ -92,8 +90,6 @@ public class EndpointConfigManager {
                 }
                 appName = getPropertyValue(Constants.CONFIG_APP_NAME);
                 appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
-                basicAuthName = getPropertyValue(Constants.CONFIG_BASIC_AUTH_NAME);
-                basicAuthPassword = getPropertyValue(Constants.CONFIG_BASIC_AUTH_PASSWORD).toCharArray();
                 serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
                 if (StringUtils.isNotBlank(serverOrigin)) {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
@@ -123,26 +119,6 @@ public class EndpointConfigManager {
     public static char[] getAppPassword() {
 
         return appPassword;
-    }
-
-    /**
-     * Get application name
-     *
-     * @return Application path
-     */
-    public static String getBasicAuthName() {
-
-        return basicAuthName;
-    }
-
-    /**
-     * Get application password
-     *
-     * @return Application password
-     */
-    public static char[] getBasicAuthPassword() {
-
-        return basicAuthPassword;
     }
 
     /**
