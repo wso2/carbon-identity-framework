@@ -839,7 +839,7 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (PreparedStatement prepStmt
                          = connection.prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
                 prepStmt.setString(1, authHistory.getIdpSessionIndex());
@@ -848,6 +848,7 @@ public class UserSessionStore {
                 prepStmt.setString(4, authHistory.getAuthenticatorName());
                 prepStmt.setString(5, authHistory.getRequestType());
                 prepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while adding session details of the session index:"
@@ -870,7 +871,7 @@ public class UserSessionStore {
     public void storeFederatedAuthSessionInfo(String sessionContextKey, AuthHistory authHistory, int tenantId)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement prepStmt = connection
                      .prepareStatement(SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT)) {
             prepStmt.setString(1, authHistory.getIdpSessionIndex());
@@ -880,6 +881,7 @@ public class UserSessionStore {
             prepStmt.setString(5, authHistory.getRequestType());
             prepStmt.setInt(6, tenantId);
             prepStmt.execute();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             String msg = String.format("Error while adding session details of the session index: %s, IdP: %s " +
                     "and tenant id: %s.", sessionContextKey, authHistory.getIdpName(), tenantId);
@@ -1002,11 +1004,12 @@ public class UserSessionStore {
      */
     public void removeFederatedAuthSessionInfo(String sessionContextKey) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (PreparedStatement prepStmt
                          = connection.prepareStatement(SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
                 prepStmt.setString(1, sessionContextKey);
                 prepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while removing federated authentication session details of " +

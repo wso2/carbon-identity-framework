@@ -4313,7 +4313,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Map<String, String> permissions = new HashMap<>();
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(false);
             readPermissionsPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS);
             readPermissionsPrepStmt.setString(1, "%" + ApplicationMgtUtil.getApplicationPermissionPath() + "%");
             resultSet = readPermissionsPrepStmt.executeQuery();
@@ -4346,11 +4346,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             updatePermissionPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS);
             updatePermissionPrepStmt.setString(1, newPermission);
             updatePermissionPrepStmt.setString(2, id);
             updatePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(updatePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -4372,7 +4373,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int id = -1;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(false);
             loadPermissionsPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W);
             loadPermissionsPrepStmt.setString(1, permission.toLowerCase());
             resultSet = loadPermissionsPrepStmt.executeQuery();
@@ -4399,11 +4400,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             deleteRolePermissionPrepStmt = connection.prepareStatement(
                     ApplicationMgtDBQueries.REMOVE_UM_ROLE_PERMISSION);
             deleteRolePermissionPrepStmt.setInt(1, id);
             deleteRolePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteRolePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -4422,10 +4424,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             deletePermissionPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_UM_PERMISSIONS);
             deletePermissionPrepStmt.setInt(1, entryId);
             deletePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deletePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
