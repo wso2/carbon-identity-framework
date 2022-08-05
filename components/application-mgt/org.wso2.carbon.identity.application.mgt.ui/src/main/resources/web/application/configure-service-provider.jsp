@@ -515,6 +515,8 @@
         document.getElementById('templateDesc').value = templateDesc;
 
         validateSPConfigurations();
+        encodeSPCertificate();
+
         $.ajax({
             type: "POST",
             url: 'add-service-provider-as-template.jsp',
@@ -534,6 +536,7 @@
             },
             async: false
         });
+        decodeSPCertificate();
     }
 
     function createAppOnclick() {
@@ -573,6 +576,11 @@
         document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
+    function decodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = atob(spCertificate);
+    }
+
     function updateBeanAndRedirect(redirectURL) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
@@ -582,6 +590,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        encodeSPCertificate();
 
         $.ajax({
             type: "POST",
@@ -591,6 +600,7 @@
                 location.href = redirectURL;
             }
         });
+        decodeSPCertificate();
     }
 
     function getConfigurationType(postURL) {
@@ -633,6 +643,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        encodeSPCertificate();
 
         $.ajax({
             type: "POST",
@@ -655,6 +666,7 @@
                 });
             }
         });
+        decodeSPCertificate();
     }
 
     function updateBeanAndPostToWithConfirmation(postURL, data) {
@@ -672,6 +684,9 @@
     }
 
     function updateBeanAndPostTo(postURL, data) {
+
+        encodeSPCertificate();
+
         $.ajax({
             type: "POST",
             url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
@@ -689,6 +704,7 @@
                 });
             }
         });
+        decodeSPCertificate();
     }
 
     function onSamlSsoClick() {
@@ -1122,12 +1138,14 @@
 
             var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
             document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+            encodeSPCertificate();
 
             $.ajax({
                 type: "POST",
                 url: 'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>',
                 data: $("#configure-sp-form").serialize()
             });
+            decodeSPCertificate();
         }
 
         jQuery('#publicCertDeleteLink').click(function () {

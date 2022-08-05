@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,11 +16,12 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -34,21 +35,22 @@ import java.util.Optional;
 
 /**
  * Represents a authentication step.
+ * This wrapper uses jdk.nashorn engine.
  */
-public class JsStep extends AbstractJSContextMemberObject {
+public class JsNashornStep extends AbstractJSContextMemberObject implements AbstractJsObject {
 
-    private static final Log LOG = LogFactory.getLog(JsSteps.class);
+    private static final Log LOG = LogFactory.getLog(JsNashornSteps.class);
 
     private int step;
     private String authenticatedIdp;
 
-    public JsStep(int step, String authenticatedIdp) {
+    public JsNashornStep(int step, String authenticatedIdp) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
     }
 
-    public JsStep(AuthenticationContext context, int step, String authenticatedIdp) {
+    public JsNashornStep(AuthenticationContext context, int step, String authenticatedIdp) {
 
         this(step, authenticatedIdp);
         initializeContext(context);
@@ -59,13 +61,13 @@ public class JsStep extends AbstractJSContextMemberObject {
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return new JsAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
+                return new JsNashornAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
                 return getOptions();
             default:
-                return super.getMember(name);
+                return AbstractJsObject.super.getMember(name);
         }
     }
 
@@ -78,7 +80,7 @@ public class JsStep extends AbstractJSContextMemberObject {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return true;
             default:
-                return super.hasMember(name);
+                return AbstractJsObject.super.hasMember(name);
         }
     }
 

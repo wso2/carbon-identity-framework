@@ -1342,7 +1342,7 @@
 
 
             $user_id_claim_dropdown.append(user_id_option);
-            $role_claim_dropdown.append('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>');
+            $role_claim_dropdown.append('<option value="http://wso2.org/claims/roles">http://wso2.org/claims/roles</option>');
             $google_prov_email_claim_dropdown.append(google_prov_email_option);
             $google_prov_familyname_claim_dropdown.append(google_prov_family_email_option);
             $google_prov_givenname_claim_dropdown.append(google_prov_givenname_option);
@@ -1366,7 +1366,7 @@
             <%}%>
 
             $user_id_claim_dropdown.replace($option, "");
-            $role_claim_dropdown.replace('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>', "");
+            $role_claim_dropdown.replace('<option value="http://wso2.org/claims/roles">http://wso2.org/claims/roles</option>', "");
             $google_prov_email_claim_dropdown.replace($option, "");
             $google_prov_familyname_claim_dropdown.replace($option, "");
             $google_prov_givenname_claim_dropdown.replace($option, "");
@@ -5464,6 +5464,19 @@
                                 <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
                                 <%} %>
                                 <td>
+
+                                <% if (StringUtils.isNotEmpty(prop.getType()) && prop.getType().equalsIgnoreCase("boolean")) {
+                                    String propChecked = "";
+                                    if ( prop.getValue() != null && prop.getValue().equalsIgnoreCase("true")){
+                                        propChecked = "checked=\'checked\'";
+                                    } %>
+
+                                    <div class="sectionCheckbox">
+                                        <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
+                                        name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
+                                               type="checkbox" <%=propChecked%> />
+                                        <span style="display:inline-block" class="sectionHelp"><%=prop.getDescription()%></span>
+                                <%} else {%>
                                     <% if (prop.getConfidential()) { %>
 
                                     <% if (prop.getValue() != null) { %>
@@ -5515,6 +5528,7 @@
                                         if (prop.getDescription() != null) { %>
                                     <div class="sectionHelp"><%=prop.getDescription()%>
                                     </div>
+                                    <%} %>
                                     <%} %>
                                 </td>
                             </tr>

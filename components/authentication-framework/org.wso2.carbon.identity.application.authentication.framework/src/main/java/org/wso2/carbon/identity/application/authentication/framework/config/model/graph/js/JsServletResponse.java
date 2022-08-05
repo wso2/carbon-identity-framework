@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,18 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Javascript wrapper for Java level HttpServletResponse.
+ * Abstract Javascript wrapper for Java level HttpServletResponse.
  * This provides controlled access to HttpServletResponse object via provided javascript native syntax.
  * e.g
  * response.headers.["Set-Cookie"] = ['crsftoken=xxxxxssometokenxxxxx']
@@ -40,29 +37,13 @@ import javax.servlet.http.HttpServletResponse;
  * Also, it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
  * HttpServletResponse.
  */
-public class JsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> {
+public abstract class JsServletResponse
+        extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>>
+        implements JsBaseServletResponse {
 
     public JsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         super(wrapped);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-        case FrameworkConstants.JSAttributes.JS_HEADERS:
-            Map headers = new HashMap();
-            Collection<String> headerNames = getResponse().getHeaderNames();
-            if (headerNames != null) {
-                for (String element : headerNames) {
-                    headers.put(element, getResponse().getHeader(element));
-                }
-            }
-            return new JsHeaders(headers, getResponse());
-        default:
-            return super.getMember(name);
-        }
     }
 
     @Override
@@ -81,7 +62,7 @@ public class JsServletResponse extends AbstractJSObjectWrapper<TransientObjectWr
         }
     }
 
-    private HttpServletResponse getResponse() {
+    protected HttpServletResponse getResponse() {
 
         TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();

@@ -57,6 +57,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+
 /**
  * Default implementation of step based sequence handler.
  */
@@ -67,6 +69,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
             + ".ReturnOnlyMappedLocalRoles";
     private static boolean returnOnlyMappedLocalRoles = false;
+    private static boolean allowSPRequestedFedClaimsOnly = true;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -85,6 +88,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
             returnOnlyMappedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
+            allowSPRequestedFedClaimsOnly =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
         }
     }
 
@@ -345,7 +352,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                !isSPStandardClaimDialect(context.getRequestType())) {
+                                (!allowSPRequestedFedClaimsOnly ||
+                                        !isSPStandardClaimDialect(context.getRequestType()))) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;

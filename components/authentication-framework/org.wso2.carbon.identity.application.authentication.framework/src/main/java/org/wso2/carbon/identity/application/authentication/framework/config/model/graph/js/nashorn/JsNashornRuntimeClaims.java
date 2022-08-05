@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -24,15 +24,16 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 
 /**
  * Represent the user's runtime claims.
+ * This wrapper uses jdk.nashorn engine.
  */
-public class JsRuntimeClaims extends JsClaims {
+public class JsNashornRuntimeClaims extends JsNashornClaims {
 
-    public JsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public JsNashornRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         super(context, step, idp, false);
     }
 
-    public JsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public JsNashornRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         super(context, user, false);
     }

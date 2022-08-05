@@ -899,6 +899,13 @@
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
     </OAuth>
+    <!--
+    Configuration to select JS engine for Adaptive authentication feature.
+    Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
+    -->
+    <AdaptiveAuth>
+   	    <ScriptEngine>{{AdaptiveAuth.ScriptEngine}}</ScriptEngine>
+    </AdaptiveAuth>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
@@ -2762,6 +2769,8 @@
                     <Path>/api/server/v1/identity-providers</Path>
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2772,6 +2781,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
@@ -3103,6 +3113,9 @@
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
+
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.

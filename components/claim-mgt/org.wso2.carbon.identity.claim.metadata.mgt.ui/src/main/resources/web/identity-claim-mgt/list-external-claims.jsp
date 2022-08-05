@@ -93,7 +93,9 @@
             };
             jQuery("a.trigger-title").click(triggerHandler);
         });
-        function removeItem(externalClaimDialectURI, externalClaimURI, externalClaimURIForMessage) {
+        function removeItem(event, externalClaimDialectURI, externalClaimURI, externalClaimURIForMessage) {
+            event.preventDefault();
+
             function doDelete() {
                 $.ajax({
                     type: 'POST',
@@ -231,10 +233,11 @@
                 </a>
                 <a href="#" class="icon-link deleteLink"
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
-                   onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimDialectURI))%>',
-                           '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>',
-                           '<%=Encode.forJavaScriptAttribute(externalClaimURI)%>');return
-                           false;"><fmt:message key='delete'/>
+                   onclick="removeItem(event,
+                            '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimDialectURI))%>',
+                            '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>',
+                            '<%=Encode.forJavaScriptAttribute(externalClaimURI)%>');return
+                            false;"><fmt:message key='delete'/>
                 </a>
 
                 <div style="clear:both"></div>
