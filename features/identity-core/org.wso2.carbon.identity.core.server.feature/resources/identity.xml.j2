@@ -3107,8 +3107,8 @@
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
 
-    <!-- Configuration to strictly restrict claim filtering only as requested by SP. -->
-    <RestrictSPRequestedClaimFiltering>{{authentication.restrict_sp_requested_claim_filtering}}</RestrictSPRequestedClaimFiltering>
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.

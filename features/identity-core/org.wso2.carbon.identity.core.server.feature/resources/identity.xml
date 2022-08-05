@@ -2174,8 +2174,8 @@
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 
-    <!-- Configuration to strictly restrict claim filtering only as requested by SP. -->
-    <RestrictSPRequestedClaimFiltering>true</RestrictSPRequestedClaimFiltering>
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>true</AllowSPRequestedFedClaimsOnly>
 
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
