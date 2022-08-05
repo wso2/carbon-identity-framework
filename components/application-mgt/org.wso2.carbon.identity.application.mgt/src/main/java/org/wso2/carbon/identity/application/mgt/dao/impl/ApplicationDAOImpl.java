@@ -1332,13 +1332,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return outBoundProvisioningConfig;
     }
 
-    private boolean isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable
+    private boolean isAuthenticationScriptConfigEnabled
             (LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig) {
         // return true if script based auth is enabled without adaptive auth is available
         AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
                 .getAuthenticationScriptConfig();
-        return  authenticationScriptConfig != null && authenticationScriptConfig.isEnabled()
-                && !(ApplicationMgtUtil.isAdaptiveAuthenticationAvailable());
+        return  authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
     }
 
     /**
@@ -1360,7 +1359,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return;
         }
 
-        if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(localAndOutboundAuthConfig)) {
+        // Adaptive Authentication is disabled but the application has AA scripts, hence blocking the update process.
+        if (isAuthenticationScriptConfigEnabled(localAndOutboundAuthConfig)
+                && !(ApplicationMgtUtil.isAdaptiveAuthenticationAvailable())) {
             throw new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     "Required Library OpenJDK Nashorn not found");
         }

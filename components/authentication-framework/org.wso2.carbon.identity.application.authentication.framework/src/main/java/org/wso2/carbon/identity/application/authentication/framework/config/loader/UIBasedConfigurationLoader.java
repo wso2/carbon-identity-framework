@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -83,14 +84,15 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
 
-        if (isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(
-                localAndOutboundAuthenticationConfig)) {
-            throw new FrameworkException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Required Library OpenJDK Nashorn not found");
-        }
-
         //Use script based evaluation if script is present.
         if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
+
+            // Adaptive Authentication is disabled but the application has AA scripts,
+            // hence gracefully throw error.
+            if (!FrameworkUtils.isAdaptiveAuthenticationAvailable()){
+                throw new FrameworkException(UNEXPECTED_SERVER_ERROR.getCode(),
+                        "Required Library OpenJDK Nashorn not found");
+            }
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             Map<Integer, StepConfig> stepConfigMapCopy = new HashMap<>();
@@ -127,13 +129,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         } else {
             return false;
         }
-    }
-
-    private boolean isAuthenticationScriptConfigEnabledWithoutAdaptiveAuthenticationAvailable(
-            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig) {
-        // checks whether AuthenticationScriptConfig is enabled without adaptive authentication being available
-        return (!FrameworkUtils.isAdaptiveAuthenticationAvailable()) &&
-                isAuthenticationScriptConfigEnabled(localAndOutboundAuthenticationConfig);
     }
 
     private boolean isAuthenticationScriptConfigEnabled(LocalAndOutboundAuthenticationConfig
