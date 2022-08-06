@@ -172,35 +172,6 @@ public class IdPManagementUIUtil {
                         customAuthenticatorNames.add(new String(value, StandardCharsets.UTF_8));
                     } else if (key.startsWith("custom_pro_name")) {
                         proConnectorNames.add(new String(value, StandardCharsets.UTF_8));
-                    } else if (key.endsWith("_propEnabled")) {
-                        /*
-                         Mapping boolean checkbox properties in federated authenticators.
-                         A boolean checkbox id should be of
-                         cust_auth_prop_<Authenticator name>#<Property name>_propEnabled.
-                         */
-                        int length = "cust_auth_prop_".length();
-                        String authPropString = key.substring(length);
-                        if (authPropString.indexOf("#") > 0) {
-                            String authName = authPropString.substring(0, authPropString.indexOf("#"));
-                            String propName = authPropString.substring(authPropString
-                                    .indexOf("#") + 1, authPropString.indexOf("_propEnabled"));
-                            String propVal = new String(value, StandardCharsets.UTF_8);
-                            Property prop = new Property();
-                            prop.setName(propName);
-
-                            // A boolean checkbox appears only when the value is checked.
-                            if (propVal.equals("on")) {
-                                prop.setValue("true");
-                            } else {
-                                prop.setValue("false");
-                            }
-                            customAuthenticatorProperties.computeIfAbsent(authName, k -> new ArrayList<>());
-
-                            List<Property> propList;
-                            propList = customAuthenticatorProperties.get(authName);
-                            propList.add(prop);
-                            customAuthenticatorProperties.put(authName, propList);
-                        }
                     } else if (key.startsWith("cust_auth_prop_")) {
                         int length = "cust_auth_prop_".length();
                         String authPropString = new String(key).substring(length);
