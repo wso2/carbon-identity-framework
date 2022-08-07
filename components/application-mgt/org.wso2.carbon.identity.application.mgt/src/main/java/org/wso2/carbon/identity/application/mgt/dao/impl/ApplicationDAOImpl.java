@@ -279,7 +279,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     static {
         SEARCH_SUPPORTED_FIELD_MAP.put("name", "SP_APP.APP_NAME");
-        SEARCH_SUPPORTED_FIELD_MAP.put("clientID", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SEARCH_SUPPORTED_FIELD_MAP.put("clientId", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
     }
 
     public ApplicationDAOImpl() {
@@ -2032,12 +2032,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         validateAttributesForPagination(offset, limit);
 
-        if (StringUtils.isBlank(filter)) {
-            return getApplicationBasicInfo(offset, limit);
-        }
-
-        validateAttributesForPagination(offset, limit);
-
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -3405,7 +3399,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             expressionRightNode.getValue()));
                 }
             } catch (IOException | IdentityException e) {
-                log.error("Error occurred while converting filter for backend.", e);
+                log.error("Error occurred while converting filter with filter tree builder.", e);
             }
         }
         return filterData;
@@ -5364,10 +5358,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY));
+
+        String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
+        String inboundAuthType = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_TYPE);
+        if (StringUtils.isNotBlank(inboundAuthKey)) {
+            if (inboundAuthType.equals("oauth2")) {
+                basicInfo.setClientId(inboundAuthKey);
+            } else if (inboundAuthType.equals("samlsso")) {
+                basicInfo.setIssuer(inboundAuthKey);
+            }
+        }
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
