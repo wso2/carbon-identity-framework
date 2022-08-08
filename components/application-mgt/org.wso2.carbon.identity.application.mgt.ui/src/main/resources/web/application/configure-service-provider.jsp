@@ -2366,7 +2366,9 @@
                                 <h2 id="openid.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">OpenID Configuration</a>
+                                    <% if (appBean.getOpenIDRealm() != null) { %>
                                     <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
+                                    <%} %>
                                 </h2>
                                 <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                                      id="openid.config.div">
@@ -2401,7 +2403,9 @@
                                 <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">WS-Federation (Passive) Configuration</a>
+                                    <% if (appBean.getPassiveSTSRealm() != null) { %>
                                     <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
+                                    <%} %>
                                 </h2>
                                 <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                                      id="passive.config.div">
