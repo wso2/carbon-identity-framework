@@ -2362,44 +2362,6 @@
                                     </table>
                                 </div>
 
-
-                                <h2 id="openid.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#">OpenID Configuration</a>
-                                    <% if (appBean.getOpenIDRealm() != null) { %>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                    <%} %>
-                                </h2>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                     id="openid.config.div">
-                                    <table class="carbonFormTable">
-
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.openid.realm'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getOpenIDRealm() != null) {
-                                                %>
-                                                <input style="width:50%" id="openidRealm" name="openidRealm" type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getOpenIDRealm())%>"
-                                                       autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="openidRealm" name="openidRealm" type="text"
-                                                       value="" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.openid'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-
-                                    </table>
-                                </div>
-
-
                                 <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">WS-Federation (Passive) Configuration</a>
