@@ -1386,6 +1386,9 @@
 
     <AuthenticationPolicy>
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
+        {% if authentication_policy.disable_account_lock_handler is defined %}
+        <DisableAccountLockHandler>{{authentication_policy.disable_account_lock_handler}}</DisableAccountLockHandler>
+        {% endif %}
     </AuthenticationPolicy>
 
     <!-- Show authenticated user name in audit logs. -->
