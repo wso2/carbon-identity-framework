@@ -305,14 +305,24 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     String idpRoleClaimUri = getIdpRoleClaimUri(stepConfig, context);
 
                     // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // Include the unmapped roles as it is.
-                    List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    // If no mapping is provided, return all IDP roles as they are.
+                    List<String> identityProviderMappedUserRolesUnmappedInclusive;
+                    if (MapUtils.isEmpty(externalIdPConfig.getRoleMappings())) {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                    } else {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    }
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);
                     if (StringUtils.isNotBlank(idpRoleClaimUri)
                             && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                    }
+
+                    if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
                         extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
                     }
 
