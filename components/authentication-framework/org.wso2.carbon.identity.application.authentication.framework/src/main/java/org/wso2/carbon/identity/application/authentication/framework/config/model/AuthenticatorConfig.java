@@ -120,4 +120,14 @@ public class AuthenticatorConfig implements Serializable {
     public Map<String, IdentityProvider> getIdps() {
         return idps;
     }
+
+    public void setIdPs(Map<String, IdentityProvider> idPs) {
+
+        this.idps = idPs;
+    }
+
+    public void setIdPNames(List<String> idpNames) {
+
+        this.idpNames = idpNames;
+    }
 }
