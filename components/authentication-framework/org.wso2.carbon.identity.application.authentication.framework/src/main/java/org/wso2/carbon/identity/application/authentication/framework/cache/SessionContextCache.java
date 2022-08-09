@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
@@ -42,11 +44,18 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";
     private static final Log log = LogFactory.getLog(SessionContextCache.class);
+    private Boolean isSessionDataStorageOptimizationEnabled = true;
 
     private static volatile SessionContextCache instance;
 
     private SessionContextCache() {
+
         super(SESSION_CONTEXT_CACHE_NAME);
+        if (IdentityUtil.getProperty(
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable") != null) {
+            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable"));
+        }
     }
 
     public static SessionContextCache getInstance() {
@@ -75,6 +84,9 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         entry.setAccessedTime();
         super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (isSessionDataStorageOptimizationEnabled) {
+            entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
+        }
         if (authUser != null && authUser instanceof AuthenticatedUser) {
             String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -138,6 +150,13 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
         if (sessionContextDO != null) {
             cacheEntry = new SessionContextCacheEntry(sessionContextDO);
+            if (cacheEntry.getContext() == null && cacheEntry.getOptimizedSessionContext() != null) {
+                try {
+                    cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
+                } catch (SessionContextLoaderException e) {
+                    return null;
+                }
+            }
         }
         return cacheEntry;
     }

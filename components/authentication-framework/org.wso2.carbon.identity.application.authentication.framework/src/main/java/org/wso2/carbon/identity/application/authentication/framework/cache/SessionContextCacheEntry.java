@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.OptimizedSessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
@@ -32,6 +33,7 @@ public class SessionContextCacheEntry extends CacheEntry {
     private static final long serialVersionUID = 42165605438157753L;
 
     SessionContext context;
+    OptimizedSessionContext optimizedSessionContext;
     String loggedInUser;
     private long accessedTime;
 
@@ -42,6 +44,7 @@ public class SessionContextCacheEntry extends CacheEntry {
     public SessionContextCacheEntry(SessionContextDO sessionContextDO) {
         SessionContextCacheEntry entry = (SessionContextCacheEntry) sessionContextDO.getEntry();
         this.context = entry.getContext();
+        this.optimizedSessionContext = entry.getOptimizedSessionContext();
         this.loggedInUser = entry.getLoggedInUser();
         this.setAccessedTime(TimeUnit.NANOSECONDS.toMillis(sessionContextDO.getNanoTime()));
     }
@@ -66,11 +69,21 @@ public class SessionContextCacheEntry extends CacheEntry {
         this.accessedTime = System.currentTimeMillis();
     }
 
-    private void setAccessedTime(long accessedTime) {
+    public void setAccessedTime(long accessedTime) {
         this.accessedTime = accessedTime;
     }
 
     public long getAccessedTime() {
         return this.accessedTime;
+    }
+
+    public OptimizedSessionContext getOptimizedSessionContext() {
+
+        return optimizedSessionContext;
+    }
+
+    public void setOptimizedSessionContext(OptimizedSessionContext optimizedSessionContext) {
+
+        this.optimizedSessionContext = optimizedSessionContext;
     }
 }
