@@ -38,13 +38,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_TEMPLATE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.DELETE_SP_TEMPLATE_BY_NAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_ALL_SP_TEMPLATES_BASIC_INFO;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_SP_TEMPLATE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.IS_SP_TEMPLATE_EXISTS;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_TEMPLATE_BY_NAME;
-
 /**
  * Default implementation of {@link ApplicationTemplateDAO}. This handles {@link SpTemplate} related db layer
  * operations.
@@ -64,7 +57,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
 
         try {
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-            jdbcTemplate.executeInsert(ADD_SP_TEMPLATE, (preparedStatement -> {
+            jdbcTemplate.executeInsert(ApplicationMgtDBQueries.ADD_SP_TEMPLATE, (preparedStatement -> {
                 preparedStatement.setInt(1, getTenantID(tenantDomain));
                 preparedStatement.setString(2, spTemplate.getName());
                 preparedStatement.setString(3, spTemplate.getDescription());
@@ -92,7 +85,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         SpTemplate spTemplate;
         try {
-            spTemplate = jdbcTemplate.fetchSingleRecord(GET_SP_TEMPLATE,
+            spTemplate = jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.GET_SP_TEMPLATE,
                     (resultSet, rowNumber) -> {
                         try {
                             return new SpTemplate(templateName, resultSet.getString(1),
@@ -124,7 +117,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(DELETE_SP_TEMPLATE_BY_NAME,
+            jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.DELETE_SP_TEMPLATE_BY_NAME,
                     preparedStatement -> {
                         preparedStatement.setString(1, templateName);
                         preparedStatement.setInt(2, getTenantID(tenantDomain));
@@ -146,7 +139,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(UPDATE_SP_TEMPLATE_BY_NAME,
+            jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.UPDATE_SP_TEMPLATE_BY_NAME,
                     preparedStatement -> {
                         preparedStatement.setString(1, spTemplate.getName());
                         preparedStatement.setString(2, spTemplate.getDescription());
@@ -176,7 +169,8 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            Integer count = jdbcTemplate.fetchSingleRecord(IS_SP_TEMPLATE_EXISTS, (resultSet, rowNumber) ->
+            Integer count = jdbcTemplate.fetchSingleRecord(
+                    ApplicationMgtDBQueries.IS_SP_TEMPLATE_EXISTS, (resultSet, rowNumber) ->
                             resultSet.getInt(1),
                     preparedStatement -> {
                         preparedStatement.setString(1, templateName);
@@ -202,11 +196,10 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            List<SpTemplate> spTemplateList = jdbcTemplate.executeQuery(GET_ALL_SP_TEMPLATES_BASIC_INFO,
+            return jdbcTemplate.executeQuery(ApplicationMgtDBQueries.GET_ALL_SP_TEMPLATES_BASIC_INFO,
                     (resultSet, i) -> new SpTemplate(resultSet.getString(1), resultSet.getString(2),
                             null),
                     preparedStatement -> preparedStatement.setInt(1, getTenantID(tenantDomain)));
-            return spTemplateList;
         } catch (DataAccessException e) {
             throw new IdentityApplicationManagementException("Error while Loading all the application template basic " +
                     "info of tenant: " + tenantDomain, e);

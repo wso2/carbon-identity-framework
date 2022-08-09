@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
@@ -67,20 +68,20 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -92,6 +93,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
         IdentityTenantUtil.class, IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class DefaultStepBasedSequenceHandlerTest {
 
     private static final String SUBJECT_CLAIM_URI_IN_APP_CONFIG = "subjectClaimUriFromAppConfig";
@@ -139,6 +141,7 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
+
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
@@ -675,8 +678,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         sequenceConfig.getStepMap().put(1, stepConfig);
         context.setSequenceConfig(sequenceConfig);
 
-        doNothing().when(stepBasedSequenceHandler).handlePostAuthentication(any(HttpServletRequest.class), any
-                (HttpServletResponse.class), any(AuthenticationContext.class));
+        doNothing().when(stepBasedSequenceHandler).handlePostAuthentication(request, response, context);
         stepBasedSequenceHandler.handle(request, response, context);
 
         assertTrue(context.getSequenceConfig().isCompleted());
@@ -691,7 +693,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(true);
                 context.setRequestAuthenticated(true);
@@ -710,7 +712,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocationOnMock) throws Throwable {
-                AuthenticationContext context = invocationOnMock.getArgumentAt(2, AuthenticationContext.class);
+                AuthenticationContext context = invocationOnMock.getArgument(2);
                 StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
                 stepConfig.setCompleted(false);
                 context.setRequestAuthenticated(isRequestAuthenticated);

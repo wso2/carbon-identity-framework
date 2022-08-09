@@ -76,7 +76,10 @@ public class CallBackValidator {
             IdentityManagementEndpointUtil.authenticate(idpClient);
             residentIdP = idPMgtStub.getResidentIdP();
         } catch (AxisFault axisFault) {
-            throw new IdentityRecoveryException("Error while instantiating IdentityProviderMgtServiceStub", axisFault);
+            if (log.isDebugEnabled()) {
+                log.debug(axisFault);
+            }
+            throw new IdentityRecoveryException("Error while authenticating the user or getting residentIDP configurations.", axisFault);
         } catch (Exception e) {
             throw new IdentityRecoveryException("Error occurred when getting residentIDP configurations.", e);
         }

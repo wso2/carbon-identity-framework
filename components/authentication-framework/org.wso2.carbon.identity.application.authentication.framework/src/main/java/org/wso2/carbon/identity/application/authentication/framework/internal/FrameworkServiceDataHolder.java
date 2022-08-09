@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -80,7 +81,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private JsBaseGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -103,6 +104,10 @@ public class FrameworkServiceDataHolder {
 
     private AccountLockService accountLockService;
     private JSExecutionSupervisor jsExecutionSupervisor;
+    private IdpManager identityProviderManager = null;
+
+    private boolean isAdaptiveAuthenticationAvailable = false;
+    private boolean isOrganizationManagementEnable = false;
     private IdpManager idPManager;
     private ApplicationManagementService applicationManagementService;
 
@@ -225,12 +230,12 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
-    public JsGraphBuilderFactory getJsGraphBuilderFactory() {
+    public JsBaseGraphBuilderFactory getJsGraphBuilderFactory() {
 
         return jsGraphBuilderFactory;
     }
 
-    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
+    public void setJsGraphBuilderFactory(JsBaseGraphBuilderFactory jsGraphBuilderFactory) {
 
         this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
@@ -588,6 +593,59 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionSerializer(SessionSerializer sessionSerializer) {
         this.sessionSerializer = sessionSerializer;
+    }
+
+    /**
+     * Get adaptive authentication available or not.
+     *
+     * @return isAdaptiveAuthenticationAvailable
+     */
+    public boolean isAdaptiveAuthenticationAvailable() {
+
+        return isAdaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Set adaptive authentication availability.
+     *
+     * @param adaptiveAuthenticationAvailable adaptiveAuthenticationAvailable
+     */
+    public void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
+
+        isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Get is organization management enabled.
+     *
+     * @return True if organization management is enabled.
+     */
+    public boolean isOrganizationManagementEnabled() {
+
+        return isOrganizationManagementEnable;
+    }
+
+    /**
+     * Set organization management enable/disable state.
+     *
+     * @param organizationManagementInitializeService OrganizationManagementInitializeInstance.
+     */
+    public void setOrganizationManagementEnable(
+            OrganizationManagementInitialize organizationManagementInitializeService) {
+
+        if (organizationManagementInitializeService != null) {
+            isOrganizationManagementEnable = organizationManagementInitializeService.isOrganizationManagementEnabled();
+        }
+    }
+
+    public IdpManager getIdentityProviderManager() {
+
+        return identityProviderManager;
+    }
+
+    public void setIdentityProviderManager(IdpManager identityProviderManager) {
+
+        this.identityProviderManager = identityProviderManager;
     }
 
     public void setIdPManager(IdpManager idPManager) {

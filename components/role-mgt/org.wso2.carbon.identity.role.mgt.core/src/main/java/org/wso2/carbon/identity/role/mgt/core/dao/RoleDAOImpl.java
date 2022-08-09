@@ -98,6 +98,12 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_SQL
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_INFORMIX;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MYSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_ORACLE;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_GROUP_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
@@ -437,6 +443,30 @@ public class RoleDAOImpl implements RoleDAO {
 
         throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                 "Error while listing roles from DB. Database driver for " + databaseProductName
+                        + "could not be identified or not supported.");
+    }
+
+    private String getDBTypeSpecificRolesCountQuery(String databaseProductName)
+            throws IdentityRoleManagementException {
+
+        if (MY_SQL.equals(databaseProductName)
+                || MARIADB.equals(databaseProductName)
+                || H2.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_MYSQL;
+        } else if (ORACLE.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_ORACLE;
+        } else if (MICROSOFT.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_MSSQL;
+        } else if (POSTGRE_SQL.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_POSTGRESQL;
+        } else if (databaseProductName != null && databaseProductName.contains(DB2)) {
+            return COUNT_ROLES_BY_TENANT_DB2;
+        } else if (INFORMIX.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_INFORMIX;
+        }
+
+        throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                "Error while counting roles from DB. Database driver for " + databaseProductName
                         + "could not be identified or not supported.");
     }
 
@@ -1480,6 +1510,28 @@ public class RoleDAOImpl implements RoleDAO {
             }
         }
         return systemRoles;
+    }
+
+    @Override
+    public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    getDBTypeSpecificRolesCountQuery(databaseProductName))) {
+                statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while getting total roles count in tenantDomain: " + tenantDomain, e);
+        }
+        return 0;
     }
 
     /**

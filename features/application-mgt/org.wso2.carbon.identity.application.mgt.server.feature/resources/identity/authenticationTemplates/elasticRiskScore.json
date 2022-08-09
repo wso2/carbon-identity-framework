@@ -1,0 +1,59 @@
+{
+  "category": "analytics_based",
+  "name": "ELK-Risk-Based",
+  "title": "ELK Risk-Based 2FA Template",
+  "summary": "Define conditional authentication by risk score value calculated from ELK.",
+  "preRequisites": [
+    "Change elasticsearch domain with the port.",
+    "Modify the default authentication steps and option(s) as required."
+  ],
+  "parametersDescription": {
+    "username" : "Current login context username.",
+    "index": "[optional] Elasticsearch index to calculate the risk score. (Default: 'transaction')",
+    "duration" : "[optional] Aggregation time period from current timestamp. (Default: '5m')",
+    "riskLogic": "[optional] Elastic map script to calculate the summation of values. (Default: 'state.sum.add(doc['amount'].value);')",
+    "threshold": "[optional] Threshold summation value to identify as a risk. (Default: '10000')"
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://is.docs.wso2.com/en/latest/learn/configuring-risk-based-adaptive-authentication/",
+  "code": [
+    "// Define conditional authentication by risk score value calculated from ELK analytics.",
+    "",
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            var username = context.currentKnownSubject.username;",
+    "            callElastic({'username': username}, {",
+    "                onSuccess : function(context, data) {",
+    "                    Log.info('--------------- Received risk score value: ' + data.risk_score);",
+    "                    if (data.risk_score > 0) {",
+    "                        executeStep(2);",
+    "                    }",
+    "                }, onFail : function(context, data) {",
+    "                    Log.info('--------------- Failed to call ELK');",
+    "                    executeStep(2);",
+    "                }",
+    "            });",
+    "        }",
+    "    });",
+    "};"
+  ]
+}

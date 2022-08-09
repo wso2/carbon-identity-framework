@@ -80,6 +80,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
@@ -4365,6 +4366,51 @@ public class IdPManagementDAO {
             } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
+        }
+    }
+
+    /**
+     * Method that retrieves identityProvider names of a idpId list.
+     *
+     * @param tenantId Tenant id.
+     * @param idpIds Set of identity provider ids.
+     * @return A map of identity provider names keyed by idp id.
+     * @throws IdentityProviderManagementException
+     */
+    public Map<String, String> getIdPNamesById(int tenantId, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        Map<String, String> idpNameMap = new HashMap<>();
+
+        try {
+            String placeholder = String.join(", ", idpIds);
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDPS_BY_IDP_ID_LIST.replace(
+                    SCOPE_LIST_PLACEHOLDER, placeholder);
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                int idpId = rs.getInt("ID");
+                String idpName = rs.getString("NAME");
+                if (idpId != 0 && StringUtils.isNotBlank(idpName) &&
+                        !IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idpName) &&
+                        !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
+                    idpNameMap.put(Integer.toString(idpId), idpName);
+                }
+            }
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
+
+            return idpNameMap;
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
+                    "Providers for IDP IDs for tenantId: " + tenantId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
         }
     }
 }

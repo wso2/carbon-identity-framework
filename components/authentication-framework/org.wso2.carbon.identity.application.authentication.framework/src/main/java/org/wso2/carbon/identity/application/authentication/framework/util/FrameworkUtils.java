@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -62,7 +61,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -165,12 +163,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
@@ -203,7 +201,12 @@ public class FrameworkUtils {
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
+    private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
+
+    private static final String HASH_CHAR = "#";
+    private static final String HASH_CHAR_ENCODED = "%23";
+    private static final String QUESTION_MARK = "?";
 
     private FrameworkUtils() {
     }
@@ -621,6 +624,8 @@ public class FrameworkUtils {
                 if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
                 }
+                String authFlowId = context.getContextIdentifier();
+                uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
@@ -1719,8 +1724,20 @@ public class FrameworkUtils {
                 .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
         try {
-            uriBuilder = new URIBuilder(redirectUrl);
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
         } catch (URISyntaxException e) {
             log.warn("Unable to filter redirect params for url." + redirectUrl, e);
             return redirectUrl;
@@ -1785,7 +1802,16 @@ public class FrameworkUtils {
         }
         uriBuilder.clearParameters();
         uriBuilder.setParameters(queryParamsList);
-        return uriBuilder.toString();
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
     }
 
     public static boolean isRemoveAPIParamsOnConsume() {
@@ -2415,6 +2441,26 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
+
+    /**
+     * This method is to check whether organization management is enabled.
+     *
+     * @return Organization management feature is enabled or not.
+     */
+    public static boolean isOrganizationManagementEnabled() {
+
+        return FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled();
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;
@@ -2462,76 +2508,27 @@ public class FrameworkUtils {
         return null;
     }
 
+    /**
+     * Serialize the object using selected serializable function.
+     * @param value Object to evaluate.
+     * @return Serialized Object.
+     */
     public static Object toJsSerializable(Object value) {
 
-        if (value instanceof Serializable) {
-            if (value instanceof HashMap) {
-                Map<String, Object> map = new HashMap<>();
-                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
-                return map;
-            } else {
-                return value;
-            }
-        } else if (value instanceof ScriptObjectMirror) {
-            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
-            if (scriptObjectMirror.isFunction()) {
-                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
-            } else if (scriptObjectMirror.isArray()) {
-                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
-                scriptObjectMirror.values().forEach(v -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        arrayItems.add((Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value of array item as : " + serializedObj);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
-                                serializedObj));
-                    }
-                });
-                return arrayItems;
-            } else if (!scriptObjectMirror.isEmpty()) {
-                Map<String, Serializable> serializedMap = new HashMap<>();
-                scriptObjectMirror.forEach((k, v) -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        serializedMap.put(k, (Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value for key : " + k);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
-                    }
-
-                });
-                return serializedMap;
-            } else {
-                return Collections.EMPTY_MAP;
-            }
-        }
-        return value;
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().toJsSerializable(value);
     }
 
+    /**
+     * De-Serialize the object using selected serializable function.
+     * @param value Serialized Object.
+     * @param engine Js Engine.
+     * @return De-Serialize object.
+     * @throws FrameworkException FrameworkException.
+     */
     public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
 
-        if (value instanceof SerializableJsFunction) {
-            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
-            try {
-                return engine.eval(serializableJsFunction.getSource());
-            } catch (ScriptException e) {
-                throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
-            }
-
-        } else if (value instanceof Map) {
-            Map<String, Object> deserializedMap = new HashMap<>();
-            for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
-                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
-                deserializedMap.put(entry.getKey(), deserializedObj);
-            }
-            return deserializedMap;
-        }
-        return value;
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().
+                fromJsSerializable(value, engine);
     }
 
     /**
@@ -2752,6 +2749,24 @@ public class FrameworkUtils {
                     "Identity database.");
         }
         return false;
+    }
+
+    /**
+     * Checking whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     */
+    public static void checkIfTenantIdColumnIsAvailableInFedAuthTable() {
+
+        isTenantIdColumnAvailableInFedAuthTable = isTableColumnExists("IDN_FED_AUTH_SESSION_MAPPING", "TENANT_ID");
+    }
+
+    /**
+     * Return whether the tenant id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     *
+     * @return True if tenant id is available in IDN_FED_AUTH_SESSION_MAPPING table. Else return false.
+     */
+    public static boolean isTenantIdColumnAvailableInFedAuthTable() {
+
+        return isTenantIdColumnAvailableInFedAuthTable;
     }
 
     /**
@@ -3247,5 +3262,37 @@ public class FrameworkUtils {
             }
         }
         return requestedScopeClaims;
+    }
+
+    /**
+     * Util function to build caller patch redirect URLs using ServiceURLBuilder.
+     *
+     * @param callerPath        Application caller path.
+     * @param context           Authentication context.
+     * @return  reirect URL.
+     * @throws URLBuilderException  throw if an error occurred during URL generation.
+     */
+    public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
+            throws URLBuilderException {
+
+        String serviceProvider = null;
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+            serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        }
+        /*
+         Skip My Account application redirections to use ServiceURLBuilder for URL generation
+         since My Account is SaaS.
+         */
+        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+            if (callerPath != null && callerPath.startsWith("/t/")) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant, true)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
+            }
+        }
+        return callerPath;
     }
 }

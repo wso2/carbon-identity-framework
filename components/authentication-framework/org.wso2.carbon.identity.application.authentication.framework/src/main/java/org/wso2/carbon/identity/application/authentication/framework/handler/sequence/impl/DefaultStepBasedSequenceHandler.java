@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -56,6 +57,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+
 /**
  * Default implementation of step based sequence handler.
  */
@@ -66,6 +69,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
             + ".ReturnOnlyMappedLocalRoles";
     private static boolean returnOnlyMappedLocalRoles = false;
+    private static boolean allowSPRequestedFedClaimsOnly = true;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -84,6 +88,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
             returnOnlyMappedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
+            allowSPRequestedFedClaimsOnly =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
         }
     }
 
@@ -297,14 +305,24 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     String idpRoleClaimUri = getIdpRoleClaimUri(stepConfig, context);
 
                     // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // Include the unmapped roles as it is.
-                    List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    // If no mapping is provided, return all IDP roles as they are.
+                    List<String> identityProviderMappedUserRolesUnmappedInclusive;
+                    if (MapUtils.isEmpty(externalIdPConfig.getRoleMappings())) {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                    } else {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    }
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);
                     if (StringUtils.isNotBlank(idpRoleClaimUri)
                             && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                    }
+
+                    if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
                         extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
                     }
 
@@ -344,7 +362,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                !isSPStandardClaimDialect(context.getRequestType())) {
+                                (!allowSPRequestedFedClaimsOnly ||
+                                        !isSPStandardClaimDialect(context.getRequestType()))) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
@@ -394,11 +413,22 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
-        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()
-                && sequenceConfig.getAuthenticatedUser() != null) {
+
+        if (sequenceConfig.getAuthenticatedUser() == null) {
+            return;
+        }
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        List<ClaimMapping> selectedRequestedClaims = FrameworkServiceDataHolder.getInstance()
+                .getHighestPriorityClaimFilter().getFilteredClaims(context, appConfig);
+
+        // Reset the user attributes returned from federate IdP if the requested claims are not empty.
+        if (!selectedRequestedClaims.isEmpty()) {
+            sequenceConfig.getAuthenticatedUser().setUserAttributes(Collections.unmodifiableMap(new HashMap<>()));
+        }
+        if (isSPStandardClaimDialect(context.getRequestType()) && authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
-        if (!authenticatedUserAttributes.isEmpty() && sequenceConfig.getAuthenticatedUser() != null) {
+        if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }

@@ -68,9 +68,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -84,7 +84,7 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
         IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*"})
+        ".*", "org.apache.xerces.*","org.mockito.*"})
 public class IdentityUtilTest {
 
     @Mock

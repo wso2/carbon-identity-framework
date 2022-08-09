@@ -749,6 +749,20 @@
             {% if oauth.oidc.allow_additional_params_from_post_logout_redirect_uri is defined %}
             <AllowAdditionalParamsFromPostLogoutRedirectURI>{{oauth.oidc.allow_additional_params_from_post_logout_redirect_uri}}</AllowAdditionalParamsFromPostLogoutRedirectURI>
             {% endif %}
+
+            <!--
+                FAPI Profile Support.
+            -->
+            {% if oauth.oidc.fapi is defined %}
+            <FAPI>
+                {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
+                <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
+                {% endif %}
+                {% if oauth.oidc.fapi.enable_security_profile is defined %}
+                <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
+                {% endif %}
+            </FAPI>
+            {% endif %}
         </OpenIDConnect>
 
         <!--
@@ -880,7 +894,18 @@
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
+
+        <!-- Configuration for allowing users to introspect tokens from other tenants. -->
+        <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
     </OAuth>
+    <!--
+    Configuration to select JS engine for Adaptive authentication feature.
+    Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
+    -->
+    <AdaptiveAuth>
+   	    <ScriptEngine>{{AdaptiveAuth.ScriptEngine}}</ScriptEngine>
+    </AdaptiveAuth>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
@@ -1089,6 +1114,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
         <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>
+
+        <!--
+             If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+             then enable this property value.
+             Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+             Default value : false
+             Supported versions : IS 5.10.0 onwards
+        -->
+        <ConsiderTotalRecordsForTotalResultOfLDAP>{{scim2.consider_total_records_for_total_results_of_ldap}}</ConsiderTotalRecordsForTotalResultOfLDAP>
+
     </SCIM2>
 
       <Recovery>
@@ -1272,6 +1307,7 @@
         <Claim uri = "http://wso2.org/claims/mobile">
              <VerificationOnUpdate>
                 <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <EnableVerificationByPrivilegedUser>{{identity_mgt.user_claim_update.mobile.enable_verification_by_privileged_user}}</EnableVerificationByPrivilegedUser>
                 <VerificationCode>
                     <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
                 </VerificationCode>
@@ -1350,6 +1386,9 @@
 
     <AuthenticationPolicy>
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
+        {% if authentication_policy.disable_account_lock_handler is defined %}
+        <DisableAccountLockHandler>{{authentication_policy.disable_account_lock_handler}}</DisableAccountLockHandler>
+        {% endif %}
     </AuthenticationPolicy>
 
     <!-- Show authenticated user name in audit logs. -->
@@ -1845,7 +1884,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
@@ -2167,7 +2212,7 @@
         <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
@@ -2651,9 +2696,7 @@
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
     <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
-
     <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
-
 
     <!--
         When this property is set to 'true', if the username provided during the SaaS application authentication does
@@ -2697,6 +2740,54 @@
             {% endfor %}
         </OverwriteDispatch>
     </TenantContextsToRewrite>
+
+    <OrgContextsToRewrite>
+        <WebApp>
+        {% for organization_context in organization_context.rewrite %}
+        {% for base_path in organization_context.base_path %}
+            <Context>
+                <BasePath>{{base_path}}</BasePath>
+                <SubPaths>
+                {% for sub_path in organization_context.sub_paths %}
+                    <Path>{{sub_path}}</Path>
+                {% endfor %}
+                </SubPaths>
+            </Context>
+        {% endfor %}
+        {% endfor %}
+            <Context>
+                <BasePath>/scim2/</BasePath>
+                <SubPaths>
+                    <Path>/scim2/Groups</Path>
+                    <Path>/scim2/Users</Path>
+                    <Path>/scim2/Schemas</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
+                    <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
+                    <Path>/api/server/v1/userstores</Path>
+                    <Path>/api/server/v1/claim-dialects</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/console/</BasePath>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
@@ -2797,6 +2888,15 @@
 
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
+
+     {% if system_applications.fidp_role_based_authz_enabled_apps is defined %}
+     <!-- Following applications can use federated user role based authorization -->
+     <FIdPRoleBasedAuthzApplications>
+         {% for application in system_applications.fidp_role_based_authz_enabled_apps %}
+         <AppName>{{application}}</AppName>
+         {% endfor %}
+     </FIdPRoleBasedAuthzApplications>
+     {% endif %}
 
     <!--This configuration is used for X509 Certificate based authentication. -->
 
@@ -3016,11 +3116,11 @@
     <UseLegacyLocalizationClaim>false</UseLegacyLocalizationClaim>
     {% endif %}
 
-    <!-- Configuration for allowing users to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>{{oauth.allow_cross_tenant_token_introspection}}</AllowCrossTenantTokenIntrospection>
-
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
+
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
 
     {% if stored_procedure_dao is defined %}
     <!-- Stored Procedure supported DAO Implementation of Identity components.
@@ -3046,6 +3146,11 @@
                 {% endfor %}
             </MethodRefs>
         </AuthenticationContext>
+    {% endif %}
+
+    <!-- Configuration to show the pending user information during the authentication failure attempts. -->
+    {% if show_pending_user_information is defined %}
+    <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
 
 </Server>

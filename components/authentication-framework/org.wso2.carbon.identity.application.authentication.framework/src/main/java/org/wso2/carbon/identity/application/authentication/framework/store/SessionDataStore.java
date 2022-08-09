@@ -348,7 +348,9 @@ public class SessionDataStore {
             }
         } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
                 IdentityApplicationManagementException e) {
-            log.error("Error while retrieving session data", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving session data", e);
+            }
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }

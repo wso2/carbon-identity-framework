@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.user.functionality.mgt.dao.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -57,7 +55,7 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -81,8 +79,6 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
     private UniqueIDUserStoreManager userStoreManager;
     @Mock
     private UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder;
-
-    private static final Log log = LogFactory.getLog(UserFunctionalityPropertyDAOImplTest.class);
     private UserFunctionalityPropertyDAO userFunctionalityPropertyDAO = new UserFunctionalityPropertyDAOImpl();
     private UserFunctionalityManager userFunctionalityManager = new UserFunctionalityManagerImpl();
 

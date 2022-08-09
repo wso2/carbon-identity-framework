@@ -98,4 +98,20 @@ public class KeyStoreAdminServiceImpl extends AbstractAdmin implements KeyStoreA
 
     }
 
+    /**
+     * Calls method to get the keystore info using keystore name and its certificates filtered by the given filter.
+     *
+     * @param keyStoreName Keystore name.
+     * @param pageNumber   Page number.
+     * @param filter       Filter for certificate alias.
+     * @return Paginated keystore data with certificates.
+     * @throws SecurityConfigException
+     */
+    public PaginatedKeyStoreData getFilteredPaginatedKeyStoreInfo(String keyStoreName, int pageNumber,
+                                                                  String filter) throws SecurityConfigException {
+
+        KeyStoreAdmin admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
+                getGovernanceSystemRegistry());
+        return admin.getFilteredPaginatedKeyStoreInfo(keyStoreName, pageNumber, filter);
+    }
 }

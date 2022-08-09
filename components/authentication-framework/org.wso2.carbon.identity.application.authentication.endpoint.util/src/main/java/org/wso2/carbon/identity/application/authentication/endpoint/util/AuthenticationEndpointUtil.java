@@ -19,13 +19,32 @@
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
+import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ResourceBundle;
 
@@ -33,7 +52,13 @@ import java.util.ResourceBundle;
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
  */
 public class AuthenticationEndpointUtil {
+
+    private static final Log log = LogFactory.getLog(AuthenticationEndpointUtil.class);
+    public static final String CLIENT_AUTH_TYPE = "Client";
+    private static final String CLIENT = CLIENT_AUTH_TYPE + " ";
+    private static final String COLON = ":";
     private static final String CUSTOM_PAGE_APP_SPECIFIC_CONFIG_KEY_SEPARATOR = "-";
+    private static final String HTTP_METHOD_GET = "GET";
     private static final String QUERY_STRING_APPENDER = "&";
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
@@ -281,9 +306,131 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.POST_AUTH_COOKIE_NOT_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION:
                 return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND:
+                return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT:
+                return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
     }
-}
 
+    /**
+     * This method is to validate a URL. This method validate both absolute & relative URLs.
+     *
+     * @param urlString URL String.
+     * @return true if valid URL, false otherwise.
+     */
+    public static boolean isValidURL(String urlString) {
+
+        if (StringUtils.isBlank(urlString)) {
+            String errorMsg = "Invalid URL.";
+            if (log.isDebugEnabled()) {
+                log.debug(errorMsg);
+            }
+            return false;
+        }
+
+        try {
+            if (isURLRelative(urlString)) {
+                // Build Absolute URL using the relative url path.
+                urlString = buildAbsoluteURL(urlString);
+            }
+            /*
+              Validate URL string using the  java.net.URL class.
+              Create a URL object from the URL string representation. Throw MalformedURLException if not a valid URL.
+             */
+            new URL(urlString);
+        } catch (MalformedURLException | URISyntaxException | URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isURLRelative(String uriString) throws URISyntaxException {
+
+        return !new URI(uriString).isAbsolute();
+    }
+
+    private static String buildAbsoluteURL(String contextPath) throws URLBuilderException {
+
+        return ServiceURLBuilder.create().addPath(contextPath).build().getAbsolutePublicURL();
+    }
+
+    /**
+     * Send GET request with client authentication and return data.
+     *
+     * @param backendURL The URL of the backend service.
+     * @return Data which was received from the backend service.
+     */
+    public static String sendGetRequest(String backendURL) {
+
+        StringBuilder responseString = new StringBuilder();
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+
+            HttpGet httpGet = new HttpGet(backendURL);
+            setAuthorizationHeader(httpGet);
+
+            try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() +
+                            " when invoking " + HTTP_METHOD_GET + " for URL: " + backendURL);
+                }
+                responseString = handleHttpResponse(response, backendURL);
+            } finally {
+                httpGet.releaseConnection();
+            }
+        } catch (IOException e) {
+            log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
+        }
+        return responseString.toString();
+    }
+
+    /**
+     * Extracts the response content from the http response provided to the method.
+     *
+     * @param response The response obtained from the backend service.
+     *                 backendURL The URL of the backend service.
+     * @return Extracted http response content.
+     * @throws IOException if there is an error while extracting the response content.
+     */
+    private static StringBuilder handleHttpResponse(CloseableHttpResponse response, String backendURL) throws IOException {
+
+        StringBuilder responseString = new StringBuilder();
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    response.getEntity().getContent()));
+            String inputLine;
+            while ((inputLine = reader.readLine()) != null) {
+                responseString.append(inputLine);
+            }
+        } else {
+            log.error("Response received from the backendURL " + backendURL +" failed with status " +
+                    response.getStatusLine() + ".");
+        }
+
+        return responseString;
+    }
+
+    /**
+     * Add OAuth authorization header to the httpMethod.
+     *
+     * @param httpMethod The HttpMethod which needs the authorization header.
+     */
+    private static void setAuthorizationHeader(HttpRequestBase httpMethod) {
+
+        String name = EndpointConfigManager.getAppName();
+        String password = String.valueOf(EndpointConfigManager.getAppPassword());
+
+        String toEncode = name + COLON + password;
+        byte[] encoding = org.apache.commons.codec.binary.Base64.encodeBase64(toEncode.getBytes());
+        String authHeader = new String(encoding, Charset.defaultCharset());
+
+        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+}

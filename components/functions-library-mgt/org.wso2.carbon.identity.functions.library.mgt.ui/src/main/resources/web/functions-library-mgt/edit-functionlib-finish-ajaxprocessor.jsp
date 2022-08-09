@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.Base64" %>
 <%@ page
         import="static org.wso2.carbon.identity.functions.library.mgt.ui.util.FunctionLibraryUIConstants.FUNCTION_LIBRARY_NAME" %>
 <%@ page
@@ -50,6 +52,7 @@
     String oldFunctionLibraryName = request.getParameter(OLD_FUNCTION_LIBRARY_NAME);
     String description = request.getParameter(DESCRIPTION);
     String content = request.getParameter(SCRIPT_CONTENT);
+    content = new String(Base64.getDecoder().decode(content), StandardCharsets.UTF_8);
     
     if (StringUtils.isNotBlank(functionLibraryName) && StringUtils.isNotBlank(content)) {
         

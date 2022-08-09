@@ -107,6 +107,7 @@
                 }
 
                 function doEdit() {
+                    encodeFunctionLibScript();
                     $("#update-functionlib-form").submit();
                     return true;
                 }

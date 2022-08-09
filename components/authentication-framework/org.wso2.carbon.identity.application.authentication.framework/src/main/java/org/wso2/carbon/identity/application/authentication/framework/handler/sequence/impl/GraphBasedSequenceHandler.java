@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -31,17 +31,16 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
@@ -359,6 +358,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     // Create error key and add failure data set in the script to AuthenticationError and add to cache.
                     String errorKey = UUID.randomUUID().toString();
                     uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    String authFlowId = context.getContextIdentifier();
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID, authFlowId);
                     Map<String, String> failureData = node.getFailureData();
                     failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
                     AuthenticationError authenticationError = new AuthenticationError(failureData);
@@ -689,13 +690,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        BaseSerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
-        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context)));
+        graphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
+                .getWrapperFactory().
+                createJsAuthenticationContext(context));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -704,15 +706,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context, Map<String, Object> data) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        BaseSerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context,
-                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context),
-                        new JsWritableParameters(data)));
+        jsGraphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
+                .getWrapperFactory().
+                createJsAuthenticationContext(context), JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                createJsWritableParameters(data));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -721,14 +723,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private Object evaluateHandler(String outcomeName, ShowPromptNode dynamicDecisionNode,
                                    AuthenticationContext context, Object stepId) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
+        BaseSerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
-        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        return jsBasedEvaluator.evaluate(context,
-                (jsFunction) -> jsFunction.call(null, stepId, new JsAuthenticationContext(context)));
+        return graphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
+                .getWrapperFactory().
+                createJsAuthenticationContext(context));
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

@@ -86,6 +86,28 @@
     }
   },
 
+  "console.org_mgt.additional_features.enabled": {
+    "true": {
+      "console.user_stores.enabled": true,
+      "console.certificates.enabled": true,
+      "console.secrets_management.enabled": true,
+      "console.oidc_scopes.enabled": true,
+      "console.governance_connectors.enabled": true,
+      "console.email_templates.enabled": true,
+      "console.attribute_dialects.enabled": true
+    },
+    "false": {
+      "console.user_stores.enabled": false,
+      "console.certificates.enabled": false,
+      "console.secrets_management.enabled": false,
+      "console.oidc_scopes.enabled": false,
+      "console.governance_connectors.enabled": false,
+      "console.email_templates.enabled": false,
+      "console.attribute_dialects.enabled": false,
+      "console.product_version.configs.productVersion": ""
+    }
+  },
+
   "identity_mgt.email_sender": {
     "internal": {
       "identity_mgt.recovery.notification.manage_internally": true,
