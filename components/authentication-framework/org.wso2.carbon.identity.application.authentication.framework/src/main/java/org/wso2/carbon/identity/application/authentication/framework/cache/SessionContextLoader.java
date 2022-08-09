@@ -52,8 +52,6 @@ public class SessionContextLoader {
         cacheEntry.setLoggedInUser(entry.getLoggedInUser());
         cacheEntry.setAccessedTime(entry.getAccessedTime());
         OptimizedSessionContext optContext = new OptimizedSessionContext(entry.getContext());
-        Map<String, AuthenticatedUser> authenticatedUsers = getAuthenticatedUsers(entry.context);
-        optContext.setAuthenticatedUsers(authenticatedUsers);
         cacheEntry.setOptimizedSessionContext(optContext);
         return cacheEntry;
     }
@@ -67,14 +65,4 @@ public class SessionContextLoader {
         return entry;
     }
 
-    private Map<String, AuthenticatedUser> getAuthenticatedUsers(SessionContext context) {
-
-        Map<String, AuthenticatedUser> authenticatedUsers = new HashMap<>();
-        context.getAuthenticatedIdPsOfApp().forEach((appName, authenticatedIdPs) -> {
-            authenticatedIdPs.forEach((idpName, authenticatedIdPData) -> {
-                authenticatedUsers.put(authenticatedIdPData.getUser().getUserName(), authenticatedIdPData.getUser());
-            });
-        });
-        return authenticatedUsers;
-    }
 }

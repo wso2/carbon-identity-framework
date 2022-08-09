@@ -35,7 +35,6 @@ import java.util.Map;
  */
 public class OptimizedSessionContext implements Serializable {
 
-    private Map<String, AuthenticatedUser> authenticatedUsers;
     private Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
     private Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;
     private String tenantDomain;
@@ -104,8 +103,7 @@ public class OptimizedSessionContext implements Serializable {
         for (Map.Entry<String, OptimizedSequenceConfig> entry : this.optimizedAuthenticatedSequences.entrySet()) {
             String appName = entry.getKey();
             OptimizedSequenceConfig optimizedSequenceConfig = entry.getValue();
-            authenticatedSequences.put(appName, optimizedSequenceConfig.getSequenceConfig(this.tenantDomain,
-                    this.authenticatedUsers));
+            authenticatedSequences.put(appName, optimizedSequenceConfig.getSequenceConfig(this.tenantDomain));
         }
         sessionContext.setAuthenticatedSequences(authenticatedSequences);
         sessionContext.setAuthenticatedIdPs(getAuthenticatedIdPDataMap(this.optimizedAuthenticatedIdPs));
@@ -131,19 +129,9 @@ public class OptimizedSessionContext implements Serializable {
         for (Map.Entry<String, OptimizedAuthenticatedIdPData> entry : optimizedMap.entrySet()) {
             String idpName = entry.getKey();
             OptimizedAuthenticatedIdPData optimizedAuthenticatedIdPData = entry.getValue();
-            authenticatedIdPs.put(idpName, optimizedAuthenticatedIdPData.getAuthenticatedIdPData(tenantDomain,
-                    this.authenticatedUsers));
+            authenticatedIdPs.put(idpName, optimizedAuthenticatedIdPData.getAuthenticatedIdPData(tenantDomain));
         }
         return authenticatedIdPs;
     }
 
-    public Map<String, AuthenticatedUser> getAuthenticatedUsers() {
-
-        return authenticatedUsers;
-    }
-
-    public void setAuthenticatedUsers(Map<String, AuthenticatedUser> authenticatedUsers) {
-
-        this.authenticatedUsers = authenticatedUsers;
-    }
 }

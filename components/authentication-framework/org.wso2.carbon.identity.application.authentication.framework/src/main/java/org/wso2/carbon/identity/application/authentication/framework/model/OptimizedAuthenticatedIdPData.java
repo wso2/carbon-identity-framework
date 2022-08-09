@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.S
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class is used to keep the optimized attributes of authenticatedIdPData.
@@ -34,15 +33,13 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
 
     private String idpName;
     private List<OptimizedAuthenticatorConfig> optimizedAuthenticators;
-    //private AuthenticatedUser user;
-    private String authenticatedUserName;
+    private AuthenticatedUser user;
 
     public OptimizedAuthenticatedIdPData(AuthenticatedIdPData authenticatedIdPData) {
 
         this.idpName = authenticatedIdPData.getIdpName();
         this.optimizedAuthenticators = getOptimizedAuthenticators(authenticatedIdPData.getAuthenticators());
-        //this.user = authenticatedIdPData.getUser();
-        this.authenticatedUserName = authenticatedIdPData.getUser().getUserName();
+        this.user = authenticatedIdPData.getUser();
     }
 
     private List<OptimizedAuthenticatorConfig> getOptimizedAuthenticators(List<AuthenticatorConfig> authenticators) {
@@ -54,9 +51,7 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
         return optimizedAuthenticators;
     }
 
-    public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain,
-                                                        Map<String, AuthenticatedUser> authenticatedUsers)
-            throws SessionContextLoaderException {
+    public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain) throws SessionContextLoaderException {
 
         AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
         authenticatedIdPData.setIdpName(this.idpName);
@@ -65,9 +60,7 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
             authenticators.add(optimizedAuthenticatorConfig.getAuthenticatorConfig(tenantDomain));
         }
         authenticatedIdPData.setAuthenticators(authenticators);
-        //authenticatedIdPData.setUser(this.user);
-        authenticatedIdPData.setUser(authenticatedUsers.get(this.authenticatedUserName));
-
+        authenticatedIdPData.setUser(this.user);
         return authenticatedIdPData;
     }
 }

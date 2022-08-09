@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class is used to store the optimized step config attributes in session context.
@@ -33,8 +32,7 @@ public class OptimizedStepConfig implements Serializable {
 
     private int order;
     private String loginPage;
-    //private AuthenticatedUser authenticatedUser;
-    private String authenticatedUserName;
+    private AuthenticatedUser authenticatedUser;
     private boolean subjectIdentifierStep;
     private boolean subjectAttributeStep;
     private String authenticatedIdP;
@@ -51,8 +49,7 @@ public class OptimizedStepConfig implements Serializable {
 
         this.order = stepConfig.getOrder();
         this.loginPage = stepConfig.getLoginPage();
-        //this.authenticatedUser = stepConfig.getAuthenticatedUser();
-        this.authenticatedUserName = stepConfig.getAuthenticatedUser().getUserName();
+        this.authenticatedUser = stepConfig.getAuthenticatedUser();
         this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
         this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
@@ -143,14 +140,12 @@ public class OptimizedStepConfig implements Serializable {
         return forced;
     }
 
-    public StepConfig getStepConfig(String tenantDomain, Map<String, AuthenticatedUser> authenticatedUsers)
-            throws SessionContextLoaderException {
+    public StepConfig getStepConfig(String tenantDomain) throws SessionContextLoaderException {
 
         StepConfig stepConfig = new StepConfig();
         stepConfig.setOrder(this.order);
         stepConfig.setLoginPage(this.loginPage);
-        //stepConfig.setAuthenticatedUser(this.authenticatedUser);
-        stepConfig.setAuthenticatedUser(authenticatedUsers.get(this.authenticatedUserName));
+        stepConfig.setAuthenticatedUser(this.authenticatedUser);
         stepConfig.setSubjectIdentifierStep(this.subjectIdentifierStep);
         stepConfig.setSubjectAttributeStep(this.subjectAttributeStep);
         stepConfig.setAuthenticatedIdP(this.authenticatedIdP);
