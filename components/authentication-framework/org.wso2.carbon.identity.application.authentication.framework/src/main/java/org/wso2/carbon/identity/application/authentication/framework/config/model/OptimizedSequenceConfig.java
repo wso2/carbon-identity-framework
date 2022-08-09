@@ -46,8 +46,7 @@ public class OptimizedSequenceConfig implements Serializable {
     private String applicationResourceId;
     private boolean completed;
 
-    //private AuthenticatedUser authenticatedUser;
-    private String authenticatedUserName;
+    private AuthenticatedUser authenticatedUser;
     private String authenticatedIdPs;
 
     private AuthenticatorConfig authenticatedReqPathAuthenticator;
@@ -67,8 +66,7 @@ public class OptimizedSequenceConfig implements Serializable {
                     getServiceProvider().getApplicationResourceId();
         }
         this.completed = sequenceConfig.isCompleted();
-        //this.authenticatedUser = sequenceConfig.getAuthenticatedUser();
-        this.authenticatedUserName = sequenceConfig.getAuthenticatedUser().getUserName();
+        this.authenticatedUser = sequenceConfig.getAuthenticatedUser();
         this.authenticatedIdPs = sequenceConfig.getAuthenticatedIdPs();
         this.authenticatedReqPathAuthenticator = sequenceConfig.getAuthenticatedReqPathAuthenticator();
         this.requestedAcr = sequenceConfig.getRequestedAcr();
@@ -84,8 +82,7 @@ public class OptimizedSequenceConfig implements Serializable {
         return optimizedStepMap;
     }
 
-    public SequenceConfig getSequenceConfig(String tenantDomain, Map<String, AuthenticatedUser> authenticatedUsers)
-            throws SessionContextLoaderException {
+    public SequenceConfig getSequenceConfig(String tenantDomain) throws SessionContextLoaderException {
 
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setName(this.name);
@@ -96,7 +93,7 @@ public class OptimizedSequenceConfig implements Serializable {
         for (Map.Entry<Integer, OptimizedStepConfig> entry : optimizedStepMap.entrySet()) {
             Integer order = entry.getKey();
             OptimizedStepConfig optimizedStepConfig = entry.getValue();
-            StepConfig stepConfig = optimizedStepConfig.getStepConfig(tenantDomain, authenticatedUsers);
+            StepConfig stepConfig = optimizedStepConfig.getStepConfig(tenantDomain);
             stepMap.put(order, stepConfig);
         }
         sequenceConfig.setStepMap(stepMap);
@@ -104,8 +101,7 @@ public class OptimizedSequenceConfig implements Serializable {
         sequenceConfig.setReqPathAuthenticators(this.reqPathAuthenticators);
         sequenceConfig.setApplicationConfig(getApplicationConfig(this.applicationResourceId, tenantDomain));
         sequenceConfig.setCompleted(this.completed);
-        sequenceConfig.setAuthenticatedUser(authenticatedUsers.get(this.authenticatedUserName));
-        //sequenceConfig.setAuthenticatedUser(this.authenticatedUser);
+        sequenceConfig.setAuthenticatedUser(this.authenticatedUser);
         sequenceConfig.setAuthenticatedIdPs(this.authenticatedIdPs);
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.authenticatedReqPathAuthenticator);
         sequenceConfig.setRequestedAcr(this.requestedAcr);
