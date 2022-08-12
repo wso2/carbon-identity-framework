@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -37,14 +39,20 @@ import java.util.Map;
  */
 public class OptimizedAuthenticatorConfig implements Serializable {
 
-    private String name;
-    private boolean enabled;
-    private AuthenticatorStateInfo authenticatorStateInfo;
-    private Map<String, String> parameterMap;
-    private List<String> idPResourceIds;
+    private final String name;
+    private final boolean enabled;
+    private final AuthenticatorStateInfo authenticatorStateInfo;
+    private final Map<String, String> parameterMap;
+    private final List<String> idPResourceIds;
+
+    private static final Log log = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
 
     public OptimizedAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Optimization process for the authenticator config with the name: %s " +
+                    "has started.", authenticatorConfig.getName()));
+        }
         this.name = authenticatorConfig.getName();
         this.enabled = authenticatorConfig.isEnabled();
         this.authenticatorStateInfo = authenticatorConfig.getAuthenticatorStateInfo();
@@ -55,39 +63,16 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private List<String> getIdPResourceIds(Map<String, IdentityProvider> idps) {
 
         List<String> idpResourceIds = new ArrayList<>();
-        idps.forEach((idpName, idp) -> {
-            idpResourceIds.add(idp.getResourceId());
-        });
+        idps.forEach((idpName, idp) -> idpResourceIds.add(idp.getResourceId()));
         return idpResourceIds;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public boolean isEnabled() {
-
-        return enabled;
-    }
-
-    public AuthenticatorStateInfo getAuthenticatorStateInfo() {
-
-        return authenticatorStateInfo;
-    }
-
-    public Map<String, String> getParameterMap() {
-
-        return parameterMap;
-    }
-
-    public List<String> getIdPResourceIds() {
-
-        return idPResourceIds;
     }
 
     public AuthenticatorConfig getAuthenticatorConfig(String tenantDomain) throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Loading process for the authenticator config with name: %s has started.",
+                    this.name));
+        }
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
         authenticatorConfig.setName(this.name);
         authenticatorConfig.setEnabled(this.enabled);

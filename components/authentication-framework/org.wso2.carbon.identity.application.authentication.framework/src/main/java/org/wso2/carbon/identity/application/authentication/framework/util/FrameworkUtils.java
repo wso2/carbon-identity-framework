@@ -1078,6 +1078,7 @@ public class FrameworkUtils {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+        cacheEntry.setContextIdentifier(key);
 
         Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
         if (seqData != null) {

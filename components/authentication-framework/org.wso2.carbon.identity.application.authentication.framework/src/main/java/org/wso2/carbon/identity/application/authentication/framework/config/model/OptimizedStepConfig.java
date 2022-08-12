@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
@@ -30,32 +32,35 @@ import java.util.List;
  */
 public class OptimizedStepConfig implements Serializable {
 
-    private int order;
-    private String loginPage;
-    private AuthenticatedUser authenticatedUser;
-    private boolean subjectIdentifierStep;
-    private boolean subjectAttributeStep;
-    private String authenticatedIdP;
-    private String authenticatedAuthenticatorName;
-    private List<OptimizedAuthenticatorConfig> optimizedAuthenticatorList;
-    private List<String> authenticatorMappings;
+    private final int order;
+    private final String loginPage;
+    private final AuthenticatedUser authenticatedUser;
+    private final boolean subjectIdentifierStep;
+    private final boolean subjectAttributeStep;
+    private final String authenticatedIdP;
+    private final String authenticatedAuthenticatorName;
+    private final List<OptimizedAuthenticatorConfig> optimizedAuthenticatorList;
+    private final List<String> authenticatorMappings;
+    private final boolean completed;
+    private final boolean multiOption;
+    private final boolean retrying;
+    private final boolean forced;
 
-    private boolean completed;
-    private boolean multiOption;
-    private boolean retrying;
-    private boolean forced;
+    private static final Log log = LogFactory.getLog(OptimizedStepConfig.class);
 
     public OptimizedStepConfig(StepConfig stepConfig) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Optimization process for the step config has started.");
+        }
         this.order = stepConfig.getOrder();
         this.loginPage = stepConfig.getLoginPage();
         this.authenticatedUser = stepConfig.getAuthenticatedUser();
         this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
         this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
-        if (stepConfig.getAuthenticatedAutenticator() != null) {
-            this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAutenticator().getName();
-        }
+        this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAutenticator() != null ?
+                stepConfig.getAuthenticatedAutenticator().getName() : null;
         this.optimizedAuthenticatorList = getOptimizedAuthenticatorList(stepConfig.getAuthenticatorList());
         this.authenticatorMappings = stepConfig.getAuthenticatorMappings();
         this.completed = stepConfig.isCompleted();
@@ -75,73 +80,11 @@ public class OptimizedStepConfig implements Serializable {
         return optimizedAuthenticatorList;
     }
 
-    public int getOrder() {
-
-        return order;
-    }
-
-    public String getLoginPage() {
-
-        return loginPage;
-    }
-
-    /*public AuthenticatedUser getAuthenticatedUser() {
-
-        return authenticatedUser;
-    }*/
-
-    public boolean isSubjectIdentifierStep() {
-
-        return subjectIdentifierStep;
-    }
-
-    public boolean isSubjectAttributeStep() {
-
-        return subjectAttributeStep;
-    }
-
-    public String getAuthenticatedIdP() {
-
-        return authenticatedIdP;
-    }
-
-    public String getAuthenticatedAuthenticatorName() {
-
-        return authenticatedAuthenticatorName;
-    }
-
-    public List<OptimizedAuthenticatorConfig> getOptimizedAuthenticatorList() {
-
-        return optimizedAuthenticatorList;
-    }
-
-    public List<String> getAuthenticatorMappings() {
-
-        return authenticatorMappings;
-    }
-
-    public boolean isCompleted() {
-
-        return completed;
-    }
-
-    public boolean isMultiOption() {
-
-        return multiOption;
-    }
-
-    public boolean isRetrying() {
-
-        return retrying;
-    }
-
-    public boolean isForced() {
-
-        return forced;
-    }
-
     public StepConfig getStepConfig(String tenantDomain) throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Loading process for the step config has started.");
+        }
         StepConfig stepConfig = new StepConfig();
         stepConfig.setOrder(this.order);
         stepConfig.setLoginPage(this.loginPage);

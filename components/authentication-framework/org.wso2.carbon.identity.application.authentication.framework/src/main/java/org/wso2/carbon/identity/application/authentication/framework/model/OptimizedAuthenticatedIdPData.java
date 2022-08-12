@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
@@ -31,12 +33,17 @@ import java.util.List;
  */
 public class OptimizedAuthenticatedIdPData implements Serializable {
 
-    private String idpName;
-    private List<OptimizedAuthenticatorConfig> optimizedAuthenticators;
-    private AuthenticatedUser user;
+    private final String idpName;
+    private final List<OptimizedAuthenticatorConfig> optimizedAuthenticators;
+    private final AuthenticatedUser user;
+
+    private static final Log log = LogFactory.getLog(OptimizedAuthenticatedIdPData.class);
 
     public OptimizedAuthenticatedIdPData(AuthenticatedIdPData authenticatedIdPData) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Optimization process for the authenticated IdP data has started.");
+        }
         this.idpName = authenticatedIdPData.getIdpName();
         this.optimizedAuthenticators = getOptimizedAuthenticators(authenticatedIdPData.getAuthenticators());
         this.user = authenticatedIdPData.getUser();
@@ -45,14 +52,16 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
     private List<OptimizedAuthenticatorConfig> getOptimizedAuthenticators(List<AuthenticatorConfig> authenticators) {
 
         List<OptimizedAuthenticatorConfig> optimizedAuthenticators = new ArrayList<>();
-        authenticators.forEach(authenticatorConfig -> {
-            optimizedAuthenticators.add(new OptimizedAuthenticatorConfig(authenticatorConfig));
-        });
+        authenticators.forEach(authenticatorConfig -> optimizedAuthenticators.add(
+                new OptimizedAuthenticatorConfig(authenticatorConfig)));
         return optimizedAuthenticators;
     }
 
     public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain) throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Loading process for the authenticated IdP has started.");
+        }
         AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
         authenticatedIdPData.setIdpName(this.idpName);
         List<AuthenticatorConfig> authenticators = new ArrayList<>();

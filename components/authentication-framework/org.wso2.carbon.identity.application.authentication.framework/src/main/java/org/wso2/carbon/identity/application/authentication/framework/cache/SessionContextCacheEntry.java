@@ -32,8 +32,9 @@ public class SessionContextCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 42165605438157753L;
 
+    private String contextIdentifier;
     SessionContext context;
-    OptimizedSessionContext optimizedSessionContext;
+    private OptimizedSessionContext optimizedSessionContext;
     String loggedInUser;
     private long accessedTime;
 
@@ -43,10 +44,20 @@ public class SessionContextCacheEntry extends CacheEntry {
 
     public SessionContextCacheEntry(SessionContextDO sessionContextDO) {
         SessionContextCacheEntry entry = (SessionContextCacheEntry) sessionContextDO.getEntry();
+        this.contextIdentifier = entry.getContextIdentifier();
         this.context = entry.getContext();
         this.optimizedSessionContext = entry.getOptimizedSessionContext();
         this.loggedInUser = entry.getLoggedInUser();
         this.setAccessedTime(TimeUnit.NANOSECONDS.toMillis(sessionContextDO.getNanoTime()));
+    }
+
+    public SessionContextCacheEntry(SessionContextCacheEntry entry, OptimizedSessionContext optimizedSessionContext) {
+
+        this.contextIdentifier = entry.getContextIdentifier();
+        this.context = null;
+        this.optimizedSessionContext = optimizedSessionContext;
+        this.loggedInUser = entry.getLoggedInUser();
+        this.accessedTime = entry.getAccessedTime();
     }
 
     public String getLoggedInUser() {
@@ -69,7 +80,7 @@ public class SessionContextCacheEntry extends CacheEntry {
         this.accessedTime = System.currentTimeMillis();
     }
 
-    public void setAccessedTime(long accessedTime) {
+    private void setAccessedTime(long accessedTime) {
         this.accessedTime = accessedTime;
     }
 
@@ -77,13 +88,23 @@ public class SessionContextCacheEntry extends CacheEntry {
         return this.accessedTime;
     }
 
-    public OptimizedSessionContext getOptimizedSessionContext() {
+    OptimizedSessionContext getOptimizedSessionContext() {
 
         return optimizedSessionContext;
     }
 
-    public void setOptimizedSessionContext(OptimizedSessionContext optimizedSessionContext) {
+    void resetOptimizedSessionContext() {
 
-        this.optimizedSessionContext = optimizedSessionContext;
+        this.optimizedSessionContext = null;
+    }
+
+    public String getContextIdentifier() {
+
+        return this.contextIdentifier;
+    }
+
+    public void setContextIdentifier(String key) {
+
+        this.contextIdentifier = key;
     }
 }
