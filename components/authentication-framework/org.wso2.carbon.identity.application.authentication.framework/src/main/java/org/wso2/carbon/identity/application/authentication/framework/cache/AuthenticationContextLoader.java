@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -67,11 +67,11 @@ public class AuthenticationContextLoader {
      * This method is used to optimize the authentication context object.
      *
      * @param context Authentication context
-     * @throws AuthenticationContextLoaderException Error when optimizing the authenticator configs and
+     * @throws SessionDataStorageOptimizationException Error when optimizing the authenticator configs and
      * application config
      */
     public void optimizeAuthenticationContext(AuthenticationContext context)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Optimization process for the authentication context with context id : %s " +
@@ -86,11 +86,11 @@ public class AuthenticationContextLoader {
      * This method is used to load the authentication context from optimized authentication context's references.
      *
      * @param context Authentication context
-     * @throws AuthenticationContextLoaderException Error when loading the external idp, authenticator configs,
+     * @throws SessionDataStorageOptimizationException Error when loading the external idp, authenticator configs,
      * and application config
      */
     public void loadAuthenticationContext(AuthenticationContext context) throws
-            AuthenticationContextLoaderException {
+            SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Loading process for the authentication context with context id : %s " +
@@ -109,7 +109,7 @@ public class AuthenticationContextLoader {
         context.setExternalIdP(null);
     }
 
-    private void loadExternalIdP(AuthenticationContext context) throws AuthenticationContextLoaderException {
+    private void loadExternalIdP(AuthenticationContext context) throws SessionDataStorageOptimizationException {
 
         if (context.getExternalIdP() == null && context.getExternalIdPResourceId() != null) {
             IdentityProvider idp = getIdPByResourceID(context.getExternalIdPResourceId(), context.getTenantDomain());
@@ -119,7 +119,7 @@ public class AuthenticationContextLoader {
     }
 
     private void optimizeAuthenticatorConfig(AuthenticationContext context)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         if (sequenceConfig != null) {
@@ -152,7 +152,7 @@ public class AuthenticationContextLoader {
     }
 
     private void loadAuthenticatorConfig(AuthenticationContext context)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         if (sequenceConfig != null) {
@@ -190,7 +190,7 @@ public class AuthenticationContextLoader {
     }
 
     private void optimizeApplicationConfig(AuthenticationContext context) throws
-            AuthenticationContextLoaderException {
+            SessionDataStorageOptimizationException {
 
         if (context.getSequenceConfig() != null) {
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
@@ -204,7 +204,7 @@ public class AuthenticationContextLoader {
     }
 
     private void loadApplicationConfig(AuthenticationContext context)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         if (context.getSequenceConfig() != null) {
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
@@ -213,7 +213,7 @@ public class AuthenticationContextLoader {
                 ServiceProvider serviceProvider = reconstructServiceProvider(optApplicationConfig,
                         context.getTenantDomain());
                 if (serviceProvider == null) {
-                    throw new AuthenticationContextLoaderException(
+                    throw new SessionDataStorageOptimizationException(
                             String.format("Cannot find the Service Provider by the resource ID: %s tenant domain: %s",
                                     optApplicationConfig.getServiceProviderResourceId(), context.getTenantDomain()));
                 }
@@ -230,7 +230,7 @@ public class AuthenticationContextLoader {
 
     private ServiceProvider reconstructServiceProvider(OptimizedApplicationConfig optApplicationConfig,
                                                        String tenantDomain)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         ServiceProvider serviceProvider;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
@@ -244,7 +244,7 @@ public class AuthenticationContextLoader {
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementException | FrameworkException e) {
-            throw new AuthenticationContextLoaderException(
+            throw new SessionDataStorageOptimizationException(
                     String.format("Error occurred while retrieving the service provider by resource id: %s " +
                             "tenant domain: %s", optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
@@ -252,7 +252,7 @@ public class AuthenticationContextLoader {
     }
 
     private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
@@ -260,21 +260,21 @@ public class AuthenticationContextLoader {
         try {
             idp = manager.getIdPByName(idPName, tenantDomain);
             if (idp == null) {
-                throw new AuthenticationContextLoaderException(String.format(
+                throw new SessionDataStorageOptimizationException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new AuthenticationContextLoaderException(String.format(
+            throw new SessionDataStorageOptimizationException(String.format(
                     "Failed to get the Identity Provider by name: %s tenant domain: %s", idPName, tenantDomain), e);
         }
         return idp;
     }
 
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
-            throws AuthenticationContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         if (resourceId == null) {
-            throw new AuthenticationContextLoaderException("Error occurred while getting IdPs");
+            throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
@@ -282,12 +282,12 @@ public class AuthenticationContextLoader {
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
             if (idp == null) {
-                throw new AuthenticationContextLoaderException(
+                throw new SessionDataStorageOptimizationException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new AuthenticationContextLoaderException(
+            throw new SessionDataStorageOptimizationException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);
         }
