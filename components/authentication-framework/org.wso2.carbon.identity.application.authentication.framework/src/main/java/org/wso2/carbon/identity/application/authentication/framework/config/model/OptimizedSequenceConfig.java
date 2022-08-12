@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -36,24 +38,27 @@ import java.util.Map;
  */
 public class OptimizedSequenceConfig implements Serializable {
 
-    private String name;
-    private boolean isForceAuthn;
-    private boolean isCheckAuthn;
-    private String applicationId;
-    private Map<Integer, OptimizedStepConfig> optimizedStepMap;
-    private AuthenticationGraph authenticationGraph;
-    private List<AuthenticatorConfig> reqPathAuthenticators;
-    private String applicationResourceId;
-    private boolean completed;
+    private final String name;
+    private final boolean isForceAuthn;
+    private final boolean isCheckAuthn;
+    private final String applicationId;
+    private final Map<Integer, OptimizedStepConfig> optimizedStepMap;
+    private final AuthenticationGraph authenticationGraph;
+    private final List<AuthenticatorConfig> reqPathAuthenticators;
+    private final String applicationResourceId;
+    private final boolean completed;
+    private final AuthenticatedUser authenticatedUser;
+    private final String authenticatedIdPs;
+    private final AuthenticatorConfig authenticatedReqPathAuthenticator;
+    private final List<String> requestedAcr;
 
-    private AuthenticatedUser authenticatedUser;
-    private String authenticatedIdPs;
-
-    private AuthenticatorConfig authenticatedReqPathAuthenticator;
-    private List<String> requestedAcr;
+    private static final Log log = LogFactory.getLog(OptimizedSequenceConfig.class);
 
     public OptimizedSequenceConfig(SequenceConfig sequenceConfig) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Optimization process for the sequence config has started.");
+        }
         this.name = sequenceConfig.getName();
         this.isForceAuthn = sequenceConfig.isForceAuthn();
         this.isCheckAuthn = sequenceConfig.isCheckAuthn();
@@ -61,29 +66,27 @@ public class OptimizedSequenceConfig implements Serializable {
         this.optimizedStepMap = getOptimizedStepMap(sequenceConfig.getStepMap());
         this.authenticationGraph = sequenceConfig.getAuthenticationGraph();
         this.reqPathAuthenticators = sequenceConfig.getReqPathAuthenticators();
-        if (sequenceConfig.getApplicationConfig() != null) {
-            this.applicationResourceId = sequenceConfig.getApplicationConfig().
-                    getServiceProvider().getApplicationResourceId();
-        }
+        this.applicationResourceId = sequenceConfig.getApplicationConfig() != null ?
+                sequenceConfig.getApplicationConfig().getServiceProvider().getApplicationResourceId() : null;
         this.completed = sequenceConfig.isCompleted();
         this.authenticatedUser = sequenceConfig.getAuthenticatedUser();
         this.authenticatedIdPs = sequenceConfig.getAuthenticatedIdPs();
         this.authenticatedReqPathAuthenticator = sequenceConfig.getAuthenticatedReqPathAuthenticator();
         this.requestedAcr = sequenceConfig.getRequestedAcr();
-
     }
 
     private Map<Integer, OptimizedStepConfig> getOptimizedStepMap(Map<Integer, StepConfig> stepMap) {
 
         Map<Integer, OptimizedStepConfig> optimizedStepMap = new HashMap<>();
-        stepMap.forEach((order, stepConfig) -> {
-            optimizedStepMap.put(order, new OptimizedStepConfig(stepConfig));
-        });
+        stepMap.forEach((order, stepConfig) -> optimizedStepMap.put(order, new OptimizedStepConfig(stepConfig)));
         return optimizedStepMap;
     }
 
     public SequenceConfig getSequenceConfig(String tenantDomain) throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Loading process for the sequence config has started.");
+        }
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setName(this.name);
         sequenceConfig.setForceAuthn(this.isForceAuthn);

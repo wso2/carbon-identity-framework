@@ -18,13 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.OptimizedSessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class is used to optimize the Session Context before storing it and again loaded it with objects.
@@ -32,6 +31,7 @@ import java.util.Map;
 public class SessionContextLoader {
 
     private static final SessionContextLoader instance = new SessionContextLoader();
+    private static final Log log = LogFactory.getLog(SessionContextLoader.class);
 
     private SessionContextLoader() { }
 
@@ -48,20 +48,24 @@ public class SessionContextLoader {
 
     public SessionContextCacheEntry optimizeSessionContextCacheEntry(SessionContextCacheEntry entry) {
 
-        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
-        cacheEntry.setLoggedInUser(entry.getLoggedInUser());
-        cacheEntry.setAccessedTime(entry.getAccessedTime());
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Optimization process for the session context with context id: %s has started.",
+                    entry.getContextIdentifier()));
+        }
         OptimizedSessionContext optContext = new OptimizedSessionContext(entry.getContext());
-        cacheEntry.setOptimizedSessionContext(optContext);
-        return cacheEntry;
+        return new SessionContextCacheEntry(entry, optContext);
     }
 
     public SessionContextCacheEntry loadSessionContextCacheEntry(SessionContextCacheEntry entry)
             throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Loading process for the session context with context id: %s has started.",
+                    entry.getContextIdentifier()));
+        }
         SessionContext context = entry.getOptimizedSessionContext().getSessionContext();
         entry.setContext(context);
-        entry.setOptimizedSessionContext(null);
+        entry.resetOptimizedSessionContext();
         return entry;
     }
 

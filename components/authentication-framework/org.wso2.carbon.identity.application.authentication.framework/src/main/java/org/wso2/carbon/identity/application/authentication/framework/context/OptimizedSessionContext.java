@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedSequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
@@ -35,13 +37,15 @@ import java.util.Map;
  */
 public class OptimizedSessionContext implements Serializable {
 
-    private Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
-    private Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;
-    private String tenantDomain;
-    private boolean isRememberMe;
-    private Map<String, Object> properties;
-    private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
-    private Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
+    private final Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
+    private final Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;
+    private final String tenantDomain;
+    private final boolean isRememberMe;
+    private final Map<String, Object> properties;
+    private final SessionAuthHistory sessionAuthHistory;
+    private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
+
+    private static final Log log = LogFactory.getLog(OptimizedSessionContext.class);
 
     public OptimizedSessionContext(SessionContext sessionContext) {
 
@@ -49,23 +53,24 @@ public class OptimizedSessionContext implements Serializable {
                 sessionContext.getAuthenticatedSequences());
         this.optimizedAuthenticatedIdPs = getOptimizedAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
         Object authUser = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authUser instanceof AuthenticatedUser) {
-            this.tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
-        }
+        this.tenantDomain = authUser instanceof AuthenticatedUser ?
+                ((AuthenticatedUser) authUser).getTenantDomain() : null;
         this.isRememberMe = sessionContext.isRememberMe();
         this.properties = sessionContext.getProperties();
         this.sessionAuthHistory = sessionContext.getSessionAuthHistory();
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
+        if (log.isDebugEnabled()) {
+            log.debug("Optimization process for the session context is completed.");
+        }
     }
 
     private Map<String, OptimizedSequenceConfig> getOptimizedAuthenticatedSequences(Map<String, SequenceConfig>
                                                                                             authenticatedSequences) {
 
         Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences = new HashMap<>();
-        authenticatedSequences.forEach((appName, sequenceConfig) -> {
-            optimizedAuthenticatedSequences.put(appName, new OptimizedSequenceConfig(sequenceConfig));
-        });
+        authenticatedSequences.forEach((appName, sequenceConfig) -> optimizedAuthenticatedSequences.put(appName,
+                new OptimizedSequenceConfig(sequenceConfig)));
         return optimizedAuthenticatedSequences;
     }
 
@@ -73,9 +78,8 @@ public class OptimizedSessionContext implements Serializable {
                                                                                              authenticatedIdPs) {
 
         Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs = new HashMap<>();
-        authenticatedIdPs.forEach((idpName, authenticatedIdPData) -> {
-            optimizedAuthenticatedIdPs.put(idpName, new OptimizedAuthenticatedIdPData(authenticatedIdPData));
-        });
+        authenticatedIdPs.forEach((idpName, authenticatedIdPData) -> optimizedAuthenticatedIdPs.put(idpName,
+                new OptimizedAuthenticatedIdPData(authenticatedIdPData)));
         return optimizedAuthenticatedIdPs;
     }
 
@@ -85,9 +89,8 @@ public class OptimizedSessionContext implements Serializable {
         Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp = new HashMap<>();
         authenticatedIdPsOfApp.forEach((appName, authenticatedIdPs) -> {
             Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs = new HashMap<>();
-            authenticatedIdPs.forEach((idpName, authenticatedIdPData) -> {
-                optimizedAuthenticatedIdPs.put(idpName, new OptimizedAuthenticatedIdPData(authenticatedIdPData));
-            });
+            authenticatedIdPs.forEach((idpName, authenticatedIdPData) -> optimizedAuthenticatedIdPs.put(idpName,
+                    new OptimizedAuthenticatedIdPData(authenticatedIdPData)));
             optimizedAuthenticatedIdPsOfApp.put(appName, optimizedAuthenticatedIdPs);
         });
         return optimizedAuthenticatedIdPsOfApp;
@@ -95,6 +98,9 @@ public class OptimizedSessionContext implements Serializable {
 
     public SessionContext getSessionContext() throws SessionContextLoaderException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Loading process for the session context has started.");
+        }
         if (this.tenantDomain == null) {
             throw new SessionContextLoaderException("Error occurred while loading the session context");
         }
