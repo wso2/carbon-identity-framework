@@ -75,8 +75,8 @@ SET @sessionCleanUpTempTableCount = 1;
 SET @operationCleanUpTempTableCount = 1;
 SET @cleanUpCompleted = 1;
 
--- Session data older than 20160 minutes(14 days) will be removed.
-SET @sessionCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (1209600000))AS DECIMAL) * 1000000
+-- Expired Session data older than 120 minutes(2 hours) will be removed.
+SET @sessionCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (120*60000))AS DECIMAL) * 1000000
 -- Operational data older than 720 minutes(12 h) will be removed.
 SET @operationCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (720*60000))AS DECIMAL) * 1000000
 
@@ -92,7 +92,7 @@ SELECT '[' + convert(varchar, getdate(), 121) + '] CLEANUP_SESSION_DATA() STARTE
 
 SELECT '[' + convert(varchar, getdate(), 121) + '] GIVEN CHUNK LIMIT ' AS 'PARAMETER', @chunkLimit AS 'VALUE', 'AND BATCH SIZE ' AS 'PARAMETER', @batchSize AS 'VALUE';
 
-SELECT @totalsession = COUNT(1) FROM IDN_AUTH_SESSION_STORE where TIME_CREATED < @sessionCleanupTime;
+SELECT @totalsession = COUNT(1) FROM IDN_AUTH_SESSION_STORE where EXPIRY_TIME < @sessionCleanupTime;
 SELECT 	'[' + convert(varchar, getdate(), 121) + '] TOTAL SESSION COUNT IN IDN_AUTH_SESSION_STORE TO BE REMOVED' AS 'INFO LOG', @totalsession;
 
 -- CLEANUP ANY EXISTING TEMP TABLES
@@ -106,7 +106,7 @@ BEGIN
 IF NOT  EXISTS (SELECT * FROM SYS.OBJECTS WHERE OBJECT_ID = OBJECT_ID(N'[DBO].[IDN_AUTH_SESSION_STORE_TMP]') AND TYPE IN (N'U'))
 BEGIN
 CREATE TABLE IDN_AUTH_SESSION_STORE_TMP( SESSION_ID VARCHAR (100), SESSION_TYPE VARCHAR(100), TIME_CREATED BIGINT);
-INSERT INTO IDN_AUTH_SESSION_STORE_TMP (SESSION_ID, SESSION_TYPE, TIME_CREATED) SELECT TOP (@chunkLimit) SESSION_ID, SESSION_TYPE, TIME_CREATED FROM IDN_AUTH_SESSION_STORE where TIME_CREATED < @sessionCleanupTime;
+INSERT INTO IDN_AUTH_SESSION_STORE_TMP (SESSION_ID, SESSION_TYPE, TIME_CREATED) SELECT TOP (@chunkLimit) SESSION_ID, SESSION_TYPE, TIME_CREATED FROM IDN_AUTH_SESSION_STORE where EXPIRY_TIME < @sessionCleanupTime;
 CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID, SESSION_TYPE, TIME_CREATED);
 END
 
