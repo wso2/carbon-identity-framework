@@ -887,17 +887,19 @@ public class ApplicationMgtUtil {
             AbstractUserStoreManager userStoreManager =
                     (AbstractUserStoreManager) ApplicationManagementServiceComponentHolder.getInstance()
                             .getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-            if (username != null && userStoreManager.isExistingUser(username)) {
-                user = new User(userStoreManager.getUser(null, username));
+            if (username != null) {
+                if (userStoreManager.isExistingUser(username)) {
+                    user = new User(userStoreManager.getUser(null, username));
+                } else if (userStoreManager.isExistingUserWithID(username)) {
+                    /*
+                    For federated admin user flow, sometimes their user id will be sent to federated tenant as name.
+                    Thus need to fetch user details using username as user id from their original
+                    tenant's user-store manager.
+                    */
+                    user = new User(userStoreManager.getUser(username, null));
+                }
             } else if (userId != null && userStoreManager.isExistingUserWithID(userId)) {
                 user = new User(userStoreManager.getUser(userId, null));
-            } else if (username != null && userStoreManager.isExistingUserWithID(username)) {
-                /*
-                For federated admin user flow, sometimes their user id will be sent to federated tenant as name.
-                Thus need to fetch user details using username as user id from their original
-                tenant's user-store manager.
-                */
-                user = new User(userStoreManager.getUser(username, null));
             }
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("Error finding user in tenant.", e);
