@@ -1849,8 +1849,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
 
-        validateAttributesForPagination(offset, limit);
-
         if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             return getApplicationBasicInfo(offset, limit);
         }
