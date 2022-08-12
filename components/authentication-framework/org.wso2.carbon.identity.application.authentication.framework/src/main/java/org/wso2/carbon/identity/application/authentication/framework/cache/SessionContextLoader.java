@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.OptimizedSessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 
 /**
  * This class is used to optimize the Session Context before storing it and again loaded it with objects.
@@ -57,7 +57,7 @@ public class SessionContextLoader {
     }
 
     public SessionContextCacheEntry loadSessionContextCacheEntry(SessionContextCacheEntry entry)
-            throws SessionContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Loading process for the session context with context id: %s has started.",

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -153,7 +153,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             if (cacheEntry.getContext() == null && cacheEntry.getOptimizedSessionContext() != null) {
                 try {
                     cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
-                } catch (SessionContextLoaderException e) {
+                } catch (SessionDataStorageOptimizationException e) {
                     return null;
                 }
             }

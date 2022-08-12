@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedSequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedIdPData;
@@ -96,13 +96,13 @@ public class OptimizedSessionContext implements Serializable {
         return optimizedAuthenticatedIdPsOfApp;
     }
 
-    public SessionContext getSessionContext() throws SessionContextLoaderException {
+    public SessionContext getSessionContext() throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the session context has started.");
         }
         if (this.tenantDomain == null) {
-            throw new SessionContextLoaderException("Error occurred while loading the session context");
+            throw new SessionDataStorageOptimizationException("Error occurred while loading the session context");
         }
         SessionContext sessionContext = new SessionContext();
         Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
@@ -129,7 +129,7 @@ public class OptimizedSessionContext implements Serializable {
 
     private Map<String, AuthenticatedIdPData> getAuthenticatedIdPDataMap(Map<String, OptimizedAuthenticatedIdPData>
                                                                                  optimizedMap)
-            throws SessionContextLoaderException {
+            throws SessionDataStorageOptimizationException {
 
         Map<String, AuthenticatedIdPData> authenticatedIdPs = new HashMap<>();
         for (Map.Entry<String, OptimizedAuthenticatedIdPData> entry : optimizedMap.entrySet()) {

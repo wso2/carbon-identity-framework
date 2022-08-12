@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -67,7 +67,8 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         return idpResourceIds;
     }
 
-    public AuthenticatorConfig getAuthenticatorConfig(String tenantDomain) throws SessionContextLoaderException {
+    public AuthenticatorConfig getAuthenticatorConfig(String tenantDomain) throws
+            SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Loading process for the authenticator config with name: %s has started.",
@@ -92,10 +93,10 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     }
 
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain) throws
-            SessionContextLoaderException {
+            SessionDataStorageOptimizationException {
 
         if (resourceId == null) {
-            throw new SessionContextLoaderException("Error occurred while getting IdPs");
+            throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
@@ -103,12 +104,12 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
             if (idp == null) {
-                throw new SessionContextLoaderException(
+                throw new SessionDataStorageOptimizationException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new SessionContextLoaderException(
+            throw new SessionDataStorageOptimizationException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);
         }

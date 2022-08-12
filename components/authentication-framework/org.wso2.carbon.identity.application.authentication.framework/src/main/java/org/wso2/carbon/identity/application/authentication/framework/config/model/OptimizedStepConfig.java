@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 import java.io.Serializable;
@@ -80,7 +80,7 @@ public class OptimizedStepConfig implements Serializable {
         return optimizedAuthenticatorList;
     }
 
-    public StepConfig getStepConfig(String tenantDomain) throws SessionContextLoaderException {
+    public StepConfig getStepConfig(String tenantDomain) throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the step config has started.");

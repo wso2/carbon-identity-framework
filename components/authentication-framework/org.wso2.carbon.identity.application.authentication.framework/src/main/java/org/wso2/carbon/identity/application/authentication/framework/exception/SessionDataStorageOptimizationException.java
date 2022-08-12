@@ -21,24 +21,24 @@ package org.wso2.carbon.identity.application.authentication.framework.exception;
 /**
  * This exception is used to handle the exceptions which occurred during optimization process of session context.
  */
-public class SessionContextLoaderException extends FrameworkException {
+public class SessionDataStorageOptimizationException extends FrameworkException {
 
-    public SessionContextLoaderException(String message) {
+    public SessionDataStorageOptimizationException(String message) {
 
         super(message);
     }
 
-    public SessionContextLoaderException(String errorCode, String message) {
+    public SessionDataStorageOptimizationException(String errorCode, String message) {
 
         super(errorCode, message);
     }
 
-    public SessionContextLoaderException(String message, Throwable cause) {
+    public SessionDataStorageOptimizationException(String message, Throwable cause) {
 
         super(message, cause);
     }
 
-    public SessionContextLoaderException(String errorCode, String message, Throwable cause) {
+    public SessionDataStorageOptimizationException(String errorCode, String message, Throwable cause) {
 
         super(errorCode, message, cause);
     }

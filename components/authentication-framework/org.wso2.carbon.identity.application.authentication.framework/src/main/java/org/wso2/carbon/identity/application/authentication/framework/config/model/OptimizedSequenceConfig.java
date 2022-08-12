@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -82,7 +82,7 @@ public class OptimizedSequenceConfig implements Serializable {
         return optimizedStepMap;
     }
 
-    public SequenceConfig getSequenceConfig(String tenantDomain) throws SessionContextLoaderException {
+    public SequenceConfig getSequenceConfig(String tenantDomain) throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the sequence config has started.");
@@ -112,10 +112,10 @@ public class OptimizedSequenceConfig implements Serializable {
     }
 
     private ApplicationConfig getApplicationConfig(String resourceId, String tenantDomain) throws
-            SessionContextLoaderException {
+            SessionDataStorageOptimizationException {
 
         if (resourceId == null) {
-            throw new SessionContextLoaderException("Error occurred while getting Service Provider");
+            throw new SessionDataStorageOptimizationException("Error occurred while getting Service Provider");
         }
         ServiceProvider serviceProvider;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
@@ -124,12 +124,12 @@ public class OptimizedSequenceConfig implements Serializable {
             serviceProvider = applicationManager.getApplicationByResourceId(
                     this.applicationResourceId, tenantDomain);
             if (serviceProvider == null) {
-                throw new SessionContextLoaderException(
+                throw new SessionDataStorageOptimizationException(
                         String.format("Cannot find the Service Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityApplicationManagementException e) {
-            throw new SessionContextLoaderException(
+            throw new SessionDataStorageOptimizationException(
                     String.format("Error occurred while retrieving the service provider by resource id: %s " +
                             "tenant domain: %s", this.applicationResourceId, tenantDomain), e);
         }
