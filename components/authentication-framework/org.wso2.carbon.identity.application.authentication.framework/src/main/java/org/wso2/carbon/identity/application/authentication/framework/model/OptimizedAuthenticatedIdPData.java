@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionContextLoaderException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,7 +57,8 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
         return optimizedAuthenticators;
     }
 
-    public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain) throws SessionContextLoaderException {
+    public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain) throws
+            SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the authenticated IdP has started.");
