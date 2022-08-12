@@ -16,9 +16,8 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -53,10 +53,11 @@ import java.util.Optional;
 
 /**
  * Represent the user's claim. Can be either remote or local.
+ * This wrapper uses jdk.nashorn engine.
  */
-public class JsClaims extends AbstractJSContextMemberObject {
+public class JsNashornClaims extends AbstractJSContextMemberObject implements AbstractJsObject {
 
-    private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private static final Log LOG = LogFactory.getLog(JsNashornClaims.class);
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
@@ -69,13 +70,13 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param idp                  The authenticated IdP
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
+    public JsNashornClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 
         this(step, idp, isRemoteClaimRequest);
         initializeContext(context);
     }
 
-    public JsClaims(int step, String idp, boolean isRemoteClaimRequest) {
+    public JsNashornClaims(int step, String idp, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.idp = idp;
@@ -140,13 +141,13 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param authenticatedUser    Authenticated user
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public JsNashornClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
     }
 
-    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public JsNashornClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -190,7 +191,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
                 return;
             }
         }
-        super.setMember(claimUri, claimValue);
+        AbstractJsObject.super.setMember(claimUri, claimValue);
     }
 
     /**

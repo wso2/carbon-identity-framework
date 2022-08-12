@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.openjdk.nashorn.api.scripting.AbstractJSObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
@@ -26,7 +25,7 @@ import java.io.Serializable;
 /**
  * Represents the abstract class for all context objects
  */
-public class AbstractJSContextMemberObject extends AbstractJSObject implements Serializable {
+public class AbstractJSContextMemberObject implements Serializable {
 
     private transient AuthenticationContext context;
 

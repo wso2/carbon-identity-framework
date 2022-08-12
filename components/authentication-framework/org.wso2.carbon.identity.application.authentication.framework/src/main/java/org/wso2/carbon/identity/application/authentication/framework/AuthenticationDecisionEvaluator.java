@@ -18,12 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.openjdk.nashorn.api.scripting.JSObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Definition for dynamic Authentication Decision evaluation.
@@ -42,5 +39,5 @@ public interface AuthenticationDecisionEvaluator extends Serializable {
      * @param context
      * @return
      */
-    Object evaluate(AuthenticationContext context, Function<JSObject, Object> jsConsumer);
+    Object evaluate(AuthenticationContext context, Object... paramsn);
 }

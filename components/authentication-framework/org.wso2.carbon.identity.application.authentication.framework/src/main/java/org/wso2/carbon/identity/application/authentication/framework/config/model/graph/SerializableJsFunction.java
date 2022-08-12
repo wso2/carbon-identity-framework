@@ -18,17 +18,25 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.openjdk.nashorn.api.scripting.ScriptUtils;
-import org.openjdk.nashorn.internal.runtime.ScriptFunction;
+import jdk.nashorn.api.scripting.JSObject;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
+import jdk.nashorn.internal.runtime.ScriptFunction;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.io.Serializable;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 /**
  *  Javascript function wrapper. This allows serialization of a javascript defined function.
  *
  */
-public class SerializableJsFunction implements Serializable {
+public class SerializableJsFunction implements BaseSerializableJsFunction {
+
+    private static final Log log = LogFactory.getLog(SerializableJsFunction.class);
 
     private static final long serialVersionUID = -7605388897997019588L;
     private String source;
@@ -58,6 +66,26 @@ public class SerializableJsFunction implements Serializable {
     public void setFunction(boolean function) {
 
         isFunction = function;
+    }
+
+    @Override
+    public Object apply(ScriptEngine scriptEngine, Object... params) {
+
+        Compilable compilable = (Compilable) scriptEngine;
+        try {
+            CompiledScript compiledScript = compilable.compile(this.getSource());
+            JSObject jsObject = (JSObject) compiledScript.eval();
+            if (jsObject instanceof ScriptObjectMirror) {
+                ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) jsObject;
+                if (!scriptObjectMirror.isFunction()) {
+                    //TODO: throw exception
+                }
+                return scriptObjectMirror.call(null, params);
+            }
+        } catch (ScriptException e) {
+            log.error("Error when executing function,", e);
+        }
+        return null;
     }
 
     /**

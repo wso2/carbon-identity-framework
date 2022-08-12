@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
@@ -44,6 +45,8 @@ import org.wso2.carbon.identity.application.authentication.framework.RequestPath
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -124,6 +127,9 @@ public class FrameworkServiceComponent {
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
+    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
+    private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
+
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
     private String requireCode;
@@ -201,7 +207,6 @@ public class FrameworkServiceComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
@@ -257,11 +262,19 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
-        dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactoryFromConfig();
+        if (jsGraphBuilderFactory != null) {
+            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+            dataHolder.setAdaptiveAuthenticationAvailable(true);
+            jsGraphBuilderFactory.init();
+            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        } else {
+            dataHolder.setAdaptiveAuthenticationAvailable(false);
+            log.warn("Adaptive authentication is disabled.");
+        }
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
@@ -773,5 +786,32 @@ public class FrameworkServiceComponent {
             authConfig.setParameterMap(new HashMap<String, String>());
         }
         return authConfig;
+    }
+
+    private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
+
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
+        if (scriptEngineName != null) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
+                return new JsOpenJdkNashornGraphBuilderFactory();
+            }
+        }
+        // Config is not set. Hence going with class for name approach.
+        return createJsGraphBuilderFactory();
+    };
+
+    private JsBaseGraphBuilderFactory createJsGraphBuilderFactory() {
+
+        try {
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return new JsOpenJdkNashornGraphBuilderFactory();
+        } catch (ClassNotFoundException e) {
+            try {
+                Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                return new JsGraphBuilderFactory();
+            } catch (ClassNotFoundException classNotFoundException) {
+                return null;
+            }
+        }
     }
 }

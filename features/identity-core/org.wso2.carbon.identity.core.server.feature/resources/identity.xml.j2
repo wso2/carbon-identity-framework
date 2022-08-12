@@ -831,6 +831,14 @@
         {% endif %}
     </OAuth>
 
+    <!--
+    Configuration to select JS engine for Adaptive authentication feature.
+    Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
+    -->
+    <AdaptiveAuth>
+        <ScriptEngine>{{AdaptiveAuth.ScriptEngine}}</ScriptEngine>
+    </AdaptiveAuth>
+
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
         <XMPPSettings>
