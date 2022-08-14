@@ -201,63 +201,58 @@ public class WorkflowDAO {
      */
     public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
         String sqlQuery;
         List<Workflow> workflowList = new ArrayList<>();
-
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains(WFConstant.DBProductNames.MYSQL)
-                    || databaseProductName.contains(WFConstant.DBProductNames.MARIADB)
-                    || databaseProductName.contains(WFConstant.DBProductNames.H2)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else if (databaseProductName.contains(WFConstant.DBProductNames.ORACLE)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else if (databaseProductName.contains(WFConstant.DBProductNames.MICROSOFT)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else if (databaseProductName.contains(WFConstant.DBProductNames.POSTGRESQL)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else if (databaseProductName.contains(WFConstant.DBProductNames.DB2)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else if (databaseProductName.contains(WFConstant.DBProductNames.INFORMIX)) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
-                prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery,tenantId, filterResolvedForSQL, offset, limit);
-            } else {
-                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
+            sqlQuery = getSqlQuery(databaseProductName);
+            try (PreparedStatement prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery, tenantId, filterResolvedForSQL, offset, limit);) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        String id = resultSet.getString(SQLConstants.ID_COLUMN);
+                        String name = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
+                        String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
+                        String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                        String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+                        Workflow workflowDTO = new Workflow.WorkflowBuilder()
+                                .setWorkflowId(id)
+                                .setWorkflowName(name)
+                                .setWorkflowDescription(description)
+                                .setTemplateId(templateId)
+                                .setWorkflowImplId(templateImplId)
+                                .build();
+                        workflowList.add(workflowDTO);
+                    }
+                }
             }
-
-            resultSet = prepStmt.executeQuery();
-
-            while (resultSet.next()) {
-                String id = resultSet.getString(SQLConstants.ID_COLUMN);
-                String name = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
-                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
-                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
-                String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                Workflow workflowDTO = new Workflow.WorkflowBuilder()
-                        .setWorkflowId(id)
-                        .setWorkflowName(name)
-                        .setWorkflowDescription(description)
-                        .setTemplateId(templateId)
-                        .setWorkflowImplId(templateImplId)
-                        .build();
-                workflowList.add(workflowDTO);
-            }
-
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return workflowList;
+    }
+
+    private String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
+
+        String sqlQuery;
+        if (databaseProductName.contains(WFConstant.DBProductNames.MYSQL)
+                || databaseProductName.contains(WFConstant.DBProductNames.MARIADB)
+                || databaseProductName.contains(WFConstant.DBProductNames.H2)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
+        } else if (databaseProductName.contains(WFConstant.DBProductNames.ORACLE)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
+        } else if (databaseProductName.contains(WFConstant.DBProductNames.MICROSOFT)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
+        } else if (databaseProductName.contains(WFConstant.DBProductNames.POSTGRESQL)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
+        } else if (databaseProductName.contains(WFConstant.DBProductNames.DB2)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
+        } else if (databaseProductName.contains(WFConstant.DBProductNames.INFORMIX)) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
+        } else {
+            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
+        }
+        return sqlQuery;
     }
 
     /**
@@ -273,7 +268,7 @@ public class WorkflowDAO {
      * @return PreparedStatement
      * @throws SQLException
      */
-    public PreparedStatement generatePrepStmt(String DBProductName, Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException {
+    private PreparedStatement generatePrepStmt(String DBProductName, Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException {
 
         PreparedStatement prepStmt = null;
         if (DBProductName.equals(WFConstant.DBProductNames.POSTGRESQL)){
@@ -293,45 +288,42 @@ public class WorkflowDAO {
     }
 
     /**
-     * Retrieve Workflows for a tenant
+     * Retrieve all the Workflows for a tenant
      *
+     * @Deprecated Use {@link #listPaginatedWorkflows(int, String, int, int)}
      * @param tenantId Tenant ID
      * @param filter Filter
      * @return List<Workflow>
      * @throws InternalWorkflowException
      */
-    public List<Workflow> listWorkflows(int tenantId, String filter) throws InternalWorkflowException {
+    @Deprecated
+    public List<Workflow> listWorkflows(int tenantId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
+        ResultSet rs = null;
         List<Workflow> workflowList = new ArrayList<>();
         String query = SQLConstants.LIST_WORKFLOWS_QUERY;
         try {
-            String filterResolvedForSQL = resolveSQLFilter(filter);
             prepStmt = connection.prepareStatement(query);
             prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, filterResolvedForSQL);
-            resultSet = prepStmt.executeQuery();
-            while (resultSet.next()) {
-                String id = resultSet.getString(SQLConstants.ID_COLUMN);
-                String name = resultSet.getString(SQLConstants.WF_NAME_COLUMN);
-                String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
-                String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
-                String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                Workflow workflowDTO = new Workflow.WorkflowBuilder()
-                        .setWorkflowId(id)
-                        .setWorkflowName(name)
-                        .setWorkflowDescription(description)
-                        .setTemplateId(templateId)
-                        .setWorkflowImplId(templateImplId)
-                        .build();
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                String id = rs.getString(SQLConstants.ID_COLUMN);
+                String name = rs.getString(SQLConstants.WF_NAME_COLUMN);
+                String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
+                String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
+                String templateImplId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
+                Workflow workflowDTO = new Workflow();
+                workflowDTO.setWorkflowId(id);
+                workflowDTO.setWorkflowName(name);
+                workflowDTO.setWorkflowDescription(description);
+                workflowDTO.setTemplateId(templateId);
+                workflowDTO.setWorkflowImplId(templateImplId);
                 workflowList.add(workflowDTO);
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return workflowList;
     }
@@ -346,13 +338,13 @@ public class WorkflowDAO {
     private String resolveSQLFilter(String filter) {
 
         //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
-        String sqlfilter = "%";
+        String sqlFilter = "%";
         if (StringUtils.isNotBlank(filter)) {
-            sqlfilter = filter.trim()
+            sqlFilter = filter.trim()
                     .replace("*", "%")
                     .replace("?", "_");
         }
-        return sqlfilter;
+        return sqlFilter;
     }
 
     /**
@@ -363,14 +355,12 @@ public class WorkflowDAO {
      * @return
      * @throws InternalWorkflowException
      */
-    public int getCountOfWorkflows(int tenantId, String filter) throws InternalWorkflowException{
+    public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException{
 
-        int count;
-
+        int count=0;
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
-
         try {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             prepStmt = connection
@@ -378,8 +368,9 @@ public class WorkflowDAO {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, filterResolvedForSQL);
             resultSet = prepStmt.executeQuery();
-            resultSet.next();
-            count = Integer.parseInt(resultSet.getString(1));
+            if(resultSet.next()){
+                count = resultSet.getInt(1);
+            }
         } catch (SQLException e) {
             throw new InternalWorkflowException(
                     "Error while getting the count of Association for the tenantID: " + tenantId, e);

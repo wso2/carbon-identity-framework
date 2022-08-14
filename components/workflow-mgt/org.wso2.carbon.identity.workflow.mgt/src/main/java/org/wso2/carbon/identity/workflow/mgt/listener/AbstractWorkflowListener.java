@@ -336,12 +336,13 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger before listing workflows of a tenant
      *
      * @param tenantId Tenant ID
-     * @param pageNumber Page Number
+     * @param limit Limit
+     * @param offset Offset
      * @param filter Filter
      * @throws WorkflowException
      */
     @Override
-    public void doPreListPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException{
+    public void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException{
 
     }
 
@@ -349,13 +350,14 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger after listing workflows of a tenant
      *
      * @param tenantId Tenant ID
-     * @param pageNumber Page Number
+     * @param limit Limit
+     * @param offset Offset
      * @param filter Filter
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
     @Override
-    public void doPostListPaginatedWorkflows(int tenantId, int pageNumber, String filter, List<Workflow> result) throws WorkflowException{
+    public void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result) throws WorkflowException{
 
     }
 
@@ -430,25 +432,27 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before listing all associations
      * @param tenantId Tenant ID
-     * @param pageNumber Page Number
+     * @param limit Limit
+     * @param offset Offset
      * @param filter Filter
      * @throws WorkflowException
      */
     @Override
-    public void doPreListPaginatedAssociations(int tenantId, int pageNumber, String filter){
+    public void doPreListPaginatedAssociations(int tenantId, int limit, int offset, String filter){
 
     }
 
     /**
      * Trigger before listing all associations
      * @param tenantId Tenant ID
-     * @param pageNumber Page Number
+     * @param limit Limit
+     * @param offset Offset
      * @param filter Filter
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
     @Override
-    public void doPostListPaginatedAssociations(int tenantId, int pageNumber, String filter, List<Association> result){
+    public void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter, List<Association> result){
 
     }
 
@@ -456,11 +460,10 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger before listing all associations
      *
      * @param tenantId Tenant ID
-     * @param filter Filter
      * @throws WorkflowException
      */
     @Override
-    public void doPreListAssociations(int tenantId, String filter) throws WorkflowException {
+    public void doPreListAllAssociations(int tenantId) throws WorkflowException {
 
     }
 
@@ -468,12 +471,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
      * Trigger after listing all associations
      *
      * @param tenantId Tenant ID
-     * @param filter Filter
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
     @Override
-    public void doPostListAssociations(int tenantId, String filter, List<Association> result) throws WorkflowException {
+    public void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException {
 
     }
 

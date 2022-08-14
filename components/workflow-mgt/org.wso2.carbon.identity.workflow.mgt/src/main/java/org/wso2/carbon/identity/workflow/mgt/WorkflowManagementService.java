@@ -126,50 +126,25 @@ public interface WorkflowManagementService {
                                                                                                      WorkflowException;
 
     /**
-     * List All paginated Workflows of a tenant
-     *
-     * @param pageNumber  Page Number
-     * @return
-     * @throws WorkflowException
-     */
-    List<Workflow> listAllPaginatedWorkflows(int tenantId, int pageNumber) throws WorkflowException;
-
-    /**
      * List paginated Workflows of a tenant with a filter
      *
-     * @param pageNumber  Page Number
-     * @param filter  filter
+     * @param tenantId Tenant Id
+     * @param limit Limit
+     * @param offset Offset
+     * @param filter Filter
      * @return
      * @throws WorkflowException
      */
-    List<Workflow> listPaginatedWorkflows(int tenantId, int pageNumber, String filter) throws WorkflowException;
+    List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException;
 
     /**
-     * List all Workflows of a tenant
+     * List workflows
      *
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
-    List<Workflow> listAllWorkflows(int tenantId) throws WorkflowException;
-
-    /**
-     * List Workflows of a tenant
-     *
-     * @param tenantId  Tenant ID
-     * @return
-     * @throws WorkflowException
-     */
-    List<Workflow> listWorkflows(int tenantId, String filter) throws WorkflowException;
-
-    /**
-     * Get count of all Workflows
-     *
-     * @param tenantId  Tenant ID
-     * @return
-     * @throws WorkflowException
-     */
-    int getCountOfAllWorkflows(int tenantId) throws WorkflowException;
+    List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
 
     /**
      * Get count of Workflows
@@ -179,7 +154,7 @@ public interface WorkflowManagementService {
      * @return
      * @throws WorkflowException
      */
-    int getCountOfWorkflows(int tenantId, String filter) throws WorkflowException;
+    int getWorkflowsCount(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Remove a workflow
@@ -217,23 +192,16 @@ public interface WorkflowManagementService {
     List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException;
 
     /**
-     * List All paginated associations of a tenant
-     *
-     * @param pageNumber  Page Number
-     * @return
-     * @throws WorkflowException
-     */
-    List<Association> listAllPaginatedAssociations(int tenantId, int pageNumber) throws WorkflowException;
-
-    /**
      * List paginated associations of a tenant with a filter
      *
-     * @param pageNumber  Page Number
-     * @param filter  filter
+     * @param tenantId Tenant Id
+     * @param limit Limit
+     * @param offset Offset
+     * @param filter Filter
      * @return
      * @throws WorkflowException
      */
-    List<Association> listPaginatedAssociations(int tenantId, int pageNumber, String filter) throws WorkflowException;
+    List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException;
 
     /**
      * List all associations of a tenant
@@ -245,33 +213,14 @@ public interface WorkflowManagementService {
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
 
     /**
-     * List associations of a tenant with a filter
+     * Get associations count
      *
      * @param tenantId  Tenant ID
      * @param filter  filter
      * @return
      * @throws WorkflowException
      */
-    List<Association> listAssociations(int tenantId, String filter) throws WorkflowException;
-
-    /**
-     * Get count of all associations
-     *
-     * @param tenantId  Tenant ID
-     * @return
-     * @throws WorkflowException
-     */
-    int getCountOfAllAssociations(int tenantId) throws WorkflowException;
-
-    /**
-     * Get count of associations
-     *
-     * @param tenantId  Tenant ID
-     * @param filter  filter
-     * @return
-     * @throws WorkflowException
-     */
-    int getCountOfAssociations(int tenantId, String filter) throws WorkflowException;
+    int getAssociationsCount(int tenantId, String filter) throws WorkflowException;
 
     /**
      * Enable or disable association
