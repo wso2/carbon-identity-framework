@@ -367,7 +367,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         String resourceId = applicationManagementService.createApplication(inputSP,
                 SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
-        // Retrieving application by ResourceId
+        // Retrieving application by ResourceId.
         ServiceProvider expectedSP = applicationManagementService.getApplicationByResourceId(resourceId,
                 SUPER_TENANT_DOMAIN_NAME);
         String addedInboundKey = expectedSP.getInboundAuthenticationConfig().
