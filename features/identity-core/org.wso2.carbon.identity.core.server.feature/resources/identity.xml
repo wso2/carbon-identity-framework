@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-~ Copyright (c) 2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2011, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -2181,5 +2181,8 @@
 
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
+
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
 
 </Server>
