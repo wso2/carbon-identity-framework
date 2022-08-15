@@ -150,8 +150,6 @@ public class AssociationDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return associations;
     }
@@ -196,6 +194,8 @@ public class AssociationDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return associations;
     }
@@ -344,29 +344,6 @@ public class AssociationDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
-    }
-
-    private static String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
-        String sqlQuery;
-        if (databaseProductName.contains("MySQL")
-                || databaseProductName.contains("MariaDB")
-                || databaseProductName.contains("H2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
-        } else if (databaseProductName.contains("Oracle")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
-        } else if (databaseProductName.contains("Microsoft")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
-        } else if (databaseProductName.contains("PostgreSQL")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
-        } else if (databaseProductName.contains("DB2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
-        } else if (databaseProductName.contains("INFORMIX")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
-        } else {
-            throw new InternalWorkflowException("Error while loading applications from DB: " +
-                    "Database driver could not be identified or not supported.");
-        }
-        return sqlQuery;
     }
 
     /**

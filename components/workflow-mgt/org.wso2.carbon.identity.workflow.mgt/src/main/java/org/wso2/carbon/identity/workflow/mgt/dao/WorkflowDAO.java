@@ -292,7 +292,6 @@ public class WorkflowDAO {
      *
      * @Deprecated Use {@link #listPaginatedWorkflows(int, String, int, int)}
      * @param tenantId Tenant ID
-     * @param filter Filter
      * @return List<Workflow>
      * @throws InternalWorkflowException
      */
@@ -324,6 +323,8 @@ public class WorkflowDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return workflowList;
     }
