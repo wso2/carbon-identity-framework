@@ -482,8 +482,16 @@ public class ApplicationMgtUtil {
 
         try {
 
-            boolean exist = tenantGovReg.resourceExists(applicationNode);
-            if (!exist) {
+            boolean appNodeExists = tenantGovReg.resourceExists(applicationNode);
+
+            if (ArrayUtils.isEmpty(permissions)) { // no new permissions
+                if (appNodeExists) {
+                    tenantGovReg.delete(applicationNode);
+                }
+                return;
+            }
+
+            if (!appNodeExists) {
                 Collection appRootNode = tenantGovReg.newCollection();
                 appRootNode.setProperty("name", applicationName);
                 tenantGovReg.put(applicationNode, appRootNode);
@@ -492,22 +500,9 @@ public class ApplicationMgtUtil {
             Collection appNodeCollec = (Collection) tenantGovReg.get(applicationNode);
             String[] childern = appNodeCollec.getChildren();
 
-            // new permissions are null. deleting all permissions case
-            if ((childern != null && childern.length > 0)
-                    && (permissions == null || permissions.length == 0)) { // there are permissions
-                tenantGovReg.delete(applicationNode);
-            }
-
-            if (ArrayUtils.isEmpty(permissions)) {
-                return;
-            }
-
-            // no permission exist for the application, create new
-            if (childern == null || appNodeCollec.getChildCount() < 1) {
-
+            if (childern == null || appNodeCollec.getChildCount() < 1) { // no permissions exist for the application
                 addPermission(applicationNode, permissions, tenantGovReg);
-
-            } else { // there are permission
+            } else { // there are existing permissions for the application
                 List<ApplicationPermission> loadPermissions = loadPermissions(applicationName);
                 for (ApplicationPermission applicationPermission : loadPermissions) {
                     tenantGovReg.delete(applicationNode + PATH_CONSTANT + applicationPermission.getValue());

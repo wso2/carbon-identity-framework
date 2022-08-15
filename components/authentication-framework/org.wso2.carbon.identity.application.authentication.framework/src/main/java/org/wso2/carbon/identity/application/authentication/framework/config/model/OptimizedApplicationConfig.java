@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -245,7 +245,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
         IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
             try {
                 IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,

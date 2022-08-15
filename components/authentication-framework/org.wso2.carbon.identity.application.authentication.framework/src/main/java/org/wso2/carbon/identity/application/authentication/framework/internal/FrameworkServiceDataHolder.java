@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
@@ -81,7 +81,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private JsBaseGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -104,6 +104,7 @@ public class FrameworkServiceDataHolder {
 
     private AccountLockService accountLockService;
     private JSExecutionSupervisor jsExecutionSupervisor;
+    private IdpManager identityProviderManager = null;
     private IdpManager idPManager;
     private ApplicationManagementService applicationManagementService;
 
@@ -229,12 +230,12 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
-    public JsGraphBuilderFactory getJsGraphBuilderFactory() {
+    public JsBaseGraphBuilderFactory getJsGraphBuilderFactory() {
 
         return jsGraphBuilderFactory;
     }
 
-    public void setJsGraphBuilderFactory(JsGraphBuilderFactory jsGraphBuilderFactory) {
+    public void setJsGraphBuilderFactory(JsBaseGraphBuilderFactory jsGraphBuilderFactory) {
 
         this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
@@ -637,14 +638,14 @@ public class FrameworkServiceDataHolder {
         }
     }
 
-    public void setIdPManager(IdpManager idPManager) {
+    public IdpManager getIdentityProviderManager() {
 
-        this.idPManager = idPManager;
+        return identityProviderManager;
     }
 
-    public IdpManager getIdPManager() {
+    public void setIdentityProviderManager(IdpManager identityProviderManager) {
 
-        return idPManager;
+        this.identityProviderManager = identityProviderManager;
     }
 
     public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {

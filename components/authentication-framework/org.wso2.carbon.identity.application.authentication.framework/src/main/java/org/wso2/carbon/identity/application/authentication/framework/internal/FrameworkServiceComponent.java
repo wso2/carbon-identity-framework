@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -49,8 +49,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -142,6 +144,8 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
+    private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
+
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
     private String requireCode;
@@ -218,16 +222,6 @@ public class FrameworkServiceComponent {
         dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        if (checkAdaptiveAuthenticationAvailable()) {
-            dataHolder.setAdaptiveAuthenticationAvailable(true);
-            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
-            JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
-            jsGraphBuilderFactory.init();
-            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
-        } else {
-            dataHolder.setAdaptiveAuthenticationAvailable(false);
-            log.warn("Adaptive authentication is disabled.");
-        }
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
         bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
@@ -298,6 +292,17 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
+
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactoryFromConfig();
+        if (jsGraphBuilderFactory != null) {
+            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+            dataHolder.setAdaptiveAuthenticationAvailable(true);
+            jsGraphBuilderFactory.init();
+            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        } else {
+            dataHolder.setAdaptiveAuthenticationAvailable(false);
+            log.warn("Adaptive authentication is disabled.");
+        }
 
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
@@ -968,36 +973,49 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setOrganizationManagementEnable(null);
     }
 
-    /**
-     * This method is to check Adaptive authentication is availability.
-     *
-     * @return AdaptiveAuthentication Available or not.
-     */
-    private boolean checkAdaptiveAuthenticationAvailable() {
-
-        try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
     @Reference(
+            name = "idp.mgt.dscomponent",
             service = IdpManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdPManagement"
+            unbind = "unsetIdentityProviderManager"
     )
-    public void setIdPManagement(IdpManager idpManager) {
+    protected void setIdentityProviderManager(IdpManager idpMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdPManager(idpManager);
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(idpMgtService);
     }
 
-    public void unsetIdPManagement(IdpManager idpManager) {
+    protected void unsetIdentityProviderManager(IdpManager idpMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdPManager(null);
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(null);
     }
+
+    private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
+
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
+        if (scriptEngineName != null) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
+                return new JsOpenJdkNashornGraphBuilderFactory();
+            }
+        }
+        // Config is not set. Hence going with class for name approach.
+        return createJsGraphBuilderFactory();
+    };
+
+    private JsBaseGraphBuilderFactory createJsGraphBuilderFactory() {
+
+        try {
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return new JsOpenJdkNashornGraphBuilderFactory();
+        } catch (ClassNotFoundException e) {
+            try {
+                Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                return new JsGraphBuilderFactory();
+            } catch (ClassNotFoundException classNotFoundException) {
+                return null;
+            }
+        }
+    };
 
     @Reference(
             service = ApplicationManagementService.class,
@@ -1012,6 +1030,6 @@ public class FrameworkServiceComponent {
 
     public void unsetApplicationManagement(ApplicationManagementService applicationManagementService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdPManager(null);
+        FrameworkServiceDataHolder.getInstance().setApplicationManagementService(null);
     }
 }

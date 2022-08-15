@@ -47,6 +47,8 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CacheBackedIdPMgtDAO {
 
@@ -936,5 +938,19 @@ public class CacheBackedIdPMgtDAO {
             }
         }
         return null;
+    }
+
+    /**
+     * Method that retrieves identityProvider names of a idpId list.
+     *
+     * @param tenantId Tenant id.
+     * @param idpIds Set of identity provider ids.
+     * @return A map of identity provider names keyed by idp id.
+     * @throws IdentityProviderManagementException
+     */
+    public Map<String, String> getIdPNamesById(int tenantId, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getIdPNamesById(tenantId, idpIds);
     }
 }

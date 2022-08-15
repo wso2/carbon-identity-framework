@@ -542,6 +542,14 @@
             Disable this config if additional params are not needed post logout redirect URL.
             -->
             <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
+
+            <!--
+                FAPI Profile Support.
+            -->
+            <FAPI>
+                <EnableCibaProfile>false</EnableCibaProfile>
+                <EnableSecurityProfile>false</EnableSecurityProfile>
+            </FAPI>
         </OpenIDConnect>
 
         <!--
@@ -2023,6 +2031,10 @@
                     <Path>/api/server/v1/identity-providers</Path>
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
+                    <Path>/api/server/v1/userstores</Path>
+                    <Path>/api/server/v1/claim-dialects</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2033,6 +2045,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
@@ -2097,6 +2110,11 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
 
+    <!-- Following applications can use federated user role based authorization -->
+    <!--<FIdPRoleBasedAuthzApplications>-->
+       <!--<AppName>Console</AppName>-->
+    <!--</FIdPRoleBasedAuthzApplications>-->
+
     <!--This configuration is used for X509 Certificate based authentication. -->
     <!--<X509>-->
         <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
@@ -2157,6 +2175,9 @@
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
+
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>true</AllowSPRequestedFedClaimsOnly>
 
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>

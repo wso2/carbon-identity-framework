@@ -62,7 +62,7 @@ public class TenantDataManager {
     private static String carbonLogin = "";
     private static String serviceURL;
     private static String usernameHeaderName = "";
-    private static List<String> tenantDomainList = new ArrayList<String>();
+    private static final List<String> tenantDomainList = new ArrayList<>();
     private static boolean initialized = false;
     private static boolean initAttempted = false;
 
@@ -111,39 +111,39 @@ public class TenantDataManager {
 
                 if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
 
-                        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
+                    usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
 
-                        carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
+                    carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
 
-                        // Base64 encoded username
-                        carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
+                    // Base64 encoded username
+                    carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
 
-                        String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-                        String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-                                .CLIENT_TRUST_STORE));
+                    String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
+                    String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
+                            .CLIENT_TRUST_STORE));
 
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-                            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-                                    .TLS_PROTOCOL));
-                        }
+                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                        TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
+                                .TLS_PROTOCOL));
+                    }
 
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-                            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-                                    .KEY_MANAGER_TYPE));
-                        }
-                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-                            TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-                                    .TRUST_MANAGER_TYPE));
-                        }
+                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                        TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
+                                .KEY_MANAGER_TYPE));
+                    }
+                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                        TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
+                                .TRUST_MANAGER_TYPE));
+                    }
 
-                        TenantMgtAdminServiceClient
-                                .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-                                        .CLIENT_KEY_STORE_PASSWORD));
-                        TenantMgtAdminServiceClient
-                                .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-                                        .CLIENT_TRUST_STORE_PASSWORD));
-                        TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
-                                getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
+                    TenantMgtAdminServiceClient
+                            .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
+                                    .CLIENT_KEY_STORE_PASSWORD));
+                    TenantMgtAdminServiceClient
+                            .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
+                                    .CLIENT_TRUST_STORE_PASSWORD));
+                    TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
+                            getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
 
                         // Build the service URL of tenant management admin service
                         StringBuilder builder = new StringBuilder();
@@ -211,8 +211,9 @@ public class TenantDataManager {
      * @return Response from service
      */
     private static String getServiceResponse(String url) {
-        String serviceResponse = null;
-        Map<String, String> headerParams = new HashMap<String, String>();
+
+        String serviceResponse;
+        Map<String, String> headerParams = new HashMap<>();
         // Set the username in HTTP header for mutual ssl authentication
         headerParams.put(usernameHeaderName, carbonLogin);
         serviceResponse = TenantMgtAdminServiceClient.sendPostRequest(url, null, headerParams);
@@ -275,7 +276,7 @@ public class TenantDataManager {
                         Constants.TenantConstants.RETURN + "']";
 
                 XPathExpression expr = xpath.compile(xPathExpression);
-                NodeList nodeList = null;
+                NodeList nodeList;
                 nodeList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 
                 // Reset existing tenant domains list

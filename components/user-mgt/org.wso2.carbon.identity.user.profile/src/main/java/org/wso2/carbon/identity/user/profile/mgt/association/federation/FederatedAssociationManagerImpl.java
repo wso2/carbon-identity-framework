@@ -59,7 +59,9 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_FEDERATED_ASSOCIATION;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_IDP_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_DOMAIN_PROVIDED;
+import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_ID_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
+import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_STORE_DOMAIN_PROVIDED;
 
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
@@ -164,6 +166,37 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER,
                     e, true);
+        }
+    }
+
+    @Override
+    public List<AssociatedAccountDTO> getFederatedAssociationsOfUser(
+            int tenantId, String userStoreDomain, String domainFreeUsername)
+            throws FederatedAssociationManagerException {
+
+        if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant id is received to retrieve federated associations.");
+            }
+            throw handleFederatedAssociationManagerClientException(INVALID_TENANT_ID_PROVIDED, null, true);
+        }
+        if (StringUtils.isEmpty(userStoreDomain)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_USER_STORE_DOMAIN_PROVIDED, null, true);
+        }
+        if (StringUtils.isEmpty(domainFreeUsername)) {
+            throw handleFederatedAssociationManagerClientException(INVALID_USER_IDENTIFIER_PROVIDED, null, true);
+        }
+
+        try {
+            return UserProfileMgtDAO.getInstance()
+                    .getAssociatedFederatedAccountsForUser(tenantId, userStoreDomain, domainFreeUsername);
+        } catch (UserProfileException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Error while retrieving federated account associations for user: %s of " +
+                        "tenantId: %s", domainFreeUsername, tenantId));
+            }
+            throw handleFederatedAssociationManagerServerException(
+                    ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER, e, true);
         }
     }
 

@@ -177,4 +177,13 @@ public class SessionMgtConstants {
             return code + " - " + message;
         }
     }
+
+    /**
+     * Enum defining map fields of auth session user.
+     */
+    public enum AuthSessionUserKeys {
+        IDP_ID,
+        IDP_NAME,
+        USER_ID
+    }
 }

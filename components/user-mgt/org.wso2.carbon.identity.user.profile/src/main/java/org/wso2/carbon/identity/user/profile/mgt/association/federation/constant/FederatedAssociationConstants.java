@@ -52,7 +52,9 @@ public class FederatedAssociationConstants {
         FEDERATED_ASSOCIATION_ALREADY_EXISTS(10004, "The federated association is already associated to a local user"),
         INVALID_USER_IDENTIFIER_PROVIDED(10005, "The provided user identifier is invalid"),
         INVALID_TENANT_DOMAIN_PROVIDED(10006, "Provided tenant domain is invalid"),
-        INVALID_IDP_PROVIDED(10007, "Provided federated identity provider is invalid");
+        INVALID_IDP_PROVIDED(10007, "Provided federated identity provider is invalid"),
+        INVALID_TENANT_ID_PROVIDED(10008, "Provided tenant id is invalid"),
+        INVALID_USER_STORE_DOMAIN_PROVIDED(10009, "Provided user store domain is invalid");
 
         private final int code;
         private final String description;
