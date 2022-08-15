@@ -513,7 +513,7 @@
                                     <option value=""><fmt:message key="select"/></option>
                                     <option value="create_new_workflow">Create New Workflow...</option>
                                     <%
-                                        for (WorkflowWizard workflowBean : client.listAllWorkflows()) {
+                                        for (WorkflowWizard workflowBean : client.listWorkflows()) {
                                             if (workflowBean != null) {
                                                 boolean select = false;
                                                 if (StringUtils.equals(workflowId, workflowBean.getWorkflowId()) || StringUtils.equals(workflowName, workflowBean.getWorkflowName())) {

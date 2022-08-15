@@ -63,6 +63,7 @@
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
     int pageNumberInt = 0;
     int numberOfPages = 0;
+    int offset = 0;
     int numberOfAssociations;
     int resultsPerPageInt = WorkflowUIConstants.DEFAULT_RESULTS_PER_PAGE;
     Association[] associations = null;
@@ -78,6 +79,7 @@
     if (StringUtils.isNotBlank(pageNumber)) {
         try {
             pageNumberInt = Integer.parseInt(pageNumber);
+            offset = ((pageNumberInt) * resultsPerPageInt);
         } catch (NumberFormatException ignored) {
             //not needed here since it's defaulted to 0
         }
@@ -90,29 +92,10 @@
                 (ConfigurationContext) config.getServletContext()
                         .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
-
-        if (!StringUtils.equals(filterString, WorkflowUIConstants.DEFAULT_FILTER)) {
-            numberOfAssociations = client.getCountOfAssociations(filterString);
-            if (numberOfAssociations > 0) {
-                if (numberOfAssociations > resultsPerPageInt) {
-                    associations = client.listPaginatedAssociations(pageNumberInt + 1, filterString);
-                } else {
-                    associations = client.listAssociationsWithFilter(filterString);
-                }
-            }
-        } else {
-            numberOfAssociations = client.getCountOfAllAssociations();
-            if (numberOfAssociations > 0) {
-                if (numberOfAssociations > resultsPerPageInt) {
-                    associations = client.listAllPaginatedAssociations(pageNumberInt + 1);
-                } else {
-                    associations = client.listAllAssociations();
-                }
-            }
-        }
+        numberOfAssociations = client.getAssociationsCount(filterString);
+        associations = client.listPaginatedAssociations(resultsPerPageInt, offset, filterString);
 
         numberOfPages = (int) Math.ceil((double) numberOfAssociations / resultsPerPageInt);
-
     } catch (AxisFault e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);

@@ -55,7 +55,8 @@
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
     int pageNumberInt = 0;
     int numberOfPages = 0;
-    int numberOfWorkflows;
+    int offset = 0;
+    int numberOfWorkflows = 0;
     int resultsPerPageInt = WorkflowUIConstants.DEFAULT_RESULTS_PER_PAGE;
     WorkflowWizard[] workflows = null;
 
@@ -73,6 +74,7 @@
     if (StringUtils.isNotBlank(pageNumber)) {
         try {
              pageNumberInt = Integer.parseInt(pageNumber);
+             offset = ((pageNumberInt) * resultsPerPageInt);
         } catch (NumberFormatException ignored) {
              //not needed here since it's defaulted to 0
         }
@@ -84,25 +86,8 @@
                 (ConfigurationContext) config.getServletContext()
                         .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
-        if (!StringUtils.equals(filterString, WorkflowUIConstants.DEFAULT_FILTER)) {
-            numberOfWorkflows = client.getCountOfWorkflows(filterString);
-            if (numberOfWorkflows > 0) {
-                if (numberOfWorkflows > resultsPerPageInt) {
-                    workflows = client.listPaginatedWorkflows(pageNumberInt + 1, filterString);
-                } else {
-                    workflows = client.listWorkflows(filterString);
-                }
-            }
-        } else {
-            numberOfWorkflows = client.getCountOfAllWorkflows();
-            if (numberOfWorkflows > 0) {
-                if (numberOfWorkflows > resultsPerPageInt) {
-                    workflows = client.listAllPaginatedWorkflows(pageNumberInt + 1);
-                } else {
-                    workflows = client.listAllWorkflows();
-                }
-            }
-        }
+        numberOfWorkflows = client.getWorkflowsCount(filterString);
+        workflows = client.listPaginatedWorkflows(resultsPerPageInt, offset, filterString);
         numberOfPages = (int) Math.ceil((double) numberOfWorkflows / resultsPerPageInt);
     } catch (Exception e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
