@@ -895,5 +895,16 @@
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
-  "show_pending_user_information.enable": true
+  "show_pending_user_information.enable": true,
+
+  "email_templates.branding.fallbacks.light_logo_url": "http://cdn.wso2.com/wso2/newsletter/images/nl-2017/wso2-logo-transparent.png",
+  "email_templates.branding.fallbacks.dark_logo_url": "http://cdn.wso2.com/wso2/newsletter/images/nl-2017/wso2-logo-transparent.png",
+  "email_templates.branding.fallbacks.copyright_text": "&#169; YYYY WSO2 LLC.",
+  "email_templates.branding.fallbacks.primary_color": "#FF5000",
+  "email_templates.branding.fallbacks.background_color": "#F0F0F0",
+  "email_templates.branding.fallbacks.light_background_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.dark_background_color": "#181818",
+  "email_templates.branding.fallbacks.font_style": "Nunito Sans",
+  "email_templates.branding.fallbacks.font_color": "#333333",
+  "email_templates.branding.fallbacks.button_font_color": "#FFFFFF"
 }
