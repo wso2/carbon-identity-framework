@@ -99,7 +99,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
             throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);

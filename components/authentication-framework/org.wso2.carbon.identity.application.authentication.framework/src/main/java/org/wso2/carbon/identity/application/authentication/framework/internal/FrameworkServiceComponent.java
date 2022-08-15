@@ -1018,22 +1018,6 @@ public class FrameworkServiceComponent {
     };
 
     @Reference(
-            service = IdpManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdPManagement"
-    )
-    public void setIdPManagement(IdpManager idpManager) {
-
-        FrameworkServiceDataHolder.getInstance().setIdPManager(idpManager);
-    }
-
-    public void unsetIdPManagement(IdpManager idpManager) {
-
-        FrameworkServiceDataHolder.getInstance().setIdPManager(null);
-    }
-
-    @Reference(
             service = ApplicationManagementService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
@@ -1046,6 +1030,6 @@ public class FrameworkServiceComponent {
 
     public void unsetApplicationManagement(ApplicationManagementService applicationManagementService) {
 
-        FrameworkServiceDataHolder.getInstance().setIdPManager(null);
+        FrameworkServiceDataHolder.getInstance().setApplicationManagementService(null);
     }
 }

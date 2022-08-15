@@ -2298,8 +2298,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             application = new FileBasedApplicationDAO().getApplicationByResourceId(resourceId, tenantDomain);
             if (application == null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Cannot find an application for resourceId: " + resourceId + " in tenantDomain: " +
-                            tenantDomain);
+                    log.debug("Cannot find an application for resourceId: " + resourceId + " in tenantDomain: "
+                            + tenantDomain);
                 }
                 return null;
             }

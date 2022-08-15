@@ -105,11 +105,11 @@ public class FrameworkServiceDataHolder {
     private AccountLockService accountLockService;
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
+    private IdpManager idPManager;
+    private ApplicationManagementService applicationManagementService;
 
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
-    private IdpManager idPManager;
-    private ApplicationManagementService applicationManagementService;
 
     private FrameworkServiceDataHolder() {
 
@@ -646,16 +646,6 @@ public class FrameworkServiceDataHolder {
     public void setIdentityProviderManager(IdpManager identityProviderManager) {
 
         this.identityProviderManager = identityProviderManager;
-    }
-
-    public void setIdPManager(IdpManager idPManager) {
-
-        this.idPManager = idPManager;
-    }
-
-    public IdpManager getIdPManager() {
-
-        return idPManager;
     }
 
     public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
