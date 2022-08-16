@@ -454,7 +454,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         if (offset < 0) {
             throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
         }
-        if (StringUtils.isBlank(filter)){
+        if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
         }
         List<Workflow> workflowList = workflowDAO.listPaginatedWorkflows(tenantId, filter, offset, limit);

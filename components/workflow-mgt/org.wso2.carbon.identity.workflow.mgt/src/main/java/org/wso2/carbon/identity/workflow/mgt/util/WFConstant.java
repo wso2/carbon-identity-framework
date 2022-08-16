@@ -85,13 +85,13 @@ public class WFConstant {
         public static final String ERROR_WHILE_LOADING_ASSOCIATIONS =  "Error while loading associations from DB: " +
                 "Database driver could not be identified or not supported.";
         public static final String ERROR_LISTING_ASSOCIATIONS =  "Server error when listing associations";
-        public static final String ERROR_GETTING_ASSOC_COUNT =  "Server error when getting the count of Associations";
+        public static final String ERROR_GETTING_ASSOC_COUNT =  "Server error while getting associations count for the tenantId: ";
 
         // Workflow errors
         public static final String ERROR_WHILE_LOADING_WORKFLOWS =  "Error while loading workflows from DB: " +
                 "Database driver could not be identified or not supported.";
         public static final String ERROR_LISTING_WORKFLOWS =  "Server error when listing workflows";
-        public static final String ERROR_GETTING_WORKFLOW_COUNT =  "Server error when getting the count of workflows";
+        public static final String ERROR_GETTING_WORKFLOW_COUNT =  "Server error while getting workflows count for the tenantId: ";
 
         public static final String ERROR_INVALID_LIMIT = "Invalid limit requested. The limit should "
                 + "be a value greater than 0.";

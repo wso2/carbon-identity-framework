@@ -202,25 +202,6 @@ public class AssociationDAO {
 
     /**
      *
-     * @param filter
-     * @return
-     * @throws InternalWorkflowException
-     */
-    private String resolveSQLFilter(String filter) {
-
-        //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
-        String sqlFilter = "%";
-        if (StringUtils.isNotBlank(filter)) {
-            sqlFilter = filter.trim()
-                    .replace("*", "%")
-                    .replace("?", "_");
-        }
-
-        return sqlFilter;
-    }
-
-    /**
-     *
      * @param tenantId
      * @param filter
      * @return
@@ -245,33 +226,11 @@ public class AssociationDAO {
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(
-                    "Error while getting the count of Association for the tenantID: " + tenantId, e);
+                    WFConstant.Exceptions.ERROR_GETTING_ASSOC_COUNT+ tenantId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return count;
-    }
-
-    private static String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
-        String sqlQuery;
-        if (databaseProductName.contains("MySQL")
-                || databaseProductName.contains("MariaDB")
-                || databaseProductName.contains("H2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
-        } else if (databaseProductName.contains("Oracle")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
-        } else if (databaseProductName.contains("Microsoft")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
-        } else if (databaseProductName.contains("PostgreSQL")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
-        } else if (databaseProductName.contains("DB2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
-        } else if (databaseProductName.contains("INFORMIX")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
-        } else {
-            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);
-        }
-        return sqlQuery;
     }
 
     /**
@@ -385,6 +344,33 @@ public class AssociationDAO {
     }
 
     /**
+     *
+     * @param databaseProductName Database Product Name
+     * @throws InternalWorkflowException
+     */
+    private static String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
+        String sqlQuery;
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
+        } else {
+            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);
+        }
+        return sqlQuery;
+    }
+
+    /**
      * Create PreparedStatement
      *
      * @param DBProductName db product name
@@ -414,6 +400,24 @@ public class AssociationDAO {
             prepStmt.setInt(4, limit);
         }
         return prepStmt;
+    }
+
+    /**
+     *
+     * @param filter
+     * @return
+     * @throws InternalWorkflowException
+     */
+    private String resolveSQLFilter(String filter) {
+
+        //To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
+        String sqlFilter = "%";
+        if (StringUtils.isNotBlank(filter)) {
+            sqlFilter = filter.trim()
+                    .replace("*", "%")
+                    .replace("?", "_");
+        }
+        return sqlFilter;
     }
 
 }
