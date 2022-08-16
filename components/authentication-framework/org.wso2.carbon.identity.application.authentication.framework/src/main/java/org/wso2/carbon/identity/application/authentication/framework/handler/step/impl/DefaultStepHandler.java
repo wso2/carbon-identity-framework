@@ -844,7 +844,7 @@ public class DefaultStepHandler implements StepHandler {
         return authenticatedIdPData;
     }
 
-    private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
+    protected String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
             context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
             throws IOException, URISyntaxException {
 
@@ -1041,7 +1041,7 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
+    protected String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
 
         Map<String, String> runtimeParams = context
                 .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
@@ -1061,7 +1061,7 @@ public class DefaultStepHandler implements StepHandler {
         return retryParam;
     }
 
-    private AuthenticatorConfig getAuthenticatorConfig() {
+    protected AuthenticatorConfig getAuthenticatorConfig() {
         AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean
                 (FrameworkConstants.BASIC_AUTHENTICATOR_CLASS);
         if (authConfig == null) {
@@ -1079,7 +1079,7 @@ public class DefaultStepHandler implements StepHandler {
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
      */
-    private boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
+    protected boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
 
         boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
         if (sendToMultiOptionPage) {
