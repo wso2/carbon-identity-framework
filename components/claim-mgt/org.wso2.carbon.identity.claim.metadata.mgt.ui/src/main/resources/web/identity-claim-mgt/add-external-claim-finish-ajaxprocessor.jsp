@@ -45,7 +45,7 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String externalClaimDialectURI = request.getParameter("externalClaimDialectURI");
-    String externalClaimURI = request.getParameter("externalClaimURI");
+    String externalClaimURI = request.getParameter("externalClaimURI").trim();
     String mappedLocalClaimURI = request.getParameter("mappedLocalClaimURI");
 
 

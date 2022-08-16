@@ -51,7 +51,7 @@
             config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
-    String localClaimURI = request.getParameter("localClaimURI");
+    String localClaimURI = request.getParameter("localClaimURI").trim();
     int numberOfAttributeMappings = Integer.parseInt(request.getParameter("number_of_AttributeMappings"));
     int numberOfClaimProperties = Integer.parseInt(request.getParameter("number_of_ClaimProperties"));
     String displayName = request.getParameter("displayName");
@@ -67,7 +67,7 @@
     for (int i = 0; i < numberOfAttributeMappings; i++) {
 
         String userStoreDomain = request.getParameter("userstore_" + i);
-        String mappedAttribute = request.getParameter("attribute_" + i);
+        String mappedAttribute = request.getParameter("attribute_" + i).trim();
 
         if (StringUtils.isNotBlank(userStoreDomain) && StringUtils.isNotBlank(mappedAttribute)) {
 
