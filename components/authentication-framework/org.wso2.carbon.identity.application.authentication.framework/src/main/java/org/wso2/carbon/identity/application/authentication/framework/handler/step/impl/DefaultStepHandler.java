@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -862,6 +863,7 @@ public class DefaultStepHandler implements StepHandler {
         // URL previously set by an authenticator and generates a query string to be appended to the new redirect URL.
         StringBuilder reCaptchaParamString = new StringBuilder("");
         StringBuilder errorParamString = new StringBuilder("");
+        List<NameValuePair> errorContextParams = new ArrayList<>();
         String basicAuthRedirectUrl = ((CommonAuthResponseWrapper) response).getRedirectURL();
         if (StringUtils.isNotBlank(basicAuthRedirectUrl)) {
             List<NameValuePair> queryParameters = new URIBuilder(basicAuthRedirectUrl).getQueryParams();
@@ -878,12 +880,12 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             if (errorContext == null) {
-                List<NameValuePair> errorContextParams = queryParameters.stream()
+                 errorContextParams.addAll(queryParameters.stream()
                         .filter(param -> FrameworkConstants.ERROR_CODE.equals(param.getName()) ||
                                 FrameworkConstants.LOCK_REASON.equals(param.getName()) ||
                                 FrameworkConstants.REMAINING_ATTEMPTS.equals(param.getName()) ||
                                 FrameworkConstants.FAILED_USERNAME.equals(param.getName()))
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toList()));
                 if (errorContextParams.size() > 0) {
                     for (NameValuePair errorParams : errorContextParams) {
                         errorParamString.append("&").append(errorParams.getName()).append("=")
@@ -1001,6 +1003,16 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 }
             } else {
+                if (errorContextParams.stream().anyMatch(nameValuePair ->
+                        FrameworkConstants.ERROR_CODE.equals(nameValuePair.getName()) &&
+                                UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(nameValuePair.getValue()))) {
+                    if (isRedirectionToRetryPageOnAccountLock(context)) {
+                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                        return response.encodeRedirectURL(retryPage
+                                + ("?" + context.getContextIdIncludedQueryParams()))
+                                + errorParamString;
+                    }
+                }
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                         reCaptchaParamString.toString() + errorParamString;
@@ -1057,5 +1069,33 @@ public class DefaultStepHandler implements StepHandler {
             authConfig.setParameterMap(new HashMap());
         }
         return authConfig;
+    }
+
+    /**
+     * Check whether the user should be redirected to the retry.jsp page when the user's account is locked.
+     * This decision is taken based on three configuration options, redirectToMultiOptionPageOnFailure,
+       showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
+     *
+     * @param context  Authentication context.
+     * @return boolean Whether the user should be directed to retry.jsp page or not.
+     */
+    private boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
+
+        boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
+        if (sendToMultiOptionPage) {
+            return false;
+        }
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            String showAuthFailureReasonOnLoginPage =
+                    parameterMap.get(FrameworkConstants.SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF);
+            if (Boolean.parseBoolean(showAuthFailureReasonOnLoginPage)) {
+                return false;
+            }
+            String redirectToRetryPageOnAccountLock =
+                    parameterMap.get(FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF);
+            return Boolean.parseBoolean(redirectToRetryPageOnAccountLock);
+        }
+        return false;
     }
 }
