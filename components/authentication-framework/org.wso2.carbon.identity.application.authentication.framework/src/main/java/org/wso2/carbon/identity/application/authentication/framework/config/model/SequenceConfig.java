@@ -192,6 +192,11 @@ public class SequenceConfig implements Serializable, Cloneable {
         return sequenceConfig;
     }
 
+    public void setRequestedAcr(List<String> requestedAcr) {
+
+        this.requestedAcr = requestedAcr;
+    }
+
     public OptimizedApplicationConfig getOptApplicationConfig() {
 
         return this.optApplicationConfig;

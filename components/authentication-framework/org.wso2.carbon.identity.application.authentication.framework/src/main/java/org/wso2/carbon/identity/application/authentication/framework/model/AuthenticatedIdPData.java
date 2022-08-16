@@ -224,4 +224,9 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
         authenticatedIdPData.authenticators = new ArrayList<>(this.authenticators);
         return authenticatedIdPData;
     }
+
+    public void setAuthenticators(List<AuthenticatorConfig> authenticators) {
+
+        this.authenticators = authenticators;
+    }
 }

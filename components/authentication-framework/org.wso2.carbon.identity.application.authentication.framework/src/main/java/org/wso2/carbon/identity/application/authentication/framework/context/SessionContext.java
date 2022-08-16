@@ -90,4 +90,30 @@ public class SessionContext implements Serializable {
     public SessionAuthHistory getSessionAuthHistory() {
         return sessionAuthHistory;
     }
+
+    public void setSessionAuthHistory(SessionAuthHistory sessionAuthHistory) {
+
+        this.sessionAuthHistory = sessionAuthHistory;
+    }
+
+    public Map<String, Object> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+
+        this.properties = properties;
+    }
+
+    public Map<String, Map<String, AuthenticatedIdPData>> getAuthenticatedIdPsOfApp() {
+
+        return authenticatedIdPsOfApp;
+    }
+
+    public void setAuthenticatedIdPsOfApp(
+            Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp) {
+
+        this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
+    }
 }
