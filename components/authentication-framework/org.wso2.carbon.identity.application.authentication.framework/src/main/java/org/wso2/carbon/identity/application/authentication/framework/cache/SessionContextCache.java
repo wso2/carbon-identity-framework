@@ -154,6 +154,10 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                 try {
                     cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
                 } catch (SessionDataStorageOptimizationException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Error occurred while loading the session context with " +
+                                "context id: %s", cacheEntry.getContextIdentifier()));
+                    }
                     return null;
                 }
             }
