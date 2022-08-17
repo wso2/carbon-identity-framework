@@ -207,7 +207,7 @@ public class WorkflowDAO {
 
         String sqlQuery;
         List<Workflow> workflowList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             sqlQuery = getSqlQuery(databaseProductName);
@@ -289,23 +289,20 @@ public class WorkflowDAO {
     public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException{
 
         int count=0;
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
-            prepStmt = connection
-                    .prepareStatement(SQLConstants.GET_WORKFLOWS_COUNT_QUERY);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, filterResolvedForSQL);
-            resultSet = prepStmt.executeQuery();
-            if(resultSet.next()){
-                count = resultSet.getInt(1);
+            try (PreparedStatement prepStmt = connection
+                    .prepareStatement(SQLConstants.GET_WORKFLOWS_COUNT_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if(resultSet.next()){
+                        count = resultSet.getInt(1);
+                    }
+                }
             }
         } catch (SQLException e) {
             handleException(WFConstant.Exceptions.SQL_ERROR_GETTING_WORKFLOW_COUNT, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return count;
     }

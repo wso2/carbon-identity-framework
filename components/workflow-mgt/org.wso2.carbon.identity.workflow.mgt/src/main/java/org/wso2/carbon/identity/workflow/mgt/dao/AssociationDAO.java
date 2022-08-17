@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
-import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,7 +123,7 @@ public class AssociationDAO {
 
         String sqlQuery;
         List<Association> associations = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             sqlQuery = getSqlQuery(databaseProductName);
@@ -216,23 +215,20 @@ public class AssociationDAO {
     public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException{
 
         int count=0;
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
-            prepStmt = connection
-                    .prepareStatement(SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, filterResolvedForSQL);
-            resultSet = prepStmt.executeQuery();
-            if(resultSet.next()){
-                count = resultSet.getInt(1);
+            try (PreparedStatement prepStmt = connection
+                    .prepareStatement(SQLConstants.GET_ASSOCIATIONS_COUNT_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.setString(2, filterResolvedForSQL);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if(resultSet.next()){
+                        count = resultSet.getInt(1);
+                    }
+                }
             }
         } catch (SQLException e) {
             handleException(WFConstant.Exceptions.SQL_ERROR_GETTING_ASSOC_COUNT, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return count;
     }
