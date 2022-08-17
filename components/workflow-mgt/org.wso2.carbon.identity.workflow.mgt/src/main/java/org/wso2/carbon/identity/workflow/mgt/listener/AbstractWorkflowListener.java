@@ -364,9 +364,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)}
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     @Override
     public void doPreListWorkflows(int tenantId) throws WorkflowException {
 
@@ -375,10 +377,12 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)}
      * @param tenantId Tenant ID
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
+    @Deprecated
     @Override
     public void doPostListWorkflows(int tenantId, List<Workflow> result) throws WorkflowException {
 
@@ -459,9 +463,11 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger before listing all associations
      *
+     * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)}
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     @Override
     public void doPreListAllAssociations(int tenantId) throws WorkflowException {
 
@@ -470,10 +476,12 @@ public abstract class AbstractWorkflowListener implements WorkflowListener {
     /**
      * Trigger after listing all associations
      *
+     * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)}
      * @param tenantId Tenant ID
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
+    @Deprecated
     @Override
     public void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException {
 

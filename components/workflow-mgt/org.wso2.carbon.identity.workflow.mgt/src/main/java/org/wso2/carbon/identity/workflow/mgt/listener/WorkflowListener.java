@@ -292,18 +292,22 @@ public interface WorkflowListener {
     /**
      * Trigger before listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)}
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     void doPreListWorkflows(int tenantId) throws WorkflowException;
 
     /**
      * Trigger after listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)}
      * @param tenantId Tenant ID
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
+    @Deprecated
     void doPostListWorkflows(int tenantId, List<Workflow> result) throws WorkflowException;
 
     /**
@@ -362,18 +366,22 @@ public interface WorkflowListener {
     /**
      * Trigger before listing all associations
      *
+     * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)}
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     void doPreListAllAssociations(int tenantId) throws WorkflowException;
 
     /**
      * Trigger after listing all associations
      *
+     * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)}
      * @param tenantId Tenant ID
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
+    @Deprecated
     void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException;
 
     /**
