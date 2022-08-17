@@ -650,6 +650,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         if (offset < 0) {
             throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
         }
+        // Validate whether the filter is empty.
         if (StringUtils.isBlank(filter)){
             filter = WFConstant.DEFAULT_FILTER;
         }

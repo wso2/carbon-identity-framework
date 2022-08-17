@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
@@ -40,6 +42,8 @@ import java.util.List;
 public class WorkflowDAO {
 
     private final String errorMessage = "Error when executing the SQL query ";
+    private static final Log log = LogFactory.getLog(WorkflowDAO.class);
+    boolean debugEnabled = log.isErrorEnabled();
 
     /**
      * Adding a workflow
@@ -227,7 +231,7 @@ public class WorkflowDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException(errorMessage, e);
+            handleException(WFConstant.Exceptions.SQL_ERROR_LISTING_WORKFLOWS, e);
         }
         return workflowList;
     }
@@ -299,8 +303,7 @@ public class WorkflowDAO {
                 count = resultSet.getInt(1);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException(
-                    WFConstant.Exceptions.ERROR_GETTING_WORKFLOW_COUNT + tenantId, e);
+            handleException(WFConstant.Exceptions.SQL_ERROR_GETTING_WORKFLOW_COUNT, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -503,5 +506,20 @@ public class WorkflowDAO {
                     .replace("?", "_");
         }
         return sqlFilter;
+    }
+
+    /**
+     * Logs and wraps the given exception.
+     *
+     * @param errorMsg Error message
+     * @param e   Exception
+     * @throws InternalWorkflowException
+     */
+    private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {
+
+        if (debugEnabled) {
+            log.debug(errorMsg, e);
+        }
+        throw new InternalWorkflowException(errorMsg, e);
     }
 }

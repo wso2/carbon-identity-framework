@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
+import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
@@ -39,6 +42,8 @@ import java.util.List;
 public class AssociationDAO {
 
     private final String errorMessage = "Error when executing the SQL query ";
+    private static final Log log = LogFactory.getLog(WorkflowDAO.class);
+    boolean debugEnabled = log.isErrorEnabled();
 
     /**
      *
@@ -149,7 +154,7 @@ public class AssociationDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException(errorMessage, e);
+            handleException(WFConstant.Exceptions.SQL_ERROR_LISTING_ASSOCIATIONS, e);
         }
         return associations;
     }
@@ -225,8 +230,7 @@ public class AssociationDAO {
                 count = resultSet.getInt(1);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException(
-                    WFConstant.Exceptions.ERROR_GETTING_ASSOC_COUNT+ tenantId, e);
+            handleException(WFConstant.Exceptions.SQL_ERROR_GETTING_ASSOC_COUNT, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -418,6 +422,21 @@ public class AssociationDAO {
                     .replace("?", "_");
         }
         return sqlFilter;
+    }
+
+    /**
+     * Logs and wraps the given exception.
+     *
+     * @param errorMsg Error message
+     * @param e   Exception
+     * @throws InternalWorkflowException
+     */
+    private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {
+
+        if (debugEnabled) {
+            log.debug(errorMsg, e);
+        }
+        throw new InternalWorkflowException(errorMsg, e);
     }
 
 }
