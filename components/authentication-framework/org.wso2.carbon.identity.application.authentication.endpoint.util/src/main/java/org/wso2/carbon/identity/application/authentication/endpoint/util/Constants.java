@@ -247,6 +247,8 @@ public class Constants {
                 "no.registered.device.found";
         public static final String INVALID_CLIENT_IN_TENANT = "invalid_client_no.valid.client.in.tenant";
         public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
+        public static final String NOT_AUTHORIZED_FOR_AUTHORIZATION_GRANT_TYPE = "unauthorized_client_not.authorized.for.authorization.grant.type";
+        public static final String NOT_AUTHORIZED_FOR_AUTHORIZATION_GRANT_TYPE_I18N_KEY = "not.authorized.for.authorization.grant.type";
 
         private ErrorToi18nMappingConstants() {
 
