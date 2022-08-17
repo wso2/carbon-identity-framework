@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.DataProvider;
@@ -34,7 +35,7 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -43,6 +44,7 @@ import static org.testng.Assert.assertEquals;
  * This class tests the methods of IdentityManagementEndpointUtil class.
  */
 @PrepareForTest({ServiceURLBuilder.class, IdentityTenantUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
 
     @Mock

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-~ Copyright (c) 2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2011, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -331,6 +331,12 @@
 <!--                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>-->
 <!--                <IdTokenAllowed>true</IdTokenAllowed>-->
 <!--            </SupportedGrantType>-->
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.organization.management.oauth2.grant.OrganizationSwitchGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
         </SupportedGrantTypes>
 
         <!--
@@ -536,6 +542,14 @@
             Disable this config if additional params are not needed post logout redirect URL.
             -->
             <!--AllowAdditionalParamsFromPostLogoutRedirectURI>false</AllowAdditionalParamsFromPostLogoutRedirectURI-->
+
+            <!--
+                FAPI Profile Support.
+            -->
+            <FAPI>
+                <EnableCibaProfile>false</EnableCibaProfile>
+                <EnableSecurityProfile>false</EnableSecurityProfile>
+            </FAPI>
         </OpenIDConnect>
 
         <!--
@@ -837,6 +851,16 @@
            Supported versions : IS 5.11.0 onwards
         -->
 <!--        <ConsiderMaxLimitForTotalResult>{{scim2.consider_max_limit_for_total_results}}</ConsiderMaxLimitForTotalResult>-->
+
+        <!--
+          If you want to get the total records matching the client query as 'totalResult' for LDAP when filter criteria is given
+          then enable this property value.
+          Please note that for the request without filtering, LDAP will give items per page as 'totalResult' regardless of this property value.
+          Default value : false
+          Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<ConsiderTotalRecordsForTotalResultOfLDAP>false</ConsiderTotalRecordsForTotalResultOfLDAP>-->
+
     </SCIM2>
 
     <!--Recovery>
@@ -1204,7 +1228,13 @@
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
@@ -1982,6 +2012,42 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewrite>
+        <WebApp>
+            <Context>
+                <BasePath>/scim2/</BasePath>
+                <SubPaths>
+                    <Path>/scim2/Groups</Path>
+                    <Path>/scim2/Users</Path>
+                    <Path>/scim2/Schemas</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/organizations</Path>
+                    <Path>/api/server/v1/applications</Path>
+                    <Path>/api/users/v1/me/organizations</Path>
+                    <Path>/api/server/v1/configs/authenticators</Path>
+                    <Path>/api/server/v1/userstores</Path>
+                    <Path>/api/server/v1/claim-dialects</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/console/</BasePath>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewrite>
+
+    <OrgRoutingOnlySupportedAPIPaths>
+        <Path>/api/server/v1/organizations</Path>
+        <Path>/api/users/v1/me/organizations</Path>
+    </OrgRoutingOnlySupportedAPIPaths>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 
@@ -2044,6 +2110,11 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>,</FederatedIDPRoleClaimValueAttributeSeparator>
 
+    <!-- Following applications can use federated user role based authorization -->
+    <!--<FIdPRoleBasedAuthzApplications>-->
+       <!--<AppName>Console</AppName>-->
+    <!--</FIdPRoleBasedAuthzApplications>-->
+
     <!--This configuration is used for X509 Certificate based authentication. -->
     <!--<X509>-->
         <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
@@ -2105,7 +2176,13 @@
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
 
+    <!-- Configuration to allow only SP requested claims during federated flow. -->
+    <AllowSPRequestedFedClaimsOnly>true</AllowSPRequestedFedClaimsOnly>
+
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
+
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
 
 </Server>

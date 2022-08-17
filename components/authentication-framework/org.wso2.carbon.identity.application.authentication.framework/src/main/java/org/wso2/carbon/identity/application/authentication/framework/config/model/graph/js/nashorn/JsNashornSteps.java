@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,27 +16,29 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Optional;
 
 /**
  * Returns when context.steps[<step_number] is called
+ * This wrapper uses jdk.nashorn engine.
  */
-public class JsSteps extends AbstractJSContextMemberObject {
+public class JsNashornSteps extends AbstractJSContextMemberObject implements AbstractJsObject {
 
-    private static final Log LOG = LogFactory.getLog(JsSteps.class);
+    private static final Log LOG = LogFactory.getLog(JsNashornSteps.class);
 
-    public JsSteps() {
+    public JsNashornSteps() {
 
     }
 
-    public JsSteps(AuthenticationContext context) {
+    public JsNashornSteps(AuthenticationContext context) {
 
         initializeContext(context);
     }
@@ -55,9 +57,9 @@ public class JsSteps extends AbstractJSContextMemberObject {
     public Object getSlot(int step) {
 
         if (getContext() == null) {
-            return super.getSlot(step);
+            return AbstractJsObject.super.getSlot(step);
         } else {
-            return new JsStep(getContext(), step, getAuthenticatedIdPOfStep(step));
+            return new JsNashornStep(getContext(), step, getAuthenticatedIdPOfStep(step));
         }
     }
 

@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_ENDPOINT_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT;
@@ -201,6 +203,11 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL);
     }
 
+    public String getAccountRecoveryEndpointPath() {
+
+        return buildUrl(ACCOUNT_RECOVERY_ENDPOINT_PATH, this::readAccountRecoveryEndpointPath);
+    }
+
     public String getIdentifierFirstConfirmationURL() {
 
         return buildUrl(IDENTIFIER_FIRST_CONFIRMATION,
@@ -260,6 +267,26 @@ public class ConfigurationFacade {
 
     public int getMaxLoginAttemptCount() {
         return FileBasedConfigurationBuilder.getInstance().getMaxLoginAttemptCount();
+    }
+
+    private String readAccountRecoveryEndpointPath() {
+
+        return preprocessEndpointPath(IdentityUtil.getProperty("RecoveryEndpoint.Path"));
+    }
+
+    private String preprocessEndpointPath(String endpointPath) {
+
+        if (StringUtils.isNotBlank(endpointPath)) {
+            if (!endpointPath.startsWith("/")) {
+                endpointPath = "/" + endpointPath;
+            }
+            if (endpointPath.endsWith("/")) {
+                endpointPath = endpointPath.substring(0, endpointPath.length() - 1);
+            }
+            return endpointPath;
+        } else {
+            return null;
+        }
     }
 
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {

@@ -665,7 +665,7 @@
                                 !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable() &&
                                 CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/update")) {%>
 
-                        <a href="#" onclick="updateUserGroup('<%=Encode.forJavaScriptAttribute(roleName)%>')"
+                        <a href="#" onclick="updateUserGroup('<%=Encode.forUriComponent(roleName)%>')"
                            class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message
                                 key="rename"/></a>
                         <% } %>
@@ -696,7 +696,7 @@
                                 !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable() &&
                                 CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt/delete"))
                         {%>
-                        <a href="#" onclick="deleteUserGroup('<%=Encode.forJavaScriptAttribute(roleName)%>')"
+                        <a href="#" onclick="deleteUserGroup('<%=Encode.forUriComponent(roleName)%>')"
                            class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message
                                 key="delete"/></a>
                         <% }

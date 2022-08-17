@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,16 +19,16 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Javascript wrapper for Java level AuthenticationContext.
+ * Abstract Javascript wrapper for Java level AuthenticationContext.
  * This provides controlled access to AuthenticationContext object via provided javascript native syntax.
  * e.g
  * var requestedAcr = context.requestedAcr
@@ -41,51 +41,13 @@ import java.util.Optional;
  *
  * @see AuthenticationContext
  */
-public class JsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext> {
+public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext>
+        implements JsBaseAuthenticationContext {
 
     public JsAuthenticationContext(AuthenticationContext wrapped) {
 
         super(wrapped);
         initializeContext(wrapped);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return getWrapped().getRequestedAcr();
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
-                return getWrapped().getServiceProviderName();
-            case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
-                return getLastLoginFailedUserFromWrappedContext();
-            case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsServletRequest((TransientObjectWrapper) getWrapped()
-                        .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
-            case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsServletResponse((TransientObjectWrapper) getWrapped()
-                        .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
-            case FrameworkConstants.JSAttributes.JS_STEPS:
-                return new JsSteps(getWrapped());
-            case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
-                return new JsStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
-            case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
-                StepConfig stepConfig = getCurrentSubjectIdentifierStep();
-                if (stepConfig != null) {
-                    return new JsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
-                            stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
-                } else {
-                    return null;
-                }
-            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
-                return getWrapped().isRetrying();
-            case FrameworkConstants.JSAttributes.JS_ENDPOINT_PARAMS:
-                return new JsWritableParameters(getContext().getEndpointParams());
-            default:
-                return super.getMember(name);
-        }
     }
 
     @Override
@@ -114,18 +76,6 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
     }
 
     @Override
-    public void removeMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(null);
-                break;
-            default:
-                super.removeMember(name);
-        }
-    }
-
-    @Override
     public void setMember(String name, Object value) {
 
         switch (name) {
@@ -143,19 +93,19 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
     }
 
-    private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+//    protected JsAbstractAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+//
+//        Object lastLoginFailedUser
+//                = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+//        if (lastLoginFailedUser instanceof AuthenticatedUser) {
+//            return new JsAbstractAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
+//        } else {
+//            return null;
+//        }
+//    }
 
-        Object lastLoginFailedUser
-                = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
-        if (lastLoginFailedUser instanceof AuthenticatedUser) {
-            return new JsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
-        } else {
-            return null;
-        }
-    }
 
-
-    private String getAuthenticatedIdPOfCurrentStep() {
+    protected String getAuthenticatedIdPOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized
@@ -171,7 +121,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     }
 
-    private StepConfig getCurrentSubjectIdentifierStep() {
+    protected StepConfig getCurrentSubjectIdentifierStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized

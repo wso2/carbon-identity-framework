@@ -42,7 +42,6 @@
 				<AttributeID>organizationName</AttributeID>
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -94,7 +93,6 @@
 				<AttributeID>im</AttributeID>
 				<Description>IM</Description>
 				<DisplayOrder>9</DisplayOrder>
-				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/url</ClaimURI>
@@ -227,6 +225,13 @@
 				<DisplayName>Last Modified Time</DisplayName>
 				<AttributeID>lastModifiedDate</AttributeID>
 				<Description>Last Modified timestamp of the user</Description>
+				<ReadOnly/>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/metadata.version</ClaimURI>
+				<DisplayName>User Metadata - Version</DisplayName>
+				<AttributeID>meta.version</AttributeID>
+				<Description>User Account Metadata - Version</Description>
 				<ReadOnly/>
 			</Claim>
 			<Claim>
@@ -1873,7 +1878,7 @@
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/metadata.version</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</ClaimURI>

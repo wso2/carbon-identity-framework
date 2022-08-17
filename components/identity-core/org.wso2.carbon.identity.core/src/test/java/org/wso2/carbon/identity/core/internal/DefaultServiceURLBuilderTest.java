@@ -56,7 +56,7 @@ import static org.testng.Assert.assertEquals;
 @PrepareForTest({ServerConfiguration.class, CarbonUtils.class, IdentityCoreServiceComponent.class, NetworkUtils.class,
         IdentityTenantUtil.class, PrivilegedCarbonContext.class, IdentityUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*"})
+        ".*", "org.apache.xerces.*", "org.mockito.*"})
 public class DefaultServiceURLBuilderTest {
 
     @Mock

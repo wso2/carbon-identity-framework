@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.role.mgt.core.dao;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -49,12 +50,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -69,6 +70,7 @@ import static org.testng.Assert.assertTrue;
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
                  CarbonContext.class, RoleDAOImpl.class})
+@PowerMockIgnore("org.mockito.*")
 public class RoleDAOTest extends PowerMockTestCase {
 
     private static final int SAMPLE_TENANT_ID = 1;
@@ -76,8 +78,10 @@ public class RoleDAOTest extends PowerMockTestCase {
     private static final String DB_NAME = "ROLE_DB";
     private RoleDAO roleDAO;
     private List<String> userNamesList = new ArrayList<>();
+    private List<String> emptyList = new ArrayList<>();
     private List<String> groupNamesList = new ArrayList<>();
     private Map<String, String> groupNamesMap = new HashMap<>();
+    private Map<String, String> emptyMap = new HashMap<>();
     private Map<String, String> groupIdsMap = new HashMap<>();
     private List<String> userIDsList = new ArrayList<>();
     private List<String> groupIDsList = new ArrayList<>();
@@ -177,6 +181,40 @@ public class RoleDAOTest extends PowerMockTestCase {
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
             List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null, SAMPLE_TENANT_DOMAIN);
             assertEquals(getRoleNamesList(roles), expectedRoles);
+        }
+    }
+
+
+    @Test
+    public void testCountRoles() throws Exception {
+
+        try (Connection connection1 = DAOUtils.getConnection(DB_NAME);
+             Connection connection2 = DAOUtils.getConnection(DB_NAME);
+             Connection connection3 = DAOUtils.getConnection(DB_NAME);
+             Connection connection4 = DAOUtils.getConnection(DB_NAME);
+             Connection connection5 = DAOUtils.getConnection(DB_NAME);
+             Connection connection6 = DAOUtils.getConnection(DB_NAME);
+             Connection connection7 = DAOUtils.getConnection(DB_NAME);
+             Connection connection8 = DAOUtils.getConnection(DB_NAME)) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
+            addRole("role3");
+
+            mockRealmConfiguration();
+            mockStatic(UserCoreUtil.class);
+            when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
+            int rolesCount = roleDAO.getRolesCount(SAMPLE_TENANT_DOMAIN);
+            assertEquals(rolesCount, 3);
         }
     }
 
@@ -353,6 +391,7 @@ public class RoleDAOTest extends PowerMockTestCase {
             mockStatic(IdentityUtil.class);
             when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
             doReturn(userNamesList).when(roleDAO, "getUserNamesByIDs", eq(userIDsList), anyString());
+            doReturn(emptyList).when(roleDAO, "getUserNamesByIDs", eq(null), anyString());
             roleDAO.updateUserListOfRole(role.getId(), userIDsList, null, SAMPLE_TENANT_DOMAIN);
 
             mockRealmConfiguration();
@@ -392,6 +431,7 @@ public class RoleDAOTest extends PowerMockTestCase {
             mockStatic(IdentityUtil.class);
             when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
             doReturn(groupNamesMap).when(roleDAO, "getGroupNamesByIDs", eq(groupIDsList), anyString());
+            doReturn(emptyMap).when(roleDAO, "getGroupNamesByIDs", eq(null), anyString());
             roleDAO.updateGroupListOfRole(role.getId(), groupIDsList, null, SAMPLE_TENANT_DOMAIN);
 
             mockRealmConfiguration();
@@ -431,6 +471,7 @@ public class RoleDAOTest extends PowerMockTestCase {
             mockStatic(IdentityUtil.class);
             when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
             doReturn(userNamesList).when(roleDAO, "getUserNamesByIDs", eq(userIDsList), anyString());
+            doReturn(emptyList).when(roleDAO, "getUserNamesByIDs", eq(null), anyString());
             roleDAO.updateUserListOfRole(role.getId(), userIDsList, null, SAMPLE_TENANT_DOMAIN);
 
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
@@ -476,6 +517,7 @@ public class RoleDAOTest extends PowerMockTestCase {
             mockStatic(IdentityUtil.class);
             when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
             doReturn(groupNamesMap).when(roleDAO, "getGroupNamesByIDs", eq(groupIDsList), anyString());
+            doReturn(emptyMap).when(roleDAO, "getGroupNamesByIDs", eq(null), anyString());
             roleDAO.updateGroupListOfRole(role.getId(), groupIDsList, null, SAMPLE_TENANT_DOMAIN);
 
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);

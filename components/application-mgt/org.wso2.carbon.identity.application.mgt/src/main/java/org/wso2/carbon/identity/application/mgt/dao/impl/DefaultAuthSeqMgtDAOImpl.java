@@ -34,13 +34,6 @@ import java.io.ObjectOutputStream;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_DEFAULT_SEQ;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.DELETE_DEFAULT_SEQ;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_DEFAULT_SEQ;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_DEFAULT_SEQ_ID;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.GET_DEFAULT_SEQ_INFO;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_DEFAULT_SEQ;
-
 /**
  * This class access the SP_DEFAULT_AUTH_SEQ to manage tenant default authentication sequences.
  */
@@ -130,7 +123,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     private void doCreateDefaultAuthSeq(DefaultAuthenticationSequence sequence, String tenantDomain,
                                  JdbcTemplate jdbcTemplate) throws DataAccessException {
 
-        jdbcTemplate.executeInsert(ADD_DEFAULT_SEQ, (preparedStatement -> {
+        jdbcTemplate.executeInsert(ApplicationMgtDBQueries.ADD_DEFAULT_SEQ, (preparedStatement -> {
             preparedStatement.setString(1, sequence.getName());
             preparedStatement.setString(2, sequence.getDescription());
             try {
@@ -146,7 +139,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     private DefaultAuthenticationSequence doGetDefaultAuthSeq(String sequenceName, String tenantDomain,
                                                               JdbcTemplate jdbcTemplate) throws DataAccessException {
 
-        return jdbcTemplate.fetchSingleRecord(GET_DEFAULT_SEQ,
+        return jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.GET_DEFAULT_SEQ,
                 (resultSet, rowNumber) -> {
                     DefaultAuthenticationSequence sequence = new DefaultAuthenticationSequence();
                     sequence.setName(resultSet.getString(1));
@@ -175,7 +168,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
                                                                             JdbcTemplate jdbcTemplate)
             throws DataAccessException {
 
-        return jdbcTemplate.fetchSingleRecord(GET_DEFAULT_SEQ_INFO,
+        return jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.GET_DEFAULT_SEQ_INFO,
                 (resultSet, rowNumber) -> {
                     DefaultAuthenticationSequence sequence = new DefaultAuthenticationSequence();
                     sequence.setName(resultSet.getString(1));
@@ -193,7 +186,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
 
         int sequenceID = 0;
         String sequenceIDExists;
-        sequenceIDExists = jdbcTemplate.fetchSingleRecord(GET_DEFAULT_SEQ_ID,
+        sequenceIDExists = jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.GET_DEFAULT_SEQ_ID,
                 (resultSet, rowNumber) -> Integer.toString(resultSet.getInt(1)),
                 (PreparedStatement preparedStatement) -> {
                         preparedStatement.setString(1, sequenceName);
@@ -208,7 +201,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     private void doUpdateDefaultAuthSeq(String sequenceName, DefaultAuthenticationSequence sequence,
                                         String tenantDomain, JdbcTemplate jdbcTemplate) throws DataAccessException {
 
-        jdbcTemplate.executeUpdate(UPDATE_DEFAULT_SEQ,
+        jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.UPDATE_DEFAULT_SEQ,
                 preparedStatement -> {
                     preparedStatement.setString(1, sequence.getName());
                     preparedStatement.setString(2, sequence.getDescription());
@@ -225,7 +218,7 @@ public class DefaultAuthSeqMgtDAOImpl implements DefaultAuthSeqMgtDAO {
     private void doDeleteDefaultAuthSeq(String sequenceName, String tenantDomain, JdbcTemplate jdbcTemplate)
             throws DataAccessException {
 
-        jdbcTemplate.executeUpdate(DELETE_DEFAULT_SEQ,
+        jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.DELETE_DEFAULT_SEQ,
                 preparedStatement -> {
                     preparedStatement.setString(1, sequenceName);
                     preparedStatement.setInt(2, getTenantID(tenantDomain));

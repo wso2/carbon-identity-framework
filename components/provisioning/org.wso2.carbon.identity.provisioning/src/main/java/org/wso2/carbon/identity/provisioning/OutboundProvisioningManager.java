@@ -401,12 +401,30 @@ public class OutboundProvisioningManager {
                                                             + idPName);
                 }
 
-                String outboundClaimDialect = connector.getClaimDialectUri();
+                String[] outboundClaimDialects = connector.getClaimDialectUris();
 
-                if (outboundClaimDialect == null
-                    && (provisioningIdp.getClaimConfig() == null || provisioningIdp
-                        .getClaimConfig().isLocalClaimDialect())) {
-                    outboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+                if (outboundClaimDialects == null) {
+                    String outboundClaimDialect = connector.getClaimDialectUri();
+                    if (outboundClaimDialect == null) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("No outbound claim dialects available for the connector: " + connectorType);
+                        }
+                        if (provisioningIdp.getClaimConfig() == null || provisioningIdp
+                                .getClaimConfig().isLocalClaimDialect()) {
+                            outboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("Outbound claim dialect: %s available for the connector: %s",
+                                    outboundClaimDialect, connectorType));
+                        }
+                    }
+                    outboundClaimDialects = new String[] {outboundClaimDialect};
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Multiple outbound claim dialects: %s available for the connector: %s",
+                                Arrays.toString(Arrays.stream(outboundClaimDialects).toArray()), connectorType));
+                    }
                 }
 
                 ClaimMapping[] idpClaimMappings = null;
@@ -423,7 +441,7 @@ public class OutboundProvisioningManager {
 
                 // get mapped claims.
                 mapppedClaims =
-                        getMappedClaims(inboundClaimDialect, outboundClaimDialect, provisioningEntity, spClaimMappings,
+                        getMappedClaims(inboundClaimDialect, outboundClaimDialects, provisioningEntity, spClaimMappings,
                                 idpClaimMappings, spTenantDomainName);
 
                 if (provisioningIdp.getPermissionAndRoleConfig() != null) {
@@ -483,7 +501,7 @@ public class OutboundProvisioningManager {
                         }
 
                         mappedUserClaims =
-                                getMappedClaims(inboundClaimDialect, outboundClaimDialect, inboundProvisioningEntity,
+                                getMappedClaims(inboundClaimDialect, outboundClaimDialects, inboundProvisioningEntity,
                                         spClaimMappings, idpClaimMappings, spTenantDomainName);
 
                         outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
@@ -508,7 +526,7 @@ public class OutboundProvisioningManager {
                                         spTenantDomainName);
 
                         if (provisionedUserIdentifier != null && provisionedUserIdentifier.getIdentifier() != null) {
-                            mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialect,
+                            mappedUserClaims = getMappedClaims(inboundClaimDialect, outboundClaimDialects,
                                     inboundProvisioningEntity, spClaimMappings, idpClaimMappings, spTenantDomainName);
 
                             outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
@@ -726,7 +744,7 @@ public class OutboundProvisioningManager {
 
     /**
      * @param inboundClaimDialect
-     * @param outboundClaimDialect
+     * @param outboundClaimDialects
      * @param provisioningEntity
      * @param spClaimMappings
      * @param idpClaimMappings
@@ -734,55 +752,54 @@ public class OutboundProvisioningManager {
      * @throws IdentityApplicationManagementException
      */
     private Map<ClaimMapping, List<String>> getMappedClaims(String inboundClaimDialect,
-                                                            String outboundClaimDialect,
+                                                            String[] outboundClaimDialects,
                                                             ProvisioningEntity provisioningEntity,
                                                             ClaimMapping[] spClaimMappings,
                                                             ClaimMapping[] idpClaimMappings, String tenantDomainName)
             throws IdentityApplicationManagementException {
 
-        // if we have any in-bound attributes - need to convert those into out-bound
-        // attributes in a form understood by the external provisioning providers.
+        /* If we have any in-bound attributes - need to convert those into out-bound
+         attributes in a form understood by the external provisioning providers. */
         Map<String, String> inboundAttributes = provisioningEntity.getInboundAttributes();
+        Map<ClaimMapping, List<String>> mapppedClaims = new HashMap<>();
 
-        if (outboundClaimDialect != null) {
-            // out-bound claim dialect is not provisioning provider specific. Its
-            // specific to the connector.
+        for (String outboundClaimDialect: outboundClaimDialects) {
+            if (outboundClaimDialect != null) {
+                /* Out-bound claim dialects are not provisioning provider specific. They are
+                 specific to the connector. */
 
-            if (inboundClaimDialect == null) {
-                // in-bound claim dialect is service provider specific.
-                // we have read the claim mapping from service provider claim
-                // configuration.
-                return ProvisioningUtil.getMappedClaims(outboundClaimDialect,
-                                                        inboundAttributes, spClaimMappings, provisioningEntity.getAttributes(),
-                                                        tenantDomainName);
+                if (inboundClaimDialect == null) {
+                    /* In-bound claim dialect is service provider specific. We have read the claim mapping from
+                     service provider claim configuration. */
+                    mapppedClaims.putAll(ProvisioningUtil.getMappedClaims(outboundClaimDialect,
+                            inboundAttributes, spClaimMappings, provisioningEntity.getAttributes(),
+                            tenantDomainName));
+                } else {
+                    /* In-bound claim dialect is not service provider specific. Its been supplied by the corresponding
+                     in-bound provisioning servlet or listener. */
+                    mapppedClaims.putAll(ProvisioningUtil.getMappedClaims(outboundClaimDialect,
+                            inboundAttributes, inboundClaimDialect, provisioningEntity.getAttributes(),
+                            tenantDomainName));
+                }
             } else {
-                // in-bound claim dialect is not service provider specific.
-                // its been supplied by the corresponding in-bound provisioning servlet
-                // or listener.
-                return ProvisioningUtil.getMappedClaims(outboundClaimDialect,
-                                                        inboundAttributes, inboundClaimDialect, provisioningEntity.getAttributes(),
-                                                        tenantDomainName);
-            }
-        } else {
-            // out-bound claim dialect is provisioning provider specific.
-            // we have read the claim mapping from identity provider claim
-            // configuration
+                /* Out-bound claim dialects are provisioning provider specific. We have read the claim mapping from
+                 identity provider claim configuration. */
 
-            if (inboundClaimDialect == null) {
-                // in-bound claim dialect is service provider specific.
-                // we have read the claim mapping from service provider claim
-                // configuration.
-                return ProvisioningUtil.getMappedClaims(idpClaimMappings,
-                                                        inboundAttributes, spClaimMappings, provisioningEntity.getAttributes());
-            } else {
-                // in-bound claim dialect is not service provider specific.
-                // its been supplied by the corresponding in-bound provisioning servlet
-                // or listener.
-                return ProvisioningUtil.getMappedClaims(idpClaimMappings,
-                                                        inboundAttributes, inboundClaimDialect, provisioningEntity.getAttributes(),
-                                                        tenantDomainName);
+                if (inboundClaimDialect == null) {
+                    /* In-bound claim dialect is service provider specific. We have read the claim mapping from
+                     service provider claim configuration. */
+                    return ProvisioningUtil.getMappedClaims(idpClaimMappings,
+                            inboundAttributes, spClaimMappings, provisioningEntity.getAttributes());
+                } else {
+                    /* In-bound claim dialect is not service provider specific. Its been supplied by the corresponding
+                     in-bound provisioning servlet or listener. */
+                    return ProvisioningUtil.getMappedClaims(idpClaimMappings,
+                            inboundAttributes, inboundClaimDialect, provisioningEntity.getAttributes(),
+                            tenantDomainName);
+                }
             }
         }
+        return mapppedClaims;
     }
 
     /**

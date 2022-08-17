@@ -311,7 +311,8 @@
                             } else {
                         %>
                             <input type="<%=inputType%>" name="<%=Encode.forHtmlAttribute(dto.getId())%>"
-                                   id="<%=Encode.forHtmlAttribute(dto.getId())%>"/>
+                                   id="<%=Encode.forHtmlAttribute(dto.getId())%>"
+                                   <% if("subscriberPassword".equals(dto.getId())){ %> autocomplete="off" <% } %>/>
                         <%
                             }
                         %>

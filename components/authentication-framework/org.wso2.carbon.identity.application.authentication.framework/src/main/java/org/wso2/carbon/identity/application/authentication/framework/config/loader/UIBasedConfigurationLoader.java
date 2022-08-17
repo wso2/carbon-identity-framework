@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,13 +26,14 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -87,9 +88,9 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             Map<Integer, StepConfig> stepConfigMapCopy = new HashMap<>();
             originalStepConfigMap.forEach((k, v) -> stepConfigMapCopy.put(k, new StepConfig(v)));
             sequenceConfig.getStepMap().clear();
-            JsGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
+            JsBaseGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
                     .getJsGraphBuilderFactory();
-            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMapCopy);
+            JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMapCopy);
             context.setServiceProviderName(serviceProvider.getApplicationName());
 
             AuthenticationGraph graph = jsGraphBuilder
@@ -105,14 +106,19 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
                                                                 localAndOutboundAuthenticationConfig) {
 
-        if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
-                ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
-                        localAndOutboundAuthenticationConfig.getAuthenticationType())) {
-            AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
-                    .getAuthenticationScriptConfig();
-            return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+        if (FrameworkUtils.isAdaptiveAuthenticationAvailable()) {
+            if (ApplicationConstants.AUTH_TYPE_FLOW.equals(
+                    localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
+                    ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
+                            localAndOutboundAuthenticationConfig.getAuthenticationType())) {
+                AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
+                        .getAuthenticationScriptConfig();
+                return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
+            }
+            return false;
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
