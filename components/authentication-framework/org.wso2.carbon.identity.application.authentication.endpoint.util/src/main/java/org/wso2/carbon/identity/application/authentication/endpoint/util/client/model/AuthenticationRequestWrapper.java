@@ -29,11 +29,11 @@ import javax.servlet.http.HttpServletRequestWrapper;
  */
 public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
 
-    private Map<String, Object> cachedParams;
+    private Map<String, Object> authParams;
 
-    public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> cachedParams) {
+    public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> authParams) {
         super(request);
-        this.cachedParams = cachedParams;
+        this.authParams = authParams;
     }
 
     /**
@@ -44,7 +44,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      */
     public String getParameter(String name) {
         try {
-            return cachedParams.get(name) == null ? super.getParameter(name) : (String) cachedParams.get(name);
+            return authParams.get(name) == null ? super.getParameter(name) : (String) authParams.get(name);
         } catch (NullPointerException e) {
             return super.getParameter(name);
         }
@@ -56,7 +56,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public Map<String, Object> getParameterMap() {
-        return cachedParams;
+        return authParams;
     }
 
     /**
@@ -65,7 +65,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public Enumeration<String> getParameterNames() {
-        return Collections.enumeration(cachedParams.keySet());
+        return Collections.enumeration(authParams.keySet());
     }
 
 
@@ -76,6 +76,6 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public String[] getParameterValues(String name) {
-        return (String[]) cachedParams.get(name);
+        return (String[]) authParams.get(name);
     }
 }

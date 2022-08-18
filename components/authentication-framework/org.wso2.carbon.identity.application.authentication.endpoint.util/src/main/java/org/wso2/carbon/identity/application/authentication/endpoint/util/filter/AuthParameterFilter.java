@@ -19,16 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.endpoint.util.filter;
 
 import com.google.gson.Gson;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient;
-import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationRequestWrapper;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.IOException;
 import java.util.Map;
@@ -48,6 +44,8 @@ public class AuthParameterFilter implements Filter {
 
     private static final Log log = LogFactory.getLog(AuthParameterFilter.class);
     private ServletContext context = null;
+
+    private static final String DATA_API_PATH = "/api/identity/auth/v1.1/";
     private static final String SESSION_DATA_KEY = "sessionDataKey";
     private static final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
     private static final String ERROR_KEY = "errorKey";
@@ -94,7 +92,7 @@ public class AuthParameterFilter implements Filter {
      * Get HttpServletRequest with parameters retrieved from the API.
      *
      * @param servletRequest - Received HttpServletRequest.
-     * @param key - Name of the key.
+     * @param key            - Name of the key.
      * @return - HttpServletRequest with parameters.
      */
     private HttpServletRequest getServletRequestWithParams(ServletRequest servletRequest, String key) {
@@ -114,55 +112,30 @@ public class AuthParameterFilter implements Filter {
      */
     private String buildAPIPath(String key, String value) {
 
-        String authAPIURL = context.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
+        try {
+            String authAPIURL = ServiceURLBuilder.create().addPath(DATA_API_PATH).build().getAbsoluteInternalURL();
 
-        if (!StringUtils.isBlank(authAPIURL)) {
-            if (resolveTenantDomain().equals("carbon.super")) {
-                authAPIURL = authAPIURL.replace("t/${tenant}/", "");
-            } else {
-                authAPIURL = authAPIURL.replace("${tenant}", resolveTenantDomain());
+            if (!authAPIURL.endsWith("/")) {
+                authAPIURL += "/";
             }
-        } else {
-            try {
-                String contextPath = "/api/identity/auth/v1.1/data";
-                authAPIURL = ServiceURLBuilder.create().addPath(contextPath).build().getAbsolutePublicURL();
-            } catch (URLBuilderException e) {
-                throw new RuntimeException(e);
+
+            switch (key) {
+                case SESSION_DATA_KEY:
+                    // Add 'sessionDataKey' to URL.
+                    authAPIURL += "data/AuthRequestKey/" + value;
+                    break;
+                case SESSION_DATA_KEY_CONSENT:
+                    // Add 'sessionDataKeyConsent' to URL.
+                    authAPIURL += "data/OauthConsentKey/" + value;
+                    break;
+                case ERROR_KEY:
+                    authAPIURL += "data/AuthenticationError/" + value;
+                    break;
             }
+            return authAPIURL;
+        } catch (URLBuilderException e) {
+            throw new RuntimeException(e);
         }
-
-        if (!authAPIURL.endsWith("/")) {
-            authAPIURL += "/";
-        }
-
-        switch (key) {
-            case SESSION_DATA_KEY:
-                // Add 'sessionDataKey' to URL.
-                authAPIURL += "AuthRequestKey/" + value;
-                break;
-            case SESSION_DATA_KEY_CONSENT:
-                // Add 'sessionDataKeyConsent' to URL.
-                authAPIURL += "OauthConsentKey/" + value;
-                break;
-            case ERROR_KEY:
-                authAPIURL += "AuthenticationError/" + value;
-                break;
-        }
-        return authAPIURL;
-    }
-
-    /**
-     * Get the tenant domain.
-     *
-     * @return - Tenant Domain.
-     */
-    private String resolveTenantDomain() {
-
-        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        }
-        return tenantDomain;
     }
 
     @Override
