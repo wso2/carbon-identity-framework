@@ -69,17 +69,6 @@ public class WFConstant {
         public static final String  WORKFLOW_IMPL = "WorkflowImpl" ;
     }
 
-    public static class DBProductNames{
-        public static final String MYSQL = "MySQL" ;
-        public static final String MARIADB = "MariaDB" ;
-        public static final String H2 = "H2" ;
-        public static final String ORACLE = "Oracle" ;
-        public static final String MICROSOFT = "Microsoft" ;
-        public static final String POSTGRESQL = "PostgreSQL" ;
-        public static final String DB2 = "DB2" ;
-        public static final String INFORMIX = "INFORMIX" ;
-    }
-
     public static class Exceptions{
         // Association errors
         public static final String ERROR_WHILE_LOADING_ASSOCIATIONS =  "Error while loading associations from DB: " +

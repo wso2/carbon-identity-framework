@@ -205,15 +205,14 @@ public class WorkflowDAO {
      * @param limit
      * @throws InternalWorkflowException
      */
-    public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
+    public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException {
 
         String sqlQuery;
         List<Workflow> workflowList = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
-            String databaseProductName = connection.getMetaData().getDatabaseProductName();
             sqlQuery = getSqlQuery();
-            try (PreparedStatement prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery, tenantId, filterResolvedForSQL, offset, limit);) {
+            try (PreparedStatement prepStmt = generatePrepStmt(connection, sqlQuery, tenantId, filterResolvedForSQL, offset, limit);) {
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     while (resultSet.next()) {
                         String id = resultSet.getString(SQLConstants.ID_COLUMN);
@@ -234,6 +233,8 @@ public class WorkflowDAO {
             }
         } catch (SQLException e) {
             handleException(WFConstant.Exceptions.SQL_ERROR_LISTING_WORKFLOWS, e);
+        } catch (DataAccessException e) {
+            handleException(e.getMessage(), e);
         }
         return workflowList;
     }
@@ -431,28 +432,25 @@ public class WorkflowDAO {
     /**
      *
      * @throws InternalWorkflowException
+     * @throws DataAccessException
      */
-    private String getSqlQuery() throws InternalWorkflowException {
+    private String getSqlQuery() throws InternalWorkflowException, DataAccessException {
 
-        String sqlQuery = null;
-        try {
-            if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
-            } else if (JdbcUtils.isOracleDB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
-            } else if (JdbcUtils.isMSSqlDB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
-            } else if (JdbcUtils.isPostgreSQLDB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
-            } else if (JdbcUtils.isDB2DB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
-            } else if (JdbcUtils.isInformixDB()) {
-                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
-            } else {
-                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
-            }
-        } catch (DataAccessException e) {
-            handleException(e.getMessage(), e);
+        String sqlQuery ;
+        if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
+        } else if (JdbcUtils.isOracleDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
+        } else if (JdbcUtils.isMSSqlDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
+        } else if (JdbcUtils.isPostgreSQLDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
+        } else if (JdbcUtils.isDB2DB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
+        } else if (JdbcUtils.isInformixDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
+        } else {
+            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
         }
         return sqlQuery;
     }
@@ -460,7 +458,6 @@ public class WorkflowDAO {
     /**
      * Create PreparedStatement
      *
-     * @param DBProductName db product name
      * @param connection db connection
      * @param sqlQuery SQL query
      * @param tenantId Tenant ID
@@ -469,11 +466,12 @@ public class WorkflowDAO {
      * @param limit limit
      * @return PreparedStatement
      * @throws SQLException
+     * @throws DataAccessException
      */
-    private PreparedStatement generatePrepStmt(String DBProductName, Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException {
+    private PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException, DataAccessException {
 
-        PreparedStatement prepStmt = null;
-        if (DBProductName.equals(WFConstant.DBProductNames.POSTGRESQL)){
+        PreparedStatement prepStmt;
+        if (JdbcUtils.isPostgreSQLDB()){
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, filterResolvedForSQL);

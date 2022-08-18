@@ -129,7 +129,7 @@ public class AssociationDAO {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             sqlQuery = getSqlQuery();
-            try (PreparedStatement prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery, tenantId,
+            try (PreparedStatement prepStmt = generatePrepStmt(connection, sqlQuery, tenantId,
                     filterResolvedForSQL, offset, limit)) {
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     while (resultSet.next()) {
@@ -156,6 +156,8 @@ public class AssociationDAO {
             }
         } catch (SQLException e) {
             handleException(WFConstant.Exceptions.SQL_ERROR_LISTING_ASSOCIATIONS, e);
+        } catch (DataAccessException e) {
+            handleException(e.getMessage(), e);
         }
         return associations;
     }
@@ -348,28 +350,25 @@ public class AssociationDAO {
     /**
      *
      * @throws InternalWorkflowException
+     * @throws DataAccessException
      */
-    private String getSqlQuery() throws InternalWorkflowException {
+    private String getSqlQuery() throws InternalWorkflowException, DataAccessException {
 
-        String sqlQuery = null;
-        try {
-            if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
-            } else if (JdbcUtils.isOracleDB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
-            } else if (JdbcUtils.isMSSqlDB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
-            } else if (JdbcUtils.isPostgreSQLDB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
-            } else if (JdbcUtils.isDB2DB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
-            } else if (JdbcUtils.isInformixDB()) {
-                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
-            } else {
-                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);
-            }
-        } catch (DataAccessException e) {
-            handleException(e.getMessage(), e);
+        String sqlQuery ;
+        if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
+        } else if (JdbcUtils.isOracleDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
+        } else if (JdbcUtils.isMSSqlDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
+        } else if (JdbcUtils.isPostgreSQLDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
+        } else if (JdbcUtils.isDB2DB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
+        } else if (JdbcUtils.isInformixDB()) {
+            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
+        } else {
+            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
         }
         return sqlQuery;
     }
@@ -377,7 +376,6 @@ public class AssociationDAO {
     /**
      * Create PreparedStatement
      *
-     * @param DBProductName db product name
      * @param connection db connection
      * @param sqlQuery SQL query
      * @param tenantId Tenant ID
@@ -386,11 +384,12 @@ public class AssociationDAO {
      * @param limit limit
      * @return PreparedStatement
      * @throws SQLException
+     * @throws DataAccessException
      */
-    private PreparedStatement generatePrepStmt(String DBProductName, Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException {
+    private PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException, DataAccessException {
 
         PreparedStatement prepStmt = null;
-        if (DBProductName.equals(WFConstant.DBProductNames.POSTGRESQL)){
+        if (JdbcUtils.isPostgreSQLDB()){
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, filterResolvedForSQL);
