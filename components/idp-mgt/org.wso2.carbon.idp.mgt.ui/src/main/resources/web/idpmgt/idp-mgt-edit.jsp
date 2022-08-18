@@ -1342,7 +1342,7 @@
 
 
             $user_id_claim_dropdown.append(user_id_option);
-            $role_claim_dropdown.append('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>');
+            $role_claim_dropdown.append('<option value="http://wso2.org/claims/roles">http://wso2.org/claims/roles</option>');
             $google_prov_email_claim_dropdown.append(google_prov_email_option);
             $google_prov_familyname_claim_dropdown.append(google_prov_family_email_option);
             $google_prov_givenname_claim_dropdown.append(google_prov_givenname_option);
@@ -1366,7 +1366,7 @@
             <%}%>
 
             $user_id_claim_dropdown.replace($option, "");
-            $role_claim_dropdown.replace('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>', "");
+            $role_claim_dropdown.replace('<option value="http://wso2.org/claims/roles">http://wso2.org/claims/roles</option>', "");
             $google_prov_email_claim_dropdown.replace($option, "");
             $google_prov_familyname_claim_dropdown.replace($option, "");
             $google_prov_givenname_claim_dropdown.replace($option, "");

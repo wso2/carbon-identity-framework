@@ -48,6 +48,8 @@ public class UserSession {
     private String lastAccessTime;
     private Long creationTime;
     private List<Application> applications;
+    private String idpName;
+    private String idpId;
 
     public String getUserAgent() {
 
@@ -127,5 +129,25 @@ public class UserSession {
     public void setCreationTime(Long creationTime) {
 
         this.creationTime = creationTime;
+    }
+
+    public String getIdpName() {
+
+        return idpName;
+    }
+
+    public void setIdpName(String idpName) {
+
+        this.idpName = idpName;
+    }
+
+    public String getIdpId() {
+
+        return idpId;
+    }
+
+    public void setIdpId(String idpId) {
+
+        this.idpId = idpId;
     }
 }

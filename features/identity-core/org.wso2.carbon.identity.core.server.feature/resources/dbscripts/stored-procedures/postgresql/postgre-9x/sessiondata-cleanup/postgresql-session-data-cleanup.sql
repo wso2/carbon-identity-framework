@@ -75,10 +75,10 @@ THEN
     purgeBseColmn := 'session_id';
 	purgeBseColmnType := 'varchar';
 
-  -- Session data older than 20160 minutes(14 days) will be removed.
-    sessionCleanupTime := (unix_timestamp*1000000000) - (20160*60000000000);
+  -- Expired Session data older than 120 minutes(2 hours) will be removed.
+    sessionCleanupTime := (unix_timestamp*1000000000) - (120*60000000000);
 
-    purgingCondition := 'select session_id from idn_auth_session_store where time_created < '||sessionCleanupTime||'';
+    purgingCondition := 'select session_id from idn_auth_session_store where expiry_time < '||sessionCleanupTime||'';
 
     IF (operationid = 1)
     THEN

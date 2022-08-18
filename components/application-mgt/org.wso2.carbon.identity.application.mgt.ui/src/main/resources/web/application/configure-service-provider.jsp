@@ -515,6 +515,8 @@
         document.getElementById('templateDesc').value = templateDesc;
 
         validateSPConfigurations();
+        encodeSPCertificate();
+
         $.ajax({
             type: "POST",
             url: 'add-service-provider-as-template.jsp',
@@ -534,6 +536,7 @@
             },
             async: false
         });
+        decodeSPCertificate();
     }
 
     function createAppOnclick() {
@@ -573,6 +576,11 @@
         document.getElementById('sp-certificate').value = btoa(spCertificate);
     }
 
+    function decodeSPCertificate() {
+        var spCertificate = document.getElementById('sp-certificate').value;
+        document.getElementById('sp-certificate').value = atob(spCertificate);
+    }
+
     function updateBeanAndRedirect(redirectURL) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
@@ -582,6 +590,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        encodeSPCertificate();
 
         $.ajax({
             type: "POST",
@@ -591,6 +600,7 @@
                 location.href = redirectURL;
             }
         });
+        decodeSPCertificate();
     }
 
     function getConfigurationType(postURL) {
@@ -633,6 +643,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        encodeSPCertificate();
 
         $.ajax({
             type: "POST",
@@ -655,6 +666,7 @@
                 });
             }
         });
+        decodeSPCertificate();
     }
 
     function updateBeanAndPostToWithConfirmation(postURL, data) {
@@ -672,6 +684,9 @@
     }
 
     function updateBeanAndPostTo(postURL, data) {
+
+        encodeSPCertificate();
+
         $.ajax({
             type: "POST",
             url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
@@ -689,6 +704,7 @@
                 });
             }
         });
+        decodeSPCertificate();
     }
 
     function onSamlSsoClick() {
@@ -1122,12 +1138,14 @@
 
             var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
             document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+            encodeSPCertificate();
 
             $.ajax({
                 type: "POST",
                 url: 'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>',
                 data: $("#configure-sp-form").serialize()
             });
+            decodeSPCertificate();
         }
 
         jQuery('#publicCertDeleteLink').click(function () {
@@ -2344,46 +2362,12 @@
                                     </table>
                                 </div>
 
-
-                                <h2 id="openid.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#">OpenID Configuration</a>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                </h2>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                     id="openid.config.div">
-                                    <table class="carbonFormTable">
-
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.openid.realm'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getOpenIDRealm() != null) {
-                                                %>
-                                                <input style="width:50%" id="openidRealm" name="openidRealm" type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getOpenIDRealm())%>"
-                                                       autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="openidRealm" name="openidRealm" type="text"
-                                                       value="" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.openid'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-
-                                    </table>
-                                </div>
-
-
                                 <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">WS-Federation (Passive) Configuration</a>
+                                    <% if (appBean.getPassiveSTSRealm() != null) { %>
                                     <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
+                                    <%} %>
                                 </h2>
                                 <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
                                      id="passive.config.div">
@@ -2400,10 +2384,10 @@
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts'/>
@@ -2422,10 +2406,10 @@
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
                                                        type="text"
                                                        value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autofocus/>
+                                                       autocomplete="off" autofocus/>
                                                 <% } else { %>
                                                 <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autofocus/>
+                                                       type="text" value="" autocomplete="off" autofocus/>
                                                 <% } %>
                                                 <div class="sectionHelp">
                                                     <fmt:message key='help.passive.sts.wreply'/>

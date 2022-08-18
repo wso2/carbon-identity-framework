@@ -38,6 +38,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
@@ -87,6 +88,8 @@ public abstract class FrameworkConstants {
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
     public static final String LOCAL = "LOCAL";
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
+    public static final String SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF = "showAuthFailureReasonOnLoginPage";
+    public static final String REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF = "redirectToRetryPageOnAccountLock";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
@@ -131,6 +134,7 @@ public abstract class FrameworkConstants {
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
+    public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
 
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
@@ -155,6 +159,7 @@ public abstract class FrameworkConstants {
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
+    public static final String CURRENT_TOKEN_IDENTIFIER = "currentTokenIdentifier";
 
     // Idp to local role mapping thread local identifier.
     public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
@@ -182,6 +187,10 @@ public abstract class FrameworkConstants {
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
     public static final String ORACLE = "Oracle";
+
+    public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
+    public static final String OPENJDK_NASHORN = "openjdkNashorn";
+    public static final String NASHORN = "nashorn";
 
     private FrameworkConstants() {
 
