@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.workflow.mgt.dto.Association;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
@@ -126,7 +128,7 @@ public class AssociationDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            sqlQuery = getSqlQuery(databaseProductName);
+            sqlQuery = getSqlQuery();
             try (PreparedStatement prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery, tenantId,
                     filterResolvedForSQL, offset, limit)) {
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
@@ -345,27 +347,29 @@ public class AssociationDAO {
 
     /**
      *
-     * @param databaseProductName Database Product Name
      * @throws InternalWorkflowException
      */
-    private static String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
-        String sqlQuery;
-        if (databaseProductName.contains("MySQL")
-                || databaseProductName.contains("MariaDB")
-                || databaseProductName.contains("H2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
-        } else if (databaseProductName.contains("Oracle")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
-        } else if (databaseProductName.contains("Microsoft")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
-        } else if (databaseProductName.contains("PostgreSQL")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
-        } else if (databaseProductName.contains("DB2")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
-        } else if (databaseProductName.contains("INFORMIX")) {
-            sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
-        } else {
-            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);
+    private String getSqlQuery() throws InternalWorkflowException {
+
+        String sqlQuery = null;
+        try {
+            if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
+            } else if (JdbcUtils.isOracleDB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
+            } else if (JdbcUtils.isMSSqlDB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
+            } else if (JdbcUtils.isPostgreSQLDB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
+            } else if (JdbcUtils.isDB2DB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
+            } else if (JdbcUtils.isInformixDB()) {
+                sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
+            } else {
+                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);
+            }
+        } catch (DataAccessException e) {
+            handleException(e.getMessage(), e);
         }
         return sqlQuery;
     }

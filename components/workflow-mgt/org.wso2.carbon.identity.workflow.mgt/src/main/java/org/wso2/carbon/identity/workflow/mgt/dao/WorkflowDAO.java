@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
@@ -210,7 +212,7 @@ public class WorkflowDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            sqlQuery = getSqlQuery(databaseProductName);
+            sqlQuery = getSqlQuery();
             try (PreparedStatement prepStmt = generatePrepStmt(databaseProductName, connection, sqlQuery, tenantId, filterResolvedForSQL, offset, limit);) {
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     while (resultSet.next()) {
@@ -428,28 +430,29 @@ public class WorkflowDAO {
 
     /**
      *
-     * @param databaseProductName Database Product Name
      * @throws InternalWorkflowException
      */
-    private String getSqlQuery(String databaseProductName) throws InternalWorkflowException {
+    private String getSqlQuery() throws InternalWorkflowException {
 
-        String sqlQuery;
-        if (databaseProductName.contains(WFConstant.DBProductNames.MYSQL)
-                || databaseProductName.contains(WFConstant.DBProductNames.MARIADB)
-                || databaseProductName.contains(WFConstant.DBProductNames.H2)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
-        } else if (databaseProductName.contains(WFConstant.DBProductNames.ORACLE)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
-        } else if (databaseProductName.contains(WFConstant.DBProductNames.MICROSOFT)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
-        } else if (databaseProductName.contains(WFConstant.DBProductNames.POSTGRESQL)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
-        } else if (databaseProductName.contains(WFConstant.DBProductNames.DB2)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
-        } else if (databaseProductName.contains(WFConstant.DBProductNames.INFORMIX)) {
-            sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
-        } else {
-            throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
+        String sqlQuery = null;
+        try {
+            if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MYSQL;
+            } else if (JdbcUtils.isOracleDB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_ORACLE;
+            } else if (JdbcUtils.isMSSqlDB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_MSSQL;
+            } else if (JdbcUtils.isPostgreSQLDB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_POSTGRESQL;
+            } else if (JdbcUtils.isDB2DB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_DB2SQL;
+            } else if (JdbcUtils.isInformixDB()) {
+                sqlQuery = SQLConstants.GET_WORKFLOWS_BY_TENANT_AND_WF_NAME_INFORMIX;
+            } else {
+                throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_WORKFLOWS);
+            }
+        } catch (DataAccessException e) {
+            handleException(e.getMessage(), e);
         }
         return sqlQuery;
     }
