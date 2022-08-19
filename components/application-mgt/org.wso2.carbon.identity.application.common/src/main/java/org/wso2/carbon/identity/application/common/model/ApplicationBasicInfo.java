@@ -36,7 +36,6 @@ public class ApplicationBasicInfo implements Serializable {
 
     private User appOwner;
     private String clientId;
-    private String issuer;
     private String tenantDomain;
 
     /**
@@ -197,26 +196,6 @@ public class ApplicationBasicInfo implements Serializable {
     public  void setClientId(String clientId) {
 
         this.clientId = clientId;
-    }
-
-    /**
-     * Get SAML Issuer.
-     *
-     * @return SAML Issuer.
-     */
-    public String getIssuer() {
-
-        return issuer;
-    }
-
-    /**
-     * Set SAML Issuer.
-     *
-     * @param issuer    SAML Issuer.
-     */
-    public  void setIssuer(String issuer) {
-
-        this.issuer = issuer;
     }
 
     /**

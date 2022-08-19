@@ -633,7 +633,6 @@
                     <xs:element minOccurs="0" name="clientId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>

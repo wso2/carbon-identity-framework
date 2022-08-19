@@ -2032,6 +2032,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
+
             if (CollectionUtils.isNotEmpty(requiredAttributes)) {
                 List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
                 for (String requiredAttribute : requiredAttributes) {
@@ -2043,6 +2045,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
+                    }
+                    if ("clientId".equals(requiredAttribute)) {
+                        serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
+                                applicationId, connection, tenantID));
                     }
                 }
             }
@@ -5202,16 +5208,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-
-        String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
-        String inboundAuthType = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_TYPE);
-        if (StringUtils.isNotBlank(inboundAuthKey)) {
-            if (inboundAuthType.equals("oauth2")) {
-                basicInfo.setClientId(inboundAuthKey);
-            } else if (inboundAuthType.equals("samlsso")) {
-                basicInfo.setIssuer(inboundAuthKey);
-            }
-        }
+        basicInfo.setClientId(appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);

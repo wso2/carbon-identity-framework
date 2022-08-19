@@ -48,6 +48,7 @@ public class ServiceProvider implements Serializable {
 
     private static final String ACCESS_URL = "AccessUrl";
     private static final String IMAGE_URL = "ImageUrl";
+    private static final String CLIENT_ID = "ClientId";
     private static final String TEMPLATE_ID = "TemplateId";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
@@ -116,6 +117,10 @@ public class ServiceProvider implements Serializable {
     private boolean isDiscoverable;
 
     @IgnoreNullElement
+    @XmlElement(name = CLIENT_ID)
+    private String clientId;
+
+    @IgnoreNullElement
     @XmlElement(name = TEMPLATE_ID)
     private String templateId;
 
@@ -164,6 +169,8 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setImageUrl(element.getText());
             } else if (ACCESS_URL.equals(elementName)) {
                 serviceProvider.setAccessUrl(element.getText());
+            } else if (CLIENT_ID.equals(elementName)) {
+                serviceProvider.setClientId(element.getText());
             } else if (TEMPLATE_ID.equals(elementName)) {
                 serviceProvider.setTemplateId(element.getText());
             } else if ("Certificate".equals(elementName)) {
@@ -493,6 +500,16 @@ public class ServiceProvider implements Serializable {
     public void setDiscoverable(boolean discoverable) {
 
         isDiscoverable = discoverable;
+    }
+
+    public String getClientId() {
+
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+
+        this.clientId = clientId;
     }
 
     public String getTemplateId() {
