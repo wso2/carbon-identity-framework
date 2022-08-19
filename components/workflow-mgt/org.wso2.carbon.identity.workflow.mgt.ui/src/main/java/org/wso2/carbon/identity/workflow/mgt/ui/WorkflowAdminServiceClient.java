@@ -429,5 +429,4 @@ public class WorkflowAdminServiceClient {
 
         return stub.getWorkflowsOfRequest(requestId);
     }
-
 }
