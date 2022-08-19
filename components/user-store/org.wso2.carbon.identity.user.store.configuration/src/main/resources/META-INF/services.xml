@@ -69,6 +69,9 @@
         <operation name="testRDBMSConnection">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
+        <operation name="testLDAPConnection">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
+        </operation>
     </service>
 
     <parameter name="adminService" locked="true">true</parameter>

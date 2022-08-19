@@ -37,6 +37,7 @@ import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
+import org.wso2.carbon.user.core.ldap.LDAPConnectionContext;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -49,6 +50,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -483,6 +486,39 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     }
 
     /**
+     * Check the connection health for LDAP userstores
+     * @param connectionURL Connection URL.
+     * @param connectionName Connection Name.
+     * @param connectionPassword Connection Password.
+     * @return
+     * @throws IdentityUserStoreMgtException
+     */
+    @Override
+    public boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
+            throws IdentityUserStoreMgtException {
+
+        LDAPConnectionContext connectionSource = new LDAPConnectionContext(connectionURL, connectionName,
+                connectionPassword);
+        DirContext dirContext = null;
+        try {
+            dirContext = connectionSource.getContext();
+            return true;
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            String errorMessage;
+            if (e.getCause() != null) {
+                errorMessage = e.getCause().getMessage();
+            } else {
+                errorMessage = e.getMessage();
+            }
+            throw new IdentityUserStoreMgtException(errorMessage);
+        } finally {
+            if (dirContext != null) {
+                closeContext(dirContext);
+            }
+        }
+    }
+
+    /**
      * Validate the userstore connection URL. Currently the init param is checked.
      *
      * @param userStoreDTO contains the userstore details.
@@ -503,6 +539,19 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Close LDAP connection context.
+     * @param context Directory context.
+     * @throws IdentityUserStoreMgtException
+     */
+    private void closeContext(DirContext context) throws IdentityUserStoreMgtException {
+        try {
+            context.close();
+        } catch (NamingException e) {
+            throw new IdentityUserStoreMgtException(e.getMessage());
         }
     }
 }

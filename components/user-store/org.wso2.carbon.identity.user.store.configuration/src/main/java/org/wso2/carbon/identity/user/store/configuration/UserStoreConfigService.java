@@ -21,6 +21,8 @@ import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStore
 
 import java.util.Set;
 
+import javax.naming.NamingException;
+
 /**
  * This interface used to expose user store management functionality as an OSGi Service.
  */
@@ -131,4 +133,16 @@ public interface UserStoreConfigService {
         // Implement the method.
         return null;
     }
+
+    /**
+     * Check the connection health for LDAP userstores
+     * @param connectionURL Connection URL.
+     * @param connectionName Connection Name.
+     * @param connectionPassword Connection Password.
+     * @return true of false
+     * @throws IdentityUserStoreMgtException
+     * @throws NamingException
+     */
+    boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
+            throws IdentityUserStoreMgtException, NamingException;
 }

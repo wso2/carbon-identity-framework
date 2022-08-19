@@ -964,6 +964,49 @@
 		
 	</script>
            <%} %>
+    <%
+        if (selectedClassApplied.matches(".*ldap.*"))
+    { %>
+    <input type="button" onclick="testLDAPConnection();" value="<fmt:message key="test.connection"/>"
+           class="button"/>
+
+    <script type="text/javascript">
+        function testLDAPConnection() {
+            var connectionURL = document.getElementById("propertyValue_1").value;
+            var connectionName = document.getElementById("propertyValue_2").value;
+            var connectionPassword = document.getElementById("propertyValue_3").value;
+
+            var url = 'validate-ldapconnection-ajaxprocessor.jsp?';
+            var data = '&connectionURL=' + encodeURIComponent(connectionURL) +
+                    '&connectionName=' + encodeURIComponent(connectionName) +
+                    '&connectionPassword=' + encodeURIComponent(connectionPassword);
+
+            <%if(messageID != null && !"".equals(messageID)) {%>
+            url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
+            <%}%>
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                dataType: "text",
+                context: document.body
+            }).done(function (msg) {
+                var successMsg = new RegExp("true");
+                if (msg.search(successMsg) == -1) //if match failed
+                {
+                    CARBON.showErrorDialog(msg);
+                } else {
+                    CARBON.showInfoDialog("Connection is healthy");
+                }
+            }).fail(function () {
+                CARBON.showErrorDialog("Error while testing the connection");
+            });
+        }
+
+
+    </script>
+           <%} %>
     <%if (isEditing) { %>
     <input type="button" onclick="doUpdate();" value="<fmt:message key="update"/>"
            class="button"/>

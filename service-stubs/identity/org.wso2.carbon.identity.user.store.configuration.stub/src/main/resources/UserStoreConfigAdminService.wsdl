@@ -190,6 +190,22 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="testLDAPConnection">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="connectionURL" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="connectionName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="connectionPassword" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="testLDAPConnectionResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="addUserStore">
                 <xs:complexType>
                     <xs:sequence>
@@ -272,6 +288,12 @@
     <wsdl:message name="testRDBMSConnectionResponse">
         <wsdl:part name="parameters" element="ns1:testRDBMSConnectionResponse"/>
     </wsdl:message>
+    <wsdl:message name="testLDAPConnectionRequest">
+        <wsdl:part name="parameters" element="ns1:testLDAPConnection"/>
+    </wsdl:message>
+    <wsdl:message name="testLDAPConnectionResponse">
+        <wsdl:part name="parameters" element="ns1:testLDAPConnectionResponse"/>
+    </wsdl:message>
     <wsdl:message name="addUserStoreRequest">
         <wsdl:part name="parameters" element="ns1:addUserStore"/>
     </wsdl:message>
@@ -343,6 +365,11 @@
             <wsdl:input message="tns:testRDBMSConnectionRequest" wsaw:Action="urn:testRDBMSConnection"/>
             <wsdl:output message="tns:testRDBMSConnectionResponse" wsaw:Action="urn:testRDBMSConnectionResponse"/>
             <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:testRDBMSConnectionUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="testLDAPConnection">
+            <wsdl:input message="tns:testLDAPConnectionRequest" wsaw:Action="urn:testLDAPConnection"/>
+            <wsdl:output message="tns:testLDAPConnectionResponse" wsaw:Action="urn:testLDAPConnectionResponse"/>
+            <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:testLDAPConnectionUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
         </wsdl:operation>
         <wsdl:operation name="addUserStore">
             <wsdl:input message="tns:addUserStoreRequest" wsaw:Action="urn:addUserStore"/>
@@ -459,6 +486,18 @@
         </wsdl:operation>
         <wsdl:operation name="testRDBMSConnection">
             <soap:operation soapAction="urn:testRDBMSConnection" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="testLDAPConnection">
+            <soap:operation soapAction="urn:testLDAPConnection" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -652,6 +691,18 @@
                 <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="testLDAPConnection">
+            <soap12:operation soapAction="urn:testLDAPConnection" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="addUserStore">
             <soap12:operation soapAction="urn:addUserStore" style="document"/>
             <wsdl:input>
@@ -810,6 +861,15 @@
         </wsdl:operation>
         <wsdl:operation name="testRDBMSConnection">
             <http:operation location="testRDBMSConnection"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="testLDAPConnection">
+            <http:operation location="testLDAPConnection"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
