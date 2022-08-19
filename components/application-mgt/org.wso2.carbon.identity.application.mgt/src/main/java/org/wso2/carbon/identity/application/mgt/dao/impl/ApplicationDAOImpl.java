@@ -113,6 +113,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
@@ -2046,7 +2047,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
                     }
-                    if ("clientId".equals(requiredAttribute)) {
+                    if (CLIENT_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                                 applicationId, connection, tenantID));
                     }
