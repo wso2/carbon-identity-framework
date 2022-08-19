@@ -553,7 +553,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         String resourceId = applicationManagementService.createApplication((ServiceProvider) serviceProvider,
                 tenantDomain, username);
 
-        // Retrieving application by ResourceId
+        // Retrieving application by ResourceId.
         ServiceProvider expectedSP = applicationManagementService.getApplicationByResourceId(resourceId,
                 tenantDomain);
         Assert.assertEquals(resourceId, expectedSP.getApplicationResourceId());
@@ -563,7 +563,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo.getApplicationName(), ((ServiceProvider) serviceProvider).
                 getApplicationName());
 
-        // Deleting added application
+        // Deleting added application.
         applicationManagementService.deleteApplicationByResourceId(resourceId, tenantDomain, username);
     }
 
