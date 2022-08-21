@@ -160,7 +160,7 @@ public class DefaultStepHandlerTest {
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getIdentityErrorMsg()).thenReturn(null);
 
-        // Context needs to be passed as a parameter for the getRedirectUrl method.
+        // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
         // Not relevant to the test flow furthermore.
         String retryParam = "";
         doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
@@ -168,7 +168,7 @@ public class DefaultStepHandlerTest {
         // The authConfig "showAuthFailureReason" can't be null and should be true.
         String showAuthFailureReason = "true";
 
-        // Context needs to be passed as a parameter for the getRedirectUrl method.
+        // AuthenticatorNames and loginPage needs to be passed as parameters for the getRedirectUrl method.
         // Not relevant to the test flow furthermore.
         String authenticatorNames = "";
         String loginPage = "";
