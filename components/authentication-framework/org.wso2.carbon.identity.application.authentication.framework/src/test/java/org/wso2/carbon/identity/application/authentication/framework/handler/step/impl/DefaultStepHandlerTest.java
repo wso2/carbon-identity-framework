@@ -105,7 +105,7 @@ public class DefaultStepHandlerTest {
         Map<String, String> parametersMap2 = new HashMap<>();
         parametersMap2.put(FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF, "true");
 
-        return new Object[][]{
+        return new Object[][] {
                 {context1, null, false},
                 {context2, null, false},
                 {context2, parametersMap1, false},
