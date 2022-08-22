@@ -837,6 +837,7 @@
   "console.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
   "console.idp_configs.scope": [ "SYSTEM", "profile", "openid" ],
   "console.get_profile_info_from_id_token": true,
+  "console.enable_google_one_tap_for_super_tenant_only": true,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
