@@ -651,13 +651,22 @@
                 {% endfor %}
             </SupportedIDTokenEncryptionMethods>
 
-            <EnableAudiences>true</EnableAudiences>
+             <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
-            <Audiences>
+            <IdTokenAudiences>
                 {% for audience in oauth.oidc.id_token.audiences %}
-                <Audience>{{audience}}</Audience>
+                <IdTokenAudience>{{audience}}</IdTokenAudience>
                 {% endfor %}
-            </Audiences>
+            </IdTokenAudiences>
+            {% endif %}
+
+            <EnableAccessTokenAudiences>true</EnableAccessTokenAudiences>
+            {% if oauth.oidc.access_token.audiences|length %}
+            <AccessTokenAudiences>
+                {% for audience in oauth.oidc.access_token.audiences %}
+                <AccessTokenAudience>{{audience}}</AccessTokenAudience>
+                {% endfor %}
+            </AccessTokenAudiences>
             {% endif %}
 
             <!--
