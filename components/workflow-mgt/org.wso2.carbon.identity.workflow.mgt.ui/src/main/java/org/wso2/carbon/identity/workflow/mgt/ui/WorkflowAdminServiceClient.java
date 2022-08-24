@@ -166,7 +166,7 @@ public class WorkflowAdminServiceClient {
     }
 
     /**
-     * List paginated workflows with a filter
+     * List paginated workflows of a tenant.
      *
      * @return WorkflowEvent objects array
      * @throws RemoteException
@@ -198,7 +198,7 @@ public class WorkflowAdminServiceClient {
     }
 
     /**
-     * Get count of workflows
+     * Get workflows count.
      *
      * @return Count of workflows
      * @throws RemoteException
@@ -239,7 +239,7 @@ public class WorkflowAdminServiceClient {
     }
 
     /**
-     * List paginated associations with a filter
+     * List paginated associations of a tenant.
      *
      * @return Association objects array
      * @throws RemoteException
@@ -271,7 +271,7 @@ public class WorkflowAdminServiceClient {
     }
 
     /**
-     * Get count of associations
+     * Get associations count.
      *
      * @return Count of associations
      * @throws RemoteException

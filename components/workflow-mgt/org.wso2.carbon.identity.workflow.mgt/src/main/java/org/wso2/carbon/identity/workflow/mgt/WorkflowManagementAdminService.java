@@ -288,11 +288,11 @@ public class WorkflowManagementAdminService {
     }
 
     /**
-     * List paginated Workflows with a filter
+     * List paginated workflows of a tenant.
      *
-     * @param limit Limit
+     * @param limit  Limit
      * @param offset Offset
-     * @param filter  filter
+     * @param filter filter
      * @return WorkflowWizard[]
      * @throws WorkflowException
      */
@@ -337,7 +337,7 @@ public class WorkflowManagementAdminService {
     }
 
     /**
-     * Get count of Workflows
+     * Get workflows count.
      *
      * @param filter  filter
      * @return Return count of workflows
@@ -405,9 +405,9 @@ public class WorkflowManagementAdminService {
     }
 
     /**
-     * List paginated associations for a tenant with a filter
+     * List paginated associations of a tenant.
      *
-     * @param limit Limit
+     * @param limit  Limit
      * @param offset Offset
      * @param filter Filter
      * @return Association[]
@@ -473,7 +473,7 @@ public class WorkflowManagementAdminService {
     }
 
     /**
-     * Get count of associations
+     * Get associations count.
      *
      * @param filter  filter
      * @return Return count of associations

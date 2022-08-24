@@ -114,11 +114,13 @@ public class AssociationDAO {
     }
 
     /**
+     * Retrieve associations of a tenant with pagination.
      *
      * @param tenantId
      * @param filter
      * @param offset
      * @param limit
+     * @return List<Association>
      * @throws InternalWorkflowException
      */
     public List<Association> listPaginatedAssociations(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException{
@@ -162,7 +164,8 @@ public class AssociationDAO {
     }
 
     /**
-     * @Deprecated Use {@link #listPaginatedAssociations(int, String, int, int)}
+     *
+     * @Deprecated Use {@link #listPaginatedAssociations(int, String, int, int)} instead.
      * @param tenantId Tenant ID
      * @return
      * @throws InternalWorkflowException
@@ -208,16 +211,16 @@ public class AssociationDAO {
     }
 
     /**
+     * Get associations count of a tenant.
      *
      * @param tenantId
      * @param filter
-     * @return
+     * @return Return associations count
      * @throws InternalWorkflowException
      */
-
     public int getAssociationsCount(int tenantId, String filter) throws InternalWorkflowException{
 
-        int count=0;
+        int count = 0;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             try (PreparedStatement prepStmt = connection
@@ -225,7 +228,7 @@ public class AssociationDAO {
                 prepStmt.setInt(1, tenantId);
                 prepStmt.setString(2, filterResolvedForSQL);
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    if(resultSet.next()){
+                    if (resultSet.next()) {
                         count = resultSet.getInt(1);
                     }
                 }
@@ -373,7 +376,7 @@ public class AssociationDAO {
     }
 
     /**
-     * Create PreparedStatement
+     * Create PreparedStatement.
      *
      * @param connection db connection
      * @param sqlQuery SQL query
@@ -405,9 +408,10 @@ public class AssociationDAO {
     }
 
     /**
+     * Resolve SQL Filter.
      *
      * @param filter
-     * @return
+     * @return Return SQL filter
      * @throws InternalWorkflowException
      */
     private String resolveSQLFilter(String filter) {

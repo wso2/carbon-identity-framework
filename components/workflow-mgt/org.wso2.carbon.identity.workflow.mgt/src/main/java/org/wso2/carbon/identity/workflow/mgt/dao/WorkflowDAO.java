@@ -197,12 +197,13 @@ public class WorkflowDAO {
     }
 
     /**
-     * Retrieve Workflows for a tenant with pagination
+     * Retrieve Workflows of a tenant with pagination.
      *
      * @param tenantId
      * @param filter
      * @param offset
      * @param limit
+     * @return List<Workflow>
      * @throws InternalWorkflowException
      */
     public List<Workflow> listPaginatedWorkflows(int tenantId, String filter, int offset, int limit) throws InternalWorkflowException {
@@ -242,7 +243,7 @@ public class WorkflowDAO {
     /**
      * Retrieve all the Workflows for a tenant
      *
-     * @Deprecated Use {@link #listPaginatedWorkflows(int, String, int, int)}
+     * @Deprecated Use {@link #listPaginatedWorkflows(int, String, int, int)} instead.
      * @param tenantId Tenant ID
      * @return List<Workflow>
      * @throws InternalWorkflowException
@@ -282,16 +283,16 @@ public class WorkflowDAO {
     }
 
     /**
-     * Get count of workflows with a filter
+     * Get workflows count of a tenant.
      *
      * @param tenantId
      * @param filter
-     * @return
+     * @return Return workflows count
      * @throws InternalWorkflowException
      */
     public int getWorkflowsCount(int tenantId, String filter) throws InternalWorkflowException{
 
-        int count=0;
+        int count = 0;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String filterResolvedForSQL = resolveSQLFilter(filter);
             try (PreparedStatement prepStmt = connection
@@ -299,7 +300,7 @@ public class WorkflowDAO {
                 prepStmt.setInt(1, tenantId);
                 prepStmt.setString(2, filterResolvedForSQL);
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    if(resultSet.next()){
+                    if (resultSet.next()) {
                         count = resultSet.getInt(1);
                     }
                 }
@@ -456,7 +457,7 @@ public class WorkflowDAO {
     }
 
     /**
-     * Create PreparedStatement
+     * Create PreparedStatement.
      *
      * @param connection db connection
      * @param sqlQuery SQL query
@@ -488,10 +489,10 @@ public class WorkflowDAO {
     }
 
     /**
-     * Resolve SQL Filter
+     * Resolve SQL Filter.
      *
      * @param filter
-     * @return
+     * @return Return SQL filter.
      * @throws InternalWorkflowException
      */
     private String resolveSQLFilter(String filter) {

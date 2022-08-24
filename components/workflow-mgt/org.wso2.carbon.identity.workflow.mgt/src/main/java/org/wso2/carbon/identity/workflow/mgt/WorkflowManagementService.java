@@ -126,35 +126,43 @@ public interface WorkflowManagementService {
                                                                                                      WorkflowException;
 
     /**
-     * List paginated Workflows of a tenant with a filter
+     * List paginated Workflows of a tenant.
      *
      * @param tenantId Tenant Id
-     * @param limit Limit
-     * @param offset Offset
-     * @param filter Filter
-     * @return
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @return  List<Workflow>
      * @throws WorkflowException
      */
-    List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException;
+    default List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+        return null;
+    }
 
     /**
      * List workflows
      *
+     * @deprecated Use {@link #listPaginatedWorkflows(int, int, int, String)} instead.
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
+    @Deprecated
     List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
 
     /**
-     * Get count of Workflows
+     * Get Workflows count.
      *
      * @param tenantId  Tenant ID
      * @param filter  filter
-     * @return
+     * @return Return workflows count
      * @throws WorkflowException
      */
-    int getWorkflowsCount(int tenantId, String filter) throws WorkflowException;
+    default int getWorkflowsCount(int tenantId, String filter) throws WorkflowException {
+
+        return 0;
+    }
 
     /**
      * Remove a workflow
@@ -192,35 +200,43 @@ public interface WorkflowManagementService {
     List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException;
 
     /**
-     * List paginated associations of a tenant with a filter
+     * List paginated associations of a tenant.
      *
      * @param tenantId Tenant Id
-     * @param limit Limit
-     * @param offset Offset
-     * @param filter Filter
-     * @return
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @return List<Association>
      * @throws WorkflowException
      */
-    List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException;
+    default List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+        return null;
+    }
 
     /**
      * List all associations of a tenant
      *
+     * @deprecated Use {@link #listPaginatedAssociations(int, int, int, String)} instead.
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
+    @Deprecated
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
 
     /**
-     * Get associations count
+     * Get associations count.
      *
      * @param tenantId  Tenant ID
      * @param filter  filter
-     * @return
+     * @return Return associations count
      * @throws WorkflowException
      */
-    int getAssociationsCount(int tenantId, String filter) throws WorkflowException;
+    default int getAssociationsCount(int tenantId, String filter) throws WorkflowException {
+
+        return 0;
+    }
 
     /**
      * Enable or disable association

@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -427,12 +428,12 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * List paginated Workflows with a filter
+     * List paginated Workflows of a tenant.
      *
      * @param tenantId Tenant Id
-     * @param limit Limit
-     * @param offset Offset
-     * @param filter Filter
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
      * @return List<Workflow>
      * @throws WorkflowException
      */
@@ -448,11 +449,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         // Validate whether the limit is not zero or a negative number.
         if (limit < 0) {
-            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
         }
         // Validate whether the offset is not zero or a negative number.
         if (offset < 0) {
-            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
         }
         if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
@@ -495,11 +496,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * Get count of Workflows
+     * Get workflows count.
      *
      * @param tenantId  Tenant ID
      * @param filter  filter
-     * @return Return count of all workflows
+     * @return Return workflows count
      * @throws WorkflowException
      */
     @Override
@@ -624,11 +625,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     /**
-     * List paginated Associations with a filter
+     * List paginated associations of a tenant.
      *
-     * @param tenantId  Tenant ID
-     * @param limit  Limit
-     * @param offset  Offset
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
      * @return List<Association>
      * @throws WorkflowException
      */
@@ -644,11 +645,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         // Validate whether the limit is not zero or a negative number.
         if (limit < 0) {
-            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
         }
         // Validate whether the offset is not zero or a negative number.
         if (offset < 0) {
-            throw new WorkflowException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
         }
         // Validate whether the filter is empty.
         if (StringUtils.isBlank(filter)){
@@ -677,7 +678,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     /**
      * List All Associations
      *
-     * @Deprecated Use {@link #listPaginatedAssociations(int, int, int, String)}
+     * @Deprecated Use {@link #listPaginatedAssociations(int, int, int, String)} instead.
      * @param tenantId  Tenant ID
      * @return List<Association>
      * @throws WorkflowException
@@ -715,11 +716,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
 
     /**
-     * Get Associations count
+     * Get associations count.
      *
      * @param tenantId  Tenant ID
      * @param filter  filter
-     * @return Return count of all associations
+     * @return Return associations count
      * @throws WorkflowException
      */
     @Override
