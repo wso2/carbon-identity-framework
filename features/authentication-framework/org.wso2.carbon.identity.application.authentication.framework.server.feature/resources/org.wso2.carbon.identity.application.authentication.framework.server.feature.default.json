@@ -97,6 +97,7 @@
   "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
   "authentication.authenticator.google.parameters.Tags": "Social-Login",
+  "authentication.authenticator.google.parameters.EnableCSRFValidationForGOT": false,
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,
