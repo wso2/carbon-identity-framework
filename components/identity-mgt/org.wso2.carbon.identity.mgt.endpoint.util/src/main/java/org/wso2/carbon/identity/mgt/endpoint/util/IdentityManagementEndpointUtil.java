@@ -889,22 +889,22 @@ public class IdentityManagementEndpointUtil {
      * @param cookieName  Name of the cookie to be stored.
      * @param value       Value of the cookie.
      * @param age         Max age of the cookie.
-     * @param setSameSite SameSite attribute value for the cookie.
+     * @param sameSite    SameSite attribute value for the cookie.
      * @param domain      Domain of the cookie.
      */
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String value,
-                          Integer age, SameSiteCookie setSameSite, String path, String domain) {
+                          Integer age, SameSiteCookie sameSite, String path, String domain) {
 
         CookieBuilder cookieBuilder = new CookieBuilder(cookieName, value);
         IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
         if (cookieConfig != null) {
-            updateCookieConfig(cookieBuilder, cookieConfig, age, path);
+            updateCookieConfig(cookieBuilder, cookieConfig, age, path, sameSite, domain);
         } else {
             cookieBuilder.setSecure(true)
                     .setHttpOnly(true)
                     .setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN)
                     .setDomain(domain)
-                    .setSameSite(setSameSite);
+                    .setSameSite(sameSite);
             if (age != null && age > 0) {
                 cookieBuilder.setMaxAge(age);
             }
@@ -913,10 +913,12 @@ public class IdentityManagementEndpointUtil {
     }
 
     private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
-            cookieConfig, Integer age, String path) {
+            cookieConfig, Integer age, String path, SameSiteCookie sameSite, String domain) {
 
         if (cookieConfig.getDomain() != null) {
             cookieBuilder.setDomain(cookieConfig.getDomain());
+        } else if (StringUtils.isNotBlank(domain)) {
+            cookieBuilder.setDomain(domain);
         }
 
         if (cookieConfig.getPath() != null) {
@@ -931,7 +933,7 @@ public class IdentityManagementEndpointUtil {
 
         if (cookieConfig.getMaxAge() > 0) {
             cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
-        } else if (age != null) {
+        } else if (age != null && age > 0) {
             cookieBuilder.setMaxAge(age);
         }
 
@@ -941,6 +943,8 @@ public class IdentityManagementEndpointUtil {
 
         if (cookieConfig.getSameSite() != null) {
             cookieBuilder.setSameSite(cookieConfig.getSameSite());
+        } else if (sameSite != null) {
+            cookieBuilder.setSameSite(sameSite);
         }
 
         cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
