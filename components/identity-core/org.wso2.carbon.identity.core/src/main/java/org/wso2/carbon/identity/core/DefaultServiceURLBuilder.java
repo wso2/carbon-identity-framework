@@ -124,7 +124,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+                if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() != null) {
+                    resolvedUrlStringBuilder.append("/o/").append(tenantDomain);
+                } else {
+                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+                }
             }
         }
 
