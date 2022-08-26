@@ -1346,10 +1346,10 @@ public class IdPManagementUIUtil {
         }
 
         property = new Property();
-        property.setName("oidcScopes");
-        if (paramMap.get("oidcScopes") != null
-                && paramMap.get("oidcScopes").trim().length() > 0) {
-            property.setValue(paramMap.get("oidcScopes"));
+        property.setName("scopes");
+        if (paramMap.get("scopes") != null
+                && paramMap.get("scopes").trim().length() > 0) {
+            property.setValue(paramMap.get("scopes"));
         }
         properties[5] = property;
 
