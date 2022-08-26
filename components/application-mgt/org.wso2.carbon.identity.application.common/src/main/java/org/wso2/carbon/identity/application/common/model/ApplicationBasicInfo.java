@@ -35,7 +35,8 @@ public class ApplicationBasicInfo implements Serializable {
     private String accessUrl;
 
     private User appOwner;
-    private String inboundKey;
+    private String clientId;
+    private String issuer;
     private String tenantDomain;
 
     /**
@@ -179,23 +180,43 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get inbound auth key.
+     * Get oAuth2 client ID.
      *
-     * @return inbound auth key.
+     * @return oAuth2 client ID.
      */
-    public String getInboundKey() {
+    public String getClientId() {
 
-        return inboundKey;
+        return clientId;
     }
 
     /**
-     * Set inbound auth key.
+     * Set oAuth2 client ID.
      *
-     * @param inboundKey    inbound auth key.
+     * @param clientId  oAuth2 client ID.
      */
-    public  void setInboundKey(String inboundKey) {
+    public  void setClientId(String clientId) {
 
-        this.inboundKey = inboundKey;
+        this.clientId = clientId;
+    }
+
+    /**
+     * Get SAML issuer.
+     *
+     * @return SAML issuer.
+     */
+    public String getIssuer() {
+
+        return issuer;
+    }
+
+    /**
+     * Set SAML issuer.
+     *
+     * @param issuer  SAML issuer.
+     */
+    public  void setIssuer(String issuer) {
+
+        this.issuer = issuer;
     }
 
     /**

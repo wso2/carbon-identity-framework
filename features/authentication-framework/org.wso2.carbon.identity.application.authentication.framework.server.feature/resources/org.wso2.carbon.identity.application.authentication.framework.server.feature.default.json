@@ -187,6 +187,7 @@
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
+  "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",
