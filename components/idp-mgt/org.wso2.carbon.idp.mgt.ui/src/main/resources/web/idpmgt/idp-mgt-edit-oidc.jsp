@@ -51,6 +51,7 @@
     String userInfoEndpoint = null;
     String logoutUrlOIDC = null;
     boolean isOIDCUserIdInClaims = false;
+    String oidcScopes = StringUtils.EMPTY;
     String oidcQueryParam = StringUtils.EMPTY;
     
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
@@ -116,6 +117,11 @@
                     if (isOIDCUserIdInClaimsProp != null) {
                         isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
                     }
+                    Property oidcScopesProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                             "oidcScopes");
+                    if (oidcScopesProp != null) {
+                        oidcScopes = oidcScopesProp.getValue();
+                    }
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             "commonAuthQueryParams");
                     if (queryParamProp != null) {
@@ -175,6 +181,9 @@
     String oidcBasicAuthEnabledChecked = StringUtils.EMPTY;
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
+    }
+    if (oidcScopes == null) {
+        oidcScopes = StringUtils.EMPTY;
     }
     if (oidcQueryParam == null) {
         oidcQueryParam = StringUtils.EMPTY;
@@ -330,6 +339,17 @@
 
                     <div class="sectionHelp">
                         <fmt:message key='oidc.user.id.location.help'/>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftCol-med labelField"><fmt:message key='oidc.scopes'/>:</td>
+                <td>
+                    <input id="oidcScopes" name="oidcScopes" type="text"
+                           value="<%=Encode.forHtmlAttribute(oidcScopes)%>">
+
+                    <div class="sectionHelp">
+                        <fmt:message key='oidc.scopes.help'/>
                     </div>
                 </td>
             </tr>
