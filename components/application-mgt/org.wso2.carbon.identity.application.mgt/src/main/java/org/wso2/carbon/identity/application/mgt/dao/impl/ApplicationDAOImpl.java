@@ -4450,7 +4450,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                          Connection connection, int tenantID)
             throws SQLException {
 
-        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
+        if (!ApplicationConstants.AUTH_TYPE_DEFAULT.equals(localAndOutboundAuthConfig.getAuthenticationType()) &&
+                localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
                     .getAuthenticationScriptConfig();
             try (PreparedStatement storeAuthScriptPrepStmt = connection
@@ -4845,6 +4846,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             ServiceProvider application = getApplicationByResourceId(resourceId, tenantDomain);
+            int appIdUsingResourceId = getAppIdUsingResourceId(resourceId, tenantDomain);
 
             if (application != null) {
                 // Delete the application certificate if there is any
@@ -4858,6 +4860,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID, tenantId);
                     deleteAppStatement.execute();
+                    deleteAuthenticationScript(appIdUsingResourceId, connection);
 
                     IdentityDatabaseUtil.commitTransaction(connection);
                 } catch (SQLException ex) {
