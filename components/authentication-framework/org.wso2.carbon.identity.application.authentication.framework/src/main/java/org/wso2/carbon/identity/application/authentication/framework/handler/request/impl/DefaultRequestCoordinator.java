@@ -324,7 +324,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     e.getErrorCode());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
@@ -369,7 +369,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (responseWrapper.isRedirect()) {
             String redirectURL;
             if (context != null && (context.getExternalIdP() == null ||
-                    context.getExternalIdP().getIdPName().equals("LOCAL"))) {
+                    FrameworkConstants.LOCAL.equals(context.getExternalIdP().getIdPName()))) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
             } else {

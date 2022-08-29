@@ -36,18 +36,19 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
 
         super(request);
         this.authParams = authParams;
+        this.authParams.putAll(super.getParameterMap());
     }
 
     /**
      * Get the parameter from the map.
      *
-     * @param name - Name of the parameter.
+     * @param name Name of the parameter.
      * @return
      */
     public String getParameter(String name) {
 
-        if(authParams != null) {
-            return authParams.get(name) == null ? super.getParameter(name) : (String) authParams.get(name);
+        if (authParams != null) {
+            return (String) authParams.get(name);
         } else {
             return super.getParameter(name);
         }
@@ -59,6 +60,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public Map<String, Object> getParameterMap() {
+
         return authParams;
     }
 
@@ -68,6 +70,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public Enumeration<String> getParameterNames() {
+
         return Collections.enumeration(authParams.keySet());
     }
 
@@ -75,10 +78,12 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     /**
      * Get values of a parameter from the map.
      *
-     * @param name - Name of the parameter.
+     * @param name Name of the parameter.
      * @return
      */
     public String[] getParameterValues(String name) {
+
+
         return (String[]) authParams.get(name);
     }
 }

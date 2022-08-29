@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception.AuthenticationEndpointException;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationRequestWrapper;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -67,37 +69,43 @@ public class AuthParameterFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
-        if (servletRequest instanceof HttpServletRequest) {
-            // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
-            if (servletRequest.getParameter(SESSION_DATA_KEY) != null) {
-                // Cast ServletRequest to HttpServletRequest and get the wrapped request.
-                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, SESSION_DATA_KEY);
-                filterChain.doFilter(httpServletRequest, servletResponse);
-                return;
+        try {
+            if (servletRequest instanceof HttpServletRequest) {
+                // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
+                if (servletRequest.getParameter(SESSION_DATA_KEY) != null) {
+                    // Cast ServletRequest to HttpServletRequest and get the wrapped request.
+                    HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, SESSION_DATA_KEY);
+                    filterChain.doFilter(httpServletRequest, servletResponse);
+                    return;
+                }
+                if (servletRequest.getParameter(SESSION_DATA_KEY_CONSENT) != null) {
+                    HttpServletRequest httpServletRequest =
+                            getServletRequestWithParams(servletRequest, SESSION_DATA_KEY_CONSENT);
+                    filterChain.doFilter(httpServletRequest, servletResponse);
+                    return;
+                }
+                if (servletRequest.getParameter(ERROR_KEY) != null) {
+                    HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, ERROR_KEY);
+                    filterChain.doFilter(httpServletRequest, servletResponse);
+                    return;
+                }
             }
-            if (servletRequest.getParameter(SESSION_DATA_KEY_CONSENT) != null) {
-                HttpServletRequest httpServletRequest =
-                        getServletRequestWithParams(servletRequest, SESSION_DATA_KEY_CONSENT);
-                filterChain.doFilter(httpServletRequest, servletResponse);
-                return;
-            }
-            if (servletRequest.getParameter(ERROR_KEY) != null) {
-                HttpServletRequest httpServletRequest = getServletRequestWithParams(servletRequest, ERROR_KEY);
-                filterChain.doFilter(httpServletRequest, servletResponse);
-                return;
-            }
+        } catch (AuthenticationEndpointException e) {
+            log.error(e.getMessage());
         }
+
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
     /**
      * Get HttpServletRequest with parameters retrieved from the API.
      *
-     * @param servletRequest - Received HttpServletRequest.
-     * @param key            - Name of the key.
-     * @return - HttpServletRequest with parameters.
+     * @param servletRequest Received HttpServletRequest.
+     * @param key            Name of the key.
+     * @return HttpServletRequest with parameters.
      */
-    private HttpServletRequest getServletRequestWithParams(ServletRequest servletRequest, String key) {
+    private HttpServletRequest getServletRequestWithParams(ServletRequest servletRequest, String key)
+            throws AuthenticationEndpointException {
 
         String authAPIURL = buildAPIPath(key, servletRequest.getParameter(key));
         String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
@@ -109,14 +117,18 @@ public class AuthParameterFilter implements Filter {
     /**
      * Build the API Path using the key and value.
      *
-     * @param key   - SessionDataKey or SessionDataKeyConsent.
-     * @param value - Value of the key.
-     * @return - API Path.
+     * @param key   SessionDataKey or SessionDataKeyConsent.
+     * @param value Value of the key.
+     * @return API Path.
      */
-    private String buildAPIPath(String key, String value) {
+    private String buildAPIPath(String key, String value) throws AuthenticationEndpointException {
 
         try {
             String authAPIURL = ServiceURLBuilder.create().addPath(DATA_API_PATH).build().getAbsoluteInternalURL();
+
+            if (authAPIURL == null) {
+                context.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
+            }
 
             if (!authAPIURL.endsWith("/")) {
                 authAPIURL += "/";
@@ -137,7 +149,8 @@ public class AuthParameterFilter implements Filter {
             }
             return authAPIURL;
         } catch (URLBuilderException e) {
-            throw new RuntimeException(e);
+            String msg = "Error while building Authentication REST Endpoint URL.";
+            throw new AuthenticationEndpointException(msg, e);
         }
     }
 
