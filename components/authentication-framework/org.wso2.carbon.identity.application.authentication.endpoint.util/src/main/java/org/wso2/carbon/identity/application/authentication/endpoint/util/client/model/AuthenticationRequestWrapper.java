@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.client
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
@@ -32,6 +33,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     private Map<String, Object> authParams;
 
     public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> authParams) {
+
         super(request);
         this.authParams = authParams;
     }
@@ -43,9 +45,10 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * @return
      */
     public String getParameter(String name) {
-        try {
+
+        if(authParams != null) {
             return authParams.get(name) == null ? super.getParameter(name) : (String) authParams.get(name);
-        } catch (NullPointerException e) {
+        } else {
             return super.getParameter(name);
         }
     }

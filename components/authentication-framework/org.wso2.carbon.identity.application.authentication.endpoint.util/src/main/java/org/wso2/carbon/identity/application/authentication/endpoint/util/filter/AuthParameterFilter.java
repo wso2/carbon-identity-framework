@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 
 import java.io.IOException;
 import java.util.Map;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -56,15 +57,16 @@ public class AuthParameterFilter implements Filter {
     }
 
     /**
-     * @param servletRequest
-     * @param servletResponse
-     * @param filterChain
+     * @param servletRequest Servlet Request
+     * @param servletResponse Servlet Response
+     * @param filterChain Filter Chain
      * @throws IOException
      * @throws ServletException
      */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
+
         if (servletRequest instanceof HttpServletRequest) {
             // Check if request contains 'sessionDataKey', 'sessionDataKeyConsent', 'errorKey', 'promptId'.
             if (servletRequest.getParameter(SESSION_DATA_KEY) != null) {
@@ -96,6 +98,7 @@ public class AuthParameterFilter implements Filter {
      * @return - HttpServletRequest with parameters.
      */
     private HttpServletRequest getServletRequestWithParams(ServletRequest servletRequest, String key) {
+
         String authAPIURL = buildAPIPath(key, servletRequest.getParameter(key));
         String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
         Gson gson = new Gson();
