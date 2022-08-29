@@ -128,6 +128,11 @@ public class UserSessionStore {
         }
     }
 
+    public void storeUserData(String userId, String userName, int tenantId, int idPId) throws UserSessionException {
+
+        storeUserData(userId, userName, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
     /**
      * Method to get the unique Id of a user from the database.
      *
@@ -962,5 +967,21 @@ public class UserSessionStore {
                     tenantDomain, e);
         }
         return activeSessionCount;
+    }
+
+    /**
+     * Returns the user id of the federated user.
+     *
+     * @param subjectIdentifier - Subject Identifier of the federated user.
+     * @param tenantId          - Id of the service provider's tenant domain.
+     * @param idPId             - Id of the identity provider.
+     * @return userId - User Id of the federated user.
+     * @throws UserSessionException
+     */
+    public String getFederatedUserId(String subjectIdentifier, int tenantId, int idPId)
+            throws UserSessionException {
+
+        // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
+        return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
     }
 }

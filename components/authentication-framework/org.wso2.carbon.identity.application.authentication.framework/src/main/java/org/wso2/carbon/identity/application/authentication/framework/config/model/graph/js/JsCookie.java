@@ -18,18 +18,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import javax.servlet.http.Cookie;
 
 /**
- * Javascript wrapper for Java level Cookie.
+ * Abstract Javascript wrapper for Java level Cookie.
  * This provides controlled access to Cookie object via provided javascript native syntax.
  * e.g
  * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
-public class JsCookie extends AbstractJSObjectWrapper<Cookie> {
+public abstract class JsCookie extends AbstractJSObjectWrapper<Cookie> implements JsBaseCookie {
 
     public JsCookie(Cookie cookie) {
         super(cookie);

@@ -20,16 +20,17 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
 
 /**
- * Javascript wrapper for Java level HashMap of HTTP headers/cookies.
+ * Abstract Javascript abstract wrapper for Java level HashMap of HTTP headers/cookies.
  * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsParameters extends AbstractJSObjectWrapper<Map> {
+public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
 
     private static final Log LOG = LogFactory.getLog(JsParameters.class);
 
@@ -45,12 +46,6 @@ public class JsParameters extends AbstractJSObjectWrapper<Map> {
     @Override
     public boolean hasMember(String name) {
         return getWrapped().get(name) != null;
-    }
-
-    @Override
-    public void removeMember(String name) {
-
-        LOG.warn("Unsupported operation. Parameters are read only. Can't remove parameter " + name);
     }
 
     @Override

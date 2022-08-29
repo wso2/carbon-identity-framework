@@ -22,13 +22,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,11 +40,11 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE;
+import static org.testng.Assert.assertTrue;import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE_CONFIG;
 
 @PrepareForTest({IdentityUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class SessionNonceCookieUtilTest {
 
     private static final String SESSION_DATA_KEY_VALUE = "SessionDataKeyValue";
@@ -55,6 +59,14 @@ public class SessionNonceCookieUtilTest {
 
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
+
+    /**
+     * Setup before test.
+     */
+    @BeforeMethod
+    public void beforeMethod() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     public void nonceCookieTest() {

@@ -153,6 +153,10 @@ public abstract class FrameworkConstants {
     public static final String H2 = "H2";
     public static final String ORACLE = "Oracle";
 
+    public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
+    public static final String OPENJDK_NASHORN = "openjdkNashorn";
+    public static final String NASHORN = "nashorn";
+
     private FrameworkConstants() {
 
     }
@@ -381,6 +385,7 @@ public abstract class FrameworkConstants {
 
         public static final String JS_AUTHENTICATED_SUBJECT_IDENTIFIER = "identifier";
         public static final String JS_USERNAME = "username";
+        public static final String JS_UNIQUE_ID = "uniqueId";
         public static final String JS_USER_STORE_DOMAIN = "userStoreDomain";
         public static final String JS_TENANT_DOMAIN = "tenantDomain";
         public static final String JS_SERVICE_PROVIDER_NAME = "serviceProviderName";
@@ -433,6 +438,7 @@ public abstract class FrameworkConstants {
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
         public static final String JS_AUTH_FAILURE = "fail";
+        public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -440,6 +446,8 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+        public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
+        public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
     }
     public static class InternalRoleDomains {
 
@@ -471,9 +479,25 @@ public abstract class FrameworkConstants {
         public static final String INFINITE_TERMINATION = "DATE_UNTIL:INDEFINITE";
     }
 
+    /**
+     * Adaptive authentication related constants.
+     */
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_ENABLE =
+                "AdaptiveAuth.ExecutionSupervisor.Enable";
+        public static final String CONF_EXECUTION_SUPERVISOR_THREAD_COUNT =
+                "AdaptiveAuth.ExecutionSupervisor.ThreadCount";
+        public static final String CONF_EXECUTION_SUPERVISOR_TIMEOUT =
+                "AdaptiveAuth.ExecutionSupervisor.Timeout";
+        public static final String CONF_EXECUTION_SUPERVISOR_MEMORY_LIMIT =
+                "AdaptiveAuth.ExecutionSupervisor.MemoryLimit";
+        public static final int DEFAULT_EXECUTION_SUPERVISOR_THREAD_COUNT = 1;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT = 500L;
+        public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
+        public static final String PROP_EXECUTION_SUPERVISOR_RESULT
+                = "AdaptiveAuthExecutionSupervisorResult";
     }
 
     public static class ResidentIdpPropertyName {

@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;

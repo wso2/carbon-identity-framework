@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -53,7 +52,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -147,7 +145,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -2187,6 +2184,16 @@ public class FrameworkUtils {
         return userNamePrvisioningUrl;
     }
 
+    /**
+     * This method is to provide flag about Adaptive authentication is availability.
+     *
+     * @return AdaptiveAuthentication Available or not.
+     */
+    public static boolean isAdaptiveAuthenticationAvailable() {
+
+        return FrameworkServiceDataHolder.getInstance().isAdaptiveAuthenticationAvailable();
+    }
+
     public static boolean promptOnLongWait() {
 
         boolean promptOnLongWait = false;
@@ -2234,76 +2241,27 @@ public class FrameworkUtils {
         return null;
     }
 
+    /**
+     * Serialize the object using selected serializable function.
+     * @param value Object to evaluate.
+     * @return Serialized Object.
+     */
     public static Object toJsSerializable(Object value) {
 
-        if (value instanceof Serializable) {
-            if (value instanceof HashMap) {
-                Map<String, Object> map = new HashMap<>();
-                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
-                return map;
-            } else {
-                return value;
-            }
-        } else if (value instanceof ScriptObjectMirror) {
-            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
-            if (scriptObjectMirror.isFunction()) {
-                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
-            } else if (scriptObjectMirror.isArray()) {
-                List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
-                scriptObjectMirror.values().forEach(v -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        arrayItems.add((Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value of array item as : " + serializedObj);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
-                                serializedObj));
-                    }
-                });
-                return arrayItems;
-            } else if (!scriptObjectMirror.isEmpty()) {
-                Map<String, Serializable> serializedMap = new HashMap<>();
-                scriptObjectMirror.forEach((k, v) -> {
-                    Object serializedObj = toJsSerializable(v);
-                    if (serializedObj instanceof Serializable) {
-                        serializedMap.put(k, (Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value for key : " + k);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", k));
-                    }
-
-                });
-                return serializedMap;
-            } else {
-                return Collections.EMPTY_MAP;
-            }
-        }
-        return value;
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().toJsSerializable(value);
     }
 
+    /**
+     * De-Serialize the object using selected serializable function.
+     * @param value Serialized Object.
+     * @param engine Js Engine.
+     * @return De-Serialize object.
+     * @throws FrameworkException FrameworkException.
+     */
     public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
 
-        if (value instanceof SerializableJsFunction) {
-            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
-            try {
-                return engine.eval(serializableJsFunction.getSource());
-            } catch (ScriptException e) {
-                throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
-            }
-
-        } else if (value instanceof Map) {
-            Map<String, Object> deserializedMap = new HashMap<>();
-            for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
-                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
-                deserializedMap.put(entry.getKey(), deserializedObj);
-            }
-            return deserializedMap;
-        }
-        return value;
+        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().
+                fromJsSerializable(value, engine);
     }
 
     /**

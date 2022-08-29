@@ -18,7 +18,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -45,13 +47,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -61,6 +62,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class, IdentityTenantUtil.class})
+@PowerMockIgnore("org.mockito.*")
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -113,7 +115,7 @@ public class AbstractApplicationAuthenticatorTest {
 
     @BeforeTest
     public void setUp() throws Exception {
-        initMocks(this);
+        MockitoAnnotations.initMocks(this);
         federatedApplicationAuthenticator = mock(AbstractApplicationAuthenticator.class, withSettings()
                 .extraInterfaces(FederatedApplicationAuthenticator.class));
         when(federatedApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -24,15 +24,16 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 
 /**
  * Represent the user's runtime claims.
+ * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsRuntimeClaims extends JsClaims {
+public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims {
 
-    public JsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public JsOpenJdkNashornRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         super(context, step, idp, false);
     }
 
-    public JsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public JsOpenJdkNashornRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         super(context, user, false);
     }

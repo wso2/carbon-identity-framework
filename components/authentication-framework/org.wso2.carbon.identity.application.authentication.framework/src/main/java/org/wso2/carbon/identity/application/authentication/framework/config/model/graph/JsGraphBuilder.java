@@ -18,23 +18,17 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
-import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -42,29 +36,19 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 
 /**
- * Translate the authentication graph config to runtime model.
+ * Abstract class for Graph Builders which translate the authentication graph config to runtime model.
  * This is not thread safe. Should be discarded after each build.
  */
-public class JsGraphBuilder {
+public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsGraphBuilder.class);
     private Map<Integer, StepConfig> stepNamedMap;
@@ -75,40 +59,6 @@ public class JsGraphBuilder {
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
-
-    /**
-     * Constructs the builder with the given authentication context.
-     *
-     * @param authenticationContext current authentication context.
-     * @param stepConfigMap         The Step map from the service provider configuration.
-     * @param scriptEngine          Script engine.
-     */
-    public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-                          ScriptEngine scriptEngine) {
-
-        this.engine = scriptEngine;
-        this.authenticationContext = authenticationContext;
-        stepNamedMap = stepConfigMap.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    /**
-     * Constructs the builder with the given authentication context.
-     *
-     * @param authenticationContext current authentication context.
-     * @param stepConfigMap         The Step map from the service provider configuration.
-     * @param scriptEngine          Script engine.
-     * @param currentNode           Current authentication graph node.
-     */
-    public JsGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-                          ScriptEngine scriptEngine, AuthGraphNode currentNode) {
-
-        this.engine = scriptEngine;
-        this.authenticationContext = authenticationContext;
-        this.currentNode = currentNode;
-        stepNamedMap = stepConfigMap.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
 
     /**
      * Returns the built graph.
@@ -130,67 +80,14 @@ public class JsGraphBuilder {
         return result;
     }
 
-    /**
-     * Creates the graph with the given Script and step map.
-     *
-     * @param script the Dynamic authentication script.
-     */
-    public JsGraphBuilder createWith(String script) {
-
-        try {
-            currentBuilder.set(this);
-            Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
-            Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                    this::sendError);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_AUTH_FAILURE,
-                    (FailAuthenticationFunction) this::fail);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
-                    (PromptExecutor) this::addShowPrompt);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
-                    (LoadExecutor) this::loadLocalLibrary);
-            engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
-            engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
-            JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
-            if (jsFunctionRegistrar != null) {
-                Map<String, Object> functionMap = jsFunctionRegistrar
-                        .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
-                functionMap.forEach(globalBindings::put);
-            }
-            Invocable invocable = (Invocable) engine;
-            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
-            engine.eval(script);
-            invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
-                    new JsAuthenticationContext(authenticationContext));
-            JsGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
-        } catch (ScriptException e) {
-            result.setBuildSuccessful(false);
-            result.setErrorReason("Error in executing the Javascript. Nested exception is: " + e.getMessage());
-            if (log.isDebugEnabled()) {
-                log.debug("Error in executing the Javascript.", e);
-            }
-        } catch (NoSuchMethodException e) {
-            result.setBuildSuccessful(false);
-            result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
-                    .JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
-            if (log.isDebugEnabled()) {
-                log.debug("Error in executing the Javascript.", e);
-            }
-        } finally {
-            clearCurrentBuilder();
-        }
-        return this;
-    }
-
     public static void clearCurrentBuilder() {
 
         currentBuilder.remove();
     }
 
-    public static JsGraphBuilder getCurrentBuilder() {
+    public static <T extends JsGraphBuilder> T getCurrentBuilder() {
 
-        return currentBuilder.get();
+        return (T) currentBuilder.get();
     }
 
     /**
@@ -276,46 +173,6 @@ public class JsGraphBuilder {
             dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
-        }
-    }
-
-    /**
-     * Adds the step given by step ID tp the authentication graph.
-     *
-     * @param stepId Step Id
-     * @param params params
-     */
-    @SuppressWarnings("unchecked")
-    public final void executeStep(int stepId, Object... params) {
-
-        StepConfig stepConfig;
-        stepConfig = stepNamedMap.get(stepId);
-
-        if (stepConfig == null) {
-            log.error("Given Authentication Step :" + stepId + " is not in Environment");
-            return;
-        }
-        StepConfigGraphNode newNode = wrap(stepConfig);
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-        currentNode = newNode;
-        if (params.length > 0) {
-            // if there are any params provided, last one is assumed to be the event listeners
-            if (params[params.length - 1] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[params.length - 1]);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-        }
-        if (params.length == 2) {
-            // There is an argument with options present
-            if (params[0] instanceof Map) {
-                Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, stepConfig);
-            }
         }
     }
 
@@ -539,94 +396,6 @@ public class JsGraphBuilder {
     }
 
     /**
-     * Adds the step given by step ID tp the authentication graph.
-     *
-     * @param params params
-     */
-    @SuppressWarnings("unchecked")
-    public void executeStepInAsyncEvent(int stepId, Object... params) {
-
-        AuthenticationContext context = contextForJs.get();
-        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Execute Step on async event. Step ID : " + stepId);
-        }
-        AuthenticationGraph graph = context.getSequenceConfig().getAuthenticationGraph();
-        if (graph == null) {
-            log.error("The graph happens to be null on the sequence config. Can not execute step : " + stepId);
-            return;
-        }
-
-        StepConfig stepConfig = graph.getStepMap().get(stepId);
-        // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
-        StepConfig clonedStepConfig = new StepConfig(stepConfig);
-        clonedStepConfig
-                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
-        if (log.isDebugEnabled()) {
-            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
-        }
-        StepConfigGraphNode newNode = wrap(clonedStepConfig);
-        if (currentNode == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Setting a new node at the first time. Node : " + newNode.getName());
-            }
-            dynamicallyBuiltBaseNode.set(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-
-        if (params.length > 0) {
-            // if there is only one param, it is assumed to be the event listeners
-            if (params[params.length - 1] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[params.length - 1], newNode);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-        }
-
-        if (params.length == 2) {
-            // There is an argument with options present
-            if (params[0] instanceof Map) {
-                Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, clonedStepConfig);
-            }
-        }
-    }
-
-    /**
-     * Adds a function to show a prompt in Javascript code.
-     *
-     * @param templateId Identifier of the template
-     * @param parameters parameters
-     */
-    @SuppressWarnings("unchecked")
-    public void addShowPrompt(String templateId, Object... parameters) {
-
-        ShowPromptNode newNode = new ShowPromptNode();
-        newNode.setTemplateId(templateId);
-
-        if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
-        }
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-
-        currentNode = newNode;
-        if (parameters.length > 0) {
-            if (parameters[parameters.length - 1] instanceof Map) {
-                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1]);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-
-        }
-    }
-
-    /**
      * @param templateId Identifier of the template.
      * @param parameters Parameters.
      * @param handlers   Handlers to run before and after the prompt.
@@ -636,20 +405,8 @@ public class JsGraphBuilder {
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
                                  Map<String, Object> callbacks) {
 
-        ShowPromptNode newNode = new ShowPromptNode();
-        newNode.setTemplateId(templateId);
-        newNode.setParameters(parameters);
-
-        JsGraphBuilder currentBuilder = getCurrentBuilder();
-        if (currentBuilder.currentNode == null) {
-            currentBuilder.result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentBuilder.currentNode, newNode);
-        }
-
-        currentBuilder.currentNode = newNode;
-        addEventListeners(newNode, callbacks);
-        addHandlers(newNode, handlers);
+        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+                .addPromptInternal(templateId, parameters, handlers, callbacks);
     }
 
     /**
@@ -685,96 +442,8 @@ public class JsGraphBuilder {
     public static void addLongWaitProcess(AsyncProcess asyncProcess,
                                           Map<String, Object> parameterMap) {
 
-        addLongWaitProcess(getCurrentBuilder(), asyncProcess, parameterMap);
-    }
-
-    private static void addLongWaitProcess(JsGraphBuilder jsGraphBuilder, AsyncProcess asyncProcess,
-                                           Map<String, Object> parameterMap) {
-
-        LongWaitNode newNode = new LongWaitNode(asyncProcess);
-
-        if (parameterMap != null) {
-            addEventListeners(newNode, parameterMap);
-        }
-        if (jsGraphBuilder.currentNode == null) {
-            jsGraphBuilder.result.setStartNode(newNode);
-        } else {
-            attachToLeaf(jsGraphBuilder.currentNode, newNode);
-        }
-
-        jsGraphBuilder.currentNode = newNode;
-    }
-
-    private static void attachEventListeners(Map<String, Object> eventsMap, AuthGraphNode currentNode) {
-
-        if (eventsMap == null) {
-            return;
-        }
-        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
-        addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
-            attachToLeaf(currentNode, decisionNode);
-        }
-    }
-
-    private void attachEventListeners(Map<String, Object> eventsMap) {
-
-        if (eventsMap == null) {
-            return;
-        }
-        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
-        addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
-            attachToLeaf(currentNode, decisionNode);
-            currentNode = decisionNode;
-        }
-    }
-
-    /**
-     * Adds all the event listeners to the decision node.
-     *
-     * @param eventsMap Map of events and event handler functions, which is handled by this execution.
-     * @return created Dynamic Decision node.
-     */
-    private static void addEventListeners(DynamicDecisionNode decisionNode,
-                                          Map<String, Object> eventsMap) {
-
-        if (eventsMap == null) {
-            return;
-        }
-        eventsMap.forEach((key, value) -> {
-            if (value instanceof ScriptObjectMirror) {
-                SerializableJsFunction jsFunction = SerializableJsFunction
-                        .toSerializableForm((ScriptObjectMirror) value);
-                if (jsFunction != null) {
-                    decisionNode.addFunction(key, jsFunction);
-                } else {
-                    log.error("Event handler : " + key + " is not a function : " + value);
-                }
-            } else if (value instanceof SerializableJsFunction) {
-                decisionNode.addFunction(key, (SerializableJsFunction) value);
-            }
-        });
-    }
-
-    private static void addHandlers(ShowPromptNode showPromptNode, Map<String, Object> handlersMap) {
-
-        if (handlersMap == null) {
-            return;
-        }
-        handlersMap.forEach((key, value) -> {
-            if (value instanceof ScriptObjectMirror) {
-                SerializableJsFunction jsFunction = SerializableJsFunction
-                        .toSerializableForm((ScriptObjectMirror) value);
-                if (jsFunction != null) {
-                    showPromptNode.addHandler(key, jsFunction);
-                } else {
-                    log.error("Event handler : " + key + " is not a function : " + value);
-                }
-            } else if (value instanceof SerializableJsFunction) {
-                showPromptNode.addHandler(key, (SerializableJsFunction) value);
-            }
-        });
+        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+                .addLongWaitProcessInternal(asyncProcess, parameterMap);
     }
 
     /**
@@ -903,107 +572,5 @@ public class JsGraphBuilder {
     public void quitFunction(Object... arg) {
 
         log.error("Quit function is restricted.");
-    }
-
-    /**
-     * Javascript based Decision Evaluator implementation.
-     * This is used to create the Authentication Graph structure dynamically on the fly while the authentication flow
-     * is happening.
-     * The graph is re-organized based on last execution of the decision.
-     */
-    public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
-
-        private static final long serialVersionUID = 6853505881096840344L;
-        private SerializableJsFunction jsFunction;
-
-        public JsBasedEvaluator(SerializableJsFunction jsFunction) {
-
-            this.jsFunction = jsFunction;
-        }
-
-        @Override
-        public Object evaluate(AuthenticationContext authenticationContext, Function<JSObject, Object> jsConsumer) {
-
-            JsGraphBuilder graphBuilder = JsGraphBuilder.this;
-            Object result = null;
-            if (jsFunction == null) {
-                return null;
-            }
-            if (jsFunction.isFunction()) {
-                ScriptEngine scriptEngine = getEngine(authenticationContext);
-                try {
-                    currentBuilder.set(graphBuilder);
-                    JsGraphBuilderFactory.restoreCurrentContext(authenticationContext, scriptEngine);
-                    Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-                    //Now re-assign the executeStep function to dynamic evaluation
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                            (StepExecutor) graphBuilder::executeStepInAsyncEvent);
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                            (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_AUTH_FAILURE,
-                            (FailAuthenticationFunction) JsGraphBuilder::failAsync);
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
-                            graphBuilder::addShowPrompt);
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
-                            graphBuilder::loadLocalLibrary);
-                    JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
-                            .getJsFunctionRegistry();
-                    if (jsFunctionRegistry != null) {
-                        Map<String, Object> functionMap = jsFunctionRegistry
-                                .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
-                        functionMap.forEach(globalBindings::put);
-                    }
-                    Compilable compilable = (Compilable) scriptEngine;
-                    JsGraphBuilder.contextForJs.set(authenticationContext);
-
-                    CompiledScript compiledScript = compilable.compile(jsFunction.getSource());
-                    JSObject builderFunction = (JSObject) compiledScript.eval();
-                    result = jsConsumer.apply(builderFunction);
-
-                    JsGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
-
-                    AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
-                            .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
-                    if (canInfuse(executingNode)) {
-                        infuse(executingNode, dynamicallyBuiltBaseNode.get());
-                    }
-
-                } catch (Throwable e) {
-                    //We need to catch all the javascript errors here, then log and handle.
-                    log.error("Error in executing the javascript for service provider : " + authenticationContext
-                            .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
-                    AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
-                            .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
-                    FailNode failNode = new FailNode();
-                    attachToLeaf(executingNode, failNode);
-                } finally {
-                    contextForJs.remove();
-                    dynamicallyBuiltBaseNode.remove();
-                    clearCurrentBuilder();
-                }
-
-            } else {
-                result = jsFunction.getSource();
-            }
-            return result;
-        }
-
-        @Deprecated
-        public Object evaluate(AuthenticationContext authenticationContext) {
-
-            return this.evaluate(authenticationContext, (fn) -> fn.call(null, new JsAuthenticationContext
-                    (authenticationContext)));
-        }
-
-        private boolean canInfuse(AuthGraphNode executingNode) {
-
-            return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
-        }
-
-        private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
-
-            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
-                    .createEngine(authenticationContext);
-        }
     }
 }

@@ -27,7 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
@@ -68,7 +69,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsGraphBuilderFactory JsGraphBuilderFactory;
+    private JsBaseGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -85,6 +86,8 @@ public class FrameworkServiceDataHolder {
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
     private MultiAttributeLoginService multiAttributeLoginService;
+    private boolean isAdaptiveAuthenticationAvailable = false;
+    private JSExecutionSupervisor jsExecutionSupervisor;
 
     private FrameworkServiceDataHolder() {
 
@@ -205,15 +208,14 @@ public class FrameworkServiceDataHolder {
         this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
     }
 
-    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+    public JsBaseGraphBuilderFactory getJsGraphBuilderFactory() {
 
-        return JsGraphBuilderFactory;
+        return jsGraphBuilderFactory;
     }
 
-    public void setJsGraphBuilderFactory(
-            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+    public void setJsGraphBuilderFactory(JsBaseGraphBuilderFactory jsGraphBuilderFactory) {
 
-        JsGraphBuilderFactory = jsGraphBuilderFactory;
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 
     public MultiAttributeLoginService getMultiAttributeLoginService() {
@@ -515,5 +517,35 @@ public class FrameworkServiceDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    public JSExecutionSupervisor getJsExecutionSupervisor() {
+
+        return jsExecutionSupervisor;
+    }
+
+    public void setJsExecutionSupervisor(JSExecutionSupervisor jsExecutionSupervisor) {
+
+        this.jsExecutionSupervisor = jsExecutionSupervisor;
+    }
+
+    /**
+     * Get adaptive authentication available or not.
+     *
+     * @return isAdaptiveAuthenticationAvailable
+     */
+    public boolean isAdaptiveAuthenticationAvailable() {
+
+        return isAdaptiveAuthenticationAvailable;
+    }
+
+    /**
+     * Set adaptive authentication availability.
+     *
+     * @param adaptiveAuthenticationAvailable adaptiveAuthenticationAvailable
+     */
+    public void setAdaptiveAuthenticationAvailable(boolean adaptiveAuthenticationAvailable) {
+
+        isAdaptiveAuthenticationAvailable = adaptiveAuthenticationAvailable;
     }
 }

@@ -29,7 +29,7 @@ import java.util.Map;
 public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGraphNode {
 
     private static final long serialVersionUID = -2151385170280964420L;
-    private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
+    private Map<String, BaseSerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
 
     @Override
@@ -38,11 +38,11 @@ public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGr
         return null;
     }
 
-    public Map<String, SerializableJsFunction> getFunctionMap() {
+    public Map<String, BaseSerializableJsFunction> getFunctionMap() {
         return Collections.unmodifiableMap(functionMap);
     }
 
-    public void addFunction(String outcome, SerializableJsFunction function) {
+    public void addFunction(String outcome, BaseSerializableJsFunction function) {
         functionMap.put(outcome, function);
     }
 

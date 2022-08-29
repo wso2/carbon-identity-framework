@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -25,7 +26,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
@@ -34,6 +35,7 @@ import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @PrepareForTest(IdentityUtil.class)
+@PowerMockIgnore("org.mockito.*")
 public class AuthenticationEndpointUtilTest {
 
     final String USERNAME = "TestUser";

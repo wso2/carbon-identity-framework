@@ -16,6 +16,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
@@ -31,6 +32,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({ConfigurationFacade.class})
+@PowerMockIgnore("org.mockito.*")
 public class FrameworkUtilsTest {
 
     @Mock
