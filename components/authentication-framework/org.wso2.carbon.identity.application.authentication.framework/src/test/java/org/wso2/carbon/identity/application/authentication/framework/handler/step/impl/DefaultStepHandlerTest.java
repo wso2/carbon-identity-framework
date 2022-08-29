@@ -26,7 +26,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.IObjectFactory;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
@@ -40,6 +39,8 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +54,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+/**
+ * This test ensures that the retry page is returned when relevant properties are set with the values. The default
+ * behavior is to return to the login page after login failure.
+ */
 @PrepareForTest({IdentityUtil.class})
 @WithCarbonHome
 @PowerMockIgnore("org.mockito.*")
@@ -74,18 +79,13 @@ public class DefaultStepHandlerTest {
     }
 
     @BeforeMethod
-    public void setUp() throws Exception {
+    public void setUp() {
 
         initMocks(this);
     }
 
-    @AfterMethod
-    public void tearDown() throws Exception {
-
-    }
-
     @Test
-    public void testGetInstance() throws Exception {
+    public void testGetInstance() {
 
         CommonTestUtils.testSingleton(
                 DefaultStepHandler.getInstance(),
@@ -115,7 +115,7 @@ public class DefaultStepHandlerTest {
 
     @Test(dataProvider = "isRedirectionToRetryPageOnAccountLockData")
     public void testIsRedirectionToRetryPageOnAccountLock(Object contextObj, Map<String, String> parameters,
-                                                          boolean result) throws Exception {
+                                                          boolean result) {
 
         AuthenticationContext context = (AuthenticationContext) contextObj;
         AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
@@ -138,7 +138,8 @@ public class DefaultStepHandlerTest {
     }
 
     @Test(dataProvider = "getRedirectUrlAsRetryPageData")
-    public void testGetRedirectUrlAsRetryPage(boolean redirectToRetryPageOnAccountLock) throws Exception {
+    public void testGetRedirectUrlAsRetryPage(boolean redirectToRetryPageOnAccountLock)
+            throws URISyntaxException, IOException {
 
         // The authConfig "redirectToRetryPageOnAccountLock" has to be true to return the retry page as redirectUrl.
         Map<String, String> authParameters = new HashMap<>();
