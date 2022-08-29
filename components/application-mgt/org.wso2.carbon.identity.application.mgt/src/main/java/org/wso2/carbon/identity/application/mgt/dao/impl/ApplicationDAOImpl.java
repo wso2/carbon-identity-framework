@@ -4846,7 +4846,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             ServiceProvider application = getApplicationByResourceId(resourceId, tenantDomain);
-            int appIdUsingResourceId = getAppIdUsingResourceId(resourceId, tenantDomain);
+            int applicationId = application.getApplicationID();
 
             if (application != null) {
                 // Delete the application certificate if there is any
@@ -4860,7 +4860,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID, tenantId);
                     deleteAppStatement.execute();
-                    deleteAuthenticationScript(appIdUsingResourceId, connection);
+                    deleteAuthenticationScript(applicationId, connection);
 
                     IdentityDatabaseUtil.commitTransaction(connection);
                 } catch (SQLException ex) {
