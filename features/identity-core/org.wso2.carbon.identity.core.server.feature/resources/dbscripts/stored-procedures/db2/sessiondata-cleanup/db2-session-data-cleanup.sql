@@ -21,6 +21,8 @@ BEGIN
 	DECLARE @sessionMetadataCleanupCount INT;
 	DECLARE @operationalSessionMetadataCleanupCount INT;
 	DECLARE @operationCleanupCount INT;
+	DECLARE @sessionFederatedMappingsCleanupCount INT;
+	DECLARE @operationalFederatedSessionMappingsCleanupCount INT;
 	DECLARE @tracingEnabled INT;
 	DECLARE @sleepTime VARCHAR(8);
 	DECLARE @batchSize INT;
@@ -51,6 +53,8 @@ BEGIN
 	SET @deletedOperationalSessionAppInfo = 0;
 	SET @deletedSessionMetadata = 0;
 	SET @deletedOperationalSessionMetadata = 0;
+	SET @deletedFederatedSessionMappings = 0;
+	SET @deletedOperationalFederatedSessionMappings = 0;
 	SET @deletedStoreOperations = 0;
 	SET @deletedDeleteOperations = 0;
 	SET @sessionCleanupCount = 1;
@@ -60,6 +64,8 @@ BEGIN
 	SET @operationalSessionAppInfoCleanupCount = 1;
 	SET @sessionMetadataCleanupCount = 1;
 	SET @operationalSessionMetadataCleanupCount = 1;
+	SET @sessionFederatedMappingsCleanupCount = 1;
+	SET @operationalFederatedSessionMappingsCleanupCount = 1;
 	SET @operationCleanupCount = 1;
 	SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
 	SET @sleepTime = '00:00:02.000';          -- Sleep time in seconds.
@@ -69,8 +75,8 @@ BEGIN
 	SET @operationCleanUpTempTableCount = 1;
 	SET @cleanUpCompleted = 1;
 
-	-- Session data older than 20160 minutes(14 days) will be removed.
-	SET @sessionCleanupTime = BIGINT(CURRENT TIMESTAMP - 14 DAYS);
+	-- Expired Session data older than 120 minutes(2 hours) will be removed.
+	SET @sessionCleanupTime = BIGINT(CURRENT TIMESTAMP - (2) HOUR);
 	-- Operational data older than 720 minutes(12 h) will be removed.
 	SET @operationCleanupTime = BIGINT(CURRENT TIMESTAMP - (12) HOUR);
 
@@ -90,7 +96,7 @@ BEGIN
 	WHILE (@sessionCleanUpTempTableCount > 0) DO
 		IF NOT (EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_AUTH_SESSION_STORE_TMP')) THEN
 		    CREATE TABLE IDN_AUTH_SESSION_STORE_TMP AS (SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE) WITH NO DATA;
-			INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < @sessionCleanupTime LIMIT @chunkLimit;
+			INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < @sessionCleanupTime LIMIT @chunkLimit;
 		 	CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID);
 		 	COMMIT;
 		END IF;
@@ -122,6 +128,12 @@ BEGIN
 			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_AUTH_SESSION_META_DATA') THEN
 				DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH);
 			    GET DIAGNOSTICS @sessionMetadataCleanupCount = ROW_COUNT;
+			END IF;
+
+			-- Deleting federation auth session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_FED_AUTH_SESSION_MAPPING') THEN
+				DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH);
+				GET DIAGNOSTICS @sessionFederatedMappingsCleanupCount = ROW_COUNT;
 			END IF;
 
 			DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH);
@@ -180,6 +192,12 @@ BEGIN
 			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_AUTH_SESSION_META_DATA') THEN
 				DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);
 			    GET DIAGNOSTICS @operationalSessionMetadataCleanupCount = ROW_COUNT;
+			END IF;
+
+			-- Deleting federated session mappings from 'IDN_FED_AUTH_SESSION_MAPPING' table
+			IF EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME= 'IDN_FED_AUTH_SESSION_MAPPING') THEN
+			    DELETE FROM IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);
+			    GET DIAGNOSTICS @operationalFederatedSessionMappingsCleanupCount = ROW_COUNT;
 			END IF;
 
 			DELETE FROM IDN_AUTH_SESSION_STORE_TMP2 WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH2);

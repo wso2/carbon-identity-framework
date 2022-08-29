@@ -622,6 +622,14 @@ $("#enableScript").click(function () {
 
 $("#editorRow").hide();
 checkScriptEnabled();
+checkAdaptiveEnabled();
+
+function checkAdaptiveEnabled() {
+    adaptiveEnabled = $("#enableAdaptive").is(":checked");
+    if (!adaptiveEnabled) {
+        $("#editorRow").hide();
+    }
+}
 
 function checkScriptEnabled() {
     scriptEnabled = $("#enableScript").is(":checked");

@@ -16,23 +16,48 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
+import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.user.core.UserCoreConstants.DOMAIN_SEPARATOR;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
+@PrepareForTest({IdentityUtil.class, IdentityCoreServiceComponent.class, IdentityTenantUtil.class})
+@PowerMockIgnore("org.mockito.*")
 @WithCarbonHome
 @WithAxisConfiguration
 public class AuthenticationEndpointUtilTest {
+
+    @Mock
+    private ConfigurationContextService mockConfigurationContextService;
+
+    @Mock
+    private ConfigurationContext mockConfigurationContext;
+
+    @Mock
+    private AxisConfiguration mockAxisConfiguration;
 
     final String USERNAME = "TestUser";
     final String USERSTORE_NAME = "WSO2.COM";
@@ -152,6 +177,10 @@ public class AuthenticationEndpointUtilTest {
                             String tenantDomain,
                             String userStoreDomain) throws Exception {
 
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getPrimaryDomainName()).thenReturn(PRIMARY_DEFAULT_DOMAIN_NAME);
+        when(IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+
         UserDTO userDTO = AuthenticationEndpointUtil.getUser(username);
         Assert.assertNotNull(userDTO);
         Assert.assertEquals(userDTO.getUsername(), USERNAME);
@@ -175,8 +204,14 @@ public class AuthenticationEndpointUtilTest {
 
     @Test(dataProvider = "url-provider")
     public void testIsValidURL(String urlString, boolean expectedValidity) throws Exception {
+        mockStatic(IdentityCoreServiceComponent.class);
+        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(TENANT_DOMAIN);
         boolean validity = AuthenticationEndpointUtil.isValidURL(urlString);
-        Assert.assertEquals(validity, expectedValidity);
+        Assert.assertEquals(validity, expectedValidity, "URL validity failed for " + urlString);
     }
 }

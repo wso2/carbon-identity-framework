@@ -23,6 +23,7 @@ deleteCount INT := 0;
 deleteMappingCount INT := 0;
 deleteAppInfoCount INT := 0;
 deleteMetadataCount INT := 0;
+deleteFederatedSessionMappingCount INT := 0;
 chunkCount INT := 0;
 batchCount INT := 0;
 
@@ -33,6 +34,7 @@ purgingTable text;
 purgingSessionUserMappingTable text;
 purgingSessionAppInfoTable text;
 purgingSessionMetadataTable text;
+purgingFederatedAuthSessionMappingTable text;
 purgingChunkTable text;
 purgingBatchTable text;
 purgeBseColmn text;
@@ -69,13 +71,14 @@ THEN
     purgingSessionUserMappingTable = 'idn_auth_user_session_mapping';
     purgingSessionAppInfoTable = 'idn_auth_session_app_info';
     purgingSessionMetadataTable = 'idn_auth_session_meta_data';
+    purgingFederatedAuthSessionMappingTable = 'idn_fed_auth_session_mapping';
     purgeBseColmn := 'session_id';
 	purgeBseColmnType := 'varchar';
 
-  -- Session data older than 20160 minutes(14 days) will be removed.
-    sessionCleanupTime := (unix_timestamp*1000000000) - (20160*60000000000);
+  -- Expired Session data older than 120 minutes(2 hours) will be removed.
+    sessionCleanupTime := (unix_timestamp*1000000000) - (120*60000000000);
 
-    purgingCondition := 'select session_id from idn_auth_session_store where time_created < '||sessionCleanupTime||'';
+    purgingCondition := 'select session_id from idn_auth_session_store where expiry_time < '||sessionCleanupTime||'';
 
     IF (operationid = 1)
     THEN
@@ -92,6 +95,7 @@ THEN
     purgingSessionUserMappingTable = 'idn_auth_user_session_mapping';
     purgingSessionAppInfoTable = 'idn_auth_session_app_info';
     purgingSessionMetadataTable = 'idn_auth_session_meta_data';
+    purgingFederatedAuthSessionMappingTable = 'idn_fed_auth_session_mapping';
     purgeBseColmn := 'session_id';
 	purgeBseColmnType := 'varchar';
 
@@ -397,6 +401,25 @@ auditTable :=  purgingTable||'_auditlog';
                 END IF;
             END IF;
             -- End of deleting session metadata from 'idn_auth_session_meta_data' table
+
+            -- Deleting federated session mappings from 'idn_fed_auth_session_mapping' table
+            EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingFederatedAuthSessionMappingTable;
+            IF (rowcount = 1)
+            THEN
+                IF (enableLog AND logLevel IN ('TRACE')) THEN
+                    notice := 'BATCH DELETE START ON TABLE '||purgingFederatedAuthSessionMappingTable||' WITH :'||batchCount;
+                    RAISE NOTICE '%',notice;
+                END IF;
+
+                EXECUTE 'DELETE from '||quote_ident(purgingFederatedAuthSessionMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+                GET diagnostics deleteFederatedSessionMappingCount := ROW_COUNT;
+
+                IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+                    notice := 'BATCH DELETE FINISHED ON TABLE '||purgingFederatedAuthSessionMappingTable||' WITH :'||deleteFederatedSessionMappingCount;
+                    RAISE NOTICE '%',notice;
+                END IF;
+            END IF;
+            -- End of deleting federated session mappings from 'idn_fed_auth_session_mapping' table
 
             EXECUTE ' DELETE from '||quote_ident(purgingChunkTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             IF (enableLog AND logLevel IN ('TRACE')) THEN

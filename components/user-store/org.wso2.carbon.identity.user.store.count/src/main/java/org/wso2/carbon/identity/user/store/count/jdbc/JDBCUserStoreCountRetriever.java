@@ -195,16 +195,12 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
         //if primary user store, DB connection can be same as realm data source.
         if (dbConnection == null && realmConfiguration.isPrimary()) {
-            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection(true);
         } else if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to " +
                     realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
         } else {
             // db connection is present
-        }
-        dbConnection.setAutoCommit(false);
-        if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         }
         return dbConnection;
     }

@@ -295,15 +295,16 @@ public class UserProfileMgtDAO {
                         while (resultSet.next()) {
                             associatedFederatedAccounts.add(new AssociatedAccountDTO(
                                     resultSet.getString("ASSOCIATION_ID"),
+                                    resultSet.getInt("ID"),
                                     resultSet.getString("NAME"),
                                     resultSet.getString("IDP_USER_ID")
                             ));
                         }
                     }
-                }catch (SQLException e1) {
+                } catch (SQLException ex) {
                     throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
                             + "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain +
-                            " in tenant: " + tenantId, e1);
+                            " in tenant: " + tenantId, ex);
                 }
         } catch (SQLException e) {
             throw new UserProfileException("Error occurred while retrieving federated accounts associated for " +
@@ -313,7 +314,6 @@ public class UserProfileMgtDAO {
 
         return associatedFederatedAccounts;
     }
-
 
     private static class LazyHolder {
 

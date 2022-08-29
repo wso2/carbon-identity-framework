@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,11 +42,12 @@ import javax.script.ScriptEngine;
  * Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of Nashorn engine and any related expnsive objects.
  */
-public class JsGraphBuilderFactory {
+public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
 
     private static final Log LOG = LogFactory.getLog(JsGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
-    private static final String[] NASHORN_ARGS = {"--no-java"};
+    private static final String[] NASHORN_ARGS = {"--no-java", "--no-deprecation-warning"};
+
     private ClassFilter classFilter;
 
     // Suppress the Nashorn deprecation warnings in jdk 11
@@ -62,13 +62,13 @@ public class JsGraphBuilderFactory {
     }
 
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
-        throws FrameworkException {
+            throws FrameworkException {
 
         Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), engine);
+                Object deserializedValue = JsNashornSerializer.fromJsSerializableInternal(entry.getValue(), engine);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
                     ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
                 }
@@ -81,7 +81,8 @@ public class JsGraphBuilderFactory {
 
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, Object> persistableMap = new HashMap<>();
-        engineBindings.forEach((key, value) -> persistableMap.put(key, FrameworkUtils.toJsSerializable(value)));
+        engineBindings.forEach((key, value) -> persistableMap.put(key,
+                JsNashornSerializer.toJsSerializableInternal(value)));
         context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
@@ -101,22 +102,34 @@ public class JsGraphBuilderFactory {
         return engine;
     }
 
+    @Override
+    public JsSerializer getJsUtil() {
+
+        return JsNashornSerializer.getInstance();
+    }
+
+    @Override
+    public JsBaseGraphBuilder getCurrentBuilder() {
+
+        return JsNashornGraphBuilder.getCurrentBuilder();
+    }
+
     private ClassLoader getClassLoader() {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         return classLoader == null ? NashornScriptEngineFactory.class.getClassLoader() : classLoader;
     }
 
-    public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-            Map<Integer, StepConfig> stepConfigMap) {
+    public JsNashornGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                               Map<Integer, StepConfig> stepConfigMap) {
 
-        return new JsGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
+        return new JsNashornGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
     }
 
-    public JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                        Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+    public JsNashornGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                               Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
 
-        return new JsGraphBuilder(authenticationContext, stepConfigMap,
+        return new JsNashornGraphBuilder(authenticationContext, stepConfigMap,
                 createEngine(authenticationContext), currentNode);
     }
 }

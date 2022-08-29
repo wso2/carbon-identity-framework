@@ -18,83 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import javax.net.ssl.HttpsURLConnection;
-
 /**
- * Client for calling /api/identity/auth/ with mutual ssl authentication
+ * Client for calling /api/identity/auth/ with client authentication.
  */
 public class AuthContextAPIClient {
-
-    private static final Log log = LogFactory.getLog(AuthContextAPIClient.class);
-
-    private static final String HTTP_METHOD_GET = "GET";
 
     private AuthContextAPIClient() {
 
     }
 
     /**
-     * Send mutual ssl https post request and return data
+     * Send GET request with client authentication and return data.
      *
-     * @param backendURL   URL of the service
-     * @return Received data
-     * @throws IOException
+     * @param backendURL The URL of the backend service.
+     * @return Data which was received from the backend service.
      */
     public static String getContextProperties(String backendURL) {
-        InputStream inputStream = null;
-        BufferedReader reader = null;
-        String response = null;
-        URL url = null;
 
-        try {
-            url = new URL(backendURL);
-            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
-            httpsURLConnection.setSSLSocketFactory(MutualSSLManager.getSslSocketFactory());
-            httpsURLConnection.setDoOutput(true);
-            httpsURLConnection.setDoInput(true);
-            httpsURLConnection.setRequestMethod(HTTP_METHOD_GET);
-
-            httpsURLConnection.setRequestProperty(MutualSSLManager.getUsernameHeaderName(), MutualSSLManager.getCarbonLogin());
-
-            inputStream = httpsURLConnection.getInputStream();
-            reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            StringBuilder builder = new StringBuilder();
-            String line;
-
-            while (StringUtils.isNotEmpty(line = reader.readLine())) {
-                builder.append(line);
-            }
-            response = builder.toString();
-        } catch (FileNotFoundException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ", return 404.");
-            }
-        } catch (IOException e) {
-            log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ", failed.", e);
-        } finally {
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-
-            } catch (IOException e) {
-                log.error("Closing stream for " + url + " failed", e);
-            }
-        }
-        return response;
+        return AuthenticationEndpointUtil.sendGetRequest(backendURL);
     }
 }

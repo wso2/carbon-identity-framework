@@ -316,6 +316,14 @@ public class SelfRegistrationMgtClient {
                 properties.put(tenantProperty);
             }
 
+            if (StringUtils.isNotBlank(user.getRealm())) {
+                JSONObject realmProperty = new JSONObject();
+                realmProperty.put(IdentityManagementEndpointConstants.KEY,
+                        IdentityManagementEndpointConstants.REALM);
+                realmProperty.put(IdentityManagementEndpointConstants.VALUE, user.getRealm());
+                properties.put(realmProperty);
+            }
+
             userObject.put(PROPERTIES, properties);
             // Get tenant qualified endpoint.
             HttpPost post = new HttpPost(getUserAPIEndpoint(user.getTenantDomain()));

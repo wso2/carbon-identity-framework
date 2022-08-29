@@ -88,7 +88,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         AuthenticationContext context = getAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -103,7 +103,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(1);
         jsGraphBuilder.executeStep(2);
 
@@ -129,7 +129,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
 
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.createWith(script);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -152,7 +152,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.filterOptions(options, stepConfig);
         assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter,
                 "Authentication options after filtering mismatches expected. " + options);
@@ -287,7 +287,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.authenticatorParamsOptions(options, stepConfig);
         assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value,
                 "Params are not set expected");
