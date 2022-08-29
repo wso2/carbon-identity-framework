@@ -4873,9 +4873,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             ServiceProvider application = getApplicationByResourceId(resourceId, tenantDomain);
-            int applicationId = application.getApplicationID();
 
             if (application != null) {
+                int applicationId = application.getApplicationID();
                 // Delete the application certificate if there is any
                 deleteApplicationCertificate(connection, application);
 
