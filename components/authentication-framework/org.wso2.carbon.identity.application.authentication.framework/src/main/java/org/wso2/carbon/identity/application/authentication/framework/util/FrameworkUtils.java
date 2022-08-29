@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+/**
+ * Copyright (c) 2022, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -3241,7 +3241,33 @@ public class FrameworkUtils {
                     tenantDomain, e);
         }
 
-        List<ClaimMapping> requestedScopeClaims = new ArrayList<>();
+        if (claimMappings.isEmpty()) {
+            return filterByDefaultClaimMappings(claimMappingListOfScopes);
+        } else {
+            return filterByConfiguredClaimMappings(claimMappingListOfScopes, claimMappings);
+        }
+    }
+
+    private static List<ClaimMapping> filterByDefaultClaimMappings(List<String> claimMappingListOfScopes) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Get filtered by Scope claims using default claim mappings configuration");
+        }
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<ClaimMapping>();
+        for (String claimUri : claimMappingListOfScopes) {
+            ClaimMapping claim = ClaimMapping.build(claimUri, claimUri, null, true, false);
+            requestedScopeClaims.add(claim);
+        }
+        return requestedScopeClaims;
+    }
+
+    private static List<ClaimMapping> filterByConfiguredClaimMappings(List<String> claimMappingListOfScopes,
+                                                                      List<ClaimMapping> claimMappings) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Get filtered by Scope claims using user configured claim mappings configuration");
+        }
+        List<ClaimMapping> requestedScopeClaims = new ArrayList<ClaimMapping>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
                 requestedScopeClaims.add(claim);

@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+/**
+ * Copyright (c) 2022, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -439,32 +439,29 @@ public class DefaultClaimHandler implements ClaimHandler {
             throws FrameworkException {
 
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
-
-        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
-        if (spToLocalClaimMappings == null) {
-            spToLocalClaimMappings = new HashMap<>();
-        }
-
-        Map<String, String> carbonToStandardClaimMapping;
-        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        if (requestedClaimMappings == null) {
-            requestedClaimMappings = new HashMap<>();
-        }
-
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
-
         String tenantDomain = authenticatedUser.getTenantDomain();
 
         UserRealm realm = getUserRealm(tenantDomain);
-
         if (realm == null) {
             log.warn("No valid tenant domain provider. No claims returned back");
             return new HashMap<>();
         }
 
         ClaimManager claimManager = getClaimManager(tenantDomain, realm);
-
         AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
+
+        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
+        if (spToLocalClaimMappings == null || spToLocalClaimMappings.isEmpty()) {
+            getDefaultSpToLocalClaimMappings(spToLocalClaimMappings, claimManager);
+        }
+
+        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
+        if (requestedClaimMappings == null || requestedClaimMappings.isEmpty()) {
+            getDefaultRequestedClaimMappings(requestedClaimMappings, spToLocalClaimMappings);
+        }
+
+        Map<String, String> carbonToStandardClaimMapping;
 
         // key:value -> carbon_dialect:claim_value
         Map<String, String> allLocalClaims;
@@ -534,6 +531,32 @@ public class DefaultClaimHandler implements ClaimHandler {
         addMultiAttributeSeparatorToRequestedClaims(authenticatedUser, userStore, spRequestedClaims, realm);
 
         return spRequestedClaims;
+    }
+
+    private void getDefaultRequestedClaimMappings(Map<String, String> requestedClaimMappings, Map<String,
+            String> spToLocalClaimMappings) {
+
+        requestedClaimMappings.putAll(spToLocalClaimMappings);
+    }
+
+    private void getDefaultSpToLocalClaimMappings(Map<String, String> spToLocalClaimMappings,
+                                                  ClaimManager claimManager) {
+
+        try {
+            org.wso2.carbon.user.api.ClaimMapping[] claimMappings = claimManager
+                    .getAllClaimMappings(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
+
+            for (org.wso2.carbon.user.api.ClaimMapping mapping : claimMappings) {
+                String claimURI = mapping.getClaim().getClaimUri();
+                spToLocalClaimMappings.put(claimURI, claimURI);
+            }
+
+        } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Could not retrieve the Claim Manager", e);
+            }
+        }
+
     }
 
     private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings,
