@@ -4875,7 +4875,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProvider application = getApplicationByResourceId(resourceId, tenantDomain);
 
             if (application != null) {
-                int applicationId = application.getApplicationID();
                 // Delete the application certificate if there is any
                 deleteApplicationCertificate(connection, application);
 
@@ -4887,7 +4886,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID, tenantId);
                     deleteAppStatement.execute();
-                    deleteAuthenticationScript(applicationId, connection);
+                    deleteAuthenticationScript(application.getApplicationID(), connection);
 
                     IdentityDatabaseUtil.commitTransaction(connection);
                 } catch (SQLException ex) {
