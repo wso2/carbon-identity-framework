@@ -265,6 +265,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 tenantDomainQueryString = "tenantDomain=" + context.getTenantDomain();
                 promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, tenantDomainQueryString);
             }
+            String sessionDataKeyQueryString = "sessionDataKey=" + context.getContextIdentifier();
+            promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, sessionDataKeyQueryString);
             String redirectUrl = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, "templateId=" +
                     URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
                     context.getContextIdentifier());

@@ -612,8 +612,22 @@ public class FrameworkUtils {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             if (status != null && statusMsg != null) {
-                uriBuilder.addParameter("status", status);
-                uriBuilder.addParameter("statusMsg", statusMsg);
+                if (context != null) {
+                    Map<String, String> failureData = new HashMap<>();
+                    failureData.put("status", status);
+                    failureData.put("statusMsg", statusMsg);
+                    failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                    AuthenticationError authenticationError = new AuthenticationError(failureData);
+                    String errorKey = UUID.randomUUID().toString();
+                    FrameworkUtils.addAuthenticationErrorToCache(errorKey, authenticationError,
+                            context.getTenantDomain());
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
+                            context.getContextIdentifier());
+                } else {
+                    uriBuilder.addParameter("status", status);
+                    uriBuilder.addParameter("statusMsg", statusMsg);
+                }
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (context != null) {
