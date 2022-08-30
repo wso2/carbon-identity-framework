@@ -207,6 +207,9 @@ public class FrameworkUtils {
     private static final String HASH_CHAR = "#";
     private static final String HASH_CHAR_ENCODED = "%23";
     private static final String QUESTION_MARK = "?";
+    public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+
+    private static Boolean authenticatorNameInAuthConfigPreference;
 
     private FrameworkUtils() {
     }
@@ -3295,5 +3298,25 @@ public class FrameworkUtils {
             }
         }
         return callerPath;
+    }
+
+    /**
+     * Util function to check whether using authenticator name to resolve authenticatorConfig in adaptive scripts
+     * is enabled. If not authenticator display name is used.
+     *
+     * @return boolean indicating server config preference.
+     */
+    public static boolean isAuthenticatorNameInAuthConfigEnabled() {
+
+        if (authenticatorNameInAuthConfigPreference == null) {
+            String serverConfig = IdentityUtil.getProperty(AUTHENTICATOR_NAME_IN_AUTH_CONFIG);
+            if (StringUtils.isNotBlank(serverConfig)) {
+                authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(serverConfig);
+            } else {
+                authenticatorNameInAuthConfigPreference = false;
+            }
+        }
+
+        return authenticatorNameInAuthConfigPreference;
     }
 }
