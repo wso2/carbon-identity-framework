@@ -651,6 +651,14 @@
                 {% endfor %}
             </SupportedIDTokenEncryptionMethods>
 
+            <EnableAudiences>true</EnableAudiences>
+            {% if oauth.oidc.id_token.audiences|length %}
+            <Audiences>
+                {% for audience in oauth.oidc.id_token.audiences %}
+                <Audience>{{audience}}</Audience>
+                {% endfor %}
+            </Audiences>
+
              <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
             <IdTokenAudiences>
