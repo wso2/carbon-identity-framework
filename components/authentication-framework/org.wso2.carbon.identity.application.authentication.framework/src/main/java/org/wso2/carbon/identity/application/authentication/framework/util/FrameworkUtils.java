@@ -3256,32 +3256,6 @@ public class FrameworkUtils {
                     tenantDomain, e);
         }
 
-        if (claimMappings.isEmpty()) {
-            return filterByDefaultClaimMappings(claimMappingListOfScopes);
-        } else {
-            return filterByConfiguredClaimMappings(claimMappingListOfScopes, claimMappings);
-        }
-    }
-
-    private static List<ClaimMapping> filterByDefaultClaimMappings(List<String> claimMappingListOfScopes) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Get filtered by Scope claims using default claim mappings configuration");
-        }
-        List<ClaimMapping> requestedScopeClaims = new ArrayList<ClaimMapping>();
-        for (String claimUri : claimMappingListOfScopes) {
-            ClaimMapping claim = ClaimMapping.build(claimUri, claimUri, null, true, false);
-            requestedScopeClaims.add(claim);
-        }
-        return requestedScopeClaims;
-    }
-
-    private static List<ClaimMapping> filterByConfiguredClaimMappings(List<String> claimMappingListOfScopes,
-                                                                      List<ClaimMapping> claimMappings) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Get filtered by Scope claims using user configured claim mappings configuration");
-        }
         List<ClaimMapping> requestedScopeClaims = new ArrayList<ClaimMapping>();
         for (ClaimMapping claim : claimMappings) {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
@@ -3321,5 +3295,45 @@ public class FrameworkUtils {
             }
         }
         return callerPath;
+    }
+
+    /**
+     * Util function to get default oidc claim mappings when no claims are configured.
+     *
+     * @param tenantDomain      Service provider domain.
+     * @return  default claim mappings.
+     */
+    public static ClaimMapping[] getDefaultOIDCClaimMappings(String tenantDomain) {
+
+        List<ClaimMapping> defaultClaimMappings = new ArrayList<>();
+        try {
+            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            ClaimManager claimManager = realm.getClaimManager();
+
+            org.wso2.carbon.user.api.ClaimMapping[] claimMappings = claimManager
+                    .getAllClaimMappings(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
+
+            for (org.wso2.carbon.user.api.ClaimMapping mapping : claimMappings) {
+                String claimURI = mapping.getClaim().getClaimUri();
+                ClaimMapping claim = ClaimMapping.build(claimURI, claimURI, null, true,
+                        false);
+                defaultClaimMappings.add(claim);
+            }
+            return defaultClaimMappings.toArray(new ClaimMapping[0]);
+
+        } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Could not retrieve the Claim Manager", e);
+            }
+        } catch (CarbonException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Could not retrieve the Default Claim Mappings");
+        }
+        return new ClaimMapping[0];
     }
 }

@@ -213,15 +213,20 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
         boolean scopeBasedClaimFilteringEnabled = true;
+        boolean isOIDCServiceProvider;
 
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING))) {
             scopeBasedClaimFilteringEnabled =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING));
         }
+        isOIDCServiceProvider = scopeBasedClaimFilteringEnabled && claimsListOfScopes != null;
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
+        if (isOIDCServiceProvider && claimMappings.length == 0) {
+            claimMappings = FrameworkUtils.getDefaultOIDCClaimMappings(serviceProvider.getOwner().getTenantDomain());
+        }
 
-        if (scopeBasedClaimFilteringEnabled && claimsListOfScopes != null) {
+        if (isOIDCServiceProvider) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
