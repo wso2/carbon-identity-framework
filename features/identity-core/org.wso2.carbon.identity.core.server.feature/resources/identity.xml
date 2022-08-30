@@ -2026,6 +2026,9 @@
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
@@ -2041,6 +2044,10 @@
                 <BasePath>/console/</BasePath>
             </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+        </Servlet>
     </OrgContextsToRewrite>
 
     <OrgRoutingOnlySupportedAPIPaths>
