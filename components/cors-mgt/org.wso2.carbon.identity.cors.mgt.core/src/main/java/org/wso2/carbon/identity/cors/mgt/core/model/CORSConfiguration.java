@@ -86,6 +86,11 @@ public class CORSConfiguration {
     private boolean tagRequests;
 
     /**
+     * Enable the server side request blocking behaviour for CORS requests which are not allowed.
+     */
+    private boolean enableServerSideRestriction;
+
+    /**
      * Default constructor.
      */
     public CORSConfiguration() {
@@ -193,5 +198,15 @@ public class CORSConfiguration {
     public void setTagRequests(boolean tagRequests) {
 
         this.tagRequests = tagRequests;
+    }
+
+    public boolean isEnableServerSideRestriction() {
+
+        return enableServerSideRestriction;
+    }
+
+    public void setEnableServerSideRestriction(boolean enableServerSideRestriction) {
+
+        this.enableServerSideRestriction = enableServerSideRestriction;
     }
 }

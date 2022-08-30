@@ -878,6 +878,7 @@
   "cors.supports_credentials": true,
   "cors.max_age": -1,
   "cors.tag_requests": false,
+  "cors.enable_server_side_restriction": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
   "axis2.transport_sender.local.name": "local",

@@ -30,6 +30,7 @@ import java.util.function.Function;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.ALLOW_ANY_ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.ALLOW_GENERIC_HTTP_REQUESTS;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.ALLOW_SUBDOMAINS;
+import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.ENABLE_SERVER_SIDE_RESTRICTION;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.EXPOSED_HEADERS;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.MAX_AGE;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORSConfigurationAttributes.SUPPORTED_HEADERS;
@@ -63,6 +64,8 @@ public class CORSConfigurationToResourceAdd implements Function<CORSConfiguratio
         addAttribute(attributes, SUPPORTS_CREDENTIALS, String.valueOf(corsConfiguration.isSupportsCredentials()));
         addAttribute(attributes, MAX_AGE, String.valueOf(corsConfiguration.getMaxAge()));
         addAttribute(attributes, TAG_REQUESTS, String.valueOf(corsConfiguration.isTagRequests()));
+        addAttribute(attributes, ENABLE_SERVER_SIDE_RESTRICTION,
+                String.valueOf(corsConfiguration.isEnableServerSideRestriction()));
 
         resourceAdd.setAttributes(attributes);
 

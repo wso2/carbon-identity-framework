@@ -79,6 +79,7 @@ public class Constants {
         public static final String SUPPORTS_CREDENTIALS = "supportsCredentials";
         public static final String MAX_AGE = "maxAge";
         public static final String TAG_REQUESTS = "tagRequests";
+        public static final String ENABLE_SERVER_SIDE_RESTRICTION = "enableServerSideRestriction";
 
         private CORSConfigurationAttributes() {
 

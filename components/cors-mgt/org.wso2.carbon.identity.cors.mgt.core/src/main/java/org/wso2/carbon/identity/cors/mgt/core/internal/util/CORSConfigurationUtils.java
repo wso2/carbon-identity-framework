@@ -117,6 +117,8 @@ public class CORSConfigurationUtils {
             corsConfiguration.setTagRequests(Boolean.parseBoolean(IdentityUtil.getProperty(
                     IdentityConstants.CORS.TAG_REQUESTS)));
 
+            corsConfiguration.setEnableServerSideRestriction(Boolean.parseBoolean((IdentityUtil.getProperty(
+                    IdentityConstants.CORS.ENABLE_SERVER_SIDE_RESTRICTION))));
         }
 
         return corsConfiguration;

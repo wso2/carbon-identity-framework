@@ -529,6 +529,8 @@ public class IdentityConstants {
         public static final String SUPPORTS_CREDENTIALS = "CORS.SupportsCredentials";
         public static final String MAX_AGE = "CORS.MaxAge";
         public static final String TAG_REQUESTS = "CORS.TagRequests";
+
+        public static final String ENABLE_SERVER_SIDE_RESTRICTION = "CORS.EnableServerSideRestriction";
     }
 
     /**
