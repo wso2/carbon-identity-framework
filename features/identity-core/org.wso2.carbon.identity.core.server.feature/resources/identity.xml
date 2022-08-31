@@ -2046,6 +2046,9 @@
             <Context>
                 <BasePath>/console/</BasePath>
             </Context>
+            <Context>
+                <BasePath>/myaccount/</BasePath>
+            </Context>
         </WebApp>
         <Servlet>
             <Context>/commonauth(.*)</Context>
