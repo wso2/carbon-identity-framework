@@ -34,6 +34,7 @@ import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
 import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
@@ -57,6 +58,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertPropertiesDTOArrayToMap;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostGet;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
@@ -486,22 +488,27 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     }
 
     /**
-     * Check the connection health for LDAP userstores
-     * @param connectionURL Connection URL.
-     * @param connectionName Connection Name.
-     * @param connectionPassword Connection Password.
-     * @return
+     * Test LDAP Connection.
+     * @param userStoreDTO Userstore DTO.
+     * @return boolean
      * @throws IdentityUserStoreMgtException
      */
     @Override
-    public boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
+    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
-        LDAPConnectionContext connectionSource = new LDAPConnectionContext(connectionURL, connectionName,
-                connectionPassword);
+        RealmConfiguration realmConfig = new RealmConfiguration();
+
+        Map<String, String> userStoreProperties = convertPropertiesDTOArrayToMap(userStoreDTO.getProperties());
+
+        realmConfig.setUserStoreClass(userStoreDTO.getClassName());
+        realmConfig.setUserStoreProperties(userStoreProperties);
+
         DirContext dirContext = null;
+
         try {
-            dirContext = connectionSource.getContext();
+            LDAPConnectionContext ldapConnectionContext = new LDAPConnectionContext(realmConfig);
+            dirContext = ldapConnectionContext.getContext();
             return true;
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             String errorMessage;

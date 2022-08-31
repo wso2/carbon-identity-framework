@@ -193,9 +193,7 @@
             <xs:element name="testLDAPConnection">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="connectionURL" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="connectionName" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="connectionPassword" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="userStoreDTO" nillable="true" type="ax2479:UserStoreDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

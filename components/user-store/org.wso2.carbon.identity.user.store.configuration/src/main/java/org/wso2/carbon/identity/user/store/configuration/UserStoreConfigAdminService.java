@@ -432,18 +432,16 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     }
 
     /**
-     * Check the connection health for LDAP userstores
-     * @param connectionURL Connection URL.
-     * @param connectionName Connection Name.
-     * @param connectionPassword Connection Password.
-     * @return
+     * Test LDAP connection.
+     * @param userStoreDTO Userstore DTO.
+     * @return true or false
      * @throws IdentityUserStoreMgtException
      * @throws NamingException
      */
-    public boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
+    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException, NamingException {
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
-                testLDAPConnection(connectionURL, connectionName, connectionPassword);
+                testLDAPConnection(userStoreDTO);
     }
 
     private IdentityUserStoreMgtException buildIdentityUserStoreMgtException(IdentityUserStoreClientException e,

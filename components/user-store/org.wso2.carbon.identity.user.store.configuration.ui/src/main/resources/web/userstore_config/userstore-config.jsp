@@ -972,14 +972,8 @@
 
     <script type="text/javascript">
         function testLDAPConnection() {
-            var connectionURL = document.getElementById("propertyValue_1").value;
-            var connectionName = document.getElementById("propertyValue_2").value;
-            var connectionPassword = document.getElementById("propertyValue_3").value;
 
-            var url = 'validate-ldapconnection-ajaxprocessor.jsp?';
-            var data = '&connectionURL=' + encodeURIComponent(connectionURL) +
-                    '&connectionName=' + encodeURIComponent(connectionName) +
-                    '&connectionPassword=' + encodeURIComponent(connectionPassword);
+            var url = 'validate-ldapconnection-ajaxprocessor.jsp';
 
             <%if(messageID != null && !"".equals(messageID)) {%>
             url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
@@ -988,7 +982,7 @@
             $.ajax({
                 type: "POST",
                 url: url,
-                data: data,
+                data: $('#dataForm').serialize(),
                 dataType: "text",
                 context: document.body
             }).done(function (msg) {

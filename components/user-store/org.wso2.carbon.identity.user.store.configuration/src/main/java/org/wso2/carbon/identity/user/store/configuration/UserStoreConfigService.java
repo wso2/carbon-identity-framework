@@ -135,14 +135,12 @@ public interface UserStoreConfigService {
     }
 
     /**
-     * Check the connection health for LDAP userstores
-     * @param connectionURL Connection URL.
-     * @param connectionName Connection Name.
-     * @param connectionPassword Connection Password.
-     * @return true of false
+     * Test LDAP Connection.
+     * @param userStoreDTO Userstore DTO.
+     * @return true or false.
      * @throws IdentityUserStoreMgtException
      * @throws NamingException
      */
-    boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
-            throws IdentityUserStoreMgtException, NamingException;
+    boolean testLDAPConnection(UserStoreDTO userStoreDTO)
+            throws IdentityUserStoreMgtException;
 }

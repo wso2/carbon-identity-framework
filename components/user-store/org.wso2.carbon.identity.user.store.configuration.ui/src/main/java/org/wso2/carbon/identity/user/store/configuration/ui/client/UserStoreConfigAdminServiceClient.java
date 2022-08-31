@@ -228,21 +228,18 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
-     * TCheck the connection health for LDAP userstores
-     * @param connectionURL Connection URL.
-     * @param connectionName Connection Name.
-     * @param connectionPassword Connection Password.
-     * @return
+     * Test LDAP connection.
+     * @param userStoreDTO User store DTO.
+     * @return true or false.
      * @throws Exception
      */
-    public boolean testLDAPConnection(String connectionURL, String connectionName, String connectionPassword)
+    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
             throws Exception {
         boolean result = false;
 
         try {
-            result = stub.testLDAPConnection(connectionURL, connectionName, connectionPassword);
+            result = stub.testLDAPConnection(userStoreDTO);
         } catch (UserStoreConfigAdminServiceIdentityUserStoreMgtException e) {
-            // Exception message contains failure reason; hence not logging the error log.
             if (log.isDebugEnabled()) {
                 log.debug(e.getFaultMessage().getIdentityUserStoreMgtException().getMessage(), e);
             }
