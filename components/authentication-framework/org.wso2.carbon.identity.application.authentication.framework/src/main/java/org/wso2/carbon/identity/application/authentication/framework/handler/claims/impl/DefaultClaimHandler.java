@@ -377,8 +377,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         try {
-            localToIdPClaimMap = getClaimMappings(idPStandardDialect,
-                                                  remoteClaims.keySet(), context.getTenantDomain(), true);
+            localToIdPClaimMap = getClaimMappings(idPStandardDialect, remoteClaims.keySet(),
+                    context.getTenantDomain(), true);
         } catch (Exception e) {
             throw new FrameworkException("Error occurred while getting claim mappings for " +
                                          "received remote claims from " +
@@ -451,7 +451,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
 
         boolean isIllegible = isIllegibleForDefaultClaimMappings(appConfig, context);
-        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(isIllegible, appConfig, context, claimManager);
+        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(isIllegible, appConfig, context,
+                claimManager);
 
         Map<String, String> requestedClaimMappings = getRequestedClaimMappings(isIllegible, appConfig, context,
                 spToLocalClaimMappings);
@@ -501,7 +502,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             if (spStandardDialect != null) {
                 setSubjectClaimForLocalClaims(authenticatedUser, userStore, allLocalClaims, spStandardDialect, context);
             } else {
-                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null, context);
+                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null,
+                        context);
             }
         }
 

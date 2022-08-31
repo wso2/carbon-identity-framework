@@ -19,6 +19,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -82,6 +83,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
         FrameworkServiceDataHolder.class, ConsentUtils.class, ConsentManagerConfigurationHolder.class,
         RealmService.class, TenantManager.class, UserRealm.class, DataSource.class,
         ConsentManagerComponentDataHolder.class})
+@PowerMockIgnore("javax.management.*")
 public class SSOConsentServiceImplTest extends PowerMockTestCase {
 
     private static final String TEMPORARY_CLAIM_URI = "http://wso2.org/claims/nickname";
