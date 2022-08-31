@@ -2072,6 +2072,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
+        validateIdPRealmId(identityProvider,tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
@@ -2398,6 +2399,7 @@ public class IdentityProviderManager implements IdpManager {
                 newIdentityProvider.getFederatedAuthenticatorConfigs(),
                 tenantId, tenantDomain);
 
+        validateIdPRealmId(currentIdentityProvider,newIdentityProvider,tenantDomain);
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
@@ -2940,6 +2942,67 @@ public class IdentityProviderManager implements IdpManager {
             if (StringUtils.isNotEmpty(idpWithIssuer)) {
                 String msg = "The provided IDP Issuer Name '" + newIdPIssuerName + "' has already been " +
                         "registered with the IDP '" + idpWithIssuer + "'.";
+                throw new IdentityProviderManagementClientException(msg);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Method to validate the uniqueness of the IDP Home Realm Identifier.
+     * Ideally used when adding a IDP.
+     *
+     * @param identityProvider Identity Provider being added.
+     * @param tenantDomain Tenant domain.
+     * @return Returns true if valid.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    private boolean validateIdPRealmId(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (identityProvider.getHomeRealmId() != null) {
+            IdentityProvider idp = getIdPByRealmId(identityProvider.getHomeRealmId(), tenantDomain);
+
+            if (idp != null) {
+                String msg = "The provided IDP Home Realm Identifier '" + identityProvider.getHomeRealmId() + "' has already been " +
+                        "registered with the IDP '" + idp.getIdentityProviderName() + "'.";
+                throw new IdentityProviderManagementClientException(msg);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Method to validate the uniqueness of the IDP Home Realm Identifier.
+     * Ideally used when updating a IDP.
+     * If the provided two IDP configs have the same Realm Identifier Name validation is passed.
+     * @param currentIdP Existing Identity Provider config.
+     * @param newIdP Updated Identity Provider config.
+     * @param tenantDomain Tenant domain.
+     * @return Returns true if valid.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    private boolean validateIdPRealmId(IdentityProvider currentIdP, IdentityProvider newIdP,
+                                       String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String currentIdPRealmid = null;
+        if (currentIdP.getHomeRealmId() != null) {
+            currentIdPRealmid = currentIdP.getHomeRealmId();
+        }
+
+        String newIdPRealmId = null;
+        if (newIdP.getHomeRealmId() != null) {
+            newIdPRealmId = newIdP.getHomeRealmId();
+        }
+
+        if (StringUtils.isNotBlank(newIdPRealmId) && !StringUtils.equals(currentIdPRealmid, newIdPRealmId)) {
+            IdentityProvider idp = getIdPByRealmId(newIdPRealmId, tenantDomain);
+            if (idp != null) {
+                String msg = "The provided IDP Home Realm Identifier '" + newIdPRealmId + "' has already been " +
+                        "registered with the IDP '" + idp.getIdentityProviderName() + "'.";
                 throw new IdentityProviderManagementClientException(msg);
             }
         }
