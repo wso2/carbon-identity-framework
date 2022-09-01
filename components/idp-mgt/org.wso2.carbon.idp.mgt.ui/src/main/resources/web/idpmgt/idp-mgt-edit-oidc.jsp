@@ -118,7 +118,7 @@
                         isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
                     }
                     Property scopesProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                             "scopes");
+                             "Scopes");
                     if (scopesProp != null) {
                         scopes = scopesProp.getValue();
                     }
