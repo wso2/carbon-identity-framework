@@ -2978,6 +2978,7 @@ public class IdentityProviderManager implements IdpManager {
      * Method to validate the uniqueness of the IDP Home Realm Identifier.
      * Ideally used when updating a IDP.
      * If the provided two IDP configs have the same Realm Identifier Name validation is passed.
+     
      * @param currentIdP Existing Identity Provider config.
      * @param newIdP Updated Identity Provider config.
      * @param tenantDomain Tenant domain.
