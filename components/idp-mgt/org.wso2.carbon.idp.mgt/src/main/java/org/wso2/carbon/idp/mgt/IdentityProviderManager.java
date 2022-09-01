@@ -2072,7 +2072,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
-        validateIdPRealmId(identityProvider,tenantDomain);
+        validateIdPRealmId(identityProvider, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
