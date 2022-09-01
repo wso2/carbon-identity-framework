@@ -108,6 +108,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -2002,6 +2003,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
                     tenantID));
 
+            // Check for illegibility for using default claim Mappings
+            serviceProvider.setIllegibleForDefaultClaimMappings(getIllegibilityForDefaultClaimMappings(
+                    serviceProvider));
+
             // Load Role Mappings
             List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
                     tenantID);
@@ -2033,6 +2038,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
         }
+    }
+
+    private boolean getIllegibilityForDefaultClaimMappings(ServiceProvider serviceProvider) {
+
+        boolean isClaimConfigured = serviceProvider.getClaimConfig().getClaimMappings().length != 0;
+        if (serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs().length == 0) {
+            return false;
+        }
+        boolean isOIDCApp = Objects.equals(
+                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()[0]
+                        .getInboundAuthType(), "oauth2");
+
+        return !isClaimConfigured && isOIDCApp;
     }
 
     @Override

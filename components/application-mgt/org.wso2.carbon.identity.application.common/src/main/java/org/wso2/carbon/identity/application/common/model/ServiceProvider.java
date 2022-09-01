@@ -72,6 +72,9 @@ public class ServiceProvider implements Serializable {
     @XmlTransient
     private String tenantDomain;
 
+    @XmlTransient
+    private boolean isIllegibleForDefaultClaimMappings;
+
     @XmlElement(name = "InboundAuthenticationConfig")
     private InboundAuthenticationConfig inboundAuthenticationConfig;
 
@@ -513,6 +516,16 @@ public class ServiceProvider implements Serializable {
     public void setManagementApp(boolean managementApp) {
 
         isManagementApp = managementApp;
+    }
+
+    public boolean isIllegibleForDefaultClaimMappings() {
+
+        return this.isIllegibleForDefaultClaimMappings;
+    }
+
+    public void setIllegibleForDefaultClaimMappings(boolean isIllegibleForDefaultClaimMappings) {
+
+        this.isIllegibleForDefaultClaimMappings = isIllegibleForDefaultClaimMappings;
     }
 }
 
