@@ -614,8 +614,8 @@ public class FrameworkUtils {
             if (status != null && statusMsg != null) {
                 if (context != null) {
                     Map<String, String> failureData = new HashMap<>();
-                    failureData.put(FrameworkConstants.STATUS, status);
-                    failureData.put(FrameworkConstants.STATUS_MSG, statusMsg);
+                    failureData.put(FrameworkConstants.STATUS_PARAM, status);
+                    failureData.put(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
                     failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
                     AuthenticationError authenticationError = new AuthenticationError(failureData);
                     String errorKey = UUID.randomUUID().toString();
@@ -625,8 +625,8 @@ public class FrameworkUtils {
                     uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
                             context.getContextIdentifier());
                 } else {
-                    uriBuilder.addParameter(FrameworkConstants.STATUS, status);
-                    uriBuilder.addParameter(FrameworkConstants.STATUS_MSG, statusMsg);
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_PARAM, status);
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
                 }
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);

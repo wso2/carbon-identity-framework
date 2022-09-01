@@ -26,8 +26,8 @@ public class Constants {
     public static final String ERROR_CODE = "errorCode";
     public static final String ERROR_MSG = "errorMsg";
     public static final String AUTH_FAILURE_MSG = "authFailureMsg";
-    public static final String STATUS = "&status=";
-    public static final String STATUS_MSG = "&statusMsg=";
+    public static final String STATUS = "status";
+    public static final String STATUS_MSG = "statusMsg";
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String MISSING_CLAIMS = "missingClaims";
@@ -38,12 +38,10 @@ public class Constants {
     public static final String REQUEST_PARAM_SP = "sp";
 
     public static final String USERNAME = "username";
-    public static final String STATUS_PARAM = "status";
-    public static final String STATUS_MSG_PARAM = "statusMsg";
     public static final String PROMPT_FOR_ACCOUNT_LINKING = "prompt_for_account_linking";
     public static final String ATTEMPTED_USER = "attempted_user";
     public static final String ATTEMPTED_USER_EMAIL = "attempted_user_email";
-    public static final String attempted_idp = "attempted_idp";
+    public static final String ATTEMPTED_IDP = "attempted_idp";
 
     // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success";
