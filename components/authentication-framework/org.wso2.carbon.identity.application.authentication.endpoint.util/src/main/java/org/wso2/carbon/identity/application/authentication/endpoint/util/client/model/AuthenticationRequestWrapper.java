@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.client
 
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,8 +36,21 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> authParams) {
 
         super(request);
-        this.authParams = authParams;
-        this.authParams.putAll(super.getParameterMap());
+        if (authParams != null) {
+            this.authParams = authParams;
+        } else {
+            this.authParams = new HashMap<>();
+        }
+
+        if (super.getParameterMap() != null) {
+            Map<String, Object> superParams = super.getParameterMap();
+            for (String paramName : superParams.keySet()) {
+                if (super.getParameter(paramName) != null) {
+                    this.authParams.put(paramName, super.getParameter(paramName));
+                }
+            }
+        }
+
     }
 
     /**
@@ -48,7 +62,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     public String getParameter(String name) {
 
         if (authParams != null) {
-            return (String) authParams.get(name);
+            return (authParams.get(name) != null) ? (String) authParams.get(name) : super.getParameter(name);
         } else {
             return super.getParameter(name);
         }
@@ -61,7 +75,17 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      */
     public Map<String, Object> getParameterMap() {
 
-        return authParams;
+        Map<String, Object> paramMap;
+        if (authParams != null) {
+            paramMap = authParams;
+            Map<String, Object> superParams = super.getParameterMap();
+            for (String paramName : superParams.keySet()) {
+                authParams.put(paramName, super.getParameter(paramName));
+            }
+        } else {
+            paramMap = super.getParameterMap();
+        }
+        return paramMap;
     }
 
     /**
