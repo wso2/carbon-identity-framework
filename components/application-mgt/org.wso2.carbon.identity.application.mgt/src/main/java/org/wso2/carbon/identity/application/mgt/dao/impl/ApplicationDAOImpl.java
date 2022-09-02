@@ -127,6 +127,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -173,9 +174,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
-        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put("name", "SP_APP.APP_NAME");
-        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put("clientId", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
-        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put("issuer", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(NAME_SP_PROPERTY_NAME, "SP_APP.APP_NAME");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(CLIENT_ID_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(ISSUER_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
     }
 
     public ApplicationDAOImpl() {
@@ -3280,6 +3281,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (CLIENT_ID_SP_PROPERTY_NAME.equals(searchField)) {
             formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'oauth2')";
+        } else if (ISSUER_SP_PROPERTY_NAME.equals(searchField)) {
+            formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'samlsso')";
         }
         return formattedFilterString;
     }

@@ -101,6 +101,10 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
     private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
     private static final String APPLICATION_NAME_AND_CLIENT_ID_FILTER = "name co application1 and clientId eq %s";
+    private static final String APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER =
+            "name co application1 and clientId eq %s or issuer eq %s";
+    private static final String APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER =
+            "name co application1 and issuer eq %s or clientId eq %s";
     private static final String APPLICATION_NAME_OR_ISSUER_FILTER = "name co sampleAppName or issuer eq %s";
     private static final String APPLICATION_NAME_AND_ISSUER_FILTER = "name co application1 and issuer eq %s";
     private static final String IDP_NAME_1 = "Test IdP 1";
@@ -400,6 +404,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
         Assert.assertEquals(applicationBasicInfo[0].getClientId(), APPLICATION_INBOUND_AUTH_KEY_1);
 
+        // Test get applications with name and clientId or issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                                APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getClientId(), APPLICATION_INBOUND_AUTH_KEY_1);
+
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
@@ -459,6 +471,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
         Assert.assertEquals(applicationBasicInfo[0].getIssuer(), APPLICATION_INBOUND_AUTH_KEY_1);
 
+        // Test get applications with name and clientId or issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                                APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getIssuer(), APPLICATION_INBOUND_AUTH_KEY_1);
+
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
@@ -507,13 +527,21 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
                 USERNAME_1, String.format(APPLICATION_NAME_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1,  String.format(APPLICATION_CLIENT_ID_FILTER, RANDOM_STRING)), 0);
+                USERNAME_1, String.format(APPLICATION_CLIENT_ID_FILTER, RANDOM_STRING)), 0);
 
         // Test get count of applications with name and clientId filter.
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
                 USERNAME_1, String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1,  String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2)), 0);
+                USERNAME_1, String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2)), 0);
+
+        // Test get count of applications with name and clientId or issuer filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                        APPLICATION_INBOUND_AUTH_KEY_2)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2,
+                        APPLICATION_INBOUND_AUTH_KEY_1)), 0);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -553,6 +581,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 USERNAME_1, String.format(APPLICATION_NAME_AND_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
                 USERNAME_1,  String.format(APPLICATION_NAME_AND_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2)), 0);
+
+        // Test get count of applications with name and issuer or clientId filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                        APPLICATION_INBOUND_AUTH_KEY_2)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2,
+                        APPLICATION_INBOUND_AUTH_KEY_1)), 0);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
