@@ -416,6 +416,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     protected void filterOptions(Map<String, Map<String, String>> authenticationOptions, StepConfig stepConfig) {
 
         Map<String, Set<String>> filteredOptions = new HashMap<>();
+        final String[] authenticatorNameResolver = new String[1];
         authenticationOptions.forEach((id, option) -> {
             String idp = option.get(FrameworkConstants.JSAttributes.IDP);
             String authenticator = option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
@@ -426,8 +427,13 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    filteredOptions.get(idp).add(authenticator);
                 }
+            }
+            if (StringUtils.isNotBlank(
+                    option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_NAME_RESOLVER_PARAM))) {
+                authenticatorNameResolver[0] = option.get(FrameworkConstants.JSAttributes.
+                        AUTHENTICATOR_NAME_RESOLVER_PARAM);
             }
         });
         if (log.isDebugEnabled()) {
@@ -451,19 +457,31 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                     }
                     removeOption = true;
                 } else if (!authenticators.isEmpty()) {
-                    // Both idp and authenticator present, but authenticator is given by display name due to the fact
-                    // that it is the one available at UI. Should translate the display name to actual name, and
-                    // keep/remove option
+                    // Both idp and authenticator present.
                     removeOption = true;
 
                     if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
                         List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (StringUtils.isNotBlank(authenticatorNameResolver[0]) &&
+                                    authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                                            AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                // If the authenticatorNameResolver is not defined or is equal to the authenticator
+                                // display name, authenticator display name will be used to resolve the
+                                // authentication options.
+                                // Should translate the display name to actual name, and keep/remove option.
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {
@@ -478,10 +496,24 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                     } else {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
-                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (StringUtils.isNotBlank(authenticatorNameResolver[0]) &&
+                                    authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                                            AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                // If the authenticatorNameResolver is not defined or is equal to the authenticator
+                                // display name, authenticator display name will be used to resolve the
+                                // authentication options.
+                                // Should translate the display name to actual name, and keep/remove option.
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {

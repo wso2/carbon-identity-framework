@@ -512,6 +512,9 @@ public abstract class FrameworkConstants {
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String AUTHENTICATOR_NAME_RESOLVER_PARAM = "authenticatorNameResolver";
+        public static final String AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE = "AUTHENTICATOR_NAME";
+        public static final String AUTHENTICATOR_NAME_RESOLVER_DISPLAY_NAME_VALUE = "AUTHENTICATOR_DISPLAY_NAME";
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
