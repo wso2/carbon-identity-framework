@@ -101,6 +101,7 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,6 +113,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
@@ -125,6 +127,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -168,11 +171,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_ENDS_WITH = "ew";
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
-    private static final Map<String, String> SEARCH_SUPPORTED_FIELD_MAP = new HashMap<>();
+    private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
-        SEARCH_SUPPORTED_FIELD_MAP.put("name", "SP_APP.APP_NAME");
-        SEARCH_SUPPORTED_FIELD_MAP.put("clientId", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(NAME_SP_PROPERTY_NAME, "SP_APP.APP_NAME");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(CLIENT_ID_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(ISSUER_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
     }
 
     public ApplicationDAOImpl() {
@@ -3214,7 +3218,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
             filterData.addFilterValue("%");
-        } else if (!(SEARCH_SUPPORTED_FIELD_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
+        } else if (!(SUPPORTED_SEARCH_ATTRIBUTE_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
             // This formatting is to facilitate the search bar in carbon/application/list-service-providers.
             if (filter.contains(ASTERISK)) {
                 filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
@@ -3227,35 +3231,39 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             try {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
                 Node rootNode = filterTreeBuilder.buildTree();
-                if (rootNode instanceof ExpressionNode) {
-                    ExpressionNode expressionNode = (ExpressionNode) rootNode;
-
-                    filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
-                            expressionNode.getOperation()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
-                            expressionNode.getValue()));
-                } else {
-                    // Currently, supports only filters with one AND/OR operation.
-                    // Have to recursively traverse the filter tree to support more than one operation.
-                    OperationNode operationNode = (OperationNode) rootNode;
-                    ExpressionNode expressionLeftNode = (ExpressionNode) rootNode.getLeftNode();
-                    ExpressionNode expressionRightNode = (ExpressionNode) rootNode.getRightNode();
-
-                    String formattedLeftNodeString = generateFilterStringForBackend(
-                            expressionLeftNode.getAttributeValue(), expressionLeftNode.getOperation());
-                    String formattedRightNodeString = generateFilterStringForBackend(
-                            expressionRightNode.getAttributeValue(), expressionRightNode.getOperation());
-
-                    filterData.setFilterString(formattedLeftNodeString + " " +
-                            operationNode.getOperation() + " " + formattedRightNodeString);
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionLeftNode.getOperation(),
-                            expressionLeftNode.getValue()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionRightNode.getOperation(),
-                            expressionRightNode.getValue()));
-                }
+                filterData = getFilterDataFromFilterTree(rootNode);
             } catch (IOException | IdentityException e) {
                 log.error("Error occurred while converting filter query with tree builder.", e);
             }
+        }
+        return filterData;
+    }
+
+    private FilterData getFilterDataFromFilterTree(Node rootNode) {
+
+        FilterData filterData = new FilterData();
+
+        if (rootNode instanceof ExpressionNode) {
+            ExpressionNode expressionNode = (ExpressionNode) rootNode;
+
+            filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
+                    expressionNode.getOperation()));
+            filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
+                    expressionNode.getValue()));
+        } else {
+            OperationNode operationNode = (OperationNode) rootNode;
+            Node leftNode = rootNode.getLeftNode();
+            Node rightNode = rootNode.getRightNode();
+
+            FilterData leftNodeFilterData = getFilterDataFromFilterTree(leftNode);
+            FilterData rightNodeFilterData = getFilterDataFromFilterTree(rightNode);
+
+            filterData.setFilterString(leftNodeFilterData.getFilterString() + " " +
+                    operationNode.getOperation() + " " + rightNodeFilterData.getFilterString());
+            filterData.setFilterValues(
+                    Stream.of(leftNodeFilterData.getFilterValues(), rightNodeFilterData.getFilterValues())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
         }
         return filterData;
     }
@@ -3264,7 +3272,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         // Format the filter attribute and condition to fit in a SQL where clause.
         String formattedFilterString;
-        String realSearchField = SEARCH_SUPPORTED_FIELD_MAP.get(searchField);
+        String realSearchField = SUPPORTED_SEARCH_ATTRIBUTE_MAP.get(searchField);
         if (searchOperation.equals(FILTER_EQUALS)) {
             formattedFilterString = realSearchField + " = ?";
         } else {
@@ -3273,6 +3281,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (CLIENT_ID_SP_PROPERTY_NAME.equals(searchField)) {
             formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'oauth2')";
+        } else if (ISSUER_SP_PROPERTY_NAME.equals(searchField)) {
+            formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'samlsso')";
         }
         return formattedFilterString;
     }
