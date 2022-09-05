@@ -460,7 +460,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         boolean useDefaultClaimMappings = canUseDefaultClaimMappings(appConfig, context);
         Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(useDefaultClaimMappings, appConfig,
                 claimManager);
-
         Map<String, String> requestedClaimMappings = getRequestedClaimMappings(useDefaultClaimMappings, appConfig,
                 spToLocalClaimMappings);
 
@@ -513,7 +512,6 @@ public class DefaultClaimHandler implements ClaimHandler {
                         context);
             }
         }
-
 
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
             spRequestedClaims = allSPMappedClaims;

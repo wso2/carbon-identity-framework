@@ -3327,13 +3327,16 @@ public class FrameworkUtils {
             if (log.isDebugEnabled()) {
                 log.debug("Could not retrieve the Claim Manager", e);
             }
+            return new ClaimMapping[0];
+
         } catch (CarbonException e) {
-            throw new RuntimeException(e);
+            if (log.isDebugEnabled()) {
+                log.debug("Could not retrieve the realm", e);
+            }
+            return new ClaimMapping[0];
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Could not retrieve the Default Claim Mappings");
-        }
-        return new ClaimMapping[0];
+
+
     }
 }

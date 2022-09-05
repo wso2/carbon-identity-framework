@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -208,25 +209,24 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (serviceProvider == null) {
             throw new SSOConsentServiceException("Service provider cannot be null.");
         }
-
         String spName = serviceProvider.getApplicationName();
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        boolean scopeBasedClaimFilteringEnabled = true;
-        boolean isOIDCServiceProvider;
 
+        boolean scopeBasedClaimFilteringEnabled = true;
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING))) {
             scopeBasedClaimFilteringEnabled =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING));
         }
-        isOIDCServiceProvider = scopeBasedClaimFilteringEnabled && claimsListOfScopes != null;
+
+        boolean isOIDCServiceProvider = checkOIDCServiceProvider(serviceProvider);
 
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
-        if (isOIDCServiceProvider && claimMappings.length == 0) {
+        if (scopeBasedClaimFilteringEnabled && isOIDCServiceProvider && claimMappings.length == 0) {
             claimMappings = FrameworkUtils.getDefaultOIDCClaimMappings(serviceProvider.getOwner().getTenantDomain());
         }
 
-        if (isOIDCServiceProvider) {
+        if (scopeBasedClaimFilteringEnabled && claimsListOfScopes != null) {
             try {
                 claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
                         Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
@@ -320,6 +320,19 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
+    }
+
+    private boolean checkOIDCServiceProvider(ServiceProvider serviceProvider) {
+
+        boolean isOIDCServiceProvider = false;
+        if (serviceProvider.getInboundAuthenticationConfig() != null) {
+            if (serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs().length != 0) {
+                isOIDCServiceProvider = serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType()
+                        .equals(FrameworkConstants.StandardInboundProtocols.OAUTH2);
+            }
+        }
+        return isOIDCServiceProvider;
     }
 
     private boolean isCustomClaimMapping(ServiceProvider serviceProvider) {
