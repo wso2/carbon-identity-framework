@@ -212,33 +212,29 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         String spName = serviceProvider.getApplicationName();
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-
-        ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
-
         boolean scopeBasedClaimFilteringEnabled = true;
+        boolean isOIDCServiceProvider;
+
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING))) {
             scopeBasedClaimFilteringEnabled =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING));
         }
+        isOIDCServiceProvider = scopeBasedClaimFilteringEnabled && claimsListOfScopes != null;
 
-        if (scopeBasedClaimFilteringEnabled) {
-            if (serviceProvider.isIllegibleForDefaultClaimMappings()) {
-                claimMappings = FrameworkUtils.getDefaultOIDCClaimMappings
-                        (serviceProvider.getOwner().getTenantDomain());
-            }
-
-            if (claimsListOfScopes != null) {
-                try {
-                    claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
-                                    Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
-                            .toArray(new ClaimMapping[0]);
-                } catch (ClaimManagementException e) {
-                    throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");
-                }
-            }
+        ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
+        if (isOIDCServiceProvider && claimMappings.length == 0) {
+            claimMappings = FrameworkUtils.getDefaultOIDCClaimMappings(serviceProvider.getOwner().getTenantDomain());
         }
 
-
+        if (isOIDCServiceProvider) {
+            try {
+                claimMappings = FrameworkUtils.getFilteredScopeClaims(claimsListOfScopes,
+                        Arrays.asList(claimMappings), serviceProvider.getOwner().getTenantDomain())
+                        .toArray(new ClaimMapping[0]);
+            } catch (ClaimManagementException e) {
+                throw new SSOConsentServiceException("Error occurred while filtering claims of requested scopes");
+            }
+        }
         List<String> requestedClaims = new ArrayList<>();
         List<String> mandatoryClaims = new ArrayList<>();
 

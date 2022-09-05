@@ -450,9 +450,12 @@ public class DefaultClaimHandler implements ClaimHandler {
         ClaimManager claimManager = getClaimManager(tenantDomain, realm);
         AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
 
-        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(appConfig, claimManager);
+        boolean isIllegible = isIllegibleForDefaultClaimMappings(appConfig, context);
+        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(isIllegible, appConfig, context,
+                claimManager);
 
-        Map<String, String> requestedClaimMappings = getRequestedClaimMappings(appConfig, spToLocalClaimMappings);
+        Map<String, String> requestedClaimMappings = getRequestedClaimMappings(isIllegible, appConfig, context,
+                spToLocalClaimMappings);
 
         Map<String, String> carbonToStandardClaimMapping;
 
@@ -504,6 +507,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         }
 
+
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
             spRequestedClaims = allSPMappedClaims;
         }
@@ -526,27 +530,32 @@ public class DefaultClaimHandler implements ClaimHandler {
         return spRequestedClaims;
     }
 
-    private Map<String, String> getSpToLocalClaimMappings(ApplicationConfig appConfig, ClaimManager claimManager) {
+    private Map<String, String> getSpToLocalClaimMappings(boolean isIllegible, ApplicationConfig appConfig,
+                                                          AuthenticationContext context, ClaimManager claimManager) {
 
         Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
-        boolean isIllegibleForDefaultClaimMappings = appConfig
-                .getServiceProvider().isIllegibleForDefaultClaimMappings();
-        if (isIllegibleForDefaultClaimMappings) {
+        if (isIllegible) {
             getDefaultSpToLocalClaimMappings(spToLocalClaimMappings, claimManager);
         }
         return spToLocalClaimMappings;
     }
 
-    private Map<String, String> getRequestedClaimMappings(ApplicationConfig appConfig,
+    private Map<String, String> getRequestedClaimMappings(boolean isIllegible, ApplicationConfig appConfig,
+                                                          AuthenticationContext context,
                                                           Map<String, String> spToLocalClaimMappings) {
 
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        boolean isIllegibleForDefaultClaimMappings = appConfig.getServiceProvider()
-                                                                .isIllegibleForDefaultClaimMappings();
-        if (isIllegibleForDefaultClaimMappings) {
+        if (isIllegible) {
             getDefaultRequestedClaimMappings(requestedClaimMappings, spToLocalClaimMappings);
         }
         return requestedClaimMappings;
+    }
+
+    private boolean isIllegibleForDefaultClaimMappings(ApplicationConfig appConfig, AuthenticationContext context) {
+
+        boolean isClaimConfiguredForApp = !appConfig.getClaimMappings().isEmpty();
+        boolean isOIDCRequest = context.getRequestType().equals(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
+        return !isClaimConfiguredForApp && isOIDCRequest;
     }
 
     private void getDefaultRequestedClaimMappings(Map<String, String> requestedClaimMappings, Map<String,
