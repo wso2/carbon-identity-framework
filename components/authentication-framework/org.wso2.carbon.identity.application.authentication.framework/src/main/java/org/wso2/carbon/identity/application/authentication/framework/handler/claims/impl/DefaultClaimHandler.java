@@ -129,26 +129,22 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                         StepConfig stepConfig, AuthenticationContext context)
             throws FrameworkException {
 
-        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
-        AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
-        String tenantDomain = authenticatedUser.getTenantDomain();
-        UserRealm realm = getUserRealm(tenantDomain);
-        if (realm == null) {
-            log.warn("No valid tenant domain provider. No claims returned back");
-            return new HashMap<>();
-        }
-        ClaimManager claimManager = getClaimManager(authenticatedUser.getTenantDomain(), realm);
-
         ClaimMapping[] idPClaimMappings = context.getExternalIdP().getClaimMappings();
+
         if (idPClaimMappings == null) {
             idPClaimMappings = new ClaimMapping[0];
         }
 
-        Map<String, String> spClaimMappings = getSpToLocalClaimMappings(appConfig, claimManager);
+        Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
+                getClaimMappings();
 
-        Map<String, String> spRequestedClaimMappings = getRequestedClaimMappings(appConfig, spClaimMappings);
+        if (spClaimMappings == null) {
+            spClaimMappings = new HashMap<>();
+        }
 
         Map<String, String> carbonToStandardClaimMapping;
+        Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
+                getRequestedClaimMappings();
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
                 .LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
             carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
@@ -158,8 +154,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, spRequestedClaimMappings);
         }
 
-        ApplicationAuthenticator authenticator = stepConfig.getAuthenticatedAutenticator()
-                .getApplicationAuthenticator();
+        ApplicationAuthenticator authenticator = stepConfig.
+                getAuthenticatedAutenticator().getApplicationAuthenticator();
 
         boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
 
@@ -244,8 +240,9 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         }
 
-        //Add multi Attribute separator with claims.it can be defined in user-mgt.xml file
-        realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+        //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
+        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
         addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
 
