@@ -129,22 +129,29 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                         StepConfig stepConfig, AuthenticationContext context)
             throws FrameworkException {
 
-        ClaimMapping[] idPClaimMappings = context.getExternalIdP().getClaimMappings();
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        UserRealm realm = getUserRealm(tenantDomain);
+        if (realm == null) {
+            log.warn("No valid tenant domain provider. No claims returned back");
+            return new HashMap<>();
+        }
+        ClaimManager claimManager = getClaimManager(authenticatedUser.getTenantDomain(), realm);
 
+        ClaimMapping[] idPClaimMappings = context.getExternalIdP().getClaimMappings();
         if (idPClaimMappings == null) {
             idPClaimMappings = new ClaimMapping[0];
         }
 
-        Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
-                getClaimMappings();
-
-        if (spClaimMappings == null) {
-            spClaimMappings = new HashMap<>();
-        }
+        boolean useDefaultClaimMappings = canUseDefaultClaimMappings(appConfig, context);
+        Map<String, String> spClaimMappings = getSpToLocalClaimMappings(useDefaultClaimMappings, appConfig,
+                claimManager);
+        Map<String, String> spRequestedClaimMappings = getRequestedClaimMappings(useDefaultClaimMappings, appConfig,
+                spClaimMappings);
+        
 
         Map<String, String> carbonToStandardClaimMapping;
-        Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
-                getRequestedClaimMappings();
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
                 .LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
             carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
@@ -241,8 +248,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
 
-        //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
-        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        //Add multi Attribute separator with claims.it can be defined in user-mgt.xml file
+        realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
         addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
 
@@ -450,11 +457,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         ClaimManager claimManager = getClaimManager(tenantDomain, realm);
         AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
 
-        boolean isIllegible = isIllegibleForDefaultClaimMappings(appConfig, context);
-        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(isIllegible, appConfig, context,
+        boolean useDefaultClaimMappings = canUseDefaultClaimMappings(appConfig, context);
+        Map<String, String> spToLocalClaimMappings = getSpToLocalClaimMappings(useDefaultClaimMappings, appConfig,
                 claimManager);
 
-        Map<String, String> requestedClaimMappings = getRequestedClaimMappings(isIllegible, appConfig, context,
+        Map<String, String> requestedClaimMappings = getRequestedClaimMappings(useDefaultClaimMappings, appConfig,
                 spToLocalClaimMappings);
 
         Map<String, String> carbonToStandardClaimMapping;
@@ -530,28 +537,27 @@ public class DefaultClaimHandler implements ClaimHandler {
         return spRequestedClaims;
     }
 
-    private Map<String, String> getSpToLocalClaimMappings(boolean isIllegible, ApplicationConfig appConfig,
-                                                          AuthenticationContext context, ClaimManager claimManager) {
+    private Map<String, String> getSpToLocalClaimMappings(boolean useDefaultClaimMappings, ApplicationConfig appConfig,
+                                                          ClaimManager claimManager) {
 
         Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
-        if (isIllegible) {
+        if (useDefaultClaimMappings) {
             getDefaultSpToLocalClaimMappings(spToLocalClaimMappings, claimManager);
         }
         return spToLocalClaimMappings;
     }
 
-    private Map<String, String> getRequestedClaimMappings(boolean isIllegible, ApplicationConfig appConfig,
-                                                          AuthenticationContext context,
+    private Map<String, String> getRequestedClaimMappings(boolean useDefaultClaimMappings, ApplicationConfig appConfig,
                                                           Map<String, String> spToLocalClaimMappings) {
 
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        if (isIllegible) {
+        if (useDefaultClaimMappings) {
             getDefaultRequestedClaimMappings(requestedClaimMappings, spToLocalClaimMappings);
         }
         return requestedClaimMappings;
     }
 
-    private boolean isIllegibleForDefaultClaimMappings(ApplicationConfig appConfig, AuthenticationContext context) {
+    private boolean canUseDefaultClaimMappings(ApplicationConfig appConfig, AuthenticationContext context) {
 
         boolean isClaimConfiguredForApp = !appConfig.getClaimMappings().isEmpty();
         boolean isOIDCRequest = context.getRequestType().equals(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
