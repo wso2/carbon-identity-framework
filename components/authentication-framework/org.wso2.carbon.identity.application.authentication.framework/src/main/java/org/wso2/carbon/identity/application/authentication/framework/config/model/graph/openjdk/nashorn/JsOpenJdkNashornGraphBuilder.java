@@ -418,6 +418,29 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         Map<String, Set<String>> filteredOptions = new HashMap<>();
         final String[] authenticatorNameResolver = new String[1];
         authenticationOptions.forEach((id, option) -> {
+            String authenticatorNameResolverParam = option.get(FrameworkConstants.JSAttributes.
+                    AUTHENTICATOR_NAME_RESOLVER_PARAM);
+            if (StringUtils.isNotBlank(authenticatorNameResolverParam)) {
+                authenticatorNameResolver[0] = authenticatorNameResolverParam;
+            }
+        });
+        if (StringUtils.isBlank(authenticatorNameResolver[0])) {
+            authenticatorNameResolver[0] =
+                    FrameworkConstants.JSAttributes.AUTHENTICATOR_NAME_RESOLVER_DISPLAY_NAME_VALUE;
+        } else {
+            if (!authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                    AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE) && !authenticatorNameResolver[0].equals(
+                    FrameworkConstants.JSAttributes.AUTHENTICATOR_NAME_RESOLVER_DISPLAY_NAME_VALUE)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Invalid value provided for " + FrameworkConstants.JSAttributes.
+                            AUTHENTICATOR_NAME_RESOLVER_PARAM + ". Defaulting to authenticator display name.");
+                }
+                authenticatorNameResolver[0] =
+                        FrameworkConstants.JSAttributes.AUTHENTICATOR_NAME_RESOLVER_DISPLAY_NAME_VALUE;
+            }
+        }
+
+        authenticationOptions.forEach((id, option) -> {
             String idp = option.get(FrameworkConstants.JSAttributes.IDP);
             String authenticator = option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR);
             if (StringUtils.isNotBlank(authenticator) && StringUtils.isBlank(idp)) {
@@ -427,13 +450,13 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator);
+                    if (authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                            AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
+                        filteredOptions.get(idp).add(authenticator);
+                    } else {
+                        filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    }
                 }
-            }
-            if (StringUtils.isNotBlank(
-                    option.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_NAME_RESOLVER_PARAM))) {
-                authenticatorNameResolver[0] = option.get(FrameworkConstants.JSAttributes.
-                        AUTHENTICATOR_NAME_RESOLVER_PARAM);
             }
         });
         if (log.isDebugEnabled()) {
@@ -464,9 +487,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                         List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                            if (StringUtils.isNotBlank(authenticatorNameResolver[0]) &&
-                                    authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
-                                            AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
+                            if (authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                                    AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
                                         authenticators.contains(localAuthenticatorConfig.getName())) {
                                     removeOption = false;
@@ -478,7 +500,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                                 // authentication options.
                                 // Should translate the display name to actual name, and keep/remove option.
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                        authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                        authenticators.contains(localAuthenticatorConfig.getDisplayName().
+                                                toLowerCase())) {
                                     removeOption = false;
                                     break;
                                 }
@@ -496,9 +519,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                     } else {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
-                            if (StringUtils.isNotBlank(authenticatorNameResolver[0]) &&
-                                    authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
-                                            AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
+                            if (authenticatorNameResolver[0].equals(FrameworkConstants.JSAttributes.
+                                    AUTHENTICATOR_NAME_RESOLVER_AUTHENTICATOR_NAME_VALUE)) {
                                 if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
                                         authenticators.contains(federatedAuthConfig.getName())) {
                                     removeOption = false;
@@ -510,7 +532,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                                 // authentication options.
                                 // Should translate the display name to actual name, and keep/remove option.
                                 if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                        authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                        authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
                                     removeOption = false;
                                     break;
                                 }
