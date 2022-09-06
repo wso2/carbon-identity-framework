@@ -508,8 +508,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             if (spStandardDialect != null) {
                 setSubjectClaimForLocalClaims(authenticatedUser, userStore, allLocalClaims, spStandardDialect, context);
             } else {
-                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null,
-                        context);
+                setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null, context);
             }
         }
 
@@ -538,21 +537,19 @@ public class DefaultClaimHandler implements ClaimHandler {
     private Map<String, String> getSpToLocalClaimMappings(boolean useDefaultClaimMappings, ApplicationConfig appConfig,
                                                           ClaimManager claimManager) {
 
-        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
         if (useDefaultClaimMappings) {
-            getDefaultSpToLocalClaimMappings(spToLocalClaimMappings, claimManager);
+            return getDefaultSpToLocalClaimMappings(claimManager);
         }
-        return spToLocalClaimMappings;
+        return appConfig.getClaimMappings();
     }
 
     private Map<String, String> getRequestedClaimMappings(boolean useDefaultClaimMappings, ApplicationConfig appConfig,
                                                           Map<String, String> spToLocalClaimMappings) {
 
-        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
         if (useDefaultClaimMappings) {
-            getDefaultRequestedClaimMappings(requestedClaimMappings, spToLocalClaimMappings);
+            return getDefaultRequestedClaimMappings(spToLocalClaimMappings);
         }
-        return requestedClaimMappings;
+        return appConfig.getRequestedClaimMappings();
     }
 
     private boolean canUseDefaultClaimMappings(ApplicationConfig appConfig, AuthenticationContext context) {
@@ -562,15 +559,14 @@ public class DefaultClaimHandler implements ClaimHandler {
         return !isClaimConfiguredForApp && isOIDCRequest;
     }
 
-    private void getDefaultRequestedClaimMappings(Map<String, String> requestedClaimMappings, Map<String,
-            String> spToLocalClaimMappings) {
+    private Map<String, String> getDefaultRequestedClaimMappings(Map<String, String> spToLocalClaimMappings) {
 
-        requestedClaimMappings.putAll(spToLocalClaimMappings);
+        return new HashMap<>(spToLocalClaimMappings);
     }
 
-    private void getDefaultSpToLocalClaimMappings(Map<String, String> spToLocalClaimMappings,
-                                                  ClaimManager claimManager) {
+    private Map<String, String> getDefaultSpToLocalClaimMappings(ClaimManager claimManager) {
 
+        Map<String, String> spToLocalClaimMappings = new HashMap<>();
         try {
             org.wso2.carbon.user.api.ClaimMapping[] claimMappings = claimManager
                     .getAllClaimMappings(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
@@ -586,6 +582,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         }
 
+        return spToLocalClaimMappings;
     }
 
     private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings,
