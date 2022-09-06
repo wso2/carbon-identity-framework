@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
@@ -1549,6 +1550,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         return doGetAllApplicationTemplateInfo(tenantDomain);
+    }
+
+    @Override
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = appDAO
+                .getConfiguredAuthenticators(applicationID, tenantDomain);
+
+        if (localAndOutboundAuthenticationConfig == null) {
+            return null;
+        }
+        // if "Authentication Type" is "Default" we must get the steps from the default SP
+        AuthenticationStep[] authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
+        if (authenticationSteps == null || authenticationSteps.length == 0) {
+            ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                    .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+            authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                    .getAuthenticationSteps();
+        }
+        return authenticationSteps;
     }
 
     /**

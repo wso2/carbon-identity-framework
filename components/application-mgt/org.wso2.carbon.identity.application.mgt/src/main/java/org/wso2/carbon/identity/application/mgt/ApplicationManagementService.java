@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -368,6 +369,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException
      */
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get authenticators configured for an application.
+     *
+     * @param applicationID ID of an application.
+     * @return list of configured authenticators.
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     @Override

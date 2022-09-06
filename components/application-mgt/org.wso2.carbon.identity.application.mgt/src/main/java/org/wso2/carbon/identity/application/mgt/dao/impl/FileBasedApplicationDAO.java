@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 
@@ -58,6 +59,13 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
+
+        throw new IdentityApplicationManagementException("Not supported in file based dao.");
+    }
+
+    @Override
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }

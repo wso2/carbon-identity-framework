@@ -73,6 +73,7 @@ import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplica
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterData;
@@ -2036,6 +2037,38 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException | CertificateRetrievingException e) {
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
+        }
+    }
+
+    @Override
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId,
+                                                                            String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantID;
+        try {
+            tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant domain " + tenantDomain);
+            }
+            return null;
+        }
+        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfoByResourceId(applicationResourceId,
+                tenantDomain);
+        if (applicationBasicInfo == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("There is no application with the resourceId: " + applicationResourceId);
+            }
+            return null;
+        }
+        int applicationId = applicationBasicInfo.getApplicationId();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            return getLocalAndOutboundAuthenticationConfig(applicationId, connection, tenantID, null);
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to get configured authenticators for application" +
+                    " id: " + applicationResourceId, e);
         }
     }
 
