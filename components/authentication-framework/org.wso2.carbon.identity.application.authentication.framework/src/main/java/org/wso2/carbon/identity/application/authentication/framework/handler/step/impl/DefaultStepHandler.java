@@ -54,6 +54,9 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -287,7 +290,7 @@ public class DefaultStepHandler implements StepHandler {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) ||
                                 (config.getApplicationAuthenticator() instanceof LocalApplicationAuthenticator &&
                                         (BASIC_AUTH_MECHANISM).equalsIgnoreCase(config.getApplicationAuthenticator()
-                                                .getAuthMechanism()))) {
+                                                .getAuthMechanism())) && IdentityUtil.getIdentityErrorMsg() == null) {
                             authenticatorConfig = config;
                             isAuthFlowHandlerOrBasicAuthInMultiOptionStep = true;
                             sendToPage = false;
@@ -844,7 +847,7 @@ public class DefaultStepHandler implements StepHandler {
         return authenticatedIdPData;
     }
 
-    private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
+    protected String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
             context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
             throws IOException, URISyntaxException {
 
@@ -987,11 +990,8 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
-                    String username = request.getParameter("username");
-                    return response.encodeRedirectURL(
-                            ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                            + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp +
-                            reCaptchaParamString.toString();
+                    return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                            loginPage, otp, reCaptchaParamString);
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
@@ -1028,11 +1028,8 @@ public class DefaultStepHandler implements StepHandler {
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
-                String username = request.getParameter("username");
-                return response.encodeRedirectURL(
-                        ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                        + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp +
-                        reCaptchaParamString.toString();
+                return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                        loginPage, otp, reCaptchaParamString);
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
@@ -1041,7 +1038,7 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
+    protected String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
 
         Map<String, String> runtimeParams = context
                 .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
@@ -1061,7 +1058,7 @@ public class DefaultStepHandler implements StepHandler {
         return retryParam;
     }
 
-    private AuthenticatorConfig getAuthenticatorConfig() {
+    protected AuthenticatorConfig getAuthenticatorConfig() {
         AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean
                 (FrameworkConstants.BASIC_AUTHENTICATOR_CLASS);
         if (authConfig == null) {
@@ -1079,7 +1076,7 @@ public class DefaultStepHandler implements StepHandler {
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
      */
-    private boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
+    protected boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
 
         boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
         if (sendToMultiOptionPage) {
@@ -1097,5 +1094,29 @@ public class DefaultStepHandler implements StepHandler {
             return Boolean.parseBoolean(redirectToRetryPageOnAccountLock);
         }
         return false;
+    }
+
+    private String getRedirectURLForcedPasswordResetOTP(HttpServletRequest request, HttpServletResponse response,
+                                                        AuthenticationContext context, String authenticatorNames,
+                                                        String loginPage, String otp,
+                                                        StringBuilder reCaptchaParamString)
+            throws IOException {
+
+        String username = request.getParameter("username");
+        // Setting callback so that the user is prompted to login after a password reset.
+        String callback;
+        try {
+            callback = ServiceURLBuilder.create().addPath(loginPage).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building callback url for context: " + loginPage, e);
+        }
+
+        callback = callback + ("?" + context.getContextIdIncludedQueryParams())
+                + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8");
+        return response.encodeRedirectURL(
+                ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
+                + "&callback=" + URLEncoder.encode(callback, "UTF-8") + reCaptchaParamString.toString();
     }
 }

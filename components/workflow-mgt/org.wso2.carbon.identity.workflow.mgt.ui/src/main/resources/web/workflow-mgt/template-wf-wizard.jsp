@@ -185,7 +185,7 @@
 
 
     <script type="text/javascript" src="js/jquery-3.6.0.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-1.13.0.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.13.2.min.js"></script>
     <script type="text/javascript" src="js/tokenizer.js"></script>
     <link rel="stylesheet" type="text/css" href="css/input_style.css">
 

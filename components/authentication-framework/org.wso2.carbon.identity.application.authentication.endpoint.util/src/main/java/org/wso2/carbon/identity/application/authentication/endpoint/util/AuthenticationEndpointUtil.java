@@ -310,6 +310,8 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT:
                 return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE:
+                return Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
