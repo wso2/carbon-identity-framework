@@ -2868,6 +2868,10 @@
             {% endfor %}
         </ChoreoDomains>
         {% endif %}
+
+        <AuthenticatorNameInAuthConfig>
+            <Enable>{{authentication.adaptive.authenticator_name_in_auth_config.enable}}</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
