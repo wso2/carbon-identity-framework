@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception;
 
+/**
+ * Handle exceptions at authentication endpoint.
+ */
 public class AuthenticationEndpointException extends Exception {
 
     public AuthenticationEndpointException(String message) {

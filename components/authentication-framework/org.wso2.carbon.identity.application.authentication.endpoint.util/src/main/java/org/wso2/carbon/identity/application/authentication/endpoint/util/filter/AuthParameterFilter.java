@@ -22,14 +22,13 @@ import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception.AuthenticationEndpointException;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationRequestWrapper;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.IOException;
 import java.util.Map;
@@ -42,6 +41,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Cache the parameters required in the authentication flow.
@@ -62,9 +62,11 @@ public class AuthParameterFilter implements Filter {
     }
 
     /**
-     * @param servletRequest Servlet Request
-     * @param servletResponse Servlet Response
-     * @param filterChain Filter Chain
+     * Retrieve the parameters for the received servlet request and forward the request wrapped with the parameters.
+     *
+     * @param servletRequest    Servlet Request
+     * @param servletResponse   Servlet Response
+     * @param filterChain       Filter Chain
      * @throws IOException
      * @throws ServletException
      */
@@ -93,11 +95,10 @@ public class AuthParameterFilter implements Filter {
                     return;
                 }
             }
+            filterChain.doFilter(servletRequest, servletResponse);
         } catch (AuthenticationEndpointException e) {
-            log.error(e.getMessage());
+            ((HttpServletResponse) servletResponse).sendError(500, e.getMessage());
         }
-
-        filterChain.doFilter(servletRequest, servletResponse);
     }
 
     /**
@@ -132,7 +133,7 @@ public class AuthParameterFilter implements Filter {
             if (StringUtils.isBlank(authAPIURL)) {
                 authAPIURL = ServiceURLBuilder.create().addPath(DATA_API_PATH).build().getAbsoluteInternalURL();
             } else {
-                authAPIURL = resolveTenantDomain(authAPIURL);
+                authAPIURL = AuthenticationEndpointUtil.resolveTenantDomain(authAPIURL);
             }
 
             if (!authAPIURL.endsWith("/")) {
@@ -157,29 +158,6 @@ public class AuthParameterFilter implements Filter {
             String msg = "Error while building Authentication REST Endpoint URL.";
             throw new AuthenticationEndpointException(msg, e);
         }
-    }
-
-    /**
-     * Resolve "${tenantDomain}" in the authentication REST endpoint URL.
-     *
-     * @param authAPIURL authentication REST endpoint URL
-     * @return Tenant resolved authentication REST endpoint URL
-     */
-    private String resolveTenantDomain(String authAPIURL) {
-
-        // Resolve tenant domain for the authentication API URl
-        if (authAPIURL.contains("${tenantDomain}")) {
-            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-            if (tenantDomain.equals("carbon.super")) {
-                authAPIURL = authAPIURL.replace("t/${tenant}/", "");
-            } else {
-                authAPIURL = authAPIURL.replace("${tenant}", tenantDomain);
-            }
-        }
-        return authAPIURL;
     }
 
     @Override
