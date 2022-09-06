@@ -228,17 +228,17 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
-     * Test LDAP connection.
+     * Test user store connectivity.
      * @param userStoreDTO User store DTO.
      * @return true or false.
      * @throws Exception
      */
-    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
+    public boolean testUserStoreConnection(UserStoreDTO userStoreDTO)
             throws Exception {
-        boolean result = false;
+        boolean result;
 
         try {
-            result = stub.testLDAPConnection(userStoreDTO);
+            result = stub.testUserStoreConnection(userStoreDTO);
         } catch (UserStoreConfigAdminServiceIdentityUserStoreMgtException e) {
             if (log.isDebugEnabled()) {
                 log.debug(e.getFaultMessage().getIdentityUserStoreMgtException().getMessage(), e);

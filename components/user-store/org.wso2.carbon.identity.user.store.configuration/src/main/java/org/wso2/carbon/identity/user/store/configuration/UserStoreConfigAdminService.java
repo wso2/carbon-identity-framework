@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.naming.NamingException;
 import javax.xml.transform.TransformerConfigurationException;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
@@ -432,16 +431,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     }
 
     /**
-     * Test LDAP connection.
-     * @param userStoreDTO Userstore DTO.
+     * Test user store connectivity.
+     * @param userStoreDTO user store DTO
      * @return true or false
      * @throws IdentityUserStoreMgtException
-     * @throws NamingException
      */
-    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
-            throws IdentityUserStoreMgtException, NamingException {
+    public boolean testUserStoreConnection(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
-                testLDAPConnection(userStoreDTO);
+                testUserStoreConnection(userStoreDTO);
     }
 
     private IdentityUserStoreMgtException buildIdentityUserStoreMgtException(IdentityUserStoreClientException e,

@@ -70,7 +70,7 @@
         try {
         	client = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);;
 
-            canAdd = client.testLDAPConnection(userStoreDTO);
+            canAdd = client.testUserStoreConnection(userStoreDTO);
     %>
         <%=canAdd%>
     <%

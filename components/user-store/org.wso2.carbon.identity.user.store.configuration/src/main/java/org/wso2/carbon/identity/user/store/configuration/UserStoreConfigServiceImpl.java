@@ -38,7 +38,9 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
+import org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager;
 import org.wso2.carbon.user.core.ldap.LDAPConnectionContext;
+import org.wso2.carbon.user.core.ldap.ReadOnlyLDAPUserStoreManager;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -63,7 +65,10 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DRIVER_NAME;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PASSWORD;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.URL;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -317,56 +322,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         return userstores;
     }
 
+    @Deprecated
     @Override
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID)
             throws IdentityUserStoreMgtException {
 
-        if (StringUtils.isNotEmpty(messageID) && StringUtils.isNotEmpty(domainName)) {
-            if (connectionPassword.equalsIgnoreCase(UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK)) {
-                Map<String, String> secondaryUserStoreProperties = SecondaryUserStoreConfigurationUtil
-                        .getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
-                if (secondaryUserStoreProperties != null) {
-                    connectionPassword = secondaryUserStoreProperties.get(JDBCRealmConstants.PASSWORD);
-                }
-            }
-        }
-
-        WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
-
-        RDBMSConfiguration rdbmsConfiguration = new RDBMSConfiguration();
-        rdbmsConfiguration.setUrl(connectionURL);
-        rdbmsConfiguration.setUsername(username);
-        rdbmsConfiguration.setPassword(connectionPassword);
-        rdbmsConfiguration.setDriverClassName(driverName);
-
-        WSDataSourceMetaInfo.WSDataSourceDefinition wSDataSourceDefinition = new
-                WSDataSourceMetaInfo.WSDataSourceDefinition();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JAXBContext context;
-        try {
-            context = JAXBContext.newInstance(RDBMSConfiguration.class);
-            Marshaller marshaller = context.createMarshaller();
-            marshaller.marshal(rdbmsConfiguration, out);
-
-        } catch (JAXBException e) {
-            String errorMessage = "Error while checking RDBMS connection health";
-            LOG.error(errorMessage, e);
-            throw new IdentityUserStoreMgtException(errorMessage);
-        }
-        wSDataSourceDefinition.setDsXMLConfiguration(out.toString());
-        wSDataSourceDefinition.setType("RDBMS");
-        if (StringUtils.isNotEmpty(domainName)) {
-            wSDataSourceMetaInfo.setName(domainName);
-        }
-        wSDataSourceMetaInfo.setDefinition(wSDataSourceDefinition);
-        try {
-            return DataSourceManager.getInstance().getDataSourceRepository().testDataSourceConnection
-                    (wSDataSourceMetaInfo.extractDataSourceMetaInfo());
-        } catch (DataSourceException e) {
-            String errorMessage = e.getMessage();
-            throw new IdentityUserStoreMgtException(errorMessage);
-        }
+        return testJDBCConnection(domainName, driverName, connectionURL, username, connectionPassword, messageID);
     }
 
     @Override
@@ -488,13 +450,43 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     }
 
     /**
+     * Test user store connectivity.
+     * @param userStoreDTO User Store DTO.
+     * @return true or false
+     * @throws IdentityUserStoreMgtException
+     */
+    public boolean testUserStoreConnection(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+        String userStoreClassName = userStoreDTO.getClassName();
+        Map<String, String> userStoreProperties = convertPropertiesDTOArrayToMap(userStoreDTO.getProperties());
+
+        boolean result = false;
+        Class<?> userStoreClass;
+
+        try {
+            userStoreClass = Class.forName(userStoreClassName);
+        } catch (ClassNotFoundException e) {
+            throw new IdentityUserStoreMgtException("Invalid user store class.");
+        }
+
+        if (JDBCUserStoreManager.class.isAssignableFrom(userStoreClass)) {
+            return testJDBCConnection(userStoreDTO.getDomainId(), userStoreProperties.get(DRIVER_NAME),
+                    userStoreProperties.get(URL), userStoreProperties.get("userName"),
+                    userStoreProperties.get(PASSWORD), null);
+        } else if (ReadOnlyLDAPUserStoreManager.class.isAssignableFrom(userStoreClass)) {
+            return testLDAPConnection(userStoreDTO);
+        } else {
+            throw new IdentityUserStoreMgtException("Can not test the user store connectivity.");
+        }
+
+    }
+
+    /**
      * Test LDAP Connection.
-     * @param userStoreDTO Userstore DTO.
+     * @param userStoreDTO User store DTO.
      * @return boolean
      * @throws IdentityUserStoreMgtException
      */
-    @Override
-    public boolean testLDAPConnection(UserStoreDTO userStoreDTO)
+    private boolean testLDAPConnection(UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
         RealmConfiguration realmConfig = new RealmConfiguration();
@@ -522,6 +514,68 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             if (dirContext != null) {
                 closeContext(dirContext);
             }
+        }
+    }
+
+    /**
+     * Test RDBMS Connection.
+     * @param domainName Domain name.
+     * @param driverName Driver name.
+     * @param connectionURL Connection URL.
+     * @param username Connection username.
+     * @param connectionPassword Connection Password.
+     * @param messageID Message ID.
+     * @return true or false.
+     * @throws IdentityUserStoreMgtException
+     */
+    private boolean testJDBCConnection(String domainName, String driverName, String connectionURL, String username,
+                                       String connectionPassword, String messageID)
+            throws IdentityUserStoreMgtException {
+
+        if (StringUtils.isNotEmpty(messageID) && StringUtils.isNotEmpty(domainName)) {
+            if (connectionPassword.equalsIgnoreCase(UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK)) {
+                Map<String, String> secondaryUserStoreProperties = SecondaryUserStoreConfigurationUtil
+                        .getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
+                if (secondaryUserStoreProperties != null) {
+                    connectionPassword = secondaryUserStoreProperties.get(JDBCRealmConstants.PASSWORD);
+                }
+            }
+        }
+
+        WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
+
+        RDBMSConfiguration rdbmsConfiguration = new RDBMSConfiguration();
+        rdbmsConfiguration.setUrl(connectionURL);
+        rdbmsConfiguration.setUsername(username);
+        rdbmsConfiguration.setPassword(connectionPassword);
+        rdbmsConfiguration.setDriverClassName(driverName);
+
+        WSDataSourceMetaInfo.WSDataSourceDefinition wSDataSourceDefinition = new
+                WSDataSourceMetaInfo.WSDataSourceDefinition();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        JAXBContext context;
+        try {
+            context = JAXBContext.newInstance(RDBMSConfiguration.class);
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.marshal(rdbmsConfiguration, out);
+
+        } catch (JAXBException e) {
+            String errorMessage = "Error while checking RDBMS connection health";
+            LOG.error(errorMessage, e);
+            throw new IdentityUserStoreMgtException(errorMessage);
+        }
+        wSDataSourceDefinition.setDsXMLConfiguration(out.toString());
+        wSDataSourceDefinition.setType("RDBMS");
+        if (StringUtils.isNotEmpty(domainName)) {
+            wSDataSourceMetaInfo.setName(domainName);
+        }
+        wSDataSourceMetaInfo.setDefinition(wSDataSourceDefinition);
+        try {
+            return DataSourceManager.getInstance().getDataSourceRepository().testDataSourceConnection
+                    (wSDataSourceMetaInfo.extractDataSourceMetaInfo());
+        } catch (DataSourceException e) {
+            String errorMessage = e.getMessage();
+            throw new IdentityUserStoreMgtException(errorMessage);
         }
     }
 

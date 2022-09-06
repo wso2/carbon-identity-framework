@@ -917,7 +917,7 @@
 
 </form>
 <div class="buttonRow">
-	<%
+	<%-- <%
 		if (selectedClassApplied.matches(".*jdbc.*")) 
 	{ %>
 	<input type="button" onclick="testConnection();" value="<fmt:message key="test.connection"/>"
@@ -966,14 +966,14 @@
            <%} %>
     <%
         if (selectedClassApplied.matches(".*ldap.*"))
-    { %>
-    <input type="button" onclick="testLDAPConnection();" value="<fmt:message key="test.connection"/>"
+    { %> --%>
+    <input type="button" onclick="testUserStoreConnection();" value="<fmt:message key="test.connection"/>"
            class="button"/>
 
     <script type="text/javascript">
-        function testLDAPConnection() {
+        function testUserStoreConnection() {
 
-            var url = 'validate-ldapconnection-ajaxprocessor.jsp';
+            var url = 'validate-userstore-connection-ajaxprocessor.jsp';
 
             <%if(messageID != null && !"".equals(messageID)) {%>
             url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
@@ -1000,7 +1000,7 @@
 
 
     </script>
-           <%} %>
+           <%-- <%} %> --%>
     <%if (isEditing) { %>
     <input type="button" onclick="doUpdate();" value="<fmt:message key="update"/>"
            class="button"/>

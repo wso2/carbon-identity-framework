@@ -21,8 +21,6 @@ import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStore
 
 import java.util.Set;
 
-import javax.naming.NamingException;
-
 /**
  * This interface used to expose user store management functionality as an OSGi Service.
  */
@@ -108,6 +106,7 @@ public interface UserStoreConfigService {
      * @return true or false
      * @throws IdentityUserStoreMgtException
      */
+    @Deprecated
     boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                 String connectionPassword, String messageID) throws IdentityUserStoreMgtException;
 
@@ -139,8 +138,6 @@ public interface UserStoreConfigService {
      * @param userStoreDTO Userstore DTO.
      * @return true or false.
      * @throws IdentityUserStoreMgtException
-     * @throws NamingException
      */
-    boolean testLDAPConnection(UserStoreDTO userStoreDTO)
-            throws IdentityUserStoreMgtException;
+    boolean testUserStoreConnection(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException;
 }
