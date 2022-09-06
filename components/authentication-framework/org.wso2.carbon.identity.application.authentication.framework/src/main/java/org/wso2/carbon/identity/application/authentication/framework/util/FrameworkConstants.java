@@ -574,6 +574,8 @@ public abstract class FrameworkConstants {
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
+        public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
+                = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
     }
 
     /**

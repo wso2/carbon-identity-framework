@@ -167,6 +167,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -207,7 +208,6 @@ public class FrameworkUtils {
     private static final String HASH_CHAR = "#";
     private static final String HASH_CHAR_ENCODED = "%23";
     private static final String QUESTION_MARK = "?";
-    public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
 
     private static Boolean authenticatorNameInAuthConfigPreference;
 
@@ -3309,12 +3309,8 @@ public class FrameworkUtils {
     public static boolean isAuthenticatorNameInAuthConfigEnabled() {
 
         if (authenticatorNameInAuthConfigPreference == null) {
-            String serverConfig = IdentityUtil.getProperty(AUTHENTICATOR_NAME_IN_AUTH_CONFIG);
-            if (StringUtils.isNotBlank(serverConfig)) {
-                authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(serverConfig);
-            } else {
-                authenticatorNameInAuthConfigPreference = false;
-            }
+            authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    AUTHENTICATOR_NAME_IN_AUTH_CONFIG));
         }
 
         return authenticatorNameInAuthConfigPreference;
