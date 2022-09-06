@@ -290,7 +290,7 @@ public class DefaultStepHandler implements StepHandler {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) ||
                                 (config.getApplicationAuthenticator() instanceof LocalApplicationAuthenticator &&
                                         (BASIC_AUTH_MECHANISM).equalsIgnoreCase(config.getApplicationAuthenticator()
-                                                .getAuthMechanism())) && IdentityUtil.getIdentityErrorMsg() == null) {
+                                                .getAuthMechanism()) && IdentityUtil.getIdentityErrorMsg() == null)) {
                             authenticatorConfig = config;
                             isAuthFlowHandlerOrBasicAuthInMultiOptionStep = true;
                             sendToPage = false;
@@ -1113,7 +1113,7 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         callback = callback + ("?" + context.getContextIdIncludedQueryParams())
-                + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8");
+                + "&authenticators=" + authenticatorNames;
         return response.encodeRedirectURL(
                 ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
                 + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
