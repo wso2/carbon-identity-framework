@@ -343,13 +343,13 @@
                 </td>
             </tr>
             <tr>
-                <td class="leftCol-med labelField"><fmt:message key='oidc.scopes'/>:</td>
+                <td class="leftCol-med labelField"><fmt:message key='scopes'/>:</td>
                 <td>
                     <input id="scopes" name="scopes" type="text"
                            value="<%=Encode.forHtmlAttribute(scopes)%>">
 
                     <div class="sectionHelp">
-                        <fmt:message key='oidc.scopes.help'/>
+                        <fmt:message key='scopes.help'/>
                     </div>
                 </td>
             </tr>
