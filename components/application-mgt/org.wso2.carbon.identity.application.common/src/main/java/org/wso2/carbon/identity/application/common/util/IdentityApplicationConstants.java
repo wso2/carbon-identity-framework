@@ -92,6 +92,9 @@ public class IdentityApplicationConstants {
 
     // Service Provider configuration options that are stored as SP properites.
     public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
+    public static final String NAME_SP_PROPERTY_NAME = "name";
+    public static final String CLIENT_ID_SP_PROPERTY_NAME = "clientId";
+    public static final String ISSUER_SP_PROPERTY_NAME = "issuer";
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
