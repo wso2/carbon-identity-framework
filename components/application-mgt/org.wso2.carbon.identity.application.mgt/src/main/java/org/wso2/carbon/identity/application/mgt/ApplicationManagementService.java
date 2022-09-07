@@ -372,11 +372,11 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
-     * Get authenticators configured for an application.
+     * Get configured authenticators of an application.
      *
      * @param applicationID ID of an application.
      * @return list of configured authenticators.
-     * @throws IdentityApplicationManagementException
+     * @throws IdentityApplicationManagementException If error occurs in retrieving configured authenticators.
      */
     public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException;

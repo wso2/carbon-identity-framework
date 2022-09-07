@@ -1563,7 +1563,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (localAndOutboundAuthenticationConfig == null) {
             return null;
         }
-        // if "Authentication Type" is "Default" we must get the steps from the default SP
+        // If "Authentication Type" is "Default" we must get the steps from the default SP.
         AuthenticationStep[] authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
         if (authenticationSteps == null || authenticationSteps.length == 0) {
             ServiceProvider defaultSP = ApplicationManagementServiceComponent
