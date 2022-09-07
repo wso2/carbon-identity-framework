@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -217,11 +216,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING));
         }
 
-        boolean isOIDCServiceProvider = checkOIDCServiceProvider(serviceProvider);
-
         ClaimMapping[] claimMappings = getSpClaimMappings(serviceProvider);
-        if (scopeBasedClaimFilteringEnabled && isOIDCServiceProvider && claimMappings.length == 0) {
-            claimMappings = FrameworkUtils.getDefaultOIDCClaimMappings(serviceProvider.getOwner().getTenantDomain());
+        if (scopeBasedClaimFilteringEnabled && claimMappings.length == 0) {
+            if (serviceProvider.getOwner() != null) {
+                claimMappings = FrameworkUtils.getDefaultClaimMappings(serviceProvider.getOwner().getTenantDomain());
+            }
         }
 
         if (scopeBasedClaimFilteringEnabled && claimsListOfScopes != null) {
@@ -318,19 +317,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 spTenantDomain);
         consentClaimsData.setClaimsWithConsent(receiptConsentMetaData);
         return consentClaimsData;
-    }
-
-    private boolean checkOIDCServiceProvider(ServiceProvider serviceProvider) {
-
-        boolean isOIDCServiceProvider = false;
-        if (serviceProvider.getInboundAuthenticationConfig() != null) {
-            if (serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs().length != 0) {
-                isOIDCServiceProvider = serviceProvider.getInboundAuthenticationConfig()
-                        .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType()
-                        .equals(FrameworkConstants.StandardInboundProtocols.OAUTH2);
-            }
-        }
-        return isOIDCServiceProvider;
     }
 
     private boolean isCustomClaimMapping(ServiceProvider serviceProvider) {

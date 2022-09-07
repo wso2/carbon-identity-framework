@@ -3303,7 +3303,7 @@ public class FrameworkUtils {
      * @param tenantDomain      Service provider domain.
      * @return  default claim mappings.
      */
-    public static ClaimMapping[] getDefaultOIDCClaimMappings(String tenantDomain) {
+    public static ClaimMapping[] getDefaultClaimMappings(String tenantDomain) {
 
         List<ClaimMapping> defaultClaimMappings = new ArrayList<>();
         try {

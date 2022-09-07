@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
@@ -44,7 +43,6 @@ public class AbstractFrameworkTest {
         authenticationContext.setTenantDomain("test_domain");
         authenticationContext.setCurrentStep(1);
         authenticationContext.setContextIdentifier(UUID.randomUUID().toString());
-        authenticationContext.setRequestType(FrameworkConstants.RequestType.CLAIM_TYPE_OIDC);
         authenticationContext.initializeAnalyticsData();
         return authenticationContext;
     }
