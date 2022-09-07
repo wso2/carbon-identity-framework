@@ -20,6 +20,11 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Logger For javascript engine.
@@ -32,7 +37,18 @@ public class JsLogger {
     private static JsLogger jsLogger = new JsLogger();
 
     /**
+     * Returns an instance to log the javascript errors.
+     *
+     * @return
+     */
+    public static JsLogger getInstance() {
+
+        return jsLogger;
+    }
+
+    /**
      * Logs with list of objects.
+     *
      * @param values
      */
     public void log(Object... values) {
@@ -49,6 +65,13 @@ public class JsLogger {
                     stringBuilder.append(" ");
                 }
                 logger.debug(stringBuilder.toString());
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("debug", stringBuilder.toString());
+                    LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            params, FrameworkConstants.LogConstants.SUCCESS, "Logging JS script debug logs.", "js" +
+                                    "-script-logging", null);
+                }
             }
         }
     }
@@ -56,29 +79,40 @@ public class JsLogger {
     public void debug(String value) {
 
         logger.debug(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("debug", value);
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                    FrameworkConstants.LogConstants.SUCCESS, "Logging JS script debug logs.", "js-script-logging",
+                    null);
+        }
     }
 
     public void info(String value) {
 
         logger.info(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("info", value);
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                    FrameworkConstants.LogConstants.SUCCESS, "Logging JS script info logs.", "js-script-logging",
+                    null);
+        }
     }
 
     public void error(String value) {
 
         logger.error(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("info", value);
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                    FrameworkConstants.LogConstants.FAILED, "Logging JS script error logs.", "js-script-logging",
+                    null);
+        }
     }
 
     public void log(String message, Object... values) {
 
-    }
-
-    /**
-     * Returns an instance to log the javascript errors.
-     *
-     * @return
-     */
-    public static JsLogger getInstance() {
-
-        return jsLogger;
     }
 }
