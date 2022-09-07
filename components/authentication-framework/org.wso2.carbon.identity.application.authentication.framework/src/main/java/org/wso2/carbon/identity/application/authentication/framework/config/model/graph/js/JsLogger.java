@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 /**
  * Logger For javascript engine.
@@ -32,47 +34,6 @@ public class JsLogger {
     private static JsLogger jsLogger = new JsLogger();
 
     /**
-     * Logs with list of objects.
-     * @param values
-     */
-    public void log(Object... values) {
-
-        if (values != null) {
-            if (values.length <= 0) {
-                logger.debug("");
-            } else if (values.length == 1) {
-                logger.debug(String.valueOf(values[0]));
-            } else {
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Object value : values) {
-                    stringBuilder.append(String.valueOf(value));
-                    stringBuilder.append(" ");
-                }
-                logger.debug(stringBuilder.toString());
-            }
-        }
-    }
-
-    public void debug(String value) {
-
-        logger.debug(value);
-    }
-
-    public void info(String value) {
-
-        logger.info(value);
-    }
-
-    public void error(String value) {
-
-        logger.error(value);
-    }
-
-    public void log(String message, Object... values) {
-
-    }
-
-    /**
      * Returns an instance to log the javascript errors.
      *
      * @return
@@ -80,5 +41,70 @@ public class JsLogger {
     public static JsLogger getInstance() {
 
         return jsLogger;
+    }
+
+    /**
+     * Logs with list of objects.
+     *
+     * @param values
+     */
+    public void log(Object... values) {
+
+        if (values != null) {
+            String resultMessage = "";
+            if (values.length <= 0) {
+                logger.debug("");
+            } else if (values.length == 1) {
+                logger.debug(String.valueOf(values[0]));
+                resultMessage = String.valueOf(values[0]);
+            } else {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (Object value : values) {
+                    stringBuilder.append(String.valueOf(value));
+                    stringBuilder.append(" ");
+                }
+                logger.debug(stringBuilder.toString());
+                resultMessage = stringBuilder.toString();
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        null, FrameworkConstants.LogConstants.SUCCESS, "Debug log : " + resultMessage,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            }
+        }
+    }
+
+    public void debug(String value) {
+
+        logger.debug(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    FrameworkConstants.LogConstants.SUCCESS, "Debug log : " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
+    }
+
+    public void info(String value) {
+
+        logger.info(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    FrameworkConstants.LogConstants.SUCCESS, "Info log : " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
+    }
+
+    public void error(String value) {
+
+        logger.error(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    FrameworkConstants.LogConstants.FAILED, "Error log : " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
+    }
+
+    public void log(String message, Object... values) {
+
     }
 }
