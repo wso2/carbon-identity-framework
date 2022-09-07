@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -394,5 +395,25 @@ public class ApplicationManagementServiceComponent {
             log.debug("Unset organization management service.");
         }
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationUserResidentResolverService(null);
+    }
+
+    @Reference(
+            name = "organization.mgt.initialize.service",
+            service = OrganizationManagementInitialize.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManagementEnablingService"
+    )
+    protected void setOrganizationManagementEnablingService(
+            OrganizationManagementInitialize organizationManagementInitializeService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setOrganizationManagementEnable(organizationManagementInitializeService);
+    }
+
+    protected void unsetOrganizationManagementEnablingService(
+            OrganizationManagementInitialize organizationManagementInitializeInstance) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManagementEnable(null);
     }
 }
