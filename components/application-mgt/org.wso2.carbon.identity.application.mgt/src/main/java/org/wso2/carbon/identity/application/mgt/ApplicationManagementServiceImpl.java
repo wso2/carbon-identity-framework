@@ -1553,12 +1553,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = appDAO
-                .getConfiguredAuthenticators(applicationID, tenantDomain);
+                .getConfiguredAuthenticators(applicationID);
 
         if (localAndOutboundAuthenticationConfig == null) {
             return null;

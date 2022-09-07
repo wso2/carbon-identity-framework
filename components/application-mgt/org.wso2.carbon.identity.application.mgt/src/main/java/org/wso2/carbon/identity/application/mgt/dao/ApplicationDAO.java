@@ -109,11 +109,10 @@ public interface ApplicationDAO {
      * Get authenticators configured for an application.
      *
      * @param applicationId ID of an application.
-     * @param tenantDomain  Name of the tenant.
      * @return Authentication configurations.
      * @throws IdentityApplicationManagementException
      */
-    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId, String tenantDomain)
+    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
             throws IdentityApplicationManagementException;
     /**
      * [sp-claim-uri,local-idp-claim-uri]

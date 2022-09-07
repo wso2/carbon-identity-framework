@@ -2041,32 +2041,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId,
-                                                                            String tenantDomain)
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId)
             throws IdentityApplicationManagementException {
 
         int tenantID;
-        try {
-            tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        } catch (IdentityRuntimeException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid tenant domain " + tenantDomain);
-            }
-            return null;
-        }
-        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfoByResourceId(applicationResourceId,
-                tenantDomain);
-        if (applicationBasicInfo == null) {
+        int applicationId = getAppIdUsingResourceId(applicationResourceId);
+        if (applicationId == -1) {
             if (log.isDebugEnabled()) {
                 log.debug("There is no application with the resourceId: " + applicationResourceId);
             }
             return null;
         }
-        int applicationId = applicationBasicInfo.getApplicationId();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (serviceProvider == null) {
+                return  null;
+            }
+            tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             return getLocalAndOutboundAuthenticationConfig(applicationId, connection, tenantID, null);
-        } catch (SQLException e) {
+        } catch (SQLException | IdentityRuntimeException  e) {
             throw new IdentityApplicationManagementException("Failed to get configured authenticators for application" +
                     " id: " + applicationResourceId, e);
         }
@@ -5331,7 +5326,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
+                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID_AND_TENANT_ID)) {
 
                 statement.setString(ApplicationTableColumns.UUID, resourceId);
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -5346,6 +5341,39 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException e) {
             String msg = "Error while retrieving the application id for resourceId: %s in tenantDomain:  %s";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), e);
+        }
+
+        return applicationId;
+    }
+
+    /**
+     * Returns the internal application id for a given resourceId in a tenant.
+     *
+     * @param resourceId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    private int getAppIdUsingResourceId(String resourceId)
+            throws IdentityApplicationManagementException {
+
+        int applicationId = -1;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
+
+                statement.setString(ApplicationTableColumns.UUID, resourceId);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        applicationId = resultSet.getInt(ApplicationTableColumns.ID);
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            String msg = "Error while retrieving the application id for resourceId: %s";
+            throw new IdentityApplicationManagementException(String.format(msg, resourceId), e);
         }
 
         return applicationId;

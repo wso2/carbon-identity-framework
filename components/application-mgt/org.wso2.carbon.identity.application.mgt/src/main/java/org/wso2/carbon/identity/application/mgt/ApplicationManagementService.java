@@ -378,7 +378,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @return list of configured authenticators.
      * @throws IdentityApplicationManagementException
      */
-    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
+    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException;
 
     @Override
