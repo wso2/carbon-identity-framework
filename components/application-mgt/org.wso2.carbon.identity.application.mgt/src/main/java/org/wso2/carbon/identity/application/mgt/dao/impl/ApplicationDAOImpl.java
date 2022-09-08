@@ -5347,30 +5347,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Returns the internal application id for a given resourceId in a tenant.
+     * Returns the internal application id for a given resourceId.
      *
-     * @param resourceId
-     * @return
-     * @throws IdentityApplicationManagementException
+     * @param resourceId        UUID of the application.
+     * @return applicationId    ID of the application.
+     * @throws IdentityApplicationManagementException If an error occurred in retrieving application ID.
      */
     private int getAppIdUsingResourceId(String resourceId)
             throws IdentityApplicationManagementException {
 
         int applicationId = -1;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                     ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
 
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
+            statement.setString(ApplicationTableColumns.UUID, resourceId);
 
-                statement.setString(ApplicationTableColumns.UUID, resourceId);
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        applicationId = resultSet.getInt(ApplicationTableColumns.ID);
-                    }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    applicationId = resultSet.getInt(ApplicationTableColumns.ID);
                 }
             }
-
         } catch (SQLException e) {
             String msg = "Error while retrieving the application id for resourceId: %s";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId), e);
