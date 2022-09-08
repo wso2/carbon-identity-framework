@@ -40,6 +40,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerLongWaitTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerExceptionRetryTest" />
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandlerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtilsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtilTest"/>
