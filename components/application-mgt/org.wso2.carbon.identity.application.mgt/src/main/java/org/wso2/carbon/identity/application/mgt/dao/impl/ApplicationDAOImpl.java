@@ -5360,9 +5360,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
-
             statement.setString(ApplicationTableColumns.UUID, resourceId);
-
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     applicationId = resultSet.getInt(ApplicationTableColumns.ID);
@@ -5372,7 +5370,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String msg = "Error while retrieving the application id for resourceId: %s";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId), e);
         }
-
         return applicationId;
     }
 
