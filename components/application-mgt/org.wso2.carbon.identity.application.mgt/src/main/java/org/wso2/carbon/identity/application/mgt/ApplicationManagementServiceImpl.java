@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
@@ -1549,6 +1550,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         return doGetAllApplicationTemplateInfo(tenantDomain);
+    }
+
+    @Override
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = appDAO
+                .getConfiguredAuthenticators(applicationID);
+
+        if (localAndOutboundAuthenticationConfig == null) {
+            return null;
+        }
+        // If "Authentication Type" is "Default" we must get the steps from the default SP.
+        AuthenticationStep[] authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
+        if (authenticationSteps == null || authenticationSteps.length == 0) {
+            ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                    .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+            authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                    .getAuthenticationSteps();
+        }
+        return authenticationSteps;
     }
 
     /**
