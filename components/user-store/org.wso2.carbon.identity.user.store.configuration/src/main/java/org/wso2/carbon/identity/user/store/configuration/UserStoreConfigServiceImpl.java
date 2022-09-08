@@ -66,9 +66,11 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DRIVER_NAME;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DUMMY_MESSAGE_ID;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.PASSWORD;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.URL;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERNAME;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -470,8 +472,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         if (JDBCUserStoreManager.class.isAssignableFrom(userStoreClass)) {
             return testJDBCConnection(userStoreDTO.getDomainId(), userStoreProperties.get(DRIVER_NAME),
-                    userStoreProperties.get(URL), userStoreProperties.get("userName"),
-                    userStoreProperties.get(PASSWORD), null);
+                    userStoreProperties.get(URL), userStoreProperties.get(USERNAME),
+                    userStoreProperties.get(PASSWORD), DUMMY_MESSAGE_ID);
         } else if (ReadOnlyLDAPUserStoreManager.class.isAssignableFrom(userStoreClass)) {
             return testLDAPConnection(userStoreDTO);
         } else {
