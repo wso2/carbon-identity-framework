@@ -30,6 +30,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -161,7 +162,8 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
 
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
@@ -259,7 +261,8 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
