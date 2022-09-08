@@ -114,6 +114,7 @@ public interface ApplicationDAO {
      */
     LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
             throws IdentityApplicationManagementException;
+
     /**
      * [sp-claim-uri,local-idp-claim-uri]
      *
