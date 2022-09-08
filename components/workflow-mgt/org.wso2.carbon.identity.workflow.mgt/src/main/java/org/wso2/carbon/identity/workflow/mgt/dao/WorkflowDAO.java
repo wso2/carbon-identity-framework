@@ -45,7 +45,6 @@ public class WorkflowDAO {
 
     private final String errorMessage = "Error when executing the SQL query ";
     private static final Log log = LogFactory.getLog(WorkflowDAO.class);
-    boolean debugEnabled = log.isErrorEnabled();
 
     /**
      * Adding a workflow
@@ -516,7 +515,7 @@ public class WorkflowDAO {
      */
     private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {
 
-        if (debugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug(errorMsg, e);
         }
         throw new InternalWorkflowException(errorMsg, e);

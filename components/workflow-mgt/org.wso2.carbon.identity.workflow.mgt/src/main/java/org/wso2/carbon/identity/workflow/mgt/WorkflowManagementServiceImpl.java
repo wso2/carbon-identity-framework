@@ -440,6 +440,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException{
 
+        if (log.isDebugEnabled()) {
+            log.debug("Getting workflow of tenant " + tenantId);
+        }
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -505,6 +509,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public int getWorkflowsCount(int tenantId, String filter) throws WorkflowException{
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting workflows count of tenant " + tenantId);
+        }
 
         if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
@@ -636,6 +644,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations of tenant " + tenantId);
+        }
+
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -725,6 +737,10 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      */
     @Override
     public int getAssociationsCount(int tenantId, String filter) throws WorkflowException{
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations count of tenant " + tenantId);
+        }
 
         if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;

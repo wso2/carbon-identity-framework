@@ -44,7 +44,6 @@ public class AssociationDAO {
 
     private final String errorMessage = "Error when executing the SQL query ";
     private static final Log log = LogFactory.getLog(WorkflowDAO.class);
-    boolean debugEnabled = log.isErrorEnabled();
 
     /**
      *
@@ -435,7 +434,7 @@ public class AssociationDAO {
      */
     private void handleException(String errorMsg, Exception e) throws InternalWorkflowException {
 
-        if (debugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug(errorMsg, e);
         }
         throw new InternalWorkflowException(errorMsg, e);
