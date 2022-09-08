@@ -2362,65 +2362,6 @@
                                     </table>
                                 </div>
 
-                                <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#">WS-Federation (Passive) Configuration</a>
-                                    <% if (appBean.getPassiveSTSRealm() != null) { %>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                    <%} %>
-                                </h2>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                     id="passive.config.div">
-                                    <table class="carbonFormTable">
-
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.passive.sts.realm'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getPassiveSTSRealm() != null) {
-                                                %>
-                                                <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autocomplete="off" autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autocomplete="off" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.passive.sts'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.passive.sts.wreply'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getPassiveSTSWReply() != null) {
-                                                %>
-                                                <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autocomplete="off" autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autocomplete="off" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.passive.sts.wreply'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-
-                                    </table>
-                                </div>
-
                                 <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
