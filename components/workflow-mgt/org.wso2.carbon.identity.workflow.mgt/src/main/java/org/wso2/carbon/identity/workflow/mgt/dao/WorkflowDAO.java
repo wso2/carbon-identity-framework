@@ -472,7 +472,7 @@ public class WorkflowDAO {
     private PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException, DataAccessException {
 
         PreparedStatement prepStmt;
-        if (JdbcUtils.isPostgreSQLDB()){
+        if (JdbcUtils.isPostgreSQLDB()) {
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, filterResolvedForSQL);

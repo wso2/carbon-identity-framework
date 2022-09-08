@@ -41,23 +41,21 @@
     WorkflowAdminServiceClient client;
     String forwardTo = null;
     String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(WorkflowUIConstants.RESULTS_PER_PAGE_PROPERTY);
-
     String filterString = request.getParameter(WorkflowUIConstants.ASSOC_NAME_FILTER);
 
     if (!StringUtils.isNotBlank(filterString)) {
-          filterString =  WorkflowUIConstants.DEFAULT_FILTER;
+        filterString =  WorkflowUIConstants.DEFAULT_FILTER;
     } else {
-          filterString = filterString.trim();
+        filterString = filterString.trim();
     }
 
     String paginationValue;
-
     if (StringUtils.isNotBlank(filterString)) {
-          paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER,
-          WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE, filterString);
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER,
+        WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE, filterString);
     } else {
-          paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,
-          WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE);
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,
+        WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE);
     }
 
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
@@ -70,9 +68,9 @@
 
     if (StringUtils.isNotBlank(resultsPerPage)) {
         try {
-             resultsPerPageInt = Integer.parseInt(resultsPerPage);
+            resultsPerPageInt = Integer.parseInt(resultsPerPage);
         } catch (NumberFormatException ignored) {
-             //not needed to handle here, since the default value is already set.
+            //not needed to handle here, since the default value is already set.
         }
     }
 
@@ -94,7 +92,6 @@
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
         numberOfAssociations = client.getAssociationsCount(filterString);
         associations = client.listPaginatedAssociations(resultsPerPageInt, offset, filterString);
-
         numberOfPages = (int) Math.ceil((double) numberOfAssociations / resultsPerPageInt);
     } catch (AxisFault e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");

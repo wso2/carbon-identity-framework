@@ -42,15 +42,15 @@
     String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(WorkflowUIConstants.RESULTS_PER_PAGE_PROPERTY);
     String filterString = request.getParameter(WorkflowUIConstants.WF_NAME_FILTER);
     if (!StringUtils.isNotBlank(filterString)) {
-          filterString =  WorkflowUIConstants.DEFAULT_FILTER;
+        filterString =  WorkflowUIConstants.DEFAULT_FILTER;
     } else {
-          filterString = filterString.trim();
+        filterString = filterString.trim();
     }
     String paginationValue;
     if (StringUtils.isNotBlank(filterString)) {
-          paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER, WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE, filterString);
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER, WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE, filterString);
     } else {
-          paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,  WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE);
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,  WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE);
     }
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
     int pageNumberInt = 0;
@@ -66,17 +66,17 @@
     }
     if (StringUtils.isNotBlank(resultsPerPage)) {
         try {
-             resultsPerPageInt = Integer.parseInt(resultsPerPage);
+            resultsPerPageInt = Integer.parseInt(resultsPerPage);
         } catch (NumberFormatException ignored) {
-             //not needed to handle here, since the default value is already set.
+            //not needed to handle here, since the default value is already set.
         }
     }
     if (StringUtils.isNotBlank(pageNumber)) {
         try {
-             pageNumberInt = Integer.parseInt(pageNumber);
-             offset = ((pageNumberInt) * resultsPerPageInt);
+            pageNumberInt = Integer.parseInt(pageNumber);
+            offset = ((pageNumberInt) * resultsPerPageInt);
         } catch (NumberFormatException ignored) {
-             //not needed here since it's defaulted to 0
+            //not needed here since it's defaulted to 0
         }
     }
     try {

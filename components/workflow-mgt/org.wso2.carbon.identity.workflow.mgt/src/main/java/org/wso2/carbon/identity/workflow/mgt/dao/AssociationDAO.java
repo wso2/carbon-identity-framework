@@ -149,7 +149,7 @@ public class AssociationDAO {
                         associations.add(associationDTO);
                         if (isEnable.equals("1")) {
                             associationDTO.setEnabled(true);
-                        } else{
+                        } else {
                             associationDTO.setEnabled(false);
                         }
                     }
@@ -391,7 +391,7 @@ public class AssociationDAO {
     private PreparedStatement generatePrepStmt(Connection connection, String sqlQuery, int tenantId, String filterResolvedForSQL, int offset, int limit) throws SQLException, DataAccessException {
 
         PreparedStatement prepStmt ;
-        if (JdbcUtils.isPostgreSQLDB()){
+        if (JdbcUtils.isPostgreSQLDB()) {
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, filterResolvedForSQL);

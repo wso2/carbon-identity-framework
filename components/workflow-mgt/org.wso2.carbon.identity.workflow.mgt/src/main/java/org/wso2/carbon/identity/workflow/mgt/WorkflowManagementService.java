@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -137,7 +138,7 @@ public interface WorkflowManagementService {
      */
     default List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException {
 
-        return null;
+        return Collections.emptyList();
     }
 
     /**
@@ -211,7 +212,7 @@ public interface WorkflowManagementService {
      */
     default List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException {
 
-        return null;
+        return Collections.emptyList();
     }
 
     /**

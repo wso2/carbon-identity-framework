@@ -506,7 +506,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public int getWorkflowsCount(int tenantId, String filter) throws WorkflowException{
 
-        if (StringUtils.isBlank(filter)){
+        if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
         }
         return workflowDAO.getWorkflowsCount(tenantId, filter);
@@ -652,7 +652,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
         }
         // Validate whether the filter is empty.
-        if (StringUtils.isBlank(filter)){
+        if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
         }
         List<Association> associations = associationDAO.listPaginatedAssociations(tenantId, filter, offset, limit);
@@ -726,7 +726,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public int getAssociationsCount(int tenantId, String filter) throws WorkflowException{
 
-        if (StringUtils.isBlank(filter)){
+        if (StringUtils.isBlank(filter)) {
             filter = WFConstant.DEFAULT_FILTER;
         }
         return associationDAO.getAssociationsCount(tenantId, filter);
