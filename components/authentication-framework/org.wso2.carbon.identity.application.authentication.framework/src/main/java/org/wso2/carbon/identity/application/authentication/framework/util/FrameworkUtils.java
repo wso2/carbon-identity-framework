@@ -1730,13 +1730,18 @@ public class FrameworkUtils {
         boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
                 .isAuthEndpointRedirectParamsConfigAvailable();
 
+        List<String> queryParams;
+        String action;
         if (!configAvailable) {
-            return redirectUrl;
+            queryParams = Arrays.asList("sessionDataKey", "sessionDataKeyConsent", "errorKey", "sp", "isSaaSApp",
+                    "tenantDomain", "t");
+            action = "include";
+        } else {
+            queryParams = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParams();
+            action = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParamsAction();
         }
-        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParams();
-        String action = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
 

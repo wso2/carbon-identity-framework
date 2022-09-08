@@ -415,6 +415,9 @@ public class AuthenticationEndpointUtil {
             while ((inputLine = reader.readLine()) != null) {
                 responseString.append(inputLine);
             }
+        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+            log.debug("Response received from the backendURL " + backendURL +" with status " +
+                    response.getStatusLine() + ".");
         } else {
             log.error("Response received from the backendURL " + backendURL +" failed with status " +
                     response.getStatusLine() + ".");
