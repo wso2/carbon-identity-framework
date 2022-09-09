@@ -37,7 +37,7 @@ public class JsLogger {
     /**
      * Returns an instance to log the javascript errors.
      *
-     * @return
+     * @return JsLogger instance.
      */
     public static JsLogger getInstance() {
 
