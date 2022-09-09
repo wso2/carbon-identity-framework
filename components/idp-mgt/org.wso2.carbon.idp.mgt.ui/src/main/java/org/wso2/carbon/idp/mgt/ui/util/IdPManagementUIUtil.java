@@ -1363,7 +1363,6 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName("Scopes");
-
         if (paramMap.get("scopes") != null
                 && paramMap.get("scopes").trim().length() > 0) {
             property.setValue(paramMap.get("scopes"));
