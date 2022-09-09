@@ -633,8 +633,6 @@ public abstract class FrameworkConstants {
     public static class LogConstants {
 
         public static final String AUTHENTICATION_FRAMEWORK = "authentication-framework";
-        public static final String FAILED = "FAILED";
-        public static final String SUCCESS = "SUCCESS";
         public static final String AUTH_SCRIPT_LOGGING = "auth-script-logging";
     }
 }

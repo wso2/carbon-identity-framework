@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 /**
@@ -68,7 +69,7 @@ public class JsLogger {
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        null, FrameworkConstants.LogConstants.SUCCESS, "Debug log : " + resultMessage,
+                        null, LogConstants.SUCCESS, "Debug log : " + resultMessage,
                         FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
             }
         }
@@ -79,7 +80,7 @@ public class JsLogger {
         logger.debug(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    FrameworkConstants.LogConstants.SUCCESS, "Debug log : " + value,
+                    LogConstants.SUCCESS, "Debug log : " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
@@ -89,7 +90,7 @@ public class JsLogger {
         logger.info(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    FrameworkConstants.LogConstants.SUCCESS, "Info log : " + value,
+                    LogConstants.SUCCESS, "Info log : " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
@@ -99,7 +100,7 @@ public class JsLogger {
         logger.error(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    FrameworkConstants.LogConstants.FAILED, "Error log : " + value,
+                    LogConstants.FAILED, "Error log : " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
