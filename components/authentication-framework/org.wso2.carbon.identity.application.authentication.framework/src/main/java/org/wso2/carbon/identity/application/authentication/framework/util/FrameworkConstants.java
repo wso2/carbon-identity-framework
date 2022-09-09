@@ -626,4 +626,13 @@ public abstract class FrameworkConstants {
         public static final String CONTENT = "content";
         public static final String DOMAIN = "domain";
     }
+
+    /**
+     * Define logging constants for framework.
+     */
+    public static class LogConstants {
+
+        public static final String AUTHENTICATION_FRAMEWORK = "authentication-framework";
+        public static final String AUTH_SCRIPT_LOGGING = "auth-script-logging";
+    }
 }
