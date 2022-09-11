@@ -102,13 +102,12 @@ public class WorkflowDAO {
                 String description = rs.getString(SQLConstants.DESCRIPTION_COLUMN);
                 String templateId = rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                 String implId = rs.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                workflow = new Workflow.WorkflowBuilder()
-                        .setWorkflowId(workflowId)
-                        .setWorkflowName(workflowName)
-                        .setWorkflowDescription(description)
-                        .setTemplateId(templateId)
-                        .setWorkflowImplId(implId)
-                        .build();
+                workflow = new Workflow();
+                workflow.setWorkflowId(workflowId);
+                workflow.setWorkflowName(workflowName);
+                workflow.setWorkflowDescription(description);
+                workflow.setTemplateId(templateId);
+                workflow.setWorkflowImplId(implId);
 
                 break;
             }
@@ -220,13 +219,12 @@ public class WorkflowDAO {
                         String description = resultSet.getString(SQLConstants.DESCRIPTION_COLUMN);
                         String templateId = resultSet.getString(SQLConstants.TEMPLATE_ID_COLUMN);
                         String templateImplId = resultSet.getString(SQLConstants.TEMPLATE_IMPL_ID_COLUMN);
-                        Workflow workflowDTO = new Workflow.WorkflowBuilder()
-                                .setWorkflowId(id)
-                                .setWorkflowName(name)
-                                .setWorkflowDescription(description)
-                                .setTemplateId(templateId)
-                                .setWorkflowImplId(templateImplId)
-                                .build();
+                        Workflow workflowDTO = new Workflow();
+                        workflowDTO.setWorkflowId(id);
+                        workflowDTO.setWorkflowName(name);
+                        workflowDTO.setWorkflowDescription(description);
+                        workflowDTO.setTemplateId(templateId);
+                        workflowDTO.setWorkflowImplId(templateImplId);
                         workflowList.add(workflowDTO);
                     }
                 }
