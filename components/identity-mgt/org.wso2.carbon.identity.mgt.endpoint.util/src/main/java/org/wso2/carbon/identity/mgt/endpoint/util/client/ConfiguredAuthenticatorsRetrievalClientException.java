@@ -25,10 +25,12 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 public class ConfiguredAuthenticatorsRetrievalClientException extends Exception {
 
     public ConfiguredAuthenticatorsRetrievalClientException(String message) {
+
         super(message);
     }
 
     public ConfiguredAuthenticatorsRetrievalClientException(String message, Throwable cause) {
+
         super(message, cause);
     }
 }

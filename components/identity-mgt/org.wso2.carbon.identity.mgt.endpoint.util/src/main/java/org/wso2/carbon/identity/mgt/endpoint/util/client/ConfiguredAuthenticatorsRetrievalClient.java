@@ -30,11 +30,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -48,7 +48,6 @@ public class ConfiguredAuthenticatorsRetrievalClient {
     private static final Log log = LogFactory.getLog(ConfiguredAuthenticatorsRetrievalClient.class);
     private static final String APPLICATION_API_RELATIVE_PATH = "/api/server/v1/applications";
     private static final String AUTHENTICATORS = "/authenticators";
-    private static final String SUPER_TENANT = "carbon.super";
     private static final String CLIENT = "Client ";
 
     /**
@@ -56,10 +55,11 @@ public class ConfiguredAuthenticatorsRetrievalClient {
      *
      * @param applicationId ID of an application.
      * @return the list of configured Authenticators
-     * @throws ApplicationDataRetrievalClientException if IO exception occurs when retrieving configured authenticators.
+     * @throws ConfiguredAuthenticatorsRetrievalClientException if exception occurs when retrieving configured
+     * authenticators.
      */
     public JSONArray getConfiguredAuthenticators(String applicationId)
-            throws ApplicationDataRetrievalClientException {
+            throws ConfiguredAuthenticatorsRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             HttpGet request =
@@ -83,22 +83,24 @@ public class ConfiguredAuthenticatorsRetrievalClient {
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
-            throw new ApplicationDataRetrievalClientException(msg, e);
+            throw new ConfiguredAuthenticatorsRetrievalClientException(msg, e);
         }
         return null;
     }
 
-    private String getApplicationsEndpoint() throws ApplicationDataRetrievalClientException {
+    private String getApplicationsEndpoint() throws ConfiguredAuthenticatorsRetrievalClientException {
 
-        return getEndpoint(SUPER_TENANT, APPLICATION_API_RELATIVE_PATH);
+        return getEndpoint(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, APPLICATION_API_RELATIVE_PATH);
     }
 
-    private String getEndpoint(String tenantDomain, String context) throws ApplicationDataRetrievalClientException {
+    private String getEndpoint(String tenantDomain, String context)
+            throws ConfiguredAuthenticatorsRetrievalClientException {
 
         try {
             return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
         } catch (ApiException e) {
-            throw new ApplicationDataRetrievalClientException("Error while building url for context: " + context);
+            throw new ConfiguredAuthenticatorsRetrievalClientException("Error while building url for context: " +
+                    context);
         }
     }
 
