@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -255,7 +256,11 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                        filteredOptions.get(idp).add(authenticator);
+                    } else {
+                        filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    }
                 }
             }
         });
@@ -289,10 +294,19 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                         List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getDisplayName()
+                                                .toLowerCase())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {
@@ -307,10 +321,18 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                     } else {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
-                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {

@@ -2102,6 +2102,11 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>true</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
