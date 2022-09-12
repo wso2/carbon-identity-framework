@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -57,7 +58,7 @@ public class ConfiguredAuthenticatorsRetrievalClient {
      * @return the list of configured Authenticators
      * @throws ApplicationDataRetrievalClientException if IO exception occurs when retrieving configured authenticators.
      */
-    public JSONObject getConfiguredAuthenticators(String applicationId)
+    public JSONArray getConfiguredAuthenticators(String applicationId)
             throws ApplicationDataRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
@@ -69,7 +70,7 @@ public class ConfiguredAuthenticatorsRetrievalClient {
             try (CloseableHttpResponse response = httpclient.execute(request)) {
 
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject jsonResponse = new JSONObject(
+                    JSONArray jsonResponse = new JSONArray(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     return jsonResponse;
                 }
