@@ -167,6 +167,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -207,6 +208,8 @@ public class FrameworkUtils {
     private static final String HASH_CHAR = "#";
     private static final String HASH_CHAR_ENCODED = "%23";
     private static final String QUESTION_MARK = "?";
+
+    private static Boolean authenticatorNameInAuthConfigPreference;
 
     private FrameworkUtils() {
     }
@@ -3295,5 +3298,21 @@ public class FrameworkUtils {
             }
         }
         return callerPath;
+    }
+
+    /**
+     * Util function to check whether using authenticator name to resolve authenticatorConfig in adaptive scripts
+     * is enabled. If not authenticator display name is used.
+     *
+     * @return boolean indicating server config preference.
+     */
+    public static boolean isAuthenticatorNameInAuthConfigEnabled() {
+
+        if (authenticatorNameInAuthConfigPreference == null) {
+            authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    AUTHENTICATOR_NAME_IN_AUTH_CONFIG));
+        }
+
+        return authenticatorNameInAuthConfigPreference;
     }
 }

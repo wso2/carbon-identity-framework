@@ -918,7 +918,8 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username)) {
+        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username) ||
+                !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
             return tenantDomain;
         } else {
             return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
