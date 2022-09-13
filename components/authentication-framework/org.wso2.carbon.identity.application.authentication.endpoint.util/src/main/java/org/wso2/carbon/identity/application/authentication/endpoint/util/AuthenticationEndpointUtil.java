@@ -416,8 +416,10 @@ public class AuthenticationEndpointUtil {
                 responseString.append(inputLine);
             }
         } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            log.debug("Response received from the backendURL " + backendURL +" with status " +
-                    response.getStatusLine() + ".");
+            if (log.isDebugEnabled()) {
+                log.debug("Response received from the backendURL " + backendURL + " with status " +
+                        response.getStatusLine() + ".");
+            }
         } else {
             log.error("Response received from the backendURL " + backendURL +" failed with status " +
                     response.getStatusLine() + ".");
@@ -456,8 +458,8 @@ public class AuthenticationEndpointUtil {
             if (StringUtils.isBlank(tenantDomain)) {
                 tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
-            if (tenantDomain.equals(SUPER_TENANT)) {
-                url = url.replace("t/"+TENANT_DOMAIN_PLACEHOLDER+"/", "");
+            if (SUPER_TENANT.equals(tenantDomain)) {
+                url = url.replace("t/" + TENANT_DOMAIN_PLACEHOLDER + "/", "");
             } else {
                 url = url.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
             }

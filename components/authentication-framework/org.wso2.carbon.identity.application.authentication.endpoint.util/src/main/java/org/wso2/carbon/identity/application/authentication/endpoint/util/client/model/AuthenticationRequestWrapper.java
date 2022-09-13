@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util.client.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,33 +38,19 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     public AuthenticationRequestWrapper(HttpServletRequest request, Map<String, Object> authParams) {
 
         super(request);
-        if (authParams != null) {
-            this.authParams = authParams;
-        } else {
-            this.authParams = new HashMap<>();
-        }
-
-        if (super.getParameterMap() != null) {
-            Map<String, Object> superParams = super.getParameterMap();
-            for (String paramName : superParams.keySet()) {
-                if (super.getParameter(paramName) != null) {
-                    this.authParams.put(paramName, super.getParameter(paramName));
-                }
-            }
-        }
-
+        this.authParams = authParams;
     }
 
     /**
      * Get the parameter from the map.
      *
      * @param name Name of the parameter.
-     * @return
+     * @return Parameter value.
      */
     public String getParameter(String name) {
 
-        if (authParams != null) {
-            return (authParams.get(name) != null) ? (String) authParams.get(name) : super.getParameter(name);
+        if (authParams != null && authParams.get(name) != null) {
+            return (String) authParams.get(name);
         } else {
             return super.getParameter(name);
         }
@@ -71,31 +59,29 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     /**
      * Get the parameter map.
      *
-     * @return
+     * @return Parameter map.
      */
     public Map<String, Object> getParameterMap() {
 
-        Map<String, Object> paramMap;
-        if (authParams != null) {
-            paramMap = authParams;
-            Map<String, Object> superParams = super.getParameterMap();
-            for (String paramName : superParams.keySet()) {
-                authParams.put(paramName, super.getParameter(paramName));
-            }
-        } else {
-            paramMap = super.getParameterMap();
-        }
+        Map<String, Object> paramMap = new HashMap<>(authParams);
+        paramMap.replaceAll((k, v) -> new String[]{String.valueOf(v)});
+        paramMap.putAll(super.getParameterMap());
         return paramMap;
     }
 
     /**
      * Get the parameter names.
      *
-     * @return
+     * @return Parameter names.
      */
     public Enumeration<String> getParameterNames() {
 
-        return Collections.enumeration(authParams.keySet());
+        List<String> paramNameList = new ArrayList<>();
+        Enumeration<String> paramEnum = super.getParameterNames();
+        while(paramEnum.hasMoreElements())
+            paramNameList.add(String.valueOf(paramEnum.nextElement()));
+        paramNameList.addAll(authParams.keySet());
+        return Collections.enumeration(paramNameList);
     }
 
 
@@ -103,11 +89,14 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      * Get values of a parameter from the map.
      *
      * @param name Name of the parameter.
-     * @return
+     * @return Parameter values.
      */
     public String[] getParameterValues(String name) {
 
-
-        return (String[]) authParams.get(name);
+        if (authParams != null && authParams.get(name) != null) {
+            return ((String[]) authParams.get(name));
+        } else {
+            return super.getParameterValues(name);
+        }
     }
 }
