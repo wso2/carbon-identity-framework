@@ -348,8 +348,10 @@ public class ApplicationMgtDBQueries {
             "ACCESS_URL, IS_DISCOVERABLE, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; " +
             "AND UUID = :UUID;";
 
-    public static final String LOAD_APP_ID_BY_UUID = "SELECT ID FROM SP_APP WHERE UUID = :UUID; " +
+    public static final String LOAD_APP_ID_BY_UUID_AND_TENANT_ID = "SELECT ID FROM SP_APP WHERE UUID = :UUID; " +
             "AND TENANT_ID = :TENANT_ID;";
+
+    public static final String LOAD_APP_ID_BY_UUID = "SELECT ID FROM SP_APP WHERE UUID = :UUID;";
 
     public static final String LOAD_UUID_BY_APP_ID = "SELECT UUID FROM SP_APP WHERE ID = :ID; " +
             "AND TENANT_ID = :TENANT_ID;";
