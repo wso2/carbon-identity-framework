@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
@@ -44,6 +45,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Client which retrieves preferences.
@@ -54,6 +56,7 @@ public class PreferenceRetrievalClient {
     private static final String PROPERTIES = "properties";
     private static final Log log = LogFactory.getLog(PreferenceRetrievalClient.class);
     private static final String PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance/preferences";
+    private static final String GOVERNANCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
@@ -65,12 +68,16 @@ public class PreferenceRetrievalClient {
     private static final String RECOVERY_CONNECTOR = "account-recovery";
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
     private static final String PROPERTY_NAME = "name";
+    private static final String PROPERTY_ID = "id";
     private static final String PROPERTY_VALUE = "value";
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
+    private static final String RECOVERY_CALLBACK_REGEX_CONFIG = "Recovery.CallbackRegex";
+    private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
+    private static final String CONNECTORS = "connectors";
 
     public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
     public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
@@ -211,6 +218,25 @@ public class PreferenceRetrievalClient {
     }
 
     /**
+     * Check whether the provided callbackURL is valid or not.
+     *
+     * @param tenant      Tenant domain name.
+     * @param callbackURL Callback URL of the application.
+     * @return returns true if the URL is valid.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkIfCallbackURLValid(String tenant, String callbackURL) throws PreferenceRetrievalClientException {
+
+        String callbackRegex;
+        if (getPropertyValue(tenant, ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_CONFIG).isPresent()){
+            callbackRegex = getPropertyValue(tenant,ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR,
+                    RECOVERY_CALLBACK_REGEX_CONFIG).toString();
+            return callbackRegex != null && callbackURL.matches(callbackRegex);
+        }
+        return false;
+    }
+
+    /**
      * Check for preference in the given tenant.
      *
      * @param tenant        tenant domain name.
@@ -223,6 +249,87 @@ public class PreferenceRetrievalClient {
             throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, connectorName, propertyName, true);
+    }
+
+
+    /**
+     * Check for preference in the given tenant.
+     *
+     * @param tenant            Tenant domain name.
+     * @param governanceDomain  The governance domain.
+     * @param connectorName     Name of the connector.
+     * @param propertyName      Property name to check.
+     * @return returns value of the property.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public Optional<Object> getPropertyValue(String tenant, String governanceDomain, String connectorName,
+                                             String propertyName)
+            throws PreferenceRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            String endpoint =  getUserGovernanceEndpoint(tenant);
+            HttpGet get = new HttpGet(endpoint);
+            setAuthorizationHeader(get);
+
+            String governanceId = null;
+            try (CloseableHttpResponse response = httpclient.execute(get)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONArray jsonResponse = new JSONArray(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    for (int itemIndex = 0, totalObject = jsonResponse.length();
+                         itemIndex < totalObject; itemIndex++) {
+                        JSONObject config = jsonResponse.getJSONObject(itemIndex);
+                        if (StringUtils.equalsIgnoreCase(
+                                jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
+                            governanceId = config.getString(PROPERTY_ID);
+                        }
+                    }
+                }
+            } finally {
+                get.releaseConnection();
+            }
+
+            endpoint =  endpoint + "/" + governanceId;
+            HttpGet getConnectorConfig = new HttpGet(endpoint);
+            setAuthorizationHeader(get);
+
+            try (CloseableHttpResponse response = httpclient.execute(getConnectorConfig)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
+                    for (int itemIndex = 0, totalObject = connectorArray.length();
+                         itemIndex < totalObject; itemIndex++) {
+                        JSONObject config = connectorArray.getJSONObject(itemIndex);
+                        if (StringUtils.equalsIgnoreCase(
+                                connectorArray.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
+                            JSONArray responseProperties = config.getJSONArray(PROPERTIES);
+                            for (int propIndex = 0, totalProp = responseProperties.length();
+                                 propIndex < totalProp; propIndex++) {
+                                if (StringUtils.equalsIgnoreCase(
+                                        responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
+                                    return Optional.of(config.getString(PROPERTY_VALUE));
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                get.releaseConnection();
+            }
+
+        } catch (IOException e) {
+            // Logging and throwing since this is a client.
+            String msg =
+                    "Error while obtaining config values for connector : " + connectorName + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new PreferenceRetrievalClientException(msg, e);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -341,6 +448,11 @@ public class PreferenceRetrievalClient {
     private String getUserGovernancePreferenceEndpoint(String tenantDomain) throws PreferenceRetrievalClientException {
 
         return getEndpoint(tenantDomain, PREFERENCE_API_RELATIVE_PATH);
+    }
+
+    private String getUserGovernanceEndpoint(String tenantDomain) throws PreferenceRetrievalClientException {
+
+        return getEndpoint(tenantDomain, GOVERNANCE_API_RELATIVE_PATH);
     }
 
     private String getEndpoint(String tenantDomain, String context) throws PreferenceRetrievalClientException {
