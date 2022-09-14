@@ -842,10 +842,12 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         User user = null;
+        String userId = null;
         try {
             int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-            String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
-
+            if (StringUtils.isBlank(username)) {
+                userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+            }
             if (tenantID == MultitenantConstants.SUPER_TENANT_ID) {
                 user = getUserFromTenant(username, userId, tenantID);
             } else {
