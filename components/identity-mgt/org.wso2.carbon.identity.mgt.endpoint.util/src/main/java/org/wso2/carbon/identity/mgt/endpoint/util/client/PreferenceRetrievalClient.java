@@ -75,7 +75,7 @@ public class PreferenceRetrievalClient {
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
-    private static final String RECOVERY_CALLBACK_REGEX_CONFIG = "Recovery.CallbackRegex";
+    private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
     private static final String CONNECTORS = "connectors";
 
@@ -225,14 +225,14 @@ public class PreferenceRetrievalClient {
      * @return returns true if the URL is valid.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
-    public boolean checkIfCallbackURLValid(String tenant, String callbackURL)
+    public boolean checkIfRecoveryCallbackURLValid(String tenant, String callbackURL)
             throws PreferenceRetrievalClientException {
 
         String callbackRegex;
         if (getPropertyValue(tenant,
-                ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_CONFIG).isPresent()) {
+                ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_PROP).isPresent()) {
             callbackRegex = getPropertyValue(tenant,ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR,
-                    RECOVERY_CALLBACK_REGEX_CONFIG).get();
+                    RECOVERY_CALLBACK_REGEX_PROP).get();
             return callbackURL.matches(callbackRegex);
         }
         return false;
