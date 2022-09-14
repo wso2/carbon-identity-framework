@@ -225,13 +225,15 @@ public class PreferenceRetrievalClient {
      * @return returns true if the URL is valid.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
-    public boolean checkIfCallbackURLValid(String tenant, String callbackURL) throws PreferenceRetrievalClientException {
+    public boolean checkIfCallbackURLValid(String tenant, String callbackURL)
+            throws PreferenceRetrievalClientException {
 
         String callbackRegex;
-        if (getPropertyValue(tenant, ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_CONFIG).isPresent()){
+        if (getPropertyValue(tenant,
+                ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_CONFIG).isPresent()) {
             callbackRegex = getPropertyValue(tenant,ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR,
-                    RECOVERY_CALLBACK_REGEX_CONFIG).toString();
-            return callbackRegex != null && callbackURL.matches(callbackRegex);
+                    RECOVERY_CALLBACK_REGEX_CONFIG).get();
+            return callbackURL.matches(callbackRegex);
         }
         return false;
     }
@@ -262,7 +264,7 @@ public class PreferenceRetrievalClient {
      * @return returns value of the property.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
-    public Optional<Object> getPropertyValue(String tenant, String governanceDomain, String connectorName,
+    public Optional<String> getPropertyValue(String tenant, String governanceDomain, String connectorName,
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
@@ -303,14 +305,13 @@ public class PreferenceRetrievalClient {
                     for (int itemIndex = 0, totalObject = connectorArray.length();
                          itemIndex < totalObject; itemIndex++) {
                         JSONObject config = connectorArray.getJSONObject(itemIndex);
-                        if (StringUtils.equalsIgnoreCase(
-                                connectorArray.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
+                        if (StringUtils.equalsIgnoreCase(config.getString(PROPERTY_NAME), connectorName)) {
                             JSONArray responseProperties = config.getJSONArray(PROPERTIES);
                             for (int propIndex = 0, totalProp = responseProperties.length();
                                  propIndex < totalProp; propIndex++) {
-                                if (StringUtils.equalsIgnoreCase(
-                                        responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
-                                    return Optional.of(config.getString(PROPERTY_VALUE));
+                                JSONObject property = responseProperties.getJSONObject(propIndex);
+                                if (StringUtils.equalsIgnoreCase(property.getString(PROPERTY_NAME), propertyName)) {
+                                    return Optional.ofNullable(property.getString(PROPERTY_VALUE));
                                 }
                             }
                         }
@@ -322,8 +323,8 @@ public class PreferenceRetrievalClient {
 
         } catch (IOException e) {
             // Logging and throwing since this is a client.
-            String msg =
-                    "Error while obtaining config values for connector : " + connectorName + " in tenant : " + tenant;
+            String msg = "Error while obtaining config values for connector : " + connectorName + " in tenant : "
+                    + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
