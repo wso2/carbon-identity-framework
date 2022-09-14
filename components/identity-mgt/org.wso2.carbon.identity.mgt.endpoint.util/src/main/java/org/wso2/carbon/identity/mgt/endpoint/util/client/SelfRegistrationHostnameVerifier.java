@@ -18,11 +18,8 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.conn.ssl.AbstractVerifier;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.net.ssl.SSLException;
 
@@ -35,11 +32,8 @@ public class SelfRegistrationHostnameVerifier extends AbstractVerifier {
 
     @Override
     public void verify(String s, String[] strings, String[] subjectAlts) throws SSLException {
-        List<String> subjectAltsList = new ArrayList<>(Arrays.asList(subjectAlts));
-        List<String> localhostsList = new ArrayList<>(Arrays.asList(LOCALHOSTS));
-        subjectAltsList.addAll(localhostsList);
-        String[] subjectAltsWithLocalhosts = new String[subjectAltsList.size()];
-        subjectAltsList.toArray(subjectAltsWithLocalhosts);
+
+        String[] subjectAltsWithLocalhosts = ArrayUtils.addAll(subjectAlts, LOCALHOSTS);
         this.verify(s, strings, subjectAltsWithLocalhosts, false);
     }
 }

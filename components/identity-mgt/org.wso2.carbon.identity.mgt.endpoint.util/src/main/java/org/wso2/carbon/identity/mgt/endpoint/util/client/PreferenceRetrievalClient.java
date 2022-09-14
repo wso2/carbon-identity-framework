@@ -71,6 +71,9 @@ public class PreferenceRetrievalClient {
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
 
+    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
+    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
+
     /**
      * Check self registration is enabled or not.
      *
@@ -223,7 +226,7 @@ public class PreferenceRetrievalClient {
             throws PreferenceRetrievalClientException {
 
         X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -278,8 +281,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -344,5 +346,15 @@ public class PreferenceRetrievalClient {
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+
+    private HttpClientBuilder createHttpClientBuilderWithHV() {
+
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().useSystemProperties();
+        if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+            X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+            httpClientBuilder.setHostnameVerifier(hv);
+        }
+        return httpClientBuilder;
     }
 }

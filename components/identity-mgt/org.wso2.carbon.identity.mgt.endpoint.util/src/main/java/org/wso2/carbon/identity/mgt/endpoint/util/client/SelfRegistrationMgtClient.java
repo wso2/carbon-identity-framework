@@ -77,6 +77,9 @@ public class SelfRegistrationMgtClient {
     private static final String USERNAME = "username";
     private static final String PROPERTIES = "properties";
 
+    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
+    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
+
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
      *
@@ -162,8 +165,7 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
 
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
@@ -261,8 +263,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().setHostnameVerifier(hv).build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
@@ -394,5 +395,14 @@ public class SelfRegistrationMgtClient {
 
         JSONArray piiCategories = (JSONArray) purpose.get(PII_CATEGORIES);
         return piiCategories.length() > 0;
+    }
+
+    private HttpClientBuilder createHttpClientBuilderWithHV() {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().useSystemProperties();
+        if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+            X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+            httpClientBuilder.setHostnameVerifier(hv);
+        }
+        return httpClientBuilder;
     }
 }
