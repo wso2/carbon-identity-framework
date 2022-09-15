@@ -66,6 +66,7 @@ public class PreferenceRetrievalClient {
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
     private static final String RECOVERY_CONNECTOR = "account-recovery";
+    private static final String LITE_USER_CONNECTOR = "lite-user-sign-up";
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_ID = "id";
@@ -76,7 +77,10 @@ public class PreferenceRetrievalClient {
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
     private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
+    private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
+    private static final String LITE_REG_CALLBACK_REGEX_PROP = "LiteRegistration.CallbackRegex";
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
+    private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
     private static final String CONNECTORS = "connectors";
 
     public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
@@ -233,6 +237,48 @@ public class PreferenceRetrievalClient {
                 ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_PROP).isPresent()) {
             callbackRegex = getPropertyValue(tenant,ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR,
                     RECOVERY_CALLBACK_REGEX_PROP).get();
+            return callbackURL.matches(callbackRegex);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the provided callbackURL is valid or not.
+     *
+     * @param tenant      Tenant domain name.
+     * @param callbackURL Callback URL of the application.
+     * @return returns true if the URL is valid.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkIfSelfRegCallbackURLValid(String tenant, String callbackURL)
+            throws PreferenceRetrievalClientException {
+
+        String callbackRegex;
+        if (getPropertyValue(tenant,
+                USER_ONBOARDING_GOVERNANCE, SELF_SIGN_UP_CONNECTOR, SELF_REG_CALLBACK_REGEX_PROP).isPresent()) {
+            callbackRegex = getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, SELF_SIGN_UP_CONNECTOR,
+                    SELF_REG_CALLBACK_REGEX_PROP).get();
+            return callbackURL.matches(callbackRegex);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the provided callbackURL is valid or not.
+     *
+     * @param tenant      Tenant domain name.
+     * @param callbackURL Callback URL of the application.
+     * @return returns true if the URL is valid.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkIfLiteRegCallbackURLValid(String tenant, String callbackURL)
+            throws PreferenceRetrievalClientException {
+
+        String callbackRegex;
+        if (getPropertyValue(tenant,
+                USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR, LITE_REG_CALLBACK_REGEX_PROP).isPresent()) {
+            callbackRegex = getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR,
+                    LITE_REG_CALLBACK_REGEX_PROP).get();
             return callbackURL.matches(callbackRegex);
         }
         return false;
