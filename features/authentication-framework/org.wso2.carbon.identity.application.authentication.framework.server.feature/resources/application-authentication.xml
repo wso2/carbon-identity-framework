@@ -103,6 +103,7 @@
             <Parameter name="GoogleTokenEndpoint">https://accounts.google.com/o/oauth2/token</Parameter>
             <Parameter name="GoogleAuthzEndpoint">https://accounts.google.com/o/oauth2/auth</Parameter>
             <Parameter name="GoogleUserInfoEndpoint">https://www.googleapis.com/oauth2/v3/userinfo</Parameter>
+            <Parameter name="EnableCSRFValidationForGOT">true</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="MicrosoftWindowsLive" enabled="true">
             <Parameter name="AuthTokenEndpoint">https://login.live.com/oauth20_token.srf</Parameter>

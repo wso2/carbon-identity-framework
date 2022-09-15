@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +30,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -133,8 +135,7 @@ public class IdentityProviderDataRetrievalClient {
 
         Map<String, String> configMap = new HashMap<>();
         if (StringUtils.isEmpty(tenant) || StringUtils.isEmpty(idpCode) || StringUtils.isEmpty(idpName) ||
-                configKeys == null
-                || configKeys.isEmpty()) {
+                CollectionUtils.isEmpty(configKeys)) {
             return configMap;
         }
         // i.e. /t/carbon.super/api/server/v1/identity-providers?filter=name+eq+Google
@@ -143,58 +144,64 @@ public class IdentityProviderDataRetrievalClient {
         if (idpSummaryResult == null) {
             return configMap;
         }
-        JSONArray idpSummary = idpSummaryResult.getJSONArray(IDP_KEY);
-        if (idpSummary.length() != 1) {
-            return configMap;
-        }
-        JSONObject idpSummaryProperties = (JSONObject) idpSummary.get(0);
-        if (idpSummaryProperties == null) {
-            return configMap;
-        }
-        // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
-        String idpURLWithId = idpSummaryProperties.getString(SELF_LINK);
-        if (StringUtils.isEmpty(idpURLWithId)) {
-            return configMap;
-        }
-        JSONObject idpDetailedResult = executePath(tenant, idpURLWithId);
-        if (idpDetailedResult == null) {
-            return configMap;
-        }
-        JSONObject federatedAuthObject = idpDetailedResult.getJSONObject(FEDERATED_AUTHENTICATORS);
-        if (federatedAuthObject == null) {
-            return configMap;
-        }
-        JSONArray federatedAuthenticators = federatedAuthObject.getJSONArray(AUTHENTICATORS);
-        if (federatedAuthenticators == null) {
-            return configMap;
-        }
-        String federatedIDPURLWithID = null;
-        for (int i = 0; i < federatedAuthenticators.length(); i++) {
-            JSONObject property = (JSONObject) federatedAuthenticators.get(i);
-            if (idpCode.equals(property.getString(NAME))) {
-                federatedIDPURLWithID = property.getString(SELF_LINK);
-                break;
-            }
-        }
-        if (StringUtils.isEmpty(federatedIDPURLWithID)) {
-            return configMap;
-        }
 
-        // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
-        //               federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
-        JSONObject federatedIdpResult = executePath(tenant, federatedIDPURLWithID);
-        if (federatedIdpResult == null) {
-            return configMap;
-        }
-        JSONArray federatedIdpProperties = federatedIdpResult.getJSONArray(PROPERTIES);
-        if (federatedIdpProperties.length() == 0) {
-            return configMap;
-        }
-        for (int i = 0; i < federatedIdpProperties.length(); i++) {
-            JSONObject property = (JSONObject) federatedIdpProperties.get(i);
-            if (configKeys.contains(property.getString(KEY))) {
-                configMap.putIfAbsent(property.getString(KEY), property.getString(VALUE));
+        try {
+            JSONArray idpSummary = idpSummaryResult.getJSONArray(IDP_KEY);
+            if (idpSummary.length() != 1) {
+                return configMap;
             }
+            JSONObject idpSummaryProperties = (JSONObject) idpSummary.get(0);
+            if (idpSummaryProperties == null) {
+                return configMap;
+            }
+            // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
+            String idpURLWithId = idpSummaryProperties.getString(SELF_LINK);
+            if (StringUtils.isEmpty(idpURLWithId)) {
+                return configMap;
+            }
+            JSONObject idpDetailedResult = executePath(tenant, idpURLWithId);
+            if (idpDetailedResult == null) {
+                return configMap;
+            }
+            JSONObject federatedAuthObject = idpDetailedResult.getJSONObject(FEDERATED_AUTHENTICATORS);
+            if (federatedAuthObject == null) {
+                return configMap;
+            }
+            JSONArray federatedAuthenticators = federatedAuthObject.getJSONArray(AUTHENTICATORS);
+            if (federatedAuthenticators == null) {
+                return configMap;
+            }
+            String federatedIDPURLWithID = null;
+            for (int i = 0; i < federatedAuthenticators.length(); i++) {
+                JSONObject property = (JSONObject) federatedAuthenticators.get(i);
+                if (idpCode.equals(property.getString(NAME))) {
+                    federatedIDPURLWithID = property.getString(SELF_LINK);
+                    break;
+                }
+            }
+            if (StringUtils.isEmpty(federatedIDPURLWithID)) {
+                return configMap;
+            }
+
+            // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
+            //               federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
+            JSONObject federatedIdpResult = executePath(tenant, federatedIDPURLWithID);
+            if (federatedIdpResult == null) {
+                return configMap;
+            }
+            JSONArray federatedIdpProperties = federatedIdpResult.getJSONArray(PROPERTIES);
+            if (federatedIdpProperties.length() == 0) {
+                return configMap;
+            }
+            for (int i = 0; i < federatedIdpProperties.length(); i++) {
+                JSONObject property = (JSONObject) federatedIdpProperties.get(i);
+                if (configKeys.contains(property.getString(KEY))) {
+                    configMap.putIfAbsent(property.getString(KEY), property.getString(VALUE));
+                }
+            }
+        } catch (JSONException ex) {
+            throw new IdentityProviderDataRetrievalClientException(
+                    "Error while decoding the JSON object for federated IDP configs", ex);
         }
         return configMap;
     }
@@ -217,13 +224,18 @@ public class IdentityProviderDataRetrievalClient {
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
 
-            try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            CloseableHttpResponse response = null;
+            try {
+                response = httpclient.execute(httpGet);
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                 }
             } finally {
                 httpGet.releaseConnection();
+                if (response != null) {
+                    EntityUtils.consume(response.getEntity());
+                }
             }
         } catch (IdentityProviderDataRetrievalClientException | IOException e) {
             throw new IdentityProviderDataRetrievalClientException(
