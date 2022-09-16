@@ -2058,6 +2058,12 @@
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
+    <OrganizationManagement>
+        <LevelOneOrganizationConfigs>
+            <EnableCarbonRoleBasedValidation>false</EnableCarbonRoleBasedValidation>
+        </LevelOneOrganizationConfigs>
+    </OrganizationManagement>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 

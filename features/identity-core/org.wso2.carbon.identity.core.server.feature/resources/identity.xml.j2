@@ -2805,6 +2805,12 @@
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
+    <OrganizationManagement>
+        <LevelOneOrganizationConfigs>
+            <EnableCarbonRoleBasedValidation>{{organization_management.level_one_organization_configs.enable_carbon_role_based_validation | default(false)}}</EnableCarbonRoleBasedValidation>
+        </LevelOneOrganizationConfigs>
+    </OrganizationManagement>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
 
