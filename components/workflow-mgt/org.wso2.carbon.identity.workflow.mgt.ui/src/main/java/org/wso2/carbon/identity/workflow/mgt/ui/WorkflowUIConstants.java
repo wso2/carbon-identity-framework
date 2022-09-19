@@ -74,6 +74,7 @@ public class WorkflowUIConstants {
     public static final String ASSOC_NAME_FILTER = "filterString";
     public static final String WF_NAME_FILTER = "filterString";
     public static final String PARAM_PAGE_NUMBER = "pageNumber";
+    public static final int RESULTS_PER_PAGE = 20;
     public static final String RESULTS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final int DEFAULT_RESULTS_PER_PAGE = 15;
     public static final String PAGINATION_VALUE = "region=%s&item=%s";
