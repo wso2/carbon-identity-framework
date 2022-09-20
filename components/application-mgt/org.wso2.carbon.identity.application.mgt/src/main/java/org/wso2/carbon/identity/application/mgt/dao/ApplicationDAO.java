@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.dao;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
@@ -102,6 +103,16 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException
      */
     String getServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get authenticators configured for an application.
+     *
+     * @param applicationId ID of an application.
+     * @return Authentication configurations.
+     * @throws IdentityApplicationManagementException
+     */
+    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
             throws IdentityApplicationManagementException;
 
     /**
