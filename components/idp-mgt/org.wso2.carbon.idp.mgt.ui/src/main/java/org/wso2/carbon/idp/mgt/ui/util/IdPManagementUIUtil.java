@@ -117,7 +117,8 @@ public class IdPManagementUIUtil {
 
         if (StringUtils.isNotBlank(paramMap.get("scopes")) &&
                 paramMap.get("oidcQueryParam").toLowerCase().contains("scope=")) {
-            throw new Exception("Cannot set scopes in both Scopes and Additional Query Parameters");
+            throw new IdentityApplicationManagementException("Cannot set scopes in both Scopes and " +
+                    "Additional Query Parameters. Please use Scopes field to set scopes.");
         }
     }
 
