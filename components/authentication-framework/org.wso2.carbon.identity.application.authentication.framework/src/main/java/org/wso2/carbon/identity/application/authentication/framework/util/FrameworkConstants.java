@@ -574,6 +574,8 @@ public abstract class FrameworkConstants {
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
+        public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
+                = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
     }
 
     /**
@@ -625,5 +627,14 @@ public abstract class FrameworkConstants {
         public static final String COOKIE_NAME = "ALOR";
         public static final String CONTENT = "content";
         public static final String DOMAIN = "domain";
+    }
+
+    /**
+     * Define logging constants for framework.
+     */
+    public static class LogConstants {
+
+        public static final String AUTHENTICATION_FRAMEWORK = "authentication-framework";
+        public static final String AUTH_SCRIPT_LOGGING = "auth-script-logging";
     }
 }

@@ -842,10 +842,12 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         User user = null;
+        String userId = null;
         try {
             int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-            String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
-
+            if (StringUtils.isBlank(username)) {
+                userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+            }
             if (tenantID == MultitenantConstants.SUPER_TENANT_ID) {
                 user = getUserFromTenant(username, userId, tenantID);
             } else {
@@ -918,7 +920,8 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username)) {
+        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username) ||
+                !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
             return tenantDomain;
         } else {
             return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
