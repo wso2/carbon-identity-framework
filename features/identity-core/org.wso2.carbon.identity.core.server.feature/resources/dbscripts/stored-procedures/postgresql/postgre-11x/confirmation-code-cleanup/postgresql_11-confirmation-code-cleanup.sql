@@ -73,7 +73,8 @@ BEGIN
 
         -- CREATE CHUNK TABLE
         DROP TABLE IF EXISTS idn_recovery_data_chunk_tmp;
-        CREATE TABLE idn_recovery_data_chunk_tmp AS SELECT code FROM idn_recovery_data LIMIT chunkSize;
+        CREATE TABLE idn_recovery_data_chunk_tmp AS SELECT code FROM idn_recovery_data
+        WHERE (cleanUpDateTimeLimit > TIME_CREATED) LIMIT chunkSize;
         GET DIAGNOSTICS chunkCount := ROW_COUNT;
         COMMIT;
         IF (enableLog) THEN
@@ -102,7 +103,7 @@ BEGIN
             END IF;
             DELETE
             FROM idn_recovery_data
-            WHERE code IN (SELECT code FROM idn_recovery_data_batch_tmp where (cleanUpDateTimeLimit > TIME_CREATED));
+            WHERE code IN (SELECT code FROM idn_recovery_data_batch_tmp);
             GET DIAGNOSTICS rowCount := ROW_COUNT;
             commit;
             IF (enableLog) THEN
