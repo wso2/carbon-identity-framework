@@ -523,9 +523,6 @@
         {% if oauth.scope_validator.jdbc.enable %}
             <ScopeValidator class="{{oauth.scope_validator.jdbc.class}}" />
         {% endif %}
-        {% if oauth.scope_validator.xacml.enable %}
-            <ScopeValidator class="{{oauth.scope_validator.xacml.class}}"/>
-        {% endif %}
         {% for scope_validator in oauth.custom_scope_validator %}
             <ScopeValidator class="{{scope_validator.class}}" />
         {% endfor %}
@@ -995,20 +992,6 @@
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
     </PassiveSTS>
-
-    <EntitlementSettings>
-        <ThirftBasedEntitlementConfig>
-            <EnableThriftService>{{entitlement.thrift.enable}}</EnableThriftService>
-            <ReceivePort>{{entitlement.thrift.receiver_port}}</ReceivePort>
-            <ClientTimeout>{{entitlement.thrift.client_timeout}}</ClientTimeout>
-            <KeyStore>
-                <Location>${carbon.home}/repository/resources/security/{{entitlement.thrift.key_store.id}}</Location>
-                <Password>{{entitlement.thrift.key_store.password}}</Password>
-            </KeyStore>
-            <!-- Enable this element to mention the host-name of your IS machine -->
-            <ThriftHostName>{{entitlement.thrift.hostname}}</ThriftHostName>
-        </ThirftBasedEntitlementConfig>
-    </EntitlementSettings>
 
     <SCIM>
         <!--
@@ -2084,10 +2067,6 @@
             <Scopes>internal_application_mgt_view</Scopes>
             {% endfor %}
         </Resource>
-        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/pep</Permissions>
-            <Scopes>internal_manage_pep</Scopes>
-        </Resource>
         <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
@@ -2651,9 +2630,6 @@
         <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
-        </Resource>
-        <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/entitlement/pap/policy/create</Permissions>
         </Resource>
         <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage</Permissions>

@@ -39,8 +39,6 @@ public class IdentityRegistryResources {
     public final static String OPENID_USER_RP = IDENTITY_PATH + "OpenIdUserRP/";
     public final static String NAME_VALUE_PAIR = IDENTITY_PATH + "NameValuePair/";
     public final static String CARD_ISSUER = IDENTITY_PATH + "CardIssuer";
-    public final static String ENTITLEMENT = IDENTITY_PATH + "Entitlement/Policies/";
-    public final static String ENTITLEMENT_POLICY_RESOURCES = IDENTITY_PATH + "Entitlement/resources/";
 
     public final static String OPENID_USER_RP_ROOT = IDENTITY_PATH + "OpenIdUserRP/";
     public final static String USER_TRUSTED_RP_ROOT = IDENTITY_PATH + "UserTrustedRP/";

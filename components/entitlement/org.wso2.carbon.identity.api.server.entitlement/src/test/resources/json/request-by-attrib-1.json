@@ -1,5 +1,0 @@
-{
-  "action": "read",
-  "resource": "http://127.0.0.1/service/very_secure/",
-  "subject": "admin"
-}

@@ -453,12 +453,6 @@
 				<Description>Temporary claim to invoke email force password feature</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/entitlements</ClaimURI>
-				<DisplayName>Entitlements</DisplayName>
-				<AttributeID>entitlements</AttributeID>
-				<Description>Entitlements</Description>
-			</Claim>
-			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lockedReason</ClaimURI>
 				<DisplayName>Locked Reason</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
@@ -1545,15 +1539,6 @@
 				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
 			</Claim>
             <Claim>
-				<ClaimURI>urn:scim:schemas:core:1.0:entitlements</ClaimURI>
-				<DisplayName>Entitlements</DisplayName>
-				<AttributeID>entitlements</AttributeID>
-				<Description>Entitlements</Description>
-                <DisplayOrder>5</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/entitlements</MappedLocalClaim>
-			</Claim>
-            <Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:roles</ClaimURI>
 				<DisplayName>Roles</DisplayName>
 				<AttributeID>roles</AttributeID>
@@ -2233,15 +2218,6 @@
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:entitlements.default</ClaimURI>
-				<DisplayName>Entitlements</DisplayName>
-				<AttributeID>entitlements</AttributeID>
-				<Description>Entitlements</Description>
-				<DisplayOrder>5</DisplayOrder>
-				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/entitlements</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:roles.default</ClaimURI>
