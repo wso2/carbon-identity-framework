@@ -26,6 +26,7 @@
 package org.wso2.carbon.identity.mgt.endpoint.util.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
@@ -138,9 +139,21 @@ public class SelfRegisterApi {
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public String resendCodePostCall(ResendCodeRequest user) throws ApiException {
-        Object localVarPostBody = user;
 
-        // verify the required parameter 'user' is set
+        return resendCodePostCall(user, null);
+    }
+
+    /**
+     * This API is used to resend confirmation code.
+     *
+     * @param user    It can be sent optional property parameters over email based on email template. (required)
+     * @param headers Additional headers required to call the /resend-code API.
+     * @return String
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public String resendCodePostCall(ResendCodeRequest user, Map<String, String> headers) throws ApiException {
+
+        // Verify the required parameter 'user' is set.
         if (user == null) {
             throw new ApiException(400, "Missing the required parameter 'user' when calling resendCodePost(Async)");
         }
@@ -154,14 +167,18 @@ public class SelfRegisterApi {
                 .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
-        // create path and map variables
+        // Create path and map variables.
         String localVarPath = "/resend-code".replaceAll("\\{format\\}", "json");
 
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarQueryParams = new ArrayList<>();
 
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarHeaderParams = new HashMap<>();
 
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        Map<String, Object> localVarFormParams = new HashMap<>();
+
+        if (MapUtils.isNotEmpty(headers)) {
+            localVarHeaderParams.putAll(headers);
+        }
 
         final String[] localVarAccepts = {
                 "application/json"
@@ -175,12 +192,12 @@ public class SelfRegisterApi {
         final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
 
-
         String[] localVarAuthNames = new String[]{};
 
         GenericType<String> localVarReturnType = new GenericType<String>() {
         };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, user, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
     }
 
     /**
