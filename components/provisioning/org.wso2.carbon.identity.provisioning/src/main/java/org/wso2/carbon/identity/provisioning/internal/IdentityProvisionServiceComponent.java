@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
@@ -189,33 +188,6 @@ public class IdentityProvisionServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed provisioning connector : " + connectorFactory.getConnectorType());
         }
-    }
-
-    /**
-     * @param entitlementService
-     */
-    @Reference(
-             name = "identity.entitlement.service", 
-             service = org.wso2.carbon.identity.entitlement.EntitlementService.class, 
-             cardinality = ReferenceCardinality.AT_LEAST_ONE, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetEntitlementService")
-    protected void setEntitlementService(EntitlementService entitlementService) {
-        if (log.isDebugEnabled()) {
-            log.debug("EntitlementService is set in the Application Authentication Framework bundle");
-        }
-        ProvisioningServiceDataHolder.getInstance().setEntitlementService(entitlementService);
-    }
-
-    /**
-     * @param entitlementService
-     */
-    protected void unsetEntitlementService(EntitlementService entitlementService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
-        }
-        ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
     }
 
     @Reference(
