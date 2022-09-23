@@ -2072,7 +2072,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
-//        validateIdPRealmId(identityProvider, tenantDomain);
+        validateIdPRealmId(identityProvider, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
@@ -2399,7 +2399,7 @@ public class IdentityProviderManager implements IdpManager {
                 newIdentityProvider.getFederatedAuthenticatorConfigs(),
                 tenantId, tenantDomain);
 
-//        validateIdPRealmId(currentIdentityProvider, newIdentityProvider, tenantDomain);
+        validateIdPRealmId(currentIdentityProvider, newIdentityProvider, tenantDomain);
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
