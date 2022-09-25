@@ -30,7 +30,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -218,30 +217,24 @@ public class IdentityProviderDataRetrievalClient {
      */
     private JSONObject executePath(String tenant, String path) throws IdentityProviderDataRetrievalClientException {
 
-        JSONObject jsonResponse = null;
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             String url = getEndpoint(tenant, path);
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
 
-            CloseableHttpResponse response = null;
-            try {
-                response = httpclient.execute(httpGet);
+            try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
+                    return new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                 }
             } finally {
                 httpGet.releaseConnection();
-                if (response != null) {
-                    EntityUtils.consume(response.getEntity());
-                }
             }
         } catch (IdentityProviderDataRetrievalClientException | IOException e) {
             throw new IdentityProviderDataRetrievalClientException(
                     "Error while executing the path " + path + " in tenant : " + tenant, e);
         }
-        return jsonResponse;
+        return null;
     }
 
     /**
