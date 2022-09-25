@@ -658,8 +658,9 @@
                 <Audience>{{audience}}</Audience>
                 {% endfor %}
             </Audiences>
+            {% endif %}
 
-             <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
+            <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
             <IdTokenAudiences>
                 {% for audience in oauth.oidc.id_token.audiences %}
@@ -676,7 +677,6 @@
                 {% endfor %}
             </AccessTokenAudiences>
             {% endif %}
-
             <!--
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
                 If that doesn't satisfy uncomment the following config and explicitly configure the value
