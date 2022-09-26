@@ -415,13 +415,6 @@
                 <IsRefreshTokenAllowed>{{oauth.grant_type.jwt_bearer.allow_refresh_tokens}}</IsRefreshTokenAllowed>
             </SupportedGrantType>
             {% endif %}
-            {% if oauth.grant_type.uma_ticket.enable is sameas true %}
-            <SupportedGrantType>
-                <GrantTypeName>urn:ietf:params:oauth:grant-type:uma-ticket</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{oauth.grant_type.uma_ticket.grant_handler}}</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>{{oauth.grant_type.uma_ticket.grant_validator}}</GrantTypeValidatorImplClass>
-            </SupportedGrantType>
-            {% endif %}
             {% if oauth.grant_type.kerberos.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>kerberos</GrantTypeName>
