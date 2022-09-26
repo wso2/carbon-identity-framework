@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -322,9 +322,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, errorWrapper.getStatus(),
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
@@ -368,7 +368,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (responseWrapper.isRedirect()) {
             String redirectURL;
-            if (context != null) {
+            if (context != null && (context.getExternalIdP() == null ||
+                    FrameworkConstants.LOCAL.equals(context.getExternalIdP().getIdPName()))) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
             } else {
