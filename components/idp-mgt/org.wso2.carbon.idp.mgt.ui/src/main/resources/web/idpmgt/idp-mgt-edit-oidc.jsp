@@ -188,6 +188,9 @@
     if (oidcQueryParam == null) {
         oidcQueryParam = StringUtils.EMPTY;
     }
+    if (StringUtils.isBlank(scopes) && !oidcQueryParam.toLowerCase().contains("scope=")) {
+       scopes = "openid";
+    }
     
 %>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">

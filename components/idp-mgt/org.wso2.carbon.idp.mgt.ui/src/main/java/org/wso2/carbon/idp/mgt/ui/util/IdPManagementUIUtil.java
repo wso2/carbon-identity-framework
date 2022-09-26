@@ -108,21 +108,6 @@ public class IdPManagementUIUtil {
     }
 
     /**
-     * Validates if Scopes have not been configured in both Scopes and Additional Query Parameters.
-     *
-     * @param paramMap Map<String, String>
-     * @throws Exception
-     */
-    private static void validateScopes(Map<String, String> paramMap) throws Exception {
-
-        if (StringUtils.isNotBlank(paramMap.get("scopes")) &&
-                paramMap.get("oidcQueryParam").toLowerCase().contains("scope=")) {
-            throw new IdentityApplicationManagementException("Cannot set scopes in both Scopes and " +
-                    "Additional Query Parameters. Please use Scopes field to set scopes.");
-        }
-    }
-
-    /**
      * Build a federated identity provider.
      *
      * @param request    HttpServletRequest
@@ -299,8 +284,6 @@ public class IdPManagementUIUtil {
                 }
 
             }
-
-            validateScopes(paramMap);
 
             // build identity provider basic information.
             buildBasicInformation(fedIdp, paramMap);
