@@ -2334,7 +2334,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain, username);
 
             ApplicationBasicInfo storedAppInfo = getApplicationBasicInfo(resourceId, tenantDomain);
             if (storedAppInfo == null) {
