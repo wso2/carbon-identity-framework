@@ -654,6 +654,11 @@
 
     </OAuth>
 
+    <WWWAuthenticate>
+        <!-- Configuration for allowing to add realm user in WWW-Authenticate header. -->
+        <AddRealmUser>false</AddRealmUser>
+    </WWWAuthenticate>
+
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
         <XMPPSettings>

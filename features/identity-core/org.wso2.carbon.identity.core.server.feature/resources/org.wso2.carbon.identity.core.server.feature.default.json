@@ -209,6 +209,8 @@
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
 
+  "www_authenticate.add_realm_user": false,
+
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
   "saml.slo.retry_attempts": "5",

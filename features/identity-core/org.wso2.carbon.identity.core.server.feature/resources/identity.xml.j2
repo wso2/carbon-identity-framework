@@ -899,6 +899,12 @@
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
     </OAuth>
+
+    <WWWAuthenticate>
+            <!-- Configuration for allowing to add realm user in WWW-Authenticate header. -->
+            <AddRealmUser>{{www_authenticate.add_realm_user}}</AddRealmUser>
+    </WWWAuthenticate>
+
     <!--
     Configuration to select JS engine for Adaptive authentication feature.
     Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
