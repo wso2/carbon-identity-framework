@@ -92,6 +92,8 @@ public class ApplicationMgtUtil {
     public static final String MASKING_CHARACTER = "*";
     public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
     private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
+            UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -920,7 +922,7 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username) ||
+        if (DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME.equals(username) ||
                 !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
             return tenantDomain;
         } else {

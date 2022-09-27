@@ -1787,7 +1787,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 owner.setUserName(basicAppDataResultSet.getString(5));
                 owner.setTenantDomain(getUserTenantDomain(
                         IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)),
-                        basicAppDataResultSet.getString(5)));
+                        basicAppDataResultSet.getString(4) + "/" + basicAppDataResultSet.getString(5)));
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
                 serviceProvider.setTenantDomain(IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)));
@@ -2125,7 +2125,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 owner.setUserStoreDomain(rs.getString(ApplicationTableColumns.USER_STORE));
                 owner.setTenantDomain(getUserTenantDomain(
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)),
-                        rs.getString(ApplicationTableColumns.USERNAME)));
+                        rs.getString(ApplicationTableColumns.USER_STORE) + "/" +
+                                rs.getString(ApplicationTableColumns.USERNAME)));
                 serviceProvider.setOwner(owner);
                 serviceProvider.setTenantDomain(
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)));
@@ -5214,7 +5215,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             User appOwner = new User();
             appOwner.setUserStoreDomain(userStoreDomain);
             appOwner.setUserName(username);
-            appOwner.setTenantDomain(getUserTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId), username));
+            appOwner.setTenantDomain(getUserTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId),
+                    userStoreDomain + "/" + username));
 
             basicInfo.setAppOwner(appOwner);
         }
