@@ -221,6 +221,16 @@
         <UseSPTenantDomain>{{oauth.access_token.generate_with_sp_tenant_domain}}</UseSPTenantDomain>
         {% endif %}
 
+        <EnableLegacyAudiences>{{oauth.legacy_audiences_enabled}}</EnableLegacyAudiences>
+        <EnableAccessTokenAudiences>true</EnableAccessTokenAudiences>
+        {% if oauth.access_token.audiences|length %}
+        <AccessTokenAudiences>
+            {% for audience in oauth.access_token.audiences %}
+            <AccessTokenAudience>{{audience}}</AccessTokenAudience>
+            {% endfor %}
+        </AccessTokenAudiences>
+        {% endif %}
+
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -669,14 +679,6 @@
             </IdTokenAudiences>
             {% endif %}
 
-            <EnableAccessTokenAudiences>true</EnableAccessTokenAudiences>
-            {% if oauth.oidc.access_token.audiences|length %}
-            <AccessTokenAudiences>
-                {% for audience in oauth.oidc.access_token.audiences %}
-                <AccessTokenAudience>{{audience}}</AccessTokenAudience>
-                {% endfor %}
-            </AccessTokenAudiences>
-            {% endif %}
             <!--
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
                 If that doesn't satisfy uncomment the following config and explicitly configure the value
