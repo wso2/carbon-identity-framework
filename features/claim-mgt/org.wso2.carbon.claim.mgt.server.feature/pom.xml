@@ -94,6 +94,12 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.claim.metadata.mgt</bundleDef>
+
+                                <!-- used by XML/SOAP related functions in more than 5 repositories although not used by this feature -->
+                                <bundleDef>org.apache.santuario:xmlsec</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
+                                <bundleDef>org.wso2.orbit.jsr105:jsr105</bundleDef>
+                                <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
