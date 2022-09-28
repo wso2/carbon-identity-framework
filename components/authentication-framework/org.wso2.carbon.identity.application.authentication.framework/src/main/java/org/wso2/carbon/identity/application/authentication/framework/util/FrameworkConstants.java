@@ -522,7 +522,6 @@ public abstract class FrameworkConstants {
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
-        public static final String WORKFLOW_DOMAIN = "Workflow";
         private InternalRoleDomains() {
         }
     }

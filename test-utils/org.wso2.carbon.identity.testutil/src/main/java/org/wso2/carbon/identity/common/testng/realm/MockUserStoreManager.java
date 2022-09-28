@@ -256,8 +256,7 @@ public class MockUserStoreManager extends AbstractUserStoreManager {
             throws org.wso2.carbon.user.api.UserStoreException {
         if (UserCoreConstants.INTERNAL_DOMAIN.
                 equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role))
-                || "Application".equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role)) ||
-                "Workflow".equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role))) {
+                || "Application".equalsIgnoreCase(UserCoreUtil.extractDomainFromName(role))) {
             doAddInternalRole(role, users, permissions);
             return;
         }

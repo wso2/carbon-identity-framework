@@ -67,7 +67,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
-import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
 /**
@@ -487,7 +486,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
     private boolean isGroup(String localRoleName) {
 
-        return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
+        return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN).anyMatch(domain -> localRoleName
                 .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
     }
 

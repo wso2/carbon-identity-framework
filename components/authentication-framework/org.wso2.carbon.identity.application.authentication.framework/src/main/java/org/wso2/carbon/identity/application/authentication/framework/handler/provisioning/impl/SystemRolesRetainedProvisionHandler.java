@@ -25,11 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 
 
 /**
- * Provisioning handler implementation which will keep all system (Application/*, Workflow/*)
+ * Provisioning handler implementation which will keep all system (Application/*)
  * roles without being deleted during the provisioning process.
  */
 public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHandler {
@@ -57,8 +56,7 @@ public class SystemRolesRetainedProvisionHandler extends DefaultProvisioningHand
         List<String> internalRoles = new ArrayList<>();
 
         for (String role : allRoles) {
-            if (StringUtils.contains(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)
-                    || StringUtils.contains(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
+            if (StringUtils.contains(role, APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
                 internalRoles.add(role);
             }
         }

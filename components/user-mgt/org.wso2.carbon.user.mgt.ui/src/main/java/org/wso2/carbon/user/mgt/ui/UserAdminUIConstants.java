@@ -44,7 +44,6 @@ public class UserAdminUIConstants {
     public static final String INTERNAL_ROLE = "Internal";
     public static final String INTERNAL_DOMAIN = "Internal";
     public static final String APPLICATION_DOMAIN = "Application";
-    public static final String WORKFLOW_DOMAIN = "Workflow";
     public static final String EXTERNAL_ROLE = "External";
 
     // errors

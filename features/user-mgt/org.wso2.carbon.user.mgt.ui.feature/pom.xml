@@ -47,10 +47,6 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.user.mgt.workflow.stub</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.configuration.ui</artifactId>
         </dependency>
         <dependency>
@@ -95,8 +91,6 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.ui</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.stub</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.common
-                                </bundleDef>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.workflow.stub
                                 </bundleDef>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.store.configuration.ui

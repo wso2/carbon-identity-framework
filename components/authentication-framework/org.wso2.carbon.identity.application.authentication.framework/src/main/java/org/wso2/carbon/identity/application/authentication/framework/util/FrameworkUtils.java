@@ -173,7 +173,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
@@ -2770,7 +2769,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow).
+     * Remove domain name from roles except the hybrid roles (Internal,Application).
      *
      * @param domainAwareRolesList list of roles assigned to a user.
      * @return String of multi attribute separated list of roles assigned to a user with domain name removed from roles.
@@ -2781,7 +2780,7 @@ public class FrameworkUtils {
         for (String role : domainAwareRolesList) {
             String userStoreDomain = IdentityUtil.extractDomainFromName(role);
             if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain) || APPLICATION_DOMAIN
-                    .equalsIgnoreCase(userStoreDomain) || WORKFLOW_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
+                    .equalsIgnoreCase(userStoreDomain)) {
                 roleList.add(role);
             } else {
                 roleList.add(UserCoreUtil.removeDomainFromName(role));

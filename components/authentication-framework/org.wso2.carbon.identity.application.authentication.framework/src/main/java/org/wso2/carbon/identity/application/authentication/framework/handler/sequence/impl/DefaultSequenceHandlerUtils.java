@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
@@ -125,7 +124,7 @@ public class DefaultSequenceHandlerUtils {
     }
 
     /**
-     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow)
+     * Remove domain name from roles except the hybrid roles (Internal,Application)
      *
      * @param names list of roles assigned to a user
      * @return list of roles assigned to a user with domain name removed from roles
@@ -136,7 +135,7 @@ public class DefaultSequenceHandlerUtils {
         for (String name : names) {
             String userStoreDomain = IdentityUtil.extractDomainFromName(name);
             if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain) || APPLICATION_DOMAIN
-                    .equalsIgnoreCase(userStoreDomain) || WORKFLOW_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
+                    .equalsIgnoreCase(userStoreDomain)) {
                 nameList.add(name);
             } else {
                 nameList.add(UserCoreUtil.removeDomainFromName(name));

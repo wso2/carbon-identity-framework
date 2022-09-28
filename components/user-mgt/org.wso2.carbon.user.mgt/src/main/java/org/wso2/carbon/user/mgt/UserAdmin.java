@@ -550,9 +550,8 @@ public class UserAdmin {
     private boolean isInternalRole(String roleName) {
 
         String domain = UserCoreUtil.extractDomainFromName(roleName);
-        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) || UserCoreConstants.WORKFLOW_DOMAIN
-                .equalsIgnoreCase(domain) || UserCoreConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)
-                || UserCoreConstants.SYSTEM_DOMAIN_NAME.equalsIgnoreCase(domain)) {
+        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) || UserCoreConstants.APPLICATION_DOMAIN
+                .equalsIgnoreCase(domain) || UserCoreConstants.SYSTEM_DOMAIN_NAME.equalsIgnoreCase(domain)) {
             return true;
         }
         return false;

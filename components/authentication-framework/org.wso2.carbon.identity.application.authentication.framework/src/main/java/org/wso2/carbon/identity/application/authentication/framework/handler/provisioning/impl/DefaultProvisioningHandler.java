@@ -69,7 +69,6 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
@@ -79,7 +78,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
-    private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
     private static final String LOCAL_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
 
@@ -225,7 +223,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                boolean userWorkflowEngaged = false;
                 try {
                     /*
                     This thread local is set to skip the username and password pattern validation even if the password
@@ -238,24 +235,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         setJitProvisionedSource(tenantDomain, idp, userClaims);
                     }
                     userStoreManager.addUser(username, password, null, userClaims, null);
-                } catch (UserStoreException e) {
-                    // Add user operation will fail if a user operation workflow is already defined for the same user.
-                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
-                        userWorkflowEngaged = true;
-                        if (log.isDebugEnabled()) {
-                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
-                                    " and there is a workflow already defined for the same user");
-                        }
-                    } else {
-                        throw e;
-                    }
                 } finally {
                     UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                     UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
                 }
 
-                if (userWorkflowEngaged ||
-                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                if (!userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
                     if (log.isDebugEnabled()) {
                         log.debug("User is not found in the userstore. Most probably the local user creation is not " +
                                 "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
@@ -557,9 +542,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 } else if (StringUtils.containsIgnoreCase(role, APPLICATION_DOMAIN
                         + CarbonConstants.DOMAIN_SEPARATOR)) {
                     updatedRoles.add(APPLICATION_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
-                            .removeDomainFromName(role));
-                } else if (StringUtils.containsIgnoreCase(role, WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
-                    updatedRoles.add(WORKFLOW_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + UserCoreUtil
                             .removeDomainFromName(role));
                 } else {
                     updatedRoles.add(role);
