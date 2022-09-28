@@ -180,7 +180,7 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <!--Yahoo includes for dom event handling-->
 <script src="../yui/build/yahoo-dom-event/yahoo-dom-event.js" type="text/javascript"></script>
-<link href="../entitlement/css/entitlement.css" rel="stylesheet" type="text/css" media="all"/>
+<link href=".css/entitlement.css" rel="stylesheet" type="text/css" media="all"/>
 
 
 <script type="text/javascript">

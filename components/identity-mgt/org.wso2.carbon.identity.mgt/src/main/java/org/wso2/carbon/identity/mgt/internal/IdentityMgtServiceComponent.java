@@ -271,16 +271,10 @@ public class IdentityMgtServiceComponent {
             unbind = "unsetNotificationSender"
     )
     protected void setNotificationSender(NotificationSender notificationSender) {
-        if (log.isDebugEnabled()) {
-            log.debug("Un-setting notification sender in Entitlement bundle");
-        }
         this.notificationSender = notificationSender;
     }
 
     protected void unsetNotificationSender(NotificationSender notificationSender) {
-        if (log.isDebugEnabled()) {
-            log.debug("Setting notification sender in Entitlement bundle");
-        }
         this.notificationSender = null;
     }
 

@@ -146,8 +146,6 @@
              Override datasources JNDIproviderPort defined in bps.xml and datasources.properties files
 	-->
 	<!--<JNDIProviderPort>2199</JNDIProviderPort>-->
-	<!--Override receive port of thrift based entitlement service.-->
-	<ThriftEntitlementReceivePort>10500</ThriftEntitlementReceivePort>
 
     <!--
      This is the proxy port of the worker cluster. These need to be configured in a scenario where

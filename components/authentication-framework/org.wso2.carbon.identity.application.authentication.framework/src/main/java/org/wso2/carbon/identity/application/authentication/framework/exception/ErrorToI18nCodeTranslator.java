@@ -115,8 +115,6 @@ public class ErrorToI18nCodeTranslator {
                 "authentication.attempt.failed", "consent.page.error"),
         ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS("Authentication failed. Error while processing application " +
                 "claim configurations.", "authentication.attempt.failed", "application.configs.null.error"),
-        ERROR_XACML_EVAL_FAILED("Authorization Failed.XACML policy evaluation failed for user.",
-                "authentication.attempt.failed", "xacml.policy.evaluation.failed"),
         ERROR_WHILE_EVAL_AUTHZ("Authorization Failed.Error while trying to evaluate authorization",
                 "authentication.attempt.failed", "xacml.authz.eval.failed"),
         ERROR_WHILE_REDIRECTING_TO_REQUEST_CLAIMS_PAGE("Error while handling missing mandatory claims. Error in " +

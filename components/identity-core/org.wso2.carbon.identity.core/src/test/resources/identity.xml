@@ -151,7 +151,6 @@
 
         <ScopeValidators>
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
-            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
         <ScopeHandlers>
@@ -255,19 +254,6 @@
         <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
     </PassiveSTS>
-
-    <EntitlementSettings>
-        <ThirftBasedEntitlementConfig>
-            <EnableThriftService>false</EnableThriftService>
-            <ReceivePort>${Ports.ThriftEntitlementReceivePort}</ReceivePort>
-            <ClientTimeout>10000</ClientTimeout>
-            <KeyStore>
-                <Location>${carbon.home}/repository/resources/security/wso2carbon.jks</Location>
-                <Password>wso2carbon</Password>
-            </KeyStore>
-            <ThriftHostName>${carbon.host}</ThriftHostName>
-        </ThirftBasedEntitlementConfig>
-    </EntitlementSettings>
 
     <SCIM>
         <UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Users</UserEPUrl>
@@ -419,9 +405,6 @@
         </Resource>
         <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>

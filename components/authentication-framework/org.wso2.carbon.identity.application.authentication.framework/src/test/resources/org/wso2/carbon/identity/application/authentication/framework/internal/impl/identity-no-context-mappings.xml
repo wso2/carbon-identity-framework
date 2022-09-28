@@ -507,9 +507,6 @@
         <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
         </Resource>
-        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/pep</Permissions>
-        </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
         </Resource>
@@ -640,7 +637,6 @@
             <Context>/api/identity/user/v1.0</Context>
             <Context>/api/identity/recovery/v0.9</Context>
             <Context>/oauth2</Context>
-            <Context>/api/identity/entitlement</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
