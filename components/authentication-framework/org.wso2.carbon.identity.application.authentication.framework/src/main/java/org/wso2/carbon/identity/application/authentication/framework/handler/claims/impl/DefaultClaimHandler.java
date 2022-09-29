@@ -118,6 +118,67 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
+     * @param context
+     * @return Requested Claim Mappings.
+     * @throws FrameworkException
+     */
+    public Map<String, String> getSpRequestedClaimMappings(AuthenticationContext context) throws FrameworkException {
+
+        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
+        if (spToLocalClaimMappings == null) {
+            spToLocalClaimMappings = new HashMap<>();
+        }
+        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
+        if (requestedClaimMappings == null) {
+            requestedClaimMappings = new HashMap<>();
+        }
+        AuthenticatedUser authenticatedUser = context.getSubject();
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        UserRealm realm = getUserRealm(tenantDomain);
+        if (realm == null) {
+            log.warn("No valid tenant domain provider. No claims returned back");
+            return new HashMap<>();
+        }
+        ClaimManager claimManager = getClaimManager(tenantDomain, realm);
+        AbstractUserStoreManager userStore = getUserStoreManager(tenantDomain, realm);
+
+        // key:value -> carbon_dialect:claim_value
+        Map<String, String> allLocalClaims;
+        // If default dialect -> all non-null user claims
+        // If custom dialect -> all non-null user claims that have been mapped to custom claims
+        // key:value -> sp_dialect:claim_value
+        Map<String, String> allSPMappedClaims = new HashMap<>();
+        // Requested claims only
+        // key:value -> sp_dialect:claim_value
+        Map<String, String> spRequestedClaims = new HashMap<>();
+        // Retrieve all non-null user claim values against local claim uris.
+        allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        allLocalClaims.putAll(context.getRuntimeClaims());
+        handleRoleClaim(context, allLocalClaims);
+
+        // if standard dialect get all claim mappings from standard dialect to carbon dialect
+        String spStandardDialect = getStandardDialect(context.getRequestType(),
+                context.getSequenceConfig().getApplicationConfig());
+        spToLocalClaimMappings = getStandardDialectToCarbonMapping(spStandardDialect, context, spToLocalClaimMappings,
+                tenantDomain);
+        if (StringUtils.isNotBlank(spStandardDialect) && (!StringUtils.equals(spStandardDialect, ApplicationConstants
+                .LOCAL_IDP_DEFAULT_CLAIM_DIALECT))) {
+            Map<String, String> carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect,
+                    context, spToLocalClaimMappings, tenantDomain);
+            requestedClaimMappings = mapRequestClaimsInStandardDialect(requestedClaimMappings,
+                    carbonToStandardClaimMapping);
+        }
+        mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
+                allSPMappedClaims, spRequestedClaims);
+        if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
+            spRequestedClaims = allSPMappedClaims;
+        }
+        return spRequestedClaims;
+    }
+
+    /**
      * @param spStandardDialect
      * @param remoteClaims
      * @param stepConfig
