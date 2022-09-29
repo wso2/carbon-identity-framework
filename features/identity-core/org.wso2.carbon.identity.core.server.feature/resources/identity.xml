@@ -654,10 +654,10 @@
 
     </OAuth>
 
-    <WWWAuthenticate>
-        <!-- Configuration for allowing to add realm user in WWW-Authenticate header. -->
-        <AddRealmUser>false</AddRealmUser>
-    </WWWAuthenticate>
+    <RestApiAuthentication>
+        <!-- Configuration for removing realm user field in WWW-Authenticate header. -->
+        <RemoveRealmUserFromError>true</RemoveRealmUserFromError>
+    </RestApiAuthentication>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->

@@ -900,10 +900,10 @@
 
     </OAuth>
 
-    <WWWAuthenticate>
-            <!-- Configuration for allowing to add realm user in WWW-Authenticate header. -->
-            <AddRealmUser>{{www_authenticate.add_realm_user}}</AddRealmUser>
-    </WWWAuthenticate>
+    <RestApiAuthentication>
+            <!-- Configuration for removing realm user field in WWW-Authenticate header. -->
+            <RemoveRealmUserFromError>{{rest_api_authentication.remove_realm_user_from_error}}</RemoveRealmUserFromError>
+    </RestApiAuthentication>
 
     <!--
     Configuration to select JS engine for Adaptive authentication feature.
