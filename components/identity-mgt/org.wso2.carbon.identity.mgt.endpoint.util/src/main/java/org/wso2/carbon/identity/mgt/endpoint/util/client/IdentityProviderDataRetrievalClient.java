@@ -183,7 +183,7 @@ public class IdentityProviderDataRetrievalClient {
             }
 
             // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
-            //               federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
+            // federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
             JSONObject federatedIdpResult = executePath(tenant, federatedIDPURLWithID);
             if (federatedIdpResult == null) {
                 return configMap;
