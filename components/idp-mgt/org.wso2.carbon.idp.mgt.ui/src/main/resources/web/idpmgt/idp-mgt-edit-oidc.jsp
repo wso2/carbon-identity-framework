@@ -123,7 +123,7 @@
                         scopes = scopesProp.getValue();
                     }
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
+                            OIDC.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         oidcQueryParam = queryParamProp.getValue();
                     }
