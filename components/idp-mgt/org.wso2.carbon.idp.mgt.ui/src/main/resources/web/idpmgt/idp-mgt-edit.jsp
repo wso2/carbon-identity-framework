@@ -291,7 +291,8 @@
                         openIdUrl = openIdUrlProp.getValue();
                     }
 
-                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
+                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                     IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         openidQueryParam = queryParamProp.getValue();
                     }
@@ -384,7 +385,8 @@
                                 Boolean.parseBoolean(isEnableAssertionAudienceValidationProp.getValue());
                     }
 
-                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
+                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                     IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         passiveSTSQueryParam = queryParamProp.getValue();
                     }
@@ -588,7 +590,8 @@
                         isSAMLSSOUserIdInClaims = Boolean.parseBoolean(isSAMLSSOUserIdInClaimsProp.getValue());
                     }
 
-                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
+                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                     IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         samlQueryParam = queryParamProp.getValue();
                     }

@@ -118,12 +118,12 @@
                         isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
                     }
                     Property scopesProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                             "Scopes");
+                             OIDC.SCOPES);
                     if (scopesProp != null) {
                         scopes = scopesProp.getValue();
                     }
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            "commonAuthQueryParams");
+                            IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         oidcQueryParam = queryParamProp.getValue();
                     }

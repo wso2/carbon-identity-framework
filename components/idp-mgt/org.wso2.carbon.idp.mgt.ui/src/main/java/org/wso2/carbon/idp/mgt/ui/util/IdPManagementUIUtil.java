@@ -1185,7 +1185,7 @@ public class IdPManagementUIUtil {
         properties[2] = property;
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
 
         if (paramMap.get("openidQueryParam") != null
                 && paramMap.get("openidQueryParam").trim().length() > 0) {
@@ -1346,7 +1346,7 @@ public class IdPManagementUIUtil {
         }
 
         property = new Property();
-        property.setName("Scopes");
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
         if (paramMap.get("scopes") != null
                 && paramMap.get("scopes").trim().length() > 0) {
             property.setValue(paramMap.get("scopes"));
@@ -1354,7 +1354,7 @@ public class IdPManagementUIUtil {
         properties[5] = property;
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
 
         if (paramMap.get("oidcQueryParam") != null
                 && paramMap.get("oidcQueryParam").trim().length() > 0) {
@@ -1465,7 +1465,7 @@ public class IdPManagementUIUtil {
         }
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
 
         if (paramMap.get("passiveSTSQueryParam") != null
                 && paramMap.get("passiveSTSQueryParam").trim().length() > 0) {
@@ -1715,7 +1715,7 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.QUERY_PARAMS);
 
         if (paramMap.get("samlQueryParam") != null
                 && paramMap.get("samlQueryParam").trim().length() > 0) {
