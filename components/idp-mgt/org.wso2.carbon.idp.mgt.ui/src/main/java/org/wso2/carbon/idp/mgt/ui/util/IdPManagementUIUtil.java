@@ -1315,7 +1315,7 @@ public class IdPManagementUIUtil {
 
         Property[] properties = new Property[11];
         Property property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
         properties[0] = property;
 
