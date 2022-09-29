@@ -753,7 +753,7 @@ function doValidation() {
 
         if ($('#scopes').val() != "" && $('#oidcQueryParam').val().toLowerCase().includes('scope=')) {
             CARBON.showWarningDialog('Cannot set scopes in both Scopes and Additional Query Parameters.' +
-                'Please use Scopes field to set scopes.');
+                ' Recommend to use Scopes field.');
             return false;
         }
 
