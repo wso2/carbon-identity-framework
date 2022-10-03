@@ -578,8 +578,7 @@
     "/logincontext(.*)",
     "/oidc/",
     "/samlsso(.*)",
-    "/samlartresolve",
-    "/passivests"
+    "/samlartresolve"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [

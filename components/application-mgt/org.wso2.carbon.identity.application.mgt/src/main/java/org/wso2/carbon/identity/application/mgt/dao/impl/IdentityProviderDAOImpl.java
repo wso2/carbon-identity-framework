@@ -46,7 +46,6 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
     public static final String SAML_SSO = "samlsso";
     public static final String OPENID_CONNECT = "openidconnect";
     public static final String OPENID = "openid";
-    public static final String PASSIVE_STS = "passive-sts";
     public static final String FACEBOOK_AUTH = "facebook";
 
     /**

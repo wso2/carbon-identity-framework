@@ -63,7 +63,6 @@
         <AuthenticatorNameMapping name="IWAAuthenticator" alias="iwa" />
         <AuthenticatorNameMapping name="SAMLSSOAuthenticator" alias="samlsso" />
         <AuthenticatorNameMapping name="OpenIDConnectAuthenticator" alias="openidconnect" />
-        <AuthenticatorNameMapping name="PassiveSTSAuthenticator" alias="passive-sts" />
     </AuthenticatorNameMappings>
 
     <!-- 

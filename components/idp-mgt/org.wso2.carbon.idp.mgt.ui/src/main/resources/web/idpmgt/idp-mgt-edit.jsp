@@ -127,13 +127,6 @@
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
     boolean isOIDCDefault = false;
-    boolean isPassiveSTSEnabled = false;
-    boolean isPassiveSTSDefault = false;
-    String passiveSTSRealm = null;
-    String passiveSTSUrl = null;
-    boolean isPassiveSTSUserIdInClaims = false;
-    boolean isEnablePassiveSTSAssertionSignatureValidation = true;
-    boolean isEnablePassiveSTSAssertionAudienceValidation = true;
     List<String> userStoreDomains = new ArrayList<String>();
     boolean isFBAuthEnabled = false;
     boolean isFBAuthDefault = false;
@@ -152,7 +145,6 @@
     boolean isOpenidAuthenticatorActive = false;
     boolean isSamlssoAuthenticatorActive = false;
     boolean isOpenidconnectAuthenticatorActive = false;
-    boolean isPassivestsAuthenticatorActive = false;
     boolean isFacebookAuthenticatorActive = false;
 
     // Claims
@@ -175,7 +167,6 @@
     String googleProvPrivateKeyData = null;
 
     String samlQueryParam = "";
-    String passiveSTSQueryParam = "";
     String openidQueryParam = "";
 
     boolean isArtifactBindingEnabled = false;
@@ -349,44 +340,6 @@
                                     IdentityApplicationConstants.Authenticator.Facebook.CALLBACK_URL);
                     if (fbCallBackUrlProp != null) {
                         fbCallBackUrl = fbCallBackUrlProp.getValue();
-                    }
-                } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME)) {
-                    isPassivestsAuthenticatorActive = true;
-                    allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
-                    isPassiveSTSEnabled = fedAuthnConfig.getEnabled();
-                    Property passiveSTSRealmProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.PassiveSTS.REALM_ID);
-                    if (passiveSTSRealmProp != null) {
-                        passiveSTSRealm = passiveSTSRealmProp.getValue();
-                    }
-                    Property passiveSTSUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-                    if (passiveSTSUrlProp != null) {
-                        passiveSTSUrl = passiveSTSUrlProp.getValue();
-                    }
-                    Property isPassiveSTSUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_USER_ID_IN_CLAIMS);
-                    if (isPassiveSTSUserIdInClaimsProp != null) {
-                        isPassiveSTSUserIdInClaims = Boolean.parseBoolean(isPassiveSTSUserIdInClaimsProp.getValue());
-                    }
-                    Property isEnableAssertionSignatureValidationProp =
-                            IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
-                    if (isEnableAssertionSignatureValidationProp != null) {
-                        isEnablePassiveSTSAssertionSignatureValidation =
-                                Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
-                    }
-                    Property isEnableAssertionAudienceValidationProp =
-                            IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
-                    if (isEnableAssertionAudienceValidationProp != null) {
-                        isEnablePassiveSTSAssertionAudienceValidation =
-                                Boolean.parseBoolean(isEnableAssertionAudienceValidationProp.getValue());
-                    }
-
-                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
-                    if (queryParamProp != null) {
-                        passiveSTSQueryParam = queryParamProp.getValue();
                     }
 
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
@@ -645,12 +598,6 @@
 
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
-            isPassiveSTSDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
-                    IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        }
-
-        if (identityProvider.getDefaultAuthenticatorConfig() != null
-                && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isFBAuthDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.Facebook.NAME);
         }
@@ -785,10 +732,6 @@
         provisioningRole = "";
     }
 
-    if (passiveSTSQueryParam == null) {
-        passiveSTSQueryParam = "";
-    }
-
     if (StringUtils.isBlank(idPAlias)) {
         idPAlias = IdentityUtil.getServerURL("/oauth2/token", true, false);
     }
@@ -818,9 +761,6 @@
             fedAuthConfigIterator.remove();
         } else if (fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
             isOpenidconnectAuthenticatorActive = true;
-            fedAuthConfigIterator.remove();
-        } else if (fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME)) {
-            isPassivestsAuthenticatorActive = true;
             fedAuthConfigIterator.remove();
         } else if (fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.Facebook.NAME)) {
             isFacebookAuthenticatorActive = true;
@@ -992,43 +932,6 @@
 
     if (attributeConsumingServiceIndex == null) {
         attributeConsumingServiceIndex = "";
-    }
-
-    String passiveSTSEnabledChecked = "";
-    String passiveSTSDefaultDisabled = "";
-    if (identityProvider != null) {
-        if (isPassiveSTSEnabled) {
-            passiveSTSEnabledChecked = "checked=\'checked\'";
-        } else {
-            passiveSTSDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    String passiveSTSDefaultChecked = "";
-    if (identityProvider != null) {
-        if (isPassiveSTSDefault) {
-            passiveSTSDefaultChecked = "checked=\'checked\'";
-            passiveSTSDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    if (passiveSTSRealm == null) {
-        passiveSTSRealm = "";
-    }
-    if (StringUtils.isBlank(passiveSTSUrl)) {
-        passiveSTSUrl = StringUtils.EMPTY;
-    }
-
-    String enablePassiveSTSAssertionSignatureValidationChecked = "";
-    if (identityProvider != null) {
-        if (isEnablePassiveSTSAssertionSignatureValidation) {
-            enablePassiveSTSAssertionSignatureValidationChecked = "checked=\'checked\'";
-        }
-    }
-
-    String enablePassiveSTSAssertionAudienceValidationChecked = "";
-    if (identityProvider != null) {
-        if (isEnablePassiveSTSAssertionAudienceValidation) {
-            enablePassiveSTSAssertionAudienceValidationChecked = "checked=\'checked\'";
-        }
     }
 
     String fbAuthEnabledChecked = "";
@@ -1396,14 +1299,12 @@
         jQuery('#openIdLinkRow').hide();
         jQuery('#saml2SSOLinkRow').hide();
         jQuery('#oauth2LinkRow').hide();
-        jQuery('#passiveSTSLinkRow').hide();
         jQuery('#fbAuthLinkRow').hide();
         jQuery('#baisClaimLinkRow').hide();
         jQuery('#advancedClaimLinkRow').hide();
         jQuery('#openIdDefault').attr('disabled', 'disabled');
         jQuery('#saml2SSODefault').attr('disabled', 'disabled');
         jQuery('#oidcDefault').attr('disabled', 'disabled');
-        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
         jQuery('#fbAuthDefault').attr('disabled', 'disabled');
         jQuery('#googleProvDefault').attr('disabled', 'disabled');
         jQuery('#sfProvDefault').attr('disabled', 'disabled');
@@ -1412,7 +1313,6 @@
         jQuery('#openIdDefault').attr('disabled', 'disabled');
         jQuery('#saml2SSODefault').attr('disabled', 'disabled');
         jQuery('#oidcDefault').attr('disabled', 'disabled');
-        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
         jQuery('#fbAuthDefault').attr('disabled', 'disabled');
 
         if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
@@ -1435,12 +1335,6 @@
             jQuery('#oAuth2_enable_logo').show();
         } else {
             jQuery('#oAuth2_enable_logo').hide();
-        }
-
-        if (<%=isPassiveSTSEnabled%>) {
-            jQuery('#wsfederation_enable_logo').show();
-        } else {
-            jQuery('#wsfederation_enable_logo').hide();
         }
 
         if (<%=isFBAuthEnabled%>) {
@@ -2927,12 +2821,10 @@
         jQuery('#openIdEnabled').removeAttr('disabled');
         jQuery('#saml2SSOEnabled').removeAttr('disabled');
         jQuery('#oidcEnabled').removeAttr('disabled');
-        jQuery('#passiveSTSEnabled').removeAttr('disabled');
         jQuery('#fbAuthEnabled').removeAttr('disabled');
         jQuery('#openIdDefault').removeAttr('disabled');
         jQuery('#saml2SSODefault').removeAttr('disabled');
         jQuery('#oidcDefault').removeAttr('disabled');
-        jQuery('#passiveSTSDefault').removeAttr('disabled');
         jQuery('#fbAuthDefault').removeAttr('disabled');
         jQuery('#googleProvDefault').removeAttr('disabled');
         jQuery('#sfProvDefault').removeAttr('disabled');
@@ -4598,145 +4490,6 @@
                         <jsp:param name="isOIDCDefault"
                                    value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCDefault))%>"/>
                     </jsp:include>
-
-                    <% if (isPassivestsAuthenticatorActive) { %>
-
-                    <h2 id="passive_sts_head" class="sectionSeperator trigger active" style="background-color: beige;">
-                        <a href="#"><fmt:message key="passive.sts.config"/></a>
-
-                        <div id="wsfederation_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-                    </h2>
-                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="passiveSTSLinkRow">
-                        <table class="carbonFormTable">
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="passiveSTSEnabled"><fmt:message key='passive.sts.enabled'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="passiveSTSEnabled" name="passiveSTSEnabled"
-                                               type="checkbox" <%=passiveSTSEnabledChecked%>
-                                               onclick="checkEnabled(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enabled.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="passiveSTSDefault"><fmt:message key='passive.sts.default'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="passiveSTSDefault" name="passiveSTSDefault"
-                                               type="checkbox" <%=passiveSTSDefaultChecked%> <%=passiveSTSDefaultDisabled%>
-                                               onclick="checkDefault(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.default.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.realm'/>:<span
-                                        class="required">*</span>
-                                </td>
-                                <td>
-                                    <input id="passiveSTSRealm" name="passiveSTSRealm" type="text"
-                                           value="<%=Encode.forHtmlAttribute(passiveSTSRealm)%>"/>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='passive.sts.realm.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="passiveSTSUrl" name="passiveSTSUrl" type="text"
-                                           value="<%=Encode.forHtmlAttribute(passiveSTSUrl)%>"/>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='passive.sts.url.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.user.id.location'/>:
-                                </td>
-                                <td>
-                                    <label>
-                                        <input type="radio" value="0"
-                                               name="passive_sts_user_id_location" <% if (!isPassiveSTSUserIdInClaims) { %>
-                                               checked="checked" <%}%>/>
-                                        User ID found in 'Name Identifier'
-                                    </label>
-                                    <label>
-                                        <input type="radio" value="1"
-                                               name="passive_sts_user_id_location" <% if (isPassiveSTSUserIdInClaims) { %>
-                                               checked="checked" <%}%>/>
-                                        User ID found among claims
-                                    </label>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='passive.sts.user.id.location.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="enablePassiveSTSAssertionSignatureValidation">
-                                        <fmt:message key='passive.sts.enable.assertion.signature.validation'/>
-                                    </label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="isEnablePassiveSTSAssertionSignatureValidation"
-                                               name="isEnablePassiveSTSAssertionSignatureValidation"
-                                               type="checkbox" <%=enablePassiveSTSAssertionSignatureValidationChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enable.assertion.signature.validation.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="enablePassiveSTSAssertionAudienceValidation">
-                                        <fmt:message key='passive.sts.enable.assertion.audience.validation'/>
-                                    </label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="isEnablePassiveSTSAssertionAudienceValidation"
-                                               name="isEnablePassiveSTSAssertionAudienceValidation"
-                                               type="checkbox" <%=enablePassiveSTSAssertionAudienceValidationChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enable.assertion.audience.validation.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-                                <td>
-                                    <input id="passiveSTSQueryParam" name="passiveSTSQueryParam" type="text"
-                                           value="<%=Encode.forHtml(passiveSTSQueryParam)%>"/>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='query.param.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <% } %>
-
 
                     <% if (isFacebookAuthenticatorActive) { %>
 

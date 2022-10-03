@@ -92,8 +92,6 @@ public class ApplicationBean {
     private String oauthConsumerSecret;
     private String attrConsumServiceIndex;
     private List<String> wstrustEp = new ArrayList<String>(0);
-    private String passivests;
-    private String passiveSTSWReply;
     private String openid;
     private String[] claimUris;
     private List<String> claimDialectUris;
@@ -111,7 +109,6 @@ public class ApplicationBean {
         standardInboundAuthTypes.add("wstrust");
         standardInboundAuthTypes.add("samlsso");
         standardInboundAuthTypes.add("openid");
-        standardInboundAuthTypes.add("passivests");
     }
 
     public void reset() {
@@ -128,8 +125,6 @@ public class ApplicationBean {
         kerberosServiceName = null;
         oauthAppName = null;
         wstrustEp = new ArrayList<String>(0);
-        passivests = null;
-        passiveSTSWReply = null;
         openid = null;
         oauthConsumerSecret = null;
         attrConsumServiceIndex = null;
@@ -855,65 +850,6 @@ public class ApplicationBean {
     /**
      * @return
      */
-    public String getPassiveSTSRealm() {
-
-        if (passivests != null) {
-            return passivests;
-        }
-
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-                    passivests = authRequest[i].getInboundAuthKey();
-                    break;
-                }
-            }
-        }
-
-        return passivests;
-    }
-
-    /**
-     * @return
-     */
-    public String getPassiveSTSWReply() {
-
-        if (passiveSTSWReply != null) {
-            return passiveSTSWReply;
-        }
-
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-
-                    // get wreply url from properties
-                    Property[] properties = authRequest[i].getProperties();
-                    if (properties != null) {
-                        for (int j = 0; j < properties.length; j++) {
-                            if ("passiveSTSWReply".equalsIgnoreCase(properties[j].getName())) {
-                                passiveSTSWReply = properties[j].getValue();
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        return passiveSTSWReply;
-    }
-
-    /**
-     * @return
-     */
     public String[] getClaimUris() {
         return claimUris;
     }
@@ -1322,23 +1258,6 @@ public class ApplicationBean {
             });
         }
 
-        String passiveSTSRealm = request.getParameter("passiveSTSRealm");
-        String passiveSTSWReply = request.getParameter("passiveSTSWReply");
-
-        if (StringUtils.isNotBlank(passiveSTSRealm)) {
-            InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
-            opicAuthenticationRequest.setInboundAuthKey(passiveSTSRealm);
-            opicAuthenticationRequest.setInboundAuthType("passivests");
-            if (passiveSTSWReply != null && !passiveSTSWReply.isEmpty()) {
-                Property property = new Property();
-                property.setName("passiveSTSWReply");
-                property.setValue(passiveSTSWReply);
-                Property[] properties = {property};
-                opicAuthenticationRequest.setProperties(properties);
-            }
-            authRequestList.add(opicAuthenticationRequest);
-        }
-
         String openidRealm = request.getParameter("openidRealm");
 
         if (StringUtils.isNotBlank(openidRealm)) {
@@ -1609,20 +1528,6 @@ public class ApplicationBean {
      */
     public void setWstrustEp(List<String> wstrustEps) {
         this.wstrustEp = wstrustEps;
-    }
-
-    /**
-     * @param passivests
-     */
-    public void setPassivests(String passivests) {
-        this.passivests = passivests;
-    }
-
-    /**
-     * @param passiveSTSWReply
-     */
-    public void setPassiveSTSWReply(String passiveSTSWReply) {
-        this.passiveSTSWReply = passiveSTSWReply;
     }
 
     /**

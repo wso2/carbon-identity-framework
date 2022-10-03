@@ -728,18 +728,6 @@
         <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/services/wso2carbon-sts</IdentityProviderURL>
     </SecurityTokenService>
 
-    <PassiveSTS>
-        <!--
-            Default value for IdentityProviderURL is  built in following format
-            https://<HostName>:<MgtTrpProxyPort except 443>/<ProxyContextPath>/passivests
-            If that doesn't satisfy uncomment the following config and explicitly configure the value
-        -->
-        <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/passivests</IdentityProviderURL>
-        <RetryURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/retry.do</RetryURL>
-        <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
-        <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
-    </PassiveSTS>
-
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
             <EnableThriftService>false</EnableThriftService>
@@ -1914,7 +1902,6 @@
         <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
-        <Resource context="/passivests(.*)" secured="false" http-method="all"/>
         <Resource context="/samlartresolve(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
