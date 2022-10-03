@@ -982,18 +982,6 @@
         <IdentityProviderURL>{{sts.endpoint.idp}}</IdentityProviderURL>
     </SecurityTokenService>
 
-    <PassiveSTS>
-        <!--
-            Default value for IdentityProviderURL is  built in following format
-            https://<HostName>:<MgtTrpProxyPort except 443>/<ProxyContextPath>/passivests
-            If that doesn't satisfy uncomment the following config and explicitly configure the value
-        -->
-        <IdentityProviderURL>{{passive_sts.endpoints.idp}}</IdentityProviderURL>
-        <RetryURL>{{passive_sts.endpoints.retry}}</RetryURL>
-        <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
-        <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
-    </PassiveSTS>
-
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
             <EnableThriftService>{{entitlement.thrift.enable}}</EnableThriftService>
@@ -2602,7 +2590,6 @@
         <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>

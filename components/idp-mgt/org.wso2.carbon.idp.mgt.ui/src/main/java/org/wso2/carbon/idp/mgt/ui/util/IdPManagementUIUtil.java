@@ -1166,9 +1166,6 @@ public class IdPManagementUIUtil {
         // build SAML authentication configuration.
         buildSAMLAuthenticationConfiguration(fedIdp, paramMap);
 
-        // build passive STS authentication configuration.
-        buildPassiveSTSAuthenticationConfiguration(fedIdp, paramMap);
-
     }
 
     /**
@@ -1429,93 +1426,6 @@ public class IdPManagementUIUtil {
                         new FederatedAuthenticatorConfig[]{oidcAuthnConfig}, authenticators));
             }
         }
-    }
-
-    /**
-     * @param fedIdp
-     * @param paramMap
-     * @throws IdentityApplicationManagementException
-     */
-    private static void buildPassiveSTSAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                                   Map<String, String> paramMap)
-            throws IdentityApplicationManagementException {
-
-        FederatedAuthenticatorConfig passiveSTSAuthnConfig = new FederatedAuthenticatorConfig();
-        passiveSTSAuthnConfig.setName("PassiveSTSAuthenticator");
-        passiveSTSAuthnConfig.setDisplayName("passivests");
-
-        if ("on".equals(paramMap.get("passiveSTSEnabled"))) {
-            passiveSTSAuthnConfig.setEnabled(true);
-        }
-
-        if ("on".equals(paramMap.get("passiveSTSDefault"))) {
-            fedIdp.setDefaultAuthenticatorConfig(passiveSTSAuthnConfig);
-        }
-
-        Property[] properties = new Property[6];
-        Property property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.REALM_ID);
-        property.setValue(paramMap.get("passiveSTSRealm"));
-        properties[0] = property;
-
-        property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-        property.setValue(paramMap.get("passiveSTSUrl"));
-        properties[1] = property;
-
-        property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IS_USER_ID_IN_CLAIMS);
-        properties[2] = property;
-        if ("1".equals(paramMap.get("passive_sts_user_id_location"))) {
-            property.setValue("true");
-            ;
-        } else {
-            property.setValue("false");
-        }
-
-        property = new Property();
-        property.setName(
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
-        properties[3] = property;
-        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionSignatureValidation"))) {
-            property.setValue("true");
-        } else {
-            property.setValue("false");
-        }
-
-        property = new Property();
-        property.setName(
-                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
-        properties[4] = property;
-        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionAudienceValidation"))) {
-            property.setValue("true");
-        } else {
-            property.setValue("false");
-        }
-
-        property = new Property();
-        property.setName("commonAuthQueryParams");
-
-        if (paramMap.get("passiveSTSQueryParam") != null
-                && paramMap.get("passiveSTSQueryParam").trim().length() > 0) {
-            property.setValue(paramMap.get("passiveSTSQueryParam"));
-        }
-        properties[5] = property;
-
-        passiveSTSAuthnConfig.setProperties(properties);
-
-        FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
-
-        if (paramMap.get("passiveSTSUrl") != null && !"".equals(paramMap.get("passiveSTSUrl"))) {
-            if (authenticators == null || authenticators.length == 0) {
-                fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{passiveSTSAuthnConfig});
-            } else {
-                fedIdp.setFederatedAuthenticatorConfigs(concatArrays(
-                        new FederatedAuthenticatorConfig[]{passiveSTSAuthnConfig},
-                        authenticators));
-            }
-        }
-
     }
 
     private static void buildCustomProvisioningConfiguration(IdentityProvider fedIdp,

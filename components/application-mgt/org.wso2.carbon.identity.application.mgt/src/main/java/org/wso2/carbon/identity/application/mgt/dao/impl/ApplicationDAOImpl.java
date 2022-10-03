@@ -189,7 +189,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         standardInboundAuthTypes.add("wstrust");
         standardInboundAuthTypes.add("samlsso");
         standardInboundAuthTypes.add("openid");
-        standardInboundAuthTypes.add("passivests");
         standardInboundAuthTypes.add("kerberos");
     }
 

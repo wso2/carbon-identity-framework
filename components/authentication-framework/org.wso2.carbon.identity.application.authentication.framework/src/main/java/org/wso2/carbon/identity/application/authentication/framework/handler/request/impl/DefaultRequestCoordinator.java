@@ -521,7 +521,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // response should be sent to
         String callerPath = getCallerPath(request);
 
-        // "type" - type of the request. e.g. samlsso, openid, oauth, passivests
+        // "type" - type of the request. e.g. samlsso, openid, oauth
         String requestType = request.getParameter(FrameworkConstants.RequestParams.TYPE);
 
         // "relyingParty"

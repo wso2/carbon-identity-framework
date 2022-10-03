@@ -229,27 +229,6 @@ public class IdentityApplicationConstants {
         }
 
         /**
-         * Passive STS authenticator constants.
-         */
-        public static class PassiveSTS {
-
-            public static final String NAME = "passivests";
-            public static final String REALM_ID = "RealmId";
-            public static final String IDENTITY_PROVIDER_URL = "IdentityProviderUrl";
-            public static final String IDENTITY_PROVIDER_ENTITY_ID = "IdPEntityId";
-            public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
-            public static final String IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION =
-                    "IsEnablePassiveSTSAssertionSignatureValidation";
-            public static final String IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION =
-                    "IsEnablePassiveSTSAssertionAudienceValidation";
-
-            private PassiveSTS() {
-
-                throw new AssertionError("Must not initiate an object of PassiveSTS class");
-            }
-        }
-
-        /**
          * Facebook authenticator constants.
          */
         public static class Facebook {
@@ -426,16 +405,6 @@ public class IdentityApplicationConstants {
             public static final String MAXIMUM = "Maximum";
             public static final String BETTER = "Better";
         }
-    }
-
-    /**
-     * Passive STS constants.
-     */
-    public static class PassiveSTS {
-
-        public static final String NAME = "passivests";
-        public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
-        public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
     }
 
     /**

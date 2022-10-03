@@ -79,7 +79,6 @@
         <AuthenticatorNameMapping name="IWAAuthenticator" alias="iwa"/>
         <AuthenticatorNameMapping name="SAMLSSOAuthenticator" alias="samlsso"/>
         <AuthenticatorNameMapping name="OpenIDConnectAuthenticator" alias="openidconnect"/>
-        <AuthenticatorNameMapping name="PassiveSTSAuthenticator" alias="passive-sts"/>
         {% for authenticator in authentication.custom_authenticator %}
         {% if authenticator.alias is defined %}
         <AuthenticatorNameMapping name="{{authenticator.name}}" alias="{{authenticator.alias}}"/>

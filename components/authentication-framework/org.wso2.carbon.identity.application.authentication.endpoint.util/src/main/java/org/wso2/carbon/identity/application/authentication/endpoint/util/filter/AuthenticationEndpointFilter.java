@@ -59,7 +59,6 @@ public class AuthenticationEndpointFilter implements Filter {
 
     private static final String SAMLSSO = "samlsso";
     private static final String OPENID = "openid";
-    private static final String PASSIVESTS = "passivests";
     private static final String OAUTH2 = "oauth2";
     private static final String OIDC = "oidc";
     private static final String FIDO = "fido";
@@ -67,7 +66,6 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String URI_LOGIN = "login.do";
     private static final String URI_SAMLSSO_LOGIN = "samlsso_login.do";
     private static final String URI_OPENID_LOGIN = "openid_login.do";
-    private static final String URI_PASSIVESTS_LOGIN = "passivests_login.do";
     private static final String URI_OAUTH2_LOGIN = "oauth2_login.do";
     public static final String ATTRIBUTE_SKIP_PROPERTY = "skip";
 
@@ -174,8 +172,6 @@ public class AuthenticationEndpointFilter implements Filter {
                 loadPage = URI_SAMLSSO_LOGIN;
             } else if (OPENID.equals(protocolType)) {
                 loadPage = URI_OPENID_LOGIN;
-            } else if (PASSIVESTS.equals(protocolType)) {
-                loadPage = URI_PASSIVESTS_LOGIN;
             } else if (OAUTH2.equals(protocolType) || OIDC.equals(protocolType)) {
                 loadPage = URI_OAUTH2_LOGIN;
             } else if (FIDO.equals(protocolType)) {
