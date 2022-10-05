@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+/**
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -1342,9 +1342,9 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[10];
+        Property[] properties = new Property[11];
         Property property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
         properties[0] = property;
 
@@ -1375,28 +1375,36 @@ public class IdPManagementUIUtil {
         }
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
+        if (paramMap.get("scopes") != null
+                && paramMap.get("scopes").trim().length() > 0) {
+            property.setValue(paramMap.get("scopes"));
+        }
+        properties[5] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.QUERY_PARAMS);
 
         if (paramMap.get("oidcQueryParam") != null
                 && paramMap.get("oidcQueryParam").trim().length() > 0) {
             property.setValue(paramMap.get("oidcQueryParam"));
         }
-        properties[5] = property;
+        properties[6] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
         property.setValue(paramMap.get("callbackUrl"));
-        properties[6] = property;
+        properties[7] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
-        properties[7] = property;
+        properties[8] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
         property.setValue(paramMap.get("logoutUrlOIDC"));
-        properties[8] = property;
+        properties[9] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
@@ -1405,7 +1413,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[9] = property;
+        properties[10] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();

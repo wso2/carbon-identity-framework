@@ -211,11 +211,13 @@ public class IdentityApplicationConstants {
         public static class OIDC extends OAuth2 {
 
             public static final String NAME = "openidconnect";
+            public static final String FED_AUTH_NAME = "OpenIDConnectAuthenticator";
             public static final String USER_INFO_URL = "UserInfoUrl";
             public static final String OIDC_CHECK_SESSION_URL = "OIDCCheckSessionEPUrl";
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
+            public static final String QUERY_PARAMS = "commonAuthQueryParams";
         }
 
         /**
@@ -322,6 +324,7 @@ public class IdentityApplicationConstants {
         public static final String OAUTH2_DCR_EP_URL = "OAuth2DCREPUrl";
         public static final String OAUTH2_JWKS_EP_URL = "OAuth2JWKSPage";
         public static final String OIDC_DISCOVERY_EP_URL = "OIDCDiscoveryEPUrl";
+        public static final String SCOPES = "Scopes";
 
         private OAuth2() {
 

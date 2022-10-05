@@ -1,7 +1,7 @@
 <!--
-~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2019, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 ~
-~ Licensed under the Apache License, Version 2.0 (the "License");
+~ WSO2 LLC. licenses this file to you under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
 ~ You may obtain a copy of the License at
 ~
@@ -51,6 +51,7 @@
     String userInfoEndpoint = null;
     String logoutUrlOIDC = null;
     boolean isOIDCUserIdInClaims = false;
+    String scopes = StringUtils.EMPTY;
     String oidcQueryParam = StringUtils.EMPTY;
     
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
@@ -116,8 +117,13 @@
                     if (isOIDCUserIdInClaimsProp != null) {
                         isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
                     }
+                    Property scopesProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                             OIDC.SCOPES);
+                    if (scopesProp != null) {
+                        scopes = scopesProp.getValue();
+                    }
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            "commonAuthQueryParams");
+                            OIDC.QUERY_PARAMS);
                     if (queryParamProp != null) {
                         oidcQueryParam = queryParamProp.getValue();
                     }
@@ -176,8 +182,14 @@
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
+    if (scopes == null) {
+        scopes = StringUtils.EMPTY;
+    }
     if (oidcQueryParam == null) {
         oidcQueryParam = StringUtils.EMPTY;
+    }
+    if (StringUtils.isBlank(scopes) && !oidcQueryParam.toLowerCase().contains("scope=")) {
+       scopes = "openid";
     }
     
 %>
@@ -330,6 +342,17 @@
 
                     <div class="sectionHelp">
                         <fmt:message key='oidc.user.id.location.help'/>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftCol-med labelField"><fmt:message key='scopes'/>:</td>
+                <td>
+                    <input id="scopes" name="scopes" type="text"
+                           value="<%=Encode.forHtmlAttribute(scopes)%>">
+
+                    <div class="sectionHelp">
+                        <fmt:message key='scopes.help'/>
                     </div>
                 </td>
             </tr>
