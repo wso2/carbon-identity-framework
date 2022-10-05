@@ -233,24 +233,6 @@
 
     oauthapp = appBean.getOIDCClientId();
 
-    String wsTrustEndpoint = request.getParameter("serviceName");
-    String wsTrustObsoleteEndpoint = request.getParameter("obsoleteServiceName");
-
-    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "update".equals(action)) {
-        if (wsTrustObsoleteEndpoint != null && !wsTrustObsoleteEndpoint.isEmpty()) {
-            appBean.removeWstrustEp(wsTrustObsoleteEndpoint);
-        }
-        appBean.addWstrustEp(wsTrustEndpoint);
-        isNeedToUpdate = true;
-    }
-
-    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "delete".equals(action)) {
-        appBean.removeWstrustEp(wsTrustEndpoint);
-        isNeedToUpdate = true;
-    }
-
-    List<String> wsTrust = appBean.getAllWsTrustSPs();
-
     String display = request.getParameter("display");
 
     if (idPName != null && idPName.equals("")) {
@@ -2362,80 +2344,6 @@
                                     </table>
                                 </div>
 
-                                <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
-                                <h2 id="wst.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#"><fmt:message key="title.config.sts.config"/></a>
-                                    <% if (appBean.getAllWsTrustSPs() != null && !appBean.getAllWsTrustSPs().isEmpty()) { %>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                    <%} %>
-                                </h2>
-                                        <%if (display!=null && display.equals("serviceName")) { %>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;"
-                                     id="wst.config.div">
-                                            <% } else { %>
-                                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                         id="wst.config.div">
-                                        <%} %>
-                                        <table class="carbonFormTable">
-
-                                            <tr>
-                                                <td>
-                                                    <%
-                                                        if (appBean.getAllWsTrustSPs() == null || appBean.getAllWsTrustSPs().isEmpty()) {
-                                                    %>
-                                                    <a id="sts_link" class="icon-link" onclick="onSTSClick()">
-                                                        <fmt:message key='auth.configure'/></a>
-                                                    <%
-                                                    } else {
-                                                    %>
-                                                    <div style="clear:both"></div>
-                                                    <table class="styledLeft" id="samlTable">
-                                                        <thead>
-                                                        <tr>
-                                                            <th class="leftCol-med">Audience</th>
-                                                            <th><fmt:message
-                                                                key='application.info.oauthoidc.action'/></th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        <%
-                                                            for (String wsTrustURI : appBean.getAllWsTrustSPs()) {
-                                                        %>
-                                                        <tr>
-                                                            <td>
-                                                                <%=Encode.forHtmlContent(wsTrustURI)%>
-                                                            </td>
-                                                            <td style="white-space: nowrap;">
-                                                                <a title="Edit Audience"
-                                                                   onclick="updateBeanAndRedirect('../generic-sts/sts.jsp?spName=<%=Encode.forUriComponent(spName)%>&spAudience=<%=Encode.forUriComponent(wsTrustURI)%>&spAction=spEdit');"
-                                                                   class="icon-link"
-                                                                   style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                                                <a title="Delete Audience"
-                                                                   onclick="updateBeanAndPostWithConfirmation('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
-                                                                       'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(wsTrustURI)%>',
-                                                                       'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(wsTrustURI)%>');"
-                                                                   class="icon-link"
-                                                                   style="background-image: url(images/delete.gif)">
-                                                                    Delete </a>
-                                                            </td>
-                                                        </tr>
-                                                        <% } %>
-                                                        </tbody>
-                                                    </table>
-                                                    <a id="sts_link" class="icon-link" style="background-image:url(images/add.gif);" onclick="onSTSClick()">
-                                                        <fmt:message key='auth.add.audience'/></a>
-                                                    <%
-                                                        }
-                                                    %>
-                                                    <div style="clear:both"></div>
-                                                </td>
-                                            </tr>
-
-                                        </table>
-                                    </div>
-                                    <%} %>
-
                                     <h2 id="kerberos.kdc.head" class="sectionSeperator trigger active"
                                         style="background-color: beige;">
                                         <a href="#">Kerberos KDC</a>
@@ -2512,7 +2420,6 @@
                                             List<String> standardInboundAuthTypes = new ArrayList<String>();
                                             standardInboundAuthTypes = new ArrayList<String>();
                                             standardInboundAuthTypes.add("oauth2");
-                                            standardInboundAuthTypes.add("wstrust");
                                             standardInboundAuthTypes.add("samlsso");
                                             standardInboundAuthTypes.add("openid");
                                             standardInboundAuthTypes.add("kerberos");

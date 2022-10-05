@@ -237,20 +237,6 @@ public class IdentityApplicationConstants {
         }
 
         /**
-         * WS Trust authenticator constants.
-         */
-        public static class WSTrust {
-
-            public static final String NAME = "wstrust";
-            public static final String IDENTITY_PROVIDER_URL = "IDENTITY_PROVIDER_URL";
-
-            private WSTrust() {
-
-                throw new AssertionError("Must not initiate an object of WSTrust class");
-            }
-        }
-
-        /**
          * Fido authenticator constants.
          */
         public static class FIDO {
