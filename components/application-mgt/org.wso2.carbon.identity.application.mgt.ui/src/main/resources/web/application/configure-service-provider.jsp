@@ -40,7 +40,6 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
