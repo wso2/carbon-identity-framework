@@ -178,9 +178,6 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL).getValue();
             oidcDiscoveryEndpoint = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL).getValue();
-        } else if(IdentityApplicationConstants.Authenticator.WSTrust.NAME.equals(federatedAuthenticator.getName())){
-            stsUrl = IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL).getValue();
         }
     }
     String scimUserEp = null;
@@ -715,32 +712,6 @@ function removeDefaultAuthSeq() {
                     </table>
                     </div>
 
-                        <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
-                        <h2 id="stsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
-                            <a href="#"><fmt:message key='sts.local.config'/></a>
-                        </h2>
-                        <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none" id="stsconfig">
-                            <table class="carbonFormTable">
-                                <tr>
-                                    <td class="leftCol-med labelField" style="padding-top: 5px"><fmt:message key='sts.url'/>:</td>
-                                    <td>
-                                        <a href="javascript:document.location.href='<%=
-                                        Encode.forUriComponent(stsUrl)+"?wsdl"%>'"
-                                           class="icon-link"
-                                           style="background-image:url(images/sts.gif);margin-left: 0"><%=Encode.forHtmlContent(stsUrl)%>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="javascript:document.location.href='../securityconfig/index.jsp?serviceName=wso2carbon-sts'"
-                                           class="icon-link"
-                                           style="background-image:url(images/configure.gif);margin-right: 300px">
-                                            <fmt:message key='apply.security.policy'/>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <%} %>
                 </div>
                     <h2 id="inboundprovisioningconfighead"  class="sectionSeperator trigger active">
                 		<a href="#">Inbound Provisioning Configuration</a>

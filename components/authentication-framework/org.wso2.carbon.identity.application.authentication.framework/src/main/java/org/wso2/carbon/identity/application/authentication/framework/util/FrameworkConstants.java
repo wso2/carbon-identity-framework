@@ -375,7 +375,6 @@ public abstract class FrameworkConstants {
     public static class StandardInboundProtocols {
 
         public static final String OAUTH2 = "oauth2";
-        public static final String WS_TRUST = "wstrust";
         public static final String SAML2 = "samlsso";
 
         private StandardInboundProtocols() {

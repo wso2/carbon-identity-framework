@@ -418,25 +418,6 @@ public class IdentityProviderManager implements IdpManager {
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);
 
-        FederatedAuthenticatorConfig stsFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        if (stsFedAuthn == null) {
-            stsFedAuthn = new FederatedAuthenticatorConfig();
-            stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        }
-        propertiesList = new ArrayList<Property>(Arrays.asList(stsFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL) == null) {
-            Property stsUrlProp = new Property();
-            stsUrlProp.setName(IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL);
-            stsUrlProp.setValue(stsUrl);
-            propertiesList.add(stsUrlProp);
-        }
-        stsFedAuthn
-                .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(stsFedAuthn);
-
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
