@@ -751,6 +751,16 @@ function doValidation() {
             return false;
         }
 
+        if ($('#scopes').val() != "" && $('#oidcQueryParam').val().toLowerCase().includes('scope=')) {
+            CARBON.showWarningDialog('Cannot set scopes in both Scopes and Additional Query Parameters.' +
+                ' Recommend to use Scopes field.');
+            return false;
+        }
+
+        if ($('#scopes').val() != "" && $('#scopes').val().indexOf('openid') == -1) {
+            CARBON.showWarningDialog('Scopes must contain \'openid\'');
+            return false;
+        }
     }
 
     if (jQuery('#passiveSTSEnabled').prop('checked')) {

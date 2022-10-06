@@ -307,6 +307,7 @@
   "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
   "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
   "identity_mgt.lite_user_registration.callback_url": ".*",
+  "identity_mgt.lite_user_registration.resend_verification_on_user_existence":  false,
 
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
   "identity_mgt.password_reset_challenge_questions.notify_on_initiation": false,
@@ -839,6 +840,7 @@
   "console.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
   "console.idp_configs.scope": [ "SYSTEM", "profile", "openid" ],
   "console.get_profile_info_from_id_token": true,
+  "console.enable_google_one_tap_for_super_tenant_only": true,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
