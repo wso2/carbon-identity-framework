@@ -222,6 +222,8 @@
         {% endif %}
 
         <EnableLegacyAudiences>{{oauth.legacy_audiences_enabled}}</EnableLegacyAudiences>
+        <EnableAudienceSeparation>true</EnableAudienceSeparation>
+        {% if oauth.legacy_audiences_enabled %}
         <EnableAccessTokenAudiences>true</EnableAccessTokenAudiences>
         {% if oauth.access_token.audiences|length %}
         <AccessTokenAudiences>
@@ -230,7 +232,7 @@
             {% endfor %}
         </AccessTokenAudiences>
         {% endif %}
-
+        {% endif %}
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -670,6 +672,7 @@
             </Audiences>
             {% endif %}
 
+            {% if oauth.legacy_audiences_enabled %}
             <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
             <IdTokenAudiences>
@@ -678,7 +681,7 @@
                 {% endfor %}
             </IdTokenAudiences>
             {% endif %}
-
+            {% endif %}
             <!--
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
                 If that doesn't satisfy uncomment the following config and explicitly configure the value
