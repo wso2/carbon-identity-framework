@@ -654,6 +654,11 @@
 
     </OAuth>
 
+    <RestApiAuthentication>
+        <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+        <AddRealmUserToError>false</AddRealmUserToError>
+    </RestApiAuthentication>
+
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
         <XMPPSettings>
