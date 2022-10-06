@@ -655,8 +655,8 @@
     </OAuth>
 
     <RestApiAuthentication>
-        <!-- Configuration for removing realm user field in WWW-Authenticate header. -->
-        <RemoveRealmUserFromError>true</RemoveRealmUserFromError>
+        <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+        <AddRealmUserToError>false</AddRealmUserToError>
     </RestApiAuthentication>
 
     <MultifactorAuthentication>
