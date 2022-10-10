@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,8 +39,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
@@ -55,6 +60,9 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
+    private static final Set<String> LOGGABLE_PARAMS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("grant_type", "redirect_uri", "client_id", "clientId", "username", "scope",
+                    "audience", "response_type", "state", "nonce")));
 
     /**
      * @param initiatorId   Request initiator's id.
@@ -114,8 +122,9 @@ public class LoggerUtils {
             Instant recordedAt = parseDateTime(Instant.now().toString());
             String requestId = MDC.get(CORRELATION_ID_MDC);
             String flowId = MDC.get(FLOW_ID_MDC);
+            Map<String, Object> sanitizedParams = (MapUtils.isEmpty(input)) ? null : getSanitizedInputParams(input);
             DiagnosticLog diagnosticLog = new DiagnosticLog(id, recordedAt, requestId, flowId, resultStatus,
-                    resultMessage, actionId, componentId, input, configurations);
+                    resultMessage, actionId, componentId, sanitizedParams, configurations);
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
             diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
@@ -168,5 +177,29 @@ public class LoggerUtils {
             }
         }
         return localDateTime;
+    }
+
+    /**
+     * Returns a map of parameters that are sanitized for logging purposes.
+     *
+     * @param paramMap Map of parameters to be sanitized.
+     * @return Sanitized map of parameters.
+     */
+    private static Map<String, Object> getSanitizedInputParams(Map<String, Object> paramMap) {
+
+        Map<String, Object> params = new HashMap<>();
+        for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+            if (isSensitiveParam(entry.getKey())) {
+                params.put(entry.getKey(), "********");
+            } else {
+                params.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return params;
+    }
+
+    private static boolean isSensitiveParam(String key) {
+
+        return !LOGGABLE_PARAMS.contains(key);
     }
 }
