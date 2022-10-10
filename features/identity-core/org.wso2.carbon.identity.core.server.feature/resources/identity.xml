@@ -651,7 +651,6 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
-
     </OAuth>
 
     <RestApiAuthentication>
