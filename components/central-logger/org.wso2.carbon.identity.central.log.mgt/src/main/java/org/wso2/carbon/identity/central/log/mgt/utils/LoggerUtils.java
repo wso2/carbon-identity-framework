@@ -62,7 +62,8 @@ public class LoggerUtils {
     private static final String CLIENT_COMPONENT = "clientComponent";
     private static final Set<String> LOGGABLE_PARAMS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("grant_type", "redirect_uri", "client_id", "clientId", "username", "scope",
-                    "audience", "response_type", "state", "nonce")));
+                    "audience", "response_type", "state", "nonce", "user", "redirectUrl", "requestedScopes",
+                    "redirectUri", "authenticatedUser", "appState")));
 
     /**
      * @param initiatorId   Request initiator's id.
