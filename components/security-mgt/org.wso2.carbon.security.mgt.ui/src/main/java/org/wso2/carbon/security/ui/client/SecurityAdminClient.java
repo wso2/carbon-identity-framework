@@ -22,19 +22,10 @@ import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityConfigData;
-import org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioData;
-import org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioDataWrapper;
 import org.wso2.carbon.security.mgt.stub.config.ActivateUsernameTokenAuthentication;
 import org.wso2.carbon.security.mgt.stub.config.ApplyKerberosSecurityPolicy;
 import org.wso2.carbon.security.mgt.stub.config.ApplySecurity;
 import org.wso2.carbon.security.mgt.stub.config.DisableSecurityOnService;
-import org.wso2.carbon.security.mgt.stub.config.GetScenarios;
-import org.wso2.carbon.security.mgt.stub.config.GetScenariosResponse;
-import org.wso2.carbon.security.mgt.stub.config.GetSecurityConfigData;
-import org.wso2.carbon.security.mgt.stub.config.GetSecurityConfigDataResponse;
-import org.wso2.carbon.security.mgt.stub.config.GetSecurityScenario;
-import org.wso2.carbon.security.mgt.stub.config.GetSecurityScenarioResponse;
 import org.wso2.carbon.security.mgt.stub.config.SecurityAdminServiceStub;
 
 /**
@@ -120,48 +111,6 @@ public class SecurityAdminClient {
             stub.applySecurity(request);
         } catch (java.lang.Exception e) {
             log.error("Error in applying security.", e);
-            throw e;
-        }
-    }
-
-    public SecurityScenarioDataWrapper getScenarios(String serviceName) throws java.lang.Exception {
-
-        try {
-            GetScenarios request = new GetScenarios();
-            request.setServiceName(serviceName);
-            GetScenariosResponse response = stub.getScenarios(request);
-            return response.get_return();
-        } catch (java.lang.Exception e) {
-            log.error("Error in getting scenarios", e);
-            throw e;
-        }
-    }
-
-    public SecurityScenarioData getSecurityScenario(String serviceId) throws java.lang.Exception {
-
-        try {
-            GetSecurityScenario request = new GetSecurityScenario();
-            request.setSceneId(serviceId);
-            GetSecurityScenarioResponse response = stub.getSecurityScenario(request);
-            return response.get_return();
-        } catch (java.lang.Exception e) {
-            log.error("Error in getting security scenarios", e);
-            throw e;
-        }
-    }
-
-    public SecurityConfigData getSecurityConfigData(String serviceName, String scenrioId, String policyPath)
-            throws java.lang.Exception {
-
-        try {
-            GetSecurityConfigData request = new GetSecurityConfigData();
-            request.setServiceName(serviceName);
-            request.setScenarioId(scenrioId);
-            request.setPolicyPath(policyPath);
-            GetSecurityConfigDataResponse response = stub.getSecurityConfigData(request);
-            return response.get_return();
-        } catch (java.lang.Exception e) {
-            log.error("Error in getting security config data", e);
             throw e;
         }
     }

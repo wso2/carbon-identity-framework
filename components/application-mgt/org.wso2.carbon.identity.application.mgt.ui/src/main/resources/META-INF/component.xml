@@ -33,7 +33,6 @@
             <at-least>/permission/admin/manage/identity/applicationmgt/delete</at-least>
             <require-not-logged-in>false</require-not-logged-in>
             <hide-menu-id>manage_saml_sso</hide-menu-id>
-            <hide-menu-id>generic_sts_menu</hide-menu-id>
             <hide-menu-id>oauth_menu</hide-menu-id>
             <hide-menu-id>scim_menu</hide-menu-id>
 

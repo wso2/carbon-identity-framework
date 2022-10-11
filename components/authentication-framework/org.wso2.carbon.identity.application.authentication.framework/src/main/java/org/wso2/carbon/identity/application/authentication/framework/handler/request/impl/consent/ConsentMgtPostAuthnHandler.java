@@ -719,8 +719,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         Map<String, String> claimMappings = appConfig.getClaimMappings();
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType)) {
             return HTTP_WSO2_ORG_OIDC_CLAIM;
-        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType)) {
-            return HTTP_SCHEMAS_XMLSOAP_ORG_WS_2005_05_IDENTITY;
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType)) {
             return HTTP_AXSCHEMA_ORG;
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {

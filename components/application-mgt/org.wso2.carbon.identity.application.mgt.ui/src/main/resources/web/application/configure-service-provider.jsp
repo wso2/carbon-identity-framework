@@ -592,8 +592,6 @@
             configType = "SAML2 Web SSO Configuration";
         } else if(postURL.includes("oauth")) {
             configType = "OAuth/OpenID Connect Configuration";
-        } else if(postURL.includes("generic-sts")) {
-            configType = "WS-Trust Security Token Service Configuration";
         } else {
             configType = "Kerberos KDC";
         }

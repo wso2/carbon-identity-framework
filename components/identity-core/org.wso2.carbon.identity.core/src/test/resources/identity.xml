@@ -244,11 +244,6 @@
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
     </SSOService>
 
-    <SecurityTokenService>
-
-        <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/services/wso2carbon-sts</IdentityProviderURL>
-    </SecurityTokenService>
-
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
             <EnableThriftService>false</EnableThriftService>

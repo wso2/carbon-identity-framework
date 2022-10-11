@@ -139,7 +139,6 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.defaultsequence.stub.types.axis2.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.security.sts.service.*; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>org.wso2.carbon.identity.application.mgt.ui.*</Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>

@@ -20,8 +20,6 @@
 <%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@page import="org.wso2.carbon.CarbonConstants" %>
-<%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.KerberosConfigData" %>
-<%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityConfigData" %>
 <%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioData" %>
 <%@page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData" %>
 <%@page import="org.wso2.carbon.security.ui.SecurityUIConstants" %>
@@ -61,7 +59,6 @@
     String curr_pvtks = "";
     List<String> curr_tstks = new ArrayList<String>();
     List<String> curr_ugs = new ArrayList<String>();
-    String category = null;
     boolean isPolicyFromRegistry = false;
     boolean fault = false;
     UserAdminClient userAdminClient = null;
@@ -176,7 +173,6 @@
 
 
     boolean kerberosScenario = false;
-    KerberosConfigData kerberosConfigData = null;
 
     if (cancelLink==null){
     	cancelLink = "../service-mgt/service_info.jsp?serviceName="+ Encode.forUriComponent(serviceName);
@@ -189,76 +185,6 @@
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         SecurityAdminClient secClient = new SecurityAdminClient(cookie, backendServerURL, configContext);
         SecurityScenarioData scenData = secClient.getSecurityScenario(scenId);
-
-        SecurityConfigData configData = secClient.getSecurityConfigData(serviceName, scenId, registryPolicyPath);
-        category = scenData.getCategory();
-
-        //place holders for existing configs
-        if (configData != null) {
-            if (configData.getPrivateStore() != null) {
-                curr_pvtks = configData.getPrivateStore();
-            }
-
-            if (configData.getTrustedKeyStores() != null &&
-                configData.getTrustedKeyStores().length > 0 &&
-                configData.getTrustedKeyStores()[0] != null) {
-                curr_tstks = Arrays.asList(configData.getTrustedKeyStores());
-            }
-
-            if (configData.getUserGroups() != null &&
-                configData.getUserGroups().length > 0 &&
-                configData.getUserGroups()[0] != null) {
-                curr_ugs = Arrays.asList(configData.getUserGroups());
-            }
-
-
-            Map<String, Boolean> checkBoxMap = (Map<String, Boolean>) session.getAttribute("checkedRolesMap");
-            if (checkBoxMap.size() == 0) {
-                for (String curr_role : curr_ugs) {
-                    checkBoxMap.put(curr_role.toLowerCase(), true);
-                }
-                session.removeAttribute("checkedRolesMap");
-                session.setAttribute("checkedRolesMap", checkBoxMap);
-            }
-
-            if (category.contains("kerberos")) {
-                kerberosConfigData = configData.getKerberosConfigurations();
-            }
-        }
-
-        if (category.contains("ut")) {
-            if (userAdminClient == null) {
-                int itemsPerPageInt = SecurityUIConstants.DEFAULT_ITEMS_PER_PAGE;
-                userAdminClient = new UserAdminClient(cookie, backendServerURL, configContext);
-                userRealmInfo = userAdminClient.getUserRealmInfo();
-                numberOfPages = (int) Math.ceil((double) userAdminClient.getAllRolesNames(modifiedFilter, -1).length / itemsPerPageInt);
-                session.setAttribute(SecurityUIConstants.USER_ADMIN_CLIENT, userAdminClient);
-                session.setAttribute(SecurityUIConstants.FLAGGED_NAME_PAGE_COUNT, numberOfPages);
-                session.setAttribute(SecurityUIConstants.USER_STORE_INFO, userRealmInfo);
-
-
-            }
-            groupData = Util.doFlaggedNamePaging(pageNumberInt, userAdminClient.getAllRolesNames(modifiedFilter, -1));
-
-            if(userRealmInfo != null){
-                   domainNames = userRealmInfo.getDomainNames();
-                   if(domainNames != null){
-                       List<String> list = new ArrayList<String>(Arrays.asList(domainNames));
-                       list.add(SecurityUIConstants.ALL_DOMAINS);
-                       domainNames = list.toArray(new String[list.size()]);
-                   }
-               }
-
-        }
-
-        if (category.contains("keystore")) {
-            KeyStoreAdminClient client = new KeyStoreAdminClient(cookie, backendServerURL, configContext);
-            datas = client.getKeyStores();
-        }
-
-        if (category.contains("kerberos")) {
-            kerberosScenario = true;
-        }
 
     } catch (Exception e) {
         fault = true;
@@ -279,129 +205,13 @@
 </p>
 
 <p>&nbsp;</p>
-<%
-    if (category.contains("ut")) {
-%>
 
-<form name="filterForm" method="post" action="ut-ks-advance.jsp">
-    <table class="styledLeft noBorders">
-        <thead>
-        <tr>
-            <th colspan="2"><fmt:message key="role.search"/></th>
-        </tr>
-        </thead>
-        <tbody>
-        <%
-            if (domainNames != null && domainNames.length > 0) {
-        %>
-        <tr>
-            <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                    key="select.domain.search"/></td>
-            <td><select id="domain" name="domain">
-                <%
-                    for (String domainName : domainNames) {
-                        if (selectedDomain.equals(domainName)) {
-                %>
-                <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
-                    <%=Encode.forHtmlContent(domainName)%>
-                </option>
-                <%
-                } else {
-                %>
-                <option value="<%=Encode.forHtmlAttribute(domainName)%>">
-                    <%=Encode.forHtmlContent(domainName)%>
-                </option>
-                <%
-                        }
-                    }
-                %>
-            </select>
-            </td>
-        </tr>
-        <%
-            }
-        %>
-
-        <tr>
-            <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                    key="list.roles"/></td>
-            <td>
-                <input type="text" name="<%=SecurityUIConstants.ROLE_LIST_FILTER%>"
-                       value="<%=Encode.forHtmlAttribute(filter)%>"/>
-
-                <input class="button" type="submit"
-                       value="<fmt:message key="role.search"/>"/>
-            </td>
-
-        </tr>
-        </tbody>
-    </table>
-</form>
-<%
-    }
-%>
 <form method="post" action="add-security.jsp" name="dataForm"
       onsubmit="return doValidation(<%= isPolicyFromRegistry%>, <%=kerberosScenario%>)">
 <input type="hidden" name="scenarioId" id="scenarioId"
        value="<%= Encode.forHtmlAttribute(scenId)%>"/>
 <input type="hidden" name="policyPath" id="policyPath"
        value="<%= Encode.forHtmlAttribute(registryPolicyPath)%>"/>
-<%
-    if (category.contains("ut")) {
-%>
-<table id="ut" class="styledLeft">
-    <thead>
-    <tr>
-        <th><fmt:message key="user.groups"/></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class="formRow">
-            <table class="normal">
-                <%
-                    if (groupData != null) {
-                        if(session.getAttribute("groupsInPage") != null) {
-                            session.removeAttribute("groupsInPage");
-                        }
-                        Map<String, Boolean> groupsInPage = new HashMap<String, Boolean>();
-
-                        for (FlaggedName data : groupData) {
-                            if (data != null) { //Confusing!!. Sometimes a null object comes. Maybe a bug in Axis!!
-
-                                groupsInPage.put(data.getItemName().toLowerCase(), false);
-
-                                if (CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME.equals(data.getItemName())) {
-                                    continue;
-                                }
-
-                                String checked = "";
-                                if (session.getAttribute("checkedRolesMap") != null &&
-                                        ((Map<String, Boolean>) session.getAttribute("checkedRolesMap")).get(data.getItemName().toLowerCase()) != null &&
-                                        ((Map<String, Boolean>) session.getAttribute("checkedRolesMap")).get(data.getItemName().toLowerCase()) == true) {
-                                    checked = "checked=\"checked\"";
-                                }
-                %>
-                <tr>
-                    <td><input type="checkbox" name="userGroups"
-                               value="<%=Encode.forHtmlAttribute(data.getItemName())%>"
-                            <%=checked%>/> <%=Encode.forHtmlContent(data.getItemName())%>
-                    </td>
-                </tr>
-                <%
-                            }
-                        }
-                        session.setAttribute("groupsInPage", groupsInPage);
-                    }
-                %>
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
-    <%
-        }
-    %>
 
 
 <carbon:paginator pageNumber="<%=pageNumberInt%>"
@@ -410,144 +220,6 @@
                   noOfPageLinksToDisplay="<%=noOfPageLinksToDisplay%>"
                   page="ut-ks-advance.jsp" pageNumberParameterName="pageNumber"
                   parameters="<%="serviceName=" + Encode.forHtmlAttribute(serviceName)%>"/>
-<%
-
-    if (category.contains("keystore")) {
-%>
-<table id="trtks" class="styledLeft">
-    <thead>
-    <tr>
-        <th><fmt:message key="trusted.key.stores"/></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class="formRow">
-            <table class="normal">
-                <%
-                    if (datas != null) {
-                        for (KeyStoreData data : datas) {
-                            if (data != null) { //Confusing!!. Sometimes a null object comes. Maybe a bug in Axis!!
-
-                                String checked = "";
-                                if (curr_tstks.contains(data.getKeyStoreName())) {
-                                    checked = "checked=\"checked\"";
-                                }
-                %>
-                <tr>
-                    <td><input type="checkbox" name="trustStore"
-                               value="<%=Encode.forHtmlAttribute(data.getKeyStoreName())%>" <%=checked%>/>
-                        <%=Encode.forHtmlContent(data.getKeyStoreName())%>
-                    </td>
-                </tr>
-                <%
-                            }
-                        }
-                    }
-                %>
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<table id="pvtks" class="styledLeft">
-    <thead>
-    <tr>
-        <th><fmt:message key="private.key.store"/></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class="formRow">
-            <table class="normal">
-                <tr>
-                    <td>
-                        <select name="privateStore">
-                            <%
-                                if (datas != null) {
-                                    for (KeyStoreData data : datas) {
-                                        if (data != null && data.getPrivateStore()) {
-                                            String selected = "";
-                                            if (data.getKeyStoreName().equals(curr_pvtks)) {
-                                                selected = "selected=\"selected\"";
-                                            }
-
-                            %>
-                            <option value="<%=Encode.forHtmlAttribute(data.getKeyStoreName())%>"
-                                    <%=selected%>><%=Encode.forHtmlContent(data.getKeyStoreName())%>
-                            </option>
-                            <%
-                                        }
-                                    }
-                                }
-                            %>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<%
-    }
-%>
-
-<!-- If the scenario is a kerberos category one, configure, KDC, service principle etc ... -->
-<%
-    if (category.contains("kerberos")) {
-
-        String servicePrincipleName = "";
-        String servicePrinciplePassword = "";
-        if (kerberosConfigData != null) {
-
-            servicePrincipleName = kerberosConfigData.getServicePrincipleName();
-            servicePrinciplePassword = kerberosConfigData.getServicePrinciplePassword();
-        }
-%>
-
-<table id="kerberosTable" class="styledLeft">
-    <thead>
-    <tr>
-        <th><fmt:message key="configure.kerberos.parameters"/></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class="formRow">
-            <table class="normal">
-
-                <tr>
-                    <td>
-                        <fmt:message key="kerberos.service.principal.name"/><font
-                            color="red">*</font>
-                    </td>
-                    <td>
-                        <input type="text" name="org.wso2.kerberos.service.principal.name"
-                               value="<%=Encode.forHtmlAttribute(servicePrincipleName)%>"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <fmt:message key="kerberos.service.principal.password"/><font
-                            color="red">*</font>
-                    </td>
-                    <td>
-                        <input type="password" name="org.wso2.kerberos.service.principal.password"
-                               value="<%=Encode.forHtmlAttribute(servicePrinciplePassword)%>"/>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<input type="hidden" name="org.wso2.security.category" value="kerberos">
-
-<%
-    }
-%>
-
 
 <p></p>
 <table class="styledLeft">
