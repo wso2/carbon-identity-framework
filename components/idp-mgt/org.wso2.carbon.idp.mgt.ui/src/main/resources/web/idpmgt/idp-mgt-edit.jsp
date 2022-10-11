@@ -4988,6 +4988,21 @@
                                 <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
                                 <%} %>
                                 <td>
+
+                                <% if (StringUtils.isNotEmpty(prop.getType()) && prop.getType().equalsIgnoreCase("boolean")) {
+                                    String propChecked = "";
+                                    if ( prop.getValue() != null && prop.getValue().equalsIgnoreCase("true")){
+                                        propChecked = "checked=\'checked\'";
+                                    } %>
+
+                                        <div class="sectionCheckbox">
+                                            <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
+                                                name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
+                                                type="checkbox" <%=propChecked%> />
+                                            <span style="display:inline-block" class="sectionHelp"><%=prop.getDescription()%></span>
+                                        </div>
+                                <%  } else { %>
+
                                     <% if (prop.getConfidential()) { %>
 
                                     <% if (prop.getValue() != null) { %>
@@ -5040,6 +5055,7 @@
                                         if (prop.getDescription() != null) { %>
                                     <div class="sectionHelp"><%=prop.getDescription()%>
                                     </div>
+                                    <%} %>
                                     <%} %>
                                 </td>
                             </tr>
@@ -5464,19 +5480,6 @@
                                 <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
                                 <%} %>
                                 <td>
-
-                                <% if (StringUtils.isNotEmpty(prop.getType()) && prop.getType().equalsIgnoreCase("boolean")) {
-                                    String propChecked = "";
-                                    if ( prop.getValue() != null && prop.getValue().equalsIgnoreCase("true")){
-                                        propChecked = "checked=\'checked\'";
-                                    } %>
-
-                                    <div class="sectionCheckbox">
-                                        <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
-                                        name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_propEnabled"
-                                               type="checkbox" <%=propChecked%> />
-                                        <span style="display:inline-block" class="sectionHelp"><%=prop.getDescription()%></span>
-                                <%} else {%>
                                     <% if (prop.getConfidential()) { %>
 
                                     <% if (prop.getValue() != null) { %>
@@ -5528,7 +5531,6 @@
                                         if (prop.getDescription() != null) { %>
                                     <div class="sectionHelp"><%=prop.getDescription()%>
                                     </div>
-                                    <%} %>
                                     <%} %>
                                 </td>
                             </tr>
