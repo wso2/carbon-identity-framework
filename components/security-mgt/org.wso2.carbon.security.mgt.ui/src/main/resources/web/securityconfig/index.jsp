@@ -20,8 +20,6 @@
 <%@page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@page
         import="org.wso2.carbon.CarbonConstants" %>
-<%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioData" %>
-<%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioDataWrapper" %>
 <%@page import="org.wso2.carbon.security.ui.client.SecurityAdminClient" %>
 <%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -56,7 +54,6 @@
 %>
 <%!
     String info = null;
-    SecurityScenarioData[] scenarios = null;
 %>
 <%!
     String showOption = null;
@@ -65,18 +62,7 @@
 
 %>
 
-<!--%!  This method causes issues when we add a new scenario and when the scenario id is not a sequentially incremented
-       one
-    private void checkScenarioID(int scenarioIdDisplay, SecurityScenarioData scenario) {
-        if(!("scenario" + scenarioIdDisplay).equals(scenario.getScenarioId())){
-            throw new RuntimeException("ScenarioID & generated ID for scenario " +
-                                       scenario.getSummary() + " do not match. Scenario ID: " +
-                                       scenario.getScenarioId() +", generated ID:" + scenarioIdDisplay);
-        }
-    }
-+% -->
 <%
-	SecurityScenarioData currentScenario;
     String serviceName;
     String policyPath = "";
     serviceName = request.getParameter("serviceName");
@@ -109,27 +95,12 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         SecurityAdminClient client = new SecurityAdminClient(cookie, backendServerURL, configContext);
-        SecurityScenarioDataWrapper scenarioDataWrapper = client.getScenarios(serviceName);
-        scenarios = scenarioDataWrapper.getScenarios();
-        currentScenario = scenarioDataWrapper.getCurrentScenario();
 
-        if (currentScenario == null) {
-            info = MessageFormat.format(resourceBundle.getString("service.not.secured"),
-                                        serviceName);
-            optionsOrder = new int[]{1, 0};
-            displayStyle = "display: none;";
-        } else {
-            if (currentScenario.getPolicyRegistryPath() != null) {
-                policyPath = currentScenario.getPolicyRegistryPath();
-                info = MessageFormat.format(resourceBundle.getString("service.secured.using.policy.from.registry"),
-                        serviceName);
-            } else {
-                info = MessageFormat.format(resourceBundle.getString("service.secured.using"),
-                        serviceName, currentScenario.getSummary());
-            }
-            optionsOrder = new int[]{0, 1};
-            displayStyle = "display: inline;";
-        }
+        info = MessageFormat.format(resourceBundle.getString("service.not.secured"),
+                                    serviceName);
+        optionsOrder = new int[]{1, 0};
+        displayStyle = "display: none;";
+
     } catch (Exception e) {
         CarbonUIMessage uiMsg = new CarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, e);
         session.setAttribute(CarbonUIMessage.ID, uiMsg);
@@ -260,32 +231,12 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <%
-                        int scenarioIdDisplay = 1;
-                        for (SecurityScenarioData scenario : scenarios) {
-                            if (scenario != null) {
-                                String id = scenario.getScenarioId();
-                                if (!scenario.getType().equals("basic")){
-                                continue;
-                            }
-                            //checkScenarioID(scenarioIdDisplay, scenario);
-                    %>
                     <tr>
                         <td><%= scenarioIdDisplay++ %>.</td>
                         <td>
-                            <%
-                                int helpId = scenarioIdDisplay - 1;
-                                if (currentScenario != null && "".equals(policyPath) &&
-                                    currentScenario.getScenarioId().equals(id)) {
-                            %><input type="radio" name="scenarioId" id="option_<%=Encode.forHtmlAttribute(id)%>"
-                                     value="<%=Encode.forHtmlAttribute(id)%>"
-                                     onclick="disablePolicyPath();" checked="checked"/><%
-                        } else {
-                        %><input type="radio" name="scenarioId"  id="option_<%=Encode.forHtmlAttribute(id)%>"
+                            <input type="radio" name="scenarioId"  id="option_<%=Encode.forHtmlAttribute(id)%>"
                                  value="<%=Encode.forHtmlAttribute(id)%>"
-                                 onclick="disablePolicyPath();"/><%
-                            }
-                        %>
+                                 onclick="disablePolicyPath();"/>
                         </td>
                         <td>
                             <label for="option_<%=Encode.forHtmlAttribute(id)%>">
@@ -310,31 +261,12 @@
                         <td colspan="5" class="sub-header"><fmt:message
                                 key="advanced.scenarios"/></td>
                     </tr>
-                    <%
-                       for (SecurityScenarioData scenario: scenarios) {
-                           if (scenario != null) {
-                               String id = scenario.getScenarioId();
-                               if (!scenario.getType().equals("advanced")) {
-                                   continue;
-                            }
-                           //checkScenarioID(scenarioIdDisplay, scenario);
-                    %>
                     <tr>
                         <td><%= scenarioIdDisplay++ %>.</td>
                         <td>
-                            <%
-                                int helpId = scenarioIdDisplay - 1;
-                                if (currentScenario != null && "".equals(policyPath) &&
-                                    currentScenario.getScenarioId().equals(id)) {
-                            %><input type="radio" name="scenarioId"  id="option_<%=Encode.forHtmlAttribute(id)%>"
-                                     value="<%=Encode.forHtmlAttribute(id)%>"
-                                     onclick="disablePolicyPath();" checked="checked"/><%
-                        } else {
-                        %><input type="radio" name="scenarioId" id="option_<%=Encode.forHtmlAttribute(id)%>"
+                            <input type="radio" name="scenarioId" id="option_<%=Encode.forHtmlAttribute(id)%>"
                                  value="<%=Encode.forHtmlAttribute(id)%>"
-                                 onclick="disablePolicyPath();"/><%
-                            }
-                        %>
+                                 onclick="disablePolicyPath();"/>
                         </td>
                         <td><label
                                 for="option_<%=Encode.forHtmlAttribute(id)%>">

@@ -142,7 +142,6 @@ public class IdentityProviderManager implements IdpManager {
         String oAuth2DCREPUrl;
         String oAuth2JWKSPage;
         String oIDCDiscoveryEPUrl;
-        String stsUrl;
         String scimUsersEndpoint;
         String scimGroupsEndpoint;
         String scim2UsersEndpoint;
@@ -157,7 +156,6 @@ public class IdentityProviderManager implements IdpManager {
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
         oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
         oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
-        stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
         scimUsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
         scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
         scim2UsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL);
@@ -201,15 +199,6 @@ public class IdentityProviderManager implements IdpManager {
         oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
         oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, tenantDomain);
         oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-
-        // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
-        if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS);
-        } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS, true, true);
-        }
 
         if (StringUtils.isBlank(scimUsersEndpoint)) {
             scimUsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);

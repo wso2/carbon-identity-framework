@@ -380,15 +380,6 @@ public class IdentityConstants {
     }
 
     /**
-     * Common constants related to STS
-     */
-    public static class STS {
-
-        public static final String WSO2_CARBON_STS = "wso2carbon-sts";
-        public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
-    }
-
-    /**
      * Common constants realted to SCIM
      */
     public static class SCIM {

@@ -382,7 +382,6 @@ public abstract class FrameworkConstants {
     public static class RequestType {
 
         public static final String CLAIM_TYPE_OPENID = "openid";
-        public static final String CLAIM_TYPE_STS = "sts";
         public static final String CLAIM_TYPE_WSO2 = "wso2";
         public static final String CLAIM_TYPE_SAML_SSO = "samlsso";
         public static final String CLAIM_TYPE_SCIM = "scim";

@@ -95,7 +95,6 @@
     String oidcCheckSessionEndpoint = null;
     String oidcLogoutEndpoint = null;
     String oidcIdpEntityId = null;
-    String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
     String oidcWebFingerEndpoint = null;

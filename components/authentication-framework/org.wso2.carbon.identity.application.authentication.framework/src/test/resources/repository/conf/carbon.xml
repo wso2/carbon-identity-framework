@@ -426,17 +426,6 @@
         -->
         <TomcatRealm>UserManager</TomcatRealm>
 
-	<!--Option to disable storing of tokens issued by STS-->
-	<DisableTokenStore>false</DisableTokenStore>
-
- <STSCallBackHandlerName>org.wso2.carbon.identity.provider.AttributeCallbackHandler</STSCallBackHandlerName>
-
-	<!--
-	 Security token store class name. If this is not set, default class will be
-	 org.wso2.carbon.security.util.SecurityTokenStore
-	-->
-	<TokenStoreClassName>org.wso2.carbon.identity.sts.store.DBTokenStore</TokenStoreClassName>
-
         <XSSPreventionConfig>
             <Enabled>true</Enabled>
             <Rule>allow</Rule>
