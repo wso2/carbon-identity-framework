@@ -221,18 +221,6 @@
         <UseSPTenantDomain>{{oauth.access_token.generate_with_sp_tenant_domain}}</UseSPTenantDomain>
         {% endif %}
 
-        <EnableLegacyAudiences>{{oauth.legacy_audiences_enabled}}</EnableLegacyAudiences>
-        <EnableAudienceSeparation>true</EnableAudienceSeparation>
-        {% if oauth.legacy_audiences_enabled %}
-        <EnableAccessTokenAudiences>true</EnableAccessTokenAudiences>
-        {% if oauth.access_token.audiences|length %}
-        <AccessTokenAudiences>
-            {% for audience in oauth.access_token.audiences %}
-            <AccessTokenAudience>{{audience}}</AccessTokenAudience>
-            {% endfor %}
-        </AccessTokenAudiences>
-        {% endif %}
-        {% endif %}
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -663,6 +651,8 @@
                 {% endfor %}
             </SupportedIDTokenEncryptionMethods>
 
+            <EnableLegacyAudiences>{{oauth.legacy_audiences_enabled}}</EnableLegacyAudiences>
+            {% if oauth.legacy_audiences_enabled %}
             <EnableAudiences>true</EnableAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
             <Audiences>
@@ -670,16 +660,6 @@
                 <Audience>{{audience}}</Audience>
                 {% endfor %}
             </Audiences>
-            {% endif %}
-
-            {% if oauth.legacy_audiences_enabled %}
-            <EnableIdTokenAudiences>true</EnableIdTokenAudiences>
-            {% if oauth.oidc.id_token.audiences|length %}
-            <IdTokenAudiences>
-                {% for audience in oauth.oidc.id_token.audiences %}
-                <IdTokenAudience>{{audience}}</IdTokenAudience>
-                {% endfor %}
-            </IdTokenAudiences>
             {% endif %}
             {% endif %}
             <!--
@@ -710,7 +690,7 @@
             {% endif %}
             {% if oauth.prompt_logout_consent is sameas true %}
             <SkipLogoutConsent>false</SkipLogoutConsent>
-            {% else %}
+            {% else %}SkipLogoutConsent
             <SkipLogoutConsent>true</SkipLogoutConsent>
             {% endif %}
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
