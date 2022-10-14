@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.central.log.mgt.hanlder.CentralLogger;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
@@ -44,6 +46,7 @@ public class CentralLogMgtServiceComponent {
 
     private static final Log log = LogFactory.getLog(CentralLogMgtServiceComponent.class);
     private ServiceRegistration serviceRegistration = null;
+    private static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -55,6 +58,7 @@ public class CentralLogMgtServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Central logger event handler is activated.");
         }
+        LoggerUtils.isLogMaskingEnable = Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_LOG_MASKING));
     }
 
     @Deactivate

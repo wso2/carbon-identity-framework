@@ -36,6 +36,7 @@ public class ClaimConstants {
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
     public static final String CLAIM_URI_PROPERTY = "ClaimURI";
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
+    public static final String LOG_MASKING_REGULAR_EXPRESSION_PROPERTY = "LogMaskingRegEx";
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";

@@ -25,8 +25,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -62,11 +64,14 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
             log.debug(event.getEventName() + " event received to ClaimMetadataManagementAuditLogger for the " +
                     "tenant: " + tenantDomain);
         }
-
+        String initiator = getInitiatorUsername(tenantDomain);
+        if (LoggerUtils.isLogMaskingEnable && StringUtils.isNotBlank(tenantDomain)) {
+            initiator = IdentityUtil.getInitiatorId(CarbonContext.getThreadLocalCarbonContext().getUsername(),
+                    tenantDomain);
+        }
         if (IdentityEventConstants.Event.POST_ADD_CLAIM_DIALECT.equals(event.getEventName())) {
             String claimDialectUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Add-Claim-Dialect", claimDialectUri, StringUtils.EMPTY,
                     SUCCESS));
         } else if (IdentityEventConstants.Event.POST_UPDATE_CLAIM_DIALECT.equals(event.getEventName())) {
@@ -74,17 +79,14 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.OLD_CLAIM_DIALECT_URI);
             String newClaimDialectUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.NEW_CLAIM_DIALECT_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = "Original-State:" + oldClaimDialectUri + ", Changed-State:" + newClaimDialectUri;
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-Claim-Dialect", oldClaimDialectUri, data, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_DELETE_CLAIM_DIALECT.equals(event.getEventName())) {
             String claimDialectUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-Claim-Dialect", claimDialectUri,
                     StringUtils.EMPTY, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_ADD_LOCAL_CLAIM.equals(event.getEventName())) {
-            String initiator = getInitiatorUsername(tenantDomain);
             String localClaimUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI);
             String data = buildLocalClaimData(event);
@@ -92,7 +94,6 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
         } else if (IdentityEventConstants.Event.POST_UPDATE_LOCAL_CLAIM.equals(event.getEventName())) {
             String localClaimUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = buildLocalClaimData(event);
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-Local-Claim", localClaimUri, data, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_DELETE_LOCAL_CLAIM.equals(event.getEventName())) {
@@ -100,19 +101,16 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI);
             String claimUri = (String) event.getEventProperties()
                     .get(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = "Claim Dialect URI:" + claimDialectUri + ", Claim URI:" + claimUri;
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-Local-Claim", claimUri, data, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_ADD_EXTERNAL_CLAIM.equals(event.getEventName())) {
             String externalClaimUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = buildExternalClaimData(event);
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Add-External-Claim", externalClaimUri, data, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_UPDATE_EXTERNAL_CLAIM.equals(event.getEventName())) {
             String externalClaimUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = buildExternalClaimData(event);
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-External-Claim", externalClaimUri, data, SUCCESS));
         } else if (IdentityEventConstants.Event.POST_DELETE_EXTERNAL_CLAIM.equals(event.getEventName())) {
@@ -120,7 +118,6 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI);
             String externalClaimUri = (String) event.getEventProperties()
                     .get(IdentityEventConstants.EventProperty.EXTERNAL_CLAIM_URI);
-            String initiator = getInitiatorUsername(tenantDomain);
             String data = "Claim Dialect URI:" + claimDialectUri + ", Claim URI:" + externalClaimUri;
             audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-External-Claim", externalClaimUri, data, SUCCESS));
         }

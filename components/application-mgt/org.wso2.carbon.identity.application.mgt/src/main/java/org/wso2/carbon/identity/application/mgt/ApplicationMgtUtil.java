@@ -1079,7 +1079,10 @@ public class ApplicationMgtUtil {
      * @param userName     Username of the initiator.
      * @param tenantDomain Tenant domain of the initiator.
      * @return User id of the initiator.
+     * @deprecated
+     * This method is moved to IdentityUtil class as this will be used from other components as well.
      */
+    @Deprecated
     public static String getInitiatorId(String userName, String tenantDomain) {
 
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();

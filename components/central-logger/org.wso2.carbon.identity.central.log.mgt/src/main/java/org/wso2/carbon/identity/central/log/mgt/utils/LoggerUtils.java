@@ -57,6 +57,14 @@ public class LoggerUtils {
     private static final String CLIENT_COMPONENT = "clientComponent";
 
     /**
+     * Constants used for masking content.
+     */
+    private static String userIdClaimURI = "http://wso2.org/claims/userid";
+    public static Boolean isLogMaskingEnable;
+    private static final String MASKING_CHARACTER = "*";
+    private static final String CONTENT_MASKING_REGEX = "(?<=.).(?=.)";
+
+    /**
      * @param initiatorId   Request initiator's id.
      * @param initiatorName Request initiator's name.
      * @param initiatorType Request initiator's type.
@@ -168,5 +176,32 @@ public class LoggerUtils {
             }
         }
         return localDateTime;
+    }
+
+    /**
+     * Util function to mask content.
+     *
+     * @param content Content that needs to be masked.
+     * @return masked content.
+     */
+    public static String maskContent(String content) {
+
+        if (StringUtils.isNotEmpty(content)) {
+            content = content.replaceAll(CONTENT_MASKING_REGEX, MASKING_CHARACTER);
+        }
+        return content;
+    }
+
+    public static Map<String, String> maskClaimValues(Map<String, String> claims) {
+
+        Map<String, String> sanitizedClaims = new HashMap<>();
+        for (Map.Entry<String, String> entry : claims.entrySet()) {
+            if (entry.getKey().equals(userIdClaimURI)) {
+                sanitizedClaims.put(entry.getKey(), entry.getValue());
+            } else {
+                sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
+            }
+        }
+        return sanitizedClaims;
     }
 }

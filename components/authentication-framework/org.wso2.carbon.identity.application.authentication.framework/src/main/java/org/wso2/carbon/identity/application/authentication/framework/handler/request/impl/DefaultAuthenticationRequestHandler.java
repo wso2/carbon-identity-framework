@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -1057,13 +1058,26 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);
-        auditData.put(SessionMgtConstants.AUTHENTICATED_USER, authenticatedUser);
         auditData.put(SessionMgtConstants.AUTHENTICATED_USER_TENANT_DOMAIN, userTenantDomain);
         auditData.put(SessionMgtConstants.TRACE_ID, traceId);
+
+        String initiator;
+        if (LoggerUtils.isLogMaskingEnable) {
+            String maskedUsername = LoggerUtils.maskContent(authenticatedUser);
+            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
+            if (StringUtils.isNotBlank(userTenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(authenticatedUser, userTenantDomain);
+            } else {
+                initiator = maskedUsername;
+            }
+        } else {
+            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, authenticatedUser);
+            initiator = authenticatedUser;
+        }
         /* When the action is StoreSession, the LastAccessedTimestamp means the session created timestamp. If the
          action is UpdateSession, the LastAccessedTimestamp means the session's last accessed timestamp. */
         auditData.put(SessionMgtConstants.SESSION_LAST_ACCESSED_TIMESTAMP, lastAccessedTimestamp);
-        AUDIT_LOG.info(String.format(SessionMgtConstants.AUDIT_MESSAGE_TEMPLATE, authenticatedUser,
+        AUDIT_LOG.info(String.format(SessionMgtConstants.AUDIT_MESSAGE_TEMPLATE, initiator,
                 sessionAction, auditData, SessionMgtConstants.SUCCESS));
     }
 }
