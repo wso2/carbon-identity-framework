@@ -79,13 +79,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -2129,7 +2129,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, idpId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2163,9 +2163,9 @@ public class IdPManagementDAO {
      * @param identityProviderProperties Identity Provider Properties.
      * @return identity provider properties after removing the relevant JIT specific properties.
      */
-    private List<IdentityProviderProperty> filterIdenityProperties(IdentityProvider federatedIdp,
-                                                                   List<IdentityProviderProperty>
-                                                                           identityProviderProperties) {
+    private List<IdentityProviderProperty> filterIdentityProperties(IdentityProvider federatedIdp,
+                                                                    List<IdentityProviderProperty>
+                                                                            identityProviderProperties) {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
 
@@ -2180,6 +2180,10 @@ public class IdPManagementDAO {
                 } else if (identityProviderProperty.getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setPromptConsent(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
                 }
             });
         }
@@ -2363,7 +2367,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -2521,7 +2525,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2827,11 +2831,16 @@ public class IdPManagementDAO {
         promptConsentProperty.setName(IdPManagementConstants.PROMPT_CONSENT_ENABLED);
         promptConsentProperty.setValue("false");
 
+        IdentityProviderProperty associateLocalUser = new IdentityProviderProperty();
+        promptConsentProperty.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
+        promptConsentProperty.setValue("false");
+
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
+            associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
