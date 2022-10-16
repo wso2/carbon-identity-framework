@@ -2832,8 +2832,8 @@ public class IdPManagementDAO {
         promptConsentProperty.setValue("false");
 
         IdentityProviderProperty associateLocalUser = new IdentityProviderProperty();
-        promptConsentProperty.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
-        promptConsentProperty.setValue("false");
+        associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
+        associateLocalUser.setValue("false");
 
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty

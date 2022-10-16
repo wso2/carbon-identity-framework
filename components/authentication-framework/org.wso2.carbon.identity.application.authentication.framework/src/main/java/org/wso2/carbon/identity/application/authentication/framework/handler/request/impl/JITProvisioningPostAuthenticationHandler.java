@@ -107,6 +107,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             = new JITProvisioningPostAuthenticationHandler();
 
     /**
+     * To avoid creation of multiple instances of this handler.
+     */
+    protected JITProvisioningPostAuthenticationHandler() {
+
+    }
+
+    /**
      * To get an instance of {@link JITProvisioningPostAuthenticationHandler}.
      *
      * @return an instance of PostJITProvisioningHandler.
@@ -115,11 +122,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         return instance;
     }
-
-    /**
-     * To avoid creation of multiple instances of this handler.
-     */
-    protected JITProvisioningPostAuthenticationHandler() { }
 
     @Override
     public int getPriority() {
@@ -139,7 +141,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws PostAuthenticationFailedException {
+                                             AuthenticationContext context) throws PostAuthenticationFailedException {
 
         if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(context)) {
             return SUCCESS_COMPLETED;
@@ -166,8 +168,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     /**
      * This method is used to handle response flow, after going through password provisioning.
      *
-     * @param request        HttpServlet request.
-     * @param context        Authentication context
+     * @param request HttpServlet request.
+     * @param context Authentication context
      * @return Status of PostAuthnHandler flow.
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception
      */
@@ -230,7 +232,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
-                   handleConsents(request, stepConfig, context.getTenantDomain());
+                    handleConsents(request, stepConfig, context.getTenantDomain());
                 }
             }
         }
@@ -248,7 +250,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private Map<String, String> getCombinedClaims(HttpServletRequest request, Map<String, String> localClaimValues,
-            AuthenticationContext context) throws PostAuthenticationFailedException {
+                                                  AuthenticationContext context)
+            throws PostAuthenticationFailedException {
 
         String externalIdPConfigName = context.getExternalIdP().getIdPName();
         org.wso2.carbon.user.api.ClaimMapping[] claims = getClaimsForTenant(context.getTenantDomain(),
@@ -287,14 +290,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     /**
      * To handle the request flow of the post authentication handler.
      *
-     * @param response       HttpServlet response.
-     * @param context        Authentication context
+     * @param response HttpServlet response.
+     * @param context  Authentication context
      * @return Status of this post authentication handler flow.
      * @throws PostAuthenticationFailedException Exception that will be thrown in case of failure.
      */
     @SuppressWarnings("unchecked")
     private PostAuthnHandlerFlowStatus handleRequestFlow(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws PostAuthenticationFailedException {
+                                                         AuthenticationContext context)
+            throws PostAuthenticationFailedException {
 
         String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
         SequenceConfig sequenceConfig = context.getSequenceConfig();
@@ -350,9 +354,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
                     }
-
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isAssociateLocalUserEnabled()) {
-                        //TODO: This may change to use with a custom claim mapping.
+                        //TODO: Revisit this when the non-email user registration is done.
                         if (StringUtils.isNotBlank(localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
                             try {
                                 String emailUsername = localClaimValues.get(EMAIL_ADDRESS_CLAIM);
@@ -366,11 +369,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     FrameworkUtils.getFederatedAssociationManager()
                                             .createFederatedAssociation(user, stepConfig.getAuthenticatedIdP(),
                                                     emailUsername);
-                                    //since the username is email address, domain name is appended to make sure username
-                                    //is not modified.
-                                    associatedLocalUser = UserCoreUtil.addTenantDomainToEntry(emailUsername,
-                                            context.getTenantDomain());
-                                    ;
+                                    associatedLocalUser = emailUsername;
                                 }
                             } catch (UserStoreException e) {
                                 handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
@@ -415,6 +414,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
                                 + " coming from " + externalIdPConfig.getIdPName()
                                 + " do have a local account, with the username " + username);
+                    }
+                    //When the local user association is enabled, user email id will be used to create the association.
+                    //Since the default provisioning handler removes the email domain, in case the username equals to
+                    //the email address, tenant domain is appended to the username.
+                    if (externalIdPConfig.isAssociateLocalUserEnabled() &&
+                            StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
+                                    localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
+                        username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
@@ -648,6 +655,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      */
     private void handleExceptions(String errorMessage, String errorCode, Exception e)
             throws PostAuthenticationFailedException {
+
         throw new PostAuthenticationFailedException(errorCode, errorMessage, e);
     }
 
@@ -662,8 +670,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     private void redirectToAccountCreateUI(ExternalIdPConfig externalIdPConfig, AuthenticationContext context,
-            Map<String, String> localClaimValues, HttpServletResponse response, String username,
-            HttpServletRequest request) throws PostAuthenticationFailedException {
+                                           Map<String, String> localClaimValues, HttpServletResponse response,
+                                           String username,
+                                           HttpServletRequest request) throws PostAuthenticationFailedException {
 
         try {
             ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
@@ -676,7 +685,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             + "registration endpoint to provision the user: " + username);
                 }
             } else {
-                    uriBuilder = uriBuilder.addPath(FrameworkUtils.getPasswordProvisioningUIUrl());
+                uriBuilder = uriBuilder.addPath(FrameworkUtils.getPasswordProvisioningUIUrl());
                 if (log.isDebugEnabled()) {
                     if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                         log.debug(externalIdPConfig.getName() + " supports password provisioning, redirecting to "
@@ -700,8 +709,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             response.sendRedirect(uriBuilder.build().getRelativePublicURL());
         } catch (IOException | URLBuilderException e) {
             handleExceptions(String.format(
-                    ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
-                    username, externalIdPConfig.getName()),
+                            ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
+                            username, externalIdPConfig.getName()),
                     ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getCode(), e);
         }
     }
@@ -738,6 +747,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      */
     private ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
             throws PostAuthenticationFailedException {
+
         ExternalIdPConfig externalIdPConfig = null;
         try {
             externalIdPConfig = ConfigurationFacade.getInstance()
@@ -1097,7 +1107,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             if (userStoreDomain != null
                     && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
                 throw new UserStoreException(String.format(ErrorMessages.ERROR_INVALID_USER_STORE_DOMAIN
-                                .getMessage(), userStoreDomain), null);
+                        .getMessage(), userStoreDomain), null);
             }
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             throw new UserStoreException(e.getMessage(), e);
