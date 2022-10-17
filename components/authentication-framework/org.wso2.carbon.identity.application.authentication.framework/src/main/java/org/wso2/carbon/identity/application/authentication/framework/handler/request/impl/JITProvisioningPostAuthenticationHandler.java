@@ -355,7 +355,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
                     }
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isAssociateLocalUserEnabled()) {
-                        //TODO: Revisit this when the non-email user registration is done.
+                        //TODO: Revisit this to allow defining multiple attributes to map the local user and
+                        // when the non-email user registration is done.
                         if (StringUtils.isNotBlank(localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
                             try {
                                 String emailUsername = localClaimValues.get(EMAIL_ADDRESS_CLAIM);
@@ -379,7 +380,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             }
                         }
                     }
-                    String username = associatedLocalUser;
                     if (StringUtils.isNotBlank(associatedLocalUser)) {
                         // Check if the associated local account is locked.
                         if (isAccountLocked(associatedLocalUser, context.getTenantDomain())) {
@@ -406,6 +406,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
                         }
                     }
+                    String username = associatedLocalUser;
                     if (StringUtils.isEmpty(username)) {
                         username = getUsernameFederatedUser(stepConfig, sequenceConfig, externalIdPConfigName,
                                 context, localClaimValues, externalIdPConfig);
