@@ -709,7 +709,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             response.sendRedirect(uriBuilder.build().getRelativePublicURL());
         } catch (IOException | URLBuilderException e) {
             handleExceptions(String.format(
-                            ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
+                            ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING
+                                    .getMessage(),
                             username, externalIdPConfig.getName()),
                     ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getCode(), e);
         }
