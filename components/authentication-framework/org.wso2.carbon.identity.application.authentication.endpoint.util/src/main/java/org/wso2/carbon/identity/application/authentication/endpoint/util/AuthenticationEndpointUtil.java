@@ -20,15 +20,19 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
@@ -48,6 +52,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -465,5 +472,27 @@ public class AuthenticationEndpointUtil {
             }
         }
         return url;
+    }
+
+    /**
+     * Resolve the query string of the request using the request parameter map.
+     *
+     * @param queryParamMap - Parameter map of the request.
+     * @return - StringBuilder with query parameters appended.
+     */
+    public static String resolveQueryString(Map<String, String[]> queryParamMap) {
+
+        StringBuilder queryParamString = new StringBuilder();
+        if (queryParamMap != null && !queryParamMap.isEmpty()) {
+            queryParamString.append("?");
+            List<NameValuePair> paramNameValuePairs = new ArrayList<>();
+            for (Map.Entry<String, String[]> entry : queryParamMap.entrySet()) {
+                if (ArrayUtils.isNotEmpty(entry.getValue())) {
+                    paramNameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()[0]));
+                }
+            }
+            queryParamString.append(URLEncodedUtils.format(paramNameValuePairs, StandardCharsets.UTF_8));
+        }
+        return queryParamString.toString();
     }
 }
