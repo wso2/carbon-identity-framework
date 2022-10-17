@@ -2195,7 +2195,9 @@ public class IdPManagementDAO {
                 identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
                         || identityProviderProperty.getName()
                         .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
-                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)));
+                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
+                        IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
+                                .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
 
@@ -2845,6 +2847,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
+        identityProviderProperties.add(associateLocalUser);
         return identityProviderProperties;
     }
 
