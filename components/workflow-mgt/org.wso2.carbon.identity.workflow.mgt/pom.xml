@@ -21,7 +21,7 @@
     <parent>
         <artifactId>identity-workflow-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.25.7</version>
+        <version>5.25.14-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -113,7 +113,8 @@
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
-                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.database.utils.*; version="${org.wso2.carbon.database.utils.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.workflow.mgt.internal,

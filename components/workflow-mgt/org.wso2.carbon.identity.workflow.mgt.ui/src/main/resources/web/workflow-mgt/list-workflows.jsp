@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.base.ServerConfiguration" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
@@ -37,22 +39,42 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, request.getLocale());
     WorkflowAdminServiceClient client;
     String forwardTo = null;
-    WorkflowWizard[] workflowsToDisplay = new WorkflowWizard[0];
-    String paginationValue = "region=region1&item=workflow_services_list_menu";
-
+    String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(WorkflowUIConstants.RESULTS_PER_PAGE_PROPERTY);
+    String filterString = request.getParameter(WorkflowUIConstants.WF_NAME_FILTER);
+    if (!StringUtils.isNotBlank(filterString)) {
+        filterString =  WorkflowUIConstants.DEFAULT_FILTER;
+    } else {
+        filterString = filterString.trim();
+    }
+    String paginationValue;
+    if (StringUtils.isNotBlank(filterString)) {
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER, WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE, filterString);
+    } else {
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,  WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_WF_ITEM_VALUE);
+    }
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
     int pageNumberInt = 0;
     int numberOfPages = 0;
+    int offset = 0;
+    int numberOfWorkflows = 0;
+    int resultsPerPageInt = WorkflowUIConstants.DEFAULT_RESULTS_PER_PAGE;
     WorkflowWizard[] workflows = null;
 
     //clear any unnecessary session data
     if (session.getAttribute(WorkflowUIConstants.ATTRIB_WORKFLOW_WIZARD) != null) {
         session.removeAttribute(WorkflowUIConstants.ATTRIB_WORKFLOW_WIZARD);
     }
-
-    if (pageNumber != null) {
+    if (StringUtils.isNotBlank(resultsPerPage)) {
+        try {
+            resultsPerPageInt = Integer.parseInt(resultsPerPage);
+        } catch (NumberFormatException ignored) {
+            //not needed to handle here, since the default value is already set.
+        }
+    }
+    if (StringUtils.isNotBlank(pageNumber)) {
         try {
             pageNumberInt = Integer.parseInt(pageNumber);
+            offset = ((pageNumberInt) * resultsPerPageInt);
         } catch (NumberFormatException ignored) {
             //not needed here since it's defaulted to 0
         }
@@ -64,17 +86,9 @@
                 (ConfigurationContext) config.getServletContext()
                         .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
-
-        workflows = client.listWorkflows();
-        numberOfPages = (int) Math.ceil((double) workflows.length / WorkflowUIConstants.RESULTS_PER_PAGE);
-
-        int startIndex = pageNumberInt * WorkflowUIConstants.RESULTS_PER_PAGE;
-        int endIndex = (pageNumberInt + 1) * WorkflowUIConstants.RESULTS_PER_PAGE;
-        workflowsToDisplay = new WorkflowWizard[WorkflowUIConstants.RESULTS_PER_PAGE];
-
-        for (int i = startIndex, j = 0; i < endIndex && i < workflows.length; i++, j++) {
-            workflowsToDisplay[j] = workflows[i];
-        }
+        numberOfWorkflows = client.getWorkflowsCount(filterString);
+        workflows = client.listPaginatedWorkflows(resultsPerPageInt, offset, filterString);
+        numberOfPages = (int) Math.ceil((double) numberOfWorkflows / resultsPerPageInt);
     } catch (Exception e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -142,6 +156,36 @@
     <div id="middle">
         <h2><fmt:message key='workflow.list'/></h2>
 
+        <table style="border:none; !important margin-top:10px;margin-left:5px;">
+            <tr>
+                <td>
+                    <form action="list-workflows.jsp" name="searchForm" method="post">
+                        <table style="border:0;!important margin-top:10px;margin-bottom:10px;">
+                            <tr>
+                                <td>
+                                    <table style="border:0; !important">
+                                        <tbody>
+                                            <tr style="border:0; !important">
+                                                <td style="border:0; !important">
+                                                    <fmt:message key="workflow.service.workflow.add.name.pattern"/>
+                                                    <input style="margin-left:30px; !important"
+                                                           type="text" name="<%=WorkflowUIConstants.WF_NAME_FILTER%>"
+                                                           value="<%=filterString != null ?
+                                                       Encode.forHtmlAttribute(filterString) : Encode.forHtmlAttribute(WorkflowUIConstants.DEFAULT_FILTER) %>"/>&nbsp;
+                                                    <input class="button" type="submit"
+                                                           value="<fmt:message key="workflow.service.workflow.search"/>"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </td>
+            </tr>
+        </table>
+
         <div id="workArea">
 
             <table class="styledLeft" id="servicesTable">
@@ -157,7 +201,7 @@
                 <tbody>
                 <%
                     if (workflows != null && workflows.length > 0) {
-                        for (WorkflowWizard workflow : workflowsToDisplay) {
+                        for (WorkflowWizard workflow : workflows) {
                             if (workflow != null) {
 
                 %>
