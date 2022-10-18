@@ -3414,7 +3414,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String filterValueResolvedForSQL;
             getAppNamesStmt = connection.prepareStatement(
                     String.format(
-                            ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER, filterData.getFilterString()));
+                            ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME,
+                            filterData.getFilterString()));
             getAppNamesStmt.setInt(1, tenantID);
             getAppNamesStmt.setString(2, LOCAL_SP);
             for (int i = 0; i < filterData.getFilterValues().size(); i++) {
