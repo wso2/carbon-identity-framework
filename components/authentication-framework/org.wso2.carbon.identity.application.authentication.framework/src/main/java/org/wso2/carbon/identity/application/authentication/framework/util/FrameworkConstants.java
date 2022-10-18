@@ -178,6 +178,7 @@ public abstract class FrameworkConstants {
     public static final String RECAPTCHA_RESEND_CONFIRMATION_PARAM = "reCaptchaResend";
     public static final String RECAPTCHA_KEY_PARAM = "reCaptchaKey";
     public static final String RECAPTCHA_API_PARAM = "reCaptchaAPI";
+    public static final String CAPTCHA_PARAM_STRING = "captchaParams";
 
     // DB product names.
     public static final String MY_SQL = "MySQL";
