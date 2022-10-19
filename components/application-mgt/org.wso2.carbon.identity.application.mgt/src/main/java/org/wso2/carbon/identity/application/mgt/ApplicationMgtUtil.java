@@ -927,15 +927,11 @@ public class ApplicationMgtUtil {
             if (useApplicationTenantDomainAsUserTenantDomain(tenantDomain, username)) {
                 return tenantDomain;
             }
-            Optional<User> user = getUser(tenantDomain, username);
-            if (!user.isPresent()) {
-                /*
-                This situation occur when the application creator is deleted. At that point,
-                 set the tenant domain of the application as the user's tenant domain.
-                 */
-                return tenantDomain;
-            }
-            return user.get().getTenantDomain();
+            /*
+             Else situation occur when the application creator is deleted. At that point,
+             set the tenant domain of the application as the user's tenant domain.
+             */
+            return getUser(tenantDomain, username).map(User::getTenantDomain).orElse(tenantDomain);
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("Error while retrieving tenant.", e);
         }
@@ -957,10 +953,7 @@ public class ApplicationMgtUtil {
         Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
                 .getTenantManager().getTenant(tenantID);
         String accessedOrganizationId = tenant.getAssociatedOrganizationUUID();
-        if (accessedOrganizationId == null) {
-            return true;
-        }
-        return false;
+        return StringUtils.isEmpty(accessedOrganizationId);
     }
 
     /**
