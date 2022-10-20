@@ -244,6 +244,11 @@ public class ExternalIdPConfig implements Serializable {
         return false;
     }
 
+    public boolean isAssociateLocalUserEnabled() {
+
+        return justInTimeProConfig != null && justInTimeProConfig.isAssociateLocalUserEnabled();
+    }
+
     /**
      * @return
      */
