@@ -898,9 +898,9 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         if (StringUtils.isBlank(reCaptchaParamString.toString())) {
-            String captchaParamString = (String) context.getProperty(FrameworkConstants.CAPTCHA_PARAM_STRING);
-            if (captchaParamString != null) {
-                reCaptchaParamString.append(captchaParamString);
+            String captchaParamStringFromContext = (String) context.getProperty(FrameworkConstants.CAPTCHA_PARAM_STRING);
+            if (captchaParamStringFromContext != null) {
+                reCaptchaParamString.append(captchaParamStringFromContext);
                 context.removeProperty(FrameworkConstants.CAPTCHA_PARAM_STRING);
             }
         }
