@@ -415,13 +415,6 @@
                 <IsRefreshTokenAllowed>{{oauth.grant_type.jwt_bearer.allow_refresh_tokens}}</IsRefreshTokenAllowed>
             </SupportedGrantType>
             {% endif %}
-            {% if oauth.grant_type.uma_ticket.enable is sameas true %}
-            <SupportedGrantType>
-                <GrantTypeName>urn:ietf:params:oauth:grant-type:uma-ticket</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{oauth.grant_type.uma_ticket.grant_handler}}</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>{{oauth.grant_type.uma_ticket.grant_validator}}</GrantTypeValidatorImplClass>
-            </SupportedGrantType>
-            {% endif %}
             {% if oauth.grant_type.kerberos.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>kerberos</GrantTypeName>
@@ -1605,11 +1598,6 @@
                        enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
 
         <!-- Introspection Data Providers -->
-        <EventListener id="uma_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                name="org.wso2.carbon.identity.oauth.uma.permission.service.impl.UMAIntrospectionDataProvider"
-                orderId="{{event.default_listener.uma_introspection_data_provider.priority}}"
-                enable="{{event.default_listener.uma_introspection_data_provider.enable}}">
-        </EventListener>
         <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                 name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
                 orderId="{{event.default_listener.is_introspection_data_provider.priority}}"
@@ -2227,9 +2215,6 @@
             <Scopes>internal_application_mgt_view</Scopes>
             <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
-
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
