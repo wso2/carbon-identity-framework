@@ -484,6 +484,25 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test
+    public void testGetConfiguredAuthenticators() throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        ApplicationBasicInfo applicationBasicInfo = applicationManagementService
+                .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
+        String resourceID = applicationBasicInfo.getApplicationResourceId();
+        AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID);
+
+        Assert.assertEquals(steps.length, 1);
+        Assert.assertEquals(steps[0].getStepOrder(), 1);
+    }
+
+    @Test
     public void testGetCountOfAllApplications() throws IdentityApplicationManagementException {
 
         addApplications();

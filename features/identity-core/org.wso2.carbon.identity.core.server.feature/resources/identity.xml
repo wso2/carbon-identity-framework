@@ -645,8 +645,12 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
-
     </OAuth>
+
+    <RestApiAuthentication>
+        <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+        <AddRealmUserToError>false</AddRealmUserToError>
+    </RestApiAuthentication>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
@@ -2032,10 +2036,17 @@
                     <Path>/api/server/v1/configs/authenticators</Path>
                     <Path>/api/server/v1/userstores</Path>
                     <Path>/api/server/v1/claim-dialects</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/server/v1/email/template-types</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+		    <Path>/api/server/v1/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/console/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
             </Context>
         </WebApp>
         <Servlet>
@@ -2093,6 +2104,11 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>true</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->

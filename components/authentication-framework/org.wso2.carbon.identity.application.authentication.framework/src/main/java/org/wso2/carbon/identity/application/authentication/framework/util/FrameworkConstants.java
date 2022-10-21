@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -146,6 +146,8 @@ public abstract class FrameworkConstants {
 
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
+    public static final String STATUS_PARAM = "status";
+    public static final String STATUS_MSG_PARAM = "statusMsg";
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
@@ -574,6 +576,8 @@ public abstract class FrameworkConstants {
         public static final long DEFAULT_EXECUTION_SUPERVISOR_MEMORY_LIMIT = -1;
         public static final String PROP_EXECUTION_SUPERVISOR_RESULT
                 = "AdaptiveAuthExecutionSupervisorResult";
+        public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
+                = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
     }
 
     /**
@@ -625,5 +629,14 @@ public abstract class FrameworkConstants {
         public static final String COOKIE_NAME = "ALOR";
         public static final String CONTENT = "content";
         public static final String DOMAIN = "domain";
+    }
+
+    /**
+     * Define logging constants for framework.
+     */
+    public static class LogConstants {
+
+        public static final String AUTHENTICATION_FRAMEWORK = "authentication-framework";
+        public static final String AUTH_SCRIPT_LOGGING = "auth-script-logging";
     }
 }

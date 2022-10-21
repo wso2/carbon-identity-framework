@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -167,6 +167,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -207,6 +208,8 @@ public class FrameworkUtils {
     private static final String HASH_CHAR = "#";
     private static final String HASH_CHAR_ENCODED = "%23";
     private static final String QUESTION_MARK = "?";
+
+    private static Boolean authenticatorNameInAuthConfigPreference;
 
     private FrameworkUtils() {
     }
@@ -612,8 +615,22 @@ public class FrameworkUtils {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             if (status != null && statusMsg != null) {
-                uriBuilder.addParameter("status", status);
-                uriBuilder.addParameter("statusMsg", statusMsg);
+                if (context != null) {
+                    Map<String, String> failureData = new HashMap<>();
+                    failureData.put(FrameworkConstants.STATUS_PARAM, status);
+                    failureData.put(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
+                    failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                    AuthenticationError authenticationError = new AuthenticationError(failureData);
+                    String errorKey = UUID.randomUUID().toString();
+                    FrameworkUtils.addAuthenticationErrorToCache(errorKey, authenticationError,
+                            context.getTenantDomain());
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
+                            context.getContextIdentifier());
+                } else {
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_PARAM, status);
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
+                }
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (context != null) {
@@ -1716,13 +1733,18 @@ public class FrameworkUtils {
         boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
                 .isAuthEndpointRedirectParamsConfigAvailable();
 
+        List<String> queryParams;
+        String action;
         if (!configAvailable) {
-            return redirectUrl;
+            queryParams = Arrays.asList("sessionDataKey", "sessionDataKeyConsent", "errorKey", "sp", "isSaaSApp",
+                    "tenantDomain", "t");
+            action = "include";
+        } else {
+            queryParams = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParams();
+            action = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParamsAction();
         }
-        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParams();
-        String action = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
 
@@ -3295,5 +3317,21 @@ public class FrameworkUtils {
             }
         }
         return callerPath;
+    }
+
+    /**
+     * Util function to check whether using authenticator name to resolve authenticatorConfig in adaptive scripts
+     * is enabled. If not authenticator display name is used.
+     *
+     * @return boolean indicating server config preference.
+     */
+    public static boolean isAuthenticatorNameInAuthConfigEnabled() {
+
+        if (authenticatorNameInAuthConfigPreference == null) {
+            authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    AUTHENTICATOR_NAME_IN_AUTH_CONFIG));
+        }
+
+        return authenticatorNameInAuthConfigPreference;
     }
 }

@@ -890,8 +890,13 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
-
     </OAuth>
+
+    <RestApiAuthentication>
+            <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+            <AddRealmUserToError>{{rest_api_authentication.add_realm_user_to_error}}</AddRealmUserToError>
+    </RestApiAuthentication>
+
     <!--
     Configuration to select JS engine for Adaptive authentication feature.
     Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
@@ -1278,6 +1283,7 @@
             </SMSOTP>
         </VerificationCode>
         <CallbackRegex>{{identity_mgt.lite_user_registration.callback_url}}</CallbackRegex>
+        <ResendVerificationOnUserExistence>{{identity_mgt.lite_user_registration.resend_verification_on_user_existence}}</ResendVerificationOnUserExistence>
     </LiteRegistration>
 
     <LoginIdentifiers>
@@ -2767,10 +2773,17 @@
                     <Path>/api/server/v1/configs/authenticators</Path>
                     <Path>/api/server/v1/userstores</Path>
                     <Path>/api/server/v1/claim-dialects</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/server/v1/email/template-types</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/server/v1/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/console/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
             </Context>
         </WebApp>
         <Servlet>
@@ -2869,6 +2882,11 @@
             {% endfor %}
         </ChoreoDomains>
         {% endif %}
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>{{authentication.adaptive.authenticator_name_in_auth_config.enable}}</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
