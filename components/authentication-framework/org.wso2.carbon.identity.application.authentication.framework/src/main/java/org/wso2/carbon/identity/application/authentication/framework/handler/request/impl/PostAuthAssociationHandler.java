@@ -155,7 +155,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
-        AuthenticatedUser user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId);
+        AuthenticatedUser user =
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
