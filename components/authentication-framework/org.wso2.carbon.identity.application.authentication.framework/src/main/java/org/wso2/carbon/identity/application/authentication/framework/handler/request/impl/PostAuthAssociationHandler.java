@@ -159,6 +159,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
+
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
 
         Map<String, String> mappedAttrs = handleClaimMappings(stepConfig, context);
