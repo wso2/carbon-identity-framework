@@ -365,12 +365,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                         (AbstractUserStoreManager) getUserStoreManager(context.getExternalIdP()
                                                 .getProvisioningUserStoreId(), realm, emailUsername);
                                 if (userStoreManager.isExistingUser(emailUsername)) {
-                                    User user = new User(userStoreManager.getUser(null, emailUsername));
+                                    org.wso2.carbon.user.core.common.User user =
+                                            userStoreManager.getUser(null, emailUsername);
                                     //associate user
                                     FrameworkUtils.getFederatedAssociationManager()
-                                            .createFederatedAssociation(user, stepConfig.getAuthenticatedIdP(),
-                                                    emailUsername);
-                                    associatedLocalUser = emailUsername;
+                                            .createFederatedAssociation(new User(user),
+                                                    stepConfig.getAuthenticatedIdP(),
+                                                    stepConfig.getAuthenticatedUser()
+                                                            .getAuthenticatedSubjectIdentifier());
+                                    associatedLocalUser = user.getDomainQualifiedUsername();
                                 }
                             } catch (UserStoreException e) {
                                 handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
