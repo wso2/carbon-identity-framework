@@ -46,6 +46,10 @@ public class ApplicationMgtUIConstants {
     public static final String DEFAULT_ITEM_VALUE = "service_providers_list";
     public static final String PAGINATION_VALUE = "region=%s&item=%s";
     public static final String PAGINATION_VALUE_WITH_FILTER = "region=%s&item=%s&filterString=%s";
+    public static final String IS_SYSTEM_DEFAULT_APP = "isSystemDefaultApp";
+    public static final String IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME = "Is System Default Application";
+    public static final String LOCAL_SP = "wso2carbon-local-sp";
+    public static final String SP_NAME = "spName";
 
     /**
      * Holds the application UI param related constants.

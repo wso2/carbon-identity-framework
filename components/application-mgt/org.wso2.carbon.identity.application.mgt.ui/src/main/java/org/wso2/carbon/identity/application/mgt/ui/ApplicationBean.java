@@ -60,6 +60,11 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.IS_SYSTEM_DEFAULT_APP;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.SP_NAME;
+
 /**
  * UI bean to represent an application.
  */
@@ -1692,6 +1697,21 @@ public class ApplicationBean {
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
 
+        // Check if isSystemDefaultApp property is already set.
+        boolean isSystemDefaultAppPropExist = false;
+        for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+            if (IS_SYSTEM_DEFAULT_APP.equals(property.getName())) {
+                isSystemDefaultAppPropExist = true;
+                break;
+            }
+        }
+        if (LOCAL_SP.equals(request.getParameter(SP_NAME)) && !isSystemDefaultAppPropExist) {
+            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+            serviceProviderProperty.setName(IS_SYSTEM_DEFAULT_APP);
+            serviceProviderProperty.setValue(String.valueOf(true));
+            serviceProviderProperty.setDisplayName(IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME);
+            serviceProvider.addSpProperties(serviceProviderProperty);
+        }
         String provisioningUserStore = request.getParameter("scim-inbound-userstore");
         InboundProvisioningConfig inBoundProConfig = new InboundProvisioningConfig();
         inBoundProConfig.setProvisioningUserStore(provisioningUserStore);
