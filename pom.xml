@@ -68,6 +68,7 @@
         <module>components/multi-attribute-login</module>
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
+        <module>components/input-validation-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
