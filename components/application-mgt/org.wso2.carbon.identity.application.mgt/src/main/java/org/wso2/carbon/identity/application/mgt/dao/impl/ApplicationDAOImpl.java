@@ -127,12 +127,12 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_SYSTEM_DEFAULT_APP;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
@@ -1672,9 +1672,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ServiceProviderProperty[] serviceProviderProperties = new ServiceProviderProperty[1];
         ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
-        serviceProviderProperty.setName(IS_SYSTEM_DEFAULT_APP);
+        serviceProviderProperty.setName(IS_SYSTEM_RESERVED_APP_FLAG);
         serviceProviderProperty.setValue(String.valueOf(true));
-        serviceProviderProperty.setDisplayName(IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME);
+        serviceProviderProperty.setDisplayName(IS_SYSTEM_RESERVED_APP_DISPLAY_NAME);
         serviceProviderProperties[0] = serviceProviderProperty;
         return serviceProviderProperties;
     }

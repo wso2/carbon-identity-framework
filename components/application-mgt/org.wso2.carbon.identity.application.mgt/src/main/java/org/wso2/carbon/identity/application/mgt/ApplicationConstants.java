@@ -98,10 +98,6 @@ public class ApplicationConstants {
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
-    // System Default App Configs
-
-    public static final String IS_SYSTEM_DEFAULT_APP = "isSystemDefaultApp";
-    public static final String IS_SYSTEM_DEFAULT_APP_DISPLAY_NAME = "Is System Default Application";
 
     /**
      * Grouping of constants related to database SP_APP table.
