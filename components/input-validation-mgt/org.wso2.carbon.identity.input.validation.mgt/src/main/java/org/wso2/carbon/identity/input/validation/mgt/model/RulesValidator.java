@@ -37,6 +37,7 @@ public class RulesValidator {
      * @return  length validator.
      */
     public DefaultValidator getLengthValidator() {
+
         return lengthValidator;
     }
 
@@ -46,6 +47,7 @@ public class RulesValidator {
      * @return  numerals validator.
      */
     public DefaultValidator getNumeralsValidator() {
+
         return numeralsValidator;
     }
 
@@ -55,6 +57,7 @@ public class RulesValidator {
      * @return  lower-case validator.
      */
     public DefaultValidator getLowerCaseValidator() {
+
         return lowerCaseValidator;
     }
 
@@ -64,6 +67,7 @@ public class RulesValidator {
      * @return  special character validator.
      */
     public DefaultValidator getSpecialCharacterValidator() {
+
         return specialCharacterValidator;
     }
 
@@ -73,6 +77,7 @@ public class RulesValidator {
      * @return  upper-case validator.
      */
     public DefaultValidator getUpperCaseValidator() {
+
         return upperCaseValidator;
     }
 
@@ -82,6 +87,7 @@ public class RulesValidator {
      * @return  repeated character validator.
      */
     public CharacterSequenceValidator getRepeatedCharacterValidator() {
+
         return repeatedCharacterValidator;
     }
 
@@ -91,6 +97,7 @@ public class RulesValidator {
      * @return unicode validator.
      */
     public CharacterSequenceValidator getUniqueCharacterValidator() {
+
         return uniqueCharacterValidator;
     }
 
@@ -100,6 +107,7 @@ public class RulesValidator {
      * @param lengthValidator   length validator.
      */
     public void setLengthValidator(DefaultValidator lengthValidator) {
+
         this.lengthValidator = lengthValidator;
     }
 
@@ -109,6 +117,7 @@ public class RulesValidator {
      * @param lowerCaseValidator    lower case validator.
      */
     public void setLowerCaseValidator(DefaultValidator lowerCaseValidator) {
+
         this.lowerCaseValidator = lowerCaseValidator;
     }
 
@@ -118,6 +127,7 @@ public class RulesValidator {
      * @param numeralsValidator numerals validator.
      */
     public void setNumeralsValidator(DefaultValidator numeralsValidator) {
+
         this.numeralsValidator = numeralsValidator;
     }
 
@@ -127,6 +137,7 @@ public class RulesValidator {
      * @param repeatedCharacterValidator    repeated character validator.
      */
     public void setRepeatedCharacterValidator(CharacterSequenceValidator repeatedCharacterValidator) {
+
         this.repeatedCharacterValidator = repeatedCharacterValidator;
     }
 
@@ -135,6 +146,7 @@ public class RulesValidator {
      * @param specialCharacterValidator special character validator.
      */
     public void setSpecialCharacterValidator(DefaultValidator specialCharacterValidator) {
+
         this.specialCharacterValidator = specialCharacterValidator;
     }
 
@@ -144,6 +156,7 @@ public class RulesValidator {
      * @param uniqueCharacterValidator  unique character validator.
      */
     public void setUniqueCharacterValidator(CharacterSequenceValidator uniqueCharacterValidator) {
+
         this.uniqueCharacterValidator = uniqueCharacterValidator;
     }
 
@@ -153,6 +166,7 @@ public class RulesValidator {
      * @param upperCaseValidator    upper case validator.
      */
     public void setUpperCaseValidator(DefaultValidator upperCaseValidator) {
+
         this.upperCaseValidator = upperCaseValidator;
     }
 }

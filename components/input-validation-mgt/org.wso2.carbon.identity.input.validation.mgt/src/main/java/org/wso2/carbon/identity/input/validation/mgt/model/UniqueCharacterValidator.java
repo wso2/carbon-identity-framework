@@ -31,6 +31,7 @@ public class UniqueCharacterValidator extends CharacterSequenceValidator {
      * @return  min unique character limit.
      */
     public int getMinUniqueCharacter() {
+
         return minUniqueCharacter;
     }
 
@@ -39,6 +40,7 @@ public class UniqueCharacterValidator extends CharacterSequenceValidator {
      * @param minUniqueCharacter    min unique character limit.
      */
     public void setMinUniqueCharacter(int minUniqueCharacter) {
+
         this.minUniqueCharacter = minUniqueCharacter;
     }
 }
