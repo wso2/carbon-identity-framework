@@ -36,7 +36,6 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.input.validation.mgt</artifactId>
-            <version>5.25.22-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
