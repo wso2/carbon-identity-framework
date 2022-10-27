@@ -254,6 +254,7 @@
                 <xs:complexContent>
                     <xs:extension base="ax2177:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>

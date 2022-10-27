@@ -11,6 +11,8 @@ BEGIN
 	DECLARE @deletedOperationalSessionAppInfo INT;
 	DECLARE @deletedSessionMetadata INT;
 	DECLARE @deletedOperationalSessionMetadata INT;
+	DECLARE @deletedFederatedSessionMappings INT;
+	DECLARE @deletedOperationalFederatedSessionMappings INT;
 	DECLARE @deletedStoreOperations INT;
 	DECLARE @deletedDeleteOperations INT;
 	DECLARE @sessionCleanupCount INT;
@@ -24,7 +26,7 @@ BEGIN
 	DECLARE @sessionFederatedMappingsCleanupCount INT;
 	DECLARE @operationalFederatedSessionMappingsCleanupCount INT;
 	DECLARE @tracingEnabled INT;
-	DECLARE @sleepTime VARCHAR(8);
+	DECLARE @sleepTime INT;
 	DECLARE @batchSize INT;
 	DECLARE @chunkLimit INT;
 
@@ -68,7 +70,7 @@ BEGIN
 	SET @operationalFederatedSessionMappingsCleanupCount = 1;
 	SET @operationCleanupCount = 1;
 	SET @tracingEnabled = 1;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
-	SET @sleepTime = '00:00:02.000';          -- Sleep time in seconds.
+	SET @sleepTime = 2;          -- Sleep time in seconds.
 	SET @autocommit = 0;
 
 	SET @sessionCleanUpTempTableCount = 1;

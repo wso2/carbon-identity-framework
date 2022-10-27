@@ -86,6 +86,7 @@ public class IdPManagementConstants {
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
+    public static final String ASSOCIATE_LOCAL_USER_ENABLED = "ASSOCIATE_LOCAL_USER_ENABLED";
 
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";

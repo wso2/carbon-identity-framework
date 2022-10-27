@@ -63,8 +63,11 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
      */
     public Map<String, Object> getParameterMap() {
 
-        Map<String, Object> paramMap = new HashMap<>(authParams);
-        paramMap.replaceAll((k, v) -> new String[]{String.valueOf(v)});
+        Map<String, Object> paramMap = new HashMap<>();
+        if (authParams != null) {
+            paramMap.putAll(authParams);
+            paramMap.replaceAll((k, v) -> new String[]{String.valueOf(v)});
+        }
         paramMap.putAll(super.getParameterMap());
         return paramMap;
     }
@@ -80,7 +83,9 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
         Enumeration<String> paramEnum = super.getParameterNames();
         while(paramEnum.hasMoreElements())
             paramNameList.add(String.valueOf(paramEnum.nextElement()));
-        paramNameList.addAll(authParams.keySet());
+        if (authParams != null) {
+            paramNameList.addAll(authParams.keySet());
+        }
         return Collections.enumeration(paramNameList);
     }
 

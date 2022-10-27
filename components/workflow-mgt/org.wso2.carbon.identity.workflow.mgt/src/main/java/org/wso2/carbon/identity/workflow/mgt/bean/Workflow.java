@@ -74,4 +74,5 @@ public class Workflow implements Serializable {
     public void setTemplateId(String templateId) {
         this.templateId = templateId;
     }
+
 }
