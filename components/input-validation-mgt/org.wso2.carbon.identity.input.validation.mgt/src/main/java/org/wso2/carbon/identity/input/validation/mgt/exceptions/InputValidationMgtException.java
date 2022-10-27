@@ -38,6 +38,13 @@ public class InputValidationMgtException extends Exception {
         this.errorCode = errorCode;
     }
 
+    /**
+     * Constructor with errorCode, message and description.
+     *
+     * @param errorCode     Error Code.
+     * @param message       Error Message.
+     * @param description   Error Description.
+     */
     public InputValidationMgtException(String errorCode, String message, String description) {
         super(message);
         this.errorCode = errorCode;
