@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
   ~
-  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
   ~ in compliance with the License.
   ~ You may obtain a copy of the License at
@@ -18,8 +17,9 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>input-validation-mgt-feature</artifactId>
@@ -30,37 +30,18 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.input.validation.mgt.server.feature</artifactId>
     <packaging>pom</packaging>
-    <name>Input Validation Feature</name>
-    <url>http://wso2.org</url>
-    <description>This feature contains the core bundles required for Back-end Input Validation functionality
-    </description>
+    <name>WSO2 Carbon - Central Log Management Feature</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.input.validation.mgt</artifactId>
+            <version>5.25.22-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>prefilter-resources</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>src/main/resources</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>resources</directory>
-                                    <includes>
-                                        <include>p2.inf</include>
-                                        <include>build.properties</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.wso2.maven</groupId>
                 <artifactId>carbon-p2-plugin</artifactId>
@@ -80,6 +61,11 @@
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
                                 </properties>
                             </adviceFile>
+                            <bundles>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.input.validation.mgt
+                                </bundleDef>
+                            </bundles>
                         </configuration>
                     </execution>
                 </executions>
