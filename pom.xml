@@ -96,6 +96,7 @@
         <module>features/user-store</module>
         <module>features/secret-mgt</module>
         <module>features/central-logger</module>
+        <module>features/input-validation-mgt</module>
     </modules>
 
 
@@ -2151,21 +2152,22 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
+                    <!--                    <source>1.8</source>-->
+                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <!--This parameter disables doclint-->
-                            <doclint>none</doclint>
-                            <quiet>true</quiet>
-                        </configuration>
-                    </execution>
-                </executions>
+                <!--                <executions>-->
+                <!--                    <execution>-->
+                <!--                        <id>attach-javadocs</id>-->
+                <!--                        <goals>-->
+                <!--                            <goal>jar</goal>-->
+                <!--                        </goals>-->
+                <!--                        <configuration>-->
+                <!--                            &lt;!&ndash;This parameter disables doclint&ndash;&gt;-->
+                <!--                            <doclint>none</doclint>-->
+                <!--                            <quiet>true</quiet>-->
+                <!--                        </configuration>-->
+                <!--                    </execution>-->
+                <!--                </executions>-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
