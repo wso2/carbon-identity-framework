@@ -18,16 +18,41 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
-import org.wso2.carbon.identity.input.validation.mgt.model.*;
+import org.wso2.carbon.identity.input.validation.mgt.model.CharacterCounter;
+import org.wso2.carbon.identity.input.validation.mgt.model.DefaultValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.InputValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.PasswordValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.RegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.RepeatedCharacterValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.UniqueCharacterValidator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_DEFAULT_MIN_MAX_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_JAVA_REGEX_INVALID;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_JS_REGEX_INVALID;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_LOWER_CASE_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_LOWER_CASE_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_UNIQUE_CHR_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REGEX_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH;
 
 /**
  * Class to manage util methods.
@@ -53,6 +78,122 @@ public class Utils {
             String jsRegEx = regExValidator.getJsRegExPattern();
             validateRegex(javaRegEx, ERROR_JAVA_REGEX_INVALID);
             validateRegex(jsRegEx, ERROR_JS_REGEX_INVALID);
+        }
+    }
+
+    /**
+     * This method validates the password.
+     *
+     * @param configuration Password validation configuration.
+     * @param value         Password.
+     * @throws InputValidationMgtClientException If error occurred in validating the password.
+     */
+    public static void validatePassword(InputValidationConfiguration configuration, String value)
+            throws InputValidationMgtClientException {
+
+        if (configuration.getPasswordValidator() != null &&
+                configuration.getPasswordValidator().getRulesValidator() != null) {
+
+            RulesValidator rulesValidator = configuration.getPasswordValidator().getRulesValidator();
+            CharacterCounter counts = Utils.countValues(value);
+
+            if (rulesValidator.getLengthValidator() != null) {
+                if (rulesValidator.getLengthValidator().getMin() > 0) {
+                    int min = rulesValidator.getLengthValidator().getMin();
+                    if (value.length() < min) {
+                        handleException(ERROR_VALIDATION_MIN_LENGTH_MISMATCH, PASSWORD, min);
+                    }
+                }
+                if (rulesValidator.getLengthValidator().getMax() > 0) {
+                    int max = rulesValidator.getLengthValidator().getMax();
+                    if (value.length() > max) {
+                        handleException(ERROR_VALIDATION_MAX_LENGTH_MISMATCH, PASSWORD, max);
+                    }
+                }
+            }
+            if (rulesValidator.getNumeralsValidator() != null) {
+                if (rulesValidator.getNumeralsValidator().getMin() > 0 &&
+                        counts.getNumberOfDigits() < rulesValidator.getNumeralsValidator().getMin()) {
+                    handleException(ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getNumeralsValidator().getMin());
+                }
+                if (rulesValidator.getNumeralsValidator().getMax() > 0 &&
+                        counts.getNumberOfDigits() > rulesValidator.getNumeralsValidator().getMax()) {
+                    handleException(ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getNumeralsValidator().getMax());
+                }
+            }
+            if (rulesValidator.getUpperCaseValidator() != null) {
+                if (rulesValidator.getUpperCaseValidator().getMin() > 0 &&
+                        counts.getNumberOfUpperCase() < rulesValidator.getUpperCaseValidator().getMin()) {
+                    handleException(ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getUpperCaseValidator().getMin());
+                }
+                if (rulesValidator.getUpperCaseValidator().getMax() > 0 &&
+                        counts.getNumberOfUpperCase() > rulesValidator.getUpperCaseValidator().getMax()) {
+                    handleException(ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getUpperCaseValidator().getMax());
+                }
+            }
+            if (rulesValidator.getLowerCaseValidator() != null) {
+                if (rulesValidator.getLowerCaseValidator().getMin() > 0 &&
+                        counts.getNumberOfLowerCase() < rulesValidator.getLowerCaseValidator().getMin()) {
+                    handleException(ERROR_VALIDATION_MIN_LOWER_CASE_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getLowerCaseValidator().getMin());
+                }
+                if (rulesValidator.getLowerCaseValidator().getMax() > 0 &&
+                        counts.getNumberOfLowerCase() > rulesValidator.getLowerCaseValidator().getMax()) {
+                    handleException(ERROR_VALIDATION_MAX_LOWER_CASE_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getLowerCaseValidator().getMax());
+                }
+            }
+            if (rulesValidator.getSpecialCharacterValidator() != null) {
+                if (rulesValidator.getSpecialCharacterValidator().getMin() > 0 &&
+                        counts.getNumberOfSpecialChrs() < rulesValidator.getSpecialCharacterValidator().getMin()) {
+                    handleException(ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getSpecialCharacterValidator().getMin());
+                }
+                if (rulesValidator.getSpecialCharacterValidator().getMax() > 0 &&
+                        counts.getNumberOfSpecialChrs() > rulesValidator.getSpecialCharacterValidator().getMax()) {
+                    handleException(ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH, PASSWORD,
+                            rulesValidator.getSpecialCharacterValidator().getMax());
+                }
+            }
+            if (rulesValidator.getUniqueCharacterValidator() != null &&
+                    rulesValidator.getUniqueCharacterValidator().isEnable()
+            ) {
+                UniqueCharacterValidator uniqueValidator = (UniqueCharacterValidator) rulesValidator
+                        .getUniqueCharacterValidator();
+                if (Utils.findDistinctChars(value, uniqueValidator.isCaseSensitive()) < uniqueValidator.getMinUniqueCharacter()) {
+                    handleException(ERROR_VALIDATION_UNIQUE_CHR_MISMATCH, PASSWORD,
+                            uniqueValidator.getMinUniqueCharacter());
+                }
+            }
+            if (rulesValidator.getRepeatedCharacterValidator() != null &&
+                    rulesValidator.getRepeatedCharacterValidator().isEnable()
+            ) {
+                RepeatedCharacterValidator repeatedCharacterValidator = (RepeatedCharacterValidator) rulesValidator
+                        .getRepeatedCharacterValidator();
+                if (Utils.findMaxConsecutiveLength(value, repeatedCharacterValidator
+                        .isCaseSensitive()) > repeatedCharacterValidator.getMaxConsecutiveLength()) {
+                    handleException(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH, PASSWORD,
+                            repeatedCharacterValidator.getMaxConsecutiveLength());
+                }
+            }
+        } else if (configuration.getPasswordValidator() != null &&
+                configuration.getPasswordValidator().getRegExValidator() != null &&
+                StringUtils.isNotEmpty(configuration.getPasswordValidator().getRegExValidator().getJsRegExPattern())
+        ) {
+            String regex = configuration.getPasswordValidator().getRegExValidator().getJsRegExPattern();
+            // Compile the ReGex
+            Pattern pattern = Pattern.compile(regex);
+            Matcher m = pattern.matcher(value);
+            if (!m.matches()) {
+                throw new InputValidationMgtClientException(ERROR_VALIDATION_REGEX_MISMATCH.getCode(),
+                        ERROR_VALIDATION_REGEX_MISMATCH.getMessage(),
+                        String.format(ERROR_VALIDATION_REGEX_MISMATCH.getDescription(), PASSWORD,
+                                value, regex));
+            }
         }
     }
     /**
@@ -90,9 +231,9 @@ public class Utils {
      * @param caseSensitive Shows whether it is case-sensitive.
      * @return Number of distinct characters.
      */
-    public static int findDistinctChrs(String word, boolean caseSensitive) {
+    public static int findDistinctChars(String word, boolean caseSensitive) {
 
-        Set<Character> distinctChrs = new LinkedHashSet<Character>();
+        Set<Character> distinctChars = new LinkedHashSet<>();
 
         if (!caseSensitive) {
             word = word.toLowerCase();
@@ -100,9 +241,9 @@ public class Utils {
 
         for (int i = 0; i < word.length(); i++) {
             char chr = word.charAt(i);
-            distinctChrs.add(chr);
+            distinctChars.add(chr);
         }
-        return distinctChrs.size();
+        return distinctChars.size();
     }
 
     /**
@@ -193,5 +334,12 @@ public class Utils {
                         String.format(ERROR_DEFAULT_MIN_MAX_MISMATCH.getDescription(), validator.getClass(), min, max));
             }
         }
+    }
+
+    private static void handleException(Constants.ErrorMessages error, String data, int limit)
+            throws InputValidationMgtClientException {
+
+        throw new InputValidationMgtClientException(error.getCode(), error.getMessage(),
+                String.format(error.getDescription(), data, limit));
     }
 }

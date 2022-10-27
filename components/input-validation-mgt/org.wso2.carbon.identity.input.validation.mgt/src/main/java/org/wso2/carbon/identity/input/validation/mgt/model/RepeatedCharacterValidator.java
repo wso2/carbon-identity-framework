@@ -31,6 +31,7 @@ public class RepeatedCharacterValidator extends CharacterSequenceValidator {
      * @return  Maximum consecutive length.
      */
     public int getMaxConsecutiveLength() {
+
         return maxConsecutiveLength;
     }
 
@@ -40,6 +41,7 @@ public class RepeatedCharacterValidator extends CharacterSequenceValidator {
      * @param maxConsecutiveLength  Maximum consecutive length.
      */
     public void setMaxConsecutiveLength(int maxConsecutiveLength) {
+
         this.maxConsecutiveLength = maxConsecutiveLength;
     }
 }
