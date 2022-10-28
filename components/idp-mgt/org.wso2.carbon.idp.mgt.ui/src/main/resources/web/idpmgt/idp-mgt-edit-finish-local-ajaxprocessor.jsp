@@ -132,7 +132,7 @@
         oidcAuthnProperties[0] = oidcAuthnProperty;
         oidcAuthn.setProperties(oidcAuthnProperties);
 
-        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[3];
+        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[2];
         federatedAuthenticators[0] = samlFedAuthn;
         federatedAuthenticators[1] = oidcAuthn;
         identityProvider.setFederatedAuthenticatorConfigs(federatedAuthenticators);
