@@ -73,10 +73,6 @@
                                     <arg line="-uri src/main/resources/KeyStoreAdmin.wsdl -u -g -o target/generated-code -ns2p http://service.keystore.security.carbon.wso2.org=org.wso2.carbon.security.mgt.stub.keystore,http://service.keystore.security.carbon.wso2.org/xsd=org.wso2.carbon.security.mgt.stub.keystore.xsd" />
                                     <classpath refid="wsdl2java.classpath" />
                                 </java>
-                                <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
-                                    <arg line="-uri src/main/resources/SecurityConfigAdmin.wsdl -u -g -o target/generated-code -ns2p http://service.config.security.carbon.wso2.org=org.wso2.carbon.security.mgt.stub.config,http://service.config.security.carbon.wso2.org/xsd=org.wso2.carbon.security.mgt.stub.config.xsd" />
-                                    <classpath refid="wsdl2java.classpath" />
-                                </java>
                             </tasks>
                         </configuration>
                     </execution>
