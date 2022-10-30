@@ -17,7 +17,7 @@
 -->
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
-<script type="text/javascript" src="../securityconfig/extensions/js/vui.js"></script>
+<script type="text/javascript" src="./extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 
