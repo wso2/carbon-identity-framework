@@ -26,38 +26,39 @@ public class Constants {
     public static class Configs {
 
         // Keys for password rules validation.
-        public static final String INPUT_VAL_PASSWORD_VALIDATION_TYPE = "password.validation.type";
-        public static final String INPUT_VAL_PASSWORD_MIN_LENGTH_ATTRIBUTE_NAME = "password.min.length";
-        public static final String INPUT_VAL_PASSWORD_MAX_LENGTH_ATTRIBUTE_NAME = "password.max.length";
+        public static final String VALIDATION_TYPE = "validation.type";
+        public static final String MIN_LENGTH = "min.length";
+        public static final String MAX_LENGTH = "max.length";
 
-        public static final String INPUT_VAL_PASSWORD_MIN_NUMERALS_LENGTH_ATTRIBUTE_NAME = "password.min.numerals.length";
-        public static final String INPUT_VAL_PASSWORD_MAX_NUMERALS_LENGTH_ATTRIBUTE_NAME = "password.max.numerals.length";
+        public static final String MIN_NUMERALS_LENGTH = "min.numerals.length";
+        public static final String MAX_NUMERALS_LENGTH = "max.numerals.length";
 
-        public static final String INPUT_VAL_PASSWORD_MIN_UPPER_CASE_LENGTH_ATTRIBUTE_NAME = "password.min.upper.case.length";
-        public static final String INPUT_VAL_PASSWORD_MAX_UPPER_CASE_LENGTH_ATTRIBUTE_NAME = "password.max.upper.case.length";
+        public static final String MIN_UPPER_CASE_LENGTH = "min.upper.case.length";
+        public static final String MAX_UPPER_CASE_LENGTH = "max.upper.case.length";
 
-        public static final String INPUT_VAL_PASSWORD_MIN_LOWER_CASE_LENGTH_ATTRIBUTE_NAME = "password.min.lower.case.length";
-        public static final String INPUT_VAL_PASSWORD_MAX_LOWER_CASE_LENGTH_ATTRIBUTE_NAME = "password.max.lower.case.length";
+        public static final String MIN_LOWER_CASE_LENGTH= "min.lower.case.length";
+        public static final String MAX_LOWER_CASE_LENGTH = "max.lower.case.length";
 
-        public static final String INPUT_VAL_PASSWORD_MIN_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME = "password.min.specials.chr.length";
-        public static final String INPUT_VAL_PASSWORD_MAX_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME = "password.max.specials.chr.length";
+        public static final String MIN_SPECIAL_CHR_LENGTH = "min.specials.chr.length";
+        public static final String MAX_SPECIAL_CHR_LENGTH = "max.specials.chr.length";
 
-        public static final String INPUT_VAL_PASSWORD_UNIQUE_CHR_ENABLE_ATTRIBUTE_NAME = "password.unique.chr.enable";
-        public static final String INPUT_VAL_PASSWORD_UNIQUE_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME = "password.unique.chr.case.sensitive";
-        public static final String INPUT_VAL_PASSWORD_MIN_UNIQUE_CHR_LENGTH_ATTRIBUTE_NAME = "password.min.unique.chr.length";
+        public static final String UNIQUE_CHR_ENABLE = "unique.chr.enable";
+        public static final String UNIQUE_CHR_CASE_SENSITIVE = "unique.chr.case.sensitive";
+        public static final String MIN_UNIQUE_CHR_LENGTH= "min.unique.chr.length";
 
-        public static final String INPUT_VAL_PASSWORD_REPEATED_CHR_ENABLE_ATTRIBUTE_NAME = "password.repeated.chr.enable";
-        public static final String INPUT_VAL_PASSWORD_REPEATED_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME = "password.repeated.chr.case.sensitive";
-        public static final String INPUT_VAL_PASSWORD_MAX_REPEATED_CHR_LENGTH_ATTRIBUTE_NAME = "password.max.repeated.chr.length";
+        public static final String REPEATED_CHR_ENABLE = "repeated.chr.enable";
+        public static final String REPEATED_CHR_CASE_SENSITIVE = "repeated.chr.case.sensitive";
+        public static final String MAX_REPEATED_CHR_LENGTH = "max.repeated.chr.length";
 
         // Keys for password regEx validation.
-        public static final String INPUT_VAL_PASSWORD_JAVA_REGEX_ATTRIBUTE_NAME = "password.java.regex";
-        public static final String INPUT_VAL_PASSWORD_JS_REGEX_ATTRIBUTE_NAME = "password.js.regex";
+        public static final String JAVA_REGEX = "java.regex";
+        public static final String JS_REGEX = "js.regex";
 
         public static final String RULES = "rules";
         public static final String REGEX = "regEx";
 
         public static final String PASSWORD = "password";
+        public static final String USERNAME = "username";
     }
 
     public enum ErrorMessages {

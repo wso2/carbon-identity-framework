@@ -44,25 +44,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_JAVA_REGEX_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_JS_REGEX_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_LOWER_CASE_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_NUMERALS_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_REPEATED_CHR_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MAX_UPPER_CASE_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_LOWER_CASE_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_NUMERALS_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_UNIQUE_CHR_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_MIN_UPPER_CASE_LENGTH_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_UNIQUE_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_REPEATED_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_REPEATED_CHR_ENABLE_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_UNIQUE_CHR_ENABLE_ATTRIBUTE_NAME;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VAL_PASSWORD_VALIDATION_TYPE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LOWER_CASE_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_NUMERALS_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_REPEATED_CHR_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_SPECIAL_CHR_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_UPPER_CASE_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LOWER_CASE_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_NUMERALS_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_SPECIAL_CHR_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_UNIQUE_CHR_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_UPPER_CASE_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.UNIQUE_CHR_CASE_SENSITIVE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REPEATED_CHR_CASE_SENSITIVE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REPEATED_CHR_ENABLE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.UNIQUE_CHR_ENABLE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
@@ -175,63 +175,64 @@ public class InputValidationManagerImpl implements InputValidationManager {
         resource.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME);
         Map<String, String> configAttributes = new HashMap<>();
 
+        // Generate resource for password configurations.
         if (config.getPasswordValidator().getRulesValidator() != null) {
             RulesValidator pswRulesValidator = config.getPasswordValidator().getRulesValidator();
             // Add the params
-            configAttributes.put(INPUT_VAL_PASSWORD_VALIDATION_TYPE, RULES);
+            configAttributes.put(getAttributeName(PASSWORD, VALIDATION_TYPE), RULES);
 
             // Add attributes for length validation.
             if (pswRulesValidator.getLengthValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_LENGTH),
                         String.valueOf(pswRulesValidator.getLengthValidator().getMax()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_LENGTH),
                         String.valueOf(pswRulesValidator.getLengthValidator().getMin()));
             }
             // Add attributes for numerals length validation.
             if (pswRulesValidator.getNumeralsValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_NUMERALS_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_NUMERALS_LENGTH),
                         String.valueOf(pswRulesValidator.getNumeralsValidator().getMax()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_NUMERALS_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_NUMERALS_LENGTH),
                         String.valueOf(pswRulesValidator.getNumeralsValidator().getMin()));
             }
             // Add attributes for lower case letters validation.
             if (pswRulesValidator.getLowerCaseValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_LOWER_CASE_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_LOWER_CASE_LENGTH),
                         String.valueOf(pswRulesValidator.getLowerCaseValidator().getMax()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_LOWER_CASE_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_LOWER_CASE_LENGTH),
                         String.valueOf(pswRulesValidator.getLowerCaseValidator().getMin()));
             }
             // Add attributes for upper case letters validation.
             if (pswRulesValidator.getUpperCaseValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_UPPER_CASE_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_UPPER_CASE_LENGTH),
                         String.valueOf(pswRulesValidator.getUpperCaseValidator().getMax()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_UPPER_CASE_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_UPPER_CASE_LENGTH),
                         String.valueOf(pswRulesValidator.getUpperCaseValidator().getMin()));
             }
             // Add attributes for special characters length validation.
             if (pswRulesValidator.getSpecialCharacterValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_SPECIAL_CHR_LENGTH),
                         String.valueOf(pswRulesValidator.getSpecialCharacterValidator().getMax()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_SPECIAL_CHR_LENGTH),
                         String.valueOf(pswRulesValidator.getSpecialCharacterValidator().getMin()));
             }
             // Add attributes for Unique character validation.
             if (pswRulesValidator.getUniqueCharacterValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_UNIQUE_CHR_ENABLE_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, UNIQUE_CHR_ENABLE),
                         String.valueOf(pswRulesValidator.getUniqueCharacterValidator().isEnable()));
-                configAttributes.put(INPUT_VAL_PASSWORD_UNIQUE_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, UNIQUE_CHR_CASE_SENSITIVE),
                         String.valueOf(pswRulesValidator.getUniqueCharacterValidator().isCaseSensitive()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MIN_UNIQUE_CHR_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MIN_UNIQUE_CHR_LENGTH),
                         String.valueOf(((UniqueCharacterValidator) pswRulesValidator.getUniqueCharacterValidator())
                                 .getMinUniqueCharacter()));
             }
             // Add attributes for Repeated character validation.
             if (pswRulesValidator.getRepeatedCharacterValidator() != null) {
-                configAttributes.put(INPUT_VAL_PASSWORD_REPEATED_CHR_ENABLE_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, REPEATED_CHR_ENABLE),
                         String.valueOf(pswRulesValidator.getRepeatedCharacterValidator().isEnable()));
-                configAttributes.put(INPUT_VAL_PASSWORD_REPEATED_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, REPEATED_CHR_CASE_SENSITIVE),
                         String.valueOf(pswRulesValidator.getRepeatedCharacterValidator().isCaseSensitive()));
-                configAttributes.put(INPUT_VAL_PASSWORD_MAX_REPEATED_CHR_LENGTH_ATTRIBUTE_NAME,
+                configAttributes.put(getAttributeName(PASSWORD, MAX_REPEATED_CHR_LENGTH),
                         String.valueOf(((RepeatedCharacterValidator) pswRulesValidator.getRepeatedCharacterValidator())
                                 .getMaxConsecutiveLength()));
             }
@@ -239,11 +240,11 @@ public class InputValidationManagerImpl implements InputValidationManager {
             RegExValidator regExValidator = config.getPasswordValidator().getRegExValidator();
 
             // Add the params
-            configAttributes.put(INPUT_VAL_PASSWORD_VALIDATION_TYPE, REGEX);
+            configAttributes.put(getAttributeName(PASSWORD, VALIDATION_TYPE), REGEX);
 
-            configAttributes.put(INPUT_VAL_PASSWORD_JAVA_REGEX_ATTRIBUTE_NAME,
+            configAttributes.put(getAttributeName(PASSWORD, JAVA_REGEX),
                     String.valueOf(regExValidator.getJavaRegExPattern()));
-            configAttributes.put(INPUT_VAL_PASSWORD_JS_REGEX_ATTRIBUTE_NAME,
+            configAttributes.put(getAttributeName(PASSWORD, JS_REGEX),
                     String.valueOf(regExValidator.getJsRegExPattern()));
         }
 
@@ -273,8 +274,8 @@ public class InputValidationManagerImpl implements InputValidationManager {
                         .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
 
         // Check the input validation criteria.
-        if (attributesMap.containsKey(INPUT_VAL_PASSWORD_VALIDATION_TYPE)) {
-            if (StringUtils.equalsIgnoreCase(attributesMap.get(INPUT_VAL_PASSWORD_VALIDATION_TYPE),
+        if (attributesMap.containsKey(getAttributeName(PASSWORD, VALIDATION_TYPE))) {
+            if (StringUtils.equalsIgnoreCase(attributesMap.get(getAttributeName(PASSWORD, VALIDATION_TYPE)),
                     RULES)){
 
                 RulesValidator rulesValidator = new RulesValidator();
@@ -287,100 +288,100 @@ public class InputValidationManagerImpl implements InputValidationManager {
                 RepeatedCharacterValidator repeatedChrValidator = new RepeatedCharacterValidator();
 
                 for (Map.Entry<String, String> entry : attributesMap.entrySet()) {
-                    if (INPUT_VAL_PASSWORD_MAX_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MAX_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         lengthValidator.setMax(Integer.parseInt(entry.getValue()));
                         rulesValidator.setLengthValidator(lengthValidator);
                         continue;
                     }
-                    if (INPUT_VAL_PASSWORD_MIN_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MIN_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         lengthValidator.setMin(Integer.parseInt(entry.getValue()));
                         rulesValidator.setLengthValidator(lengthValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_MAX_NUMERALS_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MAX_NUMERALS_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         numeralsValidator.setMax(Integer.parseInt(entry.getValue()));
                         rulesValidator.setNumeralsValidator(numeralsValidator);
                         continue;
                     }
-                    if (INPUT_VAL_PASSWORD_MIN_NUMERALS_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MIN_NUMERALS_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         numeralsValidator.setMin(Integer.parseInt(entry.getValue()));
                         rulesValidator.setNumeralsValidator(numeralsValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_MAX_UPPER_CASE_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MAX_UPPER_CASE_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         upperCaseValidator.setMax(Integer.parseInt(entry.getValue()));
                         rulesValidator.setUpperCaseValidator(upperCaseValidator);
                         continue;
                     }
-                    if (INPUT_VAL_PASSWORD_MIN_UPPER_CASE_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MIN_UPPER_CASE_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         upperCaseValidator.setMin(Integer.parseInt(entry.getValue()));
                         rulesValidator.setUpperCaseValidator(upperCaseValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_MAX_LOWER_CASE_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MAX_LOWER_CASE_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         lowerCaseValidator.setMax(Integer.parseInt(entry.getValue()));
                         rulesValidator.setLowerCaseValidator(lowerCaseValidator);
                         continue;
                     }
-                    if (INPUT_VAL_PASSWORD_MIN_LOWER_CASE_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MIN_LOWER_CASE_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         lowerCaseValidator.setMin(Integer.parseInt(entry.getValue()));
                         rulesValidator.setLowerCaseValidator(lowerCaseValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_MAX_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MAX_SPECIAL_CHR_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         specialChrValidator.setMax(Integer.parseInt(entry.getValue()));
                         rulesValidator.setSpecialCharacterValidator(specialChrValidator);
                         continue;
                     }
-                    if (INPUT_VAL_PASSWORD_MIN_SPECIAL_CHR_LENGTH_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey())) {
+                    if (getAttributeName(PASSWORD, MIN_SPECIAL_CHR_LENGTH).equalsIgnoreCase(entry.getKey())) {
                         specialChrValidator.setMin(Integer.parseInt(entry.getValue()));
                         rulesValidator.setSpecialCharacterValidator(specialChrValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_UNIQUE_CHR_ENABLE_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey()) &&
+                    if (getAttributeName(PASSWORD, UNIQUE_CHR_ENABLE).equalsIgnoreCase(entry.getKey()) &&
                             Boolean.parseBoolean(entry.getValue())) {
                         uniqueChrValidator.setEnable(true);
-                        if (attributesMap.containsKey(INPUT_VAL_PASSWORD_UNIQUE_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME)) {
+                        if (attributesMap.containsKey(getAttributeName(PASSWORD, UNIQUE_CHR_CASE_SENSITIVE))) {
                             uniqueChrValidator.setCaseSensitive(Boolean.parseBoolean(attributesMap
-                                    .get(INPUT_VAL_PASSWORD_UNIQUE_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME)));
+                                    .get(getAttributeName(PASSWORD, UNIQUE_CHR_CASE_SENSITIVE))));
                         }
-                        if (attributesMap.containsKey(INPUT_VAL_PASSWORD_MIN_UNIQUE_CHR_LENGTH_ATTRIBUTE_NAME)) {
+                        if (attributesMap.containsKey(getAttributeName(PASSWORD, MIN_UNIQUE_CHR_LENGTH))) {
                             uniqueChrValidator.setMinUniqueCharacter(Integer.parseInt(attributesMap
-                                    .get(INPUT_VAL_PASSWORD_MIN_UNIQUE_CHR_LENGTH_ATTRIBUTE_NAME)));
+                                    .get(getAttributeName(PASSWORD, MIN_UNIQUE_CHR_LENGTH))));
                         }
                         rulesValidator.setUniqueCharacterValidator(uniqueChrValidator);
                         continue;
                     }
 
-                    if (INPUT_VAL_PASSWORD_REPEATED_CHR_ENABLE_ATTRIBUTE_NAME.equalsIgnoreCase(entry.getKey()) &&
+                    if (getAttributeName(PASSWORD, REPEATED_CHR_ENABLE).equalsIgnoreCase(entry.getKey()) &&
                             Boolean.parseBoolean(entry.getValue())) {
                         repeatedChrValidator.setEnable(true);
-                        if (attributesMap.containsKey(INPUT_VAL_PASSWORD_REPEATED_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME)) {
+                        if (attributesMap.containsKey(getAttributeName(PASSWORD, REPEATED_CHR_CASE_SENSITIVE))) {
                             repeatedChrValidator.setCaseSensitive(Boolean.parseBoolean(attributesMap
-                                    .get(INPUT_VAL_PASSWORD_REPEATED_CHR_CASE_SENSITIVE_ATTRIBUTE_NAME)));
+                                    .get(getAttributeName(PASSWORD, REPEATED_CHR_CASE_SENSITIVE))));
                         }
-                        if (attributesMap.containsKey(INPUT_VAL_PASSWORD_MAX_REPEATED_CHR_LENGTH_ATTRIBUTE_NAME)) {
+                        if (attributesMap.containsKey(getAttributeName(PASSWORD, MAX_REPEATED_CHR_LENGTH))) {
                             repeatedChrValidator.setMaxConsecutiveLength(Integer.parseInt(attributesMap
-                                    .get(INPUT_VAL_PASSWORD_MAX_REPEATED_CHR_LENGTH_ATTRIBUTE_NAME)));
+                                    .get(getAttributeName(PASSWORD, MAX_REPEATED_CHR_LENGTH))));
                         }
                         rulesValidator.setRepeatedCharacterValidator(repeatedChrValidator);
                     }
                 }
                 passwordValidator.setRulesValidator(rulesValidator);
-            } else if (StringUtils.equalsIgnoreCase(attributesMap.get(INPUT_VAL_PASSWORD_VALIDATION_TYPE),
+            } else if (StringUtils.equalsIgnoreCase(attributesMap.get(getAttributeName(PASSWORD, VALIDATION_TYPE)),
                     REGEX)) {
                 RegExValidator regExValidator = new RegExValidator();
 
-                if (attributesMap.containsKey(INPUT_VAL_PASSWORD_JAVA_REGEX_ATTRIBUTE_NAME)) {
-                    regExValidator.setJavaRegExPattern(attributesMap.get(INPUT_VAL_PASSWORD_JAVA_REGEX_ATTRIBUTE_NAME));
+                if (attributesMap.containsKey(getAttributeName(PASSWORD, JAVA_REGEX))) {
+                    regExValidator.setJavaRegExPattern(attributesMap.get(getAttributeName(PASSWORD, JAVA_REGEX)));
                 }
-                if (attributesMap.containsKey(INPUT_VAL_PASSWORD_JS_REGEX_ATTRIBUTE_NAME)) {
-                    regExValidator.setJsRegExPattern(attributesMap.get(INPUT_VAL_PASSWORD_JS_REGEX_ATTRIBUTE_NAME));
+                if (attributesMap.containsKey(getAttributeName(PASSWORD, JS_REGEX))) {
+                    regExValidator.setJsRegExPattern(attributesMap.get(getAttributeName(PASSWORD, JS_REGEX)));
                 }
                 passwordValidator.setRegExValidator(regExValidator);
             }
@@ -397,5 +398,10 @@ public class InputValidationManagerImpl implements InputValidationManager {
     private ConfigurationManager getConfigurationManager() {
 
         return InputValidationDataHolder.getConfigurationManager();
+    }
+
+    private String getAttributeName(String inputName, String attribute) {
+
+        return inputName + "." + attribute;
     }
 }
