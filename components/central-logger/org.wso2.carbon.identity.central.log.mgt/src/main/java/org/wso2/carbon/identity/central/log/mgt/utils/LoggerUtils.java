@@ -192,6 +192,12 @@ public class LoggerUtils {
         return content;
     }
 
+    /**
+     * Util function to mask claim values except userid claim.
+     *
+     * @param claims Map of user claims.
+     * @return sanitized map of user claims.
+     */
     public static Map<String, String> maskClaimValues(Map<String, String> claims) {
 
         Map<String, String> sanitizedClaims = new HashMap<>();

@@ -64,10 +64,12 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
             log.debug(event.getEventName() + " event received to ClaimMetadataManagementAuditLogger for the " +
                     "tenant: " + tenantDomain);
         }
-        String initiator = getInitiatorUsername(tenantDomain);
+        String initiator;
         if (LoggerUtils.isLogMaskingEnable && StringUtils.isNotBlank(tenantDomain)) {
             initiator = IdentityUtil.getInitiatorId(CarbonContext.getThreadLocalCarbonContext().getUsername(),
                     tenantDomain);
+        } else {
+            initiator = getInitiatorUsername(tenantDomain);
         }
         if (IdentityEventConstants.Event.POST_ADD_CLAIM_DIALECT.equals(event.getEventName())) {
             String claimDialectUri =
