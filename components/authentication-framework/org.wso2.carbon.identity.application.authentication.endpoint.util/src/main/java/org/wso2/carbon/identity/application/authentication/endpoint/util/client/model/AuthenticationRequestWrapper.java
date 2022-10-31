@@ -42,7 +42,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
-     * Get the parameter from the map.
+     * Get the parameter. If the parameter is not found in the map, will return the query parameter.
      *
      * @param name Name of the parameter.
      * @return Parameter value.
@@ -54,6 +54,20 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
         } else {
             return super.getParameter(name);
         }
+    }
+
+    /**
+     * Get the auth parameter from the map.
+     *
+     * @param name Name of the parameter.
+     * @return Parameter value.
+     */
+    public String getAuthParameter(String name) {
+
+        if (authParams != null) {
+            return (String) authParams.get(name);
+        }
+        return null;
     }
 
     /**
