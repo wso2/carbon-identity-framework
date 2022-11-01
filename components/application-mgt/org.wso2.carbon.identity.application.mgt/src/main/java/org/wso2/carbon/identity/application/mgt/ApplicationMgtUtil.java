@@ -92,6 +92,8 @@ public class ApplicationMgtUtil {
     public static final String MASKING_CHARACTER = "*";
     public static final String MASKING_REGEX = "(?<!^.?).(?!.?$)";
     private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
+            UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -842,10 +844,12 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         User user = null;
+        String userId = null;
         try {
             int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-            String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
-
+            if (StringUtils.isBlank(username)) {
+                userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+            }
             if (tenantID == MultitenantConstants.SUPER_TENANT_ID) {
                 user = getUserFromTenant(username, userId, tenantID);
             } else {
@@ -887,8 +891,17 @@ public class ApplicationMgtUtil {
             AbstractUserStoreManager userStoreManager =
                     (AbstractUserStoreManager) ApplicationManagementServiceComponentHolder.getInstance()
                             .getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-            if (username != null && userStoreManager.isExistingUser(username)) {
-                user = new User(userStoreManager.getUser(null, username));
+            if (username != null) {
+                if (userStoreManager.isExistingUser(username)) {
+                    user = new User(userStoreManager.getUser(null, username));
+                } else if (userStoreManager.isExistingUserWithID(username)) {
+                    /*
+                    For federated admin user flow, sometimes their user id will be sent to federated tenant as name.
+                    Thus need to fetch user details using username as user id from their original
+                    tenant's user-store manager.
+                    */
+                    user = new User(userStoreManager.getUser(username, null));
+                }
             } else if (userId != null && userStoreManager.isExistingUserWithID(userId)) {
                 user = new User(userStoreManager.getUser(userId, null));
             }
@@ -902,6 +915,7 @@ public class ApplicationMgtUtil {
      * Get user's tenant domain.
      *
      * @param tenantDomain The tenant domain which user is trying to access.
+     *                     This is the same tenant that application resides.
      * @param username     The username of the user.
      * @return The tenant domain where the user resides.
      * @throws IdentityApplicationManagementException Error when user cannot be resolved.
@@ -909,12 +923,37 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(username)) {
-            return tenantDomain;
-        } else {
-            return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
-                    "Error resolving user.")).getTenantDomain();
+        try {
+            if (useApplicationTenantDomainAsUserTenantDomain(tenantDomain, username)) {
+                return tenantDomain;
+            }
+            /*
+             Else situation occur when the application creator is deleted. At that point,
+             set the tenant domain of the application as the user's tenant domain.
+             */
+            return getUser(tenantDomain, username).map(User::getTenantDomain).orElse(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant.", e);
         }
+    }
+
+    private static boolean useApplicationTenantDomainAsUserTenantDomain(String tenantDomain, String username)
+            throws UserStoreException {
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
+                DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME.equals(username) ||
+                !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
+            return true;
+        }
+        /*
+        If the tenant doesn't have an associated organization, return the application tenant
+        as the user's tenant domain.
+         */
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                .getTenantManager().getTenant(tenantID);
+        String accessedOrganizationId = tenant.getAssociatedOrganizationUUID();
+        return StringUtils.isEmpty(accessedOrganizationId);
     }
 
     /**
