@@ -4991,7 +4991,7 @@
 
                                 <% if (StringUtils.isNotEmpty(prop.getType()) && prop.getType().equalsIgnoreCase("boolean")) {
                                     String propChecked = "";
-                                    if ( prop.getValue() != null && prop.getValue().equalsIgnoreCase("true")){
+                                    if (StringUtils.isNotEmpty(prop.getValue()) && prop.getValue().equalsIgnoreCase("true")){
                                         propChecked = "checked=\'checked\'";
                                     } %>
 
