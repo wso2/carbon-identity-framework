@@ -1736,9 +1736,8 @@ public class FrameworkUtils {
         List<String> queryParams;
         String action;
         if (!configAvailable) {
-            queryParams = Arrays.asList("sessionDataKey", "sessionDataKeyConsent", "errorKey", "sp", "isSaaSApp",
-                    "tenantDomain", "t");
-            action = "include";
+            queryParams = Arrays.asList("loggedInUser");
+            action = "exclude";
         } else {
             queryParams = FileBasedConfigurationBuilder.getInstance()
                     .getAuthEndpointRedirectParams();
