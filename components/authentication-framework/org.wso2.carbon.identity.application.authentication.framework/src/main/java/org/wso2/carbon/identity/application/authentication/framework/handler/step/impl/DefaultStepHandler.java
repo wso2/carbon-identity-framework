@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -699,6 +700,9 @@ public class DefaultStepHandler implements StepHandler {
             String initiator = null;
             if (stepConfig.getAuthenticatedUser() != null) {
                 initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                if (LoggerUtils.isLogMaskingEnable) {
+                    initiator = LoggerUtils.maskContent(initiator);
+                }
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
@@ -717,6 +721,9 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = e.getUser().toFullQualifiedUsername();
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.maskContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
@@ -755,6 +762,9 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = e.getUser().toFullQualifiedUsername();
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.maskContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator,
