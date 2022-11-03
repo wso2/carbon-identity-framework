@@ -244,18 +244,6 @@
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
     </SSOService>
 
-    <SecurityTokenService>
-
-        <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/services/wso2carbon-sts</IdentityProviderURL>
-    </SecurityTokenService>
-
-    <PassiveSTS>
-        <IdentityProviderURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/passivests</IdentityProviderURL>
-        <RetryURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/retry.do</RetryURL>
-        <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
-        <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
-    </PassiveSTS>
-
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
             <EnableThriftService>false</EnableThriftService>
@@ -520,7 +508,6 @@
         <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
         <Resource context="/samlsso(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
-        <Resource context="/passivests(.*)" secured="false" http-method="all"/>
         <Resource context="/samlartresolve(.*)" secured="false" http-method="all"/>
         <Resource context="/oauth/request-token(.*)" secured="false" http-method="all"/>
         <Resource context="/oauth/authorize-url(.*)" secured="false" http-method="all"/>

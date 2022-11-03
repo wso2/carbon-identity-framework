@@ -40,7 +40,6 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -232,24 +231,6 @@
     }
 
     oauthapp = appBean.getOIDCClientId();
-
-    String wsTrustEndpoint = request.getParameter("serviceName");
-    String wsTrustObsoleteEndpoint = request.getParameter("obsoleteServiceName");
-
-    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "update".equals(action)) {
-        if (wsTrustObsoleteEndpoint != null && !wsTrustObsoleteEndpoint.isEmpty()) {
-            appBean.removeWstrustEp(wsTrustObsoleteEndpoint);
-        }
-        appBean.addWstrustEp(wsTrustEndpoint);
-        isNeedToUpdate = true;
-    }
-
-    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "delete".equals(action)) {
-        appBean.removeWstrustEp(wsTrustEndpoint);
-        isNeedToUpdate = true;
-    }
-
-    List<String> wsTrust = appBean.getAllWsTrustSPs();
 
     String display = request.getParameter("display");
 
@@ -611,8 +592,6 @@
             configType = "SAML2 Web SSO Configuration";
         } else if(postURL.includes("oauth")) {
             configType = "OAuth/OpenID Connect Configuration";
-        } else if(postURL.includes("generic-sts")) {
-            configType = "WS-Trust Security Token Service Configuration";
         } else {
             configType = "Kerberos KDC";
         }
@@ -2362,139 +2341,6 @@
                                     </table>
                                 </div>
 
-                                <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#">WS-Federation (Passive) Configuration</a>
-                                    <% if (appBean.getPassiveSTSRealm() != null) { %>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                    <%} %>
-                                </h2>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                     id="passive.config.div">
-                                    <table class="carbonFormTable">
-
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.passive.sts.realm'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getPassiveSTSRealm() != null) {
-                                                %>
-                                                <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSRealm())%>"
-                                                       autocomplete="off" autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="passiveSTSRealm" name="passiveSTSRealm"
-                                                       type="text" value="" autocomplete="off" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.passive.sts'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                        <tr>
-                                            <td style="width:15%" class="leftCol-med labelField">
-                                                <fmt:message key='application.passive.sts.wreply'/>:
-                                            </td>
-                                            <td>
-                                                <%
-                                                    if (appBean.getPassiveSTSWReply() != null) {
-                                                %>
-                                                <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text"
-                                                       value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReply())%>"
-                                                       autocomplete="off" autofocus/>
-                                                <% } else { %>
-                                                <input style="width:50%" id="passiveSTSWReply" name="passiveSTSWReply"
-                                                       type="text" value="" autocomplete="off" autofocus/>
-                                                <% } %>
-                                                <div class="sectionHelp">
-                                                    <fmt:message key='help.passive.sts.wreply'/>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-
-                                    </table>
-                                </div>
-
-                                <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
-                                <h2 id="wst.config.head" class="sectionSeperator trigger active"
-                                    style="background-color: beige;">
-                                    <a href="#"><fmt:message key="title.config.sts.config"/></a>
-                                    <% if (appBean.getAllWsTrustSPs() != null && !appBean.getAllWsTrustSPs().isEmpty()) { %>
-                                    <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
-                                    <%} %>
-                                </h2>
-                                        <%if (display!=null && display.equals("serviceName")) { %>
-                                <div class="toggle_container sectionSub" style="margin-bottom:10px;"
-                                     id="wst.config.div">
-                                            <% } else { %>
-                                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none;"
-                                         id="wst.config.div">
-                                        <%} %>
-                                        <table class="carbonFormTable">
-
-                                            <tr>
-                                                <td>
-                                                    <%
-                                                        if (appBean.getAllWsTrustSPs() == null || appBean.getAllWsTrustSPs().isEmpty()) {
-                                                    %>
-                                                    <a id="sts_link" class="icon-link" onclick="onSTSClick()">
-                                                        <fmt:message key='auth.configure'/></a>
-                                                    <%
-                                                    } else {
-                                                    %>
-                                                    <div style="clear:both"></div>
-                                                    <table class="styledLeft" id="samlTable">
-                                                        <thead>
-                                                        <tr>
-                                                            <th class="leftCol-med">Audience</th>
-                                                            <th><fmt:message
-                                                                key='application.info.oauthoidc.action'/></th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        <%
-                                                            for (String wsTrustURI : appBean.getAllWsTrustSPs()) {
-                                                        %>
-                                                        <tr>
-                                                            <td>
-                                                                <%=Encode.forHtmlContent(wsTrustURI)%>
-                                                            </td>
-                                                            <td style="white-space: nowrap;">
-                                                                <a title="Edit Audience"
-                                                                   onclick="updateBeanAndRedirect('../generic-sts/sts.jsp?spName=<%=Encode.forUriComponent(spName)%>&spAudience=<%=Encode.forUriComponent(wsTrustURI)%>&spAction=spEdit');"
-                                                                   class="icon-link"
-                                                                   style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                                                <a title="Delete Audience"
-                                                                   onclick="updateBeanAndPostWithConfirmation('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
-                                                                       'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(wsTrustURI)%>',
-                                                                       'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(wsTrustURI)%>');"
-                                                                   class="icon-link"
-                                                                   style="background-image: url(images/delete.gif)">
-                                                                    Delete </a>
-                                                            </td>
-                                                        </tr>
-                                                        <% } %>
-                                                        </tbody>
-                                                    </table>
-                                                    <a id="sts_link" class="icon-link" style="background-image:url(images/add.gif);" onclick="onSTSClick()">
-                                                        <fmt:message key='auth.add.audience'/></a>
-                                                    <%
-                                                        }
-                                                    %>
-                                                    <div style="clear:both"></div>
-                                                </td>
-                                            </tr>
-
-                                        </table>
-                                    </div>
-                                    <%} %>
-
                                     <h2 id="kerberos.kdc.head" class="sectionSeperator trigger active"
                                         style="background-color: beige;">
                                         <a href="#">Kerberos KDC</a>
@@ -2571,10 +2417,8 @@
                                             List<String> standardInboundAuthTypes = new ArrayList<String>();
                                             standardInboundAuthTypes = new ArrayList<String>();
                                             standardInboundAuthTypes.add("oauth2");
-                                            standardInboundAuthTypes.add("wstrust");
                                             standardInboundAuthTypes.add("samlsso");
                                             standardInboundAuthTypes.add("openid");
-                                            standardInboundAuthTypes.add("passivests");
                                             standardInboundAuthTypes.add("kerberos");
 
                                             if (!CollectionUtils.isEmpty(appBean.getInboundAuthenticators())) {

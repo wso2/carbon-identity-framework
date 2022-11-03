@@ -292,9 +292,6 @@ public class IdentityConstants {
 
         public static final String TEMP_DATA_CLEAN_UP_TIMEOUT_DEFAULT = "1";
 
-        //PassiveSTS
-        public static final String PASSIVE_STS_RETRY = "PassiveSTS.RetryURL";
-
         // Server Synchronization Tolerance Configurations
         public static final String CLOCK_SKEW = "ClockSkew";
         public static final String CLOCK_SKEW_DEFAULT = "300";
@@ -380,19 +377,6 @@ public class IdentityConstants {
         public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
-    }
-
-    /**
-     * Common constants related to STS
-     */
-    public static class STS {
-
-        public static final String PASSIVE_STS = "passivests";
-        public static final String WSO2_CARBON_STS = "wso2carbon-sts";
-        public static final String PSTS_IDENTITY_PROVIDER_URL = "PassiveSTS.IdentityProviderURL";
-        public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
-        public static final String PASSIVE_STS_SLO_HOST_NAME_VERIFICATION_ENABLED =
-                "PassiveSTS.SLOHostNameVerificationEnabled";
     }
 
     /**

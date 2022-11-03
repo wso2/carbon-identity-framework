@@ -882,8 +882,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         Map<String, String> claimMappings = appConfig.getClaimMappings();
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType)) {
             return "http://wso2.org/oidc/claim";
-        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType)) {
-            return "http://schemas.xmlsoap.org/ws/2005/05/identity";
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType)) {
             return "http://axschema.org";
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {

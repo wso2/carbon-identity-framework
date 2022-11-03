@@ -142,8 +142,6 @@ public class IdentityProviderManager implements IdpManager {
         String oAuth2DCREPUrl;
         String oAuth2JWKSPage;
         String oIDCDiscoveryEPUrl;
-        String passiveStsUrl;
-        String stsUrl;
         String scimUsersEndpoint;
         String scimGroupsEndpoint;
         String scim2UsersEndpoint;
@@ -158,8 +156,6 @@ public class IdentityProviderManager implements IdpManager {
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
         oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
         oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
-        passiveStsUrl = IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL);
-        stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
         scimUsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
         scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
         scim2UsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL);
@@ -203,16 +199,6 @@ public class IdentityProviderManager implements IdpManager {
         oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
         oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, tenantDomain);
         oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, tenantDomain);
-
-        // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
-        if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS);
-        } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS, true, true);
-        }
 
         if (StringUtils.isBlank(scimUsersEndpoint)) {
             scimUsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);
@@ -420,65 +406,6 @@ public class IdentityProviderManager implements IdpManager {
 
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);
-
-        FederatedAuthenticatorConfig passiveSTSFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        if (passiveSTSFedAuthn == null) {
-            passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
-            passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        }
-
-        propertiesList = new ArrayList<>();
-        Property passiveSTSUrlProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
-                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-        if (passiveSTSUrlProperty == null) {
-            passiveSTSUrlProperty = new Property();
-            passiveSTSUrlProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-        }
-        passiveSTSUrlProperty.setValue(passiveStsUrl);
-        propertiesList.add(passiveSTSUrlProperty);
-
-        Property stsIdPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
-                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        if (stsIdPEntityIdProperty == null) {
-            stsIdPEntityIdProperty = new Property();
-            stsIdPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS
-                    .IDENTITY_PROVIDER_ENTITY_ID);
-            stsIdPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
-        }
-        propertiesList.add(stsIdPEntityIdProperty);
-
-        for (Property property : passiveSTSFedAuthn.getProperties()) {
-            if (property != null && !IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL
-                    .equals(property.getName()) && !IdentityApplicationConstants.Authenticator.PassiveSTS
-                    .IDENTITY_PROVIDER_ENTITY_ID.equals(property.getName())) {
-                propertiesList.add(property);
-            }
-        }
-
-        passiveSTSFedAuthn
-                .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(passiveSTSFedAuthn);
-
-        FederatedAuthenticatorConfig stsFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        if (stsFedAuthn == null) {
-            stsFedAuthn = new FederatedAuthenticatorConfig();
-            stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        }
-        propertiesList = new ArrayList<Property>(Arrays.asList(stsFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL) == null) {
-            Property stsUrlProp = new Property();
-            stsUrlProp.setName(IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL);
-            stsUrlProp.setValue(stsUrl);
-            propertiesList.add(stsUrlProp);
-        }
-        stsFedAuthn
-                .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(stsFedAuthn);
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
 
@@ -858,16 +785,8 @@ public class IdentityProviderManager implements IdpManager {
         oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
         oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
 
-        Property passiveStsProperty = new Property();
-        passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
-
-        FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
-        passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
-        passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
-                passiveStsAuthenticationConfig, oidcAuthenticationConfig};
+                oidcAuthenticationConfig};
         identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
                 .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 

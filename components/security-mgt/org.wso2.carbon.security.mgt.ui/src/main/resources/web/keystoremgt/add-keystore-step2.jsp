@@ -34,7 +34,7 @@
 <%@ page import="java.util.List" %>
 <%@page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<script type="text/javascript" src="../securityconfig/extensions/js/vui.js"></script>
+<script type="text/javascript" src="./extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <jsp:useBean id="ksBean" type="org.wso2.carbon.security.ui.client.KeyStoreBean" class="org.wso2.carbon.security.ui.client.KeyStoreBean" scope="session"/>

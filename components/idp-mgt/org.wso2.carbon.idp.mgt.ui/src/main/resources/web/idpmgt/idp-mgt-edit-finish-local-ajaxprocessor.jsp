@@ -123,15 +123,6 @@
         properties = propertyList.toArray(properties);
         samlFedAuthn.setProperties(properties);
 
-        FederatedAuthenticatorConfig passiveStsFedAuthn = new FederatedAuthenticatorConfig();
-        passiveStsFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        Property[] stsProperties = new Property[1];
-        Property stsProperty = new Property();
-        stsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        stsProperty.setValue(request.getParameter("passiveSTSIdPEntityId"));
-        stsProperties[0] = stsProperty;
-        passiveStsFedAuthn.setProperties(stsProperties);
-
         FederatedAuthenticatorConfig oidcAuthn = new FederatedAuthenticatorConfig();
         oidcAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
         Property[] oidcAuthnProperties = new Property[1];
@@ -141,10 +132,9 @@
         oidcAuthnProperties[0] = oidcAuthnProperty;
         oidcAuthn.setProperties(oidcAuthnProperties);
 
-        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[3];
+        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[2];
         federatedAuthenticators[0] = samlFedAuthn;
-        federatedAuthenticators[1] = passiveStsFedAuthn;
-        federatedAuthenticators[2] = oidcAuthn;
+        federatedAuthenticators[1] = oidcAuthn;
         identityProvider.setFederatedAuthenticatorConfigs(federatedAuthenticators);
 
         IdentityProviderProperty propertySessionIdelTimeout = new IdentityProviderProperty();

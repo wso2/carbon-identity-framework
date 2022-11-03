@@ -30,7 +30,6 @@
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
-<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
@@ -95,10 +94,7 @@
     String userInfoUrl = null;
     String oidcCheckSessionEndpoint = null;
     String oidcLogoutEndpoint = null;
-    String passiveSTSUrl = null;
-    String passivestsIdPEntityId = null;
     String oidcIdpEntityId = null;
-    String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
     String oidcWebFingerEndpoint = null;
@@ -180,14 +176,6 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL).getValue();
             oidcDiscoveryEndpoint = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL).getValue();
-        } else if(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME.equals(federatedAuthenticator.getName())){
-            passiveSTSUrl = IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL).getValue();
-            passivestsIdPEntityId = IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID).getValue();
-        } else if(IdentityApplicationConstants.Authenticator.WSTrust.NAME.equals(federatedAuthenticator.getName())){
-            stsUrl = IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL).getValue();
         }
     }
     String scimUserEp = null;
@@ -722,65 +710,6 @@ function removeDefaultAuthSeq() {
                     </table>
                     </div>
 
-                    <h2 id="passivestsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
-                		<a href="#"><fmt:message key='passive.sts.local.config'/></a>
-            		</h2>
-            		<div class="toggle_container sectionSub" style="margin-bottom:10px;display:none" id="passivestsconfig">
-                    <table class="carbonFormTable">
-                        <tr>
-                            <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:</td>
-                            <td>
-                                <input id="passiveSTSIdPEntityId" name="passiveSTSIdPEntityId" type="text" value="<%=Encode.forHtmlAttribute(passivestsIdPEntityId)%>"/>
-                                <div class="sectionHelp">
-                                    <fmt:message key='idp.entity.id.help'/>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                        <td class="leftCol-med labelField">
-                            <label for="samlAuthnRequestsSigningEnabled"><fmt:message key='saml.metadata.authn.requests.signing.enabled'/>
-                            </label>
-                        </td>
-                         <td>
-                             <div class="sectionCheckbox">
-                                  <input id="samlAuthnRequestsSigningEnabled" name="samlAuthnRequestsSigningEnabled"
-                                         type="checkbox" <%=samlAuthnRequestsSigningChecked%>/>
-                             </div>
-                         </td>
-                    </tr>
-                        <tr>
-                            <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:</td>
-                            <td><%=Encode.forHtmlContent(passiveSTSUrl)%></td>
-                        </tr>
-                    </table>
-                    </div>
-
-                        <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
-                        <h2 id="stsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
-                            <a href="#"><fmt:message key='sts.local.config'/></a>
-                        </h2>
-                        <div class="toggle_container sectionSub" style="margin-bottom:10px;display:none" id="stsconfig">
-                            <table class="carbonFormTable">
-                                <tr>
-                                    <td class="leftCol-med labelField" style="padding-top: 5px"><fmt:message key='sts.url'/>:</td>
-                                    <td>
-                                        <a href="javascript:document.location.href='<%=
-                                        Encode.forUriComponent(stsUrl)+"?wsdl"%>'"
-                                           class="icon-link"
-                                           style="background-image:url(images/sts.gif);margin-left: 0"><%=Encode.forHtmlContent(stsUrl)%>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="javascript:document.location.href='../securityconfig/index.jsp?serviceName=wso2carbon-sts'"
-                                           class="icon-link"
-                                           style="background-image:url(images/configure.gif);margin-right: 300px">
-                                            <fmt:message key='apply.security.policy'/>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <%} %>
                 </div>
                     <h2 id="inboundprovisioningconfighead"  class="sectionSeperator trigger active">
                 		<a href="#">Inbound Provisioning Configuration</a>

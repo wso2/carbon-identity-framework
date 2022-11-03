@@ -91,9 +91,6 @@ public class ApplicationBean {
     private String oauthAppName;
     private String oauthConsumerSecret;
     private String attrConsumServiceIndex;
-    private List<String> wstrustEp = new ArrayList<String>(0);
-    private String passivests;
-    private String passiveSTSWReply;
     private String openid;
     private String[] claimUris;
     private List<String> claimDialectUris;
@@ -108,10 +105,8 @@ public class ApplicationBean {
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
         standardInboundAuthTypes.add("oauth2");
-        standardInboundAuthTypes.add("wstrust");
         standardInboundAuthTypes.add("samlsso");
         standardInboundAuthTypes.add("openid");
-        standardInboundAuthTypes.add("passivests");
     }
 
     public void reset() {
@@ -127,9 +122,6 @@ public class ApplicationBean {
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
-        wstrustEp = new ArrayList<String>(0);
-        passivests = null;
-        passiveSTSWReply = null;
         openid = null;
         oauthConsumerSecret = null;
         attrConsumServiceIndex = null;
@@ -744,34 +736,6 @@ public class ApplicationBean {
         }
     }
 
-    public void deleteWstrustEp() {
-        this.wstrustEp = null;
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-        if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest =
-                    new ArrayList<InboundAuthenticationRequestConfig>();
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("wstrust".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-                    continue;
-                }
-                tempAuthRequest.add(authRequest[i]);
-            }
-            if (CollectionUtils.isNotEmpty(tempAuthRequest)) {
-                serviceProvider
-                        .getInboundAuthenticationConfig()
-                        .setInboundAuthenticationRequestConfigs(
-                                tempAuthRequest
-                                        .toArray(new InboundAuthenticationRequestConfig[tempAuthRequest
-                                                .size()]));
-            } else {
-                serviceProvider.getInboundAuthenticationConfig()
-                        .setInboundAuthenticationRequestConfigs(null);
-            }
-        }
-    }
-
     /**
      * @return
      */
@@ -816,99 +780,6 @@ public class ApplicationBean {
             }
         }
         return openid;
-    }
-
-    /**
-     * @return
-     */
-    public String getWstrustSP() {
-        List<String> wsTrustEps = getAllWsTrustSPs();
-        if (CollectionUtils.isNotEmpty(wsTrustEps)) {
-            return getAllWsTrustSPs().get(0);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return
-     */
-    public List<String> getAllWsTrustSPs() {
-        if (CollectionUtils.isNotEmpty(wstrustEp)) {
-            return wstrustEp;
-        } else {
-            wstrustEp = new ArrayList<>(0);
-        }
-
-        InboundAuthenticationRequestConfig[] authRequests = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-        if (authRequests != null) {
-            Arrays.stream(authRequests).filter(authRequest ->
-                    (authRequest.getInboundAuthType() != null && !authRequest.getInboundAuthType().isEmpty()
-                            && "wstrust".equalsIgnoreCase(authRequest.getInboundAuthType())))
-                    .forEach(authRequest -> wstrustEp.add(authRequest.getInboundAuthKey()));
-        }
-
-        return wstrustEp;
-    }
-
-    /**
-     * @return
-     */
-    public String getPassiveSTSRealm() {
-
-        if (passivests != null) {
-            return passivests;
-        }
-
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-                    passivests = authRequest[i].getInboundAuthKey();
-                    break;
-                }
-            }
-        }
-
-        return passivests;
-    }
-
-    /**
-     * @return
-     */
-    public String getPassiveSTSWReply() {
-
-        if (passiveSTSWReply != null) {
-            return passiveSTSWReply;
-        }
-
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-
-                    // get wreply url from properties
-                    Property[] properties = authRequest[i].getProperties();
-                    if (properties != null) {
-                        for (int j = 0; j < properties.length; j++) {
-                            if ("passiveSTSWReply".equalsIgnoreCase(properties[j].getName())) {
-                                passiveSTSWReply = properties[j].getValue();
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        return passiveSTSWReply;
     }
 
     /**
@@ -1313,32 +1184,6 @@ public class ApplicationBean {
             authRequestList.add(opicAuthenticationRequest);
         }
 
-        if (CollectionUtils.isNotEmpty(wstrustEp)) {
-            wstrustEp.forEach(entry -> {
-                InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
-                opicAuthenticationRequest.setInboundAuthKey(entry);
-                opicAuthenticationRequest.setInboundAuthType("wstrust");
-                authRequestList.add(opicAuthenticationRequest);
-            });
-        }
-
-        String passiveSTSRealm = request.getParameter("passiveSTSRealm");
-        String passiveSTSWReply = request.getParameter("passiveSTSWReply");
-
-        if (StringUtils.isNotBlank(passiveSTSRealm)) {
-            InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
-            opicAuthenticationRequest.setInboundAuthKey(passiveSTSRealm);
-            opicAuthenticationRequest.setInboundAuthType("passivests");
-            if (passiveSTSWReply != null && !passiveSTSWReply.isEmpty()) {
-                Property property = new Property();
-                property.setName("passiveSTSWReply");
-                property.setValue(passiveSTSWReply);
-                Property[] properties = {property};
-                opicAuthenticationRequest.setProperties(properties);
-            }
-            authRequestList.add(opicAuthenticationRequest);
-        }
-
         String openidRealm = request.getParameter("openidRealm");
 
         if (StringUtils.isNotBlank(openidRealm)) {
@@ -1593,94 +1438,10 @@ public class ApplicationBean {
     }
 
     /**
-     * @param wstrustEp
-     */
-    public void setWstrustEp(String wstrustEp) {
-        if (CollectionUtils.isEmpty(this.wstrustEp)) {
-            this.wstrustEp = new ArrayList<String>(0);
-        }
-
-        this.wstrustEp.clear();
-        this.wstrustEp.add(wstrustEp);
-    }
-
-    /**
-     * @param wstrustEps
-     */
-    public void setWstrustEp(List<String> wstrustEps) {
-        this.wstrustEp = wstrustEps;
-    }
-
-    /**
-     * @param passivests
-     */
-    public void setPassivests(String passivests) {
-        this.passivests = passivests;
-    }
-
-    /**
-     * @param passiveSTSWReply
-     */
-    public void setPassiveSTSWReply(String passiveSTSWReply) {
-        this.passiveSTSWReply = passiveSTSWReply;
-    }
-
-    /**
      * @param openid
      */
     public void setOpenid(String openid) {
         this.openid = openid;
-    }
-
-    /**
-     * @param wstrustEp
-     */
-    public void addWstrustEp(String wstrustEp) {
-        if (wstrustEp != null && !wstrustEp.isEmpty()) {
-            if (this.wstrustEp == null) {
-                this.wstrustEp = new ArrayList<String>(0);
-            }
-            this.wstrustEp.add(wstrustEp);
-        }
-    }
-
-    /**
-     * @param wstrustEp
-     */
-    public void removeWstrustEp(String wstrustEp) {
-        if (wstrustEp != null && !wstrustEp.isEmpty()) {
-            if (this.wstrustEp != null && !this.wstrustEp.isEmpty()) {
-                if (this.wstrustEp.stream().anyMatch(entry -> wstrustEp.equalsIgnoreCase(entry))) {
-                    this.wstrustEp.remove(wstrustEp);
-
-                    InboundAuthenticationRequestConfig[] authRequestConfigs = serviceProvider
-                            .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-                    if (authRequestConfigs != null && authRequestConfigs.length > 0) {
-                        List<InboundAuthenticationRequestConfig> tempAuthRequest =
-                                new ArrayList<InboundAuthenticationRequestConfig>();
-                        for (InboundAuthenticationRequestConfig authRequestConfig : authRequestConfigs) {
-                            if ("wstrust".equalsIgnoreCase(authRequestConfig.getInboundAuthType()) &&
-                                wstrustEp.equalsIgnoreCase(authRequestConfig.getInboundAuthKey())) {
-                                continue;
-                            }
-                            tempAuthRequest.add(authRequestConfig);
-                        }
-                        if (CollectionUtils.isNotEmpty(tempAuthRequest)) {
-                            serviceProvider
-                                    .getInboundAuthenticationConfig()
-                                    .setInboundAuthenticationRequestConfigs(
-                                            tempAuthRequest
-                                                    .toArray(new InboundAuthenticationRequestConfig[tempAuthRequest
-                                                            .size()]));
-                        } else {
-                            serviceProvider.getInboundAuthenticationConfig()
-                                    .setInboundAuthenticationRequestConfigs(null);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**
