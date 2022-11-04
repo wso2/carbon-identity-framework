@@ -314,6 +314,12 @@ public abstract class FrameworkConstants {
         public static final String INCREDIBLE_CLAIMS_CONFIG_ELEMENT = "IndelibleClaims";
         public static final String CLAIM_URI_CONFIG_ELEMENT = "ClaimURI";
 
+        /**
+         * Configuration to enable validating session expiry for authentication context cache entry.
+         */
+        public static final String AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION =
+                "EnableAuthenticationContextExpiryValidation";
+
         private Config() {
         }
 
