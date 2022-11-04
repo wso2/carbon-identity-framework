@@ -255,6 +255,10 @@ public class Constants {
         public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
         public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE = "unauthorized_client_not.authorized.to.use.requested.grant.type";
         public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY = "not.authorized.to.use.requested.grant.type";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION =
+                "authentication.flow.timeout_authentication.flow.timeout.description";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
+                "authentication.flow.timeout";
 
         private ErrorToi18nMappingConstants() {
 

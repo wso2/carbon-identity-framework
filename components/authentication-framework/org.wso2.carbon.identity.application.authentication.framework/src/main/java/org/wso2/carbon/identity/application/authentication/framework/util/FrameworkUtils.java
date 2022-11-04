@@ -85,6 +85,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -177,6 +178,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_EXPIRED_AUTHENTICATION_CONTEXT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
@@ -338,9 +340,13 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param request
-     * @return
+     * Retrieve authentication context data. This method doesn't check for the expired context.
+     * @deprecated. Please use {{@link #getContextDataWithExpiry(HttpServletRequest)}}.
+     *
+     * @param request Authentication request.
+     * @return Authentication context.
      */
+    @Deprecated
     public static AuthenticationContext getContextData(HttpServletRequest request) {
 
         AuthenticationContext context = null;
@@ -367,6 +373,45 @@ public class FrameworkUtils {
                     log.debug("Ignore UnsupportedOperationException.", e);
                 }
                 continue;
+            }
+        }
+
+        return context;
+    }
+
+    /**
+     * Retrieve authentication context data. If the cached entry is expired, an exception is thrown.
+     *
+     * @param request Authentication request.
+     * @return Authentication context.
+     * @throws FrameworkClientException
+     */
+    public static AuthenticationContext getContextDataWithExpiry(HttpServletRequest request)
+            throws FrameworkClientException {
+
+        AuthenticationContext context = null;
+        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
+            String promptId = request.getParameter("promptId");
+            context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(promptId);
+            if (context != null) {
+                FrameworkUtils.removeAuthenticationContextFromCache(promptId);
+                return context;
+            }
+        }
+        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+            try {
+                String contextIdentifier = authenticator.getContextIdentifier(request);
+
+                if (contextIdentifier != null && !contextIdentifier.isEmpty()) {
+                    context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(contextIdentifier);
+                    if (context != null) {
+                        break;
+                    }
+                }
+            } catch (UnsupportedOperationException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignore UnsupportedOperationException.", e);
+                }
             }
         }
 
@@ -983,6 +1028,7 @@ public class FrameworkUtils {
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
         AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
         cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout()));
+        cacheEntry.setCreatedTimeNano(FrameworkUtils.getCurrentStandardNano());
         AuthenticationContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
@@ -1302,9 +1348,13 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param contextId
-     * @return
+     * Retrieve the authentication context from cache. This method doesn't check for the cache expiry.
+     * @deprecated. Please use {{@link #getAuthenticationContextFromCacheWithExpiry(String)}}.
+     *
+     * @param contextId Context id.
+     * @return Authentication context.
      */
+    @Deprecated
     public static AuthenticationContext getAuthenticationContextFromCache(String contextId) {
 
         AuthenticationContext authenticationContext = null;
@@ -1313,6 +1363,38 @@ public class FrameworkUtils {
                 getValueFromCache(cacheKey);
 
         if (authenticationContextCacheEntry != null) {
+            authenticationContext = authenticationContextCacheEntry.getContext();
+        }
+
+        if (log.isDebugEnabled() && authenticationContext == null) {
+            log.debug("Authentication Context is null");
+        }
+
+        return authenticationContext;
+    }
+
+    /**
+     * Retrieve the authentication context from cache. If the cached entry is expired, an exception is thrown.
+     *
+     * @param contextId Context id.
+     * @return Authentication context.
+     * @throws FrameworkClientException
+     */
+    public static AuthenticationContext getAuthenticationContextFromCacheWithExpiry(String contextId)
+            throws FrameworkClientException {
+
+        AuthenticationContext authenticationContext = null;
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+        AuthenticationContextCacheEntry authenticationContextCacheEntry = AuthenticationContextCache.getInstance().
+                getValueFromCache(cacheKey);
+
+        if (authenticationContextCacheEntry != null) {
+            long expiryTimeNanos = authenticationContextCacheEntry.getCreatedTimeNano() +
+                    authenticationContextCacheEntry.getValidityPeriod();
+            if (FrameworkUtils.getCurrentStandardNano() > expiryTimeNanos) {
+                throw new FrameworkClientException(ERROR_EXPIRED_AUTHENTICATION_CONTEXT.getCode(),
+                        ERROR_EXPIRED_AUTHENTICATION_CONTEXT.getMessage());
+            }
             authenticationContext = authenticationContextCacheEntry.getContext();
         }
 

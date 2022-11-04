@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -93,6 +94,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_EXPIRED_AUTHENTICATION_CONTEXT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
 /**
@@ -195,7 +197,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context.initializeAnalyticsData();
             } else {
                 returning = true;
-                context = FrameworkUtils.getContextData(request);
+                context = FrameworkUtils.getContextDataWithExpiry(request);
                 associateTransientRequestData(request, responseWrapper, context);
             }
 
@@ -332,6 +334,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
                 FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
                         "suspicious.authentication.attempts.description");
+            } else if ((e instanceof FrameworkClientException) &&
+                    ERROR_EXPIRED_AUTHENTICATION_CONTEXT.getCode().equals(
+                            ((FrameworkClientException) e).getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug(e.getMessage(), e);
+                }
+                FrameworkUtils.sendToRetryPage(request, response, context, "authentication.flow.timeout",
+                        "authentication.flow.timeout.description");
             } else {
                 log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);

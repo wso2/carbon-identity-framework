@@ -69,6 +69,7 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_CHECKING_ACCOUNT_DISABLE_STATUS("80026",
                 "Error while checking the account disable status for the user %s"),
         ERROR_WHILE_GETTING_FEDERATED_USERNAME("80027", "Error while getting the federated username"),
+        ERROR_EXPIRED_AUTHENTICATION_CONTEXT("80028", "Authentication context has expired."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");

@@ -30,6 +30,7 @@ public class AuthenticationContextCacheEntry extends CacheEntry {
 
     AuthenticationContext context;
     String loggedInUser;
+    private long createdTimeNano;
 
     public AuthenticationContextCacheEntry(AuthenticationContext authenticationContext) {
         this.context = authenticationContext;
@@ -49,5 +50,15 @@ public class AuthenticationContextCacheEntry extends CacheEntry {
 
     public void setLoggedInUser(String loggedInUser) {
         this.loggedInUser = loggedInUser;
+    }
+
+    public long getCreatedTimeNano() {
+
+        return createdTimeNano;
+    }
+
+    public void setCreatedTimeNano(long createdTimeNano) {
+
+        this.createdTimeNano = createdTimeNano;
     }
 }
