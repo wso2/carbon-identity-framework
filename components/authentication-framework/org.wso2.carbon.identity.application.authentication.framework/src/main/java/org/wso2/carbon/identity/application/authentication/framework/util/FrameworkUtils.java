@@ -201,7 +201,8 @@ public class FrameworkUtils {
     private static final String EQUAL = "=";
     public static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
-
+    private static final String PROMPT_RESPONSE_PARAMETER = "promptResp";
+    private static final String PROMPT_ID_PARAMETER = "promptId";
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
@@ -351,8 +352,9 @@ public class FrameworkUtils {
     public static AuthenticationContext getContextData(HttpServletRequest request) {
 
         AuthenticationContext context = null;
-        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
-            String promptId = request.getParameter("promptId");
+        if (request.getParameter(PROMPT_RESPONSE_PARAMETER) != null &&
+                request.getParameter(PROMPT_ID_PARAMETER) != null) {
+            String promptId = request.getParameter(PROMPT_ID_PARAMETER);
             context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
             if (context != null) {
                 FrameworkUtils.removeAuthenticationContextFromCache(promptId);
@@ -381,19 +383,27 @@ public class FrameworkUtils {
     }
 
     /**
-     * Retrieve authentication context data. If the cached entry is expired, an exception is thrown.
+     * Retrieve authentication context data. If the AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION is enabled and the cache
+     * entry is expired, an exception is thrown.
+     * If the AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION is disabled, it will not validate the authentication context
+     * cache for session expiry.
      *
      * @param request Authentication request.
      * @return Authentication context.
-     * @throws FrameworkClientException
+     * @throws FrameworkClientException Authentication session has expired.
      */
     public static AuthenticationContext getContextDataWithExpiry(HttpServletRequest request)
             throws FrameworkClientException {
 
         AuthenticationContext context = null;
-        if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
-            String promptId = request.getParameter("promptId");
-            context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(promptId);
+        if (request.getParameter(PROMPT_RESPONSE_PARAMETER) != null &&
+                request.getParameter(PROMPT_ID_PARAMETER) != null) {
+            String promptId = request.getParameter(PROMPT_ID_PARAMETER);
+            if (FrameworkUtils.isAuthenticationContextExpiryEnabled()) {
+                context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(promptId);
+            } else {
+                context = FrameworkUtils.getAuthenticationContextFromCache(promptId);
+            }
             if (context != null) {
                 FrameworkUtils.removeAuthenticationContextFromCache(promptId);
                 return context;
@@ -404,7 +414,11 @@ public class FrameworkUtils {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
 
                 if (contextIdentifier != null && !contextIdentifier.isEmpty()) {
-                    context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(contextIdentifier);
+                    if (FrameworkUtils.isAuthenticationContextExpiryEnabled()) {
+                        context = FrameworkUtils.getAuthenticationContextFromCacheWithExpiry(contextIdentifier);
+                    } else {
+                        context = FrameworkUtils.getAuthenticationContextFromCache(contextIdentifier);
+                    }
                     if (context != null) {
                         break;
                     }

@@ -197,11 +197,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context.initializeAnalyticsData();
             } else {
                 returning = true;
-                if (FrameworkUtils.isAuthenticationContextExpiryEnabled()) {
-                    context = FrameworkUtils.getContextDataWithExpiry(request);
-                } else {
-                    context = FrameworkUtils.getContextData(request);
-                }
+                context = FrameworkUtils.getContextDataWithExpiry(request);
                 associateTransientRequestData(request, responseWrapper, context);
             }
 
