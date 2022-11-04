@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
@@ -340,7 +341,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(request.getCookies()).thenReturn(cookies);
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), isNull())).thenReturn
                 (cookies[0]);
-        LoggerUtils.isLogMaskingEnable = false;
+        LogConstants.isLogMaskingEnable = false;
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));

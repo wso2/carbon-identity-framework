@@ -41,6 +41,7 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
@@ -55,14 +56,6 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
-
-    /**
-     * Constants used for masking content.
-     */
-    private static String userIdClaimURI = "http://wso2.org/claims/userid";
-    public static Boolean isLogMaskingEnable;
-    private static final String MASKING_CHARACTER = "*";
-    private static final String CONTENT_MASKING_REGEX = "(?<=.).(?=.)";
 
     /**
      * @param initiatorId   Request initiator's id.
@@ -105,12 +98,12 @@ public class LoggerUtils {
     /**
      * Trigger Diagnostic Log Event.
      *
-     * @param componentId       Component ID.
-     * @param input             Input parameters.
-     * @param resultStatus      Result status.
-     * @param resultMessage     Result message.
-     * @param actionId          Action ID.
-     * @param configurations    System/application level configurations.
+     * @param componentId    Component ID.
+     * @param input          Input parameters.
+     * @param resultStatus   Result status.
+     * @param resultMessage  Result message.
+     * @param actionId       Action ID.
+     * @param configurations System/application level configurations.
      */
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
                                                  String resultMessage, String actionId,
@@ -187,7 +180,8 @@ public class LoggerUtils {
     public static String maskContent(String content) {
 
         if (StringUtils.isNotEmpty(content)) {
-            content = content.replaceAll(CONTENT_MASKING_REGEX, MASKING_CHARACTER);
+            Pattern pattern = Pattern.compile(LogConstants.CONTENT_MASKING_REGEX);
+            content = pattern.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
         }
         return content;
     }
@@ -201,13 +195,46 @@ public class LoggerUtils {
     public static Map<String, String> maskClaimValues(Map<String, String> claims) {
 
         Map<String, String> sanitizedClaims = new HashMap<>();
-        for (Map.Entry<String, String> entry : claims.entrySet()) {
-            if (entry.getKey().equals(userIdClaimURI)) {
-                sanitizedClaims.put(entry.getKey(), entry.getValue());
-            } else {
-                sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
+        if (claims != null && !claims.isEmpty()) {
+            for (Map.Entry<String, String> entry : claims.entrySet()) {
+                if (entry.getKey().equals(LogConstants.userIdClaimURI)) {
+                    sanitizedClaims.put(entry.getKey(), entry.getValue());
+                } else {
+                    sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
+                }
             }
         }
         return sanitizedClaims;
+    }
+
+    /**
+     * Util function to mask claim value except userId claim when there is only one claim.
+     *
+     * @param claimURI   Claim URI.
+     * @param claimValue Claim value that will be masked.
+     * @return masked claim value.
+     */
+    public static String maskClaimValue(String claimURI, String claimValue) {
+
+        String sanitizedClaimValue = claimValue;
+        if (StringUtils.isNotBlank(claimValue) && !claimURI.equals(LogConstants.userIdClaimURI)) {
+            sanitizedClaimValue = maskContent(claimValue);
+        }
+        return sanitizedClaimValue;
+    }
+
+    /**
+     * Util function to mask array of values.
+     *
+     * @param values Array of values need to be sanitized.
+     * @return sanitized array.
+     */
+    public static String[] sanitizeArraysOfValues(String[] values) {
+
+        String[] sanitizedUserList = new String[values.length];
+        for (int index = 0; index < values.length; index++) {
+            sanitizedUserList[index] = LoggerUtils.maskContent(values[index]);
+        }
+        return sanitizedUserList;
     }
 }

@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -96,18 +97,19 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
     private void addAuditLogs(String sessionKey, String initiator, String authenticatedUser, String userTenantDomain,
                               String traceId, Long terminatedTimestamp) {
 
-        String initiatedUser;
+        String initiatedUser = null;
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.AUTHENTICATED_USER_TENANT_DOMAIN, userTenantDomain);
         auditData.put(SessionMgtConstants.TRACE_ID, traceId);
         auditData.put(SessionMgtConstants.SESSION_TERMINATE_TIMESTAMP, terminatedTimestamp);
 
-        if (LoggerUtils.isLogMaskingEnable) {
+        if (LogConstants.isLogMaskingEnable) {
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, LoggerUtils.maskContent(authenticatedUser));
             if (StringUtils.isNotBlank(userTenantDomain)) {
                 initiatedUser = IdentityUtil.getInitiatorId(initiator, userTenantDomain);
-            } else {
+            }
+            if (StringUtils.isBlank(initiatedUser)) {
                 initiatedUser = LoggerUtils.maskContent(initiator);
             }
         } else {

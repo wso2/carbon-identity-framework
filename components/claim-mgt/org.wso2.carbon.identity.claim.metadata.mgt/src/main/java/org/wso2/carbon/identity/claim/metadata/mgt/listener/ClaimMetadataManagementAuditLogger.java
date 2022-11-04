@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -64,13 +65,7 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
             log.debug(event.getEventName() + " event received to ClaimMetadataManagementAuditLogger for the " +
                     "tenant: " + tenantDomain);
         }
-        String initiator;
-        if (LoggerUtils.isLogMaskingEnable && StringUtils.isNotBlank(tenantDomain)) {
-            initiator = IdentityUtil.getInitiatorId(CarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    tenantDomain);
-        } else {
-            initiator = getInitiatorUsername(tenantDomain);
-        }
+        String initiator = getInitiator(tenantDomain);
         if (IdentityEventConstants.Event.POST_ADD_CLAIM_DIALECT.equals(event.getEventName())) {
             String claimDialectUri =
                     (String) event.getEventProperties().get(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI);
@@ -209,5 +204,27 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
             data.append("]");
         }
         return data.toString();
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
+     * @param tenantDomain Tenant domain of the initiator.
+     * @return initiator.
+     */
+    private String getInitiator(String tenantDomain) {
+        String initiator = null;
+        if (LogConstants.isLogMaskingEnable) {
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(CarbonContext.getThreadLocalCarbonContext().getUsername(),
+                        tenantDomain);
+            }
+            if (StringUtils.isBlank(initiator)) {
+                initiator = LoggerUtils.maskContent(getInitiatorUsername(tenantDomain));
+            }
+        } else {
+            initiator = getInitiatorUsername(tenantDomain);
+        }
+        return initiator;
     }
 }

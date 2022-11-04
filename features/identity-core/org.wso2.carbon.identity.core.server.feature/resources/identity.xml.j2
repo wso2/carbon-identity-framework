@@ -1401,6 +1401,14 @@
         </Audit>
     </Authentication>
 
+    <MaskingLogs>
+    	    {% if masking_logs.enable is defined %}
+            <Enabled>{{masking_logs.enable}}</Enabled>
+            {% else %}
+            <Enabled>true</Enabled>
+            {% endif %}
+    </MaskingLogs>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>

@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -1061,13 +1062,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         auditData.put(SessionMgtConstants.AUTHENTICATED_USER_TENANT_DOMAIN, userTenantDomain);
         auditData.put(SessionMgtConstants.TRACE_ID, traceId);
 
-        String initiator;
-        if (LoggerUtils.isLogMaskingEnable) {
+        String initiator = null;
+        if (LogConstants.isLogMaskingEnable) {
             String maskedUsername = LoggerUtils.maskContent(authenticatedUser);
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
             if (StringUtils.isNotBlank(userTenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(authenticatedUser, userTenantDomain);
-            } else {
+            }
+            if (StringUtils.isBlank(initiator)) {
                 initiator = maskedUsername;
             }
         } else {

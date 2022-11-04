@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -70,19 +71,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             throws IdentityApplicationManagementException {
 
         String appId = getAppId(serviceProvider);
-        String initiator = null;
-
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(tenantDomain, userName);
-            }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(userName);
-            }
-        } else {
-            // Append tenant domain to username.
-            initiator = buildInitiatorUsername(tenantDomain, userName);
-        }
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         String data = buildData(serviceProvider);
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Add-Application", appId, data, SUCCESS));
         return true;
@@ -93,18 +82,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             throws IdentityApplicationManagementException {
 
         String appId = getAppId(serviceProvider);
-        String initiator = null;
-
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(tenantDomain, userName);
-            }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(userName);
-            }
-        } else {
-            initiator = buildInitiatorUsername(tenantDomain, userName);
-        }
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         String data = buildData(serviceProvider);
 
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-Application", appId, data, SUCCESS));
@@ -117,18 +95,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
         String applicationName = getApplicationName(serviceProvider);
         String appId = getAppId(serviceProvider);
-        String initiator = null;
-
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(tenantDomain, userName);
-            }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(userName);
-            }
-        } else {
-            initiator = buildInitiatorUsername(tenantDomain, userName);
-        }
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-Application", appId, applicationName, SUCCESS));
         return true;
     }
@@ -339,5 +306,31 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("]");
         }
         return data.toString();
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
+     * @param username      Username of the initiator.
+     * @param tenantDomain  Tenant domain of the initiator.
+     *
+     * @return initiator for the log.
+     */
+    private String getInitiatorForLog(String username, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        String initiator = null;
+        if (LogConstants.isLogMaskingEnable) {
+            if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(username)) {
+                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            }
+            if (StringUtils.isBlank(initiator)) {
+                initiator = LoggerUtils.maskContent(username);
+            }
+        } else {
+            // Append tenant domain to username.
+            initiator = buildInitiatorUsername(tenantDomain, username);
+        }
+        return initiator;
     }
 }
