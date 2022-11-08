@@ -18,10 +18,18 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +54,19 @@ public class CommonAuthenticationHandler {
 
         if (FrameworkUtils.getMaxInactiveInterval() == 0) {
             FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            if (request != null && MapUtils.isNotEmpty(request.getParameterMap())) {
+                request.getParameterMap().forEach((key, value) -> {
+                    if (ArrayUtils.isNotEmpty(value)) {
+                        params.put(key, Arrays.asList(value));
+                    }
+                });
+            }
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                    LogConstants.SUCCESS, "Successfully received authentication request", "receive-authn-request",
+                    null);
         }
         FrameworkUtils.getRequestCoordinator().handle(request, response);
     }

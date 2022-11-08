@@ -44,6 +44,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
@@ -143,6 +145,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     if (log.isDebugEnabled()) {
                         log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
                     }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("current step", context.getCurrentStep());
+                        params.put("authenticator", context.getCurrentAuthenticator());
+                        LoggerUtils.triggerDiagnosticLogEvent(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                                "Authentication has failed in the Step", "handle-authentication-step", null);
+                    }
 
                     // if the step contains multiple login options, we should give the user to retry
                     // authentication
@@ -189,6 +199,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             // if the sequence is not completed, we have work to do.
             if (log.isDebugEnabled()) {
                 log.debug("Starting Step: " + stepConfig.getOrder());
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("step", stepConfig.getOrder());
+                params.put("authenticator", stepConfig.getAuthenticatorList().get(stepConfig.getOrder()).getName());
+                params.put(FrameworkConstants.RequestParams.ISSUER, context.getRelyingParty());
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                        "Starting step: " + stepConfig.getOrder(), "handle-authentication-step", null);
             }
 
             FrameworkUtils.getStepHandler().handle(request, response, context);
