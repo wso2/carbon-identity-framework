@@ -116,6 +116,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     private boolean sendToMultiOptionPage;
 
+    /**
+     * This attribute holds the context expiry time in epoch timestamp (nanoseconds).
+     */
+    private long expiryTimeNano = 0L;
+
     public String getCallerPath() {
         return callerPath;
     }
@@ -787,5 +792,15 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void clearLoggedOutAuthenticators() {
 
         loggedOutAuthenticators.clear();
+    }
+
+    public long getExpiryTime() {
+
+        return expiryTimeNano;
+    }
+
+    public void setExpiryTime(long expiryTimeNano) {
+
+        this.expiryTimeNano = expiryTimeNano;
     }
 }
