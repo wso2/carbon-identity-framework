@@ -20,7 +20,7 @@
   "session_data.persistence.enable_user_session_mapping": true,
   "session_data.cleanup.enable_expired_data_cleanup": true,
   "session_data.cleanup.expire_session_data_after": "$ref{session.timeout.remember_me_session_timeout}",
-  "session_data.cleanup.expire_pre_session_data_after": "40m",
+  "session_data.cleanup.expire_pre_session_data_after": "240m",
   "session_data.cleanup.clean_expired_session_data_every": "1d",
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
