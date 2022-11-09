@@ -50,7 +50,7 @@
                 <PoolSize>20</PoolSize>
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
-                <CleanUpTimeout>240</CleanUpTimeout>
+                <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
             <UserSessionMapping>
                 <Enable>true</Enable>
@@ -1211,7 +1211,7 @@
     </CacheConfig>
 
     <!-- Config to enable performing validations for expired authentication context cache entry. -->
-    <EnableAuthenticationContextExpiryValidation>true</EnableAuthenticationContextExpiryValidation>
+    <EnableAuthenticationContextExpiryValidation>false</EnableAuthenticationContextExpiryValidation>
 
     <!--Cookies>
         <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
