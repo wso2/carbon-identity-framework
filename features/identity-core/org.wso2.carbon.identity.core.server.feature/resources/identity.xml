@@ -1211,7 +1211,7 @@
     </CacheConfig>
 
     <!-- Config to enable performing validations for expired authentication context cache entry. -->
-    <EnableAuthenticationContextExpiryValidation>false</EnableAuthenticationContextExpiryValidation>
+    <EnableAuthenticationContextExpiryValidation>true</EnableAuthenticationContextExpiryValidation>
 
     <!--Cookies>
         <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
