@@ -213,11 +213,12 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
      * @return initiator.
      */
     private String getInitiator(String tenantDomain) {
+
         String initiator = null;
         if (LogConstants.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(CarbonContext.getThreadLocalCarbonContext().getUsername(),
-                        tenantDomain);
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {
                 initiator = LoggerUtils.maskContent(getInitiatorUsername(tenantDomain));

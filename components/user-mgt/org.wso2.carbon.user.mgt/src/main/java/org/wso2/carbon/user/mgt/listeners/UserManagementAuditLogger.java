@@ -484,7 +484,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (LogConstants.isLogMaskingEnable) {
             String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
             String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
-            if (StringUtils.isNotBlank(tenantDomain)) {
+            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {
@@ -513,7 +513,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     private void setClaimsInAuditLog(Map<String, String> claims, JSONObject data){
 
         if (LogConstants.isLogMaskingEnable) {
-            Map<String, String> sanitizedClaims = LoggerUtils.maskClaimValues(claims);
+            Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(sanitizedClaims));
         } else {
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));

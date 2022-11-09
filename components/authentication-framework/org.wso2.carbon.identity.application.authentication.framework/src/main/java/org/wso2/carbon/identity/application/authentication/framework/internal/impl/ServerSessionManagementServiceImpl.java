@@ -106,7 +106,7 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
 
         if (LogConstants.isLogMaskingEnable) {
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, LoggerUtils.maskContent(authenticatedUser));
-            if (StringUtils.isNotBlank(userTenantDomain)) {
+            if (StringUtils.isNotBlank(initiator) && StringUtils.isNotBlank(userTenantDomain)) {
                 initiatedUser = IdentityUtil.getInitiatorId(initiator, userTenantDomain);
             }
             if (StringUtils.isBlank(initiatedUser)) {

@@ -28,6 +28,17 @@
     <packaging>bundle</packaging>
     <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.event</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -53,6 +64,7 @@
                             org.wso2.carbon.identity.core.bean.context;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
@@ -75,12 +87,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.event</artifactId>
-        </dependency>
-    </dependencies>
-
 </project>

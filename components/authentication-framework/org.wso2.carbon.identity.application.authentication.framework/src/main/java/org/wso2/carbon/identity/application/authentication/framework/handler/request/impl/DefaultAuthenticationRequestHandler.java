@@ -1066,7 +1066,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (LogConstants.isLogMaskingEnable) {
             String maskedUsername = LoggerUtils.maskContent(authenticatedUser);
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
-            if (StringUtils.isNotBlank(userTenantDomain)) {
+            if (StringUtils.isNotBlank(authenticatedUser) && StringUtils.isNotBlank(userTenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(authenticatedUser, userTenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {

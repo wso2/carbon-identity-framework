@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -192,10 +193,10 @@ public class LoggerUtils {
      * @param claims Map of user claims.
      * @return sanitized map of user claims.
      */
-    public static Map<String, String> maskClaimValues(Map<String, String> claims) {
+    public static Map<String, String> getMaskedClaimsMap(Map<String, String> claims) {
 
         Map<String, String> sanitizedClaims = new HashMap<>();
-        if (claims != null && !claims.isEmpty()) {
+        if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
                 if (entry.getKey().equals(LogConstants.userIdClaimURI)) {
                     sanitizedClaims.put(entry.getKey(), entry.getValue());

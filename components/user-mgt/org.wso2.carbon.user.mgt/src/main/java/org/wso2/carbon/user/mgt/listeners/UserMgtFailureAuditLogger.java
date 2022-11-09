@@ -61,7 +61,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
         }
         if (LogConstants.isLogMaskingEnable) {
-            Map<String, String> sanitizedClaims = LoggerUtils.maskClaimValues(claims);
+            Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(sanitizedClaims));
         } else {
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
@@ -122,7 +122,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             Map<String, String> claims, String profileName, UserStoreManager userStoreManager) {
 
         if (LogConstants.isLogMaskingEnable) {
-            Map<String, String> sanitizedClaims = LoggerUtils.maskClaimValues(claims);
+            Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
                             userStoreManager), new JSONObject(sanitizedClaims), errorCode, errorMessage));
         } else {
@@ -341,7 +341,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (LogConstants.isLogMaskingEnable) {
             String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
             String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
-            if (StringUtils.isNotBlank(tenantDomain)) {
+            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {

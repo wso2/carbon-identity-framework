@@ -319,18 +319,16 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     private String getInitiatorForLog(String username, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        String initiator = null;
-        if (LogConstants.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(username)) {
-                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
-            }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(username);
-            }
-        } else {
+        if (!LogConstants.isLogMaskingEnable) {
             // Append tenant domain to username.
-            initiator = buildInitiatorUsername(tenantDomain, username);
+            return buildInitiatorUsername(tenantDomain, username);
         }
-        return initiator;
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiator)) {
+                return initiator;
+            }
+        }
+        return LoggerUtils.maskContent(username);
     }
 }
