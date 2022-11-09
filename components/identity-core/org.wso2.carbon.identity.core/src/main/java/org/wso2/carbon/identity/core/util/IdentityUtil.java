@@ -1707,4 +1707,15 @@ public class IdentityUtil {
         }
         return propertyList;
     }
+
+    /**
+     * Get validity period configured for the authentication context.
+     *
+     * @return Validity period in minutes.
+     */
+    public static long getAuthenticationContextValidityPeriod() {
+
+        // We consider auth context validity period is equal to temp data cleanup timeout.
+        return getTempDataCleanUpTimeout();
+    }
 }
