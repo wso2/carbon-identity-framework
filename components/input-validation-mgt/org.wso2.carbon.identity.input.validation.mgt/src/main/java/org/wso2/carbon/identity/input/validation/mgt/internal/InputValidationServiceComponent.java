@@ -27,8 +27,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManager;
-import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagerImpl;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.*;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 
 /**
@@ -47,8 +49,26 @@ public class InputValidationServiceComponent {
     protected void activate(ComponentContext context) {
 
         try {
-            context.getBundleContext().registerService(InputValidationManager.class.getName(),
-                    new InputValidationManagerImpl(), null);
+            context.getBundleContext().registerService(InputValidationManagementService.class.getName(),
+                    new InputValidationManagementServiceImpl(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new LengthValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new LowerCaseValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new UpperCaseValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new NumeralValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new SpecialCharacterValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new RepeatedCharacterValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new UniqueCharacterValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new JavaRegExValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new JsRegExValidator(), null);
         } catch (Throwable throwable) {
             log.error("Error while activating Input Validation Service Component.", throwable);
         }
@@ -88,5 +108,22 @@ public class InputValidationServiceComponent {
 
         InputValidationDataHolder.setConfigurationManager(null);
         log.debug("Unsetting the ConfigurationManager.");
+    }
+
+    @Reference(
+            name = "input.validator",
+            service = Validator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetValidator"
+    )
+    protected void setValidator(Validator validator) {
+
+        InputValidationDataHolder.getValidators().put(validator.getClass().getSimpleName(), validator);
+    }
+
+    protected void unsetValidator(Validator validator) {
+
+        InputValidationDataHolder.getValidators().remove(validator.getClass().getName());
     }
 }

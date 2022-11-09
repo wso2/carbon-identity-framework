@@ -18,10 +18,19 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+
 public class Constants {
 
-    public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-mgt";
-    public static final String INPUT_VAL_CONFIG_RESOURCE_NAME = "input-validation-configs";
+    public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
+    public static final String INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX = "input-validation-configs-";
+    public static final List<String> SUPPORTED_PARAMS = Arrays.asList(
+            PASSWORD, USERNAME
+    );
 
     public static class Configs {
 
@@ -29,34 +38,14 @@ public class Constants {
         public static final String VALIDATION_TYPE = "validation.type";
         public static final String MIN_LENGTH = "min.length";
         public static final String MAX_LENGTH = "max.length";
-
-        public static final String MIN_NUMERALS_LENGTH = "min.numerals.length";
-        public static final String MAX_NUMERALS_LENGTH = "max.numerals.length";
-
-        public static final String MIN_UPPER_CASE_LENGTH = "min.upper.case.length";
-        public static final String MAX_UPPER_CASE_LENGTH = "max.upper.case.length";
-
-        public static final String MIN_LOWER_CASE_LENGTH= "min.lower.case.length";
-        public static final String MAX_LOWER_CASE_LENGTH = "max.lower.case.length";
-
-        public static final String MIN_SPECIAL_CHR_LENGTH = "min.specials.chr.length";
-        public static final String MAX_SPECIAL_CHR_LENGTH = "max.specials.chr.length";
-
-        public static final String UNIQUE_CHR_ENABLE = "unique.chr.enable";
-        public static final String UNIQUE_CHR_CASE_SENSITIVE = "unique.chr.case.sensitive";
-        public static final String MIN_UNIQUE_CHR_LENGTH= "min.unique.chr.length";
-
-        public static final String REPEATED_CHR_ENABLE = "repeated.chr.enable";
-        public static final String REPEATED_CHR_CASE_SENSITIVE = "repeated.chr.case.sensitive";
-        public static final String MAX_REPEATED_CHR_LENGTH = "max.repeated.chr.length";
+        public static final String MIN_UNIQUE_CHR = "min.unique.character";
+        public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
 
         // Keys for password regEx validation.
         public static final String JAVA_REGEX = "java.regex";
         public static final String JS_REGEX = "js.regex";
-
         public static final String RULES = "rules";
         public static final String REGEX = "regEx";
-
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
     }
@@ -70,58 +59,58 @@ public class Constants {
         ERROR_JAVA_REGEX_INVALID("60002",
                 "Invalid regex pattern for Java.",
                 "Invalid regex pattern provided for Java: %s"),
-        ERROR_JS_REGEX_INVALID("60003",
-                "Invalid regex pattern for JavaScript.",
-                "Invalid regex pattern provided for JavaScript: %s"),
 
-        ERROR_DEFAULT_MIN_MAX_MISMATCH("60004",
+        ERROR_DEFAULT_MIN_MAX_MISMATCH("60003",
                 "Invalid configurations.",
-                "Invalid configuration values for %s as min: %d and max: %d"),
-        ERROR_VALIDATION_PARAM_EMPTY("60005",
-                "Invalid Request.",
-                "Validation parameters or values cannot be empty for tenant domain: %s"),
-        ERROR_VALIDATION_PARAM_NOT_SUPPORTED("60006",
+                "Invalid configuration values for %s as min: %s and max: %s"),
+        ERROR_VALIDATION_PARAM_NOT_SUPPORTED("60004",
                 "Unsupported parameter.",
-                "The parameter: %s is not supported."),
-        ERROR_VALIDATION_REGEX_MISMATCH("60007",
+                "The field: %s is not supported for validation configuration in the tenant %s."),
+        ERROR_VALIDATION_REGEX_MISMATCH("60005",
                 "REGEX_MISMATCH",
                 "The %s does not match the regex: %s"),
-        ERROR_VALIDATION_MIN_LENGTH_MISMATCH("60008",
+        ERROR_VALIDATION_MIN_LENGTH_MISMATCH("60006",
                 "MIN_LENGTH_NOT_SATISFIED",
                 "The minimum length of %s should be %d."),
-        ERROR_VALIDATION_MAX_LENGTH_MISMATCH("60009",
+        ERROR_VALIDATION_MAX_LENGTH_MISMATCH("60007",
                 "MAX_LENGTH_NOT_SATISFIED",
                 "The maximum length of %s can be %d"),
-        ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH("60010",
+        ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH("60008",
                 "MIN_NUMERALS_LENGTH_NOT_SATISFIED",
                 "The %s should contain at least %d digits."),
-        ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH("60011",
+        ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH("60009",
                 "MAX_NUMERALS_LENGTH_NOT_SATISFIED",
                 "The %s can contain only %d digits."),
         ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH("60012",
                 "MIN_UPPER_CASE_LENGTH_NOT_SATISFIED",
                 "The %s should contain at least %d upper case characters."),
-        ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH("60013",
+        ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH("60010",
                 "MAX_UPPER_CASE_LENGTH_NOT_SATISFIED",
                 "The %s can contain only %d upper case characters."),
-        ERROR_VALIDATION_MIN_LOWER_CASE_LENGTH_MISMATCH("60014",
+        ERROR_VALIDATION_MIN_LOWER_CASE_LENGTH_MISMATCH("60011",
                 "MIN_LOWER_CASE_LENGTH_NOT_SATISFIED",
                 "The %s should contain at least %d lower case characters."),
-        ERROR_VALIDATION_MAX_LOWER_CASE_LENGTH_MISMATCH("60015",
+        ERROR_VALIDATION_MAX_LOWER_CASE_LENGTH_MISMATCH("60012",
                 "MAX_LOWER_CASE_LENGTH_NOT_SATISFIED",
                 "The %s can contain only %d lower case characters."),
-        ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH("60016",
+        ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH("60013",
                 "MIN_SPECIAL_CHARACTER_LENGTH_NOT_SATISFIED",
                 "The %s should contain at least %d special characters."),
-        ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH("60017",
+        ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH("60014",
                 "MAX_SPECIAL_CHARACTER_LENGTH_NOT_SATISFIED",
                 "The %s can contain only %d special characters."),
-        ERROR_VALIDATION_UNIQUE_CHR_MISMATCH("60018",
+        ERROR_VALIDATION_UNIQUE_CHR_MISMATCH("60015",
                 "MIN_UNIQUE_CHARACTER_LENGTH_NOT_SATISFIED",
                 "The %s should contain at least %d unique characters."),
-        ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH("60019",
+        ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH("60016",
                 "MAX_CONSECUTIVE_CHARACTER_LENGTH_NOT_SATISFIED",
                 "The %s can contain only %d consecutive characters."),
+        ERROR_PROPERTY_TYPE_MISMATCH("60017",
+                "PROPERTY_TYPE_MISMATCH",
+                "The property %s should be a %s value for the tenant %s."),
+        ERROR_PROPERTY_NOT_SUPPORTED("60018",
+                "PROPERTY_NOT_SUPPORTED",
+                "The property %s not supported for %s in tenant: %s."),
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",

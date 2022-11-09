@@ -18,43 +18,50 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model;
 
-/**
- * Configuration for validation param.
- */
-public class ValidationParam {
+import java.util.Map;
 
-    private String name;
-    private String value;
+public class RulesConfiguration {
+
+    private String validator;
+    private Map<String, String> properties;
 
     /**
-     * The constructor with name and value.
+     * Method to set validator name.
      *
-     * @param name  Param name.
-     * @param value Param value.
+     * @param validator Name of the validator.
      */
-    public ValidationParam(String name, String value) {
+    public void setValidator(String validator) {
 
-        this.name = name;
-        this.value = value;
+        this.validator = validator;
     }
 
     /**
-     * Method to get name.
+     * Method to set the properties of the validator.
      *
-     * @return name.
+     * @param properties    Properties.
      */
-    public String getName() {
+    public void setProperties(Map<String, String> properties) {
 
-        return name;
+        this.properties = properties;
     }
 
     /**
-     * Method to get value.
+     * Method to get validator name.
      *
-     * @return value.
+     * @return  Name of the validator.
      */
-    public String getValue() {
+    public String getValidator() {
 
-        return value;
+        return validator;
+    }
+
+    /**
+     * Method to get the properties.
+     *
+     * @return  Properties.
+     */
+    public Map<String, String> getProperties() {
+
+        return properties;
     }
 }

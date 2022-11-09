@@ -19,41 +19,42 @@
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
-import org.wso2.carbon.identity.input.validation.mgt.model.InputValidationConfiguration;
-import org.wso2.carbon.identity.input.validation.mgt.model.ValidationParam;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
+
+import java.util.List;
 
 /**
  * Interface for input validation manager.
  */
-public interface InputValidationManager {
+public interface InputValidationManagementService {
     /**
      * Method to update input validation configuration.
      *
-     * @param inputValidationConfiguration  Configuration for input validation.
-     * @param tenantDomain                  Tenant domain.
-     * @return  Input Validation Configuration.
-     * @throws InputValidationMgtException  If an error occurred in updating configuration.
+     * @param inputValidationConfiguration Configuration for input validation.
+     * @param tenantDomain                 Tenant domain.
+     * @return Input Validation Configuration.
+     * @throws InputValidationMgtException If an error occurred in updating configuration.
      */
-    InputValidationConfiguration updateInputValidationConfiguration
-            (InputValidationConfiguration inputValidationConfiguration, String tenantDomain)
+    List<ValidationConfiguration> updateInputValidationConfiguration
+            (List<ValidationConfiguration> inputValidationConfiguration, String tenantDomain)
             throws InputValidationMgtException;
 
     /**
      * Method to get input validation configuration.
      *
-     * @param tenantDomain  Tenant domain.
-     * @return  Input Validation Configuration.
-     * @throws InputValidationMgtException  If an error occurred in getting configuration.
+     * @param tenantDomain Tenant domain.
+     * @return Input Validation Configuration.
+     * @throws InputValidationMgtException If an error occurred in getting configuration.
      */
-    InputValidationConfiguration getInputValidationConfiguration (String tenantDomain)
+    List<ValidationConfiguration> getInputValidationConfiguration (String tenantDomain)
             throws InputValidationMgtException;
 
     /**
      * Method to validate the inputs.
      *
      * @param tenantDomain  tenant domain.
-     * @param param         Param to be validated.
      * @throws InputValidationMgtException
      */
-    void validateValues (String tenantDomain, ValidationParam param) throws InputValidationMgtException;
+    List<ValidatorConfiguration> getValidators(String tenantDomain) throws InputValidationMgtException;
 }
