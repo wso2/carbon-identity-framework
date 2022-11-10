@@ -25,15 +25,13 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_LENGTH_MISMATCH;
 
+/**
+ * Length validator.
+ */
 public class LengthValidator extends AbstractRulesValidator {
-
-    @Override
-    public boolean canHandle(String validatorName) {
-
-        return false;
-    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {

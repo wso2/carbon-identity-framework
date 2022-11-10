@@ -20,10 +20,30 @@ package org.wso2.carbon.identity.input.validation.mgt.model;
 
 import java.util.Map;
 
+/**
+ * Rules configuration.
+ */
 public class RulesConfiguration {
 
     private String validator;
     private Map<String, String> properties;
+
+    /**
+     * Constructor without any attributes.
+     */
+    public RulesConfiguration() {}
+
+    /**
+     * Constructor with validator name and properties.
+     *
+     * @param validator     Validator name.
+     * @param properties    Properties.
+     */
+    public RulesConfiguration(String validator, Map<String, String> properties) {
+
+        this.validator = validator;
+        this.properties = properties;
+    }
 
     /**
      * Method to set validator name.

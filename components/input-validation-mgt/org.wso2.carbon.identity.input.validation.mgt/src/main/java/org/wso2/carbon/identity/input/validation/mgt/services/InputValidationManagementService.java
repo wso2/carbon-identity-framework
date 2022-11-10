@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for input validation manager.
@@ -51,10 +53,18 @@ public interface InputValidationManagementService {
             throws InputValidationMgtException;
 
     /**
-     * Method to validate the inputs.
+     * Method to get validator configurations.
      *
      * @param tenantDomain  tenant domain.
-     * @throws InputValidationMgtException
+     * @throws InputValidationMgtException If an error occurred when getting validator configurations.
      */
-    List<ValidatorConfiguration> getValidators(String tenantDomain) throws InputValidationMgtException;
+    List<ValidatorConfiguration> getValidatorConfigurations(String tenantDomain) throws InputValidationMgtException;
+
+    /**
+     * Method to get validators.
+     *
+     * @param tenantDomain  Tenant domain name.
+     * @return  Validators.
+     */
+    Map<String, Validator> getValidators(String tenantDomain);
 }

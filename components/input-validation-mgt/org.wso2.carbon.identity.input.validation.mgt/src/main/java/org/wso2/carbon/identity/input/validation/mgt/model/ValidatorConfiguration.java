@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.input.validation.mgt.model;
 
 import java.util.List;
 
+/**
+ * Configurations of a validator.
+ */
 public class ValidatorConfiguration {
 
     private String name;

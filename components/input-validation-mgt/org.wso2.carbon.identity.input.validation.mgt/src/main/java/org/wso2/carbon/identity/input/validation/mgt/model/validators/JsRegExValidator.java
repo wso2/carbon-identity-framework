@@ -27,13 +27,10 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
 
+/**
+ * JavaScript regex validator.
+ */
 public class JsRegExValidator extends AbstractRegExValidator {
-
-    @Override
-    public boolean canHandle(String validatorName) {
-
-        return false;
-    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {

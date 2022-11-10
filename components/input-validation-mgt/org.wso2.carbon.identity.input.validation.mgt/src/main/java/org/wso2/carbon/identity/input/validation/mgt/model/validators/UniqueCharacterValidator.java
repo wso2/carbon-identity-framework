@@ -18,22 +18,23 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 
-import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_UNIQUE_CHR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_UNIQUE_CHR_MISMATCH;
 
+/**
+ * Unique character validator.
+ */
 public class UniqueCharacterValidator extends AbstractRulesValidator {
-
-
-    @Override
-    public boolean canHandle(String validatorName) {
-        return false;
-    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
@@ -50,7 +51,7 @@ public class UniqueCharacterValidator extends AbstractRulesValidator {
 
         if (attributesMap.containsKey(field + "." + MIN_UNIQUE_CHR)) {
             int minUniqueCharacters = Integer.parseInt(attributesMap.get(field + "." + MIN_UNIQUE_CHR));
-            if(minUniqueCharacters > distinctChars.size()) {
+            if (minUniqueCharacters > distinctChars.size()) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_UNIQUE_CHR_MISMATCH.getCode(),
                         ERROR_VALIDATION_UNIQUE_CHR_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_UNIQUE_CHR_MISMATCH.getDescription(), field,
@@ -65,8 +66,8 @@ public class UniqueCharacterValidator extends AbstractRulesValidator {
 
         Map<String, String> properties = context.getProperties();
         checkValidProperty(properties, this.getClass().getSimpleName(), context.getTenantDomain());
-        if (properties.containsKey(MIN_UNIQUE_CHR) && (properties.get(MIN_UNIQUE_CHR) != null || validatePositiveNumber(properties.get(MIN_UNIQUE_CHR),
-                MIN_UNIQUE_CHR, context.getTenantDomain()))) {
+        if (properties.containsKey(MIN_UNIQUE_CHR) && (properties.get(MIN_UNIQUE_CHR) != null ||
+                validatePositiveNumber(properties.get(MIN_UNIQUE_CHR), MIN_UNIQUE_CHR, context.getTenantDomain()))) {
             properties.remove(MIN_UNIQUE_CHR);
         }
         return true;

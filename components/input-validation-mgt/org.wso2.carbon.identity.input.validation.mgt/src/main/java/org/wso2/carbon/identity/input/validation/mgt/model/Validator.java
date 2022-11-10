@@ -19,9 +19,7 @@
 package org.wso2.carbon.identity.input.validation.mgt.model;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
-import org.wso2.carbon.identity.input.validation.mgt.model.Property;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**

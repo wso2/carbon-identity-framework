@@ -20,12 +20,36 @@ package org.wso2.carbon.identity.input.validation.mgt.model;
 
 import java.util.Map;
 
+/**
+ * Basic context of validation configurations.
+ */
 public class ValidationContext {
 
     private String field;
     private String tenantDomain;
     private Map<String, String> properties;
     private String value;
+
+    /**
+     * Constructor without attributes.
+     */
+    public ValidationContext() {}
+
+    /**
+     * Constructor with field, tenant name, properties and value.
+     *
+     * @param field         Name of field.
+     * @param tenantDomain  Tenant domain.
+     * @param properties    Properties.
+     * @param value         Value.
+     */
+    public ValidationContext(String field, String tenantDomain, Map<String, String> properties, String value) {
+
+        this.field = field;
+        this.tenantDomain = tenantDomain;
+        this.properties = properties;
+        this.value = value;
+    }
 
     /**
      * Method to get field name.

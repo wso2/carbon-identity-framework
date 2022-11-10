@@ -24,21 +24,32 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
-import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
 import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
-import org.wso2.carbon.identity.input.validation.mgt.model.*;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.*;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.*;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 
 /**
  * Class for Input Validation Manager Implementation.
@@ -49,14 +60,12 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public List<ValidationConfiguration> updateInputValidationConfiguration(
             List<ValidationConfiguration> configurations, String tenantDomain) throws InputValidationMgtException {
 
-        validateProperties(configurations, tenantDomain);
         List<ValidationConfiguration> updatedResources = new ArrayList<>();
 
         for (ValidationConfiguration configuration: configurations) {
             ValidationConfiguration updatedResource = updateValidationConfiguration(configuration, tenantDomain);
             updatedResources.add(updatedResource);
         }
-
         return updatedResources;
     }
 
@@ -64,9 +73,10 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public List<ValidationConfiguration> getInputValidationConfiguration(String tenantDomain)
             throws InputValidationMgtException {
 
-        List<ValidationConfiguration> configurations = new ArrayList<>();
-        List<Resource> resources = getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME);
+        List<Resource> resources = getResourcesByType(tenantDomain);
+
         // Convert resources to Validation Configurations.
+        List<ValidationConfiguration> configurations = new ArrayList<>();
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
@@ -79,7 +89,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     @Override
-    public List<ValidatorConfiguration> getValidators (String tenantDomain) throws InputValidationMgtException {
+    public List<ValidatorConfiguration> getValidatorConfigurations (String tenantDomain)
+            throws InputValidationMgtException {
 
         Map<String, Validator> validators = InputValidationDataHolder.getValidators();
         // Handle if no validators available.
@@ -94,6 +105,12 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             configurations.add(validatorConfig);
         }
         return configurations;
+    }
+
+    @Override
+    public Map<String, Validator> getValidators(String tenantDomain) {
+
+        return InputValidationDataHolder.getValidators();
     }
 
     /**
@@ -193,7 +210,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
      * @return  updated resource.
      * @throws InputValidationMgtServerException If an error occurred when updating a new resource.
      */
-    private Resource updateResource(Resource newResource, String tenantDomain) throws InputValidationMgtServerException {
+    private Resource updateResource(Resource newResource, String tenantDomain)
+            throws InputValidationMgtServerException {
 
         Resource updatedResource;
         try {
@@ -227,55 +245,6 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     /**
-     * Method to validate properties.
-     *
-     * @param configurations    Validation configuration.
-     * @param tenantDomain      Tenant domain name.
-     * @throws InputValidationMgtClientException If an error occurred when validating configurations.
-     */
-    private void validateProperties(List<ValidationConfiguration> configurations, String tenantDomain)
-            throws InputValidationMgtClientException {
-
-        for (ValidationConfiguration config: configurations) {
-            if (!SUPPORTED_PARAMS.contains(config.getField())) {
-                throw new InputValidationMgtClientException(ERROR_VALIDATION_PARAM_NOT_SUPPORTED.getCode(),
-                        String.format(ERROR_VALIDATION_PARAM_NOT_SUPPORTED.getDescription(), config.getField(), tenantDomain));
-            }
-            if (config.getRules() != null) {
-                validateProperties(config.getField(), config.getRules(), tenantDomain);
-            } else if (config.getRegEx() != null) {
-                validateProperties(config.getField(), config.getRegEx(), tenantDomain);
-            }
-        }
-    }
-
-    /**
-     * Method to validate rules configuration.
-     *
-     * @param field         Name of the field.
-     * @param rules         List of rule configs.
-     * @param tenantDomain  Tenant domain name.
-     * @throws InputValidationMgtClientException If an error occurred when validating rules.
-     */
-    private void validateProperties(String field, List<RulesConfiguration> rules, String tenantDomain)
-            throws InputValidationMgtClientException {
-
-        Map<String, Validator> validators = InputValidationDataHolder.getValidators();
-        for (RulesConfiguration rule: rules) {
-            if (!validators.containsKey(rule.getValidator())) {
-                throw new InputValidationMgtClientException(ERROR_VALIDATION_PARAM_NOT_SUPPORTED.getCode(),
-                        String.format(ERROR_VALIDATION_PARAM_NOT_SUPPORTED.getDescription(), rule.getValidator(), tenantDomain));
-            }
-            Validator validator = validators.get(rule.getValidator());
-            ValidationContext context = new ValidationContext();
-            context.setField(field);
-            context.setProperties(rule.getProperties());
-            context.setTenantDomain(tenantDomain);
-            validator.validateProps(context);
-        }
-    }
-
-    /**
      * Method to build resource from validation configuration.
      *
      * @param config    Validation configuration.
@@ -289,7 +258,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         resource.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field);
         Map<String, String> configAttributes = new HashMap<>();
 
-        if (config.getRules() !=null) {
+        if (config.getRules() != null) {
             configAttributes.put(VALIDATION_TYPE, RULES);
             addRulesConfigToResource(configAttributes, config.getRules());
         } else if (config.getRegEx() != null) {
@@ -338,16 +307,12 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         Map<String, String> attributesMap = resource.getAttributes().stream()
                         .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
 
-        Map<String, Map<String, String>> validatorConfig = buildValidatorConfigGroup(attributesMap);
-
         // Build rules configurations from mapping.
-        List<RulesConfiguration> rules = new ArrayList<>();
-        for (Map.Entry<String, Map<String, String>> entry: validatorConfig.entrySet()) {
-            RulesConfiguration rule = new RulesConfiguration();
-            rule.setValidator(entry.getKey());
-            rule.setProperties(entry.getValue());
-            rules.add(rule);
-        }
+        Map<String, Map<String, String>> validatorConfig = buildValidatorConfigGroup(attributesMap);
+        List<RulesConfiguration> rules =
+                validatorConfig.entrySet().stream()
+                        .map(rule -> new RulesConfiguration(rule.getKey(), rule.getValue()))
+                        .collect(Collectors.toList());
 
         // Check the input validation criteria.
         if (attributesMap.containsKey(VALIDATION_TYPE) &&
@@ -375,7 +340,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             if (StringUtils.equalsIgnoreCase(VALIDATION_TYPE, key)) {
                 continue;
             }
-            String validatorName = key.substring(0,key.indexOf("."));
+            String validatorName = key.substring(0, key.indexOf("."));
             String propertyName = key.substring(key.indexOf(".") + 1);
             Map<String, String> properties = new HashMap<>();
             if (validatorConfig.containsKey(validatorName)) {

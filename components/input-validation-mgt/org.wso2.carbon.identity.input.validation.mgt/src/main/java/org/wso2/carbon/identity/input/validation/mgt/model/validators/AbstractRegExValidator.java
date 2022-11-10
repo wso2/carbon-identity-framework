@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
@@ -29,7 +32,18 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 
+/**
+ * Abstract regex validator.
+ */
 public abstract class AbstractRegExValidator implements Validator {
+
+    private static final Log log = LogFactory.getLog(AbstractRegExValidator.class);
+
+    @Override
+    public boolean canHandle(String validatorName) {
+
+        return StringUtils.equalsIgnoreCase(validatorName, this.getClass().getSimpleName());
+    }
 
     @Override
     public boolean validateProps(ValidationContext context) throws InputValidationMgtClientException {
@@ -44,6 +58,10 @@ public abstract class AbstractRegExValidator implements Validator {
                 .map(Property::getName).collect(Collectors.toList());
         for (String key: properties.keySet()) {
             if (!supportedProperties.contains(key)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("The property : %s is not supported for validator: %s in tenant: %s", key,
+                            validator, tenantDomain));
+                }
                 throw new InputValidationMgtClientException(ERROR_PROPERTY_NOT_SUPPORTED.getCode(),
                         String.format(ERROR_PROPERTY_NOT_SUPPORTED.getDescription(), key, validator, tenantDomain));
             }

@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model;
 
+/**
+ * Object for property model.
+ */
 public class Property {
 
     private String name;
@@ -118,7 +121,7 @@ public class Property {
 
     /**
      * Method to set display order.
-     * @param displayOrder
+     * @param displayOrder  Display order.
      */
     public void setDisplayOrder(int displayOrder) {
 

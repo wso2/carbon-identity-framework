@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.input.validation.mgt.exceptions;
 /**
  * Input validation management related server exceptions.
  */
-public class InputValidationMgtServerException extends InputValidationMgtException{
+public class InputValidationMgtServerException extends InputValidationMgtException {
 
     /**
      * Constructor with error code and message.

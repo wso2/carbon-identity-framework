@@ -27,14 +27,23 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
-import org.wso2.carbon.identity.input.validation.mgt.model.validators.*;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.JavaRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.NumeralValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.RepeatedCharacterValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.SpecialCharacterValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.UniqueCharacterValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
-import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 
 /**
- * OSGi declarative services component which handled registration and un-registration of IdentityConsentServiceComponent.
+ * OSGi declarative services component which handled registration and un-registration of
+ * InputValidationServiceComponent.
  */
 
 @Component(

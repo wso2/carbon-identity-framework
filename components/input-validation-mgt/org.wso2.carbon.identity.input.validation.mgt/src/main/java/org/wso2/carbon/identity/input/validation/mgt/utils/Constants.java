@@ -24,6 +24,9 @@ import java.util.List;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 
+/**
+ * Class with the constants.
+ */
 public class Constants {
 
     public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
@@ -32,6 +35,9 @@ public class Constants {
             PASSWORD, USERNAME
     );
 
+    /**
+     * Class contains the configuration related constants.
+     */
     public static class Configs {
 
         // Keys for password rules validation.
@@ -44,12 +50,15 @@ public class Constants {
         // Keys for password regEx validation.
         public static final String JAVA_REGEX = "java.regex";
         public static final String JS_REGEX = "js.regex";
-        public static final String RULES = "rules";
-        public static final String REGEX = "regEx";
+        public static final String RULES = "RULE";
+        public static final String REGEX = "REGEX";
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
     }
 
+    /**
+     * Error messages.
+     */
     public enum ErrorMessages {
 
         // Client Errors.
@@ -111,6 +120,12 @@ public class Constants {
         ERROR_PROPERTY_NOT_SUPPORTED("60018",
                 "PROPERTY_NOT_SUPPORTED",
                 "The property %s not supported for %s in tenant: %s."),
+        ERROR_VALIDATOR_NOT_SUPPORTED("60019",
+                "VALIDATOR NOT SUPPORTED",
+                "The validator %s is not a type of %s validator."),
+        ERROR_CODE_CONFIGURE_EITHER_RULES_OR_REGEX("60020",
+                "Invalid configuration format",
+                "Validation configurations can be configured with one of them: rules or regex."),
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",

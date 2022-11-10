@@ -25,14 +25,13 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH;
 
+/**
+ * Special character validator.
+ */
 public class SpecialCharacterValidator extends AbstractRulesValidator {
-
-    @Override
-    public boolean canHandle(String validatorName) {
-        return false;
-    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
@@ -43,7 +42,7 @@ public class SpecialCharacterValidator extends AbstractRulesValidator {
         Map<String, String> attributesMap = context.getProperties();
 
         for (int i = 0; i < value.length(); i++) {
-            if (value.substring(i, i+1).matches("[^A-Za-z0-9]")) {
+            if (value.substring(i, i + 1).matches("[^A-Za-z0-9]")) {
                 countSpecial++;
             }
 

@@ -18,23 +18,21 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 
-import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.*;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_CONSECUTIVE_CHR;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH;
 
+/**
+ * Repeated character validator.
+ */
 public class RepeatedCharacterValidator extends AbstractRulesValidator {
-
-    @Override
-    public boolean canHandle(String validatorName) {
-        return false;
-    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
@@ -61,7 +59,8 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
             if (maxConsecutiveLength < consecutiveLen) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getCode(),
                         ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getMessage(),
-                        String.format(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getDescription(), field, maxConsecutiveLength));
+                        String.format(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getDescription(), field,
+                                maxConsecutiveLength));
             }
         }
         return true;

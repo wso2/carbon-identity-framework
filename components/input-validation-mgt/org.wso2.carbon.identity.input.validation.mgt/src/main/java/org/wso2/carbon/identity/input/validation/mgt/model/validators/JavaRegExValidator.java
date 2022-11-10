@@ -29,17 +29,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.*;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.*;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_JAVA_REGEX_INVALID;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REGEX_MISMATCH;
 
+/**
+ * Java Regex Validator.
+ */
 public class JavaRegExValidator extends AbstractRegExValidator {
-
-
-    @Override
-    public boolean canHandle(String validatorName) {
-
-        return false;
-    }
 
     @Override
     public boolean validateProps(ValidationContext context) throws InputValidationMgtClientException {
