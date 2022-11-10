@@ -1615,6 +1615,11 @@
                 <version>${mockito.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito2</artifactId>
                 <version>${powermock.version}</version>
@@ -2011,7 +2016,7 @@
         <jacoco.version>0.8.4</jacoco.version>
         <jmockit.version>1.44</jmockit.version>
         <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-        <mockito.version>2.23.4</mockito.version>
+        <mockito.version>3.8.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
 
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
