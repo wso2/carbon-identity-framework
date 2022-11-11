@@ -100,6 +100,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Executing the Step Based Authentication...");
         }
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("service provider", context.getServiceProviderName());
+            params.put("tenant domain", context.getTenantDomain());
+            LoggerUtils.triggerDiagnosticLogEvent(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                    "Executing script-based authentication", "handle-authentication-request", null);
+        }
+
         if (isBackToFirstStep(context)) {
             modifyCurrentNodeAsFirstStep(context);
         }

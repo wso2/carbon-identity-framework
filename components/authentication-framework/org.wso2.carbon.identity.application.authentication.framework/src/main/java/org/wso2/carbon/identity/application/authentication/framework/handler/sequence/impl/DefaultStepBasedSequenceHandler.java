@@ -121,6 +121,20 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (currentStep == 0) {
                 currentStep++;
                 context.setCurrentStep(currentStep);
+
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("service provider", context.getServiceProviderName());
+                    params.put("tenant domain", context.getTenantDomain());
+                    Map<String, Object> stepMap = new HashMap<>();
+                    context.getSequenceConfig().getStepMap().forEach((key, value) -> {
+                        stepMap.put("step " + key.toString(), value.getAuthenticatorList());
+                    });
+                    params.put("steps", stepMap);
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Executing step-based authentication", "handle-authentication-request", null);
+                }
             }
 
             StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
