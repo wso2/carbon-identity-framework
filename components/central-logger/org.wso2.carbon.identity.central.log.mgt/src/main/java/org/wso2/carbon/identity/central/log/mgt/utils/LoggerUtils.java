@@ -198,7 +198,7 @@ public class LoggerUtils {
         Map<String, String> sanitizedClaims = new HashMap<>();
         if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
-                if (entry.getKey().equals(LogConstants.userIdClaimURI)) {
+                if (LogConstants.userIdClaimURI.equals(entry.getKey())) {
                     sanitizedClaims.put(entry.getKey(), entry.getValue());
                 } else {
                     sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
