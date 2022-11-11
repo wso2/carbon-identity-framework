@@ -217,11 +217,10 @@ public class LoggerUtils {
      */
     public static String maskClaimValue(String claimURI, String claimValue) {
 
-        String sanitizedClaimValue = claimValue;
-        if (StringUtils.isNotBlank(claimValue) && !claimURI.equals(LogConstants.userIdClaimURI)) {
-            sanitizedClaimValue = maskContent(claimValue);
+        if (StringUtils.isNotBlank(claimValue) && !LogConstants.userIdClaimURI.equals(claimURI)) {
+            return maskContent(claimValue);
         }
-        return sanitizedClaimValue;
+        return claimValue;
     }
 
     /**

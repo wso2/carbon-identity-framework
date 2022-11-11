@@ -1730,17 +1730,16 @@ public class IdentityUtil {
     public static String getInitiatorId(String userName, String tenantDomain) {
 
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
-        if (userId == null) {
+        if (StringUtils.isBlank(userId)) {
             String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
             String username = UserCoreUtil.removeDomainFromName(userName);
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             try {
-                userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+                return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
             } catch (IdentityException e) {
                 log.error("Error occurred while resolving Id for the user: " + username);
             }
         }
         return userId;
     }
-
 }

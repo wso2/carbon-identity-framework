@@ -480,20 +480,16 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     private String getInitiator() {
 
-        String initiator = null;
         if (LogConstants.isLogMaskingEnable) {
             String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
             String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+                String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+                if (StringUtils.isNotBlank(initiator)) return initiator;
             }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(ListenerUtils.getUser());
-            }
-        } else {
-            initiator = ListenerUtils.getUser();
+            return LoggerUtils.maskContent(ListenerUtils.getUser());
         }
-        return initiator;
+        return ListenerUtils.getUser();
     }
 
     private void addContextualAuditParams(JSONObject jsonObject) {
