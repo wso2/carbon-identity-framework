@@ -175,6 +175,8 @@ public abstract class FrameworkConstants {
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
     public static final String ORGANIZATION_CONTEXT_PREFIX = "/o/";
 
+    public static final String ORGANIZATION_CONTEXT_PREFIX = "/o/";
+
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
     public static final String BASIC_AUTH_MECHANISM = "basic";
