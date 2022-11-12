@@ -100,15 +100,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Executing the Step Based Authentication...");
         }
 
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            Map<String, Object> params = new HashMap<>();
-            params.put("service provider", context.getServiceProviderName());
-            params.put("tenant domain", context.getTenantDomain());
-            LoggerUtils.triggerDiagnosticLogEvent(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Executing script-based authentication", "handle-authentication-request", null);
-        }
-
         if (isBackToFirstStep(context)) {
             modifyCurrentNodeAsFirstStep(context);
         }
@@ -127,10 +118,18 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DefaultStepBasedSequenceHandler.getInstance().handle(request, response, context);
             return;
         }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("service provider", context.getServiceProviderName());
+            params.put("tenant domain", context.getTenantDomain());
+            LoggerUtils.triggerDiagnosticLogEvent(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                    "Executing script-based authentication", "handle-authentication-request", null);
+        }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.RequestParams.ISSUER, context.getRelyingParty());
+                params.put("service provider", context.getServiceProviderName());
                 params.put(FrameworkConstants.RequestParams.TENANT_DOMAIN, context.getTenantDomain());
                 LoggerUtils.triggerDiagnosticLogEvent(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,

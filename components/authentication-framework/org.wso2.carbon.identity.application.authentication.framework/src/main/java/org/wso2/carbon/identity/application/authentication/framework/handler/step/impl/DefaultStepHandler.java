@@ -555,7 +555,7 @@ public class DefaultStepHandler implements StepHandler {
                     params.put("authenticator", authenticator.getName());
                     params.put("step", currentStep);
                     params.put("tenant", context.getTenantDomain());
-                    params.put("relyingParty", context.getRelyingParty());
+                    params.put("service provider", context.getServiceProviderName());
                     LoggerUtils.triggerDiagnosticLogEvent(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
                             "Initializing authentication flow", "handle-authentication-step", null);

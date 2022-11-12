@@ -162,6 +162,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         Map<String, Object> params = new HashMap<>();
                         params.put("current step", context.getCurrentStep());
+                        params.put("service provider", context.getServiceProviderName());
                         params.put("authenticator", context.getCurrentAuthenticator());
                         LoggerUtils.triggerDiagnosticLogEvent(
                                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
@@ -217,8 +218,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
                 params.put("step", stepConfig.getOrder());
-                params.put("authenticator", stepConfig.getAuthenticatorList().get(stepConfig.getOrder()).getName());
-                params.put(FrameworkConstants.RequestParams.ISSUER, context.getRelyingParty());
+                params.put("authenticator", stepConfig.getAuthenticatorList().get(stepConfig.getOrder() - 1).getName());
+                params.put("service provider", context.getServiceProviderName());
                 LoggerUtils.triggerDiagnosticLogEvent(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
                         "Starting step: " + stepConfig.getOrder(), "handle-authentication-step", null);

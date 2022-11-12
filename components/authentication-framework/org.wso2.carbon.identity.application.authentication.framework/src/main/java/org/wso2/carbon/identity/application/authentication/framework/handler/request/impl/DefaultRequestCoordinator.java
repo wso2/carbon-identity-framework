@@ -608,7 +608,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.RequestParams.ISSUER, relyingParty);
+                params.put("service provider", context.getServiceProviderName());
                 params.put(FrameworkConstants.RequestParams.CALLER_PATH, callerPath);
                 params.put(FrameworkConstants.RequestParams.TENANT_DOMAIN, tenantDomain);
                 LoggerUtils.triggerDiagnosticLogEvent(
@@ -643,7 +643,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 Map<String, Object> params = new HashMap<>();
                 params.put(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey);
                 params.put(FrameworkConstants.RequestParams.TYPE, requestType);
-                params.put(FrameworkConstants.RequestParams.ISSUER, relyingParty);
+                params.put("service provider", context.getServiceProviderName());
                 params.put(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN, loginDomain);
                 params.put(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT, userDomain);
                 params.put(FrameworkConstants.RequestParams.TENANT_DOMAIN, tenantDomain);
@@ -749,7 +749,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.RequestParams.ISSUER, context.getRelyingParty());
+                params.put("service provider", context.getServiceProviderName());
                 params.put(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN, context.getLoginTenantDomain());
                 params.put(ACR_VALUES_ATTRIBUTE, acrRequested);
                 LoggerUtils.triggerDiagnosticLogEvent(
