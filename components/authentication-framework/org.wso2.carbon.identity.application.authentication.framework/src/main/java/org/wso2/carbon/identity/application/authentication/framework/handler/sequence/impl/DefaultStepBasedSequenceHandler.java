@@ -128,7 +128,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     params.put("tenant domain", context.getTenantDomain());
                     Map<String, Object> stepMap = new HashMap<>();
                     context.getSequenceConfig().getStepMap().forEach((key, value) -> {
-                        stepMap.put("step " + key.toString(), value.getAuthenticatorList());
+                        List<Map<String, Object>> stepConfigParams = new ArrayList<>();
+                        value.getAuthenticatorList().forEach(authenticatorConfig -> {
+                            Map<String, Object> authenticatorParams = new HashMap<>();
+                            authenticatorParams.put("authenticatorName", authenticatorConfig.getName());
+                            authenticatorParams.put("IDPNames", authenticatorConfig.getIdpNames());
+                            stepConfigParams.add(authenticatorParams);
+                        });
+                        stepMap.put("step " + key.toString(), stepConfigParams);
                     });
                     params.put("steps", stepMap);
                     LoggerUtils.triggerDiagnosticLogEvent(
@@ -158,15 +165,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     if (log.isDebugEnabled()) {
                         log.debug("Authentication has failed in the Step " + (context.getCurrentStep()));
-                    }
-                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                        Map<String, Object> params = new HashMap<>();
-                        params.put("current step", context.getCurrentStep());
-                        params.put("service provider", context.getServiceProviderName());
-                        params.put("authenticator", context.getCurrentAuthenticator());
-                        LoggerUtils.triggerDiagnosticLogEvent(
-                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                                "Authentication has failed in the Step", "handle-authentication-step", null);
                     }
 
                     // if the step contains multiple login options, we should give the user to retry
@@ -214,15 +212,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             // if the sequence is not completed, we have work to do.
             if (log.isDebugEnabled()) {
                 log.debug("Starting Step: " + stepConfig.getOrder());
-            }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("step", stepConfig.getOrder());
-                params.put("authenticator", stepConfig.getAuthenticatorList().get(stepConfig.getOrder() - 1).getName());
-                params.put("service provider", context.getServiceProviderName());
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                        "Starting step: " + stepConfig.getOrder(), "handle-authentication-step", null);
             }
 
             FrameworkUtils.getStepHandler().handle(request, response, context);

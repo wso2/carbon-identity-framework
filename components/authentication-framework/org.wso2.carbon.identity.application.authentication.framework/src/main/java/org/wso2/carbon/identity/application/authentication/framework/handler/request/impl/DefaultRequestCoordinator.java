@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -747,7 +748,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             for (String acr : acrRequested) {
                 context.addRequestedAcr(acr);
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            if (LoggerUtils.isDiagnosticLogsEnabled() && CollectionUtils.isNotEmpty(acrRequested)) {
                 Map<String, Object> params = new HashMap<>();
                 params.put("service provider", context.getServiceProviderName());
                 params.put(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN, context.getLoginTenantDomain());
