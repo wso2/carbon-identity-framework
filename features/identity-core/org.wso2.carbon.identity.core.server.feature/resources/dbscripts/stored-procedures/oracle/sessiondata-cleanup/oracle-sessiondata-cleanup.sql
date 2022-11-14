@@ -36,7 +36,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     checkcount                       INT := 100;        -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE SESSION COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 100]
     tracingenabled                   BOOLEAN := TRUE;   --  IF TRACE LOGGING IS ENABLED [DEFAULT : TRUE]
     sleeptime                        INT := 2;          -- Sleep time in seconds.
-    sessnclntiminminits              INT := 20160;      -- Session data older than 20160 minutes (14 days) will be removed.
+    sessnclntiminminits              INT := 120;      -- Expired Session data older than 120 minutes (2 hours) will be removed.
     opertnclntimeinminits            INT := 720;        -- Operational data older than 720 minutes (12 h) will be removed.
 
 BEGIN
@@ -86,7 +86,7 @@ BEGIN
 --        EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_SESSION_STORE_TMP AS SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE 1=2';
         EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_SESSION_STORE_TMP (ROW_ID rowid,SESSION_ID varchar(100),CONSTRAINT CHNK_IASS_PRI PRIMARY KEY (ROW_ID)) NOLOGGING';
 
-        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE  rownum <= :chunklimit AND TIME_CREATED < :sessionCleanupTime'
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE  rownum <= :chunklimit AND EXPIRY_TIME < :sessionCleanupTime'
         USING chunklimit, sessioncleanuptime;
         rowcount := SQL%rowcount;
 

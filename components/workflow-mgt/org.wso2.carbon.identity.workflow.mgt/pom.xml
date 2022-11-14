@@ -113,7 +113,8 @@
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
-                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.database.utils.*; version="${org.wso2.carbon.database.utils.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.workflow.mgt.internal,

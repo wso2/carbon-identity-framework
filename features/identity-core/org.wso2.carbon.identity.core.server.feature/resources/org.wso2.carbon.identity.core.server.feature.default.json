@@ -206,6 +206,8 @@
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
 
+  "rest_api_authentication.add_realm_user_to_error": false,
+
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
   "saml.slo.retry_attempts": "5",
@@ -294,6 +296,7 @@
   "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
   "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
   "identity_mgt.lite_user_registration.callback_url": ".*",
+  "identity_mgt.lite_user_registration.resend_verification_on_user_existence":  false,
 
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
   "identity_mgt.password_reset_challenge_questions.notify_on_initiation": false,
@@ -402,6 +405,7 @@
   "event.default_listener.governance_identity_store.priority": "97",
   "event.default_listener.governance_identity_store.enable": true,
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
+  "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.mutual_tls_authenticator.priority": "158",
@@ -599,6 +603,7 @@
   "authentication.adaptive.execution_supervisor.enable": false,
   "authentication.adaptive.execution_supervisor.thread_count": "1",
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
+  "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
@@ -821,6 +826,7 @@
   "console.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
   "console.idp_configs.scope": [ "SYSTEM", "profile", "openid" ],
   "console.get_profile_info_from_id_token": true,
+  "console.enable_google_one_tap_for_super_tenant_only": true,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",

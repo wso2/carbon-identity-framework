@@ -124,15 +124,9 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
 
     private Connection getDBConnection(boolean shouldApplyTransaction) throws SQLException, UserStoreException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getUserDBConnection(shouldApplyTransaction);
         if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to User database");
-        }
-        if (shouldApplyTransaction) {
-            dbConnection.setAutoCommit(false);
-            if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
-                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            }
         }
         return dbConnection;
     }
