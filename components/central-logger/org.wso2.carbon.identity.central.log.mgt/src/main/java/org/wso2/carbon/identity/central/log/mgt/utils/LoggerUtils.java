@@ -60,6 +60,11 @@ public class LoggerUtils {
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
 
+   /**
+    * Constant related to masking sensitive information from logs.
+    */
+    public static boolean isLogMaskingEnable;
+
     /**
      * @param initiatorId   Request initiator's id.
      * @param initiatorName Request initiator's name.
@@ -179,7 +184,7 @@ public class LoggerUtils {
      */
     public static void getLogMaskingConfigValue() {
 
-        LogConstants.isLogMaskingEnable = Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_LOG_MASKING));
+        isLogMaskingEnable = Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_LOG_MASKING));
     }
 
     /**
@@ -208,7 +213,7 @@ public class LoggerUtils {
         Map<String, String> sanitizedClaims = new HashMap<>();
         if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
-                if (LogConstants.userIdClaimURI.equals(entry.getKey())) {
+                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
                     sanitizedClaims.put(entry.getKey(), entry.getValue());
                 } else {
                     sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
@@ -227,7 +232,7 @@ public class LoggerUtils {
      */
     public static String maskClaimValue(String claimURI, String claimValue) {
 
-        if (StringUtils.isNotBlank(claimValue) && !LogConstants.userIdClaimURI.equals(claimURI)) {
+        if (StringUtils.isNotBlank(claimValue) && !LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
             return maskContent(claimValue);
         }
         return claimValue;

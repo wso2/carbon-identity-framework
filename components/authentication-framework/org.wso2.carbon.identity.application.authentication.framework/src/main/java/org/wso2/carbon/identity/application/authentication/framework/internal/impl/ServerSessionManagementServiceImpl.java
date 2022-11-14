@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -104,7 +103,7 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
         auditData.put(SessionMgtConstants.TRACE_ID, traceId);
         auditData.put(SessionMgtConstants.SESSION_TERMINATE_TIMESTAMP, terminatedTimestamp);
 
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, LoggerUtils.maskContent(authenticatedUser));
             if (StringUtils.isNotBlank(initiator) && StringUtils.isNotBlank(userTenantDomain)) {
                 initiatedUser = IdentityUtil.getInitiatorId(initiator, userTenantDomain);

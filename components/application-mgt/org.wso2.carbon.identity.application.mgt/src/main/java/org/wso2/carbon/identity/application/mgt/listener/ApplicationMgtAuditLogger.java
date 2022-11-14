@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -319,7 +318,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     private String getInitiatorForLog(String username, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        if (!LogConstants.isLogMaskingEnable) {
+        if (!LoggerUtils.isLogMaskingEnable) {
             // Append tenant domain to username.
             return buildInitiatorUsername(tenantDomain, username);
         }

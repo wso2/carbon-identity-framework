@@ -26,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -101,7 +100,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 String sanitizedClaimValue = LoggerUtils.maskClaimValue(claimURI, claimValue);
                 dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
             } else {
@@ -168,7 +167,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 profileName = LoggerUtils.maskContent(profileName);
             }
             JSONObject dataObject = new JSONObject();
@@ -228,7 +227,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
             if (ArrayUtils.isNotEmpty(userList)) {
-                if (LogConstants.isLogMaskingEnable) {
+                if (LoggerUtils.isLogMaskingEnable) {
                     dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.sanitizeArraysOfValues(userList)));
                 } else {
                     dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
@@ -304,7 +303,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
             if (ArrayUtils.isNotEmpty(deletedUsers)) {
-                if (LogConstants.isLogMaskingEnable) {
+                if (LoggerUtils.isLogMaskingEnable) {
                     dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils
                             .sanitizeArraysOfValues(deletedUsers)));
                 } else {
@@ -312,7 +311,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 }
             }
             if (ArrayUtils.isNotEmpty(newUsers)) {
-                if (LogConstants.isLogMaskingEnable) {
+                if (LoggerUtils.isLogMaskingEnable) {
                     dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils
                             .sanitizeArraysOfValues(newUsers)));
                 } else {
@@ -349,7 +348,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 List<String> sanitizedClaimValues = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(claimValue)) {
                     for (String claimVal : claimValue) {
@@ -389,7 +388,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 for (int index = 0; index < returnValues.size(); index++) {
                     returnValues.set(index, LoggerUtils.maskContent(returnValues.get(index)));
                 }
@@ -429,7 +428,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
             if (ArrayUtils.isNotEmpty(userList)) {
-                if (LogConstants.isLogMaskingEnable) {
+                if (LoggerUtils.isLogMaskingEnable) {
                     dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils
                             .sanitizeArraysOfValues(userList)));
                 } else {
@@ -480,7 +479,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     private String getInitiator() {
 
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
             String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
@@ -508,7 +507,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     private void setClaimsInAuditLog(Map<String, String> claims, JSONObject data){
 
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(sanitizedClaims));
         } else {
@@ -526,7 +525,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {
 
         String target = ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager);
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             target = LoggerUtils.maskContent(target);
         }
         return target;

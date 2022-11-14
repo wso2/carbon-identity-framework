@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -214,7 +213,7 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
      */
     private String getInitiator(String tenantDomain) {
 
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
                 return IdentityUtil.getInitiatorId(username, tenantDomain);

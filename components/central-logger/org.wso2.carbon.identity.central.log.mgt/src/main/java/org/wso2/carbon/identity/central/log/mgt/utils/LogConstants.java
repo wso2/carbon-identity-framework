@@ -29,8 +29,7 @@ public class LogConstants {
     /**
      * Constants related to masking sensitive info in logs.
      */
-    public static String userIdClaimURI = "http://wso2.org/claims/userid";
-    public static boolean isLogMaskingEnable;
+    public static final String USER_ID_CLAIM_URI = "http://wso2.org/claims/userid";
     public static final String MASKING_CHARACTER = "*";
     public static final String CONTENT_MASKING_REGEX = "(?<=.).(?=.)";
     public static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";

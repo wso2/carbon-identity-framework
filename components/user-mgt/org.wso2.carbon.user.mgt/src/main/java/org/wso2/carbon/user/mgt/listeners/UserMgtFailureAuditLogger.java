@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -60,7 +59,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(roleList)) {
             dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
         }
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(sanitizedClaims));
         } else {
@@ -105,7 +104,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             String claimValue, String profileName, UserStoreManager userStoreManager) {
 
         JSONObject dataObject = new JSONObject();
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             String sanitizedClaimValue = LoggerUtils.maskClaimValue(claimURI, claimValue);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
         } else {
@@ -121,7 +120,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onSetUserClaimValuesFailure(String errorCode, String errorMessage, String userName,
             Map<String, String> claims, String profileName, UserStoreManager userStoreManager) {
 
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
             audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
                             userStoreManager), new JSONObject(sanitizedClaims), errorCode, errorMessage));
@@ -163,7 +162,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.sanitizeArraysOfValues(userList)));
             } else {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
@@ -186,7 +185,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.sanitizeArraysOfValues(userList)));
             } else {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
@@ -290,7 +289,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             String sanitizedClaimValue = LoggerUtils.maskClaimValue(claim, claimValue);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
         } else {
@@ -338,7 +337,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         error.put(errorMessageField, errorMessage);
 
         String initiator = null;
-        if (LogConstants.isLogMaskingEnable) {
+        if (LoggerUtils.isLogMaskingEnable) {
             String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
             String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {

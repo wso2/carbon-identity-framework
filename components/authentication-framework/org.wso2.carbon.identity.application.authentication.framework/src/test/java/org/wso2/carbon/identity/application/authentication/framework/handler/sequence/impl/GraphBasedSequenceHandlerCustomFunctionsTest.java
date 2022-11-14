@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -90,7 +90,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     @Test
     public void testHandleDynamicJavascript1() throws Exception {
 
-        LogConstants.isLogMaskingEnable = false;
+        LoggerUtils.isLogMaskingEnable = false;
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
@@ -109,7 +109,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public void testHandleDynamicBoolean() throws Exception {
 
-        LogConstants.isLogMaskingEnable = false;
+        LoggerUtils.isLogMaskingEnable = false;
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
@@ -162,7 +162,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     @Test
     public void testHandleDynamicOnFail() throws Exception {
 
-        LogConstants.isLogMaskingEnable = false;
+        LoggerUtils.isLogMaskingEnable = false;
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
                 .add(new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
 
@@ -196,7 +196,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     @Test
     public void testHandleDynamicOnFallback() throws Exception {
 
-        LogConstants.isLogMaskingEnable = false;
+        LoggerUtils.isLogMaskingEnable = false;
         FrameworkServiceDataHolder.getInstance().getAuthenticators()
                 .add(new MockFallbackAuthenticator("MockFallbackAuthenticator"));
 
@@ -231,7 +231,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     @Test
     public void testHandleDynamicJavascriptSerialization() throws Exception {
 
-        LogConstants.isLogMaskingEnable = false;
+        LoggerUtils.isLogMaskingEnable = false;
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",

@@ -55,7 +55,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -701,7 +700,7 @@ public class DefaultStepHandler implements StepHandler {
             String initiator = null;
             if (stepConfig.getAuthenticatedUser() != null) {
                 initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
-                if (LogConstants.isLogMaskingEnable) {
+                if (LoggerUtils.isLogMaskingEnable) {
                     initiator = LoggerUtils.maskContent(initiator);
                 }
             }
@@ -723,7 +722,7 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.maskContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
@@ -764,7 +763,7 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
-            if (LogConstants.isLogMaskingEnable) {
+            if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.maskContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
