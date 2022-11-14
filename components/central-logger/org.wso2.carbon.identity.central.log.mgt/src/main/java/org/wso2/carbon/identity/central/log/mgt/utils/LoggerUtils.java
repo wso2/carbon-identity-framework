@@ -61,7 +61,7 @@ public class LoggerUtils {
     private static final String CLIENT_COMPONENT = "clientComponent";
 
    /**
-    * Constant related to masking sensitive information from logs.
+    * Config value related to masking sensitive information from logs.
     */
     public static boolean isLogMaskingEnable;
 
