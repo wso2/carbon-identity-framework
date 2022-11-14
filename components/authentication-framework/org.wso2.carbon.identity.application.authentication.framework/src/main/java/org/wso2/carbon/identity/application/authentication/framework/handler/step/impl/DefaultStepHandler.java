@@ -701,7 +701,7 @@ public class DefaultStepHandler implements StepHandler {
             if (stepConfig.getAuthenticatedUser() != null) {
                 initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
                 if (LoggerUtils.isLogMaskingEnable) {
-                    initiator = LoggerUtils.maskContent(initiator);
+                    initiator = LoggerUtils.getMaskedContent(initiator);
                 }
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
@@ -723,7 +723,7 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
             if (LoggerUtils.isLogMaskingEnable) {
-                initiator = LoggerUtils.maskContent(initiator);
+                initiator = LoggerUtils.getMaskedContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
@@ -764,7 +764,7 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
             if (LoggerUtils.isLogMaskingEnable) {
-                initiator = LoggerUtils.maskContent(initiator);
+                initiator = LoggerUtils.getMaskedContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator,

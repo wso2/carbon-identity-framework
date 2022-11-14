@@ -218,7 +218,7 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
                 return IdentityUtil.getInitiatorId(username, tenantDomain);
             }
-            return LoggerUtils.maskContent(getInitiatorUsername(tenantDomain));
+            return LoggerUtils.getMaskedContent(getInitiatorUsername(tenantDomain));
         }
         return getInitiatorUsername(tenantDomain);
     }

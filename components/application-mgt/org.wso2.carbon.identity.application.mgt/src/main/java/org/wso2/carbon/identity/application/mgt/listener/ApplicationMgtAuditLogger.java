@@ -328,6 +328,6 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                 return initiator;
             }
         }
-        return LoggerUtils.maskContent(username);
+        return LoggerUtils.getMaskedContent(username);
     }
 }

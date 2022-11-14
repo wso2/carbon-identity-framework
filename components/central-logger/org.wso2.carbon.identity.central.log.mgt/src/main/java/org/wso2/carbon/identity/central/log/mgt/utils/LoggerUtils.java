@@ -43,7 +43,6 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
@@ -193,11 +192,10 @@ public class LoggerUtils {
      * @param content Content that needs to be masked.
      * @return masked content.
      */
-    public static String maskContent(String content) {
+    public static String getMaskedContent(String content) {
 
         if (StringUtils.isNotEmpty(content)) {
-            Pattern pattern = Pattern.compile(LogConstants.CONTENT_MASKING_REGEX);
-            content = pattern.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
+            content = LogConstants.LOG_MASKING_PATTERN.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
         }
         return content;
     }
@@ -216,7 +214,7 @@ public class LoggerUtils {
                 if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
                     sanitizedClaims.put(entry.getKey(), entry.getValue());
                 } else {
-                    sanitizedClaims.put(entry.getKey(), maskContent(entry.getValue()));
+                    sanitizedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
                 }
             }
         }
@@ -230,12 +228,12 @@ public class LoggerUtils {
      * @param claimValue Claim value that will be masked.
      * @return masked claim value.
      */
-    public static String maskClaimValue(String claimURI, String claimValue) {
+    public static String getMaskedClaimValue(String claimURI, String claimValue) {
 
-        if (StringUtils.isNotBlank(claimValue) && !LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
-            return maskContent(claimValue);
+        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
+            return claimValue;
         }
-        return claimValue;
+        return getMaskedContent(claimValue);
     }
 
     /**
@@ -244,11 +242,11 @@ public class LoggerUtils {
      * @param values Array of values need to be sanitized.
      * @return sanitized array.
      */
-    public static String[] sanitizeArraysOfValues(String[] values) {
+    public static String[] getMaskedArraysOfValues(String[] values) {
 
         String[] sanitizedUserList = new String[values.length];
         for (int index = 0; index < values.length; index++) {
-            sanitizedUserList[index] = LoggerUtils.maskContent(values[index]);
+            sanitizedUserList[index] = LoggerUtils.getMaskedContent(values[index]);
         }
         return sanitizedUserList;
     }

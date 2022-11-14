@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import java.util.regex.Pattern;
+
 /**
  * Constants used for log management.
  */
@@ -31,6 +33,6 @@ public class LogConstants {
      */
     public static final String USER_ID_CLAIM_URI = "http://wso2.org/claims/userid";
     public static final String MASKING_CHARACTER = "*";
-    public static final String CONTENT_MASKING_REGEX = "(?<=.).(?=.)";
     public static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";
+    public static final Pattern LOG_MASKING_PATTERN = Pattern.compile("(?<=.).(?=.)");
 }

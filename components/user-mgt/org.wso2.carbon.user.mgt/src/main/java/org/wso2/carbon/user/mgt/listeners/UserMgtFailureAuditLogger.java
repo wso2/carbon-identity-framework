@@ -105,7 +105,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (LoggerUtils.isLogMaskingEnable) {
-            String sanitizedClaimValue = LoggerUtils.maskClaimValue(claimURI, claimValue);
+            String sanitizedClaimValue = LoggerUtils.getMaskedClaimValue(claimURI, claimValue);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
         } else {
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
@@ -163,7 +163,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
             if (LoggerUtils.isLogMaskingEnable) {
-                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.sanitizeArraysOfValues(userList)));
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.getMaskedArraysOfValues(userList)));
             } else {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
             }
@@ -186,7 +186,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
             if (LoggerUtils.isLogMaskingEnable) {
-                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.sanitizeArraysOfValues(userList)));
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.getMaskedArraysOfValues(userList)));
             } else {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
             }
@@ -290,7 +290,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
         if (LoggerUtils.isLogMaskingEnable) {
-            String sanitizedClaimValue = LoggerUtils.maskClaimValue(claim, claimValue);
+            String sanitizedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimValue);
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
         } else {
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
@@ -344,7 +344,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
                 initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.maskContent(ListenerUtils.getUser());
+                initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
             }
         } else {
             initiator = ListenerUtils.getUser();
