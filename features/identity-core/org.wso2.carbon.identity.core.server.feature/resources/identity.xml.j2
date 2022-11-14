@@ -2886,6 +2886,9 @@
         </ChoreoDomains>
         {% endif %}
 
+        <!--Default configs for Choreo token endpoint-->
+        <ChoreoTokenEndpoint>{{authentication.adaptive.choreo_token_endpoint}}</ChoreoTokenEndpoint>
+
         <!--Whether to use authenticator name or display name in authenticationOptions-->
         <AuthenticatorNameInAuthConfig>
             <Enable>{{authentication.adaptive.authenticator_name_in_auth_config.enable}}</Enable>
