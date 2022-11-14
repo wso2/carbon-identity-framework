@@ -30,12 +30,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.central.log.mgt.hanlder.CentralLogger;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 
 /**
  * OSGi declarative services component which handled activation and deactivation of central logger event handler.
@@ -59,7 +56,7 @@ public class CentralLogMgtServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Central logger event handler is activated.");
         }
-        LogConstants.isLogMaskingEnable = Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_LOG_MASKING));
+        LoggerUtils.getLogMaskingConfigValue();
     }
 
     @Deactivate
