@@ -204,21 +204,21 @@ public class LoggerUtils {
      * Util function to mask claim values except userid claim.
      *
      * @param claims Map of user claims.
-     * @return sanitized map of user claims.
+     * @return masked map of user claims.
      */
     public static Map<String, String> getMaskedClaimsMap(Map<String, String> claims) {
 
-        Map<String, String> sanitizedClaims = new HashMap<>();
+        Map<String, String> maskedClaims = new HashMap<>();
         if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
                 if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
-                    sanitizedClaims.put(entry.getKey(), entry.getValue());
+                    maskedClaims.put(entry.getKey(), entry.getValue());
                 } else {
-                    sanitizedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
+                    maskedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
                 }
             }
         }
-        return sanitizedClaims;
+        return maskedClaims;
     }
 
     /**
@@ -239,15 +239,15 @@ public class LoggerUtils {
     /**
      * Util function to mask array of values.
      *
-     * @param values Array of values need to be sanitized.
-     * @return sanitized array.
+     * @param values Array of values need to be masked.
+     * @return masked values of array.
      */
     public static String[] getMaskedArraysOfValues(String[] values) {
 
-        String[] sanitizedUserList = new String[values.length];
+        String[] maskedArraysOfValues = new String[values.length];
         for (int index = 0; index < values.length; index++) {
-            sanitizedUserList[index] = LoggerUtils.getMaskedContent(values[index]);
+            maskedArraysOfValues[index] = LoggerUtils.getMaskedContent(values[index]);
         }
-        return sanitizedUserList;
+        return maskedArraysOfValues;
     }
 }

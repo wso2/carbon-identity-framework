@@ -60,8 +60,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
         }
         if (LoggerUtils.isLogMaskingEnable) {
-            Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
-            dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(sanitizedClaims));
+            Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
+            dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(maskedClaimsMap));
         } else {
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
         }
@@ -105,8 +105,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (LoggerUtils.isLogMaskingEnable) {
-            String sanitizedClaimValue = LoggerUtils.getMaskedClaimValue(claimURI, claimValue);
-            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
+            String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claimURI, claimValue);
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, maskedClaimValue);
         } else {
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
         }
@@ -121,9 +121,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             Map<String, String> claims, String profileName, UserStoreManager userStoreManager) {
 
         if (LoggerUtils.isLogMaskingEnable) {
-            Map<String, String> sanitizedClaims = LoggerUtils.getMaskedClaimsMap(claims);
+            Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
             audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
-                            userStoreManager), new JSONObject(sanitizedClaims), errorCode, errorMessage));
+                            userStoreManager), new JSONObject(maskedClaimsMap), errorCode, errorMessage));
         } else {
             audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
                             userStoreManager), new JSONObject(claims), errorCode, errorMessage));
@@ -290,8 +290,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
         if (LoggerUtils.isLogMaskingEnable) {
-            String sanitizedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimValue);
-            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, sanitizedClaimValue);
+            String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimValue);
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, maskedClaimValue);
         } else {
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
         }
