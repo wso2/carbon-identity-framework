@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.test;
 
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -47,14 +47,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 
 /**
  * Testing the InputValidationManagementService class
  */
-public class InputValidationManagementServiceTest {
-
+@PrepareForTest({ InputValidationDataHolder.class })
+public class InputValidationManagementServiceTest extends PowerMockTestCase {
 
     private InputValidationManagementService service;
     private String tenantName = "testTenant";
@@ -64,14 +65,16 @@ public class InputValidationManagementServiceTest {
     public void setup() {
 
         service = new InputValidationManagementServiceImpl();
+        mockStatic(InputValidationDataHolder.class);
     }
 
     @Test
     public void getInputValidatorsConfigurationTest() {
 
-        try (MockedStatic<InputValidationDataHolder> dataHolder = Mockito.mockStatic(InputValidationDataHolder.class)) {
-            dataHolder.when(InputValidationDataHolder::getValidators).thenReturn(getValidators());
-            List<ValidatorConfiguration> config = service.getValidatorConfigurations(tenantName);
+        when(InputValidationDataHolder.getValidators()).thenReturn(getValidators());
+        List<ValidatorConfiguration> config = null;
+        try {
+            config = service.getValidatorConfigurations(tenantName);
             Assert.assertFalse(config.isEmpty());
         } catch (InputValidationMgtException e) {
             Assert.fail();
@@ -81,13 +84,11 @@ public class InputValidationManagementServiceTest {
     @Test
     public void getInputValidationConfigurationTest() {
 
-        try (MockedStatic<InputValidationDataHolder> dataHolder = Mockito.mockStatic(InputValidationDataHolder.class);
-        ) {
-            Resources resources = getResources();
-            ConfigurationManager configurationManager = mock(ConfigurationManager.class);
-            dataHolder.when(InputValidationDataHolder::getConfigurationManager).thenReturn(configurationManager);
+        Resources resources = getResources();
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+        when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
+        try {
             when(configurationManager.getResourcesByType(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME)).thenReturn(resources);
-
             List<ValidationConfiguration> updated = service.getInputValidationConfiguration(tenantName);
             Assert.assertFalse(updated.isEmpty());
         } catch (ConfigurationManagementException | InputValidationMgtException e) {
@@ -98,17 +99,15 @@ public class InputValidationManagementServiceTest {
     @Test
     public void updateInputValidationConfigurationTest() {
 
-        try (MockedStatic<InputValidationDataHolder> dataHolder = Mockito.mockStatic(InputValidationDataHolder.class);
-        ) {
-            Resources resources = getResources();
-            ConfigurationManager configurationManager = mock(ConfigurationManager.class);
-            dataHolder.when(InputValidationDataHolder::getConfigurationManager).thenReturn(configurationManager);
+        Resources resources = getResources();
+        ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+        when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
+        try {
             when(configurationManager.getResource(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME,
-                    INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field))
-                    .thenReturn(resources.getResources().get(0));
+                        INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field))
+                        .thenReturn(resources.getResources().get(0));
             when(configurationManager.replaceResource(anyString(), (Resource) any()))
                     .thenReturn(resources.getResources().get(0));
-
             List<ValidationConfiguration> updated = service.updateInputValidationConfiguration(getValidationConfig(),
                     tenantName);
             Assert.assertEquals(updated.get(0).getField(), field);
