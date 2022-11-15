@@ -62,7 +62,7 @@ public abstract class AbstractRulesValidator implements Validator {
 
         Map<String, String> properties = context.getProperties();
         // Validated supported properties.
-        checkValidProperty(properties, this.getClass().getSimpleName(), context.getTenantDomain());
+        validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
 
         if (properties.get(MIN_LENGTH) != null && validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
                 context.getTenantDomain())) {
@@ -93,21 +93,21 @@ public abstract class AbstractRulesValidator implements Validator {
         List<Property> configProperties = new ArrayList<>();
         int parameterCount = 0;
 
-        Property min = new Property();
-        min.setName(MIN_LENGTH);
-        min.setDisplayName("Minimum");
-        min.setDescription("The minimum length of the field value.");
-        min.setType("int");
-        min.setDisplayOrder(++parameterCount);
-        configProperties.add(min);
+        Property minLength = new Property();
+        minLength.setName(MIN_LENGTH);
+        minLength.setDisplayName("Minimum limit");
+        minLength.setDescription("The minimum length of the field value.");
+        minLength.setType("int");
+        minLength.setDisplayOrder(++parameterCount);
+        configProperties.add(minLength);
 
-        Property max = new Property();
-        max.setName(MAX_LENGTH);
-        max.setDisplayName("Maximum");
-        max.setDescription("The maximum length of the field value.");
-        max.setType("int");
-        max.setDisplayOrder(++parameterCount);
-        configProperties.add(max);
+        Property maxLength = new Property();
+        maxLength.setName(MAX_LENGTH);
+        maxLength.setDisplayName("Maximum limit");
+        maxLength.setDescription("The maximum length of the field value.");
+        maxLength.setType("int");
+        maxLength.setDisplayOrder(++parameterCount);
+        configProperties.add(maxLength);
 
         return configProperties;
     }
@@ -126,7 +126,7 @@ public abstract class AbstractRulesValidator implements Validator {
         return Integer.parseInt(value) < 0;
     }
 
-    protected void checkValidProperty(Map<String, String> properties, String validator, String tenantDomain)
+    protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)
             throws InputValidationMgtClientException {
 
         List<String> supportedProperties = getConfigurationProperties().stream()

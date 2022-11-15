@@ -70,7 +70,7 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
     public boolean validateProps(ValidationContext context) throws InputValidationMgtClientException {
 
         Map<String, String> properties = context.getProperties();
-        checkValidProperty(properties, this.getClass().getSimpleName(), context.getTenantDomain());
+        validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
         if (properties.get(MAX_CONSECUTIVE_CHR) != null && validatePositiveNumber(properties.get(MAX_CONSECUTIVE_CHR),
                 MAX_CONSECUTIVE_CHR, context.getTenantDomain())) {
             properties.remove(MAX_CONSECUTIVE_CHR);

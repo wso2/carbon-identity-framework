@@ -123,8 +123,9 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
 
         ValidatorConfiguration validatorConfig = new ValidatorConfiguration();
         validatorConfig.setName(entry.getKey());
-        validatorConfig.setProperties(entry.getValue().getConfigurationProperties());
-        if (entry.getValue() instanceof AbstractRegExValidator) {
+        Validator validator = entry.getValue();
+        validatorConfig.setProperties(validator.getConfigurationProperties());
+        if (validator instanceof AbstractRegExValidator) {
             validatorConfig.setType(REGEX);
         } else {
             validatorConfig.setType(RULES);

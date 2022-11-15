@@ -65,7 +65,7 @@ public class UniqueCharacterValidator extends AbstractRulesValidator {
     public boolean validateProps(ValidationContext context) throws InputValidationMgtClientException {
 
         Map<String, String> properties = context.getProperties();
-        checkValidProperty(properties, this.getClass().getSimpleName(), context.getTenantDomain());
+        validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
         if (properties.containsKey(MIN_UNIQUE_CHR) && (properties.get(MIN_UNIQUE_CHR) != null ||
                 validatePositiveNumber(properties.get(MIN_UNIQUE_CHR), MIN_UNIQUE_CHR, context.getTenantDomain()))) {
             properties.remove(MIN_UNIQUE_CHR);
