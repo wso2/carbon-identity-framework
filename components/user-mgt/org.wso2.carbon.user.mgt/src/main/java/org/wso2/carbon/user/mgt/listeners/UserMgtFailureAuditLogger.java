@@ -19,22 +19,20 @@
 package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.Map;
 
-import static org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger.getTargetForAuditLog;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
 
 /**
  * This class is responsible for logging the failure events while doing User Management Tasks.
@@ -336,23 +334,10 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         error.put(errorCodeField, errorCode);
         error.put(errorMessageField, errorMessage);
 
-        String initiator = null;
-        if (LoggerUtils.isLogMaskingEnable) {
-            String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
-            String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
-            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
-            }
-            if (StringUtils.isBlank(initiator)) {
-                initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
-            }
-        } else {
-            initiator = ListenerUtils.getUser();
-        }
         String auditMessage =
                 ListenerUtils.INITIATOR + "=%s " + ListenerUtils.ACTION + "=%s " + ListenerUtils.TARGET + "=%s "
                         + ListenerUtils.DATA + "=%s " + ListenerUtils.OUTCOME + "=Failure " + ListenerUtils.ERROR
                         + "=%s";
-        return String.format(auditMessage, initiator, action, target, data, error);
+        return String.format(auditMessage, getInitiator(), action, target, data, error);
     }
 }

@@ -20,7 +20,6 @@ package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,12 +32,13 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
@@ -464,31 +464,11 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         if (data == null) {
             data = new JSONObject();
         }
-        String initiator = getInitiator();
         addContextualAuditParams(data);
         String auditMessage =
                 ListenerUtils.INITIATOR + "=%s " + ListenerUtils.ACTION + "=%s " + ListenerUtils.TARGET + "=%s "
                         + ListenerUtils.DATA + "=%s " + ListenerUtils.OUTCOME + "=%s";
-        return String.format(auditMessage, initiator, action, target, data, resultField);
-    }
-
-    /**
-     * Get the initiator.
-     *
-     * @return the initiator based on whether log masking is enabled or not.
-     */
-    private String getInitiator() {
-
-        if (LoggerUtils.isLogMaskingEnable) {
-            String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
-            String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
-            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
-                String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
-                if (StringUtils.isNotBlank(initiator)) return initiator;
-            }
-            return LoggerUtils.getMaskedContent(ListenerUtils.getUser());
-        }
-        return ListenerUtils.getUser();
+        return String.format(auditMessage, getInitiator(), action, target, data, resultField);
     }
 
     private void addContextualAuditParams(JSONObject jsonObject) {
@@ -513,21 +493,5 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
         } else {
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
         }
-    }
-
-    /**
-     * Returns the target value based on the masking config.
-     *
-     * @param userName          Claims map.
-     * @param userStoreManager  JSON Object which will be added to audit log.
-     * @return masked target value.
-     */
-    public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {
-
-        String target = ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager);
-        if (LoggerUtils.isLogMaskingEnable) {
-            target = LoggerUtils.getMaskedContent(target);
-        }
-        return target;
     }
 }
