@@ -48,8 +48,7 @@ public class Constants {
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
 
         // Keys for password regEx validation.
-        public static final String JAVA_REGEX = "java.regex";
-        public static final String JS_REGEX = "js.regex";
+        public static final String JS_REGEX = "regex";
         public static final String RULES = "RULE";
         public static final String REGEX = "REGEX";
         public static final String PASSWORD = "password";

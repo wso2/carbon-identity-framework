@@ -29,7 +29,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
-import org.wso2.carbon.identity.input.validation.mgt.model.validators.JavaRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseValidator;
@@ -74,8 +73,6 @@ public class InputValidationServiceComponent {
                     new RepeatedCharacterValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
                     new UniqueCharacterValidator(), null);
-            context.getBundleContext().registerService(Validator.class.getName(),
-                    new JavaRegExValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
                     new JsRegExValidator(), null);
         } catch (Throwable throwable) {
