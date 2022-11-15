@@ -105,6 +105,14 @@ public class IdentityApplicationConstants {
 
     public static final String USE_USER_ID_FOR_DEFAULT_SUBJECT = "useUserIdForDefaultSubject";
 
+    // Flag to indicate if an SP is a system reserved SP.
+    public static final String IS_SYSTEM_RESERVED_APP_FLAG = "isSystemReservedApp";
+    public static final String IS_SYSTEM_RESERVED_APP_DISPLAY_NAME = "Is System Reserved Application";
+
+    public static final String LOCAL_SP = "wso2carbon-local-sp";
+
+    public static final String SP_NAME = "spName";
+
     /**
      * Config elements.
      */

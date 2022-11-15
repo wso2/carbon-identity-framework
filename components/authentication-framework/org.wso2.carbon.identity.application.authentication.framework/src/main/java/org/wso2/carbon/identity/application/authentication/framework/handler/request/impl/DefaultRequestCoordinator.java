@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -74,6 +75,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -230,6 +232,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
 
+                // If the Authentication context expiry validation is enabled, check the context for expiry time.
+                // If the context is expired, return to retry page.
+                if (FrameworkUtils.isAuthenticationContextExpiryEnabled() &&
+                        (FrameworkUtils.getCurrentStandardNano() > context.getExpiryTime())) {
+                    log.error("Redirecting to retry page as the authentication context has expired.");
+                    FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                            "authentication.flow.timeout", "authentication.flow.timeout.description");
+                    return;
+                }
 
                 /*
                 If
@@ -299,7 +310,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                        "authentication.context.null", "authentication.context.null.description");
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -541,6 +553,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setTenantDomain(tenantDomain);
         context.setLoginTenantDomain(loginDomain);
         context.setUserTenantDomainHint(userDomain);
+        context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
+                IdentityUtil.getAuthenticationContextValidityPeriod()));
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();

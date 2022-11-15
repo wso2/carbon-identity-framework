@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -63,6 +65,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -116,6 +119,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return;
         }
         if (!graph.isBuildSuccessful()) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.RequestParams.ISSUER, context.getRelyingParty());
+                params.put(FrameworkConstants.RequestParams.TENANT_DOMAIN, context.getTenantDomain());
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Error while parsing the authentication script. Nested exception is: " + graph.getErrorReason(),
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            }
             throw new FrameworkException(
                     "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
         }
