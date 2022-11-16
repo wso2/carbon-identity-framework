@@ -286,7 +286,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     private void addRulesConfigToResource(Map<String, String> configAttributes, List<RulesConfiguration> rules) {
 
         for (RulesConfiguration rule : rules) {
-            String validatorName = rule.getValidator();
+            String validatorName = rule.getValidatorName();
             for (Map.Entry<String, String> entry : rule.getProperties().entrySet()) {
                 String key = validatorName + "." + entry.getKey();
                 configAttributes.put(key, entry.getValue());

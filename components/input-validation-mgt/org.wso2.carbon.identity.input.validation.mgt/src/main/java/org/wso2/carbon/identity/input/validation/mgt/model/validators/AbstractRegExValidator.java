@@ -48,10 +48,12 @@ public abstract class AbstractRegExValidator implements Validator {
     @Override
     public boolean validateProps(ValidationContext context) throws InputValidationMgtClientException {
 
-        return true;
+        Map<String, String> properties = context.getProperties();
+        // Validated supported properties.
+        return validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
     }
 
-    protected boolean checkValidProperty(Map<String, String> properties, String validator, String tenantDomain)
+    protected boolean validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)
             throws InputValidationMgtClientException {
 
         List<String> supportedProperties = getConfigurationProperties().stream()

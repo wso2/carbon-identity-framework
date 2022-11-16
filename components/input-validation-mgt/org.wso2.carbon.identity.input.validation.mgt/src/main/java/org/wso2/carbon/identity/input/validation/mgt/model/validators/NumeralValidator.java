@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH;
 
@@ -48,16 +49,16 @@ public class NumeralValidator extends AbstractRulesValidator {
             }
         }
 
-        if (attributesMap.containsKey(field + "." + MIN_LENGTH)) {
-            int min = Integer.parseInt(attributesMap.get(field + "." + MIN_LENGTH));
+        if (attributesMap.containsKey(field + PERIOD + MIN_LENGTH)) {
+            int min = Integer.parseInt(attributesMap.get(field + PERIOD + MIN_LENGTH));
             if (digits < min) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_MIN_NUMERALS_LENGTH_MISMATCH.getDescription(), field, min));
             }
         }
-        if (attributesMap.containsKey(field + "." + MAX_LENGTH)) {
-            int max = Integer.parseInt(attributesMap.get(field + "." + MAX_LENGTH));
+        if (attributesMap.containsKey(field + PERIOD + MAX_LENGTH)) {
+            int max = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_LENGTH));
             if (digits > max) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MAX_NUMERALS_LENGTH_MISMATCH.getMessage(),

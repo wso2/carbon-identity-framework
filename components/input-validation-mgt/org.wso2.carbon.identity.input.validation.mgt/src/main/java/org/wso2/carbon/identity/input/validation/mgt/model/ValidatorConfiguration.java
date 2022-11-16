@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class ValidatorConfiguration {
 
-    private String name;
     private String type;
+    private String name;
     private List<Property> properties;
 
     /**

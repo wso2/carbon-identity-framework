@@ -121,6 +121,7 @@ public class Property {
 
     /**
      * Method to set display order.
+     *
      * @param displayOrder  Display order.
      */
     public void setDisplayOrder(int displayOrder) {
@@ -128,4 +129,3 @@ public class Property {
         this.displayOrder = displayOrder;
     }
 }
-

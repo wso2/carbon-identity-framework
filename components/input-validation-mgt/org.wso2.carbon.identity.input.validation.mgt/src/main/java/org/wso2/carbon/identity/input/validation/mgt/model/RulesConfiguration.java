@@ -21,11 +21,11 @@ package org.wso2.carbon.identity.input.validation.mgt.model;
 import java.util.Map;
 
 /**
- * Rules configuration.
+ * Define the rules set configuration.
  */
 public class RulesConfiguration {
 
-    private String validator;
+    private String validatorName;
     private Map<String, String> properties;
 
     /**
@@ -36,23 +36,23 @@ public class RulesConfiguration {
     /**
      * Constructor with validator name and properties.
      *
-     * @param validator     Validator name.
+     * @param validatorName     Validator name.
      * @param properties    Properties.
      */
-    public RulesConfiguration(String validator, Map<String, String> properties) {
+    public RulesConfiguration(String validatorName, Map<String, String> properties) {
 
-        this.validator = validator;
+        this.validatorName = validatorName;
         this.properties = properties;
     }
 
     /**
      * Method to set validator name.
      *
-     * @param validator Name of the validator.
+     * @param validatorName Name of the validator.
      */
-    public void setValidator(String validator) {
+    public void setValidatorName(String validatorName) {
 
-        this.validator = validator;
+        this.validatorName = validatorName;
     }
 
     /**
@@ -70,9 +70,9 @@ public class RulesConfiguration {
      *
      * @return  Name of the validator.
      */
-    public String getValidator() {
+    public String getValidatorName() {
 
-        return validator;
+        return validatorName;
     }
 
     /**

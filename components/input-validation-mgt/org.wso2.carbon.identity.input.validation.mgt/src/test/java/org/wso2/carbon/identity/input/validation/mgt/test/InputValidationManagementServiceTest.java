@@ -148,7 +148,7 @@ public class InputValidationManagementServiceTest extends PowerMockTestCase {
 
         List<RulesConfiguration> rules = new ArrayList<>();
         RulesConfiguration rule = new RulesConfiguration();
-        rule.setValidator("LengthValidator");
+        rule.setValidatorName("LengthValidator");
         rule.setProperties(properties);
         rules.add(rule);
 

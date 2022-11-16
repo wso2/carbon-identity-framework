@@ -31,7 +31,7 @@ public class InputValidationDataHolder {
 
     private static ConfigurationManager configurationManager = null;
 
-    private static Map<String, Validator> validators = new HashMap<String, Validator>();
+    private static Map<String, Validator> validators = new HashMap<>();
 
     /**
      * Get Configuration Manager.

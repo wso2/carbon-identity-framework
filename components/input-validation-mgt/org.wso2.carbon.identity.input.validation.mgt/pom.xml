@@ -21,15 +21,15 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>input-validation-mgt</artifactId>
-        <version>5.25.32-SNAPSHOT</version>
+        <version>5.25.34-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.input.validation.mgt</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon Identity- Consent Mgt BE</name>
-    <description>A custom wso2 products or solution</description>
+    <name>WSO2 Carbon Identity - Validation Mgt BE</name>
+    <description>Input Validation Management Service</description>
     <url>http://wso2.org</url>
 
     <dependencies>

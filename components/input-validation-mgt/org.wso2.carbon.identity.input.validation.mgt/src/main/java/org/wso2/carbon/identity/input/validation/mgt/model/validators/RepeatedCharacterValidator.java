@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_CONSECUTIVE_CHR;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH;
 
 /**
@@ -54,8 +55,8 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
             }
         }
 
-        if (attributesMap.containsKey(field + "." + MAX_CONSECUTIVE_CHR)) {
-            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(field + "." + MAX_CONSECUTIVE_CHR));
+        if (attributesMap.containsKey(field + PERIOD + MAX_CONSECUTIVE_CHR)) {
+            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_CONSECUTIVE_CHR));
             if (maxConsecutiveLength < consecutiveLen) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getCode(),
                         ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getMessage(),
