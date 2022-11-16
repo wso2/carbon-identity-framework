@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>input-validation-mgt</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Identity Consent Mgt Module</name>
+    <name>WSO2 Carbon - Identity Validation Mgt Module</name>
     <url>http://wso2.org</url>
 
     <modules>
