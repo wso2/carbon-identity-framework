@@ -39,6 +39,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -188,6 +190,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("service provider", context.getServiceProviderName());
+                params.put("tenant domain", context.getTenantDomain());
+                params.put("missing claims", missingClaims[0]);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Mandatory claims missing for the application: "
+                                + context.getServiceProviderName(), "handle-missing-claims", null);
+            }
             try {
                 // If there are read only claims marked as mandatory and they are missing, we cannot proceed further.
                 // We have to end the flow and show an error message to user.
@@ -197,6 +209,15 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            Map<String, Object> params = new HashMap<>();
+                            params.put("service provider", context.getServiceProviderName());
+                            params.put("tenant domain", context.getTenantDomain());
+                            LoggerUtils.triggerDiagnosticLogEvent(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                                    LogConstants.FAILED, "One or more read-only claim is missing in the requested " +
+                                            "claim set", "handle-missing-claims", null);
+                        }
                         throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
                                 "requested claim set. Please contact your administrator for more information about " +
                                 "this issue.", "One or more read-only claim is missing in the requested claim set");
@@ -288,6 +309,14 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         if (!doMandatoryClaimsExist) {
             // Check whether mandatory claims exist in the request. If not throw error.
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("service provider", context.getServiceProviderName());
+                params.put("tenant domain", context.getTenantDomain());
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Mandatory missing claims are not found", "handle-missing-claims", null);
+            }
             throw new PostAuthenticationFailedException("Mandatory missing claims are not found", "Mandatory missing " +
                     "claims are not found in the request for the session with context identifier: " +
                     context.getContextIdentifier());
@@ -317,6 +346,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             String missingClaimURIs = StringUtils.join(missingClaims, ",");
             if (log.isDebugEnabled()) {
                 log.debug("Claim values for the mandatory claims: " + missingClaimURIs + " are empty");
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("service provider", context.getServiceProviderName());
+                params.put("tenant domain", context.getTenantDomain());
+                params.put("missing claims", missingClaimURIs);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Mandatory claim is not found. Claim values for the claim URIs: " + missingClaimURIs
+                                + " are empty", "handle-missing-claims", null);
             }
             throw new PostAuthenticationFailedException("Mandatory claim is not found", "Claim " +
                     "values for the claim URIs: " + missingClaimURIs + " are empty");
