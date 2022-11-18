@@ -50,7 +50,8 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
         return true;
     }
 
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                           String userName, boolean isClaimConfigChanged)
             throws IdentityApplicationManagementException {
 
         return true;

@@ -100,15 +100,16 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     public boolean doPostUpdateApplicationByResourceId(ServiceProvider application,
                                                        String resourceId,
                                                        String tenantDomain,
-                                                       String userPerformingAction)
+                                                       String userPerformingAction,
+                                                       boolean isClaimConfigChanged)
             throws IdentityApplicationManagementException {
 
         int applicationId = getApplicationId(resourceId, tenantDomain);
         application.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPostUpdateApplication(application, tenantDomain, userPerformingAction)) {
+            if (listener.isEnable() && !listener.doPostUpdateApplication(application, tenantDomain,
+                    userPerformingAction, isClaimConfigChanged)) {
                 return false;
             }
         }

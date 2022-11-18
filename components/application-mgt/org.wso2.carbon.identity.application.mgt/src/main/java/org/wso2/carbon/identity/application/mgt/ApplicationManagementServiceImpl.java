@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.google.gson.Gson;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -617,48 +618,56 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public void updateApplication(ServiceProvider updatedSP, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        validateApplicationConfigurations(serviceProvider, tenantDomain, username);
+        validateApplicationConfigurations(updatedSP, tenantDomain, username);
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreUpdateApplication(updatedSP, tenantDomain, username)) {
                 throw buildServerException("Pre Update application failed");
             }
         }
 
-        String applicationName = serviceProvider.getApplicationName();
+        boolean isClaimConfigChanged = true;
+        String applicationName = updatedSP.getApplicationName();
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
+            String storedAppName = appDAO.getApplicationName(updatedSP.getApplicationID());
             if (StringUtils.isBlank(storedAppName)) {
                 // This means the application is not a valid one.
-                String msg = "Cannot find application with id: " + serviceProvider.getApplicationID() + " in " +
+                String msg = "Cannot find application with id: " + updatedSP.getApplicationID() + " in " +
                         "tenantDomain: " + tenantDomain;
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
 
             // Updating the isManagement flag of application is blocked. So updating it to stored value
-            boolean isManagementApp = appDAO.getApplication(serviceProvider.getApplicationID())
+            boolean isManagementApp = appDAO.getApplication(updatedSP.getApplicationID())
                     .isManagementApp();
-            serviceProvider.setManagementApp(isManagementApp);
+            updatedSP.setManagementApp(isManagementApp);
 
-            doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
-            appDAO.updateApplication(serviceProvider, tenantDomain);
-            if (isOwnerUpdatedInRequest(serviceProvider)) {
-                //It is not required to validate the user here, as the user is validating inside the updateApplication
-                // method above. Hence assign application role to the app owner.
-                assignApplicationRole(serviceProvider.getApplicationName(),
-                        MultitenantUtils.getTenantAwareUsername(serviceProvider.getOwner().toFullQualifiedUsername()));
+            ServiceProvider storedSP = getServiceProvider(updatedSP.getApplicationID());
+            String updatedClaimConfigString = new Gson().toJson(updatedSP.getClaimConfig());
+            String storedClaimConfigString = new Gson().toJson(storedSP.getClaimConfig());
+            if (updatedClaimConfigString.equals(storedClaimConfigString)) {
+                isClaimConfigChanged = false;
             }
 
-            updateApplicationPermissions(serviceProvider, applicationName, storedAppName);
+            doPreUpdateChecks(storedAppName, updatedSP, tenantDomain, username);
+            appDAO.updateApplication(updatedSP, tenantDomain);
+            if (isOwnerUpdatedInRequest(updatedSP)) {
+                //It is not required to validate the user here, as the user is validating inside the updateApplication
+                // method above. Hence assign application role to the app owner.
+                assignApplicationRole(updatedSP.getApplicationName(),
+                        MultitenantUtils.getTenantAwareUsername(updatedSP.getOwner().toFullQualifiedUsername()));
+            }
+
+            updateApplicationPermissions(updatedSP, applicationName, storedAppName);
         } catch (Exception e) {
             String error = "Error occurred while updating the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
@@ -667,14 +676,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostUpdateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostUpdateApplication(updatedSP, tenantDomain,
+                    username, isClaimConfigChanged)) {
                 return;
             }
         }
         triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
-                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
-                buildSPData(serviceProvider));
+                getAppId(updatedSP), getApplicationName(updatedSP), TARGET_APPLICATION,
+                buildSPData(updatedSP));
     }
 
     // Will be supported with 'Advance Consent Management Feature'.
@@ -2338,24 +2348,25 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedSP, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
 
-        validateApplicationConfigurations(updatedApp, tenantDomain, username);
+        validateApplicationConfigurations(updatedSP, tenantDomain, username);
 
-        updatedApp.setApplicationResourceId(resourceId);
-        setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
+        updatedSP.setApplicationResourceId(resourceId);
+        setDisplayNamesOfLocalAuthenticators(updatedSP, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
-                    !listener.doPreUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
+                    !listener.doPreUpdateApplicationByResourceId(updatedSP, resourceId, tenantDomain, username)) {
 
                 throw buildServerException("Pre Update application operation of listener: " + getName(listener) +
                         " failed for application with resourceId: " + resourceId);
             }
         }
 
+        boolean isClaimConfigChanged = true;
         try {
             startTenantFlow(tenantDomain, username);
 
@@ -2366,20 +2377,27 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
 
-            String updatedAppName = updatedApp.getApplicationName();
-            String storedAppName = storedAppInfo.getApplicationName();
-
-            doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
-
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
-
-            if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedApp.getOwner())) {
-                // User existence check is already done in appDAO.updateApplicationByResourceId() method.
-                assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
+            ServiceProvider storedSP = getServiceProvider(updatedSP.getApplicationID());
+            String updatedClaimConfigString = new Gson().toJson(updatedSP.getClaimConfig());
+            String storedClaimConfigString = new Gson().toJson(storedSP.getClaimConfig());
+            if (updatedClaimConfigString.equals(storedClaimConfigString)) {
+                isClaimConfigChanged = false;
             }
 
-            updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
+            String updatedAppName = updatedSP.getApplicationName();
+            String storedAppName = storedAppInfo.getApplicationName();
+
+            doPreUpdateChecks(storedAppName, updatedSP, tenantDomain, username);
+
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedSP);
+
+            if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedSP.getOwner())) {
+                // User existence check is already done in appDAO.updateApplicationByResourceId() method.
+                assignApplicationRole(updatedSP.getApplicationName(), updatedSP.getOwner().getUserName());
+            }
+
+            updateApplicationPermissions(updatedSP, updatedAppName, storedAppName);
         } catch (RegistryException e) {
             String message = "Error while updating application with resourceId: " + resourceId + " in tenantDomain: "
                     + tenantDomain;
@@ -2389,8 +2407,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled()
-                    && !listener.doPostUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
+            if (listener.isEnabled() && !listener.doPostUpdateApplicationByResourceId(updatedSP, resourceId,
+                    tenantDomain, username, isClaimConfigChanged)) {
                 log.error("Post Update application operation of listener: " + getName(listener) + " failed for " +
                         "application with resourceId: " + resourceId);
                 return;
@@ -2398,8 +2416,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(), getAppId(updatedApp),
-                getApplicationName(updatedApp), TARGET_APPLICATION, buildSPData(updatedApp));
+                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(), getAppId(updatedSP),
+                getApplicationName(updatedSP), TARGET_APPLICATION, buildSPData(updatedSP));
     }
 
     @Override

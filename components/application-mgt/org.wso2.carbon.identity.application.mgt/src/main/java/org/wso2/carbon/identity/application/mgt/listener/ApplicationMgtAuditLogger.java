@@ -77,7 +77,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     }
 
     @Override
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                           String userName, boolean isClaimConfigChanged)
             throws IdentityApplicationManagementException {
 
         String appId = getAppId(serviceProvider);

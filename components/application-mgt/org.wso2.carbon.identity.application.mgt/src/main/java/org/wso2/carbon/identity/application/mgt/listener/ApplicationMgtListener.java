@@ -93,7 +93,8 @@ public interface ApplicationMgtListener {
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                           String userName, boolean isClaimConfigChanged)
             throws IdentityApplicationManagementException;
 
     /**

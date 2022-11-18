@@ -133,7 +133,8 @@ public interface ApplicationResourceManagementListener {
     boolean doPostUpdateApplicationByResourceId(ServiceProvider serviceProvider,
                                                 String resourceId,
                                                 String tenantDomain,
-                                                String userPerformingAction)
+                                                String userPerformingAction,
+                                                boolean isClaimConfigChanged)
             throws IdentityApplicationManagementException;
 
     /**
