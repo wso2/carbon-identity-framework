@@ -89,6 +89,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_MAGIC_LINK_AUTH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
@@ -239,7 +240,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     (To handle browser back with only with identifier-first and basic)
                 */
                 if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
-                        && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
+                        && (!isFlowHandlerInCurrentStepCanHandleRequest(context, request)
+                        && !isIdentifierFirstRequestInitiatedFromMagicLink(context)))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -407,6 +409,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         return false;
+    }
+
+    private boolean isIdentifierFirstRequestInitiatedFromMagicLink(AuthenticationContext context) {
+
+        return Boolean.TRUE.equals(
+                context.getProperty(IS_IDF_INITIATED_FROM_MAGIC_LINK_AUTH));
     }
 
     private boolean isBackToFirstStepRequest(HttpServletRequest request) {
