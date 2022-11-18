@@ -194,7 +194,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 Map<String, Object> params = new HashMap<>();
                 params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
                 params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims[0]);
+                params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims);
                 LoggerUtils.triggerDiagnosticLogEvent(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
                         "Mandatory claims missing for the application: " + context.getServiceProviderName(),
@@ -214,6 +214,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                             params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
                                     context.getServiceProviderName());
                             params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                            params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaim);
                             LoggerUtils.triggerDiagnosticLogEvent(
                                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                                     LogConstants.FAILED, "One or more read-only claim is missing in the requested " +
