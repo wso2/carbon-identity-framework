@@ -245,8 +245,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             params.put(FrameworkConstants.LogConstants.THREAD_ID, Thread.currentThread().getId());
                             LoggerUtils.triggerDiagnosticLogEvent(
                                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                                    LogConstants.FAILED, "Same context is currently in used by a different thread. " +
-                                            "Possible double submit.",
+                                    LogConstants.FAILED, "Same authentication request is being processed by another " +
+                                            "thread. Could be a possible double submit or a replay request.",
                                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
                         }
                         FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
