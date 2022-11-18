@@ -195,7 +195,7 @@ public class LoggerUtils {
     public static String getMaskedContent(String content) {
 
         if (StringUtils.isNotEmpty(content)) {
-            content = LogConstants.LOG_MASKING_PATTERN.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
+            return LogConstants.LOG_MASKING_PATTERN.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
         }
         return content;
     }
