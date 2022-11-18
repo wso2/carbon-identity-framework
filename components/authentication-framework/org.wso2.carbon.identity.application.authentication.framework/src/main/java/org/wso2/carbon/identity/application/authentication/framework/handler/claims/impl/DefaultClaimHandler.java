@@ -277,19 +277,19 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             Map<String, Object> params = new HashMap<>();
-            params.put("service provider", appConfig.getApplicationName());
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, appConfig.getApplicationName());
             Optional.of(requestedClaims.entrySet()).ifPresent(entries -> {
                 List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
-                params.put("requested claims", claimsList);
+                params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS, claimsList);
             });
             Optional.of(mandatoryClaims.entrySet()).ifPresent(entries -> {
                 List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
-                params.put("mandatory claims", claimsList);
+                params.put(FrameworkConstants.LogConstants.MANDATORY_CLAIMS, claimsList);
             });
-            params.put("claim mappings", claimMappings);
             LoggerUtils.triggerDiagnosticLogEvent(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Handling service provider requested claims", "handle-claim-mappings", null);
+                    "Handling service provider requested claims",
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_CLAIM_MAPPING, null);
         }
     }
 

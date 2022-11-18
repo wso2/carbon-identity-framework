@@ -120,17 +120,18 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             Map<String, Object> params = new HashMap<>();
-            params.put("service provider", context.getServiceProviderName());
-            params.put("tenant domain", context.getTenantDomain());
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
             LoggerUtils.triggerDiagnosticLogEvent(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Executing script-based authentication", "handle-authentication-request", null);
+                    "Executing script-based authentication",
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
         }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put("service provider", context.getServiceProviderName());
-                params.put(FrameworkConstants.RequestParams.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
                 LoggerUtils.triggerDiagnosticLogEvent(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
                         "Error while parsing the authentication script. Nested exception is: " + graph.getErrorReason(),

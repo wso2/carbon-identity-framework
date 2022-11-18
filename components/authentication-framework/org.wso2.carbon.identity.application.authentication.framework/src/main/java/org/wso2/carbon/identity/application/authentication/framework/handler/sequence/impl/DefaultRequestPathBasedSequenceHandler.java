@@ -89,12 +89,13 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             Map<String, Object> params = new HashMap<>();
-            params.put("service provider", context.getServiceProviderName());
-            params.put("tenant domain", context.getTenantDomain());
-            params.put("authenticators", reqPathAuthenticators);
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+            params.put(FrameworkConstants.LogConstants.AUTHENTICATORS, reqPathAuthenticators);
             LoggerUtils.triggerDiagnosticLogEvent(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Executing request path authentication", "handle-authentication-request", null);
+                    "Executing request path authentication",
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
         }
 
         for (AuthenticatorConfig reqPathAuthenticator : reqPathAuthenticators) {

@@ -124,23 +124,26 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("service provider", context.getServiceProviderName());
-                    params.put("tenant domain", context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
                     Map<String, Object> stepMap = new HashMap<>();
                     context.getSequenceConfig().getStepMap().forEach((key, value) -> {
                         List<Map<String, Object>> stepConfigParams = new ArrayList<>();
                         value.getAuthenticatorList().forEach(authenticatorConfig -> {
                             Map<String, Object> authenticatorParams = new HashMap<>();
-                            authenticatorParams.put("authenticatorName", authenticatorConfig.getName());
-                            authenticatorParams.put("IDPNames", authenticatorConfig.getIdpNames());
+                            authenticatorParams.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                                    authenticatorConfig.getName());
+                            authenticatorParams.put(FrameworkConstants.LogConstants.IDP_NAMES,
+                                    authenticatorConfig.getIdpNames());
                             stepConfigParams.add(authenticatorParams);
                         });
-                        stepMap.put("step " + key.toString(), stepConfigParams);
+                        stepMap.put(FrameworkConstants.LogConstants.STEP + " " + key.toString(), stepConfigParams);
                     });
-                    params.put("steps", stepMap);
+                    params.put(FrameworkConstants.LogConstants.STEPS, stepMap);
                     LoggerUtils.triggerDiagnosticLogEvent(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                            "Executing step-based authentication", "handle-authentication-request", null);
+                            "Executing step-based authentication",
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
                 }
             }
 

@@ -153,17 +153,18 @@ public class DefaultStepHandler implements StepHandler {
                 LOG.debug(String.format("Found authenticated IdPs. Count: %d", authenticatedIdPs.size()));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("service provider", context.getServiceProviderName());
-                    params.put("tenant domain", context.getTenantDomain());
-                    params.put("count", authenticatedIdPs.size());
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.COUNT, authenticatedIdPs.size());
                     Map<String, Object> idpMap = new HashMap<>();
                     authenticatedIdPs.forEach((key, value) -> idpMap.put(key, value.getAuthenticators().stream().map(
                             AuthenticatorConfig::getName).collect(Collectors.toList())));
-                    params.put("authenticated idps", idpMap);
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, idpMap);
 
                     LoggerUtils.triggerDiagnosticLogEvent(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                            "Authenticated IDPs found", "handle-authentication-request", null);
+                            "Authenticated IDPs found", FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST,
+                            null);
                 }
             }
         }
@@ -281,12 +282,13 @@ public class DefaultStepHandler implements StepHandler {
                     }
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         Map<String, Object> params = new HashMap<>();
-                        params.put("service provider", context.getServiceProviderName());
-                        params.put("tenant domain", context.getTenantDomain());
-                        params.put("step", stepConfig.getOrder());
+                        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
                         LoggerUtils.triggerDiagnosticLogEvent(
                                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                                "Already authenticated. Skipping the step", "handle-authentication-request", null);
+                                "Already authenticated. Skipping the step",
+                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
                     }
 
                     // skip the step if this is a normal request
@@ -576,13 +578,14 @@ public class DefaultStepHandler implements StepHandler {
                 }
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("authenticator", authenticator.getName());
-                    params.put("step", currentStep);
-                    params.put("tenant", context.getTenantDomain());
-                    params.put("service provider", context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticator.getName());
+                    params.put(FrameworkConstants.LogConstants.STEP, currentStep);
                     LoggerUtils.triggerDiagnosticLogEvent(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                            "Initializing authentication flow", "handle-authentication-step", null);
+                            "Initializing authentication flow",
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
                 }
 
                 doAuthentication(request, response, context, authenticatorConfig);
@@ -747,32 +750,30 @@ public class DefaultStepHandler implements StepHandler {
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put("step", stepConfig.getOrder());
-                params.put("service provider", context.getServiceProviderName());
-                params.put("tenant domain", context.getTenantDomain());
-                params.put("IDP", stepConfig.getAuthenticatedIdP());
-                params.put("authenticator", stepConfig.getAuthenticatedAutenticator().getName());
+                params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP());
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                        stepConfig.getAuthenticatedAutenticator().getName());
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.SUCCESS, "Authentication success for step: " + stepConfig.getOrder(),
-                        "handle-authentication-step", null);
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("A login attempt was failed due to invalid credentials", e);
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("step", stepConfig.getOrder());
-                params.put("service provider", context.getServiceProviderName());
-                params.put("tenant domain", context.getTenantDomain());
-                params.put("authenticator", authenticatorConfig.getName());
+                 Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
                 Optional.of(e.getUser()).ifPresent(user -> {
-                    params.put("user id", user.getLoggableUserId());
-                    params.put("user store domain", user.getUserStoreDomain());
+                    params.put(FrameworkConstants.LogConstants.USER, user.getLoggableUserId());
+                    params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
                 });
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.FAILED, "Authentication failed: " + e.getMessage(),
-                        "handle-authentication-step", null);
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
                     authenticatorConfig.getName();
@@ -831,14 +832,11 @@ public class DefaultStepHandler implements StepHandler {
                         "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("step", stepConfig.getOrder());
-                params.put("service provider", context.getServiceProviderName());
-                params.put("tenant domain", context.getTenantDomain());
-                params.put("authenticator", authenticatorConfig.getName());
+                Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.FAILED, "Authentication failed exception: " + e.getMessage(),
-                        "handle-authentication-step", null);
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
@@ -846,6 +844,18 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         stepConfig.setCompleted(true);
+    }
+
+    private Map<String, Object> getContextParamsForDiagnosticLogs(AuthenticationContext context,
+                                                                  AuthenticatorConfig authenticatorConfig,
+                                                                  StepConfig stepConfig) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+        params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
+        return params;
     }
 
     protected void handleFailedAuthentication(HttpServletRequest request,

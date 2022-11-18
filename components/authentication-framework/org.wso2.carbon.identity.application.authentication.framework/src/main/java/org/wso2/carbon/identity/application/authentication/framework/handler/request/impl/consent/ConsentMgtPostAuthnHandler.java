@@ -197,14 +197,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 }
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("mandatory claims", consentClaimsData.getMandatoryClaims());
-                    params.put("requested claims", consentClaimsData.getRequestedClaims());
-                    params.put("user", authenticatedUser.getAuthenticatedSubjectIdentifier());
-                    params.put("service provider", serviceProvider.getApplicationName());
-                    params.put("tenant domain", getSPTenantDomain(serviceProvider));
+                    params.put(FrameworkConstants.LogConstants.MANDATORY_CLAIMS,
+                            consentClaimsData.getMandatoryClaims());
+                    params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS,
+                            consentClaimsData.getRequestedClaims());
+                    params.put(FrameworkConstants.LogConstants.USER,
+                            authenticatedUser.getAuthenticatedSubjectIdentifier());
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
                     LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             params, LogConstants.SUCCESS, "Require consent for mandatory claims ",
-                            "process-claim-consent", null);
+                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
                 }
 
                 redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
@@ -222,12 +225,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     (serviceProvider));
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put("user", authenticatedUser.getAuthenticatedSubjectIdentifier());
-                params.put("service provider", serviceProvider.getApplicationName());
-                params.put("tenant domain", getSPTenantDomain(serviceProvider));
+                params.put(FrameworkConstants.LogConstants.USER,
+                        authenticatedUser.getAuthenticatedSubjectIdentifier());
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.FAILED, "Error occurred while processing consent data of user: " + e.getMessage(),
-                        "process-claim-consent", null);
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
             }
             throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing user " +
                     "consent.", error, e);
@@ -325,9 +329,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         ServiceProvider serviceProvider = getServiceProvider(context);
         Map<String, Object> params = new HashMap<>();
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            params.put("user", authenticatedUser.getAuthenticatedSubjectIdentifier());
-            params.put("service provider", serviceProvider.getApplicationName());
-            params.put("tenant domain", getSPTenantDomain(serviceProvider));
+            params.put(FrameworkConstants.LogConstants.USER, authenticatedUser.getAuthenticatedSubjectIdentifier());
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
+            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
         }
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
             if (isDebugEnabled()) {
@@ -340,7 +344,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.SUCCESS, "User has approved consent for service provider.",
-                        "process-claim-consent", null);
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
             }
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
@@ -361,7 +365,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             params, LogConstants.FAILED, "Consent management is disabled for SSO: " + e.getMessage(),
-                            "process-claim-consent", null);
+                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
                 }
                 throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
@@ -372,7 +376,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             params, LogConstants.FAILED, "Error occurred while processing consent input: "
-                                    + e.getMessage(), "process-claim-consent", null);
+                                    + e.getMessage(), FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT,
+                            null);
                 }
                 throw new PostAuthenticationFailedException("Authentication failed. Error while processing user " +
                                                             "consent input.", error, e);
@@ -389,7 +394,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.FAILED, "User denied consent to share information with the service provider.",
-                        "process-claim-consent", null);
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
             }
             throw new PostAuthenticationFailedException(error, error);
         }
@@ -423,12 +428,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("user", authenticatedUser.getAuthenticatedSubjectIdentifier());
-                    params.put("service provider", serviceProvider.getApplicationName());
-                    params.put("tenant domain", getSPTenantDomain(serviceProvider));
-                    LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                            params, LogConstants.FAILED, "Error occurred while processing " +
-                                    "user consent: " + e.getMessage(), "process-claim-consent", null);
+                    params.put(FrameworkConstants.LogConstants.USER,
+                            authenticatedUser.getAuthenticatedSubjectIdentifier());
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                            "Error occurred while processing user consent: " + e.getMessage(),
+                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
                 }
                 throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing " +
                                                             "user consent.", error, e);
