@@ -1556,10 +1556,6 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
-            <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
-            <Scopes>internal_humantask_view</Scopes>
-        </Resource>
         <Resource context="(.*)/api/users/v1/me/associations(.*)" secured="true" http-method="GET, POST, DELETE">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
