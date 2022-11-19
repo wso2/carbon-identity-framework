@@ -206,7 +206,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
                     params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
                     LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                            params, LogConstants.SUCCESS, "Require consent for mandatory claims ",
+                            params, LogConstants.SUCCESS, "Require consent for claims from user",
                             FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
                 }
 

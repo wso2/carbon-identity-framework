@@ -285,6 +285,13 @@ public class DefaultStepHandler implements StepHandler {
                         params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
                         params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
                         params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                        Map<String, Object> authenticatedStepIdpMap = new HashMap<>();
+                        authenticatedStepIdps.forEach((key, value) ->
+                                    Optional.of(value.getApplicationAuthenticator())
+                                            .ifPresent(authenticator ->
+                                                    authenticatedStepIdpMap.put(key, authenticator.getName()))
+                                );
+                        params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, authenticatedStepIdpMap);
                         LoggerUtils.triggerDiagnosticLogEvent(
                                 FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
                                 "Already authenticated. Skipping the step",
@@ -770,7 +777,10 @@ public class DefaultStepHandler implements StepHandler {
                 Optional.of(e.getUser()).ifPresent(user -> {
                     params.put(FrameworkConstants.LogConstants.USER, user.getLoggableUserId());
                     params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
                 });
+                params.put(FrameworkConstants.LogConstants.IDP, idpName);
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
                         LogConstants.FAILED, "Authentication failed: " + e.getMessage(),
                         FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
