@@ -73,12 +73,7 @@
     int noOfPageLinksToDisplay = 5;
     int numberOfPages = 0;
     Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
-    Set<FlaggedName> workFlowAddPendingUsers = new LinkedHashSet<FlaggedName>();
-    Set<String> workFlowAddPendingUsersList = new LinkedHashSet<String>();
-    Set<String> workFlowDeletePendingUsers = new LinkedHashSet<String>();
     Set<FlaggedName> activeUserList;
-    Set<FlaggedName> showDeletePendingUsers = new LinkedHashSet<FlaggedName>();
-    Set<String> showDeletePendingUsersList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateUserList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeUserElement = new LinkedHashSet<FlaggedName>();
     Set<String> countableUserStores = new LinkedHashSet<String>();
@@ -232,8 +227,6 @@
                     .getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-            UserManagementWorkflowServiceClient UserMgtClient = new
-                    UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
             UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
 
@@ -286,45 +279,6 @@
                     datas = client.listUserByClaim(claimValue, userDomainSelector, -1);
                 } else {
                     datas = client.listAllUsers(modifiedFilter, -1);
-                }
-                if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
-                    List<FlaggedName> preactiveUserList = new ArrayList<FlaggedName>(Arrays.asList(datas));
-                    FlaggedName excessiveDomainElement = preactiveUserList.remove(datas.length - 1);
-                    removeUserElement.add(excessiveDomainElement);
-
-                    activeUserList = new LinkedHashSet<FlaggedName>(preactiveUserList);
-
-                    String[] AddPendingUsersList = UserMgtClient.
-                            listAllEntityNames("ADD_USER", "PENDING", "USER", modifiedFilter);
-                    workFlowAddPendingUsersList = new LinkedHashSet<String>(Arrays.asList(AddPendingUsersList));
-
-                    for (String s : AddPendingUsersList) {
-                        FlaggedName flaggedName = new FlaggedName();
-                        flaggedName.setItemName(s);
-                        flaggedName.setEditable(true);
-                        workFlowAddPendingUsers.add(flaggedName);
-                    }
-                    String[] DeletePendingUsersList = UserMgtClient.
-                            listAllEntityNames("DELETE_USER", "PENDING", "USER", modifiedFilter);
-                    workFlowDeletePendingUsers = new LinkedHashSet<String>(Arrays.asList(DeletePendingUsersList));
-
-                    for (Iterator<FlaggedName> iterator = activeUserList.iterator(); iterator.hasNext(); ) {
-                        FlaggedName flaggedName = iterator.next();
-                        if (flaggedName == null) {
-                            continue;
-                        }
-                        String userName = flaggedName.getItemName();
-                        if (workFlowDeletePendingUsers.contains(userName)) {
-                            showDeletePendingUsers.add(flaggedName);
-                            showDeletePendingUsersList.add(userName);
-                            iterator.remove();
-                        }
-                    }
-                    aggregateUserList.addAll(activeUserList);
-                    aggregateUserList.addAll(showDeletePendingUsers);
-                    aggregateUserList.addAll(workFlowAddPendingUsers);
-                    aggregateUserList.addAll(removeUserElement);
-                    datas = aggregateUserList.toArray(new FlaggedName[aggregateUserList.size()]);
                 }
 
                 List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(datas));
@@ -674,120 +628,6 @@
                                 if (displayName == null || displayName.trim().length() == 0) {
                                     displayName = userName;
                                 }
-                                if (workFlowAddPendingUsersList.contains(userName)) {
-                %>
-                <tr>
-                    <td><%=Encode.forHtml(displayName)%>
-                        <%if (!users[i].getEditable()) { %> <%="(Read-Only)"%> <% } %>
-                        <img src="images/workflow_pending_add.gif" title="Workflow-pending-user-add"
-                             alt="Workflow-pending-user-add" height="15" width="15">
-                    </td>
-                    <td>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(../admin/images/edit.gif);color:#CCC;"><fmt:message
-                                key="change.password"/></a>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(../admin/images/edit.gif);color:#CCC;"><fmt:message
-                                key="edit.roles"/></a>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/view.gif);color:#CCC;"><fmt:message
-                                key="view.roles"/></a>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/delete.gif);color:#CCC;"><fmt:message
-                                key="delete"/></a>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(../userprofile/images/my-prof.gif);color:#CCC;">User
-                            Profile</a>
-                    </td>
-                </tr>
-                <%
-                } else if (showDeletePendingUsersList.contains(userName)) {
-                %>
-                <tr>
-                    <td><%=Encode.forHtml(displayName)%>
-                        <%if (!users[i].getEditable()) { %> <%="(Read-Only)"%> <% } %>
-                        <img src="images/workflow_pending_remove.gif" title="Workflow-pending-user-delete"
-                             alt="Workflow-pending-user-delete" height="15" width="15">
-                    </td>
-                    <td>
-                        <%
-                            if (!Util.getUserStoreInfoForUser(userName, userRealmInfo).getPasswordsExternallyManaged() &&
-                                    CarbonUIUtil.isUserAuthorized(request,
-                                            "/permission/admin/manage/identity/identitymgt/update") &&
-                                    users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
-                                if (Util.isCurrentUser(currentUser, userName, userRealmInfo)) {
-                        %>
-                        <a href="change-passwd.jsp?isUserChange=true&returnPath=user-mgt.jsp" class="icon-link"
-                           style="background-image:url(../admin/images/edit.gif);"><fmt:message
-                                key="change.password"/></a>
-
-                        <%
-                        } else {
-                        %>
-
-                        <a href="change-passwd.jsp?username=<%=Encode.forUriComponent(encryptedUsername)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
-                           class="icon-link"
-                           style="background-image:url(../admin/images/edit.gif);"><fmt:message
-                                key="change.password"/></a>
-                        <%
-                                }
-                            }
-                        %>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(../admin/images/edit.gif);color:#CCC;"><fmt:message
-                                key="edit.roles"/></a>
-
-                        <%
-                            if (CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/rolemgt/view")) {
-                        %>
-                        <a href="view-roles.jsp?username=<%=Encode.forUriComponent(encryptedUsername)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
-                           class="icon-link"
-                           style="background-image:url(images/view.gif);"><fmt:message
-                                key="view.roles"/></a>
-                        <%
-                            }
-                        %>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/delete.gif);color:#CCC;"><fmt:message
-                                key="delete"/></a>
-
-                        <%
-                            if (CarbonUIUtil.isContextRegistered(config, "/identity-authorization/") &&
-                                    CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/")) {
-                        %>
-                        <a
-                                href="../identity-authorization/permission-root.jsp?userName=<%=Encode.forUriComponent(encryptedUsername)%>&fromUserMgt=true"
-                           class="icon-link"
-                           style="background-image:url(../admin/images/edit.gif);"><fmt:message
-                                key="authorization"/></a>
-                        <%
-                            }
-                        %>
-
-                        <%
-                            if (CarbonUIUtil.isContextRegistered(config, "/userprofile/")
-                                    && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/update")) {
-                        %>
-                        <a
-                                href="../userprofile/index.jsp?username=<%=Encode.forUriComponent(encryptedUsername)%>&displayName=<%=Encode.forUriComponent(displayName)%>&fromUserMgt=true"
-                           class="icon-link"
-                           style="background-image:url(../userprofile/images/my-prof.gif);">User
-                            Profile</a>
-                        <%
-                            }
-                        %>
-                    </td>
-                </tr>
-                <%
-                } else {
                 %>
                 <tr>
                     <td><%=Encode.forHtml(displayName)%>
@@ -916,9 +756,6 @@
 
                     </td>
                 </tr>
-                <%
-                    }
-                %>
                 <%
                             }
                         }

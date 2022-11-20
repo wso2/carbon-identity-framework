@@ -62,7 +62,6 @@
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
     int numberOfPages = 0;
-    Set<String> workFlowDeletePendingRoles = null;
     String pageNumberParameter = "pageNumber";
     String checkedRolesMapParameter = "checkedRolesMap";
     String pendingStatus = "[Pending Role for Delete]";
@@ -155,26 +154,8 @@
             ConfigurationContext configContext =
                     (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-            UserManagementWorkflowServiceClient UserMgtClient = new
-                    UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
             if (filter.length() > 0 && decryptedUsername != null) {
                 FlaggedName[] data = client.getRolesOfUser(decryptedUsername, filter, -1);
-                if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
-                    String[] DeletePendingRolesList = UserMgtClient.
-                            listAllEntityNames("DELETE_ROLE", "PENDING", "ROLE", filter);
-                    workFlowDeletePendingRoles = new LinkedHashSet<String>(Arrays.asList(DeletePendingRolesList));
-
-                    if (data != null) {
-                        for (int i = 0; i < data.length; i++) {
-                            String updatedStatus = null;
-                            if (workFlowDeletePendingRoles.contains(data[i].getItemName())) {
-                                updatedStatus = data[i].getItemName() + " " + pendingStatus;
-                                data[i].setItemDisplayName(data[i].getItemName());
-                                data[i].setItemName(updatedStatus);
-                            }
-                        }
-                    }
-                }
                 List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(data));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_UNASSIGNED_ROLE_CACHE_EXCEEDED, exceededDomains);
@@ -478,20 +459,8 @@
                                         <label>
                                             <input type="checkbox" name="selectedRoles"
                                                    value="<%=Encode.forHtmlAttribute(name.getItemName())%>" <%=doEdit%> <%=doCheck%>/>
-                                            <%
-                                                if ((name.getItemName()).contains("[Pending Role for Delete]")) {
-                                            %>
-                                            <%=Encode.forHtmlContent(name.getItemDisplayName())%>
-                                            <img src="images/workflow_pending_remove.gif"
-                                                 title="Workflow-pending-user-delete"
-                                                 alt="Workflow-pending-user-delete" height="15" width="15">
-                                            <%
-                                            } else {
-                                            %>
                                             <%=Encode.forHtmlContent(name.getItemName())%>
-                                            <%if (!name.getEditable()) { %> <%="(Read-Only)"%> <% }
-                                        }
-                                        %>
+                                            <%if (!name.getEditable()) { %> <%="(Read-Only)"%> <% } %>
                                             <input type="hidden" name="shownRoles"
                                                    value="<%=Encode.forHtmlAttribute(name.getItemName())%>"/>
                                         </label>
