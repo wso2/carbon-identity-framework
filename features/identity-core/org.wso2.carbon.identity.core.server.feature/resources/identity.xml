@@ -2074,6 +2074,8 @@
             <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
             <HTTPReadTimeout>1000</HTTPReadTimeout>
             <HTTPSizeLimit>51200</HTTPSizeLimit>
+            <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
+            <AddPreviousKIDToJWKS>false</AddPreviousKIDToJWKS>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
