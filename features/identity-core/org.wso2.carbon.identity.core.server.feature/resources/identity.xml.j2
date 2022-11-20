@@ -2833,7 +2833,7 @@
                 <Password>{{http_proxy.password}}</Password>
             </HTTPProxy>
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
-            <AddPreviousKIDToJWKS>false</AddPreviousKIDToJWKS>
+            <AddPreviousKIDToJWKS>{{oauth.jwks_endpoint.add_previous_kid_to_jwks}}</AddPreviousKIDToJWKS>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
