@@ -628,7 +628,6 @@ public class IdentityUtilTest {
                 {"foo", null, "foo"},
                 {null, "dom", null},
                 {"dom2/foo", "dom", "dom2/foo"},
-                {"foo", "Workflow", "Workflow/foo"},
                 {"foo", "Application", "Application/foo"},
                 {"foo", "Internal", "Internal/foo"},
                 {"foo", "dom", "DOM/foo"},
