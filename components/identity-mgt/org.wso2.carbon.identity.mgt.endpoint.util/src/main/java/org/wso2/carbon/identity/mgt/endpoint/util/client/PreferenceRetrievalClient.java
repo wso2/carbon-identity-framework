@@ -102,9 +102,9 @@ public class PreferenceRetrievalClient {
     /**
      * Check send confirmation on account creation is enabled or not.
      *
-     * @param tenant tenant domain name.
-     * @return returns true if send confirmation on creation is enabled.
-     * @throws PreferenceRetrievalClientException
+     * @param tenant Tenant domain name.
+     * @return returns True if send confirmation on creation is enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
      */
     public boolean checkSelfRegistrationSendConfirmationOnCreation(String tenant) throws PreferenceRetrievalClientException {
 
