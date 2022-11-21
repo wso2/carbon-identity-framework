@@ -1402,8 +1402,8 @@
     </Authentication>
 
     <MaskingLogs>
-    	    {% if masking_logs.enable is defined %}
-            <Enabled>{{masking_logs.enable}}</Enabled>
+    	    {% if masking_logs.enabled is defined %}
+            <Enabled>{{masking_logs.enabled}}</Enabled>
             {% else %}
             <Enabled>true</Enabled>
             {% endif %}
