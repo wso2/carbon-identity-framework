@@ -413,7 +413,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private boolean isIdfInitiatedFromAuthenticator(AuthenticationContext context) {
 
-        return Boolean.parseBoolean((String) context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
+        return Boolean.TRUE.equals(context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
     }
 
     private boolean isBackToFirstStepRequest(HttpServletRequest request) {
