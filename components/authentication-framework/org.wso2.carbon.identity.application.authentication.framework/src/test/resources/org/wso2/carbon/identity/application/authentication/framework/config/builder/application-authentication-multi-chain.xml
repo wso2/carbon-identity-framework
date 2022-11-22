@@ -48,7 +48,6 @@
         <HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
         <ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
         <ProvisioningHandler>org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler</ProvisioningHandler>
-        <AuthorizationHandler>org.wso2.carbon.identity.application.authz.xacml.handler.impl.XACMLBasedAuthorizationHandler</AuthorizationHandler>
     </Extensions>
 
     <!--
