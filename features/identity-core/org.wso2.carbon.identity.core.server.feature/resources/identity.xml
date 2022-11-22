@@ -2055,6 +2055,7 @@
         <Servlet>
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
