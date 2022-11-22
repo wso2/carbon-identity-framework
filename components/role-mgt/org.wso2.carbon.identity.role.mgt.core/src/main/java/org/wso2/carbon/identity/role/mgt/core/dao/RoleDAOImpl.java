@@ -1513,6 +1513,28 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
+    public Role getRole(String roleID, String tenantDomain, boolean isUsersRequired)
+            throws IdentityRoleManagementException {
+
+        Role role = new Role();
+        if (!isExistingRoleID(roleID, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
+                    "Role id: " + roleID + " does not exist in the system.");
+        }
+
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        role.setId(roleID);
+        role.setName(roleName);
+        if (isUsersRequired) {
+            role.setUsers(getUserListOfRole(roleID, tenantDomain));
+        }
+        role.setTenantDomain(tenantDomain);
+        role.setGroups(getGroupListOfRole(roleID, tenantDomain));
+        role.setPermissions(getPermissionListOfRole(roleID, tenantDomain));
+        return role;
+    }
+
+    @Override
     public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
