@@ -144,14 +144,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return role;
     }
 
-    @Override
-    public Role getRole(String roleID, String tenantDomain, boolean isUsersRequired)
+    public Role getRoleWithoutUsers(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreGetRole(roleID, tenantDomain);
-        Role role = roleDAO.getRole(roleID, tenantDomain, isUsersRequired);
+        Role role = roleDAO.getRoleWithoutUsers(roleID, tenantDomain);
         roleManagementEventPublisherProxy.publishPostGetRole(roleID, tenantDomain);
         return role;
     }
@@ -159,12 +158,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
-                .getInstance();
-        roleManagementEventPublisherProxy.publishPreGetRole(roleID, tenantDomain);
-        String role = roleDAO.getRoleNameByID(roleID, tenantDomain);
-        roleManagementEventPublisherProxy.publishPostGetRole(roleID, tenantDomain);
-        return role;
+        return roleDAO.getRoleNameByID(roleID, tenantDomain);
     }
 
     @Override

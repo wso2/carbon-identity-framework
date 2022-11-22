@@ -253,18 +253,17 @@ public interface RoleDAO {
     }
 
     /**
-     * Retrieve the given role based on the requirement of including the users..
+     * Get role without users.
      *
      * @param roleID          Role ID.
      * @param tenantDomain    Tenant domain.
-     * @param isUsersRequired Whether the users are required to include along with the role.
      * @return The role object.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      * @throws NotImplementedException         If the method is not implemented.
      */
-    default Role getRole(String roleID, String tenantDomain, boolean isUsersRequired)
+    default Role getRoleWithoutUsers(String roleID, String tenantDomain)
             throws IdentityRoleManagementException, NotImplementedException {
 
-        throw new NotImplementedException("getRole method with isUsersRequired check is not implemented");
+        throw new NotImplementedException("getRoleWithoutUsers method is not implemented");
     }
 }
