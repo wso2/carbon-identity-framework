@@ -241,13 +241,6 @@
   "saml.metadata.enable_signing": false,
   "saml.metadata.enable_authentication_requests_signing": false,
 
-  "entitlement.thrift.enable": false,
-  "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
-  "entitlement.thrift.client_timeout": "10s",
-  "entitlement.thrift.key_store.id": "$ref{keystore.tls.file_name}",
-  "entitlement.thrift.key_store.password": "$ref{keystore.tls.password}",
-  "entitlement.thrift.hostname": "${carbon.host}",
-
   "scim.endpoints.users_endpoint": "$ref{server.base_path}/wso2/scim/Users",
   "scim.endpoints.groups_endpoint": "$ref{server.base_path}/wso2/scim/Groups",
   "scim.authentication_handler.basic.properties.Priority": "5",

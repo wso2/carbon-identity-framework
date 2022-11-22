@@ -970,20 +970,6 @@
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
     </Consent>
 
-    <EntitlementSettings>
-        <ThirftBasedEntitlementConfig>
-            <EnableThriftService>{{entitlement.thrift.enable}}</EnableThriftService>
-            <ReceivePort>{{entitlement.thrift.receiver_port}}</ReceivePort>
-            <ClientTimeout>{{entitlement.thrift.client_timeout}}</ClientTimeout>
-            <KeyStore>
-                <Location>${carbon.home}/repository/resources/security/{{entitlement.thrift.key_store.id}}</Location>
-                <Password>{{entitlement.thrift.key_store.password}}</Password>
-            </KeyStore>
-            <!-- Enable this element to mention the host-name of your IS machine -->
-            <ThriftHostName>{{entitlement.thrift.hostname}}</ThriftHostName>
-        </ThirftBasedEntitlementConfig>
-    </EntitlementSettings>
-
     <SCIM>
         <!--
             Default value for UserEPUrl and GroupEPUrl are built in following format

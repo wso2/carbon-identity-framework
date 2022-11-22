@@ -243,19 +243,6 @@
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
     </SSOService>
 
-    <EntitlementSettings>
-        <ThirftBasedEntitlementConfig>
-            <EnableThriftService>false</EnableThriftService>
-            <ReceivePort>${Ports.ThriftEntitlementReceivePort}</ReceivePort>
-            <ClientTimeout>10000</ClientTimeout>
-            <KeyStore>
-                <Location>${carbon.home}/repository/resources/security/wso2carbon.jks</Location>
-                <Password>wso2carbon</Password>
-            </KeyStore>
-            <ThriftHostName>${carbon.host}</ThriftHostName>
-        </ThirftBasedEntitlementConfig>
-    </EntitlementSettings>
-
     <SCIM>
         <UserEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Users</UserEPUrl>
         <GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/wso2/scim/Groups</GroupEPUrl>

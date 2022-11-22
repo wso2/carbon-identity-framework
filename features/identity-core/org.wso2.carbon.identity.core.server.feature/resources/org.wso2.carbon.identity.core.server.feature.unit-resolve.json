@@ -29,8 +29,6 @@
     "saml.metadata.validity_period": "m",
     "saml.request_validity_period" : "m",
 
-    "entitlement.thrift.client_timeout": "ms",
-
     "identity_mgt.default_mail_validity_period": "m",
     "identity_mgt.notification_channel_recovery.recovery_code_validity": "m",
     "identity_mgt.resend_notification.resend_code_validity": "m",
