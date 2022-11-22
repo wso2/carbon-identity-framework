@@ -394,9 +394,6 @@
         <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
         </Resource>
-        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/pep</Permissions>
-        </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
         </Resource>

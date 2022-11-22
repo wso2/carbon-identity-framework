@@ -1383,10 +1383,6 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/pep</Permissions>
-            <Scopes>internal_manage_pep</Scopes>
-        </Resource>
         <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
@@ -1942,7 +1938,6 @@
             <Context>/api/identity/recovery/v0.9/</Context>
             <Context>/oauth2/</Context>
             <Context>/scim2/</Context>
-            <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
             <Context>/api/identity/config-mgt/v1.0/</Context>
