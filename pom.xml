@@ -1740,7 +1740,7 @@
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
-        <carbon.consent.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</carbon.consent.mgt.imp.pkg.version.range>
+        <carbon.consent.mgt.imp.pkg.version.range>[3.0.0, 4.0.0)</carbon.consent.mgt.imp.pkg.version.range>
 
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
@@ -1759,11 +1759,11 @@
         <!--Carbon identity version-->
         <identity.framework.version>${project.version}</identity.framework.version>
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
-        <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
+        <carbon.identity.package.import.version.range>[6.0.0, 7.0.0)</carbon.identity.package.import.version.range>
 
-        <org.wso2.carbon.identity.organization.management.core.version>1.0.0
+        <org.wso2.carbon.identity.organization.management.core.version>2.0.0
         </org.wso2.carbon.identity.organization.management.core.version>
-        <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
+        <org.wso2.carbon.identity.organization.management.core.version.range>[2.0.0, 3.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
 
         <!--Carbon registry version-->
@@ -1972,7 +1972,7 @@
         <ehcache.version>1.5.0.wso2v3</ehcache.version>
         <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
         <io.swagger.version>1.6.2</io.swagger.version>
-        <carbon.consent.mgt.version>2.2.16</carbon.consent.mgt.version>
+        <carbon.consent.mgt.version>3.0.0</carbon.consent.mgt.version>
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
         <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
