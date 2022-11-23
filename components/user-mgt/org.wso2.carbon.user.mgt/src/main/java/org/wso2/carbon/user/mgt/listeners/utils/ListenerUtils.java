@@ -21,8 +21,11 @@ package org.wso2.carbon.user.mgt.listeners.utils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 /**
  * Utility class that handles the relevant utility tasks of listeners.
@@ -113,5 +116,45 @@ public class ListenerUtils {
             entityWithUserStoreDomain = UserCoreUtil.addDomainToName(entity, userStoreDomain);
         }
         return entityWithUserStoreDomain;
+    }
+
+    /**
+     * Returns initiator based on the masking config.
+     *
+     * @return Initiator. If log masking is enabled returns the userId, if userId can not be resolved then returns the
+     * masked username.
+     */
+    public static String getInitiator() {
+
+        String initiator = null;
+        if (LoggerUtils.isLogMaskingEnable) {
+            String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
+            String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
+            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            }
+            if (StringUtils.isBlank(initiator)) {
+                initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
+            }
+        } else {
+            initiator = ListenerUtils.getUser();
+        }
+        return initiator;
+    }
+
+    /**
+     * Returns the target value based on the masking config.
+     *
+     * @param userName          Claims map.
+     * @param userStoreManager  JSON Object which will be added to audit log.
+     * @return Target value. If log masking is enabled returns the masked value.
+     */
+    public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {
+
+        String target = ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager);
+        if (LoggerUtils.isLogMaskingEnable) {
+            return LoggerUtils.getMaskedContent(target);
+        }
+        return target;
     }
 }

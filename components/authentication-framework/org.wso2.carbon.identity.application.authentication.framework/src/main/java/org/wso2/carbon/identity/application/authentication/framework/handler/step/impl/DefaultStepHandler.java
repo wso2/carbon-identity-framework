@@ -55,6 +55,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -73,6 +75,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -148,6 +151,21 @@ public class DefaultStepHandler implements StepHandler {
                 LOG.debug("No previous authenticated IDPs found in the authentication context.");
             } else {
                 LOG.debug(String.format("Found authenticated IdPs. Count: %d", authenticatedIdPs.size()));
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.COUNT, authenticatedIdPs.size());
+                    Map<String, Object> idpMap = new HashMap<>();
+                    authenticatedIdPs.forEach((key, value) -> idpMap.put(key, value.getAuthenticators().stream().map(
+                            AuthenticatorConfig::getName).collect(Collectors.toList())));
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, idpMap);
+
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Authenticated IDPs found", FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST,
+                            null);
+                }
             }
         }
 
@@ -261,6 +279,23 @@ public class DefaultStepHandler implements StepHandler {
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Already authenticated. Skipping the step");
+                    }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                        Map<String, Object> authenticatedStepIdpMap = new HashMap<>();
+                        authenticatedStepIdps.forEach((key, value) ->
+                                    Optional.of(value.getApplicationAuthenticator())
+                                            .ifPresent(authenticator ->
+                                                    authenticatedStepIdpMap.put(key, authenticator.getName()))
+                                );
+                        params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, authenticatedStepIdpMap);
+                        LoggerUtils.triggerDiagnosticLogEvent(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                                "Already authenticated. Skipping the step",
+                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
                     }
 
                     // skip the step if this is a normal request
@@ -548,6 +583,17 @@ public class DefaultStepHandler implements StepHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(authenticator.getName() + " can handle the request.");
                 }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticator.getName());
+                    params.put(FrameworkConstants.LogConstants.STEP, currentStep);
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Initializing authentication flow",
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+                }
 
                 doAuthentication(request, response, context, authenticatorConfig);
                 break;
@@ -699,6 +745,9 @@ public class DefaultStepHandler implements StepHandler {
             String initiator = null;
             if (stepConfig.getAuthenticatedUser() != null) {
                 initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                if (LoggerUtils.isLogMaskingEnable) {
+                    initiator = LoggerUtils.getMaskedContent(initiator);
+                }
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
@@ -706,9 +755,35 @@ public class DefaultStepHandler implements StepHandler {
                 audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
                         data, SUCCESS));
             }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP());
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                        stepConfig.getAuthenticatedAutenticator().getName());
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.SUCCESS, "Authentication success for step: " + stepConfig.getOrder(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+            }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("A login attempt was failed due to invalid credentials", e);
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                 Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
+                Optional.of(e.getUser()).ifPresent(user -> {
+                    params.put(FrameworkConstants.LogConstants.USER, user.getLoggableUserId());
+                    params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
+                });
+                params.put(FrameworkConstants.LogConstants.IDP, idpName);
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Authentication failed: " + e.getMessage(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
                     authenticatorConfig.getName();
@@ -717,6 +792,9 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = e.getUser().toFullQualifiedUsername();
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.getMaskedContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
@@ -756,9 +834,19 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.getMaskedContent(initiator);
+            }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator,
                         "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Authentication failed exception: " + e.getMessage(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
@@ -766,6 +854,18 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         stepConfig.setCompleted(true);
+    }
+
+    private Map<String, Object> getContextParamsForDiagnosticLogs(AuthenticationContext context,
+                                                                  AuthenticatorConfig authenticatorConfig,
+                                                                  StepConfig stepConfig) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+        params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
+        return params;
     }
 
     protected void handleFailedAuthentication(HttpServletRequest request,
@@ -895,6 +995,14 @@ public class DefaultStepHandler implements StepHandler {
                                 .append(errorParams.getValue());
                     }
                 }
+            }
+        }
+        if (StringUtils.isBlank(reCaptchaParamString.toString())) {
+            String captchaParamStringFromContext = (String) context.getProperty(
+                    FrameworkConstants.CAPTCHA_PARAM_STRING);
+            if (captchaParamStringFromContext != null) {
+                reCaptchaParamString.append(captchaParamStringFromContext);
+                context.removeProperty(FrameworkConstants.CAPTCHA_PARAM_STRING);
             }
         }
 

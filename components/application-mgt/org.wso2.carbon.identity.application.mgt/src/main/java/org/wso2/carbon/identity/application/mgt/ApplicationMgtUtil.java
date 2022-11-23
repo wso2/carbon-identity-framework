@@ -915,6 +915,7 @@ public class ApplicationMgtUtil {
      * Get user's tenant domain.
      *
      * @param tenantDomain The tenant domain which user is trying to access.
+     *                     This is the same tenant that application resides.
      * @param username     The username of the user.
      * @return The tenant domain where the user resides.
      * @throws IdentityApplicationManagementException Error when user cannot be resolved.
@@ -922,13 +923,37 @@ public class ApplicationMgtUtil {
     public static String getUserTenantDomain(String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        if (DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME.equals(username) ||
-                !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
-            return tenantDomain;
-        } else {
-            return getUser(tenantDomain, username).orElseThrow(() -> new IdentityApplicationManagementException(
-                    "Error resolving user.")).getTenantDomain();
+        try {
+            if (useApplicationTenantDomainAsUserTenantDomain(tenantDomain, username)) {
+                return tenantDomain;
+            }
+            /*
+             Else situation occur when the application creator is deleted. At that point,
+             set the tenant domain of the application as the user's tenant domain.
+             */
+            return getUser(tenantDomain, username).map(User::getTenantDomain).orElse(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant.", e);
         }
+    }
+
+    private static boolean useApplicationTenantDomainAsUserTenantDomain(String tenantDomain, String username)
+            throws UserStoreException {
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
+                DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME.equals(username) ||
+                !ApplicationManagementServiceComponentHolder.getInstance().isOrganizationManagementEnabled()) {
+            return true;
+        }
+        /*
+        If the tenant doesn't have an associated organization, return the application tenant
+        as the user's tenant domain.
+         */
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        Tenant tenant = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                .getTenantManager().getTenant(tenantID);
+        String accessedOrganizationId = tenant.getAssociatedOrganizationUUID();
+        return StringUtils.isEmpty(accessedOrganizationId);
     }
 
     /**
@@ -1054,21 +1079,13 @@ public class ApplicationMgtUtil {
      * @param userName     Username of the initiator.
      * @param tenantDomain Tenant domain of the initiator.
      * @return User id of the initiator.
+     * @deprecated
+     * This method is moved to IdentityUtil class as this will be used from other components as well.
      */
+    @Deprecated
     public static String getInitiatorId(String userName, String tenantDomain) {
 
-        String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
-        if (userId == null) {
-            String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
-            String username = UserCoreUtil.removeDomainFromName(userName);
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            try {
-                userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
-            } catch (IdentityException e) {
-                log.error("Error occurred while resolving Id for the user: " + username);
-            }
-        }
-        return userId;
+        return IdentityUtil.getInitiatorId(userName, tenantDomain);
     }
 
     /**

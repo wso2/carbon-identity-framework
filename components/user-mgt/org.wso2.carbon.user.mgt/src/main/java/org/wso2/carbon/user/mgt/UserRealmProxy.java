@@ -78,7 +78,8 @@ public class UserRealmProxy {
     private static final String APPLICATIONS_PATH = RegistryConstants.PATH_SEPARATOR
             + CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR
             + "applications";
-    private static final String DISAPLAY_NAME_CLAIM = "http://wso2.org/claims/displayName";
+    private static final String DISPLAY_NAME_CLAIM = "http://wso2.org/claims/displayName";
+    private static final String DISPLAY_NAME_ATTRIBUTE = "DisplayNameAttribute";
 
     public static final String FALSE = "false";
     public static final String PERMISSION = "/permission";
@@ -120,25 +121,42 @@ public class UserRealmProxy {
                 flaggedNames = new FlaggedName[usersWithClaim.length + 1];
 
                 Arrays.sort(usersWithClaim);
+                // Check whether to use the display name claim when filtering users.
+                String showDisplayName = IdentityUtil.getProperty(IdentityConstants.SHOW_DISPLAY_NAME);
+                boolean isShowDisplayNameEnabled = Boolean.parseBoolean(showDisplayName);
+
+                // Check for display name attribute mappings and retrieve the relevant claim uri.
+                String displayNameAttribute = realm.getRealmConfiguration()
+                        .getUserStoreProperty(DISPLAY_NAME_ATTRIBUTE);
+                String displayNameClaimURI = DISPLAY_NAME_CLAIM;
+                if (StringUtils.isNotBlank(displayNameAttribute)) {
+                    ClaimMapping[] claimMappings = realm.getClaimManager().getAllClaimMappings();
+                    if (claimMappings != null) {
+                        for (ClaimMapping claimMapping: claimMappings) {
+                            if (displayNameAttribute.equals(claimMapping.getMappedAttribute())) {
+                                displayNameClaimURI = claimMapping.getClaim().getClaimUri();
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 for (String user : usersWithClaim) {
                     flaggedNames[i] = new FlaggedName();
                     flaggedNames[i].setItemName(user);
-                    //retrieving the displayName
-                    // Check whether to use the display name claim when filtering users.
-                    String showDisplayName = IdentityUtil.getProperty(IdentityConstants.SHOW_DISPLAY_NAME);
-                    boolean isShowDisplayNameEnabled = Boolean.parseBoolean(showDisplayName);
-                    if (isShowDisplayNameEnabled) {
-                        String displayName = realm.getUserStoreManager().getUserClaimValue(user, DISAPLAY_NAME_CLAIM,
+                    // Retrieving the displayName.
+                    String displayName = null;
+                    if (StringUtils.isNotBlank(displayNameAttribute) || isShowDisplayNameEnabled) {
+                        displayName = realm.getUserStoreManager().getUserClaimValue(user, displayNameClaimURI,
                                 null);
-                        if (StringUtils.isNotBlank(displayName)) {
-                            int index = user.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
-                            if (index > 0) {
-                                flaggedNames[i].setItemDisplayName(user.substring(0, index + 1) + displayName);
-                            } else {
-                                flaggedNames[i].setItemDisplayName(displayName);
-                            }
+                    }
+
+                    if (StringUtils.isNotBlank(displayName)) {
+                        int index = user.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
+                        if (index > 0) {
+                            flaggedNames[i].setItemDisplayName(user.substring(0, index + 1) + displayName);
                         } else {
-                            flaggedNames[i].setItemDisplayName(user);
+                            flaggedNames[i].setItemDisplayName(displayName);
                         }
                     } else {
                         flaggedNames[i].setItemDisplayName(user);

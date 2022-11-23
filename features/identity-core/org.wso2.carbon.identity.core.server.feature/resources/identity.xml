@@ -313,12 +313,6 @@
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
                 <IsRefreshTokenAllowed>true</IsRefreshTokenAllowed>
             </SupportedGrantType>
-            <!-- Supported versions: IS 5.7.0 onwards.-->
-            <SupportedGrantType>
-                <GrantTypeName>urn:ietf:params:oauth:grant-type:uma-ticket</GrantTypeName>
-                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth.uma.grant.GrantValidator</GrantTypeValidatorImplClass>
-            </SupportedGrantType>
             <!-- Supported versions: IS 5.10.0 onwards.-->
             <SupportedGrantType>
                 <GrantTypeName>account_switch</GrantTypeName>
@@ -651,7 +645,6 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
-
     </OAuth>
 
     <RestApiAuthentication>
@@ -1217,6 +1210,9 @@
         </CacheManager>
     </CacheConfig>
 
+    <!-- Config to enable performing validations for expired authentication context cache entry. -->
+    <EnableAuthenticationContextExpiryValidation>true</EnableAuthenticationContextExpiryValidation>
+
     <!--Cookies>
         <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
     </Cookies-->
@@ -1556,9 +1552,6 @@
             <Scopes>internal_application_mgt_view</Scopes>
             <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
-
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
@@ -2049,6 +2042,8 @@
                     <Path>/api/server/v1/identity-governance</Path>
                     <Path>/api/server/v1/email/template-types</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/identity/auth/v1.1</Path>
+		    <Path>/api/server/v1/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2061,6 +2056,7 @@
         <Servlet>
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 

@@ -42,7 +42,7 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
-     * Get the parameter from the map.
+     * Get the parameter. If the parameter is not found in the map, will return the query parameter.
      *
      * @param name Name of the parameter.
      * @return Parameter value.
@@ -57,14 +57,31 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
+     * Get the auth parameter from the map.
+     *
+     * @param name Name of the parameter.
+     * @return Parameter value.
+     */
+    public String getAuthParameter(String name) {
+
+        if (authParams != null) {
+            return (String) authParams.get(name);
+        }
+        return null;
+    }
+
+    /**
      * Get the parameter map.
      *
      * @return Parameter map.
      */
     public Map<String, Object> getParameterMap() {
 
-        Map<String, Object> paramMap = new HashMap<>(authParams);
-        paramMap.replaceAll((k, v) -> new String[]{String.valueOf(v)});
+        Map<String, Object> paramMap = new HashMap<>();
+        if (authParams != null) {
+            paramMap.putAll(authParams);
+            paramMap.replaceAll((k, v) -> new String[]{String.valueOf(v)});
+        }
         paramMap.putAll(super.getParameterMap());
         return paramMap;
     }
@@ -80,7 +97,9 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
         Enumeration<String> paramEnum = super.getParameterNames();
         while(paramEnum.hasMoreElements())
             paramNameList.add(String.valueOf(paramEnum.nextElement()));
-        paramNameList.addAll(authParams.keySet());
+        if (authParams != null) {
+            paramNameList.addAll(authParams.keySet());
+        }
         return Collections.enumeration(paramNameList);
     }
 

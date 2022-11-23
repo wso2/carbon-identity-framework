@@ -36,6 +36,10 @@ public class WFConstant {
     public static final String WORKFLOW_ENTITY_TYPE = "USER";
     public static final String WORKFLOW_REQUEST_TYPE = "ADD_USER";
 
+    public static final int DEFAULT_RESULTS_PER_PAGE = 15;
+
+    public static final String DEFAULT_FILTER = "*";
+
     public static final Set<Class> NUMERIC_CLASSES;
 
     static {
@@ -57,6 +61,7 @@ public class WFConstant {
     public static class ParameterName {
         //Template specific parameters
         public static final String WORKFLOW_NAME = "WorkflowName";
+        public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
 
     }
     public static class ParameterHolder {
@@ -64,5 +69,26 @@ public class WFConstant {
         public static final String  WORKFLOW_IMPL = "WorkflowImpl" ;
     }
 
+    public static class Exceptions{
+        // Association errors
+        public static final String ERROR_WHILE_LOADING_ASSOCIATIONS =  "Error while loading associations from DB: " +
+                "Database driver could not be identified or not supported.";
+        public static final String ERROR_LISTING_ASSOCIATIONS =  "Server error when listing associations";
+        public static final String SQL_ERROR_LISTING_ASSOCIATIONS =  "SQL error when getting associations from DB";
+        public static final String ERROR_GETTING_ASSOC_COUNT =  "Server error while getting associations count for the tenantId: ";
+        public static final String SQL_ERROR_GETTING_ASSOC_COUNT =  "SQL error when getting associations count from DB";
 
+        // Workflow errors
+        public static final String ERROR_WHILE_LOADING_WORKFLOWS =  "Error while loading workflows from DB: " +
+                "Database driver could not be identified or not supported.";
+        public static final String ERROR_LISTING_WORKFLOWS =  "Server error when listing workflows";
+        public static final String SQL_ERROR_LISTING_WORKFLOWS =  "SQL error when getting workflows from DB";
+        public static final String ERROR_GETTING_WORKFLOW_COUNT =  "Server error while getting workflows count for the tenantId: ";
+        public static final String SQL_ERROR_GETTING_WORKFLOW_COUNT =  "SQL error when getting workflows count.";
+
+        public static final String ERROR_INVALID_LIMIT = "Invalid limit requested. The limit should "
+                + "be a value greater than 0.";
+        public static final String ERROR_INVALID_OFFSET = "Invalid offset requested. The offset should "
+                + "be a value greater than 0.";
+    }
 }

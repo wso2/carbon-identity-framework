@@ -178,6 +178,7 @@ public abstract class FrameworkConstants {
     public static final String RECAPTCHA_RESEND_CONFIRMATION_PARAM = "reCaptchaResend";
     public static final String RECAPTCHA_KEY_PARAM = "reCaptchaKey";
     public static final String RECAPTCHA_API_PARAM = "reCaptchaAPI";
+    public static final String CAPTCHA_PARAM_STRING = "captchaParams";
 
     // DB product names.
     public static final String MY_SQL = "MySQL";
@@ -312,6 +313,12 @@ public abstract class FrameworkConstants {
         public static final String JIT_PROVISIONING_CONFIG = "JITProvisioning";
         public static final String INCREDIBLE_CLAIMS_CONFIG_ELEMENT = "IndelibleClaims";
         public static final String CLAIM_URI_CONFIG_ELEMENT = "ClaimURI";
+
+        /**
+         * Configuration to enable validating session expiry for authentication context cache entry.
+         */
+        public static final String AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION =
+                "EnableAuthenticationContextExpiryValidation";
 
         private Config() {
         }
@@ -639,5 +646,39 @@ public abstract class FrameworkConstants {
 
         public static final String AUTHENTICATION_FRAMEWORK = "authentication-framework";
         public static final String AUTH_SCRIPT_LOGGING = "auth-script-logging";
+        public static final String SERVICE_PROVIDER = "service provider";
+        public static final String TENANT_DOMAIN = "tenant domain";
+        public static final String REQUESTED_CLAIMS = "requested claims";
+        public static final String MANDATORY_CLAIMS = "mandatory claims";
+        public static final String MISSING_CLAIMS = "missing claims";
+        public static final String THREAD_ID = "thread id";
+        public static final String CONTEXT_ID = "context id";
+        public static final String ORIGINATING_ADDRESS = "originating address";
+        public static final String REQUEST_HEADERS = "request headers";
+        public static final String USER = "user";
+        public static final String USER_STORE_DOMAIN = "user store domain";
+        public static final String AUTHENTICATORS = "authenticators";
+        public static final String AUTHENTICATOR_NAME = "authenticator name";
+        public static final String IDP_NAMES = "idp names";
+        public static final String STEP = "step";
+        public static final String STEPS = "steps";
+        public static final String COUNT = "count";
+        public static final String AUTHENTICATED_IDPS = "authenticated idps";
+        public static final String IDP = "idp";
+
+        /**
+         * Define action IDs for diagnostic logs in the framework component.
+         */
+        public static class ActionIDs {
+
+            public static final String INIT_AUTH_FLOW = "init-authentication-flow";
+            public static final String INIT_LOGOUT_FLOW = "init-logout-flow";
+            public static final String HANDLE_CLAIM_MAPPING = "handle-claim-mappings";
+            public static final String HANDLE_AUTH_REQUEST = "handle-authentication-request";
+            public static final String HANDLE_AUTH_STEP = "handle-authentication-step";
+            public static final String PROCESS_ACR_VALUES = "process-acr-values";
+            public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
+            public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
+        }
     }
 }

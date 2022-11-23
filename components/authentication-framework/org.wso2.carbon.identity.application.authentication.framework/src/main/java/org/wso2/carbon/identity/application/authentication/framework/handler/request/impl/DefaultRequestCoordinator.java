@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -54,7 +55,10 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -74,6 +78,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -184,6 +189,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     if (log.isDebugEnabled()) {
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        LoggerUtils.triggerDiagnosticLogEvent(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null, LogConstants.FAILED,
+                                FrameworkConstants.SESSION_DATA_KEY + " is not provided in the request. Sending to " +
+                                        "retry page.", FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST,
+                                null);
+                    }
 
                     FrameworkUtils.sendToRetryPage(request, response, context);
                 }
@@ -226,11 +238,32 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                     "Request Headers: " + getHeaderString(request) + "\n" +
                                     "Thread Id: " + Thread.currentThread().getId());
                         }
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            Map<String, Object> params = new HashMap<>();
+                            params.put(FrameworkConstants.LogConstants.CONTEXT_ID, context.getContextIdentifier());
+                            params.put(FrameworkConstants.LogConstants.ORIGINATING_ADDRESS, request.getRemoteAddr());
+                            params.put(FrameworkConstants.LogConstants.REQUEST_HEADERS, getHeaderString(request));
+                            params.put(FrameworkConstants.LogConstants.THREAD_ID, Thread.currentThread().getId());
+                            LoggerUtils.triggerDiagnosticLogEvent(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                                    LogConstants.FAILED, "Same authentication request is being processed by another " +
+                                            "thread. Could be a possible double submit or a replay request.",
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                        }
                         FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
                         return;
                     }
                 }
 
+                // If the Authentication context expiry validation is enabled, check the context for expiry time.
+                // If the context is expired, return to retry page.
+                if (FrameworkUtils.isAuthenticationContextExpiryEnabled() &&
+                        (FrameworkUtils.getCurrentStandardNano() > context.getExpiryTime())) {
+                    log.error("Redirecting to retry page as the authentication context has expired.");
+                    FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                            "authentication.flow.timeout", "authentication.flow.timeout.description");
+                    return;
+                }
 
                 /*
                 If
@@ -301,7 +334,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                        "authentication.context.null", "authentication.context.null.description");
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -340,6 +374,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         } finally {
             UserCoreUtil.setDomainInThreadLocal(null);
+            unwrapResponse(responseWrapper, sessionDataKey, response, context);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -361,7 +396,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.removeALORCookie(request, response);
                 }
             }
-            unwrapResponse(responseWrapper, sessionDataKey, response, context);
         }
     }
 
@@ -548,6 +582,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setTenantDomain(tenantDomain);
         context.setLoginTenantDomain(loginDomain);
         context.setUserTenantDomainHint(userDomain);
+        context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
+                IdentityUtil.getAuthenticationContextValidityPeriod()));
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
@@ -570,6 +606,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
             if (log.isDebugEnabled()) {
                 log.debug("Starting a logout flow");
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.RequestParams.CALLER_PATH, callerPath);
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                        "Initializing logout flow", FrameworkConstants.LogConstants.ActionIDs.INIT_LOGOUT_FLOW, null);
             }
 
             context.setLogoutRequest(true);
@@ -594,6 +639,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Starting an authentication flow");
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey);
+                params.put(FrameworkConstants.RequestParams.TYPE, requestType);
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain);
+                params.put(FrameworkConstants.RequestParams.CALLER_PATH, callerPath);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                        "Initializing authentication flow", FrameworkConstants.LogConstants.ActionIDs.INIT_AUTH_FLOW,
+                        null);
             }
         }
 
@@ -688,6 +745,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (acrRequested != null) {
             for (String acr : acrRequested) {
                 context.addRequestedAcr(acr);
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled() && CollectionUtils.isNotEmpty(acrRequested)) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getLoginTenantDomain());
+                params.put(ACR_VALUES_ATTRIBUTE, acrRequested);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                        "Adding requested ACR values to the context",
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_ACR_VALUES, null);
             }
         }
         // Get service provider chain

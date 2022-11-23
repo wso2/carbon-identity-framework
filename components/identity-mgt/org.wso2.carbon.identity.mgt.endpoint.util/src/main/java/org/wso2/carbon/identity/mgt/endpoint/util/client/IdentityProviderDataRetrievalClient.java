@@ -158,7 +158,7 @@ public class IdentityProviderDataRetrievalClient {
             if (StringUtils.isEmpty(idpURLWithId)) {
                 return configMap;
             }
-            JSONObject idpDetailedResult = executePath(tenant, idpURLWithId);
+            JSONObject idpDetailedResult = executePath(StringUtils.EMPTY, idpURLWithId);
             if (idpDetailedResult == null) {
                 return configMap;
             }
@@ -184,7 +184,7 @@ public class IdentityProviderDataRetrievalClient {
 
             // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
             // federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
-            JSONObject federatedIdpResult = executePath(tenant, federatedIDPURLWithID);
+            JSONObject federatedIdpResult = executePath(StringUtils.EMPTY, federatedIDPURLWithID);
             if (federatedIdpResult == null) {
                 return configMap;
             }
