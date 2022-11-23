@@ -287,7 +287,7 @@ public class DefaultStepHandler implements StepHandler {
                         params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
                         Map<String, Object> authenticatedStepIdpMap = new HashMap<>();
                         authenticatedStepIdps.forEach((key, value) ->
-                                    Optional.of(value.getApplicationAuthenticator())
+                                    Optional.ofNullable(value.getApplicationAuthenticator())
                                             .ifPresent(authenticator ->
                                                     authenticatedStepIdpMap.put(key, authenticator.getName()))
                                 );
@@ -774,7 +774,7 @@ public class DefaultStepHandler implements StepHandler {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                  Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
                         stepConfig);
-                Optional.of(e.getUser()).ifPresent(user -> {
+                Optional.ofNullable(e.getUser()).ifPresent(user -> {
                     params.put(FrameworkConstants.LogConstants.USER, user.getLoggableUserId());
                     params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
                     params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());

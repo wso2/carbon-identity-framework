@@ -278,11 +278,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             Map<String, Object> params = new HashMap<>();
             params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, appConfig.getApplicationName());
-            Optional.of(requestedClaims.entrySet()).ifPresent(entries -> {
+            Optional.ofNullable(requestedClaims.entrySet()).ifPresent(entries -> {
                 List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
                 params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS, claimsList);
             });
-            Optional.of(mandatoryClaims.entrySet()).ifPresent(entries -> {
+            Optional.ofNullable(mandatoryClaims.entrySet()).ifPresent(entries -> {
                 List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
                 params.put(FrameworkConstants.LogConstants.MANDATORY_CLAIMS, claimsList);
             });
