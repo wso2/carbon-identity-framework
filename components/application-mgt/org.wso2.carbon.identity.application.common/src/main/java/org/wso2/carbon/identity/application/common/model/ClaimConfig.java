@@ -66,7 +66,6 @@ public class ClaimConfig implements Serializable {
     @XmlElement(name = "SPClaimDialect")
     private String[] spClaimDialects = new String[0];
     
-
     /*
      * <ClaimConfig> <RoleClaimURI></RoleClaimURI> <UserClaimURI></UserClaimURI>
      * <LocalClaimDialect></LocalClaimDialect> <IdpClaims></IdpClaims>
