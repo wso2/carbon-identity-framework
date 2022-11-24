@@ -177,6 +177,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
@@ -685,6 +686,10 @@ public class FrameworkUtils {
         try {
             if (StringUtils.isNotBlank(spName)) {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(MDC.get(CORRELATION_ID_MDC))) {
+                redirectURL = appendUri(redirectURL, CORRELATION_ID, MDC.get(CORRELATION_ID_MDC));
             }
 
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain)) {

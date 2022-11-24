@@ -356,6 +356,7 @@ public abstract class FrameworkConstants {
         public static final String RESTART_FLOW = "restart_flow";
         public static final String LOGIN_TENANT_DOMAIN = "t";
         public static final String USER_TENANT_DOMAIN_HINT = "ut";
+        public static final String CORRELATION_ID = "correlationId";
 
         private RequestParams() {
         }
