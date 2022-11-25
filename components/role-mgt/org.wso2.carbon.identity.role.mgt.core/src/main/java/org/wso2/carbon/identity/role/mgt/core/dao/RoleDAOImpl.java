@@ -1527,6 +1527,24 @@ public class RoleDAOImpl implements RoleDAO {
         return systemRoles;
     }
 
+    public Role getRoleWithoutUsers(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Role role = new Role();
+        if (!isExistingRoleID(roleID, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
+                    "Role id: " + roleID + " does not exist in the tenant: " + tenantDomain);
+        }
+
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        role.setId(roleID);
+        role.setName(roleName);
+        role.setTenantDomain(tenantDomain);
+        role.setGroups(getGroupListOfRole(roleID, tenantDomain));
+        role.setPermissions(getPermissionListOfRole(roleID, tenantDomain));
+        return role;
+    }
+
     @Override
     public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
 
