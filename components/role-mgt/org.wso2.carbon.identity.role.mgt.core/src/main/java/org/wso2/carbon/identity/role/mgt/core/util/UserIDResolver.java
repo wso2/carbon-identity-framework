@@ -34,6 +34,7 @@ import java.util.List;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.OPERATION_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 
 /**
  * UserIDResolver Implementation of the {@link IDResolver} interface.
@@ -75,7 +76,7 @@ public class UserIDResolver implements IDResolver {
 
         String id = resolveIDFromUserName(name);
         if (id == null) {
-            String errorMessage = "A user doesn't exist with name: " + name + " in the tenantDomain: " + tenantDomain;
+            String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
         }
         return id;
