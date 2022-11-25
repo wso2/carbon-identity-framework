@@ -65,10 +65,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
@@ -189,6 +191,29 @@ public class ApplicationMgtUtil {
             // List roles from user store
             String[] userRoles = userStoreManager.getRoleListOfUser(username);
 
+            // If the user store is an implementation of the AbstractUserStoreManager,
+            // Get the role lists using its methods
+            log.debug("User roles" + Arrays.toString(userRoles));
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                try {
+
+                    String[] userRolesAbstractUSM = (((AbstractUserStoreManager) userStoreManager)
+                        .getRoleListOfUser(username));
+
+                    // Merge the lists
+                    Set<String> userRolesList = new HashSet(Arrays.asList(userRoles));
+                    userRolesList.addAll(Arrays.asList(userRolesAbstractUSM));
+                    userRoles = userRolesList.toArray(String[]::new);
+
+                    log.debug("AbstractUserStoreManager roles" + Arrays.toString(userRolesAbstractUSM));
+
+
+                } catch (UserStoreException e) {
+                    throw new IdentityApplicationManagementException(
+                        "Error while getting roles for user" + username, e);
+                }
+            }
+
             // For each app, check whether the user the corresponding application role
             for (ApplicationBasicInfo applicationBasicInfo : applicationInfos) {
 
@@ -196,28 +221,16 @@ public class ApplicationMgtUtil {
 
                 String applicationRoleName = getAppRoleName(applicationName);
 
-                try {
-                    if (log.isDebugEnabled()) {
-                        log.debug(
-                            "Checking whether user has role : " + applicationRoleName
-                            + " by retrieving role list of " + "user : " + username);
-                    }
-        
-                    if (userStoreManager instanceof AbstractUserStoreManager) {
-                        if (((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName)) {
-                            authorizedAppInfo.add(applicationBasicInfo);
-                        }
-                    }
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        "Checking whether user has role : " + applicationRoleName
+                        + " by retrieving role list of " + "user : " + username);
+                }
 
-                    for (String userRole : userRoles) {
-                        if (applicationRoleName.equals(userRole)) {
-                            authorizedAppInfo.add(applicationBasicInfo);
-                        }
+                for (String userRole : userRoles) {
+                    if (applicationRoleName.equals(userRole)) {
+                        authorizedAppInfo.add(applicationBasicInfo);
                     }
-
-                } catch (UserStoreException e) {
-                    throw new IdentityApplicationManagementException("Error while checking authorization for user: " +
-                            username + " for application: " + applicationName, e);
                 }
 
             }
