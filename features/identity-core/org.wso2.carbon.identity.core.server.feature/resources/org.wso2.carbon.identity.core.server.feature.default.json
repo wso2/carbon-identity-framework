@@ -385,8 +385,6 @@
 
   "application_mgt.enable_role_validation": false,
 
-  "event.default_listener.workflow.priority": "10",
-  "event.default_listener.workflow.enable": true,
   "event.default_listener.identity_mgt.priority": "50",
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
