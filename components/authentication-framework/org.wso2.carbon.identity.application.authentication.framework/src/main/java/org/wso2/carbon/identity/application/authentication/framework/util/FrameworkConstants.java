@@ -170,6 +170,7 @@ public abstract class FrameworkConstants {
     public static final int MAX_RETRY_TIME = 3;
 
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
+    public static final String ORGANIZATION_CONTEXT_PREFIX = "/o/";
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
