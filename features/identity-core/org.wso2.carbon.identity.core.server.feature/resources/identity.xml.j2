@@ -1562,6 +1562,11 @@
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
                        orderId="{{event.default_listener.subject_identifier_handler.priority}}"
                        enable="{{event.default_listener.subject_identifier_handler.enable}}"/>
+        <EventListener id="failed_lockout_count_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.handler.event.account.lock.handlers.PostAuthnFailedLockoutClaimHandler"
+                       orderId="{{event.default_listener.failed_lockout_count_handler.priority}}"
+                       enable="{{event.default_listener.failed_lockout_count_handler.enable}}"/>
 
         <!-- Special UserOperationEventListeners to preserve the backward compatibility with the new unique user ID
                 related APIs  -->
