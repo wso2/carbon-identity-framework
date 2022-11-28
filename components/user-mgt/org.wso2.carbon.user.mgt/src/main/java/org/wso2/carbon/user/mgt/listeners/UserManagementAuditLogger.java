@@ -478,7 +478,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
         jsonObject.put(REMOTE_ADDRESS_KEY, MDC.get(REMOTE_ADDRESS_QUERY_KEY));
         jsonObject.put(USER_AGENT_KEY, MDC.get(USER_AGENT_QUERY_KEY));
-        jsonObject.put(USER_NAME_KEY, MDC.get(USER_NAME_QUERY_KEY));
+        jsonObject.put(USER_NAME_KEY, LoggerUtils.isLogMaskingEnable ?
+                LoggerUtils.getMaskedContent(MDC.get(USER_NAME_QUERY_KEY)) : MDC.get(USER_NAME_QUERY_KEY));
         jsonObject.put(SERVICE_PROVIDER_KEY, MDC.get(SERVICE_PROVIDER_QUERY_KEY));
     }
 
