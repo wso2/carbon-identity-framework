@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-~ Copyright (c) 2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2011, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -645,8 +645,12 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
-
     </OAuth>
+
+    <RestApiAuthentication>
+        <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+        <AddRealmUserToError>false</AddRealmUserToError>
+    </RestApiAuthentication>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
@@ -1059,6 +1063,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
                        orderId="97" enable="true">
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
+            <!-- By setting this to true, it will use the userstore attribute values for identity claims if the
+            identity data store value is empty for corresponding claim. -->
+            <Property name="EnableHybridDataStore">false</Property>
         </EventListener>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
@@ -1988,6 +1995,9 @@
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
@@ -1997,12 +2007,23 @@
                     <Path>/api/server/v1/configs/authenticators</Path>
                     <Path>/api/server/v1/userstores</Path>
                     <Path>/api/server/v1/claim-dialects</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/server/v1/email/template-types</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+		    <Path>/api/server/v1/authenticators</Path>
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/console/</BasePath>
             </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+        </Servlet>
     </OrgContextsToRewrite>
 
     <OrgRoutingOnlySupportedAPIPaths>
@@ -2054,6 +2075,11 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>true</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -2143,5 +2169,8 @@
 
     <!-- Configuration to show the pending user information during the authentication failure attempts. -->
     <ShowPendingUserInformation>true</ShowPendingUserInformation>
+
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
 
 </Server>
