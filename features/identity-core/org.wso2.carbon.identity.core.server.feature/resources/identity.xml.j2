@@ -284,9 +284,7 @@
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
         <!-- Enable password expiry enforcement for Oauth2 Password Grant flow-->
-        <EnableExpiredPasswordResetEnforcementForPasswordGrant>{{oauth
-        .enable_expired_password_reset_enforcement_for_password_grant
-        }}</EnableExpiredPasswordResetEnforcementForPasswordGrant>
+        <EnableExpiredPasswordResetEnforcementForPasswordGrant>{{oauth.enable_expired_password_reset_enforcement_for_password_grant}}</EnableExpiredPasswordResetEnforcementForPasswordGrant>
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             {% if oauth.response_type.token.enable is sameas true %}

@@ -238,8 +238,7 @@
         <EnableClientSecretHash>false</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
-        <EnableExpiredPasswordResetEnforcementForPasswordGrant>false
-        </EnableExpiredPasswordResetEnforcementForPasswordGrant>
+        <EnableExpiredPasswordResetEnforcementForPasswordGrant>false</EnableExpiredPasswordResetEnforcementForPasswordGrant>
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             <SupportedResponseType>
