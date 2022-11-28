@@ -69,7 +69,7 @@ public class JsLogger {
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        null, LogConstants.SUCCESS, "Debug log : " + resultMessage,
+                        null, LogConstants.SUCCESS, "Debug: " + resultMessage,
                         FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
             }
         }
@@ -80,7 +80,7 @@ public class JsLogger {
         logger.debug(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.SUCCESS, "Debug log : " + value,
+                    LogConstants.SUCCESS, "Debug: " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
@@ -90,7 +90,7 @@ public class JsLogger {
         logger.info(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.SUCCESS, "Info log : " + value,
+                    LogConstants.SUCCESS, "Info: " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
@@ -100,7 +100,7 @@ public class JsLogger {
         logger.error(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.FAILED, "Error log : " + value,
+                    LogConstants.FAILED, "Error: " + value,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
         }
     }
