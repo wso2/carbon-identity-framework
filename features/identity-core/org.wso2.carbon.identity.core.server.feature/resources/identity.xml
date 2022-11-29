@@ -1360,8 +1360,8 @@
             <Scopes>internal_claim_meta_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
-            <Scopes>internal_application_mgt_update</Scopes>
+            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
+            <Scopes>internal_claim_meta_update</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
