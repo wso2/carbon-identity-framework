@@ -243,6 +243,17 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                 data.append(joiner);
                 joiner = ", ";
                 data.append("{Name:").append(authConfig.getName());
+                if (ArrayUtils.isNotEmpty(authConfig.getProperties())) {
+                    data.append(", Properties:[");
+                    joiner = "";
+                    for (Property property : authConfig.getProperties()) {
+                        data.append(joiner);
+                        joiner = ", ";
+                        data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
+                    }
+                    data.append("]");
+                }
                 data.append("}");
             }
             data.append("]");
@@ -265,7 +276,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     for (Property property : provConfig.getProvisioningProperties()) {
                         data.append(joiner);
                         joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                        data.append("{").append(property.getName()).append(":").append( LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
                     }
                     data.append("]");
                 }
@@ -297,7 +309,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             for (IdentityProviderProperty property : idpProperties) {
                 data.append(joiner);
                 joiner = ", ";
-                data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
+                        LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
             }
             data.append("]");
         }
