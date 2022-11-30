@@ -55,8 +55,8 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
             }
         }
 
-        if (attributesMap.containsKey(field + PERIOD + MAX_CONSECUTIVE_CHR)) {
-            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_CONSECUTIVE_CHR));
+        if (attributesMap.containsKey(MAX_CONSECUTIVE_CHR)) {
+            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(MAX_CONSECUTIVE_CHR));
             if (maxConsecutiveLength < consecutiveLen) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getCode(),
                         ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getMessage(),

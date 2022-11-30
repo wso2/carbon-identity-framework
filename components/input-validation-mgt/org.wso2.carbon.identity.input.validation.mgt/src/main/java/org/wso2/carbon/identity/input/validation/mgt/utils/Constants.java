@@ -41,6 +41,7 @@ public class Constants {
     public static class Configs {
 
         // Keys for password rules validation.
+        public static final String ERROR_CODE_PREFIX = "INM-";
         public static final String VALIDATION_TYPE = "validation.type";
         public static final String MIN_LENGTH = "min.length";
         public static final String MAX_LENGTH = "max.length";

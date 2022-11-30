@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
@@ -39,6 +40,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.UniqueChar
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 /**
  * OSGi declarative services component which handled registration and un-registration of
@@ -75,6 +77,8 @@ public class InputValidationServiceComponent {
                     new UniqueCharacterValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
                     new JsRegExValidator(), null);
+            context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                    new InputValidationListener(), null);
         } catch (Throwable throwable) {
             log.error("Error while activating Input Validation Service Component.", throwable);
         }
