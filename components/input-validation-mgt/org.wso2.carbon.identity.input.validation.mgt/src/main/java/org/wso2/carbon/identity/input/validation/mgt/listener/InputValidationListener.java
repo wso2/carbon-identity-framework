@@ -68,6 +68,9 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                 String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
+            return true;
+        }
         int tenantId = userStoreManager.getTenantId();
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
