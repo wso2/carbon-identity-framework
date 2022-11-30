@@ -2843,6 +2843,8 @@
                 <Username>{{http_proxy.username}}</Username>
                 <Password>{{http_proxy.password}}</Password>
             </HTTPProxy>
+            <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
+            <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
