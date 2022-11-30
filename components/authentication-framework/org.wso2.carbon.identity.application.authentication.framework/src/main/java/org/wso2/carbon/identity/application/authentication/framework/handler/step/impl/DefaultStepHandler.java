@@ -1038,6 +1038,10 @@ public class DefaultStepHandler implements StepHandler {
                 if (UserCoreConstants.ErrorCode.INVALID_CREDENTIAL.equals(errorCode)) {
                     retryParam = String.format("%s&errorCode=%s&remainingAttempts=%d", retryParam, errorCode,
                             remainingAttempts);
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
@@ -1055,6 +1059,10 @@ public class DefaultStepHandler implements StepHandler {
                     if (!StringUtils.isBlank(reason)) {
                         redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
                     }
+                    if (username != null) {
+                        redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return redirectURL;
                 } else if (IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(errorCode)) {
                     retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
@@ -1063,6 +1071,10 @@ public class DefaultStepHandler implements StepHandler {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
                     }
                     retryParam = String.format("%s&errorCode=%s", retryParam, errorCode);
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
@@ -1073,6 +1085,10 @@ public class DefaultStepHandler implements StepHandler {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
                     }
                     retryParam = retryParam + "&errorCode=" + errorCode;
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
@@ -1085,6 +1101,10 @@ public class DefaultStepHandler implements StepHandler {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
                     }
                     retryParam = retryParam + "&errorCode=" + errorCode;
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
@@ -1112,6 +1132,10 @@ public class DefaultStepHandler implements StepHandler {
                         + context.getContextIdIncludedQueryParams()))
                         + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8")
                         + retryParam + reCaptchaParamString.toString();
+                if (username != null) {
+                    redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                            "UTF-8"));
+                }
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
@@ -1158,7 +1182,7 @@ public class DefaultStepHandler implements StepHandler {
     /**
      * Check whether the user should be redirected to the retry.jsp page when the user's account is locked.
      * This decision is taken based on three configuration options, redirectToMultiOptionPageOnFailure,
-       showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
+     showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
      *
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
@@ -1201,6 +1225,13 @@ public class DefaultStepHandler implements StepHandler {
 
         callback = callback + ("?" + context.getContextIdIncludedQueryParams())
                 + "&authenticators=" + authenticatorNames;
+
+        if (username == null) {
+            return response.encodeRedirectURL(
+                    ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                    + "&confirmation=" + otp + "&callback=" + URLEncoder.encode(callback, "UTF-8")
+                    + reCaptchaParamString.toString();
+        }
         return response.encodeRedirectURL(
                 ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
                 + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
