@@ -1007,6 +1007,10 @@ public class ApplicationMgtUtil {
 
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (MultitenantConstants.SUPER_TENANT_ID != tenantId && !IdentityTenantUtil.getTenant(tenantId).isActive()) {
+            throw new IdentityApplicationManagementException("Error when setting tenant domain. "
+                    + tenantDomain + " is deactivated.");
+        }
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);

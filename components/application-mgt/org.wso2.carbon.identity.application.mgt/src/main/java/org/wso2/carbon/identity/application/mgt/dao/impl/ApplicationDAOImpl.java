@@ -3200,6 +3200,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return getAllApplicationBasicInfo(tenantID);
+    }
+
+    /**
+     * Retrieve application basic information for a given tenant id.
+     *
+     * @param tenantID Tenant id to get application.
+     * @return Application array with basic information.
+     * @throws IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo(int tenantID)
+            throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
             log.debug("Reading all Applications of Tenant " + tenantID);
@@ -3223,6 +3235,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationResourceId(appNameResultSet.getString("UUID"));
                 appInfo.add(basicInfo);
             }
 
