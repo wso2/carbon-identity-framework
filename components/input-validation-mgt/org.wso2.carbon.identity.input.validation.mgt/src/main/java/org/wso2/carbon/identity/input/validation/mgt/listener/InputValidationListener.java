@@ -104,8 +104,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             if (e.getErrorCode().equals(ERROR_NO_CONFIGURATIONS_FOUND.getCode())) {
                 return true;
             }
-            if (e instanceof InputValidationMgtClientException &&
-                    !e.getErrorCode().equals(ERROR_NO_CONFIGURATIONS_FOUND.getCode())) {
+            if (e instanceof InputValidationMgtClientException) {
                 throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
                         new PolicyViolationException(e.getDescription() + " User: " + userName));
             }
