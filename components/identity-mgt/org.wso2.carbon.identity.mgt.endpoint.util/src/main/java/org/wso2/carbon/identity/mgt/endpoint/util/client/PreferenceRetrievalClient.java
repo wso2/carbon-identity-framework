@@ -69,6 +69,7 @@ public class PreferenceRetrievalClient {
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
+    public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
 
     public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
@@ -96,6 +97,18 @@ public class PreferenceRetrievalClient {
     public boolean checkSelfRegistrationLockOnCreation(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY);
+    }
+
+    /**
+     * Check send confirmation on account creation is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return returns True if send confirmation on creation is enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkSelfRegistrationSendConfirmationOnCreation(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SEND_CONFIRMATION_ON_CREATION);
     }
 
     /**

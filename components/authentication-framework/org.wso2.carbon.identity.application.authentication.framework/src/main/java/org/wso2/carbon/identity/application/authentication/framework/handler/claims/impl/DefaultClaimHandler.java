@@ -43,6 +43,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -59,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -271,6 +274,23 @@ public class DefaultClaimHandler implements ClaimHandler {
         appConfig.setClaimMappings(claimMappings);
         appConfig.setRequestedClaims(requestedClaims);
         appConfig.setMandatoryClaims(mandatoryClaims);
+
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, appConfig.getApplicationName());
+            Optional.ofNullable(requestedClaims.entrySet()).ifPresent(entries -> {
+                List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
+                params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS, claimsList);
+            });
+            Optional.ofNullable(mandatoryClaims.entrySet()).ifPresent(entries -> {
+                List<String> claimsList = entries.stream().map(Entry::getKey).collect(Collectors.toList());
+                params.put(FrameworkConstants.LogConstants.MANDATORY_CLAIMS, claimsList);
+            });
+            LoggerUtils.triggerDiagnosticLogEvent(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                    "Handling service provider requested claims",
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_CLAIM_MAPPING, null);
+        }
     }
 
     private void setClaimsWhenLocalClaimNotExists(Map<String, String> claimMappings,

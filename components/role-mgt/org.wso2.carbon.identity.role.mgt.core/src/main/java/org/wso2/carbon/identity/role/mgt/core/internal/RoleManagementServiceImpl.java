@@ -144,6 +144,23 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return role;
     }
 
+    public Role getRoleWithoutUsers(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRole(roleID, tenantDomain);
+        Role role = roleDAO.getRoleWithoutUsers(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRole(roleID, tenantDomain);
+        return role;
+    }
+
+    @Override
+    public String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleNameByID(roleID, tenantDomain);
+    }
+
     @Override
     public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {

@@ -1402,8 +1402,8 @@
     </Authentication>
 
     <MaskingLogs>
-    	    {% if masking_logs.enable is defined %}
-            <Enabled>{{masking_logs.enable}}</Enabled>
+    	    {% if masking_logs.enabled is defined %}
+            <Enabled>{{masking_logs.enabled}}</Enabled>
             {% else %}
             <Enabled>true</Enabled>
             {% endif %}
@@ -2018,6 +2018,15 @@
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
             <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
@@ -2792,6 +2801,7 @@
                     <Path>/api/server/v1/identity-governance</Path>
                     <Path>/api/server/v1/email/template-types</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/identity/auth/v1.1</Path>
                     <Path>/api/server/v1/authenticators</Path>
                 </SubPaths>
             </Context>
@@ -2811,6 +2821,7 @@
         {% endfor %}
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
@@ -2837,6 +2848,8 @@
                 <Username>{{http_proxy.username}}</Username>
                 <Password>{{http_proxy.password}}</Password>
             </HTTPProxy>
+            <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
+            <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 

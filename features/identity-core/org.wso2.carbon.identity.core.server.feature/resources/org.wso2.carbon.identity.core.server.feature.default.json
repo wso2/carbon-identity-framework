@@ -600,6 +600,7 @@
   "oauth.jwks_endpoint.connection_timeout": "1s",
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
+  "oauth.jwks_endpoint.add_previous_version_kid" : false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",

@@ -24,6 +24,8 @@ import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -129,13 +131,20 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     }
 
     private String getUser() {
+
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (user != null) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (StringUtils.isNotBlank(user)) {
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            if (LoggerUtils.isLogMaskingEnable && StringUtils.isNotBlank(tenantDomain)) {
+                String userId = IdentityUtil.getInitiatorId(user, tenantDomain);
+                return StringUtils.isNotBlank(userId) ? userId : user + "@" + tenantDomain;
+            }
+            return user + "@" + tenantDomain;
         } else {
-            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+            return LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME) :
+                    CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
-        return user;
     }
 
     private String buildData(IdentityProvider identityProvider) {
@@ -240,7 +249,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     for (Property property : authConfig.getProperties()) {
                         data.append(joiner);
                         joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                        data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
                     }
                     data.append("]");
                 }
@@ -266,7 +276,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     for (Property property : provConfig.getProvisioningProperties()) {
                         data.append(joiner);
                         joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                        data.append("{").append(property.getName()).append(":").append( LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
                     }
                     data.append("]");
                 }
@@ -298,7 +309,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             for (IdentityProviderProperty property : idpProperties) {
                 data.append(joiner);
                 joiner = ", ";
-                data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
+                        LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
             }
             data.append("]");
         }
