@@ -1455,6 +1455,11 @@
 
 
     <EventListeners>
+        <EventListener id="input_validation"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
+                       orderId="{{event.default_listener.validation.priority}}"
+                       enable="{{event.default_listener.validation.enable}}"/>
         <EventListener id="workflow"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"

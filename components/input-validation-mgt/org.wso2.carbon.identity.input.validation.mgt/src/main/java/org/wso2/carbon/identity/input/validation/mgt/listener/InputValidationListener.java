@@ -62,7 +62,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
         }
-        return 51;
+        return 3;
     }
 
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,

@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_CONSECUTIVE_CHR;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH;
 
 /**
