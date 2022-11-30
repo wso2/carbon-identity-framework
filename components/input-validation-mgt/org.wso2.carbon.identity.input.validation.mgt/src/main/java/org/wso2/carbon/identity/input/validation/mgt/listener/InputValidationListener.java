@@ -106,7 +106,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             }
             if (e instanceof InputValidationMgtClientException) {
                 throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
-                        new PolicyViolationException(e.getDescription() + " User: " + userName));
+                        new PolicyViolationException(e.getDescription()));
             }
             return false;
         }

@@ -49,16 +49,16 @@ public class UpperCaseValidator extends AbstractRulesValidator {
             }
         }
 
-        if (attributesMap.containsKey(field + PERIOD + MIN_LENGTH)) {
-            int min = Integer.parseInt(attributesMap.get(field + PERIOD + MIN_LENGTH));
+        if (attributesMap.containsKey(MIN_LENGTH)) {
+            int min = Integer.parseInt(attributesMap.get(MIN_LENGTH));
             if (upper < min) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_MIN_UPPER_CASE_LENGTH_MISMATCH.getDescription(), field, min));
             }
         }
-        if (attributesMap.containsKey(field + PERIOD + MAX_LENGTH)) {
-            int max = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_LENGTH));
+        if (attributesMap.containsKey(MAX_LENGTH)) {
+            int max = Integer.parseInt(attributesMap.get(MAX_LENGTH));
             if (upper > max) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MAX_UPPER_CASE_LENGTH_MISMATCH.getMessage(),
