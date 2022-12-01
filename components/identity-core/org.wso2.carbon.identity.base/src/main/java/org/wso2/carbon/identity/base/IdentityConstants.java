@@ -332,8 +332,6 @@ public class IdentityConstants {
 
         public static final String USER_CLAIMS = "UserClaims";
         public static final String USER_ID_TOKEN = "UserIdToken";
-        public static final String XACML_REQUEST = "XACML_Request";
-        public static final String XACML_RESPONSE = "XACML_Response";
         public static final String NTLM_TOKEN = "NTLM_Token";
         public static final String SAML_ASSERTION = "SAML_Assertion";
         public static final String SAML_REQUEST = "SAML_Request";
