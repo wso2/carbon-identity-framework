@@ -27,12 +27,13 @@ DECLARE @batchCount INT;
 DECLARE @deleteCount INT;
 DECLARE @rebuildIndexes BIT;
 DECLARE @updateStats BIT;
+DECLARE @clearExpiredJTI BIT;
 
 SET @maxValidityPeriod = 99999999999990;
 
 DECLARE backupTablesCursor CURSOR FOR
 SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE
-TABLE_NAME IN ('IDN_OAUTH2_ACCESS_TOKEN', 'IDN_OAUTH2_AUTHORIZATION_CODE', 'IDN_OAUTH2_ACCESS_TOKEN_SCOPE','IDN_OIDC_REQ_OBJECT_REFERENCE','IDN_OIDC_REQ_OBJECT_CLAIMS','IDN_OIDC_REQ_OBJ_CLAIM_VALUES')
+TABLE_NAME IN ('IDN_OAUTH2_ACCESS_TOKEN', 'IDN_OAUTH2_AUTHORIZATION_CODE', 'IDN_OAUTH2_ACCESS_TOKEN_SCOPE','IDN_OIDC_REQ_OBJECT_REFERENCE','IDN_OIDC_REQ_OBJECT_CLAIMS','IDN_OIDC_REQ_OBJ_CLAIM_VALUES', 'IDN_OIDC_JTI')
 
 -- ------------------------------------------
 -- CONFIGURABLE ATTRIBUTES
@@ -49,6 +50,7 @@ SET @logLevel = 'TRACE';    -- SET LOG LEVELS : TRACE , DEBUG
 SET @enableAudit = 'FALSE'; -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKENS USING A TABLE    [DEFAULT : FALSE] [# IF YOU ENABLE THIS TABLE BACKUP WILL FORCEFULLY SET TO TRUE]
 SET @rebuildIndexes = 'FALSE'; -- SET TRUE FOR REBUILD INDEXES TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
 SET @updateStats = 'FALSE'; -- SET TRUE FOR GATHER TABLE STATS TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
+SET @clearExpiredJTI = 'FALSE'; -- SET TRUE TO CLEAR IDN_OIDC_JIT TABLE [DEFAULT : FALSE] [# IF preventTokenReuse CONFIG IS SET TO TRUE, THIS ALSO SHOULD BE SET TO TRUE]
 
 
 IF (@enableLog = 1)
@@ -138,6 +140,23 @@ BEGIN
 			SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP ..!';
 			END
 	END
+
+    IF (@clearExpiredJTI = 1)
+    BEGIN
+        IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OIDC_JTI_CLEANUP'))
+        BEGIN
+                IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] CREATING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP .. !';
+                END
+                Select * into dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP  from  dbo.IDN_OIDC_JTI where 1 =2;
+        END
+        ELSE
+        BEGIN
+                IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP ..!';
+                END
+        END
+    END
 END
 
 
@@ -399,6 +418,131 @@ SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_AC
 
 SELECT @rowcount = COUNT(1) FROM IDN_OAUTH2_AUTHORIZATION_CODE;
 SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
+END
+
+
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- CALCULATING JWT ID TYPES IN IDN_OIDC_JTI
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IF (@enableLog = 1 AND @clearExpiredJTI = 1)
+BEGIN
+	SELECT '[' + convert(varchar, getdate(), 121) + '] CALCULATING JWT ID TYPES IN IDN_OIDC_JTI TABLE .... !';
+
+	IF (@enableLog = 1 AND @logLevel IN ('DEBUG','TRACE'))
+	BEGIN
+	SELECT @rowcount = count(1) FROM IDN_OIDC_JTI;
+	SELECT 'TOTAL JTIS ON IDN_OIDC_JTI TABLE BEFORE DELETE : '+CAST(@rowCount as varchar);
+	END
+
+-- -------------
+	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+	BEGIN
+	SELECT @cleaupCount = COUNT(1) FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE DELETED FROM IDN_OIDC_JTI : '+CAST(@cleaupCount as varchar);
+	END
+
+-- -------------
+	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+	BEGIN
+	select @rowcount  = (@rowcount - @cleaupCount);
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE RETAIN IN IDN_OIDC_JTI : '+CAST(@rowCount as varchar);
+	END
+END
+
+
+---- ------------------------------------------------------
+---- BATCH DELETE IDN_OAUTH2_ACCESS_TOKEN
+---- ------------------------------------------------------
+
+IF (@enableLog = 1 AND @clearExpiredJTI = 1)
+BEGIN
+SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI STARTED .... !';
+END
+
+
+IF (@clearExpiredJTI = 1)
+BEGIN
+    WHILE (1=1)
+    BEGIN
+            IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CHUNK_IDN_OIDC_JTI'))
+            BEGIN
+            DROP TABLE CHUNK_IDN_OIDC_JTI;
+            END
+
+            CREATE TABLE CHUNK_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
+
+            INSERT INTO CHUNK_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@chunkSize) JWT_ID FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
+            SELECT @chunkCount =  @@rowcount;
+
+            IF (@chunkCount < @checkCount)
+            BEGIN
+            BREAK;
+            END
+
+            IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+            BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CHUNK TABLE CHUNK_IDN_OIDC_JTI CREATED WITH : '+CAST(@chunkCount as varchar);
+            END
+
+            IF (@enableAudit=1)
+            BEGIN
+            INSERT INTO dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP SELECT JTIS.* FROM IDN_OIDC_JTI JTIS , CHUNK_IDN_OIDC_JTI CHK WHERE JTIS.JWT_ID=CHK.JWT_ID;
+            END
+
+            WHILE (1=1)
+            BEGIN
+                IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BATCH_IDN_OIDC_JTI'))
+                BEGIN
+                DROP TABLE BATCH_IDN_OIDC_JTI;
+                END
+
+                CREATE TABLE BATCH_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
+
+                INSERT INTO BATCH_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@batchSize) JWT_ID FROM CHUNK_IDN_OIDC_JTI;
+                SELECT @batchCount =  @@rowcount;
+
+                IF(@batchCount = 0)
+                BEGIN
+                BREAK;
+                END
+
+                IF ((@batchCount > 0))
+                BEGIN
+
+                    IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+                    BEGIN
+                    SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE START ON TABLE IDN_OIDC_JTI WITH : '+CAST(@batchCount as varchar);
+                    END
+
+                    DELETE IDN_OIDC_JTI where JWT_ID in (select JWT_ID from  BATCH_IDN_OIDC_JTI);
+                    SELECT  @deleteCount= @@rowcount;
+
+                    IF (@enableLog = 1)
+                    BEGIN
+                    SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE FINISHED ON IDN_OIDC_JTI WITH : '+CAST(@deleteCount as varchar);
+                    END
+
+                    DELETE CHUNK_IDN_OIDC_JTI WHERE JWT_ID in (select JWT_ID from BATCH_IDN_OIDC_JTI);
+
+                    IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+                    BEGIN
+                    SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED BATCH ON  CHUNK_IDN_OIDC_JTI !';
+                    END
+
+                    IF ((@deleteCount > 0))
+                    BEGIN
+                    SELECT '[' + convert(varchar, getdate(), 121) + '] SLEEPING ...';
+                    WAITFOR DELAY @sleepTime;
+                    END
+                END
+            END
+    END
+END
+
+IF (@enableLog = 1 AND @clearExpiredJTI = 1)
+BEGIN
+SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI COMPLETED .... !';
 END
 
 -- ------------------------------------------------------
