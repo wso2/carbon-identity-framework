@@ -25,7 +25,6 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH;
 
