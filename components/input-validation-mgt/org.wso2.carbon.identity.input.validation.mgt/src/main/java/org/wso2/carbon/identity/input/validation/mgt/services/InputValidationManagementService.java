@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
+import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.List;
 import java.util.Map;
@@ -67,4 +69,15 @@ public interface InputValidationManagementService {
      * @return  Validators.
      */
     Map<String, Validator> getValidators(String tenantDomain);
+
+    /**
+     * Method to validate password.
+     *
+     * @param credential        Credential of the user.
+     * @param userStoreManager  User store manager.
+     * @return  Validity of the password.
+     * @throws UserStoreException   If an error occurred while validating password.
+     */
+    boolean validatePassword(Object credential, UserStoreManager userStoreManager)
+            throws UserStoreException;
 }

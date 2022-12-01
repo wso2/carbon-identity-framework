@@ -94,5 +94,4 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
 
         return configProperties;
     }
-
 }
