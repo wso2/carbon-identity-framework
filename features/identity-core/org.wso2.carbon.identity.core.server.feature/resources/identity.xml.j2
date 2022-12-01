@@ -1401,6 +1401,12 @@
         </Audit>
     </Authentication>
 
+    <!--
+        Enabling this configuration will do the following modifications to the logs.
+            1. Initiator of the audit logs will be changed to userId if userId is resolvable.
+            2. Initiator of the audit logs will be a masked username in the scenarios where userId is not resolvable.
+            3. PII, user claims and other sensitive information will be masked from logs.
+     -->
     <MaskingLogs>
     	    {% if masking_logs.enabled is defined %}
             <Enabled>{{masking_logs.enabled}}</Enabled>

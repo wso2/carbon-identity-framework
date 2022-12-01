@@ -27,7 +27,11 @@ import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -38,6 +42,11 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State : { %s } }" +
             " | Result : %s ";
     private final String SUCCESS = "Success";
+
+//    Properties with following key values will not be printed in logs.
+    private static final Set<String> UNLOGGABLE_PARAMS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("ClientSecret", "SPNPassword", "APISecret", "scim2-password", "sf-password",
+                    "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
 
     @Override
     public boolean isEnable() {
@@ -247,10 +256,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : authConfig.getProperties()) {
-                        data.append(joiner);
-                        joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
-                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
+                        if (!isSensitiveParam(property.getName())) {
+                            data.append(joiner);
+                            joiner = ", ";
+                            data.append("{").append(property.getName()).append(":").append(
+                                    LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                        }
                     }
                     data.append("]");
                 }
@@ -274,10 +285,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : provConfig.getProvisioningProperties()) {
-                        data.append(joiner);
-                        joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append( LoggerUtils.isLogMaskingEnable ?
-                                LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
+                        if (!isSensitiveParam(property.getName())) {
+                            data.append(joiner);
+                            joiner = ", ";
+                            data.append("{").append(property.getName()).append(":").append(
+                                    LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                        }
                     }
                     data.append("]");
                 }
@@ -307,13 +320,27 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             data.append(", IDP Properties:[");
             String joiner = "";
             for (IdentityProviderProperty property : idpProperties) {
-                data.append(joiner);
-                joiner = ", ";
-                data.append("{").append(property.getName()).append(":").append(LoggerUtils.isLogMaskingEnable ?
-                        LoggerUtils.getMaskedContent(property.getValue()) : property.getValue()).append("}");
+                if (!isSensitiveParam(property.getName())) {
+                    data.append(joiner);
+                    joiner = ", ";
+                    data.append("{").append(property.getName()).append(":").append(
+                            LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                }
             }
             data.append("]");
         }
         return data.toString();
+    }
+
+    /**
+     * Returns whether the given key is contained in the defined UNLOGGABLE_PARAMS set.
+     *
+     * @param key Key value that needs to be verified.
+     *
+     * @return true if the provided key contains in the UNLOGGABLE_PARAMS, otherwise false.
+     */
+    private static boolean isSensitiveParam(String key) {
+
+        return UNLOGGABLE_PARAMS.contains(key);
     }
 }
