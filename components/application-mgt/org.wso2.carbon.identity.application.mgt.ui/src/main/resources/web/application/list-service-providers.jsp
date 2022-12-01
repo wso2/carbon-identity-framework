@@ -258,7 +258,7 @@
                                     <a title="Export Service Providers"
                                        onclick="exportSP('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>');return false;" href="#"
                                        class="icon-link"
-                                       style="background-image: url(../entitlement/images/publish.gif)">Export
+                                       style="background-image: url(../application/images/publish.gif)">Export
                                     </a>
                                     <a title="Remove Service Providers"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(app.getApplicationName())%>', '<%=pageNumberInt%>', '<%=Encode.forJavaScriptAttribute(filterString)%>');return false;" href="#"
