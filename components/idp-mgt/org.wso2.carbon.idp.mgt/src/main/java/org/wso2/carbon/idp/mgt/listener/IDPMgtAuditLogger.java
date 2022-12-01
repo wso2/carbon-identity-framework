@@ -43,7 +43,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             " | Result : %s ";
     private final String SUCCESS = "Success";
 
-    // Properties with following key values will not be printed in logs.
+    // Properties with the following key values will not be printed in audit logs.
     private static final Set<String> UNLOGGABLE_PARAMS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("ClientSecret", "SPNPassword", "APISecret", "scim2-password", "sf-password",
                     "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
@@ -256,7 +256,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : authConfig.getProperties()) {
-                        if (!isSensitiveParam(property.getName())) {
+                        if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
                             data.append(joiner);
                             joiner = ", ";
                             data.append("{").append(property.getName()).append(":").append(
@@ -285,7 +285,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : provConfig.getProvisioningProperties()) {
-                        if (!isSensitiveParam(property.getName())) {
+                        if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
                             data.append(joiner);
                             joiner = ", ";
                             data.append("{").append(property.getName()).append(":").append(
@@ -320,7 +320,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             data.append(", IDP Properties:[");
             String joiner = "";
             for (IdentityProviderProperty property : idpProperties) {
-                if (!isSensitiveParam(property.getName())) {
+                if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
                     data.append(joiner);
                     joiner = ", ";
                     data.append("{").append(property.getName()).append(":").append(
@@ -330,17 +330,5 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             data.append("]");
         }
         return data.toString();
-    }
-
-    /**
-     * Returns whether the given key is contained in the defined UNLOGGABLE_PARAMS set.
-     *
-     * @param key Key value that needs to be verified.
-     *
-     * @return true if the provided key contains in the UNLOGGABLE_PARAMS, otherwise false.
-     */
-    private static boolean isSensitiveParam(String key) {
-
-        return UNLOGGABLE_PARAMS.contains(key);
     }
 }
