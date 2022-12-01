@@ -43,7 +43,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             " | Result : %s ";
     private final String SUCCESS = "Success";
 
-//    Properties with following key values will not be printed in logs.
+    // Properties with following key values will not be printed in logs.
     private static final Set<String> UNLOGGABLE_PARAMS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("ClientSecret", "SPNPassword", "APISecret", "scim2-password", "sf-password",
                     "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
