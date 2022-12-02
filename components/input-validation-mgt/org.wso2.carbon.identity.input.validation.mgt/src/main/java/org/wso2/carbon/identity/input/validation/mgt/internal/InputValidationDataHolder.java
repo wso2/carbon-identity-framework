@@ -60,11 +60,21 @@ public class InputValidationDataHolder {
         return validators;
     }
 
+    /**
+     * Set Realm Service.
+     *
+     * @param realmService realmService.
+     */
     public static void setRealmService(RealmService realmService) {
 
         InputValidationDataHolder.realmService = realmService;
     }
 
+    /**
+     * Get Realm Service.
+     *
+     * @return realmService.
+     */
     public static RealmService getRealmService() {
 
         return realmService;

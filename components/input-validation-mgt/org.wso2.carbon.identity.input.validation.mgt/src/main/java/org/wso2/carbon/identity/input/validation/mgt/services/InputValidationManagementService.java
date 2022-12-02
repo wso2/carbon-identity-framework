@@ -69,10 +69,10 @@ public interface InputValidationManagementService {
     Map<String, Validator> getValidators(String tenantDomain);
 
     /**
-     * Method to get default configuration.
+     * Method to get configuration from user store.
      *
      * @param tenantDomain  Tenant domain.
-     * @return default configuration.
+     * @return configuration.
      */
     List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
 }
