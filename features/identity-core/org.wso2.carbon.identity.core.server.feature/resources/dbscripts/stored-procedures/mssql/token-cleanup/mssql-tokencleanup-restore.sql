@@ -6,7 +6,7 @@ BEGIN
 DECLARE @rowCount INT;
 DECLARE @enableLog BIT;
 DECLARE @logLevel VARCHAR(10);
-DECLARE @clearExpiredJTI BIT;
+DECLARE @restoreExpiredJTI BIT;
 
 -- ------------------------------------------
 -- CONFIGURABLE ATTRIBUTES
