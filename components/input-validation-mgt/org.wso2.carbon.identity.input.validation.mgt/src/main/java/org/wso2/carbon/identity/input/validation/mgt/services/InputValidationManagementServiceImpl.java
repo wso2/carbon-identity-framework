@@ -126,14 +126,13 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     @Override
-    public List<ValidationConfiguration> getDefaultConfiguration(String tenantDomain)
+    public List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain)
             throws InputValidationMgtException {
 
         List<ValidationConfiguration> configurations = new ArrayList<>();
         ValidationConfiguration configuration = new ValidationConfiguration();
         configuration.setField(PASSWORD);
         List<RulesConfiguration> rules = new ArrayList<>();
-        configuration.setRules(rules);
 
         try {
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
@@ -145,22 +144,23 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             // Return the JsRegex if the default regex has been updated by the user.
             if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_PATTERN.equals(javaRegex)) {
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
+                configuration.setRegEx(rules);
+            } else {
+                rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
+                rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
+                configuration.setRules(rules);
             }
+            configurations.add(configuration);
+            return configurations;
         } catch (InputValidationMgtException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unable to get user realm service. " + e.getMessage());
             }
             throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
         }
-        // Build default rules configs.
-        rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
-        rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
-        rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
-        rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
-        rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
-        configuration.setRules(rules);
-        configurations.add(configuration);
-        return configurations;
     }
 
     /**
