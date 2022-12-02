@@ -22,20 +22,36 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
+import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ERROR_CODE_PREFIX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 
 /**
  * Lister class to validate the password.
  */
 public class InputValidationListener extends AbstractIdentityUserOperationEventListener {
 
-    private static final Log log = LogFactory.getLog(InputValidationListener.class);
+    private static final Log LOG = LogFactory.getLog(InputValidationListener.class);
     private final InputValidationManagementService inputValidationMgtService =
             new InputValidationManagementServiceImpl();
 
@@ -55,12 +71,67 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
             return true;
         }
-        return inputValidationMgtService.validatePassword(credential, userStoreManager);
+        return validatePassword(credential, userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
-        return inputValidationMgtService.validatePassword(newCredential, userStoreManager);
+        return validatePassword(newCredential, userStoreManager);
+    }
+
+    /**
+     * Method to validate password.
+     *
+     * @param credential        Credential of the user.
+     * @param userStoreManager  User store manager.
+     * @return  Validity of the password.
+     * @throws UserStoreException   If an error occurred while validating password.
+     */
+    private boolean validatePassword(Object credential, UserStoreManager userStoreManager) throws UserStoreException {
+
+        int tenantId = userStoreManager.getTenantId();
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+
+        List<ValidationConfiguration> configurations;
+        try {
+            configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
+            configurations = configurations.stream().filter(f -> PASSWORD.equalsIgnoreCase(f.getField()))
+                    .collect(Collectors.toList());
+            if (configurations.isEmpty()) {
+                return true;
+            }
+            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+            Map<String, Validator> validators = InputValidationDataHolder.getValidators();
+            ValidationConfiguration configuration = configurations.get(0);
+            List<RulesConfiguration> rules = new ArrayList<>();
+            if (configuration.getRegEx() != null) {
+                rules = configuration.getRegEx();
+            } else if (configuration.getRules() != null) {
+                rules = configuration.getRules();
+            }
+            for (RulesConfiguration rule: rules) {
+                Validator validator = validators.get(rule.getValidatorName());
+                ValidationContext context = new ValidationContext();
+                context.setField(PASSWORD);
+                context.setValue(credential.toString());
+                context.setTenantDomain(tenantDomain);
+                context.setProperties(rule.getProperties());
+                validator.validate(context);
+            }
+        } catch (InputValidationMgtException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Failed to validate password for user. " + e.getDescription());
+            }
+            if (e.getErrorCode().equals(ERROR_NO_CONFIGURATIONS_FOUND.getCode())) {
+                return true;
+            }
+            if (e instanceof InputValidationMgtClientException) {
+                throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
+                        new PolicyViolationException(e.getDescription()));
+            }
+            return false;
+        }
+        return true;
     }
 }

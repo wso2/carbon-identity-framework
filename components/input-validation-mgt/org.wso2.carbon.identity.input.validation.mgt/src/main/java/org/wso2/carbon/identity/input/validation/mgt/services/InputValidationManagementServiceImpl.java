@@ -19,28 +19,20 @@
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
 import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
-import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
-import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,8 +41,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ERROR_CODE_PREFIX;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
@@ -65,8 +55,6 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPU
  * Class for Input Validation Manager Implementation.
  */
 public class InputValidationManagementServiceImpl implements InputValidationManagementService {
-
-    private static final Log LOG = LogFactory.getLog(InputValidationManagementServiceImpl.class);
 
     @Override
     public List<ValidationConfiguration> updateInputValidationConfiguration(
@@ -123,54 +111,6 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public Map<String, Validator> getValidators(String tenantDomain) {
 
         return InputValidationDataHolder.getValidators();
-    }
-
-    @Override
-    public boolean validatePassword(Object credential, UserStoreManager userStoreManager) throws UserStoreException {
-
-        int tenantId = userStoreManager.getTenantId();
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-
-        List<ValidationConfiguration> configurations;
-        try {
-            configurations = getInputValidationConfiguration(tenantDomain);
-            configurations = configurations.stream().filter(f -> PASSWORD.equalsIgnoreCase(f.getField()))
-                    .collect(Collectors.toList());
-            if (configurations.isEmpty()) {
-                return true;
-            }
-            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-            Map<String, Validator> validators = InputValidationDataHolder.getValidators();
-            ValidationConfiguration configuration = configurations.get(0);
-            List<RulesConfiguration> rules = new ArrayList<>();
-            if (configuration.getRegEx() != null) {
-                rules = configuration.getRegEx();
-            } else if (configuration.getRules() != null) {
-                rules = configuration.getRules();
-            }
-            for (RulesConfiguration rule: rules) {
-                Validator validator = validators.get(rule.getValidatorName());
-                ValidationContext context = new ValidationContext();
-                context.setField(PASSWORD);
-                context.setValue(credential.toString());
-                context.setTenantDomain(tenantDomain);
-                context.setProperties(rule.getProperties());
-                validator.validate(context);
-            }
-        } catch (InputValidationMgtException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to validate password for user. " + e.getDescription());
-            }
-            if (e.getErrorCode().equals(ERROR_NO_CONFIGURATIONS_FOUND.getCode())) {
-                return true;
-            }
-            if (e instanceof InputValidationMgtClientException) {
-                throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
-                        new PolicyViolationException(e.getDescription()));
-            }
-            return false;
-        }
-        return true;
     }
 
     /**
