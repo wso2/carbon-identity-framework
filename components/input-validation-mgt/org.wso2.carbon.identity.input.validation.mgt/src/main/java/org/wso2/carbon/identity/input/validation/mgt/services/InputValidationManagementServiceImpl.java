@@ -126,7 +126,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     @Override
-    public List<ValidationConfiguration> getDefaultConfiguration(String tenantDomain) {
+    public List<ValidationConfiguration> getDefaultConfiguration(String tenantDomain)
+            throws InputValidationMgtException {
 
         List<ValidationConfiguration> configurations = new ArrayList<>();
         ValidationConfiguration configuration = new ValidationConfiguration();
@@ -136,7 +137,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
 
         try {
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JAVA_REG_EX);
+            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
+                    .RealmConfig.PROPERTY_JAVA_REG_EX);
             String jsRegex = realmConfiguration.
                     getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JS_REG_EX);
 
@@ -148,6 +150,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unable to get user realm service. " + e.getMessage());
             }
+            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
         }
         // Build default rules configs.
         rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
