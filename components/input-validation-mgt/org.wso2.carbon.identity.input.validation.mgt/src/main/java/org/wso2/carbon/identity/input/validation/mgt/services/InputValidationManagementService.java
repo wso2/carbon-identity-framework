@@ -22,8 +22,6 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.util.List;
 import java.util.Map;
