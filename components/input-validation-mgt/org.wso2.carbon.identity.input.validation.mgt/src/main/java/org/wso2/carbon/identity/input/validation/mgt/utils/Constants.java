@@ -54,6 +54,7 @@ public class Constants {
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
+        public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
     }
 
     /**

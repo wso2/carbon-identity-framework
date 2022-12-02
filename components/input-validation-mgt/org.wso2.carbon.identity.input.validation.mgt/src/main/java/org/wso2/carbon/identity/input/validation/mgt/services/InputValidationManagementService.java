@@ -67,4 +67,12 @@ public interface InputValidationManagementService {
      * @return  Validators.
      */
     Map<String, Validator> getValidators(String tenantDomain);
+
+    /**
+     * Method to get default configuration.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return default configuration.
+     */
+    List<ValidationConfiguration> getDefaultConfiguration(String tenantDomain);
 }
