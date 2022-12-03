@@ -41,6 +41,7 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
@@ -55,6 +56,8 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
+    public static final String MASKING_CHARACTER = "*";
+    public static final Pattern LOG_MASKING_PATTERN = Pattern.compile("(?<=.).(?=.)");
 
     /**
      * @param initiatorId   Request initiator's id.
@@ -128,6 +131,20 @@ public class LoggerUtils {
             String errorLog = "Error occurred when firing the diagnostic log event.";
             log.error(errorLog, e);
         }
+    }
+
+    /**
+     * Util function to mask content.
+     *
+     * @param content Content that needs to be masked.
+     * @return masked content.
+     */
+    public static String getMaskedContent(String content) {
+
+        if (StringUtils.isNotEmpty(content)) {
+            content = LOG_MASKING_PATTERN.matcher(content).replaceAll(MASKING_CHARACTER);
+        }
+        return content;
     }
 
     /**
