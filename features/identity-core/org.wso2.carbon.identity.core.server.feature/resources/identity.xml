@@ -1133,6 +1133,9 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
                        orderId="30" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.handler.event.account.lock.handlers.PostAuthnFailedLockoutClaimHandler"
+                       orderId="21" enable="true"/>
 
         <!-- Special UserOperationEventListeners to preserve the backward compatibility with the new unique user ID
         related APIs  -->

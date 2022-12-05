@@ -149,6 +149,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
         try {
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
             boolean returning = false;
             // Check whether this is the start of the authentication flow.
@@ -373,6 +374,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
             unwrapResponse(responseWrapper, sessionDataKey, response, context);
             if (context != null) {
