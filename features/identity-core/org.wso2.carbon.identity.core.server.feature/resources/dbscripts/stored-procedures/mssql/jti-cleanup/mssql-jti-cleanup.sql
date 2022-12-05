@@ -110,19 +110,19 @@ END
 
 IF (@enableAudit = 1)
 BEGIN
-    IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OIDC_JTI_CLEANUP'))
-		BEGIN
-				IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-						SELECT '[' + convert(varchar, getdate(), 121) + '] CREATING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP .. !';
-				END
-				Select * into dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP  from  dbo.IDN_OIDC_JTI where 1 =2;
+	IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OIDC_JTI_CLEANUP'))
+	BEGIN
+		IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
+			SELECT '[' + convert(varchar, getdate(), 121) + '] CREATING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP .. !';
 		END
-		ELSE
-		BEGIN
-				IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
-						SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP ..!';
-				END
+		Select * into dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP  from  dbo.IDN_OIDC_JTI where 1 =2;
+	END
+	ELSE
+	BEGIN
+		IF (@enableLog = 1 AND @logLevel IN ('TRACE')) BEGIN
+			SELECT '[' + convert(varchar, getdate(), 121) + '] USING AUDIT TABLE AUDITLOG_IDN_OIDC_JTI_CLEANUP ..!';
 		END
+	END
 END
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,22 +134,22 @@ BEGIN
 
 	IF (@enableLog = 1 AND @logLevel IN ('DEBUG','TRACE'))
 	BEGIN
-	SELECT @rowcount = count(1) FROM IDN_OIDC_JTI;
-	SELECT 'TOTAL JTIS ON IDN_OIDC_JTI TABLE BEFORE DELETE : '+CAST(@rowCount as varchar);
+		SELECT @rowcount = count(1) FROM IDN_OIDC_JTI;
+		SELECT 'TOTAL JTIS ON IDN_OIDC_JTI TABLE BEFORE DELETE : '+CAST(@rowCount as varchar);
 	END
 
 -- -------------
 	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 	BEGIN
-	SELECT @cleaupCount = COUNT(1) FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
-	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE DELETED FROM IDN_OIDC_JTI : '+CAST(@cleaupCount as varchar);
+		SELECT @cleaupCount = COUNT(1) FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
+		SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE DELETED FROM IDN_OIDC_JTI : '+CAST(@cleaupCount as varchar);
 	END
 
 -- -------------
 	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 	BEGIN
-	select @rowcount  = (@rowcount - @cleaupCount);
-	SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE RETAIN IN IDN_OIDC_JTI : '+CAST(@rowCount as varchar);
+		SELECT @rowcount  = (@rowcount - @cleaupCount);
+		SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL JTIS SHOULD BE RETAIN IN IDN_OIDC_JTI : '+CAST(@rowCount as varchar);
 	END
 END
 
@@ -160,89 +160,89 @@ END
 
 IF (@enableLog = 1)
 BEGIN
-SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI STARTED .... !';
+	SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI STARTED .... !';
 END
 
 
 WHILE (1=1)
 BEGIN
-		IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CHUNK_IDN_OIDC_JTI'))
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CHUNK_IDN_OIDC_JTI'))
+	BEGIN
+		DROP TABLE CHUNK_IDN_OIDC_JTI;
+	END
+
+	CREATE TABLE CHUNK_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
+
+	INSERT INTO CHUNK_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@chunkSize) JWT_ID FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
+	SELECT @chunkCount =  @@rowcount;
+
+	IF (@chunkCount < @checkCount)
+	BEGIN
+		BREAK;
+	END
+
+	IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+	BEGIN
+		SELECT '[' + convert(varchar, getdate(), 121) + '] CHUNK TABLE CHUNK_IDN_OIDC_JTI CREATED WITH : '+CAST(@chunkCount as varchar);
+	END
+
+	IF (@enableAudit=1)
+	BEGIN
+		INSERT INTO dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP SELECT JTIS.* FROM IDN_OIDC_JTI JTIS , CHUNK_IDN_OIDC_JTI CHK WHERE JTIS.JWT_ID=CHK.JWT_ID;
+	END
+
+	WHILE (1=1)
+	BEGIN
+		IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BATCH_IDN_OIDC_JTI'))
 		BEGIN
-				DROP TABLE CHUNK_IDN_OIDC_JTI;
+			DROP TABLE BATCH_IDN_OIDC_JTI;
 		END
 
-		CREATE TABLE CHUNK_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
+		CREATE TABLE BATCH_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
 
-		INSERT INTO CHUNK_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@chunkSize) JWT_ID FROM IDN_OIDC_JTI WHERE (CONVERT(DATE, EXP_TIME) < CONVERT(DATE, CURRENT_TIMESTAMP));
-		SELECT @chunkCount =  @@rowcount;
+		INSERT INTO BATCH_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@batchSize) JWT_ID FROM CHUNK_IDN_OIDC_JTI;
+		SELECT @batchCount =  @@rowcount;
 
-		IF (@chunkCount < @checkCount)
+		IF(@batchCount = 0)
 		BEGIN
-				BREAK;
+			BREAK;
 		END
 
-		IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+		IF ((@batchCount > 0))
 		BEGIN
-				SELECT '[' + convert(varchar, getdate(), 121) + '] CHUNK TABLE CHUNK_IDN_OIDC_JTI CREATED WITH : '+CAST(@chunkCount as varchar);
+
+			IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+			BEGIN
+				SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE START ON TABLE IDN_OIDC_JTI WITH : '+CAST(@batchCount as varchar);
+			END
+
+			DELETE IDN_OIDC_JTI where JWT_ID in (select JWT_ID from  BATCH_IDN_OIDC_JTI);
+			SELECT  @deleteCount= @@rowcount;
+
+			IF (@enableLog = 1)
+			BEGIN
+				SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE FINISHED ON IDN_OIDC_JTI WITH : '+CAST(@deleteCount as varchar);
+			END
+
+			DELETE CHUNK_IDN_OIDC_JTI WHERE JWT_ID in (select JWT_ID from BATCH_IDN_OIDC_JTI);
+
+			IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
+			BEGIN
+				SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED BATCH ON  CHUNK_IDN_OIDC_JTI !';
+			END
+
+			IF ((@deleteCount > 0))
+			BEGIN
+				SELECT '[' + convert(varchar, getdate(), 121) + '] SLEEPING ...';
+					WAITFOR DELAY @sleepTime;
+			END
 		END
-
-		IF (@enableAudit=1)
-		BEGIN
-				INSERT INTO dbo.AUDITLOG_IDN_OIDC_JTI_CLEANUP SELECT JTIS.* FROM IDN_OIDC_JTI JTIS , CHUNK_IDN_OIDC_JTI CHK WHERE JTIS.JWT_ID=CHK.JWT_ID;
-		END
-
-		WHILE (1=1)
-		BEGIN
-				IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BATCH_IDN_OIDC_JTI'))
-				BEGIN
-						DROP TABLE BATCH_IDN_OIDC_JTI;
-				END
-
-				CREATE TABLE BATCH_IDN_OIDC_JTI (JWT_ID VARCHAR (255),CONSTRAINT CHNK_IDN_OIDC_JTI_PRI PRIMARY KEY (JWT_ID));
-
-				INSERT INTO BATCH_IDN_OIDC_JTI (JWT_ID) SELECT TOP (@batchSize) JWT_ID FROM CHUNK_IDN_OIDC_JTI;
-				SELECT @batchCount =  @@rowcount;
-
-				IF(@batchCount = 0)
-				BEGIN
-						BREAK;
-				END
-
-				IF ((@batchCount > 0))
-				BEGIN
-
-						IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
-						BEGIN
-								SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE START ON TABLE IDN_OIDC_JTI WITH : '+CAST(@batchCount as varchar);
-						END
-
-						DELETE IDN_OIDC_JTI where JWT_ID in (select JWT_ID from  BATCH_IDN_OIDC_JTI);
-						SELECT  @deleteCount= @@rowcount;
-
-						IF (@enableLog = 1)
-						BEGIN
-								SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE FINISHED ON IDN_OIDC_JTI WITH : '+CAST(@deleteCount as varchar);
-						END
-
-						DELETE CHUNK_IDN_OIDC_JTI WHERE JWT_ID in (select JWT_ID from BATCH_IDN_OIDC_JTI);
-
-						IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
-						BEGIN
-								SELECT '[' + convert(varchar, getdate(), 121) + '] DELETED BATCH ON  CHUNK_IDN_OIDC_JTI !';
-						END
-
-						IF ((@deleteCount > 0))
-						BEGIN
-								SELECT '[' + convert(varchar, getdate(), 121) + '] SLEEPING ...';
-								WAITFOR DELAY @sleepTime;
-						END
-				END
-		END
+	END
 END
 
 IF (@enableLog = 1)
 BEGIN
-		SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI COMPLETED .... !';
+	SELECT '[' + convert(varchar, getdate(), 121) + '] JTIS DELETE ON IDN_OIDC_JTI COMPLETED .... !';
 END
 
 -- ------------------------------------------------------
@@ -252,34 +252,34 @@ END
 IF (@rebuildIndexes = 1)
 BEGIN
 
+	IF (@enableLog = 1)
+	BEGIN
+		SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING STARTED ...!';
+	END
+
+	OPEN backupTablesCursor;
+	FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+
 		IF (@enableLog = 1)
 		BEGIN
-			SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING STARTED ...!';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FOR TABLE :'+@cusrBackupTable;
 		END
 
-		OPEN backupTablesCursor;
+		SELECT @SQL = 'ALTER INDEX ALL ON '+@cusrBackupTable+' REBUILD WITH (ONLINE = ON)';
+		EXEC sp_executesql @SQL;
+
 		FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
+	END
 
-		WHILE @@FETCH_STATUS = 0
-		BEGIN
+	CLOSE backupTablesCursor;
 
-				IF (@enableLog = 1)
-				BEGIN
-						SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FOR TABLE :'+@cusrBackupTable;
-				END
-
-				SELECT @SQL = 'ALTER INDEX ALL ON '+@cusrBackupTable+' REBUILD WITH (ONLINE = ON)';
-				EXEC sp_executesql @SQL;
-
-				FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
-		END
-
-		CLOSE backupTablesCursor;
-
-		IF (@enableLog = 1)
-		BEGIN
-				SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FINISHED ...!';
-		END
+	IF (@enableLog = 1)
+	BEGIN
+		SELECT '[' + convert(varchar, getdate(), 121) + '] INDEX REBUILDING FINISHED ...!';
+	END
 END
 
 -- ------------------------------------------------------
@@ -289,32 +289,32 @@ END
 IF (@updateStats = 1)
 BEGIN
 
+	IF (@enableLog = 1)
+	BEGIN
+		SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB STARTED ...!';
+	END
+	OPEN backupTablesCursor;
+	FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+
 		IF (@enableLog = 1)
 		BEGIN
-				SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB STARTED ...!';
+			SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE TABLE STATICTICS :'+@cusrBackupTable;
 		END
-		OPEN backupTablesCursor;
+
+		SELECT @SQL = 'UPDATE STATISTICS '+@cusrBackupTable;
+		EXEC sp_executesql @SQL;
+
 		FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
+	END
+	CLOSE backupTablesCursor;
 
-		WHILE @@FETCH_STATUS = 0
-		BEGIN
-
-				IF (@enableLog = 1)
-				BEGIN
-						SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE TABLE STATICTICS :'+@cusrBackupTable;
-				END
-
-				SELECT @SQL = 'UPDATE STATISTICS '+@cusrBackupTable;
-				EXEC sp_executesql @SQL;
-
-				FETCH NEXT FROM backupTablesCursor INTO @cusrBackupTable
-		END
-		CLOSE backupTablesCursor;
-
-		IF (@enableLog = 1)
-		BEGIN
-				SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB FINISHED ...!';
-		END
+	IF (@enableLog = 1)
+	BEGIN
+		SELECT '[' + convert(varchar, getdate(), 121) + '] UPDATE DATABSE STATICTICS JOB FINISHED ...!';
+	END
 END
 
 
@@ -322,7 +322,7 @@ deallocate backupTablesCursor;
 
 IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
 BEGIN
-		SELECT '[' + convert(varchar, getdate(), 121) + '] TOKEN_CLEANUP_SP COMPLETED .... !' AS 'INFO LOG';
+	SELECT '[' + convert(varchar, getdate(), 121) + '] TOKEN_CLEANUP_SP COMPLETED .... !' AS 'INFO LOG';
 END
 
 END

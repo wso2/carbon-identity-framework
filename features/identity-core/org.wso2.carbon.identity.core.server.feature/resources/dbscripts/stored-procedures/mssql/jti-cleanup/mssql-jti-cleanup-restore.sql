@@ -37,7 +37,7 @@ BEGIN
 END
 
 IF (@enableLog = 1) BEGIN
-SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED .... !';
+    SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED .... !';
 END
 
 END
