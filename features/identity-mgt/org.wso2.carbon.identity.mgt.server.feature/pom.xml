@@ -54,6 +54,32 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                                    <artifactId>org.wso2.carbon.identity.mgt.endpoint.util</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
@@ -103,7 +129,6 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.captcha.mgt</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt.endpoint.util</bundleDef>
                                 <bundleDef>kaptcha.wso2:kaptcha</bundleDef>
                             </bundles>
                             <importFeatures>
