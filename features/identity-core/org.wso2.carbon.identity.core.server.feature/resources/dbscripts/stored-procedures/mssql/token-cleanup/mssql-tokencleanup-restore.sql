@@ -6,14 +6,12 @@ BEGIN
 DECLARE @rowCount INT;
 DECLARE @enableLog BIT;
 DECLARE @logLevel VARCHAR(10);
-DECLARE @restoreExpiredJTI BIT;
 
 -- ------------------------------------------
 -- CONFIGURABLE ATTRIBUTES
 -- ------------------------------------------
 SET @enableLog = 'TRUE'; -- ENABLE LOGGING [DEFAULT : TRUE]
 SET @logLevel = 'TRACE'; -- SET LOG LEVELS : TRACE
-SET @restoreExpiredJTI = 'FALSE'; -- SET TRUE TO RESTORE IDN_OIDC_JIT TABLE IF clearExpiredJTI IS SET TO TRUE IN CLEANUP SCRIPT [DEFAULT : FALSE]
 
 
 
@@ -114,26 +112,6 @@ SET IDENTITY_INSERT IDN_OIDC_REQ_OBJ_CLAIM_VALUES OFF
 SELECT @rowCount =  @@rowcount;
 IF (@enableLog = 1 ) BEGIN
 SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED ON IDN_OIDC_REQ_OBJ_CLAIM_VALUES WITH '+CAST(@rowCount as varchar)
-END
-END
-
--- ---------------------
-
-IF (@restoreExpiredJTI = 1)
-BEGIN
-SELECT @rowCount = COUNT(1)  FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME IN ('IDN_OIDC_JTI');
-IF (@rowCount = 1)
-BEGIN
-IF (@enableLog = 1 AND @logLevel IN ('TRACE'))
-BEGIN
-SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION STARTED ON IDN_OIDC_JTI TABLE !';
-END
-INSERT INTO dbo.IDN_OIDC_JTI SELECT A.* FROM dbo.BAK_IDN_OIDC_JTI AS A LEFT JOIN dbo.IDN_OIDC_JTI AS B ON A.JWT_ID = B.JWT_ID WHERE B.JWT_ID IS NULL;
-SELECT @rowCount =  @@rowcount;
-IF (@enableLog = 1 )
-BEGIN
-SELECT  '[' + convert(varchar, getdate(), 121) + '] CLEANUP DATA RESTORATION COMPLETED ON IDN_OIDC_JTI WITH '+CAST(@rowCount as varchar)
-END
 END
 END
 
