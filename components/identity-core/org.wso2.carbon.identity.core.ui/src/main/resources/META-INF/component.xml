@@ -28,16 +28,5 @@
 			<order>1</order>
 			<style-class>home</style-class>
         	</menu>
-
-        	<menu>
-			<id>identity_entitlement_menu</id>
-			<i18n-key>component.entitlement.identity</i18n-key>
-			<i18n-bundle>org.wso2.carbon.identity.menu.ui.i18n.Resources</i18n-bundle>
-			<parent-menu></parent-menu>
-			<link>#</link>
-			<region>region1</region>
-			<order>2</order>
-			<style-class>home</style-class>
-        	</menu>
 	</menus>
 </component>
