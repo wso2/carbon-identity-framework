@@ -50,6 +50,7 @@ SET @enableAudit = 'FALSE'; -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKEN
 SET @rebuildIndexes = 'FALSE'; -- SET TRUE FOR REBUILD INDEXES TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
 SET @updateStats = 'FALSE'; -- SET TRUE FOR GATHER TABLE STATS TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
 
+
 IF (@enableLog = 1)
 BEGIN
 SELECT '[' + convert(varchar, getdate(), 121) + '] WSO2_TOKEN_CLEANUP_SP STARTED ... !' AS 'INFO LOG';
@@ -399,8 +400,6 @@ SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_AC
 SELECT @rowcount = COUNT(1) FROM IDN_OAUTH2_AUTHORIZATION_CODE;
 SELECT '[' + convert(varchar, getdate(), 121) + '] TOTAL TOKENS ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE AFTER DELETE :'+CAST(@rowCount as varchar);
 END
-
-
 
 -- ------------------------------------------------------
 -- REBUILDING INDEXES
