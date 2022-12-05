@@ -71,24 +71,26 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
             return true;
         }
-        return validatePassword(credential, userStoreManager);
+        return validate(PASSWORD, credential.toString(), userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
-        return validatePassword(newCredential, userStoreManager);
+        return validate(PASSWORD, newCredential.toString(), userStoreManager);
     }
 
     /**
      * Method to validate password.
      *
-     * @param credential        Credential of the user.
+     * @param field             Credential of the user.
+     * @param value             Value to be validated.
      * @param userStoreManager  User store manager.
      * @return  Validity of the password.
      * @throws UserStoreException   If an error occurred while validating password.
      */
-    private boolean validatePassword(Object credential, UserStoreManager userStoreManager) throws UserStoreException {
+    // generalize the method. -> key pair,
+    private boolean validate(String field, String value, UserStoreManager userStoreManager) throws UserStoreException {
 
         int tenantId = userStoreManager.getTenantId();
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
@@ -96,7 +98,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         List<ValidationConfiguration> configurations;
         try {
             configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
-            configurations = configurations.stream().filter(f -> PASSWORD.equalsIgnoreCase(f.getField()))
+            configurations = configurations.stream().filter(f -> field.equalsIgnoreCase(f.getField()))
                     .collect(Collectors.toList());
             if (configurations.isEmpty()) {
                 return true;
@@ -113,8 +115,8 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             for (RulesConfiguration rule: rules) {
                 Validator validator = validators.get(rule.getValidatorName());
                 ValidationContext context = new ValidationContext();
-                context.setField(PASSWORD);
-                context.setValue(credential.toString());
+                context.setField(field);
+                context.setValue(value);
                 context.setTenantDomain(tenantDomain);
                 context.setProperties(rule.getProperties());
                 validator.validate(context);
@@ -123,7 +125,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Failed to validate password for user. " + e.getDescription());
             }
-            if (e.getErrorCode().equals(ERROR_NO_CONFIGURATIONS_FOUND.getCode())) {
+            if (ERROR_NO_CONFIGURATIONS_FOUND.getCode().equals(e.getErrorCode())) {
                 return true;
             }
             if (e instanceof InputValidationMgtClientException) {
