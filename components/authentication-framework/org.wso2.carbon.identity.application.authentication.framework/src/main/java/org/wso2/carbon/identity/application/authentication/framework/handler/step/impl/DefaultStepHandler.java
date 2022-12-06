@@ -776,10 +776,8 @@ public class DefaultStepHandler implements StepHandler {
                         stepConfig);
                 Optional.ofNullable(e.getUser()).ifPresent(user -> {
                     Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username -> {
-                        if (LoggerUtils.isLogMaskingEnable) {
-                            username = LoggerUtils.getMaskedContent(username);
-                        }
-                        params.put(FrameworkConstants.LogConstants.USER, username);
+                        params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(username) : username);
                     });
                     params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
                     params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
