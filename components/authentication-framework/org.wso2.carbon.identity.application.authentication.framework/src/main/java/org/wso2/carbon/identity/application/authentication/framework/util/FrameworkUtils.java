@@ -3306,7 +3306,7 @@ public class FrameworkUtils {
      *
      * @param callerPath        Application caller path.
      * @param context           Authentication context.
-     * @return  reirect URL.
+     * @return  redirect URL.
      * @throws URLBuilderException  throw if an error occurred during URL generation.
      */
     public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
@@ -3321,11 +3321,18 @@ public class FrameworkUtils {
          since My Account is SaaS.
          */
         if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
-            if (callerPath != null && callerPath.startsWith("/t/")) {
+            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
                 String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
                         .setTenant(callerTenant, true)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
+            } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                String callerOrgId = callerPath.split("/")[2];
+                String callerPathWithoutOrgId = callerPath.replaceFirst("/o/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
+                        .setTenant(callerOrgId).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
                 return redirectURL;
             }
