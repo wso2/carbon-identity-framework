@@ -118,6 +118,22 @@ public class InputValidationServiceComponent {
     }
 
     @Reference(
+            name = "RealmService",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        InputValidationDataHolder.setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        InputValidationDataHolder.setRealmService(null);
+    }
+
+    @Reference(
             name = "input.validator",
             service = Validator.class,
             cardinality = ReferenceCardinality.MULTIPLE,
@@ -132,21 +148,5 @@ public class InputValidationServiceComponent {
     protected void unsetValidator(Validator validator) {
 
         InputValidationDataHolder.getValidators().remove(validator.getClass().getName());
-    }
-
-    @Reference(
-            name = "RealmService",
-            service = org.wso2.carbon.user.core.service.RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService")
-    protected void setRealmService(RealmService realmService) {
-
-        InputValidationDataHolder.setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        InputValidationDataHolder.setRealmService(null);
     }
 }
