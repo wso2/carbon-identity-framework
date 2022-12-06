@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
@@ -80,7 +81,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s add role of name : %s successfully.", getUser(tenantDomain), roleName));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Add Role", roleName,
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain), "Add Role", roleName,
                 getAuditData(tenantDomain), success));
         return roleBasicInfo;
     }
@@ -179,7 +180,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated role name of role id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Update role name by ID", roleID,
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain), "Update role name by ID", roleID,
                 getAuditData(tenantDomain, newRoleName), success));
         return roleBasicInfo;
     }
@@ -196,7 +197,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s deleted role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Delete role by id", roleID,
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain), "Delete role by id", roleID,
                 getAuditData(tenantDomain), success));
     }
 
@@ -232,8 +233,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated list of users of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Update users list of role by id", roleID,
-                getAuditData(tenantDomain), success));
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain),
+                "Update users list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleBasicInfo;
     }
 
@@ -269,8 +270,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated list of groups of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Update group list of role by id", roleID,
-                getAuditData(tenantDomain), success));
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain),
+                "Update group list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleBasicInfo;
     }
 
@@ -303,8 +304,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s set list of permissions of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getUser(tenantDomain), "Set permission for role by id", roleID,
-                getAuditData(tenantDomain), success));
+        audit.info(String.format(auditMessage, LoggerUtils.getInitiator(tenantDomain), "Set permission for role by id",
+                roleID, getAuditData(tenantDomain), success));
         return roleBasicInfo;
     }
 

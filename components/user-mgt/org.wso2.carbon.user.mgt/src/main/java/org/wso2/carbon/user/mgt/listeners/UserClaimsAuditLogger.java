@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -206,8 +206,15 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
 
             if (MapUtils.isNotEmpty(addedClaims) || MapUtils.isNotEmpty(updatedClaims) ||
                     MapUtils.isNotEmpty(removedClaims)) {
-                audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, getUser(), action, userName,
-                        formatClaims(addedClaims), formatClaims(updatedClaims), formatClaims(removedClaims)));
+                if (LoggerUtils.isLogMaskingEnable) {
+                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, LoggerUtils.getInitiator(), action,
+                            LoggerUtils.getMaskedContent(userName), formatClaims(LoggerUtils.getMaskedClaimsMap(addedClaims)),
+                            formatClaims(LoggerUtils.getMaskedClaimsMap(updatedClaims)), formatClaims(
+                                    LoggerUtils.getMaskedClaimsMap(removedClaims))));
+                } else {
+                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, LoggerUtils.getInitiator(), action, userName,
+                            formatClaims(addedClaims), formatClaims(updatedClaims), formatClaims(removedClaims)));
+                }
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Updated claims are not configured under the user: " + userName);
@@ -238,7 +245,13 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
             Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
                     DEFAULT);
             if (MapUtils.isNotEmpty(loggableClaims)) {
-                audit.info(String.format(AUDIT_MESSAGE, getUser(), action, userName, formatClaims(loggableClaims)));
+                if (LoggerUtils.isLogMaskingEnable) {
+                    audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), action, LoggerUtils
+                            .getMaskedContent(userName), formatClaims(LoggerUtils.getMaskedClaimsMap(loggableClaims))));
+                } else {
+                    audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), action, userName,
+                            formatClaims(loggableClaims)));
+                }
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("No claims are configured under the user : " + userName);
@@ -266,20 +279,5 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
             }
         }
         return stringBuilder.toString();
-    }
-
-    /**
-     * Get the logged in user's username who is calling the operation
-     *
-     * @return username
-     */
-    private String getUser() {
-        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (user != null) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        } else {
-            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-        }
-        return user;
     }
 }
