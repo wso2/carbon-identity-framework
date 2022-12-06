@@ -124,11 +124,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                // When requesting from an organization qualified url, the service urls should be organization qualified
-                // except when the service url should build for super tenant domain.
-                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                if (organizationId != null && isNotSuperTenant(tenantDomain)) {
-                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
+                /**
+                 * Set service urls organization qualified during the identity federation with organization login.
+                 */
+                if (StringUtils.equals(PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId(),
+                        tenantDomain)) {
+                    resolvedUrlStringBuilder.append("/o/").append(tenantDomain);
                 } else {
                     resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
                 }
