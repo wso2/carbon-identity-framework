@@ -65,6 +65,7 @@ public class InputValidationDataHolder {
      * @param realmService realmService.
      */
     public static void setRealmService(RealmService realmService) {
+
         InputValidationDataHolder.realmService = realmService;
     }
 
