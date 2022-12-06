@@ -118,7 +118,7 @@ public class InputValidationServiceComponent {
     }
 
     @Reference(
-            name = "RealmService",
+            name = "user.realmservice.default",
             service = RealmService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
