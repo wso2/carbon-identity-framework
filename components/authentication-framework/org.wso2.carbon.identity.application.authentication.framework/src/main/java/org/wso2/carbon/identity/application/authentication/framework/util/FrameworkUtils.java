@@ -3332,7 +3332,7 @@ public class FrameworkUtils {
                 String callerOrgId = callerPath.split("/")[2];
                 String callerPathWithoutOrgId = callerPath.replaceFirst("/o/[^/]+/", "/");
                 String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
-                        .setTenant(callerOrgId).setOrganization(callerOrgId)
+                        .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
                 return redirectURL;
             }
