@@ -142,7 +142,8 @@ public class EndpointConfigManager {
     /**
      * Get restricted browser list for Google One Tap.
      *
-     * @return
+     * @return The list of comma separated browsers names on which
+     * Google  One Tap should be restricted.
      */
     public static String getGoogleOneTapRestrictedBrowsers() {
 
