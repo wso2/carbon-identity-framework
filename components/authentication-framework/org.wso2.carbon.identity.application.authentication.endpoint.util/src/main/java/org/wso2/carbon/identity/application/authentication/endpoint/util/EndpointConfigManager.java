@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -50,6 +51,7 @@ public class EndpointConfigManager {
     private static char[] appPassword = null;
     private static String serverOrigin;
     private static boolean initialized = false;
+    private static String googleOneTapRestrictedBrowsers = "";
 
     /**
      * Initialize Tenant data manager
@@ -95,6 +97,12 @@ public class EndpointConfigManager {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
                 }
                 initialized = true;
+                JSONArray restrictedBrowserJArray = new JSONArray(prop.getProperty
+                        (Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS));
+                if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
+                    googleOneTapRestrictedBrowsers = prop.getProperty(
+                            Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                }
             }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);
@@ -129,6 +137,17 @@ public class EndpointConfigManager {
     public static String getServerOrigin() {
 
         return serverOrigin;
+    }
+
+    /**
+     * Get restricted browser list for Google One Tap.
+     *
+     * @return The list of comma separated browsers names on which
+     * Google  One Tap should be restricted.
+     */
+    public static String getGoogleOneTapRestrictedBrowsers() {
+
+        return googleOneTapRestrictedBrowsers;
     }
 
     /**
