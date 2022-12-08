@@ -74,7 +74,7 @@ public class ApplicationMgtDBQueries {
 
     // LOAD Queries
     public static final String LOAD_APP_ID_BY_APP_NAME = "SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
-    public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION, UUID FROM SP_APP WHERE " +
+    public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
             "TENANT_ID = ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP " +
             "WHERE TENANT_ID = ? AND APP_NAME != ? AND (%s) ORDER BY ID DESC";
