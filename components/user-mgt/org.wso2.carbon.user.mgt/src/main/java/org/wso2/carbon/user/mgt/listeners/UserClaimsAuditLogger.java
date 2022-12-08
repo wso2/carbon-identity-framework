@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -207,13 +208,14 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
             if (MapUtils.isNotEmpty(addedClaims) || MapUtils.isNotEmpty(updatedClaims) ||
                     MapUtils.isNotEmpty(removedClaims)) {
                 if (LoggerUtils.isLogMaskingEnable) {
-                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, LoggerUtils.getInitiator(), action,
-                            LoggerUtils.getMaskedContent(userName), formatClaims(LoggerUtils.getMaskedClaimsMap(addedClaims)),
-                            formatClaims(LoggerUtils.getMaskedClaimsMap(updatedClaims)), formatClaims(
-                                    LoggerUtils.getMaskedClaimsMap(removedClaims))));
+                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, ListenerUtils.getInitiatorFromContext(),
+                            action, LoggerUtils.getMaskedContent(userName), formatClaims(LoggerUtils.getMaskedClaimsMap(
+                                    addedClaims)), formatClaims(LoggerUtils.getMaskedClaimsMap(updatedClaims)),
+                            formatClaims(LoggerUtils.getMaskedClaimsMap(removedClaims))));
                 } else {
-                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, LoggerUtils.getInitiator(), action, userName,
-                            formatClaims(addedClaims), formatClaims(updatedClaims), formatClaims(removedClaims)));
+                    audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, ListenerUtils.getInitiatorFromContext(),
+                            action, userName, formatClaims(addedClaims), formatClaims(updatedClaims),
+                            formatClaims(removedClaims)));
                 }
             } else {
                 if (log.isDebugEnabled()) {
@@ -246,10 +248,10 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
                     DEFAULT);
             if (MapUtils.isNotEmpty(loggableClaims)) {
                 if (LoggerUtils.isLogMaskingEnable) {
-                    audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), action, LoggerUtils
+                    audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), action, LoggerUtils
                             .getMaskedContent(userName), formatClaims(LoggerUtils.getMaskedClaimsMap(loggableClaims))));
                 } else {
-                    audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), action, userName,
+                    audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), action, userName,
                             formatClaims(loggableClaims)));
                 }
             } else {

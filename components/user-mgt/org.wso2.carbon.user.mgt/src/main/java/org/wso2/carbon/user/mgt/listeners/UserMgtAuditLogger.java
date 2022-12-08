@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -62,8 +63,9 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
                 builder.append(roleList[i] + ",");
             }
         }
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Add User", LoggerUtils.isLogMaskingEnable ?
-                LoggerUtils.getMaskedContent(userName) : userName, "Roles :" + builder.toString(), SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Add User",
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "Roles :" +
+                        builder.toString(), SUCCESS));
         return true;
     }
 
@@ -73,7 +75,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Delete User",
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Delete User",
                 LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
@@ -85,7 +87,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Change Password by User",
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Change Password by User",
                 LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
@@ -97,8 +99,9 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Change Password by Administrator",
-                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "", SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(),
+                "Change Password by Administrator", LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                        .getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
 
@@ -108,7 +111,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Delete Role", roleName, "",
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Delete Role", roleName, "",
                 SUCCESS));
         return true;
     }
@@ -138,7 +141,8 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
         usersString = stringBuilder.toString();
         format = "\nUsers :\n%sPermissions :\n%s";
         String data = String.format(format, usersString, permissionsString);
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Add Role", roleName, data, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Add Role", roleName, data,
+                SUCCESS));
         return true;
     }
 
@@ -149,7 +153,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Update Role Name", roleName,
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Role Name", roleName,
                 "Old : " + roleName + " New : " + newRoleName, SUCCESS));
         return true;
     }
@@ -162,13 +166,13 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
         }
 
         if (LoggerUtils.isLogMaskingEnable) {
-            audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Update Users of Role", roleName,
-                    "UsersAdded : " + Arrays.toString(LoggerUtils.getMaskedArraysOfValues(newUsers)) +
+            audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Users of Role",
+                    roleName, "UsersAdded : " + Arrays.toString(LoggerUtils.getMaskedArraysOfValues(newUsers)) +
                             ", UsersRemoved : " + Arrays.toString(LoggerUtils.getMaskedArraysOfValues(deletedUsers)),
                     SUCCESS));
         } else {
-            audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Update Users of Role", roleName,
-                    "UsersAdded : " + Arrays.toString(newUsers) + ", UsersRemoved : " +
+            audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Users of Role",
+                    roleName, "UsersAdded : " + Arrays.toString(newUsers) + ", UsersRemoved : " +
                             Arrays.toString(deletedUsers), SUCCESS));
         }
         return true;
@@ -181,7 +185,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, LoggerUtils.getInitiator(), "Update Roles of User",
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Roles of User",
                 LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "RolesAdded : " +
                         Arrays.toString(newRoles) + ", RolesRemoved : " + Arrays.toString(deletedRoles), SUCCESS));
         return true;

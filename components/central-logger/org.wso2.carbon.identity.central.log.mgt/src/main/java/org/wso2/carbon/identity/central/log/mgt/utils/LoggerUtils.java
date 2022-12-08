@@ -250,40 +250,4 @@ public class LoggerUtils {
         }
         return maskedArraysOfValues;
     }
-
-    /**
-     * Get the initiator for audit logs.
-     *
-     * @param tenantDomain Tenant Domain.
-     * @return Initiator based on whether log masking is enabled or not.
-     */
-    public static String getInitiator(String tenantDomain) {
-
-        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(user) && StringUtils.isNotBlank(tenantDomain)) {
-                String initiator = IdentityUtil.getInitiatorId(user, tenantDomain);
-                if (StringUtils.isNotBlank(initiator)) {
-                    return initiator;
-                }
-            }
-            if (StringUtils.isNotBlank(user)) {
-                return LoggerUtils.getMaskedContent(user + "@" + tenantDomain);
-            }
-            return LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME);
-        } else if (StringUtils.isNotBlank(user)) {
-            return user + "@" + tenantDomain;
-        }
-        return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-    }
-
-    /**
-     * Get the initiator for audit logs.
-     *
-     * @return Initiator based on whether log masking is enabled or not.
-     */
-    public static String getInitiator() {
-
-        return getInitiator(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-    }
 }
