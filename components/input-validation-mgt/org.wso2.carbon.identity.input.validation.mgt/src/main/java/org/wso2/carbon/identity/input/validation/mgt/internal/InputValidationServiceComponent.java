@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.UniqueChar
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handled registration and un-registration of
@@ -115,22 +114,6 @@ public class InputValidationServiceComponent {
 
         InputValidationDataHolder.setConfigurationManager(null);
         log.debug("Unsetting the ConfigurationManager.");
-    }
-
-    @Reference(
-            name = "user.realmservice.default",
-            service = RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService")
-    protected void setRealmService(RealmService realmService) {
-
-        InputValidationDataHolder.setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        InputValidationDataHolder.setRealmService(null);
     }
 
     @Reference(

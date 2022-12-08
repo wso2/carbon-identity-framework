@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.input.validation.mgt.internal;
 
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +30,6 @@ import java.util.Map;
 public class InputValidationDataHolder {
 
     private static ConfigurationManager configurationManager = null;
-    private static RealmService realmService = null;
-
     private static Map<String, Validator> validators = new HashMap<>();
 
     /**
@@ -58,25 +55,5 @@ public class InputValidationDataHolder {
     public static Map<String, Validator> getValidators() {
 
         return validators;
-    }
-
-    /**
-     * Set Realm Service.
-     *
-     * @param realmService realmService.
-     */
-    public static void setRealmService(RealmService realmService) {
-
-        InputValidationDataHolder.realmService = realmService;
-    }
-
-    /**
-     * Get Realm Service.
-     *
-     * @return realmService.
-     */
-    public static RealmService getRealmService() {
-
-        return realmService;
     }
 }

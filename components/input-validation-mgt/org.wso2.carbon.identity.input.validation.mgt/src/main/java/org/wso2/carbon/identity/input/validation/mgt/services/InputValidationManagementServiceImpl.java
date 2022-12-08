@@ -399,7 +399,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         configuration.setField(resource.getResourceName().substring(
                 resource.getResourceName().lastIndexOf("-") + 1));
         Map<String, String> attributesMap = resource.getAttributes().stream()
-                .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
+                    .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
 
         // Build rules configurations from mapping.
         Map<String, Map<String, String>> validatorConfig = buildValidatorConfigGroup(attributesMap);
