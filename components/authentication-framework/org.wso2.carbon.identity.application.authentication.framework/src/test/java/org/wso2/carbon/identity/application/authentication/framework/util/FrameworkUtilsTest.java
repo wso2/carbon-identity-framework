@@ -95,7 +95,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithCarbonHome
 @PrepareForTest({SameSiteCookie.class, SessionContextCache.class, AuthenticationResultCache.class,
         AuthenticationContextCache.class, IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*"})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
     private static final String ROOT_DOMAIN = "/";

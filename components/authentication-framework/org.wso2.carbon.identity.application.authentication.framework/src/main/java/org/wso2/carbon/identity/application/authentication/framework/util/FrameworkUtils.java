@@ -763,6 +763,10 @@ public class FrameworkUtils {
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE);
     }
 
+    public static boolean isOrganizationQualifiedRequest() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() != null;
+    }
     /**
      * Remove the auth cookie in the tenanted path.
      *
@@ -772,7 +776,12 @@ public class FrameworkUtils {
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
 
-        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        String path;
+        if (isOrganizationQualifiedRequest()) {
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+        } else {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }
 

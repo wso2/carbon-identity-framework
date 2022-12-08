@@ -166,10 +166,14 @@ public abstract class FrameworkConstants {
     // Idp to local role mapping thread local identifier.
     public static final String IDP_TO_LOCAL_ROLE_MAPPING = "idpToLocalRoleMapping";
 
+    // Authentication flow thread local identifier.
+    public static final String AUTHENTICATION_FRAMEWORK_FLOW = "authenticationFrameworkFlow";
+
     // Maximum retry times for session data store.
     public static final int MAX_RETRY_TIME = 3;
 
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
+    public static final String ORGANIZATION_CONTEXT_PREFIX = "/o/";
 
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 

@@ -435,6 +435,8 @@
   "event.default_listener.post_auth_association_handler.enable": true,
   "event.default_listener.subject_identifier_handler.priority": "30",
   "event.default_listener.subject_identifier_handler.enable": true,
+  "event.default_listener.failed_lockout_count_handler.priority": "21",
+  "event.default_listener.failed_lockout_count_handler.enable": true,
   "event.default_listener.user_mgt_audit_logger.priority": "0",
   "event.default_listener.user_mgt_audit_logger.enable": false,
   "event.default_listener.user_management_audit_logger.priority": "1",
