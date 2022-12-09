@@ -89,7 +89,6 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
      * @return  Validity of the password.
      * @throws UserStoreException   If an error occurred while validating password.
      */
-    // generalize the method. -> key pair,
     private boolean validate(String field, String value, UserStoreManager userStoreManager) throws UserStoreException {
 
         int tenantId = userStoreManager.getTenantId();
