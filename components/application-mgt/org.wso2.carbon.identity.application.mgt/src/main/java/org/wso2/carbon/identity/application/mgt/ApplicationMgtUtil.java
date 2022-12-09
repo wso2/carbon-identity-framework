@@ -1008,14 +1008,27 @@ public class ApplicationMgtUtil {
 
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (MultitenantConstants.SUPER_TENANT_ID != tenantId && !IdentityTenantUtil.getTenant(tenantId).isActive()) {
-            throw new IdentityApplicationManagementClientException("Cannot start the tenant flow. "
-                    + tenantDomain + " is deactivated.");
-        }
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUserId(userId);
+    }
+
+    /**
+     * Method to verify if the tenant is active before accessing.
+     *
+     * @param tenantDomain The tenant domain which is trying to access.
+     * @throws IdentityApplicationManagementException Error when tenant is deactivated.
+     */
+    public static void validateTenant(String tenantDomain) throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            return;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (MultitenantConstants.SUPER_TENANT_ID != tenantId && !IdentityTenantUtil.getTenant(tenantId).isActive()) {
+            throw new IdentityApplicationManagementClientException("Tenant " + tenantDomain + " is deactivated.");
+        }
     }
 
     public static void endTenantFlow() {
