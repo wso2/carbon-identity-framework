@@ -387,10 +387,15 @@ public class DefaultStepHandler implements StepHandler {
         }
         Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
         String showAuthFailureReason = null;
+        String maskUserNotExistsErrorCode = null;
         if (MapUtils.isNotEmpty(parameterMap)) {
             showAuthFailureReason = parameterMap.get(FrameworkConstants.SHOW_AUTHFAILURE_RESON_CONFIG);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("showAuthFailureReason has been set as : " + showAuthFailureReason);
+            }
+            if (Boolean.parseBoolean(showAuthFailureReason)) {
+                maskUserNotExistsErrorCode =
+                        parameterMap.get(FrameworkConstants.MASK_USER_NOT_EXISTS_ERROR_CODE_CONFIG);
             }
         }
         String retryParam = StringUtils.EMPTY;
@@ -404,7 +409,7 @@ public class DefaultStepHandler implements StepHandler {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                     .INCOMPLETE);
             response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
-                    showAuthFailureReason, retryParam, loginPage));
+                    showAuthFailureReason, maskUserNotExistsErrorCode, retryParam, loginPage));
         } catch (IOException | URISyntaxException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
@@ -955,7 +960,8 @@ public class DefaultStepHandler implements StepHandler {
     }
 
     protected String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
-            context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
+            context, String authenticatorNames, String showAuthFailureReason, String
+            maskUserNotExistsErrorCode, String retryParam, String loginPage)
             throws IOException, URISyntaxException {
 
         IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -1017,6 +1023,16 @@ public class DefaultStepHandler implements StepHandler {
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
+                if (Boolean.parseBoolean(maskUserNotExistsErrorCode) &&
+                        StringUtils.contains(errorCode, UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST)) {
+                    errorCode = UserCoreConstants.ErrorCode.INVALID_CREDENTIAL;
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Masking user not found error code: " +
+                                UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST + " with error code: " +
+                                errorCode);
+                    }
+                }
                 String reason = null;
                 if (errorCode.contains(":")) {
                     String[] errorCodeReason = errorCode.split(":", 2);
