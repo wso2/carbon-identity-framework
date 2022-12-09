@@ -32,6 +32,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -1008,7 +1009,7 @@ public class ApplicationMgtUtil {
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (MultitenantConstants.SUPER_TENANT_ID != tenantId && !IdentityTenantUtil.getTenant(tenantId).isActive()) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. "
+            throw new IdentityApplicationManagementClientException("Cannot start the tenant flow. "
                     + tenantDomain + " is deactivated.");
         }
         PrivilegedCarbonContext.startTenantFlow();
