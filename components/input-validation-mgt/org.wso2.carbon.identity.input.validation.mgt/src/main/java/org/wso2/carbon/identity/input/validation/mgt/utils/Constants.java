@@ -127,6 +127,9 @@ public class Constants {
         ERROR_CODE_CONFIGURE_EITHER_RULES_OR_REGEX("60020",
                 "Invalid configuration format",
                 "Validation configurations can be configured with one of them: rules or regex."),
+        ERROR_CODE_REGEX_MISMATCH("60021",
+                "Regex mismatch",
+                "The %s should satisfy the %s pattern."),
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",
