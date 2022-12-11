@@ -80,14 +80,33 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         return validate(PASSWORD, newCredential.toString(), userStoreManager);
     }
 
+    public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential,
+                                                UserStoreManager userStoreManager) throws UserStoreException {
+
+        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+    }
+
+    public boolean doPreUpdateCredential(String userName, Object newCredential, Object oldCredential,
+                                         UserStoreManager userStoreManager) throws UserStoreException {
+
+        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+    }
+
+    public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
+                                               UserStoreManager userStoreManager) throws UserStoreException {
+
+        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+
+    }
+
     /**
-     * Method to validate password.
+     * Method to validate the values.
      *
-     * @param field             Credential of the user.
+     * @param field             Field to be validated.
      * @param value             Value to be validated.
      * @param userStoreManager  User store manager.
-     * @return  Validity of the password.
-     * @throws UserStoreException   If an error occurred while validating password.
+     * @return  Validity of the field.
+     * @throws UserStoreException   If an error occurred while validating.
      */
     private boolean validate(String field, String value, UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -97,7 +116,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         List<ValidationConfiguration> configurations;
         try {
             configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
-            configurations = configurations.stream().filter(f -> field.equalsIgnoreCase(f.getField()))
+            configurations = configurations.stream().filter(config -> field.equalsIgnoreCase(config.getField()))
                     .collect(Collectors.toList());
             if (configurations.isEmpty()) {
                 return true;
