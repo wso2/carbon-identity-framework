@@ -30,7 +30,6 @@ import java.util.Map;
 public class InputValidationDataHolder {
 
     private static ConfigurationManager configurationManager = null;
-
     private static Map<String, Validator> validators = new HashMap<>();
 
     /**

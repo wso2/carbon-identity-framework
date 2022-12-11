@@ -47,6 +47,11 @@
             <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.user.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -91,6 +96,8 @@
                             org.wso2.carbon.identity.configuration.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.stratos.common.*;version="${carbon.commons.imp.pkg.version}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
