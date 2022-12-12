@@ -143,6 +143,32 @@ public class ListenerUtils {
     }
 
     /**
+     * Get the initiator for audit logs.
+     *
+     * @return Initiator based on whether log masking is enabled or not.
+     */
+    public static String getInitiatorFromContext() {
+
+        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (LoggerUtils.isLogMaskingEnable) {
+            if (StringUtils.isNotBlank(user) && StringUtils.isNotBlank(tenantDomain)) {
+                String initiator = IdentityUtil.getInitiatorId(user, tenantDomain);
+                if (StringUtils.isNotBlank(initiator)) {
+                    return initiator;
+                }
+            }
+            if (StringUtils.isNotBlank(user)) {
+                return LoggerUtils.getMaskedContent(user + "@" + tenantDomain);
+            }
+            return LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME);
+        } else if (StringUtils.isNotBlank(user)) {
+            return user + "@" + tenantDomain;
+        }
+        return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+    }
+
+    /**
      * Returns the target value based on the masking config.
      *
      * @param userName          Claims map.

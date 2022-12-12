@@ -98,6 +98,7 @@
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
   "authentication.authenticator.google.parameters.Tags": "Social-Login",
   "authentication.authenticator.google.parameters.EnableCSRFValidationForGOT": true,
+  "authentication.authenticator.google.parameters.RestrictedBrowsersForGOT": ["safari"],
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,

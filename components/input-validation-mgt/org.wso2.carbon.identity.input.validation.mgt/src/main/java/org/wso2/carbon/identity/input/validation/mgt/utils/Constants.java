@@ -55,6 +55,7 @@ public class Constants {
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
+        public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
     }
 
     /**
@@ -127,6 +128,9 @@ public class Constants {
         ERROR_CODE_CONFIGURE_EITHER_RULES_OR_REGEX("60020",
                 "Invalid configuration format",
                 "Validation configurations can be configured with one of them: rules or regex."),
+        ERROR_CODE_REGEX_MISMATCH("60021",
+                "Regex mismatch",
+                "The %s should satisfy the %s pattern."),
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",

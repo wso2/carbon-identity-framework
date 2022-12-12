@@ -177,6 +177,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
@@ -687,6 +688,10 @@ public class FrameworkUtils {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
             }
 
+            if (StringUtils.isNotBlank(MDC.get(CORRELATION_ID_MDC))) {
+                redirectURL = appendUri(redirectURL, CORRELATION_ID, MDC.get(CORRELATION_ID_MDC));
+            }
+
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain)) {
                 redirectURL = appendUri(redirectURL, TENANT_DOMAIN, tenantDomain);
             }
@@ -758,6 +763,10 @@ public class FrameworkUtils {
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE);
     }
 
+    public static boolean isOrganizationQualifiedRequest() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() != null;
+    }
     /**
      * Remove the auth cookie in the tenanted path.
      *
@@ -767,7 +776,12 @@ public class FrameworkUtils {
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
 
-        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        String path;
+        if (isOrganizationQualifiedRequest()) {
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+        } else {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }
 

@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.25.36-SNAPSHOT</version>
+    <version>5.25.63-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1558,6 +1558,12 @@
                 <artifactId>jersey-multipart</artifactId>
                 <version>${jersey-version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.sun.jersey</groupId>
+                <artifactId>jersey-core</artifactId>
+                <version>${jersey-version}</version>
+            </dependency>
+
 
             <!-- JSON processing: jackson -->
             <dependency>

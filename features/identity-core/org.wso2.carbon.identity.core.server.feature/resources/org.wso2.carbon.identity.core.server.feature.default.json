@@ -437,6 +437,8 @@
   "event.default_listener.post_auth_association_handler.enable": true,
   "event.default_listener.subject_identifier_handler.priority": "30",
   "event.default_listener.subject_identifier_handler.enable": true,
+  "event.default_listener.failed_lockout_count_handler.priority": "21",
+  "event.default_listener.failed_lockout_count_handler.enable": true,
   "event.default_listener.user_mgt_audit_logger.priority": "0",
   "event.default_listener.user_mgt_audit_logger.enable": false,
   "event.default_listener.user_management_audit_logger.priority": "1",
@@ -600,6 +602,7 @@
   "oauth.jwks_endpoint.connection_timeout": "1s",
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
+  "oauth.jwks_endpoint.add_previous_version_kid" : false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
