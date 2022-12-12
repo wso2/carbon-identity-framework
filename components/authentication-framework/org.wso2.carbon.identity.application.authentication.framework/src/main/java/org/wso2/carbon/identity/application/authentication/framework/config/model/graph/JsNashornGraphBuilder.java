@@ -338,8 +338,30 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         }
     }
 
+    /**
+     * Handle options within executeStep function. This method will update step configs through stepNamedMap.
+     *
+     * @param options    Map of authenticator options.
+     * @param stepConfig Current stepConfig.
+     */
+    @Override
     @SuppressWarnings("unchecked")
     protected void handleOptions(Map<String, Object> options, StepConfig stepConfig) {
+
+        handleOptionsAsyncEvent(options, stepConfig, stepNamedMap);
+    }
+
+    /**
+     * Handle options within executeStepInAsyncEvent function. This method will update step configs through context.
+     *
+     * @param options       Map of authenticator options.
+     * @param stepConfig    Current stepConfig.
+     * @param stepConfigMap Map of stepConfigs get from the context object.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void handleOptionsAsyncEvent(Map<String, Object> options, StepConfig stepConfig,
+                                 Map<Integer, StepConfig> stepConfigMap) {
 
         Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
         if (authenticationOptionsObj instanceof Map) {
@@ -361,7 +383,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
 
         Object stepOptions = options.get(FrameworkConstants.JSAttributes.STEP_OPTIONS);
         if (stepOptions instanceof Map) {
-            handleStepOptions(stepConfig, (Map<String, String>) stepOptions);
+            handleStepOptions(stepConfig, (Map<String, String>) stepOptions, stepConfigMap);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Step options not provided or invalid, hence proceeding without handling");
@@ -372,17 +394,19 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
     /**
      * Handle step options provided for the step from the authentication script.
      *
-     * @param stepConfig config of the step
-     * @param stepOptions options provided from the script for the step
+     * @param stepConfig    Config of the step.
+     * @param stepOptions   Options provided from the script for the step.
+     * @param stepConfigMap StepConfigs of each step as a map.
      */
-    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
+    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
+                                   Map<Integer, StepConfig> stepConfigMap) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
-            setCurrentStepAsSubjectIdentifier(stepConfig);
+            setCurrentStepAsSubjectIdentifier(stepConfig, stepConfigMap);
         }
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
-            setCurrentStepAsSubjectAttribute(stepConfig);
+            setCurrentStepAsSubjectAttribute(stepConfig, stepConfigMap);
         }
     }
 
@@ -647,7 +671,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
             // There is an argument with options present
             if (params[0] instanceof Map) {
                 Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, clonedStepConfig);
+                handleOptionsAsyncEvent(options, clonedStepConfig, context.getSequenceConfig().getStepMap());
             }
         }
     }
@@ -1083,9 +1107,9 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         return getJSExecutionSupervisor().completed(identifier);
     }
 
-    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
+    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig, Map<Integer, StepConfig> stepConfigMap) {
 
-        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
+        stepConfigMap.forEach((integer, config) -> { // Remove existing subject identifier step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectIdentifierStep(false);
             }
@@ -1093,10 +1117,10 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         stepConfig.setSubjectIdentifierStep(true);
     }
 
-    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
+    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig, Map<Integer, StepConfig> stepConfigMap) {
 
-        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
-            if (config.isSubjectIdentifierStep()) {
+        stepConfigMap.forEach((integer, config) -> { // Remove existing subject attribute step.
+            if (config.isSubjectAttributeStep()) {
                 config.setSubjectAttributeStep(false);
             }
         });
