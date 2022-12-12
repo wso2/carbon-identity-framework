@@ -68,6 +68,9 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                 String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
             return true;
         }
@@ -77,24 +80,36 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         return validate(PASSWORD, newCredential.toString(), userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential,
                                                 UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         return validate(PASSWORD, newCredential.toString(), userStoreManager);
     }
 
     public boolean doPreUpdateCredential(String userName, Object newCredential, Object oldCredential,
                                          UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         return validate(PASSWORD, newCredential.toString(), userStoreManager);
     }
 
     public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
                                                UserStoreManager userStoreManager) throws UserStoreException {
 
+        if (!isEnable()) {
+            return true;
+        }
         return validate(PASSWORD, newCredential.toString(), userStoreManager);
 
     }
