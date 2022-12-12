@@ -31,7 +31,6 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.PaginatedNamesBean" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
-<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserStoreCountClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -70,12 +69,7 @@
     int numberOfPages = 0;
     Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
     UserRealmInfo userRealmInfo = null;
-    Set<FlaggedName> workFlowAddPendingRoles = new LinkedHashSet<FlaggedName>();
-    Set<String> workFlowAddPendingRolesList = new LinkedHashSet<String>();
-    Set<String> workFlowDeletePendingRoles = null;
     Set<FlaggedName> activeRoleList;
-    Set<FlaggedName> showDeletePendingRoles = new LinkedHashSet<FlaggedName>();
-    Set<String> showDeletePendingRolesList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateRoleList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeRoleElement = new LinkedHashSet<FlaggedName>();
     Set<String> countableUserStores = new LinkedHashSet<String>();
@@ -203,8 +197,6 @@
                     (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
             UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
-            UserManagementWorkflowServiceClient UserMgtClient = new
-                    UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
             if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/userstore/count/view")) {
 
@@ -233,47 +225,6 @@
             session.setAttribute(UserAdminUIConstants.SHARED_ROLE_ENABLED, sharedRoleEnabled);
             if (filter.length() > 0) {
                 FlaggedName[] datas = client.getAllRolesNames(modifiedFilter, -1);
-                if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
-                    List<FlaggedName> preactiveRoleList = new ArrayList<FlaggedName>(Arrays.asList(datas));
-                    FlaggedName excessiveDomainElement = preactiveRoleList.remove(datas.length - 1);
-                    removeRoleElement.add(excessiveDomainElement);
-
-                    activeRoleList = new LinkedHashSet<FlaggedName>(preactiveRoleList);
-
-                    String[] AddPendingRolesList = UserMgtClient.
-                            listAllEntityNames("ADD_ROLE", "PENDING", "ROLE", modifiedFilter);
-
-                    workFlowAddPendingRolesList = new LinkedHashSet<String>(Arrays.asList(AddPendingRolesList));
-
-                    for (String s : AddPendingRolesList) {
-                        FlaggedName flaggedName = new FlaggedName();
-                        flaggedName.setItemName(s);
-                        flaggedName.setEditable(true);
-                        workFlowAddPendingRoles.add(flaggedName);
-                    }
-
-                    String[] DeletePendingUsersList = UserMgtClient.
-                            listAllEntityNames("DELETE_ROLE", "PENDING", "ROLE", modifiedFilter);
-                    workFlowDeletePendingRoles = new LinkedHashSet<String>(Arrays.asList(DeletePendingUsersList));
-
-                    for (Iterator<FlaggedName> iterator = activeRoleList.iterator(); iterator.hasNext(); ) {
-                        FlaggedName flaggedName = iterator.next();
-                        if (flaggedName == null) {
-                            continue;
-                        }
-                        String userName = flaggedName.getItemName();
-                        if (workFlowDeletePendingRoles.contains(userName)) {
-                            showDeletePendingRoles.add(flaggedName);
-                            showDeletePendingRolesList.add(userName);
-                            iterator.remove();
-                        }
-                    }
-                    aggregateRoleList.addAll(activeRoleList);
-                    aggregateRoleList.addAll(showDeletePendingRoles);
-                    aggregateRoleList.addAll(workFlowAddPendingRoles);
-                    aggregateRoleList.addAll(removeRoleElement);
-                    datas = aggregateRoleList.toArray(new FlaggedName[aggregateRoleList.size()]);
-                }
                 datasList = new ArrayList<FlaggedName>(Arrays.asList(datas));
                 exceededDomains = datasList.remove(datasList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED, exceededDomains);
@@ -584,69 +535,6 @@
                                 if (displayName == null) {
                                     displayName = roleName;
                                 }
-                                if (workFlowAddPendingRolesList.contains(roleName)) {
-                %>
-                <tr>
-                    <td><%=Encode.forHtmlContent(displayName)%>
-                        <%if (!data.getEditable()) { %> <%="(Read-Only)"%> <% } %>
-                        <img src="images/workflow_pending_add.gif" title="Workflow-pending-user-add"
-                             alt="Workflow-pending-user-add" height="15" width="15">
-                    </td>
-                    <td>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/edit.gif);color:#CCC;"><fmt:message key="rename"/></a>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/edit.gif);color:#CCC;"><fmt:message
-                                key="edit.permissions"/></a>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/edit.gif);color:#CCC;"><fmt:message key="edit.users"/></a>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/view.gif);color:#CCC;"><fmt:message key="view.users"/></a>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/delete.gif);color:#CCC;"><fmt:message key="delete"/></a>
-                    </td>
-                </tr>
-                <%
-                } else if (showDeletePendingRolesList.contains(roleName)) {
-                %>
-                   <%-- <%if(hasMultipleUserStores){%>
-                    	<td>
-                            <%if(data.getDomainName() != null){%>
-                            <%data.getDomainName();%>
-                            <%} %>
-                        </td>
-                    <%}%>--%>
-                <tr>
-                    <td><%=Encode.forHtmlContent(displayName)%>
-                        <%if (!data.getEditable()) { %> <%="(Read-Only)"%> <% } %>
-                        <img src="images/workflow_pending_remove.gif" title="Workflow-pending-user-delete"
-                             alt="Workflow-pending-user-delete" height="15" width="15">
-                    </td>
-                    <td>
-                        <%if (!data.getShared()) { %>
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/edit.gif);color:#CCC;"><fmt:message key="rename"/></a>
-                        <% if (!data.getItemName().equals(userRealmInfo.getAdminRole())) {%>
-                        <a href="edit-permissions.jsp?roleName=<%=Encode.forUriComponent(roleName)%>" class="icon-link"
-                           style="background-image:url(images/edit.gif);"><fmt:message key="edit.permissions"/></a>
-                        <% }
-                        }%>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/edit.gif);color:#CCC;"><fmt:message key="edit.users"/></a>
-
-                        <% if (!userRealmInfo.getEveryOneRole().equals(data.getItemName())) { %>
-                        <a href="view-users.jsp?roleName=<%=Encode.forUriComponent(roleName)%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%=!data.getEditable()%>"
-                           class="icon-link" style="background-image:url(images/view.gif);"><fmt:message
-                                key="view.users"/></a>
-                        <% } %>
-
-                        <a href="#" class="icon-link" title="Operation is Disabled"
-                           style="background-image:url(images/delete.gif);color:#CCC;"><fmt:message key="delete"/></a>
-                    </td>
-                </tr>
-                <%
-                } else {
                 %>
                 <tr>
                     <td><%=Encode.forHtmlContent(displayName)%>
@@ -704,9 +592,6 @@
 
                     </td>
                 </tr>
-                <%
-                    }
-                %>
                 <%
                             }
                         }

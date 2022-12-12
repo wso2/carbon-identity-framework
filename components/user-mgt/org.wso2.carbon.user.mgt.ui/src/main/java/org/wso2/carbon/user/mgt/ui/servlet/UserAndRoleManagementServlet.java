@@ -59,7 +59,6 @@ import java.util.ResourceBundle;
 public class UserAndRoleManagementServlet extends HttpServlet {
 
     private static final Log log                        = LogFactory.getLog(UserAndRoleManagementServlet.class);
-    private static final String PERMISSION_VIEWTASKS    = "/permission/admin/manage/humantask/viewtasks";
     private static final String USERS                   = "users";
     private static final String CATEGORY                = "category";
     private static final String ROLES                   = "roles";
@@ -82,7 +81,6 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             boolean multipleUserStores = false;
             String forwardTo = "user-mgt.jsp";
 
-            FlaggedName[] datas = null;
             FlaggedName exceededDomains = null;
             String[] claimUris = null;
             FlaggedName[] users = null;
@@ -222,23 +220,10 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                     }
 
                     if (filter.length() > 0) {
-                        if (claimUri != null && !"select".equalsIgnoreCase(claimUri)) {
-                            ClaimValue claimValue = new ClaimValue();
-                            claimValue.setClaimURI(claimUri);
-                            claimValue.setValue(modifiedFilter);
-                            datas = client.listUserByClaimWithPermission(claimValue, userDomainSelector,
-                                    PERMISSION_VIEWTASKS, -1);
-                        } else {
-                            datas = client.listAllUsersWithPermission(modifiedFilter,
-                                    PERMISSION_VIEWTASKS, -1);
-                        }
-                        List<FlaggedName> dataList = new ArrayList<>(Arrays.asList(datas));
-                        exceededDomains = dataList.remove(dataList.size() - 1);
-                        session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, exceededDomains);
-                        if (dataList.size() == 0) {
-                            session.removeAttribute(UserAdminUIConstants.USER_LIST_FILTER);
-                            showFilterMessage = true;
-                        }
+                        List<FlaggedName> dataList = new ArrayList<>();
+                        session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, null);
+                        session.removeAttribute(UserAdminUIConstants.USER_LIST_FILTER);
+                        showFilterMessage = true;
 
                         flaggedNameMap = new HashMap<>();
                         int max = pageNumber + cachePages;
@@ -406,16 +391,10 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                     session.setAttribute(UserAdminUIConstants.SHARED_ROLE_ENABLED, sharedRoleEnabled);
 
                     if (filter.length() > 0) {
-                        FlaggedName[] datas = client.getAllPermittedRoleNames(modifiedFilter,
-                                PERMISSION_VIEWTASKS, -1);
-                        datasList = new ArrayList<FlaggedName>(Arrays.asList(datas));
-                        exceededDomains = datasList.remove(datasList.size() - 1);
-                        session.setAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED, exceededDomains);
-                        datas = datasList.toArray(new FlaggedName[datasList.size()]);
-                        if (datas == null || datas.length == 0) {
-                            session.removeAttribute(UserAdminUIConstants.ROLE_LIST_FILTER);
-                            showFilterMessage = true;
-                        }
+                        datasList = new ArrayList<FlaggedName>();
+                        session.setAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED, null);
+                        session.removeAttribute(UserAdminUIConstants.ROLE_LIST_FILTER);
+                        showFilterMessage = true;
                     }
                     if (userRealmInfo == null) {
                         userRealmInfo = client.getUserRealmInfo();

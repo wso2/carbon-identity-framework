@@ -39,7 +39,6 @@
         <module>outbound-authentication</module>
         <module>outbound-provisioning</module>
         <module>user-mgt</module>
-        <module>workflow</module>
     </modules>
 
 </project>
