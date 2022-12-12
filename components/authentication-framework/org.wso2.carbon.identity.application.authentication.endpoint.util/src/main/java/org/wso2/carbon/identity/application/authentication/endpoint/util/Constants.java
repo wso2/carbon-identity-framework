@@ -31,6 +31,7 @@ public class Constants {
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String REQUESTED_CLAIMS = "requestedClaims";
     public static final String MANDATORY_CLAIMS = "mandatoryClaims";
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
