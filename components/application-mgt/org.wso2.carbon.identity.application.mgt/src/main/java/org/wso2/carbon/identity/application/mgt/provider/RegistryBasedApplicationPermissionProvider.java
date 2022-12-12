@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.mgt.provider;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -40,7 +58,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
     private static Log log = LogFactory.getLog(RegistryBasedApplicationPermissionProvider.class);
 
     @Override
-    public void renameAppPermissionPathNode(String oldName, String newName)
+    public void renameAppPermissionName(String oldName, String newName)
             throws IdentityApplicationManagementException {
 
         List<ApplicationPermission> loadPermissions = loadPermissions(oldName);
@@ -66,10 +84,11 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
     }
 
     @Override
-    public void storePermissions(String applicationName, String username, PermissionsAndRoleConfig permissionsConfig)
+    public void storePermissions(String applicationName, PermissionsAndRoleConfig permissionsConfig)
             throws IdentityApplicationManagementException {
 
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             IdentityTenantUtil.initializeRegistry(tenantId);
@@ -81,9 +100,9 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
 
         String permissionResourcePath = getApplicationPermissionPath();
+        boolean loggedInUserChanged = false;
         try {
             if (!tenantGovReg.resourceExists(permissionResourcePath)) {
-                boolean loggedInUserChanged = false;
                 UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
                 if (!realm.getAuthorizationManager()
                         .isUserAuthorized(username, permissionResourcePath, UserMgtConstants.EXECUTE_ACTION)) {
@@ -98,9 +117,6 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
                 Collection appRootNode = tenantGovReg.newCollection();
                 appRootNode.setProperty("name", "Applications");
                 tenantGovReg.put(permissionResourcePath, appRootNode);
-                if (loggedInUserChanged) {
-                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
-                }
             }
 
             if (permissionsConfig != null) {
@@ -116,15 +132,19 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
 
                 // Now start storing the permissions.
                 for (ApplicationPermission permission : permissions) {
-                    String permissinPath = appNode + PATH_CONSTANT + permission;
+                    String permissionPath = appNode + PATH_CONSTANT + permission;
                     Resource permissionNode = tenantGovReg.newResource();
                     permissionNode.setProperty("name", permission.getValue());
-                    tenantGovReg.put(permissinPath, permissionNode);
+                    tenantGovReg.put(permissionPath, permissionNode);
                 }
             }
         } catch (Exception e) {
             throw new IdentityApplicationManagementException(
                     "Error while storing permissions for application " + applicationName, e);
+        } finally {
+            if (loggedInUserChanged) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
+            }
         }
     }
 

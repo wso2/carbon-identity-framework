@@ -373,7 +373,7 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider()
-                .renameAppPermissionPathNode(oldName, newName);
+                .renameAppPermissionName(oldName, newName);
     }
 
     /**
@@ -388,7 +388,7 @@ public class ApplicationMgtUtil {
             throws IdentityApplicationManagementException {
 
         ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider()
-                .storePermissions(applicationName, username, permissionsConfig);
+                .storePermissions(applicationName, permissionsConfig);
     }
 
     /**
