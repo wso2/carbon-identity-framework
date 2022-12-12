@@ -140,6 +140,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getIni
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -1056,6 +1057,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
+        validateTenant(tenantDomain);
         String name = null;
 
         // invoking the listeners

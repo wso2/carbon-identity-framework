@@ -32,6 +32,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -1011,6 +1012,23 @@ public class ApplicationMgtUtil {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUserId(userId);
+    }
+
+    /**
+     * Method to verify if the tenant is active before accessing.
+     *
+     * @param tenantDomain The tenant domain which is trying to access.
+     * @throws IdentityApplicationManagementException Error when tenant is deactivated.
+     */
+    public static void validateTenant(String tenantDomain) throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            return;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (MultitenantConstants.SUPER_TENANT_ID != tenantId && !IdentityTenantUtil.getTenant(tenantId).isActive()) {
+            throw new IdentityApplicationManagementClientException("Tenant " + tenantDomain + " is deactivated.");
+        }
     }
 
     public static void endTenantFlow() {
