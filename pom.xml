@@ -1811,7 +1811,6 @@
         <carbon.consent.mgt.version>3.0.0</carbon.consent.mgt.version>
 
         <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
-        <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
         <org.apache.olingo.version>1.1.0</org.apache.olingo.version>
 
 
