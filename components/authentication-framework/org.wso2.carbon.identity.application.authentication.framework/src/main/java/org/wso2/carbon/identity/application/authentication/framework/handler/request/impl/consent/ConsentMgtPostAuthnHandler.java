@@ -202,7 +202,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS,
                             consentClaimsData.getRequestedClaims());
                     params.put(FrameworkConstants.LogConstants.USER,
-                            authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(authenticatedUser
+                                    .getAuthenticatedSubjectIdentifier())
+                                    : authenticatedUser.getAuthenticatedSubjectIdentifier());
                     params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
                     params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
                     LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
@@ -225,7 +227,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     (serviceProvider));
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.USER,
+                params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                        LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
                         authenticatedUser.getAuthenticatedSubjectIdentifier());
                 params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
                 params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
@@ -329,7 +332,9 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         ServiceProvider serviceProvider = getServiceProvider(context);
         Map<String, Object> params = new HashMap<>();
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            params.put(FrameworkConstants.LogConstants.USER, authenticatedUser.getAuthenticatedSubjectIdentifier());
+            params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
+                    authenticatedUser.getAuthenticatedSubjectIdentifier());
             params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
             params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
         }
@@ -428,7 +433,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.USER,
+                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                            LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
                             authenticatedUser.getAuthenticatedSubjectIdentifier());
                     params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
                     params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
