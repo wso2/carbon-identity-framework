@@ -92,11 +92,6 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
-        // Handle if there are no resources found for the tenant.
-        if (configurations.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
-                    String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
-        }
         return configurations;
     }
 
