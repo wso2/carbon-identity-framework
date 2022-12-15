@@ -314,8 +314,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
                     URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
             redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, sessionDataKeyParam);
-        } else {
-            redirectURL = context.getCallerPath();
         }
 
         /*
