@@ -145,7 +145,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
                 rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
                 rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
                 rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "0"));
                 configuration.setRules(rules);
             }
             configurations.add(configuration);
