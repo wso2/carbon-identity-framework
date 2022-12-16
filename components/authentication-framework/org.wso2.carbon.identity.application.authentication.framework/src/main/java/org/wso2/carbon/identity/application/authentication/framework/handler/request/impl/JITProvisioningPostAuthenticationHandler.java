@@ -475,20 +475,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return federatedUsername;
     }
 
-//    private boolean isAccountLocked(String username, String tenantDomain)
-////            throws PostAuthenticationFailedException {
-////
-////        AccountLockService accountLockService = FrameworkServiceDataHolder.getInstance().getAccountLockService();
-////        try {
-////            return accountLockService.isAccountLocked(username, tenantDomain);
-////        } catch (AccountLockServiceException e) {
-////            throw new PostAuthenticationFailedException(
-////                    ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
-////                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(), username),
-// e);
-////        }
-////    }
-
     private boolean isAccountLocked(String username, String tenantDomain) throws PostAuthenticationFailedException {
 
         try {
