@@ -154,10 +154,6 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         mockStatic(FrameworkServiceDataHolder.class);
         PowerMockito.when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
 
-//        mockStatic(AccountLockService.class);
-//        when(frameworkServiceDataHolder.getAccountLockService()).thenReturn(accountLockService);
-//        when(accountLockService.isAccountLocked(anyString(), anyString())).thenReturn(false);
-
         RealmService mockRealmService = mock(RealmService.class);
         PowerMockito.when(FrameworkServiceDataHolder.getInstance().getRealmService()).thenReturn(mockRealmService);
         UserRealm mockUserRealm = mock(UserRealm.class);
