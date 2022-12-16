@@ -197,10 +197,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.event.handler.accountlock</groupId>
-            <artifactId>org.wso2.carbon.identity.handler.event.account.lock</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.openjdk.nashorn</groupId>
             <artifactId>nashorn-core</artifactId>
             <scope>provided</scope>
