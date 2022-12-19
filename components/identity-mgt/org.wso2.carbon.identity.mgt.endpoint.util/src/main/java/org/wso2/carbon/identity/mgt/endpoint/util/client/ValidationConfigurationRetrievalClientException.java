@@ -23,11 +23,22 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
  */
 public class ValidationConfigurationRetrievalClientException extends  Exception {
 
+    /**
+     * Exception with message.
+     *
+     * @param message   message.
+     */
     public ValidationConfigurationRetrievalClientException(String message) {
 
         super(message);
     }
 
+    /**
+     * Exception with message and cause.
+     *
+     * @param message   message.
+     * @param cause     cause for the error.
+     */
     public ValidationConfigurationRetrievalClientException(String message, Throwable cause) {
 
         super(message, cause);

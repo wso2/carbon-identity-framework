@@ -1,4 +1,3 @@
-package org.wso2.carbon.identity.mgt.endpoint.util.client;
 /*
  * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
@@ -16,6 +15,8 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
@@ -39,13 +40,26 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 /**
- * Client which retrieves validation configurations..
+ * Client which retrieves validation configurations.
  */
 public class ValidationConfigurationRetrievalClient {
 
     private static final Log log = LogFactory.getLog(ConfiguredAuthenticatorsRetrievalClient.class);
     private static final String VALIDATION_MGT_API_PATH = "/api/server/v1/validation-rules";
     private static final String CLIENT = "Client ";
+    private static final String MIN_LENGTH = "min.length";
+    private static final String MAX_LENGTH = "max.length";
+    private static final String MIN_UNIQUE_CHR = "min.unique.character";
+    private static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
+    private static final String MAX_LENGTH_KEY = "maxLength";
+    private static final String MIN_LENGTH_KEY = "minLength";
+    private static final String MIN_NUMBER_KEY = "minNumber";
+    private static final String MIN_UPPER_CASE_KEY = "minUpperCase";
+    private static final String MIN_LOWER_CASE_KEY = "minLowerCase";
+    private static final String MIN_SPECIAL_KEY = "minSpecialChr";
+    private static final String MIN_UNIQUE_KEY = "minUniqueChr";
+    private static final String MAX_REPEATED_KEY = "maxConsecutiveChr";
+    private static final String PROPERTIES = "properties";
 
     /**
      * Get validation configurations.
@@ -58,8 +72,7 @@ public class ValidationConfigurationRetrievalClient {
             throws ValidationConfigurationRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            HttpGet request =
-                    new HttpGet(getValidationMgtEndpoint(tenantDomain));
+            HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
@@ -105,40 +118,40 @@ public class ValidationConfigurationRetrievalClient {
                         JSONObject rule = rules.getJSONObject(j);
                         String name = (String)rule.get("validator");
                         if (name.equalsIgnoreCase("LengthValidator")) {
-                            addValue("min.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "minLength");
-                            addValue("max.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "maxLength");
+                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MIN_LENGTH_KEY);
+                            addValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MAX_LENGTH_KEY);
                         } else if (name.equalsIgnoreCase("NumeralValidator")) {
-                            addValue("min.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "minNumber");
+                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MIN_NUMBER_KEY);
                         } else if (name.equalsIgnoreCase("LowerCaseValidator")) {
-                            addValue("min.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "minLowerCase");
+                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MIN_LOWER_CASE_KEY);
                         } else if (name.equalsIgnoreCase("UpperCaseValidator")) {
-                            addValue("min.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "minUpperCase");
+                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MIN_UPPER_CASE_KEY);
                         } else if (name.equalsIgnoreCase("SpecialCharacterValidator")) {
-                            addValue("min.length", (JSONArray) rule.get("properties"), passwordConfig,
-                                    "minSpecialChr");
+                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                                    MIN_SPECIAL_KEY);
                         } else if (name.equalsIgnoreCase("UniqueCharacterValidator")) {
-                            addValue("min.unique.character", (JSONArray) rule.get("properties"),
-                                    passwordConfig, "minUniqueChr");
+                            addValue(MIN_UNIQUE_CHR, (JSONArray) rule.get(PROPERTIES),
+                                    passwordConfig, MIN_UNIQUE_KEY);
                         } else if (name.equalsIgnoreCase("RepeatedCharacterValidator")) {
-                            addValue("max.consecutive.character", (JSONArray) rule.get("properties"),
-                                    passwordConfig, "maxConsecutiveChr");
+                            addValue(MAX_CONSECUTIVE_CHR, (JSONArray) rule.get(PROPERTIES),
+                                    passwordConfig, MAX_REPEATED_KEY);
                         }
                     }
                 }
             }
         }
         if (passwordConfig.length() == 0) {
-            passwordConfig.put("minLength", 8);
-            passwordConfig.put("maxLength", 30);
-            passwordConfig.put("minNumber", 1);
-            passwordConfig.put("minUpperCase", 1);
-            passwordConfig.put("minLowerCase", 1);
-            passwordConfig.put("minSpecialChr", 1);
+            passwordConfig.put(MIN_LENGTH_KEY, 8);
+            passwordConfig.put(MAX_LENGTH_KEY, 30);
+            passwordConfig.put(MIN_NUMBER_KEY, 1);
+            passwordConfig.put(MIN_UPPER_CASE_KEY, 1);
+            passwordConfig.put(MIN_LOWER_CASE_KEY, 1);
+            passwordConfig.put(MIN_SPECIAL_KEY, 1);
         }
         return passwordConfig;
     }
