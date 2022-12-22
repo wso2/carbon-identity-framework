@@ -3123,14 +3123,14 @@ public class IdentityProviderManager implements IdpManager {
     private void setConfidentialStatusFromMeta(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
-        FederatedAuthenticatorConfig[] metaFederatedAuthenticatorConfigs = getAllFederatedAuthenticators();
+        FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
         Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
-            Optional<FederatedAuthenticatorConfig> metaFedAuthConfig =
-                    Arrays.stream(metaFederatedAuthenticatorConfigs).filter(metaFed -> metaFed.getName()
+            Optional<FederatedAuthenticatorConfig> optionalMetaFedAuthConfig =
+                    Arrays.stream(metaFedAuthConfigs).filter(metaFed -> metaFed.getName()
                             .equals(fedAuthConfig.getName())).findAny();
-            metaFedAuthConfig.ifPresent(
-                    federatedAuthenticatorConfig -> Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
-                        Property metaProperty = Arrays.stream(federatedAuthenticatorConfig.getProperties())
+            optionalMetaFedAuthConfig.ifPresent(
+                    metaFedAuthConfig -> Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
+                        Property metaProperty = Arrays.stream(metaFedAuthConfig.getProperties())
                                 .filter(metaProp -> (metaProp.getName().equals(prop.getName()))).findAny().orElse(null);
                         if (metaProperty != null && metaProperty.isConfidential()) {
                             prop.setConfidential(true);
