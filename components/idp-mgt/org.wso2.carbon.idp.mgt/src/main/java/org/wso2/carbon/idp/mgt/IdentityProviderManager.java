@@ -102,6 +102,7 @@ public class IdentityProviderManager implements IdpManager {
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
+    private static Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
 
     private IdentityProviderManager() {
 
@@ -3123,19 +3124,33 @@ public class IdentityProviderManager implements IdpManager {
     private void setConfidentialStatusFromMeta(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
-        FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
+        populateFedAuthConfidentialPropsMap();
         Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
-            Optional<FederatedAuthenticatorConfig> optionalMetaFedAuthConfig =
-                    Arrays.stream(metaFedAuthConfigs).filter(metaFed -> metaFed.getName()
-                            .equals(fedAuthConfig.getName())).findAny();
-            optionalMetaFedAuthConfig.ifPresent(
-                    metaFedAuthConfig -> Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
-                        Property metaProperty = Arrays.stream(metaFedAuthConfig.getProperties())
-                                .filter(metaProp -> (metaProp.getName().equals(prop.getName()))).findAny().orElse(null);
-                        if (metaProperty != null && metaProperty.isConfidential()) {
-                            prop.setConfidential(true);
-                        }
-                    }));
+            List<String> secretProperties = metaFedAuthConfigMap.get(fedAuthConfig.getName());
+                Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
+                    if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                        prop.setConfidential(true);
+                    }
+                });
         });
+    }
+
+    /**
+     * Create map of federated authenticator name to list of confidential properties.
+     */
+    private void populateFedAuthConfidentialPropsMap() throws IdentityProviderManagementException {
+
+        if (metaFedAuthConfigMap.isEmpty()) {
+            FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
+            for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+                List<String> secretProperties = new ArrayList<>();
+                for (Property property : metaFedAuthConfig.getProperties()) {
+                    if (property.isConfidential()) {
+                        secretProperties.add(property.getName());
+                    }
+                }
+                metaFedAuthConfigMap.put(metaFedAuthConfig.getName(), secretProperties);
+            }
+        }
     }
 }
