@@ -3133,6 +3133,8 @@ public class IdentityProviderManager implements IdpManager {
 
     /**
      * Create map of federated authenticator name to list of confidential properties.
+     *
+     * @return HashMap mapping federated authenticator name to a list of confidential property names.
      */
     private Map<String, List<String>> createFedAuthConfidentialPropsMap() throws IdentityProviderManagementException {
 
