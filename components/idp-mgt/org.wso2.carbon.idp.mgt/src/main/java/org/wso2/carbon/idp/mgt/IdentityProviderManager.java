@@ -102,7 +102,6 @@ public class IdentityProviderManager implements IdpManager {
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
-    private static Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
 
     private IdentityProviderManager() {
 
@@ -3124,7 +3123,7 @@ public class IdentityProviderManager implements IdpManager {
     private void setConfidentialStatusFromMeta(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
-        populateFedAuthConfidentialPropsMap();
+        Map<String, List<String>> metaFedAuthConfigMap = createFedAuthConfidentialPropsMap();
         Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
             List<String> secretProperties = metaFedAuthConfigMap.get(fedAuthConfig.getName());
                 Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
@@ -3138,19 +3137,19 @@ public class IdentityProviderManager implements IdpManager {
     /**
      * Create map of federated authenticator name to list of confidential properties.
      */
-    private void populateFedAuthConfidentialPropsMap() throws IdentityProviderManagementException {
+    private Map<String, List<String>> createFedAuthConfidentialPropsMap() throws IdentityProviderManagementException {
 
-        if (metaFedAuthConfigMap.isEmpty()) {
-            FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
-            for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
-                List<String> secretProperties = new ArrayList<>();
-                for (Property property : metaFedAuthConfig.getProperties()) {
-                    if (property.isConfidential()) {
-                        secretProperties.add(property.getName());
-                    }
+        Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
+        FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
+        for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+            List<String> secretProperties = new ArrayList<>();
+            for (Property property : metaFedAuthConfig.getProperties()) {
+                if (property.isConfidential()) {
+                    secretProperties.add(property.getName());
                 }
-                metaFedAuthConfigMap.put(metaFedAuthConfig.getName(), secretProperties);
             }
+            metaFedAuthConfigMap.put(metaFedAuthConfig.getName(), secretProperties);
         }
+        return metaFedAuthConfigMap;
     }
 }
