@@ -2054,7 +2054,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        setConfidentialStatusFromMeta(identityProvider);
+        markConfidentialPropertiesUsingMetadata(identityProvider);
 
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
@@ -2365,7 +2365,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider
             newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
 
-        setConfidentialStatusFromMeta(newIdentityProvider);
+        markConfidentialPropertiesUsingMetadata(newIdentityProvider);
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -3119,7 +3119,7 @@ public class IdentityProviderManager implements IdpManager {
      * Set the confidential status of federated authenticator properties using metadata.
      * @param identityProvider Identity Provider.
      */
-    private void setConfidentialStatusFromMeta(IdentityProvider identityProvider)
+    private void markConfidentialPropertiesUsingMetadata(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
         Map<String, List<String>> metaFedAuthConfigMap = createFedAuthConfidentialPropsMap();
