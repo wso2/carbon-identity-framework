@@ -309,8 +309,8 @@ public class ApplicationMgtUtil {
         for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
             String applicationRoleName = getAppRoleName(applicationBasicInfo.getApplicationName());
             if (log.isDebugEnabled()) {
-                log.debug("Checking whether user has role : " + applicationRoleName +
-                        " by retrieving role list of user : " + username);
+                log.debug("Checking the authorization for the user : " + username + " for application: "  +
+                        applicationBasicInfo.getApplicationName());
             }
             try {
                 if (userStoreManager instanceof AbstractUserStoreManager &&
