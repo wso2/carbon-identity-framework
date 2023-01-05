@@ -281,6 +281,14 @@ public class ApplicationMgtUtil {
         return isRoleAlreadyApplied;
     }
 
+    /**
+     * Filter the user authorized applications out of the list of applications.
+     *
+     * @param applicationBasicInfos The list of applications with the basic information.
+     * @param username              The name of the authenticated user.
+     * @return List of user authorized applications.
+     * @throws IdentityApplicationManagementException
+     */
     public static List<ApplicationBasicInfo> filterAuthorizedApplicationBasicInfo(
             ApplicationBasicInfo[] applicationBasicInfos, String username)
             throws IdentityApplicationManagementException {
@@ -294,11 +302,11 @@ public class ApplicationMgtUtil {
                 userRoles = userStoreManager.getRoleListOfUser(username);
             }
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error while loading the user store manager: ", e);
+            throw new IdentityApplicationManagementException("Error while retrieving the role list of the user: " +
+                    username, e);
         }
 
         for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            boolean isAllowedApp = false;
             String applicationRoleName = getAppRoleName(applicationBasicInfo.getApplicationName());
             if (log.isDebugEnabled()) {
                 log.debug("Checking whether user has role : " + applicationRoleName +
@@ -306,16 +314,13 @@ public class ApplicationMgtUtil {
             }
             try {
                 if (userStoreManager instanceof AbstractUserStoreManager &&
-                        ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName)) {
-                    isAllowedApp = true;
+                        ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName) ||
+                        Arrays.asList(userRoles).contains(applicationRoleName)) {
                     appInfo.add(applicationBasicInfo);
-                } else if (Arrays.asList(userRoles).contains(applicationRoleName)) {
-                    isAllowedApp = true;
-                    appInfo.add(applicationBasicInfo);
-                }
-                if (isAllowedApp && log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + username);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Retrieving basic information of application: " +
+                                applicationBasicInfo.getApplicationName() + "username: " + username);
+                    }
                 }
             } catch (UserStoreException e) {
                 throw new IdentityApplicationManagementException("Error while checking authorization for user: " +
