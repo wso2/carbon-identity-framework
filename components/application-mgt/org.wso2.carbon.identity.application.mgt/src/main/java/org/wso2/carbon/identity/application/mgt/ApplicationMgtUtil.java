@@ -309,11 +309,9 @@ public class ApplicationMgtUtil {
                         ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName)) {
                     isAllowedApp = true;
                     appInfo.add(applicationBasicInfo);
-                } else {
-                    if (Arrays.asList(userRoles).contains(applicationRoleName)) {
-                        isAllowedApp = true;
-                        appInfo.add(applicationBasicInfo);
-                    }
+                } else if (Arrays.asList(userRoles).contains(applicationRoleName)) {
+                    isAllowedApp = true;
+                    appInfo.add(applicationBasicInfo);
                 }
                 if (isAllowedApp && log.isDebugEnabled()) {
                     log.debug("Retrieving basic information of application: " +
