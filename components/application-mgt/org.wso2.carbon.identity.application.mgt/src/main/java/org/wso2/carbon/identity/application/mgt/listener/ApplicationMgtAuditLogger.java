@@ -145,7 +145,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("Inbound Authentication Configs:").append("[");
             for (InboundAuthenticationRequestConfig requestConfig : requestConfigs) {
                 data.append("{");
-                data.append("Auth Key:").append(requestConfig.getInboundAuthKey()).append(", ");
+                data.append("Auth Key:").append(LoggerUtils.getMaskedContent(requestConfig.getInboundAuthKey())).
+                        append(", ");
                 data.append("Auth Type:").append(requestConfig.getInboundAuthType()).append(", ");
                 data.append("Config Type:").append(requestConfig.getInboundConfigType()).append(", ");
                 data.append("Inbound configuration:").append(requestConfig.getInboundConfiguration());
@@ -158,7 +159,11 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                         joiner = ", ";
                         data.append("{");
                         data.append(property.getName()).append(":");
-                        data.append(property.getValue());
+                        if (property.getName().equals("oauthConsumerSecret")) {
+                            data.append(LoggerUtils.getMaskedContent(property.getValue()));
+                        } else {
+                            data.append(property.getValue());
+                        }
                         data.append("}");
                     }
                     data.append("]");
