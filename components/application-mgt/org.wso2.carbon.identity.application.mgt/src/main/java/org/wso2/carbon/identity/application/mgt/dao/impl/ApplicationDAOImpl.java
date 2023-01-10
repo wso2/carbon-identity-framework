@@ -4119,11 +4119,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @see
      * org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO#getApplicationBasicInfoByClientId
-     * (java.lang.String)
+     * (java.lang.String, java.lang.String, java.lang.String)
      */
-    public String getApplicationResourceIdByClientId(String clientId) throws IdentityApplicationManagementException {
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
+        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
 
+        if (StringUtils.isEmpty(inboundKey)) {
+            return null;
+        }
+
+        if (tenantDomain != null) {
+            try {
+                tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                        .getTenantManager().getTenantId(tenantDomain);
+            } catch (UserStoreException e1) {
+                throw new IdentityApplicationManagementException("Error while reading application", e1);
+            }
+        }
         String applicationResourceId = null;
 
         // Reading application resource id from the database
@@ -4133,7 +4147,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             storeAppPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID);
-            storeAppPrepStmt.setString(1, clientId);
+            storeAppPrepStmt.setString(1, inboundKey);
+            storeAppPrepStmt.setString(2, inboundType);
+            storeAppPrepStmt.setInt(3, tenantID);
+            storeAppPrepStmt.setInt(4, tenantID);
             appIdResult = storeAppPrepStmt.executeQuery();
             if (appIdResult.next()) {
                 applicationResourceId = appIdResult.getString(1);

@@ -189,9 +189,10 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
     }
 
     @Override
-    public String getApplicationResourceIdByClientId(String clientId) throws IdentityApplicationManagementException {
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
-        if (StringUtils.isEmpty(clientId)) {
+        if (StringUtils.isEmpty(inboundKey)) {
             return null;
         }
 
@@ -207,8 +208,9 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
                 if (authRequestConfigs != null && authRequestConfigs.length > 0) {
                     for (InboundAuthenticationRequestConfig config : authRequestConfigs) {
-                        if (clientId.equals(config.getInboundAuthKey())) {
-                            return entry.getValue().getApplicationResourceId();
+                        if (inboundType.equals(config.getInboundAuthType())
+                                && inboundKey.equals(config.getInboundAuthKey())) {
+                            return entry.getKey();
                         }
                     }
                 }

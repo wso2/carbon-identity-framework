@@ -1097,29 +1097,35 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * @param clientId
+     * @param inboundKey
+     * @param inboundType
+     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public String getApplicationResourceIdByClientId(String clientId) throws IdentityApplicationManagementException {
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+                                                       String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         String resourceId = null;
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetApplicationResourceIdByClientId(clientId)) {
+            if (listener.isEnable() && !listener.doPreGetApplicationResourceIDByInboundKey(inboundKey, inboundType,
+                    tenantDomain)) {
                 return null;
             }
         }
 
-        if (StringUtils.isNotEmpty(clientId)) {
+        if (StringUtils.isNotEmpty(inboundKey)) {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            resourceId = appDAO.getApplicationResourceIdByClientId(clientId);
+            resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
 
             if (resourceId == null) {
-                resourceId = new FileBasedApplicationDAO().getApplicationResourceIdByClientId(clientId);
+                resourceId = new FileBasedApplicationDAO().getApplicationResourceIDByInboundKey(inboundKey, inboundType
+                        , tenantDomain);
             }
         }
 
@@ -1130,7 +1136,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetApplicationResourceIdByClientId(resourceId, clientId)) {
+            if (listener.isEnable() && !listener.doPostGetApplicationResourceIDByInboundKey(resourceId, inboundKey,
+                    inboundType, tenantDomain)) {
                 return null;
             }
         }

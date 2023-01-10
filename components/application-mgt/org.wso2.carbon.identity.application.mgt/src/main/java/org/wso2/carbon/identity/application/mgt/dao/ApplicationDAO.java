@@ -106,11 +106,13 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
-     * @param clientId
+     * @param inboundKey
+     * @param inboundType
+     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    String getApplicationResourceIdByClientId(String clientId)
+    String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

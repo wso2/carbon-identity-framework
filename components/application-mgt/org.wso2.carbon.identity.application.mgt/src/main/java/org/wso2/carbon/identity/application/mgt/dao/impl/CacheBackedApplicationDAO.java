@@ -38,6 +38,9 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicI
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoNameCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoResourceIdCacheKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDByInboundAuthCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
@@ -47,6 +50,7 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderID
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +69,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     private static IdentityServiceProviderCache appCacheByName = null;
     private static ServiceProviderByInboundAuthCache appCacheByInboundAuth = null;
+    private static ApplicationResourceIDByInboundAuthCache resourceIDCacheByInboundAuth = null;
     private static ServiceProviderByIDCache appCacheByID = null;
     private static ServiceProviderByResourceIdCache appCacheByResourceId = null;
     private static ApplicationBasicInfoByResourceIdCache appBasicInfoCacheByResourceId = null;
@@ -79,6 +84,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appCacheByResourceId = ServiceProviderByResourceIdCache.getInstance();
         appBasicInfoCacheByResourceId = ApplicationBasicInfoByResourceIdCache.getInstance();
         appBasicInfoCacheByName = ApplicationBasicInfoByNameCache.getInstance();
+        resourceIDCacheByInboundAuth = ApplicationResourceIDByInboundAuthCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -158,6 +164,44 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             }
         }
         return appName;
+    }
+
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(inboundKey)) {
+            return null;
+        }
+
+        String resourceId = null;
+        if (tenantDomain != null) {
+            ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
+                    inboundType);
+            ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
+                    tenantDomain);
+            if (entry != null) {
+                resourceId = entry.getResourceId();
+            }
+        }
+        if (resourceId == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Inbound Auth Key Cache is missing for " + inboundKey);
+            }
+            resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
+            if (tenantDomain != null) {
+                ApplicationResourceIDCacheInboundAuthKey clientKey =
+                        new ApplicationResourceIDCacheInboundAuthKey(inboundKey, inboundType);
+                ApplicationResourceIDCacheInboundAuthEntry clientEntry =
+                        new ApplicationResourceIDCacheInboundAuthEntry(resourceId,
+                        tenantDomain);
+                resourceIDCacheByInboundAuth.addToCache(clientKey, clientEntry, tenantDomain);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Inbound Auth Key Cache is present for " + inboundKey);
+            }
+        }
+        return resourceId;
     }
 
     public boolean isApplicationExists(String applicationName, String tenantDomain) throws

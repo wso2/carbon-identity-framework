@@ -364,7 +364,8 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
-    public boolean doPreGetApplicationResourceIdByClientId(String clientId)
+    public boolean doPreGetApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+                                                             String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return true;
@@ -379,7 +380,8 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
-    public boolean doPostGetApplicationResourceIdByClientId(String resourceId, String clientId)
+    public boolean doPostGetApplicationResourceIDByInboundKey(String resourceId, String inboundKey, String inboundType,
+                                                              String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return true;
