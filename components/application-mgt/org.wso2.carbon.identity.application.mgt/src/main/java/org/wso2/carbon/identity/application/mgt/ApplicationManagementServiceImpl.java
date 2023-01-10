@@ -1097,6 +1097,49 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
+     * @param clientId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public String getApplicationResourceIdByClientId(String clientId) throws IdentityApplicationManagementException {
+
+        String resourceId = null;
+
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreGetApplicationResourceIdByClientId(clientId)) {
+                return null;
+            }
+        }
+
+        if (StringUtils.isNotEmpty(clientId)) {
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            resourceId = appDAO.getApplicationResourceIdByClientId(clientId);
+
+            if (resourceId == null) {
+                resourceId = new FileBasedApplicationDAO().getApplicationResourceIdByClientId(clientId);
+            }
+        }
+
+        if (resourceId == null) {
+            ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
+                    .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+            resourceId = defaultSP.getApplicationResourceId();
+        }
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostGetApplicationResourceIdByClientId(resourceId, clientId)) {
+                return null;
+            }
+        }
+
+        return resourceId;
+
+    }
+
+    /**
      * @param serviceProviderName
      * @param tenantDomain
      * @return

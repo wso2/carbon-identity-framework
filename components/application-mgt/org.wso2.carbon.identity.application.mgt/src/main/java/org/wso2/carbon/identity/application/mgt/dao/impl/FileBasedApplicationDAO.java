@@ -189,6 +189,37 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
     }
 
     @Override
+    public String getApplicationResourceIdByClientId(String clientId) throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(clientId)) {
+            return null;
+        }
+
+        Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent
+                .getFileBasedSPs();
+
+        for (Iterator<Entry<String, ServiceProvider>> iterator = spMap.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<String, ServiceProvider> entry = iterator.next();
+            if (entry.getValue().getInboundAuthenticationConfig() != null) {
+                InboundAuthenticationRequestConfig[] authRequestConfigs = entry.getValue()
+                        .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+
+                if (authRequestConfigs != null && authRequestConfigs.length > 0) {
+                    for (InboundAuthenticationRequestConfig config : authRequestConfigs) {
+                        if (clientId.equals(config.getInboundAuthKey())) {
+                            return entry.getValue().getApplicationResourceId();
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return null;
+    }
+
+    @Override
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
                                                                         String tenantDomain)
             throws IdentityApplicationManagementException {

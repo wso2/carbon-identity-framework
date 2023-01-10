@@ -221,6 +221,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public abstract String getServiceProviderNameByClientId(String clientId, String type, String tenantDomain)
             throws IdentityApplicationManagementException;
 
+    public abstract String getApplicationResourceIdByClientId(String clientId)
+            throws IdentityApplicationManagementException;
+
     public abstract ServiceProvider getServiceProvider(String serviceProviderName, String tenantDomain)
             throws IdentityApplicationManagementException;
 

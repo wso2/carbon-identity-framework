@@ -106,6 +106,14 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException;
 
     /**
+     * @param clientId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    String getApplicationResourceIdByClientId(String clientId)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Get authenticators configured for an application.
      *
      * @param applicationId ID of an application.
