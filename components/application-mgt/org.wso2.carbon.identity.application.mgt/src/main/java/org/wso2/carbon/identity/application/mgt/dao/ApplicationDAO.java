@@ -112,8 +112,10 @@ public interface ApplicationDAO {
      * @return
      * @throws IdentityApplicationManagementException
      */
-    String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
-            throws IdentityApplicationManagementException;
+    default String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+            return null;
+    }
 
     /**
      * Get authenticators configured for an application.

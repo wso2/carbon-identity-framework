@@ -171,7 +171,7 @@ public class ApplicationMgtDBQueries {
             + "WHERE INBOUND_AUTH_KEY = ? AND INBOUND_AUTH_TYPE = ? AND SP_APP.TENANT_ID = ? "
             + "AND SP_INBOUND_AUTH.TENANT_ID=?";
 
-    public static final String LOAD_APP_UUID_BY_CLIENT_ID = "SELECT UUID "
+    public static final String LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE = "SELECT UUID "
             + "FROM SP_APP INNER JOIN SP_INBOUND_AUTH "
             + "ON SP_APP.ID = SP_INBOUND_AUTH.APP_ID "
             + "WHERE INBOUND_AUTH_KEY = ? AND INBOUND_AUTH_TYPE = ? AND SP_APP.TENANT_ID = ? "

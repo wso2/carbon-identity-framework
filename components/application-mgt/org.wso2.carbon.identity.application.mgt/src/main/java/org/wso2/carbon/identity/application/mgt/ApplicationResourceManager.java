@@ -91,7 +91,9 @@ public interface ApplicationResourceManager {
      * @return Unique resource identifier of the application.
      * @throws IdentityApplicationManagementException
      */
-    public abstract String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+    default String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
                                                                 String tenantDomain)
-            throws IdentityApplicationManagementException;
+            throws IdentityApplicationManagementException {
+        return null;
+    }
 }

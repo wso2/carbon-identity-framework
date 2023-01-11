@@ -4114,12 +4114,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return applicationName;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO#getApplicationBasicInfoByClientId
-     * (java.lang.String, java.lang.String, java.lang.String)
+    /**
+     * @param inboundKey inbound key
+     * @param inboundType inbound type
+     * @param tenantDomain tenant domain
+     * @return application resource id
+     * @throws IdentityApplicationManagementException
      */
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
@@ -4146,7 +4146,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ResultSet appIdResult = null;
         try {
             storeAppPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID);
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE);
             storeAppPrepStmt.setString(1, inboundKey);
             storeAppPrepStmt.setString(2, inboundType);
             storeAppPrepStmt.setInt(3, tenantID);

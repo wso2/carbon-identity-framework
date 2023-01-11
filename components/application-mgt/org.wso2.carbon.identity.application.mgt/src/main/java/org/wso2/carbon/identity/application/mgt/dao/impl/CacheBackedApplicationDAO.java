@@ -709,6 +709,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                     ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
                             config.getInboundAuthKey(), config.getInboundAuthType());
                     appCacheByInboundAuth.clearCacheEntry(clientKey, tenantDomain);
+
+                    // Clear ApplicationResourceIDByInboundAuthCache
+                    ApplicationResourceIDCacheInboundAuthKey inboundKey = new ApplicationResourceIDCacheInboundAuthKey(
+                            config.getInboundAuthKey(), config.getInboundAuthType());
+                    resourceIDCacheByInboundAuth.clearCacheEntry(inboundKey, tenantDomain);
                 }
             }
         }
