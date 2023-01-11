@@ -81,4 +81,17 @@ public interface ApplicationResourceManager {
      */
     void deleteApplicationByResourceId(String resourceId, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get resourceId by inbound Key.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain Tenant domain of the application
+     * @return Unique resource identifier of the application.
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+                                                                String tenantDomain)
+            throws IdentityApplicationManagementException;
 }
