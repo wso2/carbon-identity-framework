@@ -364,24 +364,8 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
-    public boolean doPreGetApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
-                                                             String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        return true;
-    }
-
-    @Override
     public boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType,
                                                           String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean doPostGetApplicationResourceIDByInboundKey(String resourceId, String inboundKey, String inboundType,
-                                                              String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return true;

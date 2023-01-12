@@ -4124,7 +4124,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
+        int tenantID;
 
         if (StringUtils.isEmpty(inboundKey)) {
             return null;
@@ -4137,32 +4137,33 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             } catch (UserStoreException e1) {
                 throw new IdentityApplicationManagementException("Error while reading application", e1);
             }
+        } else {
+            throw new IdentityApplicationManagementException("Tenant domain is not defined. Please ensure that the " +
+                    "tenant domain input is not null before reading application.");
         }
+
         String applicationResourceId = null;
 
         // Reading application resource id from the database
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement storeAppPrepStmt = null;
-        ResultSet appIdResult = null;
-        try {
-            storeAppPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE);
-            storeAppPrepStmt.setString(1, inboundKey);
-            storeAppPrepStmt.setString(2, inboundType);
-            storeAppPrepStmt.setInt(3, tenantID);
-            storeAppPrepStmt.setInt(4, tenantID);
-            appIdResult = storeAppPrepStmt.executeQuery();
-            if (appIdResult.next()) {
-                applicationResourceId = appIdResult.getString(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement statement =
+                         connection.prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE)) {
+                statement.setString(1, inboundKey);
+                statement.setString(2, inboundType);
+                statement.setInt(3, tenantID);
+                statement.setInt(4, tenantID);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        applicationResourceId = resultSet.getString(1);
+                    }
+                }
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while reading application", e);
-        } finally {
-            IdentityApplicationManagementUtil.closeResultSet(appIdResult);
-            IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
-            IdentityApplicationManagementUtil.closeConnection(connection);
+            throw new IdentityApplicationManagementServerException("Error while getting application " +
+                    "resourceId for inboundKey: " + inboundKey + " in inboundType: " + inboundType +
+                    " in tenantDomain: " + tenantDomain, e);
         }
-
         return applicationResourceId;
     }
 

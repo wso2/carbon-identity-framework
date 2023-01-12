@@ -1108,15 +1108,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                        String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetApplicationResourceIDByInboundKey(inboundKey, inboundType,
-                    tenantDomain)) {
-                return null;
-            }
-        }
-
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         String resourceId =  appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
 
@@ -1125,18 +1116,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.debug("Cannot find an application resourceId for inboundKey: " + inboundKey +
                         " inboundType: " + inboundType + " in tenantDomain: " + tenantDomain);
             }
-            return null;
         }
-
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetApplicationResourceIDByInboundKey(resourceId, inboundKey,
-                    inboundType, tenantDomain)) {
-                return null;
-            }
-        }
-
         return resourceId;
-
     }
 
     /**

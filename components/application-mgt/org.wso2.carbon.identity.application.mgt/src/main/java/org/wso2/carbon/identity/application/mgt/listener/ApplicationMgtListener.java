@@ -284,19 +284,6 @@ public interface ApplicationMgtListener {
             throws IdentityApplicationManagementException;
 
     /**
-     * Define any additional actions before getting application resource id by client id.
-     *
-     * @param inboundKey
-     * @param inboundType
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    boolean doPreGetApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
-                                                      String tenantDomain)
-            throws IdentityApplicationManagementException;
-
-    /**
      * Define any additional actions after getting service provider name by client id
      *
      * @param name
@@ -307,19 +294,6 @@ public interface ApplicationMgtListener {
      * @throws IdentityApplicationManagementException
      */
     boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType, String tenantDomain)
-            throws IdentityApplicationManagementException;
-
-    /**
-     * Define any additional actions after getting resource id by client id
-     *
-     * @param inboundKey
-     * @param inboundType
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    boolean doPostGetApplicationResourceIDByInboundKey(String resourceId, String inboundKey, String inboundType,
-                                                      String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

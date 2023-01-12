@@ -17,15 +17,15 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
  */
 public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
 
-    private static final long serialVersionUID = -2977524029670977142L;
-    private String serviceProvideCacheInboundAuthKey;
-    private String serviceProvideCacheInboundAuthType;
+    private static final long serialVersionUID = 5197091237662341491L;
+    private String applicationCacheInboundAuthKey;
+    private String applicationCacheInboundAuthType;
 
-    public ApplicationResourceIDCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
-            serviceProvideCacheInboundAuthType) {
+    public ApplicationResourceIDCacheInboundAuthKey(String applicationCacheInboundAuthKey, String
+            applicationCacheInboundAuthType) {
 
-        this.serviceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
-        this.serviceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
+        this.applicationCacheInboundAuthKey = applicationCacheInboundAuthKey;
+        this.applicationCacheInboundAuthType = applicationCacheInboundAuthType;
     }
 
     @Override
@@ -43,18 +43,18 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
 
         ApplicationResourceIDCacheInboundAuthKey that = (ApplicationResourceIDCacheInboundAuthKey) o;
 
-        if (!serviceProvideCacheInboundAuthKey.equals(that.serviceProvideCacheInboundAuthKey)) {
+        if (!applicationCacheInboundAuthKey.equals(that.applicationCacheInboundAuthKey)) {
             return false;
         }
-        return serviceProvideCacheInboundAuthType.equals(that.serviceProvideCacheInboundAuthType);
+        return applicationCacheInboundAuthType.equals(that.applicationCacheInboundAuthType);
     }
 
     @Override
     public int hashCode() {
 
         int result = super.hashCode();
-        result = 31 * result + serviceProvideCacheInboundAuthKey.hashCode();
-        result = 31 * result + serviceProvideCacheInboundAuthType.hashCode();
+        result = 31 * result + applicationCacheInboundAuthKey.hashCode();
+        result = 31 * result + applicationCacheInboundAuthType.hashCode();
         return result;
     }
 }
