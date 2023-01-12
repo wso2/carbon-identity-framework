@@ -20,14 +20,14 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
     private static final long serialVersionUID = 5197091237662341491L;
     private String applicationCacheInboundAuthKey;
     private String applicationCacheInboundAuthType;
-    private String applicationCacheTenantDomain;
+    private String tenantDomain;
 
     public ApplicationResourceIDCacheInboundAuthKey(String applicationCacheInboundAuthKey, String
-            applicationCacheInboundAuthType, String applicationCacheTenantDomain) {
+            applicationCacheInboundAuthType, String tenantDomain) {
 
         this.applicationCacheInboundAuthKey = applicationCacheInboundAuthKey;
         this.applicationCacheInboundAuthType = applicationCacheInboundAuthType;
-        this.applicationCacheTenantDomain = applicationCacheTenantDomain;
+        this.tenantDomain = tenantDomain;
     }
 
     @Override
@@ -46,11 +46,11 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
         ApplicationResourceIDCacheInboundAuthKey that = (ApplicationResourceIDCacheInboundAuthKey) o;
 
         if (applicationCacheInboundAuthKey == null || applicationCacheInboundAuthType == null ||
-                applicationCacheTenantDomain == null) {
+                tenantDomain == null) {
             return false;
         }
 
-        if (!applicationCacheTenantDomain.equals(that.applicationCacheTenantDomain)) {
+        if (!tenantDomain.equals(that.tenantDomain)) {
             return false;
         }
         if (!applicationCacheInboundAuthKey.equals(that.applicationCacheInboundAuthKey)) {
@@ -65,7 +65,7 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
         int result = super.hashCode();
         result = 31 * result + applicationCacheInboundAuthType.hashCode();
         result = 31 * result + applicationCacheInboundAuthKey.hashCode();
-        result = 31 * result + applicationCacheTenantDomain.hashCode();
+        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

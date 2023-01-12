@@ -169,14 +169,6 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving resource id. The inboundKey, inboundType, tenantDomain parameters"
-                        + " were found to be empty.");
-            }
-            return null;
-        }
-
         String resourceId;
         ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
                 inboundType, tenantDomain);
