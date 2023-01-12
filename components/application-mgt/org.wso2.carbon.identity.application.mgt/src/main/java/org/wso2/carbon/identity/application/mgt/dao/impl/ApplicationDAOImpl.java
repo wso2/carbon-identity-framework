@@ -4132,13 +4132,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return null;
         }
 
-        int tenantID;
-        try {
-            tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        } catch (IdentityRuntimeException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving tenant id for retrieve " +
-                    "application resource id.", e);
-        }
+        int tenantID = getTenantIdByTenantDomain(tenantDomain);
 
         String applicationResourceId = null;
 
@@ -4163,6 +4157,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     " in tenantDomain: " + tenantDomain, e);
         }
         return applicationResourceId;
+    }
+
+    private int getTenantIdByTenantDomain(String tenantDomain) throws IdentityApplicationManagementException {
+        try {
+            return IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant id for retrieve " +
+                    "application resource id.", e);
+        }
     }
 
     /**
