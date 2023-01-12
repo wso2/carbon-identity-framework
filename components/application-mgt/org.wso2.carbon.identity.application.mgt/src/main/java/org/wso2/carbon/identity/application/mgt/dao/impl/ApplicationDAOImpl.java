@@ -4132,7 +4132,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return null;
         }
 
-        int tenantID = getTenantIdByTenantDomain(tenantDomain);
+        int tenantID = getTenantId(tenantDomain);
 
         String applicationResourceId = null;
 
@@ -4159,7 +4159,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return applicationResourceId;
     }
 
-    private int getTenantIdByTenantDomain(String tenantDomain) throws IdentityApplicationManagementException {
+    private int getTenantId(String tenantDomain) throws IdentityApplicationManagementException {
         try {
             return IdentityTenantUtil.getTenantId(tenantDomain);
         } catch (IdentityRuntimeException e) {
