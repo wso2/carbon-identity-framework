@@ -4126,8 +4126,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving resource id. Please ensure that the inputs (inboundKey, " +
-                        "inboundType, tenantDomain) are not null before retrieving application resource id.");
+                log.debug("Error while retrieving resource id. The inboundKey, inboundType, tenantDomain parameters"
+                        + " were found to be empty.");
             }
             return null;
         }

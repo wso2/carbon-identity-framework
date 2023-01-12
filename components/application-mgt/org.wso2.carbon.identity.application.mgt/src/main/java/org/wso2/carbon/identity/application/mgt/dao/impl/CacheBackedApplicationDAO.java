@@ -171,8 +171,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving resource id. Please ensure that the inputs (inboundKey, " +
-                        "inboundType, tenantDomain) are not null before retrieving application resource id.");
+                log.debug("Error while retrieving resource id. The inboundKey, inboundType, tenantDomain parameters"
+                        + " were found to be empty.");
             }
             return null;
         }
@@ -186,14 +186,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             resourceId = entry.getApplicationResourceId();
             if (resourceId != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Inbound Auth Key Cache is present for " + inboundKey);
+                    log.debug("Resource ID is present in the cache for " + inboundKey);
                 }
                 return  resourceId;
             }
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Inbound Auth Key Cache is missing for " + inboundKey);
+            log.debug("Resource ID is not present in the cache for " + inboundKey);
         }
 
         resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
