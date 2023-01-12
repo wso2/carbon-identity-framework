@@ -169,38 +169,40 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (StringUtils.isEmpty(inboundKey)) {
+        if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving resource id. Please ensure that the inputs (inboundKey, " +
+                        "inboundType, tenantDomain) are not null before retrieving application resource id.");
+            }
             return null;
         }
 
-        String resourceId = null;
-        if (tenantDomain != null) {
-            ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
-                    inboundType);
-            ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
-                    tenantDomain);
-            if (entry != null) {
-                resourceId = entry.getApplicationResourceId();
+        String resourceId;
+        ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
+                inboundType);
+        ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
+                tenantDomain);
+        if (entry != null) {
+            resourceId = entry.getApplicationResourceId();
+            if (resourceId != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Inbound Auth Key Cache is present for " + inboundKey);
+                }
+                return  resourceId;
             }
         }
-        if (resourceId == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Inbound Auth Key Cache is missing for " + inboundKey);
-            }
-            resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
-            if (tenantDomain != null) {
-                ApplicationResourceIDCacheInboundAuthKey clientKey =
-                        new ApplicationResourceIDCacheInboundAuthKey(inboundKey, inboundType);
-                ApplicationResourceIDCacheInboundAuthEntry clientEntry =
-                        new ApplicationResourceIDCacheInboundAuthEntry(resourceId,
-                        tenantDomain);
-                resourceIDCacheByInboundAuth.addToCache(clientKey, clientEntry, tenantDomain);
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Inbound Auth Key Cache is present for " + inboundKey);
-            }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Inbound Auth Key Cache is missing for " + inboundKey);
         }
+
+        resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
+
+        ApplicationResourceIDCacheInboundAuthEntry clientEntry =
+                new ApplicationResourceIDCacheInboundAuthEntry(resourceId,
+                tenantDomain);
+        resourceIDCacheByInboundAuth.addToCache(cacheKey, clientEntry, tenantDomain);
+
         return resourceId;
     }
 

@@ -4124,22 +4124,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        int tenantID;
-
-        if (StringUtils.isEmpty(inboundKey)) {
+        if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving resource id. Please ensure that the inputs (inboundKey, " +
+                        "inboundType, tenantDomain) are not null before retrieving application resource id.");
+            }
             return null;
         }
 
-        if (tenantDomain != null) {
-            try {
-                tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                        .getTenantManager().getTenantId(tenantDomain);
-            } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while reading application", e1);
-            }
-        } else {
-            throw new IdentityApplicationManagementException("Tenant domain is not defined. Please ensure that the " +
-                    "tenant domain input is not null before reading application.");
+        int tenantID;
+        try {
+            tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant id for retrieve " +
+                    "application resource id.", e);
         }
 
         String applicationResourceId = null;
@@ -4160,7 +4158,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementServerException("Error while getting application " +
+            throw new IdentityApplicationManagementServerException("Error while retrieving application " +
                     "resourceId for inboundKey: " + inboundKey + " in inboundType: " + inboundType +
                     " in tenantDomain: " + tenantDomain, e);
         }
