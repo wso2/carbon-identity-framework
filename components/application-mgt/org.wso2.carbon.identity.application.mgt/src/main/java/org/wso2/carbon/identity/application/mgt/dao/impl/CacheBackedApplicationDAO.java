@@ -179,7 +179,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         String resourceId;
         ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
-                inboundType);
+                inboundType, tenantDomain);
         ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
                 tenantDomain);
         if (entry != null) {
@@ -199,8 +199,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
 
         ApplicationResourceIDCacheInboundAuthEntry clientEntry =
-                new ApplicationResourceIDCacheInboundAuthEntry(resourceId,
-                tenantDomain);
+                new ApplicationResourceIDCacheInboundAuthEntry(resourceId);
         resourceIDCacheByInboundAuth.addToCache(cacheKey, clientEntry, tenantDomain);
 
         return resourceId;
@@ -714,7 +713,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
                     // Clear ApplicationResourceIDByInboundAuthCache
                     ApplicationResourceIDCacheInboundAuthKey inboundKey = new ApplicationResourceIDCacheInboundAuthKey(
-                            config.getInboundAuthKey(), config.getInboundAuthType());
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
                     resourceIDCacheByInboundAuth.clearCacheEntry(inboundKey, tenantDomain);
                 }
             }

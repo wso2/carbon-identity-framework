@@ -18,12 +18,10 @@ public class ApplicationResourceIDCacheInboundAuthEntry extends CacheEntry {
 
     private static final long serialVersionUID = 1551359845008531441L;
     private String applicationResourceId;
-    private String tenantDomain;
 
-    public ApplicationResourceIDCacheInboundAuthEntry(String applicationResourceId, String tenantDomain) {
+    public ApplicationResourceIDCacheInboundAuthEntry(String applicationResourceId) {
 
         this.applicationResourceId = applicationResourceId;
-        this.tenantDomain = tenantDomain;
     }
 
     public String getApplicationResourceId() {
@@ -34,15 +32,5 @@ public class ApplicationResourceIDCacheInboundAuthEntry extends CacheEntry {
     public void setApplicationResourceId(String applicationResourceId) {
 
         this.applicationResourceId = applicationResourceId;
-    }
-
-    public String getTenantDomain() {
-
-        return tenantDomain;
-    }
-
-    public void setTenantDomain(String tenantDomain) {
-
-        this.tenantDomain = tenantDomain;
     }
 }

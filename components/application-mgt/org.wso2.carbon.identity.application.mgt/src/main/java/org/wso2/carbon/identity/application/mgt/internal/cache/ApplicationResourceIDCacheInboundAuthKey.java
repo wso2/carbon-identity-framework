@@ -20,12 +20,14 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
     private static final long serialVersionUID = 5197091237662341491L;
     private String applicationCacheInboundAuthKey;
     private String applicationCacheInboundAuthType;
+    private String applicationCacheTenantDomain;
 
     public ApplicationResourceIDCacheInboundAuthKey(String applicationCacheInboundAuthKey, String
-            applicationCacheInboundAuthType) {
+            applicationCacheInboundAuthType, String applicationCacheTenantDomain) {
 
         this.applicationCacheInboundAuthKey = applicationCacheInboundAuthKey;
         this.applicationCacheInboundAuthType = applicationCacheInboundAuthType;
+        this.applicationCacheTenantDomain = applicationCacheTenantDomain;
     }
 
     @Override
@@ -43,10 +45,14 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
 
         ApplicationResourceIDCacheInboundAuthKey that = (ApplicationResourceIDCacheInboundAuthKey) o;
 
-        if (applicationCacheInboundAuthKey == null || applicationCacheInboundAuthType == null) {
+        if (applicationCacheInboundAuthKey == null || applicationCacheInboundAuthType == null ||
+                applicationCacheTenantDomain == null) {
             return false;
         }
 
+        if (!applicationCacheTenantDomain.equals(that.applicationCacheTenantDomain)) {
+            return false;
+        }
         if (!applicationCacheInboundAuthKey.equals(that.applicationCacheInboundAuthKey)) {
             return false;
         }
@@ -57,8 +63,9 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
     public int hashCode() {
 
         int result = super.hashCode();
-        result = 31 * result + applicationCacheInboundAuthKey.hashCode();
         result = 31 * result + applicationCacheInboundAuthType.hashCode();
+        result = 31 * result + applicationCacheInboundAuthKey.hashCode();
+        result = 31 * result + applicationCacheTenantDomain.hashCode();
         return result;
     }
 }
