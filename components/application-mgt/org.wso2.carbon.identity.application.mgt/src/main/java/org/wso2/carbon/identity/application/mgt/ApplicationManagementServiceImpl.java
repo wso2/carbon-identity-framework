@@ -1110,7 +1110,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving resource id. The inboundKey, inboundType, tenantDomain parameters"
+                log.debug("Error while retrieving resource id. One of inboundKey, inboundType or tenantDomain parameters"
                         + " were found to be empty.");
             }
             return null;
