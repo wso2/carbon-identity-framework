@@ -560,8 +560,16 @@ public class OutboundProvisioningManager {
                                 provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
+                        boolean isAllowed = true;
                         boolean isBlocking = entry.getValue().isBlocking();
-                        executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
+                        boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
+                        if (isPolicyEnabled) {
+                            // engage policy evaluation here
+                            // isAllowed =
+                        }
+                        if (isAllowed) {
+                            executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
+                        }
                     }
                 }
             }
