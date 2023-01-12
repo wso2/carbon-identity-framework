@@ -180,7 +180,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
                     tenantDomain);
             if (entry != null) {
-                resourceId = entry.getResourceId();
+                resourceId = entry.getApplicationResourceId();
             }
         }
         if (resourceId == null) {

@@ -17,23 +17,23 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 public class ApplicationResourceIDCacheInboundAuthEntry extends CacheEntry {
 
     private static final long serialVersionUID = 1551359845008531441L;
-    private String resourceId;
+    private String applicationResourceId;
     private String tenantDomain;
 
-    public ApplicationResourceIDCacheInboundAuthEntry(String resourceId, String tenantDomain) {
+    public ApplicationResourceIDCacheInboundAuthEntry(String applicationResourceId, String tenantDomain) {
 
-        this.resourceId = resourceId;
+        this.applicationResourceId = applicationResourceId;
         this.tenantDomain = tenantDomain;
     }
 
-    public String getResourceId() {
+    public String getApplicationResourceId() {
 
-        return resourceId;
+        return applicationResourceId;
     }
 
-    public void setResourceId(String resourceId) {
+    public void setApplicationResourceId(String applicationResourceId) {
 
-        this.resourceId = resourceId;
+        this.applicationResourceId = applicationResourceId;
     }
 
     public String getTenantDomain() {

@@ -43,6 +43,10 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
 
         ApplicationResourceIDCacheInboundAuthKey that = (ApplicationResourceIDCacheInboundAuthKey) o;
 
+        if (applicationCacheInboundAuthKey == null || applicationCacheInboundAuthType == null) {
+            return false;
+        }
+
         if (!applicationCacheInboundAuthKey.equals(that.applicationCacheInboundAuthKey)) {
             return false;
         }
