@@ -68,4 +68,9 @@ public class ApplicationResourceIDCacheInboundAuthKey extends CacheKey {
         result = 31 * result + tenantDomain.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return applicationCacheInboundAuthKey + " : " + applicationCacheInboundAuthType + " : " + tenantDomain;
+    }
 }

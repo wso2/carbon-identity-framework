@@ -178,14 +178,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             resourceId = entry.getApplicationResourceId();
             if (resourceId != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Resource ID is present in the cache for " + inboundKey);
+                    log.debug("Resource ID is present in the cache for " + cacheKey);
                 }
                 return  resourceId;
             }
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Resource ID is not present in the cache for " + inboundKey);
+            log.debug("Resource ID is not present in the cache for " + cacheKey);
         }
 
         resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);

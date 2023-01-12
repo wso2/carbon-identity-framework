@@ -4136,7 +4136,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 statement.setInt(4, tenantID);
 
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
+                    if (resultSet.next()) {
                         applicationResourceId = resultSet.getString(1);
                     }
                 }
