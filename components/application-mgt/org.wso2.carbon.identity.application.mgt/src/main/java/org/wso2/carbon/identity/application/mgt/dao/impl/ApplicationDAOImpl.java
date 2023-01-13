@@ -4115,18 +4115,21 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * @param inboundKey inbound key
-     * @param inboundType inbound type
-     * @param tenantDomain tenant domain
-     * @return application resource id
-     * @throws IdentityApplicationManagementException
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
      */
+    @Override
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         int tenantID = getTenantId(tenantDomain);
         String applicationResourceId = null;
-        // Reading application resource id from the database
+        // Reading application resource id from the database.
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement statement =
                          connection.prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE)) {
@@ -4150,6 +4153,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     private int getTenantId(String tenantDomain) throws IdentityApplicationManagementException {
+
         try {
             return IdentityTenantUtil.getTenantId(tenantDomain);
         } catch (IdentityRuntimeException e) {

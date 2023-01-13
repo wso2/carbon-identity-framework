@@ -83,17 +83,18 @@ public interface ApplicationResourceManager {
             throws IdentityApplicationManagementException;
 
     /**
-     * Get resourceId by inbound Key.
+     * Retrieve application resource id using the inboundKey and inboundType.
      *
      * @param inboundKey   inboundKey
      * @param inboundType  inboundType
-     * @param tenantDomain Tenant domain of the application
-     * @return Unique resource identifier of the application.
-     * @throws IdentityApplicationManagementException
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
      */
     default String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
                                                                 String tenantDomain)
             throws IdentityApplicationManagementException {
+
         return null;
     }
 }

@@ -51,7 +51,6 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderID
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -166,6 +165,15 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return appName;
     }
 
+    /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -185,7 +193,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Resource ID is not present in the cache for " + cacheKey);
+            log.debug("Resource ID is not present in the cache for " + cacheKey + " Hence getting it from DB.");
         }
 
         resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
@@ -703,7 +711,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                             config.getInboundAuthKey(), config.getInboundAuthType());
                     appCacheByInboundAuth.clearCacheEntry(clientKey, tenantDomain);
 
-                    // Clear ApplicationResourceIDByInboundAuthCache
+                    // Clear ApplicationResourceIDByInboundAuthCache.
                     ApplicationResourceIDCacheInboundAuthKey inboundKey = new ApplicationResourceIDCacheInboundAuthKey(
                             config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
                     resourceIDCacheByInboundAuth.clearCacheEntry(inboundKey, tenantDomain);

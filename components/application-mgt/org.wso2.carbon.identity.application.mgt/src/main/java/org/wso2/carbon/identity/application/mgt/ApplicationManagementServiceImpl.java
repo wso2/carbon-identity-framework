@@ -1097,11 +1097,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * @param inboundKey
-     * @param inboundType
-     * @param tenantDomain
-     * @return
-     * @throws IdentityApplicationManagementException
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
      */
     @Override
     public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
