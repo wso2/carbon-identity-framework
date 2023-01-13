@@ -4153,8 +4153,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             return IdentityTenantUtil.getTenantId(tenantDomain);
         } catch (IdentityRuntimeException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving tenant id for retrieve " +
-                    "application resource id.", e);
+            throw new IdentityApplicationManagementException("Error while retrieving tenant id from tenant domain : "
+                    + tenantDomain + " for retrieve application resource id.", e);
         }
     }
 
