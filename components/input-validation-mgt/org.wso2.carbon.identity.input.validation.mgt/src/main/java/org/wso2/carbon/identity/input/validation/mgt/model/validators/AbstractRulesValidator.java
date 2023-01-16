@@ -126,6 +126,20 @@ public abstract class AbstractRulesValidator implements Validator {
         return Integer.parseInt(value) < 0;
     }
 
+    protected boolean validateBoolean(String value, String property, String tenantDomain)
+            throws InputValidationMgtClientException {
+
+        if (!value.equalsIgnoreCase("false") && !value.equalsIgnoreCase("true")) {
+            if (log.isDebugEnabled()) {
+                log.error(String.format("The property %s should be a %s value for the tenant %s.", property,
+                        "boolean", tenantDomain));
+            }
+            throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
+                String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "boolean", tenantDomain));
+        }
+        return true;
+    }
+
     protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)
             throws InputValidationMgtClientException {
 

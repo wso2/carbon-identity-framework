@@ -47,6 +47,7 @@ public class Constants {
         public static final String MAX_LENGTH = "max.length";
         public static final String MIN_UNIQUE_CHR = "min.unique.character";
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
+        public static final String IS_ALPHANUMERIC = "isAlphanumeric";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -56,6 +57,7 @@ public class Constants {
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
         public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
+        public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
     }
 
     /**
@@ -131,6 +133,10 @@ public class Constants {
         ERROR_CODE_REGEX_MISMATCH("60021",
                 "Regex mismatch",
                 "The %s should satisfy the %s pattern."),
+        ERROR_VALIDATION_ALPHANUMERIC_MISMATCH("60022",
+                "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",
