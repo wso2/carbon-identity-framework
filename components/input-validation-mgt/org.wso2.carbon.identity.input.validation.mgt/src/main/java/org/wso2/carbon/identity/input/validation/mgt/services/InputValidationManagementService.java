@@ -74,5 +74,6 @@ public interface InputValidationManagementService {
      * @param tenantDomain  Tenant domain.
      * @return configuration.
      */
-    List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
+    ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
+            throws InputValidationMgtException;
 }

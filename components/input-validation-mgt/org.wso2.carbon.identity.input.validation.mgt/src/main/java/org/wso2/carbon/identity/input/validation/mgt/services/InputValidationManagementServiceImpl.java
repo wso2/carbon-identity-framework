@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguratio
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,12 +46,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PATTERN;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_MAP;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PROPERTY_NAME_IN_USERSTORE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX_PROPERTY_NAME_IN_USERSTORE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
@@ -92,9 +94,20 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
-        if (configurations.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
-                    String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
+
+        List<String> supportingFields = new ArrayList<>();
+        supportingFields.add(USERNAME);
+        supportingFields.add(PASSWORD);
+        for (ValidationConfiguration configuration: configurations) {
+            supportingFields.remove(configuration.getField());
+        }
+        for (String field: supportingFields) {
+            ValidationConfiguration configuration = getConfigurationFromUserStore(tenantDomain, field);
+            if (configuration == null) {
+                throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
+                        String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
+            }
+            configurations.add(configuration);
         }
         return configurations;
     }
@@ -125,35 +138,29 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     @Override
-    public List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain)
+    public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
 
-        List<ValidationConfiguration> configurations = new ArrayList<>();
         ValidationConfiguration configuration = new ValidationConfiguration();
-        configuration.setField(PASSWORD);
+        configuration.setField(field);
         List<RulesConfiguration> rules = new ArrayList<>();
 
         try {
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
-                    .RealmConfig.PROPERTY_JAVA_REG_EX);
+            String javaRegex = realmConfiguration.
+                    getUserStoreProperty(JAVA_REGEX_PROPERTY_NAME_IN_USERSTORE.get(field));
             String jsRegex = realmConfiguration.
-                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JS_REG_EX);
+                    getUserStoreProperty(JS_REGEX_PROPERTY_NAME_IN_USERSTORE.get(field));
 
-            // Return the JsRegex if the default regex has been updated by the user.
-            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_PATTERN.equals(javaRegex)) {
+            /* Return the JsRegex if the default regex has been updated by the user, if not return corresponding rule
+            set of the default regex.*/
+            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_MAP.get(field).equals(javaRegex)) {
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
                 configuration.setRegEx(rules);
             } else {
-                rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
-                rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
-                configuration.setRules(rules);
+                configuration = resolveRulesForDefaultRegex(field);
             }
-            configurations.add(configuration);
-            return configurations;
+            return configuration;
         } catch (InputValidationMgtException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unable to get user realm service. " + e.getMessage());
@@ -453,5 +460,30 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     private ConfigurationManager getConfigurationManager() {
 
         return InputValidationDataHolder.getConfigurationManager();
+    }
+
+    /**
+     * Resolve the rule set for the default regex.
+     *
+     * @param field     Name of the field attribute
+     * @return ValidationConfiguration.
+     */
+    private ValidationConfiguration resolveRulesForDefaultRegex(String field) {
+
+        ValidationConfiguration configuration = new ValidationConfiguration();
+        configuration.setField(field);
+        List<RulesConfiguration> rules = new ArrayList<>();
+        if (PASSWORD.equals(field)) {
+            rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
+            rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
+            rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
+            rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
+            rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
+            configuration.setRules(rules);
+        } else if (USERNAME.equals(field)) {
+            rules.add(getRuleConfig("EmailValidator", "isEmail", "true"));
+            configuration.setRules(rules);
+        }
+        return configuration;
     }
 }

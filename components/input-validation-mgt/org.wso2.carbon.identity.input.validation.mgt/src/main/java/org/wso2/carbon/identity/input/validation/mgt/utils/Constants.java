@@ -19,10 +19,15 @@
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_JAVA_REG_EX;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX;
 
 /**
  * Class with the constants.
@@ -55,7 +60,25 @@ public class Constants {
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
-        public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
+        public static final String DEFAULT_PASSWORD_JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
+        public static final String DEFAULT_EMAIL_REGEX_PATTERN =
+                "(^[\\À-\\ÿa-zA-Z0-9](?:(?![.+\\\\-_]{2})[\\À-\\ÿ\\\\w.+\\\\-]){0,63}(?=[\\À-\\ÿa-zA-Z0-9]).\\\\@" +
+                "(?![+.\\\\-_])(?:(?![.+\\\\-_]{2})[\\\\w.+\\\\-]){0,245}(?=[\\À-\\ÿa-zA-Z0-9]).\\\\.[a-zA-Z]{2,10})";
+        public static final Map<String, String> JAVA_REGEX_MAP = Collections.unmodifiableMap(
+                new HashMap<String, String>() {{
+                    put(PASSWORD, DEFAULT_PASSWORD_JAVA_REGEX_PATTERN);
+                    put(USERNAME, DEFAULT_EMAIL_REGEX_PATTERN);
+                }});
+        public static final Map<String, String> JAVA_REGEX_PROPERTY_NAME_IN_USERSTORE = Collections.unmodifiableMap(
+                new HashMap<String, String>() {{
+                    put(PASSWORD, PROPERTY_JAVA_REG_EX);
+                    put(USERNAME, PROPERTY_USER_NAME_JAVA_REG_EX);
+                }});
+        public static final Map<String, String> JS_REGEX_PROPERTY_NAME_IN_USERSTORE = Collections.unmodifiableMap(
+                new HashMap<String, String>() {{
+                    put(PASSWORD, PROPERTY_JAVA_REG_EX);
+                    put(USERNAME, PROPERTY_USER_NAME_JAVA_REG_EX);
+                }});
     }
 
     /**
@@ -131,6 +154,16 @@ public class Constants {
         ERROR_CODE_REGEX_MISMATCH("60021",
                 "Regex mismatch",
                 "The %s should satisfy the %s pattern."),
+        ERROR_VALIDATION_ALPHANUMERIC_MISMATCH("60022",
+                "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_VALIDATION_EMAIL_MISMATCH("60023",
+                "EMAIL_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        UNSUPPORTING_VALIDATORS_FOR_FIELD("60024",
+                "UN-SUPPORTING VALIDATOR FOR THE FIELD",
+                "The % validator does not support for the % field."),
+
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",
