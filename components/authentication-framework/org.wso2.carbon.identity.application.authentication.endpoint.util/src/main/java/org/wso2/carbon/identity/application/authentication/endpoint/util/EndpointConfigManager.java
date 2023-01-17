@@ -58,13 +58,13 @@ public class EndpointConfigManager {
      */
     public static void init() {
 
+        InputStream inputStream = null;
         try {
             if (!initialized) {
                 prop = new Properties();
                 String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
                 File configFile = new File(configFilePath);
 
-                InputStream inputStream;
                 if (configFile.exists()) {
                     log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
                             Constants.TenantConstants.CONFIG_RELATIVE_PATH);
@@ -106,6 +106,14 @@ public class EndpointConfigManager {
             }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("Error occurred while closing file input stream.", e);
+                }
+            }
         }
     }
 
