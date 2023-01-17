@@ -40,8 +40,6 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
-import java.util.Iterator;
-
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -319,9 +317,9 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
 
     /**
-     * Mask inbound configurations for keys.
+     * Mask inbound configurations with secrets,keys.
      *
-     * @param inboundConfigurations
+     * @param inboundConfigurations Inbound configurations
      *
      * @return masked inbound configurations.
      */
