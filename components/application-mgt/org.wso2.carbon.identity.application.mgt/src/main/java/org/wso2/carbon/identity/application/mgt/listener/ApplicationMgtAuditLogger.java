@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
+import org.json.JSONObject;
+import org.json.XML;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -37,6 +39,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Iterator;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
@@ -149,7 +153,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                         append(", ");
                 data.append("Auth Type:").append(requestConfig.getInboundAuthType()).append(", ");
                 data.append("Config Type:").append(requestConfig.getInboundConfigType()).append(", ");
-                data.append("Inbound configuration:").append(requestConfig.getInboundConfiguration());
+                data.append("Inbound configuration:").
+                        append(maskInboundConfigurations(requestConfig.getInboundConfiguration()));
                 Property[] properties = requestConfig.getProperties();
                 if (ArrayUtils.isNotEmpty(properties)) {
                     data.append("Properties:").append("[");
@@ -310,6 +315,33 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("]");
         }
         return data.toString();
+    }
+
+
+    /**
+     * Mask inbound configurations for keys.
+     *
+     * @param inboundConfigurations
+     *
+     * @return masked inbound configurations.
+     */
+    private String maskInboundConfigurations(String inboundConfigurations) {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            return inboundConfigurations;
+        }
+        if (!StringUtils.isBlank(inboundConfigurations)) {
+            if (inboundConfigurations.contains("<oauthConsumerSecret>")) {
+                JSONObject oauthAppDO = XML.toJSONObject(inboundConfigurations);
+                JSONObject configs = oauthAppDO.getJSONObject("oAuthAppDO");
+                configs.put("oauthConsumerSecret",
+                        LoggerUtils.getMaskedContent(configs.getString("oauthConsumerSecret")));
+                oauthAppDO.put("oAuthAppDO", configs);
+                inboundConfigurations = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                        XML.toString(oauthAppDO);
+            }
+        }
+        return inboundConfigurations;
     }
 
     /**
