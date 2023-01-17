@@ -64,13 +64,13 @@ public abstract class AbstractRulesValidator implements Validator {
         // Validated supported properties.
         validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
 
-        if (properties.get(MIN_LENGTH) != null && validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
+        if (properties.get(MIN_LENGTH) != null && !validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
                 context.getTenantDomain())) {
             properties.remove(MIN_LENGTH);
         }
-        if (properties.get(MAX_LENGTH) != null && validatePositiveNumber(properties.get(MAX_LENGTH), MAX_LENGTH,
+        if (properties.get(MAX_LENGTH) != null && !validatePositiveNumber(properties.get(MAX_LENGTH), MAX_LENGTH,
                 context.getTenantDomain())) {
-            properties.remove(MIN_LENGTH);
+            properties.remove(MAX_LENGTH);
         }
         // Ensure maximum limit is not less than minimum limit.
         if ((properties.get(MAX_LENGTH) != null) && (properties.get(MIN_LENGTH) != null) &&
@@ -123,7 +123,7 @@ public abstract class AbstractRulesValidator implements Validator {
             throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
                     String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "integer", tenantDomain));
         }
-        return Integer.parseInt(value) < 0;
+        return Integer.parseInt(value) > 0;
     }
 
     protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)
