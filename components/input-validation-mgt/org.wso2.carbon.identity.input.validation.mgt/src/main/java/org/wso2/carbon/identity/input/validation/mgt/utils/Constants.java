@@ -48,6 +48,7 @@ public class Constants {
         public static final String MIN_UNIQUE_CHR = "min.unique.character";
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
         public static final String IS_ALPHANUMERIC = "isAlphanumeric";
+        public static final String IS_EMAIL = "isEmail";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -58,6 +59,9 @@ public class Constants {
         public static final String PERIOD = ".";
         public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
         public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
+        public static final String DEFAULT_EMAIL_REGEX_PATTERN =
+                "(^[\\À-\\ÿa-zA-Z0-9](?:(?![.+\\\\-_]{2})[\\À-\\ÿ\\\\w.+\\\\-]){0,63}(?=[\\À-\\ÿa-zA-Z0-9]).\\\\@" +
+                "(?![+.\\\\-_])(?:(?![.+\\\\-_]{2})[\\\\w.+\\\\-]){0,245}(?=[\\À-\\ÿa-zA-Z0-9]).\\\\.[a-zA-Z]{2,10})";
     }
 
     /**
@@ -135,6 +139,9 @@ public class Constants {
                 "The %s should satisfy the %s pattern."),
         ERROR_VALIDATION_ALPHANUMERIC_MISMATCH("60022",
                 "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_VALIDATION_EMAIL_MISMATCH("60023",
+                "EMAIL_VALIDATION_NOT_SATISFIED",
                 "The %s can contain only %s pattern."),
 
         // Server Errors.
