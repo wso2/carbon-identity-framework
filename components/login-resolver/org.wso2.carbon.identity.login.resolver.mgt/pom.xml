@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>login-resolver</artifactId>
-        <version>5.25.82-SNAPSHOT</version>
+        <version>5.25.83-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,7 +33,7 @@
     <name>WSO2 Carbon Identity - Login Resolver Mgt</name>
     <description>Exposes the default login resolver interface which can be used to implement custom login resolvers.
     </description>
-    <url>https://wso2.org</url>
+    <url>http://wso2.org</url>
 
     <dependencies>
         <dependency>

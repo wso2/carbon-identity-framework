@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>login-resolver-feature</artifactId>
-        <version>5.25.82-SNAPSHOT</version>
+        <version>5.25.83-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -61,7 +61,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>
-                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.login.resolver
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.login.resolver.mgt
                                 </bundleDef>
                             </bundles>
                         </configuration>
