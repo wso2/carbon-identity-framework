@@ -103,6 +103,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.login.resolver.mgt.LoginResolverService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -891,6 +892,26 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
+            name = "LoginResolverService",
+            service = LoginResolverService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetLoginResolverService")
+    protected void setLoginResolverService(LoginResolverService loginResolverService) {
+
+        FrameworkServiceDataHolder.getInstance().setLoginResolverService(loginResolverService);
+    }
+
+    protected void unsetLoginResolverService(LoginResolverService loginResolverService) {
+
+        FrameworkServiceDataHolder.getInstance().setLoginResolverService(null);
+    }
+
+    /**
+     * @deprecated To generalize the resolver concept and make it extensible.
+     * Use the {@link #setLoginResolverService(LoginResolverService)} ()} method instead.
+     */
+    @Reference(
             name = "MultiAttributeLoginService",
             service = MultiAttributeLoginService.class,
             cardinality = ReferenceCardinality.OPTIONAL,
@@ -901,6 +922,10 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(multiAttributeLogin);
     }
 
+    /**
+     * @deprecated To generalize the resolver concept and make it extensible.
+     * Use the {@link #unsetLoginResolverService(LoginResolverService)} method instead.
+     */
     protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
 
         FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);

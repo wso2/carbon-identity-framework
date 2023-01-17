@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,23 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.multi.attribute.login.mgt;
+package org.wso2.carbon.identity.login.resolver.mgt;
 
 import org.wso2.carbon.user.core.common.User;
 
 /**
- * Represents a resolved user result after a resolving username using multi attribute login identifier.
- * @deprecated To generalize the resolver concept and make it extensible.
- * Use the {@link org.wso2.carbon.identity.login.resolver.mgt.ResolvedUserResult} class instead.
+ * Represents a resolved user result after resolving a user from the login resolver implementation.
  */
-@Deprecated
 public class ResolvedUserResult {
 
     private UserResolvedStatus resolvedStatus;
     private String resolvedClaim = null;
     private String resolvedValue = null;
     private User user;
-    private String errorMessage; // TODO: add error code
+    private String errorMessage;
+    private String errorCode;
 
     public ResolvedUserResult(UserResolvedStatus resolvedStatus) {
 
@@ -87,6 +85,16 @@ public class ResolvedUserResult {
     public void setErrorMessage(String errorMessage) {
 
         this.errorMessage = errorMessage;
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+
+        this.errorCode = errorCode;
     }
 
     /**

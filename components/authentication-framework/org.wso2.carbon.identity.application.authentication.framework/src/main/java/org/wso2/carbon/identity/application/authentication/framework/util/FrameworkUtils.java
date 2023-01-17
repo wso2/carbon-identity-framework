@@ -3001,13 +3001,37 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieves the ResolvedUserResult from the respective login resolver if it is enabled in the management console.
+     *
+     * @param loginIdentifier login identifier for multi attribute login
+     * @param tenantDomain    The tenant domain of the user.
+     * @return resolvedUserResult instance with a SUCCESS status if the login resolver is enabled. Otherwise, returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static org.wso2.carbon.identity.login.resolver.mgt.ResolvedUserResult processLoginResolverIdentification(
+            String loginIdentifier, String tenantDomain) {
+
+        org.wso2.carbon.identity.login.resolver.mgt.ResolvedUserResult resolvedUserResult = new
+                org.wso2.carbon.identity.login.resolver.mgt.ResolvedUserResult(
+                org.wso2.carbon.identity.login.resolver.mgt.ResolvedUserResult.UserResolvedStatus.FAIL);
+        if (FrameworkServiceDataHolder.getInstance().getLoginResolverService().isEnabled(tenantDomain)) {
+            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getLoginResolverService().resolveUser(
+                    loginIdentifier, tenantDomain);
+        }
+        return resolvedUserResult;
+    }
+
+    /**
      * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     * @deprecated To generalize the resolver concept and make it extensible.
+     * Use the {@link #processLoginResolverIdentification(String, String)} method instead.
      *
      * @param loginIdentifier login identifier for multi attribute login
      * @param tenantDomain    user tenant domain
      * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
      * resolvedUserResult with FAIL status.
      */
+    @Deprecated
     public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
                                                                               String tenantDomain) {
 

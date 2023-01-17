@@ -22,8 +22,11 @@ import org.wso2.carbon.user.core.common.AuthenticationResult;
 
 /**
  * This interface is used to implement a MultiAttributeLoginService component, which provides multi attribute login
- * feature
+ * feature.
+ * @deprecated To generalize the resolver concept and make it extensible.
+ * Use the {@link org.wso2.carbon.identity.login.resolver.mgt.LoginResolverService} class instead.
  */
+@Deprecated
 public interface MultiAttributeLoginService {
 
     /**
