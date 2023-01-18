@@ -220,5 +220,4 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
         return LoggerUtils.getMaskedContent(username);
     }
-
 }

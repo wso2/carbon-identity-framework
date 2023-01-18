@@ -319,7 +319,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     /**
      * Mask inbound configurations with secrets,keys.
      *
-     * @param inboundConfigurations Inbound configurations
+     * @param inboundConfigurations Inbound configurations.
      *
      * @return masked inbound configurations.
      */
@@ -328,7 +328,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         if (!LoggerUtils.isLogMaskingEnable) {
             return inboundConfigurations;
         }
-        if (!StringUtils.isBlank(inboundConfigurations)) {
+        if (StringUtils.isNotBlank(inboundConfigurations)) {
             if (inboundConfigurations.contains("<oauthConsumerSecret>")) {
                 JSONObject oauthAppDO = XML.toJSONObject(inboundConfigurations);
                 JSONObject configs = oauthAppDO.getJSONObject("oAuthAppDO");
