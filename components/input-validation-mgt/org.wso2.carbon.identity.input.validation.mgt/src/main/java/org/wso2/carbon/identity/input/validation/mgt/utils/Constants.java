@@ -154,16 +154,6 @@ public class Constants {
         ERROR_CODE_REGEX_MISMATCH("60021",
                 "Regex mismatch",
                 "The %s should satisfy the %s pattern."),
-        ERROR_VALIDATION_ALPHANUMERIC_MISMATCH("60022",
-                "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
-                "The %s can contain only %s pattern."),
-        ERROR_VALIDATION_EMAIL_MISMATCH("60023",
-                "EMAIL_VALIDATION_NOT_SATISFIED",
-                "The %s can contain only %s pattern."),
-        UNSUPPORTING_VALIDATORS_FOR_FIELD("60024",
-                "UN-SUPPORTING VALIDATOR FOR THE FIELD",
-                "The % validator does not support for the % field."),
-
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",
