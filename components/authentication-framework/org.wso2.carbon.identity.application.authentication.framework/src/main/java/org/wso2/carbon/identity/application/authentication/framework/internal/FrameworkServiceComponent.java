@@ -911,6 +911,7 @@ public class FrameworkServiceComponent {
      * @deprecated To generalize the resolver concept and make it extensible.
      * Use the {@link #setLoginResolverService(LoginResolverService)} ()} method instead.
      */
+    @Deprecated
     @Reference(
             name = "MultiAttributeLoginService",
             service = MultiAttributeLoginService.class,
@@ -926,6 +927,7 @@ public class FrameworkServiceComponent {
      * @deprecated To generalize the resolver concept and make it extensible.
      * Use the {@link #unsetLoginResolverService(LoginResolverService)} method instead.
      */
+    @Deprecated
     protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
 
         FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
