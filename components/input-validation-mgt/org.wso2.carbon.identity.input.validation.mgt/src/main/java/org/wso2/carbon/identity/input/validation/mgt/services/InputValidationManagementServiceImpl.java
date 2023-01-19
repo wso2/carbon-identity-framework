@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguratio
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +47,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
+
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_PASSWORD_JAVA_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_MAP;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PROPERTY_NAME_IN_USERSTORE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
@@ -135,6 +138,44 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public Map<String, Validator> getValidators(String tenantDomain) {
 
         return InputValidationDataHolder.getValidators();
+    }
+
+    @Override
+    public List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain)
+            throws InputValidationMgtException {
+
+        List<ValidationConfiguration> configurations = new ArrayList<>();
+        ValidationConfiguration configuration = new ValidationConfiguration();
+        configuration.setField(PASSWORD);
+        List<RulesConfiguration> rules = new ArrayList<>();
+
+        try {
+            RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
+            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
+                    .RealmConfig.PROPERTY_JAVA_REG_EX);
+            String jsRegex = realmConfiguration.
+                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JS_REG_EX);
+
+            // Return the JsRegex if the default regex has been updated by the user.
+            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !DEFAULT_PASSWORD_JAVA_REGEX_PATTERN.equals(javaRegex)) {
+                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
+                configuration.setRegEx(rules);
+            } else {
+                rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
+                rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
+                configuration.setRules(rules);
+            }
+            configurations.add(configuration);
+            return configurations;
+        } catch (InputValidationMgtException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Unable to get user realm service. " + e.getMessage());
+            }
+            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
+        }
     }
 
     @Override
@@ -481,7 +522,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
             configuration.setRules(rules);
         } else if (USERNAME.equals(field)) {
-            rules.add(getRuleConfig("EmailValidator", "isEmail", "true"));
+            rules.add(getRuleConfig("EmailFormatValidator", "isEmail", "true"));
             configuration.setRules(rules);
         }
         return configuration;
