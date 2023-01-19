@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
@@ -75,4 +76,14 @@ public interface InputValidationManagementService {
      * @return configuration.
      */
     List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
+
+    /**
+     * Check whether provided validator combination is applicable to the field.
+     *
+     * @param field Field validators are configuring.
+     * @return boolean.
+     * @throws InputValidationMgtClientException if invalid validator combinations are provided
+     */
+    boolean isAllowedValidatorsCombinations(String field, List<String> validatorsNameList) throws
+            InputValidationMgtClientException;
 }

@@ -131,6 +131,9 @@ public class Constants {
         ERROR_CODE_REGEX_MISMATCH("60021",
                 "Regex mismatch",
                 "The %s should satisfy the %s pattern."),
+        INVALID_VALIDATORS_COMBINATION_FOR_FIELD("60025",
+                "INVALID VALIDATORS COMBINATION",
+                "Unsupported validators are provided for %s."),
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",

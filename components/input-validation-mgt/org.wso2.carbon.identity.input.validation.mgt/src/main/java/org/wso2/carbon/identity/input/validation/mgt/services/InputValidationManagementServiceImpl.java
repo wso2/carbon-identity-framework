@@ -36,11 +36,14 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,11 +56,13 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.INVALID_VALIDATORS_COMBINATION_FOR_FIELD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 
@@ -453,5 +458,39 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     private ConfigurationManager getConfigurationManager() {
 
         return InputValidationDataHolder.getConfigurationManager();
+    }
+
+    @Override
+    public boolean isAllowedValidatorsCombinations(String field, List<String> validatorsNameList) throws
+            InputValidationMgtClientException {
+
+        if (PASSWORD.equals(field)) {
+            if (validatorsNameList.stream().anyMatch(Arrays.asList(
+                    EmailFormatValidator.class.getName(), AlphanumericValidator.class.getSimpleName())::contains)) {
+                throw new InputValidationMgtClientException(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getCode(),
+                        String.format(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getMessage(), field));
+            }
+        } else if (USERNAME.equals(field)) {
+            if (validatorsNameList.contains(JsRegExValidator.class.getSimpleName())) {
+                validatorsNameList.remove(JsRegExValidator.class.getSimpleName());
+            } else if (validatorsNameList.contains(EmailFormatValidator.class.getSimpleName())) {
+                validatorsNameList.remove(EmailFormatValidator.class.getSimpleName());
+            } else if (validatorsNameList.contains(AlphanumericValidator.class.getSimpleName())) {
+                validatorsNameList.remove(AlphanumericValidator.class.getSimpleName());
+                if (!validatorsNameList.contains(LengthValidator.class.getSimpleName())) {
+                    throw new InputValidationMgtClientException(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getCode(),
+                            "The lengthValidator is mandatory to have with AlphanumericValidator for username.");
+                }
+                validatorsNameList.remove(LengthValidator.class.getSimpleName());
+            } else {
+                throw new InputValidationMgtClientException(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getCode(),
+                        "Either EmailFormatValidator or AlphanumericValidator is mandatory for username.");
+            }
+            if (!validatorsNameList.isEmpty()) {
+                throw new InputValidationMgtClientException(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getCode(),
+                        String.format(INVALID_VALIDATORS_COMBINATION_FOR_FIELD.getMessage(), field));
+            }
+        }
+        return true;
     }
 }
