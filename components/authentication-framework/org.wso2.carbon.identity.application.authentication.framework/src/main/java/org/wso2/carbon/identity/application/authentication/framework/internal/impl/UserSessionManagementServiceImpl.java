@@ -221,6 +221,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
 
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return getSessionsByUserId(userId, tenantDomain);
+    }
+
+    @Override
+    public List<UserSession> getSessionsByUserId(String userId, String tenantDomain) throws SessionManagementException {
+
         if (StringUtils.isBlank(userId)) {
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
@@ -229,7 +236,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
 
         List<UserSession> userSessions;
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         // First check whether a federated association exists for the userId.
         try {
             int tenantId = getTenantId(tenantDomain);
@@ -238,11 +244,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
                 String fedAssociatedUserId = authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.USER_ID);
                 if (StringUtils.isNotEmpty(fedAssociatedUserId)) {
-                    userSessions = getActiveSessionList(
-                            getSessionIdListByUserId(fedAssociatedUserId),
+                    userSessions = getActiveSessionList(getSessionIdListByUserId(fedAssociatedUserId),
                             authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_ID),
-                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME)
-                    );
+                            authSessionUserMap.get(SessionMgtConstants.AuthSessionUserKeys.IDP_NAME));
                     userSessions.addAll(getActiveSessionList(getSessionIdListByUserId(userId), null, null));
                 } else {
                     userSessions = getActiveSessionList(getSessionIdListByUserId(userId), null, null);
@@ -252,12 +256,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         } catch (UserSessionException e) {
             String msg = "Error occurred while retrieving federated associations for the userId: " + userId;
-            if (log.isDebugEnabled()) {
-                log.debug(msg);
-            }
             throw new SessionManagementServerException(ERROR_CODE_UNABLE_TO_GET_SESSIONS, msg, e);
         }
-
         return userSessions;
     }
 

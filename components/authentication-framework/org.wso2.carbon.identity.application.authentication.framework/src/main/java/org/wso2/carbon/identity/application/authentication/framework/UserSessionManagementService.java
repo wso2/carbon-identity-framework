@@ -57,6 +57,15 @@ public interface UserSessionManagementService {
     }
 
     /**
+     * Get all the active sessions of the given user ID.
+     * @param userId Unique ID of the user.
+     * @param tenantDomain Tenant domain of the user.
+     * @return List of user session objects.
+     * @throws SessionManagementException if the session retrieval fails.
+     */
+    List<UserSession> getSessionsByUserId(String userId, String tenantDomain) throws SessionManagementException;
+
+    /**
      * Terminate all the active sessions of the given user ID.
      *
      * @param userId Unique ID of the user.
