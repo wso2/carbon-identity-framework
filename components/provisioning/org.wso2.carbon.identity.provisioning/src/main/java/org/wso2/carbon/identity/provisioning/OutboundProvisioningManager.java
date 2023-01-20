@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningCo
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
-import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -565,11 +564,7 @@ public class OutboundProvisioningManager {
                         boolean isBlocking = entry.getValue().isBlocking();
                         boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
                         if (isPolicyEnabled) {
-                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
-                                    provisioningEntity,
-                                    serviceProvider,
-                                    idPName,
-                                    connectorType);
+                            // engage policy evaluation here
                         }
                         if (isAllowed) {
                             executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
