@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -53,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -77,6 +79,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static java.util.Objects.nonNull;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -378,6 +382,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
             ApplicationConfig appConfig = sequenceConfig.getApplicationConfig();
 
+            // Adding user organization properties to the authentication result, such as scopes.
+            if (nonNull(context.getProperty(ORGANIZATION_USER_PROPERTIES))) {
+                authenticationResult.addProperty(ORGANIZATION_USER_PROPERTIES,
+                        context.getProperty(ORGANIZATION_USER_PROPERTIES));
+            }
+
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                     .isAlwaysSendBackAuthenticatedListOfIdPs()) {
                 authenticationResult.setAuthenticatedIdPs(sequenceConfig.getAuthenticatedIdPs());
@@ -496,6 +506,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
                         context.getLoginTenantDomain());
+                // Since the session context is already available, audit log will be added with updated details.
+                addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION,
+                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
+                        updatedSessionTime, sessionContext.isRememberMe());
             } else {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
                 sessionContext = new SessionContext();
@@ -538,6 +553,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         request, response, context);
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
                         context.getLoginTenantDomain());
+                // The session context will be stored from here. Since the audit log will be logged as a storing
+                // operation.
+                addAuditLogs(SessionMgtConstants.STORE_SESSION_ACTION,
+                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
+                        createdTimeMillis, sessionContext.isRememberMe());
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
@@ -867,7 +888,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+            if (FrameworkUtils.isOrganizationQualifiedRequest()) {
+                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+            } else {
+                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+            }
         }
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }
@@ -1028,5 +1053,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         }
         sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
+    }
+
+    private void addAuditLogs(String sessionAction, String authenticatedUser, String sessionKey,
+                              String userTenantDomain, String traceId, Long lastAccessedTimestamp,
+                              boolean isRememberMe) {
+
+        JSONObject auditData = new JSONObject();
+        auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
+        auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);
+        auditData.put(SessionMgtConstants.AUTHENTICATED_USER_TENANT_DOMAIN, userTenantDomain);
+        auditData.put(SessionMgtConstants.TRACE_ID, traceId);
+
+        String initiator = null;
+        if (LoggerUtils.isLogMaskingEnable) {
+            String maskedUsername = LoggerUtils.getMaskedContent(authenticatedUser);
+            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
+            if (StringUtils.isNotBlank(authenticatedUser) && StringUtils.isNotBlank(userTenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(authenticatedUser, userTenantDomain);
+            }
+            if (StringUtils.isBlank(initiator)) {
+                initiator = maskedUsername;
+            }
+        } else {
+            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, authenticatedUser);
+            initiator = authenticatedUser;
+        }
+        /* When the action is StoreSession, the LastAccessedTimestamp means the session created timestamp. If the
+         action is UpdateSession, the LastAccessedTimestamp means the session's last accessed timestamp. */
+        auditData.put(SessionMgtConstants.SESSION_LAST_ACCESSED_TIMESTAMP, lastAccessedTimestamp);
+        AUDIT_LOG.info(String.format(SessionMgtConstants.AUDIT_MESSAGE_TEMPLATE, initiator,
+                sessionAction, auditData, SessionMgtConstants.SUCCESS));
     }
 }

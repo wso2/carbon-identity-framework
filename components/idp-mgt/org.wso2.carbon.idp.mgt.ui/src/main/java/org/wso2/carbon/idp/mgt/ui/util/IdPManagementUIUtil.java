@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+/**
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -172,6 +172,35 @@ public class IdPManagementUIUtil {
                         customAuthenticatorNames.add(new String(value, StandardCharsets.UTF_8));
                     } else if (key.startsWith("custom_pro_name")) {
                         proConnectorNames.add(new String(value, StandardCharsets.UTF_8));
+                    } else if (key.endsWith("_propEnabled")) {
+                        /*
+                         Mapping boolean checkbox properties in federated authenticators.
+                         A boolean checkbox id should be of
+                         cust_auth_prop_<Authenticator name>#<Property name>_propEnabled.
+                         */
+                        int length = "cust_auth_prop_".length();
+                        String authPropString = key.substring(length);
+                        if (authPropString.indexOf("#") > 0) {
+                            String authName = authPropString.substring(0, authPropString.indexOf("#"));
+                            String propName = authPropString.substring(authPropString
+                                    .indexOf("#") + 1, authPropString.indexOf("_propEnabled"));
+                            String propVal = new String(value, StandardCharsets.UTF_8);
+                            Property prop = new Property();
+                            prop.setName(propName);
+
+                            // A boolean checkbox appears only when the value is checked.
+                            if (propVal.equals("on")) {
+                                prop.setValue("true");
+                            } else {
+                                prop.setValue("false");
+                            }
+                            customAuthenticatorProperties.computeIfAbsent(authName, k -> new ArrayList<>());
+
+                            List<Property> propList;
+                            propList = customAuthenticatorProperties.get(authName);
+                            propList.add(prop);
+                            customAuthenticatorProperties.put(authName, propList);
+                        }
                     } else if (key.startsWith("cust_auth_prop_")) {
                         int length = "cust_auth_prop_".length();
                         String authPropString = new String(key).substring(length);
@@ -345,6 +374,9 @@ public class IdPManagementUIUtil {
 
         // build SCIM provisioning configuration.
         buildSCIMProvisioningConfiguration(fedIdp, paramMap);
+
+        // build SCIM2 provisioning configuration.
+        buildSCIM2ProvisioningConfiguration(fedIdp, paramMap);
 
         // build Salesforce provisioning configuration.
         buildSalesforceProvisioningConfiguration(fedIdp, paramMap);
@@ -590,6 +622,105 @@ public class IdPManagementUIUtil {
         ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
 
         if (proConnector.getName() != null) {
+            if (proConnectors == null || proConnectors.length == 0) {
+                fedIdp.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{proConnector});
+            } else {
+                fedIdp.setProvisioningConnectorConfigs(concatArrays(
+                        new ProvisioningConnectorConfig[]{proConnector}, proConnectors));
+            }
+        }
+
+    }
+
+    /**
+     * @param fedIdp
+     * @param paramMap
+     * @throws IdentityApplicationManagementException
+     */
+    private static void buildSCIM2ProvisioningConfiguration(IdentityProvider fedIdp,
+                                                           Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
+
+        ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
+        proConnector.setName("SCIM2");
+
+        Property userNameProp = null;
+        Property passwordProp = null;
+        Property userEpProp = null;
+        Property groupEpProp = null;
+        Property scim2UserStoreDomain = null;
+        Property scim2EnablePwdProvisioning = null;
+        Property defaultPwdProp = null;
+        Property uniqueID = null;
+
+        if (paramMap.get("scim2ProvEnabled") != null && "on".equals(paramMap.get("scim2ProvEnabled"))) {
+            proConnector.setEnabled(true);
+        } else {
+            proConnector.setEnabled(false);
+        }
+
+        if (paramMap.get("scim2ProvDefault") != null && "on".equals(paramMap.get("scim2ProvDefault"))) {
+            fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
+        }
+
+        if (paramMap.get("scim2-username") != null) {
+            userNameProp = new Property();
+            userNameProp.setName("scim2-username");
+            userNameProp.setValue(paramMap.get("scim2-username"));
+        }
+
+        if (paramMap.get("scim2-password") != null) {
+            passwordProp = new Property();
+            passwordProp.setConfidential(true);
+            passwordProp.setName("scim2-password");
+            passwordProp.setValue(paramMap.get("scim2-password"));
+        }
+
+        if (paramMap.get("scim2-user-ep") != null) {
+            userEpProp = new Property();
+            userEpProp.setName("scim2-user-ep");
+            userEpProp.setValue(paramMap.get("scim2-user-ep"));
+        }
+
+        if (paramMap.get("scim2-group-ep") != null) {
+            groupEpProp = new Property();
+            groupEpProp.setName("scim2-group-ep");
+            groupEpProp.setValue(paramMap.get("scim2-group-ep"));
+        }
+
+        if (paramMap.get("scim2-user-store-domain") != null) {
+            scim2UserStoreDomain = new Property();
+            scim2UserStoreDomain.setName("scim2-user-store-domain");
+            scim2UserStoreDomain.setValue(paramMap.get("scim2-user-store-domain"));
+        }
+
+        if (paramMap.get("scim2PwdProvEnabled") != null && "on".equals(paramMap.get("scim2PwdProvEnabled"))) {
+            scim2EnablePwdProvisioning = new Property();
+            scim2EnablePwdProvisioning.setName("scim2-enable-pwd-provisioning");
+            scim2EnablePwdProvisioning.setDefaultValue("false");
+            scim2EnablePwdProvisioning.setValue("true");
+        }
+
+        if (paramMap.get("scim2-default-pwd") != null) {
+            defaultPwdProp = new Property();
+            defaultPwdProp.setName("scim2-default-pwd");
+            defaultPwdProp.setValue(paramMap.get("scim2-default-pwd"));
+        }
+
+        if (paramMap.get("scim2-unique-id") != null) {
+            uniqueID = new Property();
+            uniqueID.setName("UniqueID");
+            uniqueID.setValue(paramMap.get("scim2-unique-id"));
+        }
+
+        Property[] proProperties = new Property[]{userNameProp, passwordProp, userEpProp,
+                groupEpProp, scim2UserStoreDomain, scim2EnablePwdProvisioning, defaultPwdProp, uniqueID};
+
+        proConnector.setProvisioningProperties(proProperties);
+
+        ProvisioningConnectorConfig[] proConnectors = fedIdp.getProvisioningConnectorConfigs();
+
+        if (StringUtils.isNotBlank(proConnector.getName())) {
             if (proConnectors == null || proConnectors.length == 0) {
                 fedIdp.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{proConnector});
             } else {
@@ -1211,9 +1342,9 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[10];
+        Property[] properties = new Property[11];
         Property property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
         properties[0] = property;
 
@@ -1244,28 +1375,36 @@ public class IdPManagementUIUtil {
         }
 
         property = new Property();
-        property.setName("commonAuthQueryParams");
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
+        if (paramMap.get("scopes") != null
+                && paramMap.get("scopes").trim().length() > 0) {
+            property.setValue(paramMap.get("scopes"));
+        }
+        properties[5] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.QUERY_PARAMS);
 
         if (paramMap.get("oidcQueryParam") != null
                 && paramMap.get("oidcQueryParam").trim().length() > 0) {
             property.setValue(paramMap.get("oidcQueryParam"));
         }
-        properties[5] = property;
+        properties[6] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
         property.setValue(paramMap.get("callbackUrl"));
-        properties[6] = property;
+        properties[7] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
-        properties[7] = property;
+        properties[8] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
         property.setValue(paramMap.get("logoutUrlOIDC"));
-        properties[8] = property;
+        properties[9] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
@@ -1274,7 +1413,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[9] = property;
+        properties[10] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();

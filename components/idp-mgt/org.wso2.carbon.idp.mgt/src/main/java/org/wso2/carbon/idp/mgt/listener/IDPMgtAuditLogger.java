@@ -24,8 +24,14 @@ import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -36,6 +42,11 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { Changed-State : { %s } }" +
             " | Result : %s ";
     private final String SUCCESS = "Success";
+
+    // Properties with the following key values will not be printed in audit logs.
+    private static final Set<String> UNLOGGABLE_PARAMS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("ClientSecret", "SPNPassword", "APISecret", "scim2-password", "sf-password",
+                    "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
 
     @Override
     public boolean isEnable() {
@@ -129,13 +140,20 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     }
 
     private String getUser() {
+
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (user != null) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (StringUtils.isNotBlank(user)) {
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            if (LoggerUtils.isLogMaskingEnable && StringUtils.isNotBlank(tenantDomain)) {
+                String userId = IdentityUtil.getInitiatorId(user, tenantDomain);
+                return StringUtils.isNotBlank(userId) ? userId : user + "@" + tenantDomain;
+            }
+            return user + "@" + tenantDomain;
         } else {
-            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+            return LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME) :
+                    CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
-        return user;
     }
 
     private String buildData(IdentityProvider identityProvider) {
@@ -238,9 +256,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : authConfig.getProperties()) {
-                        data.append(joiner);
-                        joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                        if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
+                            data.append(joiner);
+                            joiner = ", ";
+                            data.append("{").append(property.getName()).append(":").append(
+                                    LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                        }
                     }
                     data.append("]");
                 }
@@ -264,9 +285,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     data.append(", Properties:[");
                     joiner = "";
                     for (Property property : provConfig.getProvisioningProperties()) {
-                        data.append(joiner);
-                        joiner = ", ";
-                        data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                        if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
+                            data.append(joiner);
+                            joiner = ", ";
+                            data.append("{").append(property.getName()).append(":").append(
+                                    LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                        }
                     }
                     data.append("]");
                 }
@@ -296,9 +320,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             data.append(", IDP Properties:[");
             String joiner = "";
             for (IdentityProviderProperty property : idpProperties) {
-                data.append(joiner);
-                joiner = ", ";
-                data.append("{").append(property.getName()).append(":").append(property.getValue()).append("}");
+                if (!UNLOGGABLE_PARAMS.contains(property.getName())) {
+                    data.append(joiner);
+                    joiner = ", ";
+                    data.append("{").append(property.getName()).append(":").append(
+                            LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                }
             }
             data.append("]");
         }

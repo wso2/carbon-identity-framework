@@ -35,3 +35,6 @@ tls.protocol={{identity.auth_framework.endpoint.tls_protocol}}
 app.name={{identity.auth_framework.endpoint.app_name}}
 app.password={{identity.auth_framework.endpoint.app_password}}
 identity.server.origin={{identity.auth_framework.identity_server_origin}}
+{% if authentication.authenticator.google.parameters.RestrictedBrowsersForGOT is defined %}
+google.social.onetap.restricted_browsers={{authentication.authenticator.google.parameters.RestrictedBrowsersForGOT}}
+{% endif %}

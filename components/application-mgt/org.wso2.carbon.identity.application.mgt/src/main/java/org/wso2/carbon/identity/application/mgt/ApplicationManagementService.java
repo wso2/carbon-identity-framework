@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -230,6 +231,18 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
+     * Export Service Provider application with required attributes.
+     *
+     * @param applicationId      ID of the SP
+     * @param requiredAttributes List of required attributes.
+     * @return SP with required attributes attached.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract ServiceProvider getApplicationWithRequiredAttributes(int applicationId,
+                                                                         List<String> requiredAttributes)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Export Service Provider application using application ID.
      *
      * @param applicationId ID of the SP
@@ -356,6 +369,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException
      */
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get configured authenticators of an application.
+     *
+     * @param applicationID ID of an application.
+     * @return list of configured authenticators.
+     * @throws IdentityApplicationManagementException If error occurs in retrieving configured authenticators.
+     */
+    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException;
 
     @Override

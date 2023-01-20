@@ -20,20 +20,65 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
-import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Perform operations for {@link UserSession}.
  */
 public interface UserSessionDAO {
 
-    UserSession getSession(String sessionId) throws SessionManagementServerException;
+    /**
+     * Method to retrieve session information for a given session id.
+     *
+     * @param sessionId Id of the session.
+     * @return User session.
+     * @throws SessionManagementServerException
+     */
+    default UserSession getSession(String sessionId) throws SessionManagementServerException {
+
+        return null;
+    }
+
+    /**
+     * Method to retrieve session information for a given user and session id.
+     *
+     * @param userId Id of the user.
+     * @param sessionId Id of the session.
+     * @return User session.
+     * @throws SessionManagementServerException
+     */
+    default Optional<UserSession> getSession(String userId, String sessionId) throws SessionManagementServerException {
+
+        return Optional.empty();
+    }
+
+    /**
+     * Method to search active sessions on the system.
+     *
+     * @param tenantId  Context tenant ID.
+     * @param filter    Filter expression nodes.
+     * @param limit     Limit.
+     * @param sortOrder Order direction (ASC, DESC).
+     * @return The list of sessions found.
+     * @throws UserSessionException if an error occurs when retrieving the sessions from the database.
+     */
+    default List<UserSession> getSessions(int tenantId, List<ExpressionNode> filter, Integer limit, String sortOrder)
+            throws UserSessionException {
+
+        return Collections.emptyList();
+    }
 
     /**
      * Get federated user session details mapped for federated IDP sessionId.
@@ -46,7 +91,7 @@ public interface UserSessionDAO {
             throws SessionManagementServerException {
 
         FederatedUserSession federatedUserSession;
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
             federatedUserSession = jdbcTemplate
                     .fetchSingleRecord(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,

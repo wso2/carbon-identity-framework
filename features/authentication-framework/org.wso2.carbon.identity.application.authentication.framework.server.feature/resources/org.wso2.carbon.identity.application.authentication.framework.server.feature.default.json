@@ -57,16 +57,12 @@
     "password",
     "SAMLRequest"
   ],
-  "authentication.endpoint.redirect_params.filter_policy": "exclude",
-  "authentication.endpoint.redirect_params.remove_on_consume_from_api": true,
-  "authentication.endpoint.redirect_params.parameters": [
-    "loggedInUser"
-  ],
 
   "authentication.authenticator.basic.name": "BasicAuthenticator",
   "authentication.authenticator.basic.enable": true,
   "authentication.authenticator.basic.parameters.AuthMechanism": "basic",
   "authentication.authenticator.basic.parameters.Tags": "Username-Password",
+  "authentication.authenticator.basic.parameters.redirectToRetryPageOnAccountLock": "false",
 
   "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
   "authentication.authenticator.basic_request_path.enable": true,
@@ -101,6 +97,8 @@
   "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
   "authentication.authenticator.google.parameters.Tags": "Social-Login",
+  "authentication.authenticator.google.parameters.EnableCSRFValidationForGOT": true,
+  "authentication.authenticator.google.parameters.RestrictedBrowsersForGOT": ["safari"],
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,
@@ -121,6 +119,10 @@
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
   "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless",
+
+  "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
+  "authentication.authenticator.magiclink.enable": true,
+  "authentication.authenticator.magiclink.ExpiryTime": "300",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
@@ -182,6 +184,7 @@
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
+  "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
   "authentication.authenticator.totp.parameters.Tags": "MFA",
 
   "authentication.authenticator.backup_code.name": "backup-code-authenticator",

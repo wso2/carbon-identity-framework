@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,11 +31,18 @@ public class Constants {
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String REQUESTED_CLAIMS = "requestedClaims";
     public static final String MANDATORY_CLAIMS = "mandatoryClaims";
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String USERNAME = "username";
+    public static final String PROMPT_FOR_ACCOUNT_LINKING = "prompt_for_account_linking";
+    public static final String ATTEMPTED_USER = "attempted_user";
+    public static final String ATTEMPTED_USER_EMAIL = "attempted_user_email";
+    public static final String ATTEMPTED_IDP = "attempted_idp";
+
     // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success";
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail";
@@ -58,6 +65,7 @@ public class Constants {
     public static final String CONFIG_APP_NAME = "app.name";
     public static final String CONFIG_APP_PASSWORD = "app.password";
     public static final String CONFIG_SERVER_ORIGIN = "identity.server.origin";
+    public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
 
     private Constants() {
 
@@ -241,6 +249,22 @@ public class Constants {
         public static final String INCORRECT_ERROR_MAPPING_KEY = "incorrect.error.mapping";
         public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION = "suspicious.authentication.attempts_suspicious.authentication.attempts.description";
         public static final String SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY = "suspicious.authentication.attempts";
+        public static final String AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND =
+                "authentication.failed_no.registered.device.found";
+        public static final String NO_REGISTERED_DEVICE_FOUND_I18N_KEY =
+                "no.registered.device.found";
+        public static final String INVALID_CLIENT_IN_TENANT = "invalid_client_no.valid.client.in.tenant";
+        public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
+        public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE = "unauthorized_client_not.authorized.to.use.requested.grant.type";
+        public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY = "not.authorized.to.use.requested.grant.type";
+        public static final String AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION =
+                "authentication.context.null_authentication.context.null.description";
+        public static final String AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY =
+                "authentication.context.null";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION =
+                "authentication.flow.timeout_authentication.flow.timeout.description";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
+                "authentication.flow.timeout";
 
         private ErrorToi18nMappingConstants() {
 

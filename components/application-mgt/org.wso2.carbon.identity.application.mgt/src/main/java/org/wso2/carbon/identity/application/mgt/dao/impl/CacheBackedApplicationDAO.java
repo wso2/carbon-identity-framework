@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -38,6 +38,9 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicI
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoNameCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoResourceIdCacheKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDByInboundAuthCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
@@ -65,6 +68,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     private static IdentityServiceProviderCache appCacheByName = null;
     private static ServiceProviderByInboundAuthCache appCacheByInboundAuth = null;
+    private static ApplicationResourceIDByInboundAuthCache resourceIDCacheByInboundAuth = null;
     private static ServiceProviderByIDCache appCacheByID = null;
     private static ServiceProviderByResourceIdCache appCacheByResourceId = null;
     private static ApplicationBasicInfoByResourceIdCache appBasicInfoCacheByResourceId = null;
@@ -79,6 +83,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appCacheByResourceId = ServiceProviderByResourceIdCache.getInstance();
         appBasicInfoCacheByResourceId = ApplicationBasicInfoByResourceIdCache.getInstance();
         appBasicInfoCacheByName = ApplicationBasicInfoByNameCache.getInstance();
+        resourceIDCacheByInboundAuth = ApplicationResourceIDByInboundAuthCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -110,7 +115,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                 throw new IdentityApplicationManagementException(
                         "Error while getting the service provider for appId: " + appId);
             }
-            addToCache(serviceProvider, serviceProvider.getOwner().getTenantDomain());
+            addToCache(serviceProvider, serviceProvider.getTenantDomain());
         }
         return serviceProvider;
     }
@@ -158,6 +163,46 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             }
         }
         return appName;
+    }
+
+    /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        String resourceId;
+        ApplicationResourceIDCacheInboundAuthKey cacheKey = new ApplicationResourceIDCacheInboundAuthKey(inboundKey,
+                inboundType, tenantDomain);
+        ApplicationResourceIDCacheInboundAuthEntry entry = resourceIDCacheByInboundAuth.getValueFromCache(cacheKey,
+                tenantDomain);
+        if (entry != null) {
+            resourceId = entry.getApplicationResourceId();
+            if (resourceId != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Resource ID is present in the cache for " + cacheKey);
+                }
+                return  resourceId;
+            }
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Resource ID is not present in the cache for " + cacheKey + " Hence getting it from DB.");
+        }
+
+        resourceId = appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
+
+        ApplicationResourceIDCacheInboundAuthEntry clientEntry =
+                new ApplicationResourceIDCacheInboundAuthEntry(resourceId);
+        resourceIDCacheByInboundAuth.addToCache(cacheKey, clientEntry, tenantDomain);
+
+        return resourceId;
     }
 
     public boolean isApplicationExists(String applicationName, String tenantDomain) throws
@@ -665,6 +710,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                     ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
                             config.getInboundAuthKey(), config.getInboundAuthType());
                     appCacheByInboundAuth.clearCacheEntry(clientKey, tenantDomain);
+
+                    // Clear ApplicationResourceIDByInboundAuthCache.
+                    ApplicationResourceIDCacheInboundAuthKey inboundKey = new ApplicationResourceIDCacheInboundAuthKey(
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                    resourceIDCacheByInboundAuth.clearCacheEntry(inboundKey, tenantDomain);
                 }
             }
         }

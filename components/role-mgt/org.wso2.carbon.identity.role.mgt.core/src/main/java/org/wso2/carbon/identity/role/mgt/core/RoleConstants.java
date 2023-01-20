@@ -72,6 +72,8 @@ public class RoleConstants {
         public static final String ATTR_VALUE = "ATTR_VALUE";
         public static final String ROLE_NAME = "ROLE_NAME";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
+        public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +
+                "in the tenantDomain: %s";
 
         private RoleTableColumns() {
 

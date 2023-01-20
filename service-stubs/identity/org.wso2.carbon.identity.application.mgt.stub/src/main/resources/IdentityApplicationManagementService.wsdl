@@ -378,6 +378,7 @@
                     <xs:element minOccurs="0" name="saasApp" type="xs:boolean"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="spProperties" nillable="true" type="ax2169:ServiceProviderProperty"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ClaimConfig">
@@ -552,6 +553,7 @@
                 <xs:complexContent>
                     <xs:extension base="ax2169:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>
@@ -629,8 +631,11 @@
                     <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="clientId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="SpFileContent">

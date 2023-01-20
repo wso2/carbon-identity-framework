@@ -21,11 +21,13 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.AxisFault" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.Association" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
+<%@ page import="org.wso2.carbon.base.ServerConfiguration" %>
 
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -38,21 +40,49 @@
     ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, request.getLocale());
     WorkflowAdminServiceClient client;
     String forwardTo = null;
-    Association[] associationsToDisplay = new Association[0];
-    String paginationValue = "region=region1&item=association_list_menu";
+    String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(WorkflowUIConstants.RESULTS_PER_PAGE_PROPERTY);
+    String filterString = request.getParameter(WorkflowUIConstants.ASSOC_NAME_FILTER);
+
+    if (!StringUtils.isNotBlank(filterString)) {
+        filterString =  WorkflowUIConstants.DEFAULT_FILTER;
+    } else {
+        filterString = filterString.trim();
+    }
+
+    String paginationValue;
+    if (StringUtils.isNotBlank(filterString)) {
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE_WITH_FILTER,
+        WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE, filterString);
+    } else {
+        paginationValue = String.format(WorkflowUIConstants.PAGINATION_VALUE,
+        WorkflowUIConstants.DEFAULT_REGION_VALUE, WorkflowUIConstants.DEFAULT_ASSOC_ITEM_VALUE);
+    }
 
     String pageNumber = request.getParameter(WorkflowUIConstants.PARAM_PAGE_NUMBER);
     int pageNumberInt = 0;
     int numberOfPages = 0;
+    int offset = 0;
+    int numberOfAssociations;
+    int resultsPerPageInt = WorkflowUIConstants.DEFAULT_RESULTS_PER_PAGE;
     Association[] associations = null;
 
-    if (pageNumber != null) {
+    if (StringUtils.isNotBlank(resultsPerPage)) {
+        try {
+            resultsPerPageInt = Integer.parseInt(resultsPerPage);
+        } catch (NumberFormatException ignored) {
+            //not needed to handle here, since the default value is already set.
+        }
+    }
+
+    if (StringUtils.isNotBlank(pageNumber)) {
         try {
             pageNumberInt = Integer.parseInt(pageNumber);
+            offset = ((pageNumberInt) * resultsPerPageInt);
         } catch (NumberFormatException ignored) {
             //not needed here since it's defaulted to 0
         }
     }
+
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -60,18 +90,9 @@
                 (ConfigurationContext) config.getServletContext()
                         .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         client = new WorkflowAdminServiceClient(cookie, backendServerURL, configContext);
-
-        associations = client.listAllAssociations();
-        if (associations != null) {
-            numberOfPages = (int) Math.ceil((double) associations.length / WorkflowUIConstants.RESULTS_PER_PAGE);
-            int startIndex = pageNumberInt * WorkflowUIConstants.RESULTS_PER_PAGE;
-            int endIndex = (pageNumberInt + 1) * WorkflowUIConstants.RESULTS_PER_PAGE;
-            associationsToDisplay = new Association[WorkflowUIConstants.RESULTS_PER_PAGE];
-
-            for (int i = startIndex, j = 0; i < endIndex && i < associations.length; i++, j++) {
-                associationsToDisplay[j] = associations[i];
-            }
-        }
+        numberOfAssociations = client.getAssociationsCount(filterString);
+        associations = client.listPaginatedAssociations(resultsPerPageInt, offset, filterString);
+        numberOfPages = (int) Math.ceil((double) numberOfAssociations / resultsPerPageInt);
     } catch (AxisFault e) {
         String message = resourceBundle.getString("workflow.error.when.initiating.service.client");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -104,7 +125,7 @@
     <script type="text/javascript" src="../admin/js/cookies.js"></script>
     <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript">
-        function removeAssociation(id, name) {
+        function removeAssociation(id, name, pageNumberInt, filterString) {
             function doDelete() {
 
                 $.ajax({
@@ -118,7 +139,8 @@
                     async: false,
                     success: function (responseText, status) {
                         if (status == "success") {
-                            location.assign("list-associations.jsp");
+                            location.assign("list-associations.jsp?pageNumber=" +
+                                pageNumberInt.toString() + "&region=region1&item=associations_list&filterString=" + filterString);
                         }
                     }
                 });
@@ -128,7 +150,7 @@
                     doDelete, null);
         }
 
-        function changeState(id, name, action) {
+        function changeState(id, name, action, pageNumberInt, filterString) {
             function onChangeState() {
 
                 $.ajax({
@@ -142,7 +164,8 @@
                     async: false,
                     success: function (responseText, status) {
                         if (status == "success") {
-                            location.assign("list-associations.jsp");
+                            location.assign("list-associations.jsp?pageNumber=" +
+                                pageNumberInt.toString() + "&region=region1&item=associations_list&filterString=" + filterString);
                         }
                     }
                 });
@@ -167,9 +190,40 @@
     <div id="middle">
         <h2><fmt:message key='workflow.association.list'/></h2>
 
+        <table style="border:none; !important margin-top:10px;margin-left:5px;">
+            <tr>
+                <td>
+                    <form action="list-associations.jsp" name="searchForm" method="post">
+                        <table style="border:0;!important margin-top:10px;margin-bottom:10px;">
+                            <tr>
+                                <td>
+                                    <table style="border:0; !important">
+                                        <tbody>
+                                            <tr style="border:0; !important">
+                                                <td style="border:0; !important">
+                                                    <fmt:message key="workflow.service.association.add.name.pattern"/>
+                                                    <input style="margin-left:30px; !important"
+                                                           type="text" name="<%=WorkflowUIConstants.ASSOC_NAME_FILTER%>"
+                                                           value="<%=filterString != null ?
+                                                        Encode.forHtmlAttribute(filterString) : Encode
+                                                        .forHtmlAttribute(WorkflowUIConstants.DEFAULT_FILTER) %>"/>&nbsp;
+                                                    <input class="button" type="submit"
+                                                           value="<fmt:message key="workflow.service.association.search"/>"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </td>
+            </tr>
+        </table>
+
         <div id="workArea">
             <a title="<fmt:message key='workflow.service.association.add'/>"
-               href="#" style="background-image: url(images/add.png);" onclick="addAssociation();return false;"
+               href="#" style="background-image: url(images/add.png); margin-top: -10px;" onclick="addAssociation();return false;"
                class="icon-link"><fmt:message key='workflow.service.association.add'/></a>
             <table class="styledLeft" id="servicesTable">
                 <thead>
@@ -183,7 +237,7 @@
                 <tbody>
                 <%
                     if (associations != null && associations.length > 0) {
-                        for (Association association : associationsToDisplay) {
+                        for (Association association : associations) {
                             if (association != null) {
                 %>
                 <td>
@@ -200,7 +254,8 @@
 
                     <a title="<fmt:message key='workflow.service.association.state.disable'/>"
                        onclick="changeState('<%=Encode.forJavaScriptAttribute(association.getAssociationId())%>',
-                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>','<%=WorkflowUIConstants.ACTION_VALUE_DISABLE%>');return false;"
+                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>','<%=WorkflowUIConstants.ACTION_VALUE_DISABLE%>',
+                               '<%=pageNumberInt%>', '<%=Encode.forJavaScriptAttribute(filterString)%>');return false;"
                        class="icon-link" href="#" style="background-image: url(images/disable.gif);"><fmt:message
                             key='disable'/></a>
 
@@ -208,7 +263,8 @@
 
                     <a title="<fmt:message key='workflow.service.association.state.enable'/>"
                        onclick="changeState('<%=Encode.forJavaScriptAttribute(association.getAssociationId())%>',
-                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>','<%=WorkflowUIConstants.ACTION_VALUE_ENABLE%>');return false;"
+                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>','<%=WorkflowUIConstants.ACTION_VALUE_ENABLE%>',
+                               '<%=pageNumberInt%>', '<%=Encode.forJavaScriptAttribute(filterString)%>');return false;"
                        class="icon-link" href="#" style="background-image: url(images/enable.gif);"><fmt:message
                             key='enable'/></a>
 
@@ -220,7 +276,8 @@
                     %>
                     <a title="<fmt:message key='workflow.service.association.delete.title'/>"
                        onclick="removeAssociation('<%=Encode.forJavaScriptAttribute(association.getAssociationId())%>',
-                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>');return false;"
+                               '<%=Encode.forJavaScriptAttribute(association.getAssociationName())%>',
+                               '<%=pageNumberInt%>', '<%=Encode.forJavaScriptAttribute(filterString)%>');return false;"
                        href="#" style="background-image: url(images/delete.gif);"
                        class="icon-link"><fmt:message key='delete'/></a>
                     <%}%>

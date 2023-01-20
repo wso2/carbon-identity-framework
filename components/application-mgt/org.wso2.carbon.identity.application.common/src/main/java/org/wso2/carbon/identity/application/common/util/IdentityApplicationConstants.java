@@ -92,14 +92,26 @@ public class IdentityApplicationConstants {
 
     // Service Provider configuration options that are stored as SP properites.
     public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
+    public static final String NAME_SP_PROPERTY_NAME = "name";
+    public static final String CLIENT_ID_SP_PROPERTY_NAME = "clientId";
+    public static final String ISSUER_SP_PROPERTY_NAME = "issuer";
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
+    public static final String ADVANCED_CONFIG = "advancedConfigurations";
 
     public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
     public static final String USE_USER_ID_FOR_DEFAULT_SUBJECT = "useUserIdForDefaultSubject";
+
+    // Flag to indicate if an SP is a system reserved SP.
+    public static final String IS_SYSTEM_RESERVED_APP_FLAG = "isSystemReservedApp";
+    public static final String IS_SYSTEM_RESERVED_APP_DISPLAY_NAME = "Is System Reserved Application";
+
+    public static final String LOCAL_SP = "wso2carbon-local-sp";
+
+    public static final String SP_NAME = "spName";
 
     /**
      * Config elements.
@@ -207,11 +219,13 @@ public class IdentityApplicationConstants {
         public static class OIDC extends OAuth2 {
 
             public static final String NAME = "openidconnect";
+            public static final String FED_AUTH_NAME = "OpenIDConnectAuthenticator";
             public static final String USER_INFO_URL = "UserInfoUrl";
             public static final String OIDC_CHECK_SESSION_URL = "OIDCCheckSessionEPUrl";
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
+            public static final String QUERY_PARAMS = "commonAuthQueryParams";
         }
 
         /**
@@ -318,6 +332,7 @@ public class IdentityApplicationConstants {
         public static final String OAUTH2_DCR_EP_URL = "OAuth2DCREPUrl";
         public static final String OAUTH2_JWKS_EP_URL = "OAuth2JWKSPage";
         public static final String OIDC_DISCOVERY_EP_URL = "OIDCDiscoveryEPUrl";
+        public static final String SCOPES = "Scopes";
 
         private OAuth2() {
 

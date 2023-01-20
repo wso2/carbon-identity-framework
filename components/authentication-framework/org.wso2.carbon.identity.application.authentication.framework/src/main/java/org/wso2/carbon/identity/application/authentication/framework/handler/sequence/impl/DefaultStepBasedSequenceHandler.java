@@ -44,6 +44,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
@@ -57,6 +59,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+
 /**
  * Default implementation of step based sequence handler.
  */
@@ -67,6 +71,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
             + ".ReturnOnlyMappedLocalRoles";
     private static boolean returnOnlyMappedLocalRoles = false;
+    private static boolean allowSPRequestedFedClaimsOnly = true;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -85,6 +90,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
             returnOnlyMappedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
+            allowSPRequestedFedClaimsOnly =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
         }
     }
 
@@ -112,6 +121,30 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (currentStep == 0) {
                 currentStep++;
                 context.setCurrentStep(currentStep);
+
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    Map<String, Object> stepMap = new HashMap<>();
+                    context.getSequenceConfig().getStepMap().forEach((key, value) -> {
+                        List<Map<String, Object>> stepConfigParams = new ArrayList<>();
+                        value.getAuthenticatorList().forEach(authenticatorConfig -> {
+                            Map<String, Object> authenticatorParams = new HashMap<>();
+                            authenticatorParams.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                                    authenticatorConfig.getName());
+                            authenticatorParams.put(FrameworkConstants.LogConstants.IDP_NAMES,
+                                    authenticatorConfig.getIdpNames());
+                            stepConfigParams.add(authenticatorParams);
+                        });
+                        stepMap.put(FrameworkConstants.LogConstants.STEP + " " + key.toString(), stepConfigParams);
+                    });
+                    params.put(FrameworkConstants.LogConstants.STEPS, stepMap);
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Executing step-based authentication",
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                }
             }
 
             StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
@@ -298,14 +331,24 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     String idpRoleClaimUri = getIdpRoleClaimUri(stepConfig, context);
 
                     // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // Include the unmapped roles as it is.
-                    List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    // If no mapping is provided, return all IDP roles as they are.
+                    List<String> identityProviderMappedUserRolesUnmappedInclusive;
+                    if (MapUtils.isEmpty(externalIdPConfig.getRoleMappings())) {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                    } else {
+                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                    }
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);
                     if (StringUtils.isNotBlank(idpRoleClaimUri)
                             && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                    }
+
+                    if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
                         extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
                     }
 
@@ -345,7 +388,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // send all local mapped claim values or idp claim values
                         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
                         if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
-                                !isSPStandardClaimDialect(context.getRequestType())) {
+                                (!allowSPRequestedFedClaimsOnly ||
+                                        !isSPStandardClaimDialect(context.getRequestType()))) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;

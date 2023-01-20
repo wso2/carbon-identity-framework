@@ -103,6 +103,7 @@
             <Parameter name="GoogleTokenEndpoint">https://accounts.google.com/o/oauth2/token</Parameter>
             <Parameter name="GoogleAuthzEndpoint">https://accounts.google.com/o/oauth2/auth</Parameter>
             <Parameter name="GoogleUserInfoEndpoint">https://www.googleapis.com/oauth2/v3/userinfo</Parameter>
+            <Parameter name="EnableCSRFValidationForGOT">true</Parameter>
         </AuthenticatorConfig>
         <AuthenticatorConfig name="MicrosoftWindowsLive" enabled="true">
             <Parameter name="AuthTokenEndpoint">https://login.live.com/oauth20_token.srf</Parameter>
@@ -166,6 +167,7 @@
            <Parameter name="CaptureAndUpdateMobileNumber">true</Parameter>
            <Parameter name="SendOTPDirectlyToMobile">false</Parameter>
            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+           <Parameter name="TokenExpiryTime">900</Parameter>
        </AuthenticatorConfig>
        <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
            <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
@@ -189,6 +191,9 @@
             <Parameter name="UseCommonIssuer">true</Parameter>
             <Parameter name="AllowSendingVerificationCodeByEmail">false</Parameter>
             <Parameter name="HideUserStoreFromDisplayInQRUrl">false</Parameter>
+        </AuthenticatorConfig>
+        <AuthenticatorConfig name="MagicLinkAuthenticator" enabled="true">
+            <Parameter name="ExpiryTime">300</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 

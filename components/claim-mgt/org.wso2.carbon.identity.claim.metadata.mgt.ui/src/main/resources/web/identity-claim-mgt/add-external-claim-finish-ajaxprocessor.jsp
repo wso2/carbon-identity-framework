@@ -26,6 +26,7 @@
 <%@page import="java.text.MessageFormat" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ExternalClaimDTO" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
@@ -45,7 +46,7 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String externalClaimDialectURI = request.getParameter("externalClaimDialectURI");
-    String externalClaimURI = request.getParameter("externalClaimURI");
+    String externalClaimURI = StringUtils.trim(request.getParameter("externalClaimURI"));
     String mappedLocalClaimURI = request.getParameter("mappedLocalClaimURI");
 
 

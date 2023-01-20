@@ -52,6 +52,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected String fragment;
     protected String[] urlPaths;
     protected String tenant;
+    protected String orgId = null;
     protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
@@ -121,9 +122,18 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/")) {
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
+                !resolvedUrlContext.startsWith("o/")) {
             if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+                String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
+                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                if (organizationId != null) {
+                    // When requesting from an organization qualified url, the service urls should also be organization
+                    // qualified.
+                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
+                } else {
+                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+                }
             }
         }
 
@@ -198,6 +208,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         this.tenant = tenantDomain;
         this.mandateTenantedPath = mandateTenantedPath;
+        return this;
+    }
+
+    @Override
+    public ServiceURLBuilder setOrganization(String orgId) {
+
+        this.orgId = orgId;
         return this;
     }
 

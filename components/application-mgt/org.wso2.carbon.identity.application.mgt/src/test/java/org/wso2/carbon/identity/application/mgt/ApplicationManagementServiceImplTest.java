@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.context.internal.OSGiDataHolder;
@@ -51,6 +53,8 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -85,15 +89,31 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
+@PowerMockIgnore({"org.mockito.*"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
-    private static final String APPLICATION_NAME_1 = "Test application 1";
-    private static final String APPLICATION_NAME_2 = "Test application 2";
+    private static final String APPLICATION_NAME_1 = "Test application1";
+    private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_INBOUND_AUTH_KEY_1 = "Test_auth_key1";
+    private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
+    private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
+    private static final String APPLICATION_NAME_FILTER_2 = "name co 2";
+    private static final String APPLICATION_CLIENT_ID_FILTER = "clientId co %s";
+    private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
+    private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
+    private static final String APPLICATION_NAME_AND_CLIENT_ID_FILTER = "name co application1 and clientId eq %s";
+    private static final String APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER =
+            "name co application1 and clientId eq %s or issuer eq %s";
+    private static final String APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER =
+            "name co application1 and issuer eq %s or clientId eq %s";
+    private static final String APPLICATION_NAME_OR_ISSUER_FILTER = "name co sampleAppName or issuer eq %s";
+    private static final String APPLICATION_NAME_AND_ISSUER_FILTER = "name co application1 and issuer eq %s";
     private static final String IDP_NAME_1 = "Test IdP 1";
     private static final String IDP_NAME_2 = "Test IdP 2";
     private static final String USERNAME_1 = "user 1";
     private static final String USERNAME_2 = "user 2";
+    private static final String RANDOM_STRING = "random string";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -234,18 +254,18 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getApplicationDataProvider")
-    public void testGetApplicationBasicInfoWithFilter(Object serviceProvider, String tenantDomain, String username)
+    public void testGetApplicationBasicInfoWithNameFilter(Object serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
 
-        // Adding new application.
+        // Adding application.
         ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
                 username);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
-                (tenantDomain, username, inputSP.getApplicationName());
+                (tenantDomain, username, "name eq " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
@@ -259,13 +279,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
 
-        // Adding new application.
-        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain,
-                username);
+        // Adding application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, tenantDomain, username);
 
         // Retrieving added application info.
         ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getPaginatedApplicationBasicInfo
-                (tenantDomain, username, 1, inputSP.getApplicationName());
+                (tenantDomain, username, 1, "name co " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
 
@@ -333,20 +352,156 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testGetApplicationBasicInfoFilterOffsetLimit() throws IdentityApplicationManagementException {
+    public void testGetOAuth2ApplicationBasicInfoWithFilterOffsetLimit() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+        setApplicationInboundAuthConfigs(inputSP1, APPLICATION_INBOUND_AUTH_KEY_1, "oauth2");
 
-        ApplicationBasicInfo[] applicationBasicInfo1 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_2, 0, 1);
-        Assert.assertEquals(applicationBasicInfo1[0].getApplicationName(), APPLICATION_NAME_2);
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+        setApplicationInboundAuthConfigs(inputSP2, APPLICATION_INBOUND_AUTH_KEY_2, "oauth2");
 
-        ApplicationBasicInfo[] applicationBasicInfo2 = applicationManagementService.getApplicationBasicInfo
-                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_1, 0, 1);
-        Assert.assertEquals(applicationBasicInfo2[0].getApplicationName(), APPLICATION_NAME_1);
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Test get applications with name filter.
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_FILTER_1, 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_FILTER_2, 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with clientId filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with name or clientId filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with name and clientId filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getClientId(), APPLICATION_INBOUND_AUTH_KEY_1);
+
+        // Test get applications with name and clientId or issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                                APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getClientId(), APPLICATION_INBOUND_AUTH_KEY_1);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetSAMLApplicationBasicInfoWithFilterOffsetLimit() throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+        setApplicationInboundAuthConfigs(inputSP1, APPLICATION_INBOUND_AUTH_KEY_1, "samlsso");
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+        setApplicationInboundAuthConfigs(inputSP2, APPLICATION_INBOUND_AUTH_KEY_2, "samlsso");
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Test get applications with name filter.
+        ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_FILTER_1, 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, APPLICATION_NAME_FILTER_2, 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with name or issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_2);
+
+        // Test get applications with name and issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getIssuer(), APPLICATION_INBOUND_AUTH_KEY_1);
+
+        // Test get applications with name and clientId or issuer filter.
+        applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                (SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                        String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                                APPLICATION_INBOUND_AUTH_KEY_1), 0, 5);
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), APPLICATION_NAME_1);
+        Assert.assertEquals(applicationBasicInfo[0].getIssuer(), APPLICATION_INBOUND_AUTH_KEY_1);
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetConfiguredAuthenticators() throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        ApplicationBasicInfo applicationBasicInfo = applicationManagementService
+                .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
+        String resourceID = applicationBasicInfo.getApplicationResourceId();
+        AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID);
+
+        Assert.assertEquals(steps.length, 1);
+        Assert.assertEquals(steps[0].getStepOrder(), 1);
     }
 
     @Test
@@ -361,13 +516,100 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testGetCountOfApplicationsFilter() throws IdentityApplicationManagementException {
+    public void testGetCountOfOAuth2ApplicationsWithFilter() throws IdentityApplicationManagementException {
 
-        addApplications();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+        setApplicationInboundAuthConfigs(inputSP1, APPLICATION_INBOUND_AUTH_KEY_1, "oauth2");
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+        setApplicationInboundAuthConfigs(inputSP2, APPLICATION_INBOUND_AUTH_KEY_2, "oauth2");
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Test get count of applications with name filter.
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_1), 1);
+                USERNAME_1, APPLICATION_NAME_FILTER_1), 1);
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
-                USERNAME_1, APPLICATION_NAME_2), 1);
+                USERNAME_1, APPLICATION_NAME_FILTER_2), 1);
+
+        // Test get count of applications with clientId filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_CLIENT_ID_FILTER, RANDOM_STRING)), 0);
+
+        // Test get count of applications with name or clientId filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_NAME_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_CLIENT_ID_FILTER, RANDOM_STRING)), 0);
+
+        // Test get count of applications with name and clientId filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_NAME_AND_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2)), 0);
+
+        // Test get count of applications with name and clientId or issuer filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                        APPLICATION_INBOUND_AUTH_KEY_2)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_CLIENT_ID_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2,
+                        APPLICATION_INBOUND_AUTH_KEY_1)), 0);
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetCountOfSAMLApplicationsWithFilter() throws IdentityApplicationManagementException {
+
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+        setApplicationInboundAuthConfigs(inputSP1, APPLICATION_INBOUND_AUTH_KEY_1, "samlsso");
+
+        ServiceProvider inputSP2 = new ServiceProvider();
+        inputSP2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP2);
+        setApplicationInboundAuthConfigs(inputSP2, APPLICATION_INBOUND_AUTH_KEY_2, "samlsso");
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.createApplication(inputSP2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Test get count of applications with issuer filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_ISSUER_FILTER, RANDOM_STRING)), 0);
+
+        // Test get count of applications with name or issuer filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_NAME_OR_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1,  String.format(APPLICATION_ISSUER_FILTER, RANDOM_STRING)), 0);
+
+        // Test get count of applications with name and issuer filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1, String.format(APPLICATION_NAME_AND_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_1)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1,  String.format(APPLICATION_NAME_AND_ISSUER_FILTER, APPLICATION_INBOUND_AUTH_KEY_2)), 0);
+
+        // Test get count of applications with name and issuer or clientId filter.
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_1,
+                        APPLICATION_INBOUND_AUTH_KEY_2)), 1);
+        Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                String.format(APPLICATION_NAME_AND_ISSUER_OR_CLIENT_ID_FILTER, APPLICATION_INBOUND_AUTH_KEY_2,
+                        APPLICATION_INBOUND_AUTH_KEY_1)), 0);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -469,7 +711,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         String resourceId = applicationManagementService.createApplication((ServiceProvider) serviceProvider,
                 tenantDomain, username);
 
-        // Retrieving application by ResourceId
+        // Retrieving application by ResourceId.
         ServiceProvider expectedSP = applicationManagementService.getApplicationByResourceId(resourceId,
                 tenantDomain);
         Assert.assertEquals(resourceId, expectedSP.getApplicationResourceId());
@@ -479,7 +721,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo.getApplicationName(), ((ServiceProvider) serviceProvider).
                 getApplicationName());
 
-        // Deleting added application
+        // Deleting added application.
         applicationManagementService.deleteApplicationByResourceId(resourceId, tenantDomain, username);
     }
 
@@ -556,14 +798,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         serviceProvider.setSaasApp(TRUE);
 
         // Inbound Authentication Configurations.
-        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
-        InboundAuthenticationRequestConfig authRequestConfig = new InboundAuthenticationRequestConfig();
-        authRequestConfig.setInboundAuthKey("auth key");
-        authRequestConfig.setInboundAuthType("oauth2");
-        InboundAuthenticationRequestConfig[] authRequests = new InboundAuthenticationRequestConfig[]
-                {authRequestConfig};
-        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequests);
-        serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        setApplicationInboundAuthConfigs(serviceProvider, "auth key", "oauth2");
 
         // Inbound Provisioning Configurations.
         InboundProvisioningConfig provisioningConfig = new InboundProvisioningConfig();
@@ -626,6 +861,18 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         permissionsAndRoleConfig.setRoleMappings(roleMappings);
     }
 
+    private void setApplicationInboundAuthConfigs(ServiceProvider serviceProvider, String authKey, String authType) {
+
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        InboundAuthenticationRequestConfig authRequestConfig = new InboundAuthenticationRequestConfig();
+        authRequestConfig.setInboundAuthKey(authKey);
+        authRequestConfig.setInboundAuthType(authType);
+        InboundAuthenticationRequestConfig[] authRequests = new InboundAuthenticationRequestConfig[]
+                {authRequestConfig};
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequests);
+        serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+    }
+
     private void setupConfiguration() throws UserStoreException, RegistryException {
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
@@ -654,6 +901,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.getInstance();
         setInstanceValue(testSessionRealmService, RealmService.class, ApplicationManagementServiceComponentHolder.class,
                 holder);
+        setInstanceValue(new RegistryBasedApplicationPermissionProvider(), ApplicationPermissionProvider.class,
+                ApplicationManagementServiceComponentHolder.class, holder);
 
        // Configure Registry Service.
         RegistryService mockRegistryService = mock(RegistryService.class);
@@ -667,6 +916,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Collection mockPermissionNode = mock(Collection.class);
         when(mockRegistry.newCollection()).thenReturn(mockPermissionNode);
         when(mockRegistry.get(anyString())).thenReturn(mockPermissionNode);
+        when(CarbonContext.getThreadLocalCarbonContext().getRegistry(
+                RegistryType.USER_GOVERNANCE)).thenReturn(mockRegistry);
+        when(mockRegistry.resourceExists(anyString())).thenReturn(FALSE);
     }
 
     private void setInstanceValue(Object value, Class valueType, Class clazz, Object instance) {

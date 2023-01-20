@@ -16,6 +16,8 @@
   ~  under the License.
   --%>
 
+<%@ page import="java.nio.charset.StandardCharsets"%>
+<%@ page import="java.util.Base64"%>
 <%@ page import="org.apache.axis2.context.ConfigurationContext"%>
 <%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
@@ -36,6 +38,7 @@
         return;
     }
     String content = request.getParameter("sp-file-content");
+    content = new String(Base64.getDecoder().decode(content), StandardCharsets.UTF_8);
     String fileName = request.getParameter("sp-file-name");
     
     if (StringUtils.isNotEmpty(content)) {

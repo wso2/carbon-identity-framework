@@ -47,6 +47,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean modifyUserNameAllowed = false;
     @XmlElement(name = "PromptConsent")
     private boolean promptConsent = false;
+    @XmlElement(name = "EnableAssociateLocalUser")
+    private boolean associateLocalUserEnabled = false;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -123,7 +125,23 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      * @return true if the password provisioning is enabled, otherwise false.
      */
     public boolean isPasswordProvisioningEnabled() {
+
         return passwordProvisioningEnabled;
+    }
+
+    /**
+     * To associate existing local user when JIT user provisioning is enabled.
+     *
+     * @param associateLocalUserEnabled to specify whether to associate existing local user when JIT user provisioning.
+     */
+    public void setAssociateLocalUserEnabled(boolean associateLocalUserEnabled) {
+
+        this.associateLocalUserEnabled = associateLocalUserEnabled;
+    }
+
+    public boolean isAssociateLocalUserEnabled() {
+
+        return associateLocalUserEnabled;
     }
 
     /**

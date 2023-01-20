@@ -78,7 +78,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -95,7 +95,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithCarbonHome
 @PrepareForTest({SameSiteCookie.class, SessionContextCache.class, AuthenticationResultCache.class,
         AuthenticationContextCache.class, IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*"})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
     private static final String ROOT_DOMAIN = "/";
@@ -266,8 +266,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     public void testGetStepHandlerNonExistHandler() {
 
         ConfigurationFacade.getInstance().getExtensions().remove(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
-        FrameworkUtils.getStepHandler();
-        verify(GraphBasedStepHandler.class, times(1));
+        StepHandler stepHandler = FrameworkUtils.getStepHandler();
+        assertEquals(GraphBasedStepHandler.class, stepHandler.getClass());
     }
 
     @Test

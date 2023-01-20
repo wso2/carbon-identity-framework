@@ -417,7 +417,7 @@
                                     <td><fmt:message key="user.name"/><font color="red">*</font>
                                     </td>
                                     <td><input type="text" name="username"
-                                               value=""
+                                               value="" autocomplete="off"
                                                style="width:150px"/></td>
                                 </tr>
                                 <%

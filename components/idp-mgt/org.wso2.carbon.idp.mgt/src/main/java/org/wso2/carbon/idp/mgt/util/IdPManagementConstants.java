@@ -24,6 +24,7 @@ package org.wso2.carbon.idp.mgt.util;
 public class IdPManagementConstants {
 
     public static final String SHARED_IDP_PREFIX = "SHARED_";
+    public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String MULTI_VALUED_PROPERTY_CHARACTER = ".";
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
@@ -85,11 +86,18 @@ public class IdPManagementConstants {
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
+    public static final String ASSOCIATE_LOCAL_USER_ENABLED = "ASSOCIATE_LOCAL_USER_ENABLED";
 
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
+
+    // Outbound Provisioning Connectors
+    public static final String GOOGLE = "googleapps";
+    public static final String SALESFORCE = "salesforce";
+    public static final String SCIM = "scim";
+    public static final String SCIM2 = "SCIM2";
 
     public static class SQLQueries {
 
@@ -100,6 +108,9 @@ public class IdPManagementConstants {
         public static final String GET_IDPS_NAME_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
                 "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
                 "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
+
+        public static final String GET_IDPS_BY_IDP_ID_LIST = "SELECT ID, NAME FROM IDP WHERE TENANT_ID = ? " +
+                "AND ID IN (" + SCOPE_LIST_PLACEHOLDER + ")";
 
         public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
 

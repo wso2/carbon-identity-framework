@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -1451,6 +1451,17 @@ public class IdentityProviderManager implements IdpManager {
         return dao.getIdPNameByResourceId(resourceId);
     }
 
+    @Override
+    public Map<String, String> getIdPNamesById(String tenantDomain, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        if (idpIds.isEmpty()) {
+            return null;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPNamesById(tenantId, idpIds);
+    }
+
     /**
      * @param idPName
      * @param tenantDomain
@@ -2042,8 +2053,9 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
+        markConfidentialPropertiesUsingMetadata(identityProvider);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
-        validateOutboundProvisioningRoles(identityProvider,tenantDomain);
+        validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
@@ -2351,6 +2363,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider
             newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
 
+        markConfidentialPropertiesUsingMetadata(newIdentityProvider);
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -3098,5 +3111,44 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException("Error while configuring metadata", e);
         }
         return propertyWithName;
+    }
+
+    /**
+     * Set the confidential status of federated authenticator properties using metadata.
+     * @param identityProvider Identity Provider.
+     */
+    private void markConfidentialPropertiesUsingMetadata(IdentityProvider identityProvider)
+            throws IdentityProviderManagementException {
+
+        Map<String, List<String>> metaFedAuthConfigMap = createFedAuthConfidentialPropsMap();
+        Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
+            List<String> secretProperties = metaFedAuthConfigMap.get(fedAuthConfig.getName());
+                Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
+                    if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                        prop.setConfidential(true);
+                    }
+                });
+        });
+    }
+
+    /**
+     * Create map of federated authenticator name to list of confidential properties.
+     *
+     * @return HashMap mapping federated authenticator name to a list of confidential property names.
+     */
+    private Map<String, List<String>> createFedAuthConfidentialPropsMap() throws IdentityProviderManagementException {
+
+        Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
+        FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
+        for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+            List<String> secretProperties = new ArrayList<>();
+            for (Property property : metaFedAuthConfig.getProperties()) {
+                if (property.isConfidential()) {
+                    secretProperties.add(property.getName());
+                }
+            }
+            metaFedAuthConfigMap.put(metaFedAuthConfig.getName(), secretProperties);
+        }
+        return metaFedAuthConfigMap;
     }
 }

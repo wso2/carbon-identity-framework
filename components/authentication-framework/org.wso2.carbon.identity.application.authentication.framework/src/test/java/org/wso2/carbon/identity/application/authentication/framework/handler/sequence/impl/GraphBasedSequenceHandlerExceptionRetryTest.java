@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -62,6 +63,7 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
 
     public void testExceptionRetry() throws Exception {
 
+        LoggerUtils.isLogMaskingEnable = false;
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
@@ -73,11 +75,12 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(new LongWaitStatusStoreService
                 (cacheBackedDao, 5000));
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "hasAnyOfTheRoles",
-                (BiFunction<JsAuthenticatedUser, List<String>, Boolean>) this::hasAnyOfTheRolesFunction);
+                (BiFunction<JsNashornAuthenticatedUser, List<String>, Boolean>) this::hasAnyOfTheRolesFunction);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-exception-retry.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
         context.setSessionIdentifier("1234");
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -96,7 +99,7 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         Assert.assertEquals(currentAttempts.intValue(), 2);
     }
 
-    public boolean hasAnyOfTheRolesFunction(JsAuthenticatedUser jsAuthenticatedUser, List<String> args) {
+    public boolean hasAnyOfTheRolesFunction(JsNashornAuthenticatedUser jsAuthenticatedUser, List<String> args) {
 
         return args.stream().anyMatch(s -> s.contains("Role1"));
     }

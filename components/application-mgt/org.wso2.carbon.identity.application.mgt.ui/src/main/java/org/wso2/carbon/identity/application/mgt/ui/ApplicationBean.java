@@ -60,6 +60,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SP_NAME;
+
+
 /**
  * UI bean to represent an application.
  */
@@ -1139,7 +1145,9 @@ public class ApplicationBean {
         // update basic info.
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
-        serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
+        String spCertificate = request.getParameter("sp-certificate");
+        spCertificate = new String(Base64.getDecoder().decode(spCertificate), StandardCharsets.UTF_8);
+        serviceProvider.setCertificateContent(spCertificate);
 
         String jwks = request.getParameter("jwksUri");
         serviceProvider.setJwksUri(jwks);
@@ -1690,6 +1698,21 @@ public class ApplicationBean {
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
 
+        // Check if isSystemDefaultApp property is already set.
+        boolean isSystemReservedAppPropExist = false;
+        for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+            if (IS_SYSTEM_RESERVED_APP_FLAG.equals(property.getName())) {
+                isSystemReservedAppPropExist = true;
+                break;
+            }
+        }
+        if (LOCAL_SP.equals(request.getParameter(SP_NAME)) && !isSystemReservedAppPropExist) {
+            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+            serviceProviderProperty.setName(IS_SYSTEM_RESERVED_APP_FLAG);
+            serviceProviderProperty.setValue(String.valueOf(true));
+            serviceProviderProperty.setDisplayName(IS_SYSTEM_RESERVED_APP_DISPLAY_NAME);
+            serviceProvider.addSpProperties(serviceProviderProperty);
+        }
         String provisioningUserStore = request.getParameter("scim-inbound-userstore");
         InboundProvisioningConfig inBoundProConfig = new InboundProvisioningConfig();
         inBoundProConfig.setProvisioningUserStore(provisioningUserStore);

@@ -20,12 +20,13 @@ package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
     public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                  String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
@@ -62,53 +63,55 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
                 builder.append(roleList[i] + ",");
             }
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add User", userName, "Roles :"
-                + builder.toString(), SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Add User",
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "Roles :" +
+                        builder.toString(), SUCCESS));
         return true;
     }
 
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete User",
-                userName, "", SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Delete User",
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
 
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager) throws
             UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Change Password by User",
-                userName, "", SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Change Password by User",
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
 
     public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential, UserStoreManager
             userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Change Password by Administrator",
-                userName, "", SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(),
+                "Change Password by Administrator", LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                        .getMaskedContent(userName) : userName, "", SUCCESS));
         return true;
     }
 
     public boolean doPostDeleteRole(String roleName, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete Role", roleName, "",
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Delete Role", roleName, "",
                 SUCCESS));
         return true;
     }
@@ -116,7 +119,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
     public boolean doPostAddRole(String roleName, String[] userList, Permission[] permissions, UserStoreManager
             userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
@@ -132,23 +135,25 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
         stringBuilder.setLength(0);
         format = "%s\n";
         for (String user : userList) {
-            stringBuilder.append(String.format(format, user));
+            stringBuilder.append(String.format(format, LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(user) : user));
         }
         usersString = stringBuilder.toString();
         format = "\nUsers :\n%sPermissions :\n%s";
         String data = String.format(format, usersString, permissionsString);
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add Role", roleName, data, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Add Role", roleName, data,
+                SUCCESS));
         return true;
     }
 
     public boolean doPostUpdateRoleName(String roleName, String newRoleName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Role Name", roleName,
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Role Name", roleName,
                 "Old : " + roleName + " New : " + newRoleName, SUCCESS));
         return true;
     }
@@ -156,36 +161,33 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
     public boolean doPostUpdateUserListOfRole(String roleName, String[] deletedUsers, String[] newUsers,
                                               UserStoreManager userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Users of Role", roleName,
-                "UsersAdded : " + Arrays.toString(newUsers) + ", UsersRemoved : " +
-                        Arrays.toString(deletedUsers), SUCCESS));
+        if (LoggerUtils.isLogMaskingEnable) {
+            audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Users of Role",
+                    roleName, "UsersAdded : " + Arrays.toString(LoggerUtils.getMaskedArraysOfValues(newUsers)) +
+                            ", UsersRemoved : " + Arrays.toString(LoggerUtils.getMaskedArraysOfValues(deletedUsers)),
+                    SUCCESS));
+        } else {
+            audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Users of Role",
+                    roleName, "UsersAdded : " + Arrays.toString(newUsers) + ", UsersRemoved : " +
+                            Arrays.toString(deletedUsers), SUCCESS));
+        }
         return true;
     }
 
     public boolean doPostUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles,
                                               UserStoreManager userStoreManager) throws UserStoreException {
 
-        if(!isEnable()) {
+        if (!isEnable()) {
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Roles of User", userName,
-                "RolesAdded : " + Arrays.toString(newRoles) + ", RolesRemoved : "
-                        + Arrays.toString(deletedRoles), SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, ListenerUtils.getInitiatorFromContext(), "Update Roles of User",
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName, "RolesAdded : " +
+                        Arrays.toString(newRoles) + ", RolesRemoved : " + Arrays.toString(deletedRoles), SUCCESS));
         return true;
-    }
-
-    private String getUser() {
-        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (user != null) {
-            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        } else {
-            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-        }
-        return user;
     }
 }

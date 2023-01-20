@@ -24,13 +24,14 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncProces
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -56,6 +57,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
     @Test
     public void testHandleLongWait() throws Exception {
 
+        LoggerUtils.isLogMaskingEnable = false;
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
@@ -72,6 +74,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
         ServiceProvider sp1 = getTestServiceProvider("js-sp-longwait-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
         context.setSessionIdentifier("1234");
+        FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
@@ -101,7 +104,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
                 r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
-            JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+            JsNashornGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
         }
     }
 }

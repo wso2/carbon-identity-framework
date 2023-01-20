@@ -79,12 +79,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -2128,7 +2129,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, idpId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2162,9 +2163,9 @@ public class IdPManagementDAO {
      * @param identityProviderProperties Identity Provider Properties.
      * @return identity provider properties after removing the relevant JIT specific properties.
      */
-    private List<IdentityProviderProperty> filterIdenityProperties(IdentityProvider federatedIdp,
-                                                                   List<IdentityProviderProperty>
-                                                                           identityProviderProperties) {
+    private List<IdentityProviderProperty> filterIdentityProperties(IdentityProvider federatedIdp,
+                                                                    List<IdentityProviderProperty>
+                                                                            identityProviderProperties) {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
 
@@ -2179,6 +2180,10 @@ public class IdPManagementDAO {
                 } else if (identityProviderProperty.getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setPromptConsent(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
                 }
             });
         }
@@ -2190,7 +2195,9 @@ public class IdPManagementDAO {
                 identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
                         || identityProviderProperty.getName()
                         .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
-                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)));
+                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
+                        IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
+                                .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
 
@@ -2362,7 +2369,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -2520,7 +2527,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2826,15 +2833,21 @@ public class IdPManagementDAO {
         promptConsentProperty.setName(IdPManagementConstants.PROMPT_CONSENT_ENABLED);
         promptConsentProperty.setValue("false");
 
+        IdentityProviderProperty associateLocalUser = new IdentityProviderProperty();
+        associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
+        associateLocalUser.setValue("false");
+
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
+            associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
+        identityProviderProperties.add(associateLocalUser);
         return identityProviderProperties;
     }
 
@@ -4365,6 +4378,51 @@ public class IdPManagementDAO {
             } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
+        }
+    }
+
+    /**
+     * Method that retrieves identityProvider names of a idpId list.
+     *
+     * @param tenantId Tenant id.
+     * @param idpIds Set of identity provider ids.
+     * @return A map of identity provider names keyed by idp id.
+     * @throws IdentityProviderManagementException
+     */
+    public Map<String, String> getIdPNamesById(int tenantId, Set<String> idpIds)
+            throws IdentityProviderManagementException {
+
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        Map<String, String> idpNameMap = new HashMap<>();
+
+        try {
+            String placeholder = String.join(", ", idpIds);
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDPS_BY_IDP_ID_LIST.replace(
+                    SCOPE_LIST_PLACEHOLDER, placeholder);
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+
+            rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                int idpId = rs.getInt("ID");
+                String idpName = rs.getString("NAME");
+                if (idpId != 0 && StringUtils.isNotBlank(idpName) &&
+                        !IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idpName) &&
+                        !idpName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
+                    idpNameMap.put(Integer.toString(idpId), idpName);
+                }
+            }
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
+
+            return idpNameMap;
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
+                    "Providers for IDP IDs for tenantId: " + tenantId, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
         }
     }
 }
