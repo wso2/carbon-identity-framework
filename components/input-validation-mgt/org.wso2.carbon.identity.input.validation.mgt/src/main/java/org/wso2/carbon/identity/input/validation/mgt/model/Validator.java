@@ -44,6 +44,14 @@ public interface Validator {
     boolean validate(ValidationContext context) throws InputValidationMgtClientException;
 
     /**
+     * Validate whether validator supports given field.
+     *
+     * @param field     Field that validator is needed to be configured.
+     * @return  boolean
+     */
+    boolean isAllowedField(String field);
+
+    /**
      * Validate the configuration properties.
      *
      * @param context Validation Context.
