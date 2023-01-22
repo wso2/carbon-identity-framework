@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
@@ -31,9 +32,11 @@ public class Constants {
 
     public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
     public static final String INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX = "input-validation-configs-";
-    public static final List<String> SUPPORTED_PARAMS = Arrays.asList(
-            PASSWORD, USERNAME
-    );
+    public static final List<String> SUPPORTED_PARAMS =  Collections.unmodifiableList(
+            new ArrayList<String>() {{
+                add(PASSWORD);
+                add(USERNAME);
+            }});
 
     /**
      * Class contains the configuration related constants.

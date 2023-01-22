@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.input.validation.mgt.internal;
 
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 
 import java.util.HashMap;
@@ -31,6 +32,7 @@ public class InputValidationDataHolder {
 
     private static ConfigurationManager configurationManager = null;
     private static Map<String, Validator> validators = new HashMap<>();
+    private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandler = new HashMap<>();
 
     /**
      * Get Configuration Manager.
@@ -55,5 +57,10 @@ public class InputValidationDataHolder {
     public static Map<String, Validator> getValidators() {
 
         return validators;
+    }
+
+    public static Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandler() {
+
+        return validationConfigurationHandler;
     }
 }

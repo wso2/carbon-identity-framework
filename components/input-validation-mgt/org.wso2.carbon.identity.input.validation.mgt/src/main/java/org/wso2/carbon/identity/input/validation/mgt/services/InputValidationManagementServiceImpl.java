@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.input.validation.mgt.services;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -31,14 +30,12 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
 import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
-import org.wso2.carbon.user.api.RealmConfiguration;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,10 +44,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PATTERN;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
+import static org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder.getFieldValidationConfigurationHandler;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
@@ -60,6 +54,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Class for Input Validation Manager Implementation.
@@ -129,80 +124,19 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             throws InputValidationMgtException {
 
         List<ValidationConfiguration> configurations = new ArrayList<>();
-        ValidationConfiguration configuration = new ValidationConfiguration();
-        configuration.setField(PASSWORD);
-        List<RulesConfiguration> rules = new ArrayList<>();
-
-        try {
-            RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
-                    .RealmConfig.PROPERTY_JAVA_REG_EX);
-            String jsRegex = realmConfiguration.
-                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JS_REG_EX);
-
-            // Return the JsRegex if the default regex has been updated by the user.
-            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_PATTERN.equals(javaRegex)) {
-                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
-                configuration.setRegEx(rules);
-            } else {
-                rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
-                rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
-                configuration.setRules(rules);
-            }
-            configurations.add(configuration);
-            return configurations;
-        } catch (InputValidationMgtException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Unable to get user realm service. " + e.getMessage());
-            }
-            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
+        for (String field: SUPPORTED_PARAMS) {
+            configurations.add(getConfigurationFromUserStore(tenantDomain, field));
         }
+        return configurations;
     }
 
-    /**
-     * Method to get realm configuration.
-     *
-     * @param tenantDomain  Tenant domain.
-     * @return realm config.
-     * @throws InputValidationMgtException If an error occurred in getting the realm configuration.
-     */
-    private RealmConfiguration getRealmConfiguration(String tenantDomain) throws InputValidationMgtException {
+    @Override
+    public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
+            throws InputValidationMgtException {
 
-        try {
-            if (CarbonContext.getThreadLocalCarbonContext().getUserRealm() != null &&
-                    CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration() != null) {
-                return CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
-            } else {
-                throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
-                        "Realm configuration is empty for tenant :" + tenantDomain);
-            }
-        } catch (UserStoreException e) {
-            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
-                    "Failed to get user realm for tenant :" + tenantDomain);
-        }
-    }
-
-    /**
-     * Get rule model.
-     *
-     * @param validatorName Validator name.
-     * @param property      Property name.
-     * @param value         Property value.
-     *
-     * @return  rule model.
-     */
-    private RulesConfiguration getRuleConfig(String validatorName, String property, String value) {
-
-        RulesConfiguration rule = new RulesConfiguration();
-        rule.setValidatorName(validatorName);
-        Map<String, String> properties = new HashMap<>();
-        properties.put(property, value);
-        rule.setProperties(properties);
-
-        return rule;
+        FieldValidationConfigurationHandler handler = getFieldValidationConfigurationHandler().get(field);
+        // get all config validator and iterate
+        return handler.getDefaultValidationConfiguration(tenantDomain);
     }
 
     /**
