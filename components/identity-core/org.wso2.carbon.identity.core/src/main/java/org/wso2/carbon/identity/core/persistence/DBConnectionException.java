@@ -45,3 +45,4 @@ public class DBConnectionException extends IdentityRuntimeException {
         return new DBConnectionException(errorDescription, cause);
     }
 }
+
