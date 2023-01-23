@@ -21,6 +21,11 @@ package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.NumeralValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.SpecialCharacterValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -41,7 +46,7 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
     @Override
     public boolean canHandle(String field) {
 
-        return PASSWORD.equals(field);
+        return PASSWORD.equalsIgnoreCase(field);
     }
 
     @Override
@@ -64,11 +69,11 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
                 configuration.setRegEx(rules);
             } else {
-                rules.add(getRuleConfig("LengthValidator", MIN_LENGTH, "8"));
-                rules.add(getRuleConfig("NumeralValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("UpperCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("LowerCaseValidator", MIN_LENGTH, "1"));
-                rules.add(getRuleConfig("SpecialCharacterValidator", MIN_LENGTH, "1"));
+                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
+                rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+                rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+                rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+                rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 configuration.setRules(rules);
             }
             return configuration;

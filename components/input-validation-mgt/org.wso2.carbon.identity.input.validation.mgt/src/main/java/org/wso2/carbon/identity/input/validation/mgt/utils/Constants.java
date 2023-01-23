@@ -35,7 +35,6 @@ public class Constants {
     public static final List<String> SUPPORTED_PARAMS =  Collections.unmodifiableList(
             new ArrayList<String>() {{
                 add(PASSWORD);
-                add(USERNAME);
             }});
 
     /**

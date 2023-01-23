@@ -134,9 +134,13 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
 
-        FieldValidationConfigurationHandler handler = getFieldValidationConfigurationHandler().get(field);
-        // get all config validator and iterate
-        return handler.getDefaultValidationConfiguration(tenantDomain);
+        for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandler().values()) {
+            if (handler.canHandle(field.toLowerCase())) {
+                return handler.getDefaultValidationConfiguration(tenantDomain);
+            }
+        }
+        throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
+                "Unable to find an FieldValidationConfigurationHandler for the % field.", field);
     }
 
     /**
