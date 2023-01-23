@@ -129,7 +129,7 @@ public abstract class AbstractRulesValidator implements Validator {
     protected boolean validateBoolean(String value, String property, String tenantDomain)
             throws InputValidationMgtClientException {
 
-        if (!value.equalsIgnoreCase("false") && !value.equalsIgnoreCase("true")) {
+        if (!Boolean.FALSE.toString().equalsIgnoreCase(value) && !Boolean.TRUE.toString().equalsIgnoreCase(value)) {
             if (log.isDebugEnabled()) {
                 log.error(String.format("The property %s should be a %s value for the tenant %s.", property,
                         "boolean", tenantDomain));

@@ -27,13 +27,24 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.IS_EMAIL;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_EMAIL_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH;
 
 /**
  * Email format validator.
  */
 public class EmailFormatValidator extends AbstractRulesValidator {
+
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(USERNAME);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
 
     /**
      * Validate the string against the validation criteria.
@@ -51,12 +62,11 @@ public class EmailFormatValidator extends AbstractRulesValidator {
         String emailRegEx = DEFAULT_EMAIL_REGEX_PATTERN;
 
         // Check whether value satisfies the email format criteria.
-        if (attributesMap.containsKey(IS_EMAIL)) {
-            boolean isEmail = Boolean.parseBoolean(attributesMap.get(IS_EMAIL));
-            if (isEmail && value != null && !value.matches(emailRegEx)) {
-                throw new InputValidationMgtClientException(ERROR_VALIDATION_EMAIL_MISMATCH.getCode(),
-                        ERROR_VALIDATION_EMAIL_MISMATCH.getMessage(),
-                        String.format(ERROR_VALIDATION_EMAIL_MISMATCH.getDescription(), field, emailRegEx));
+        if (attributesMap.containsKey(ENABLE)) {
+            if (Boolean.parseBoolean(attributesMap.get(ENABLE)) && value != null && !value.matches(emailRegEx)) {
+                throw new InputValidationMgtClientException(ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getCode(),
+                        ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getMessage(),
+                        String.format(ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getDescription(), field, emailRegEx));
             }
         }
 
@@ -74,13 +84,13 @@ public class EmailFormatValidator extends AbstractRulesValidator {
         List<Property> configProperties = new ArrayList<>();
         int parameterCount = 0;
 
-        Property isEmail = new Property();
-        isEmail.setName(IS_EMAIL);
-        isEmail.setDisplayName("Email validation");
-        isEmail.setDescription("Validate whether the field value is in the email format.");
-        isEmail.setType("boolean");
-        isEmail.setDisplayOrder(++parameterCount);
-        configProperties.add(isEmail);
+        Property enable = new Property();
+        enable.setName(ENABLE);
+        enable.setDisplayName("Email validation");
+        enable.setDescription("Validate whether the field value is in the email format.");
+        enable.setType("boolean");
+        enable.setDisplayOrder(++parameterCount);
+        configProperties.add(enable);
 
         return configProperties;
     }
@@ -96,9 +106,9 @@ public class EmailFormatValidator extends AbstractRulesValidator {
 
         Map<String, String> properties = context.getProperties();
         validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
-        if (properties.get(IS_EMAIL) != null && !validateBoolean(properties.get(IS_EMAIL),
-                IS_EMAIL, context.getTenantDomain())) {
-            properties.remove(IS_EMAIL);
+        if (properties.get(ENABLE) != null && !validateBoolean(properties.get(ENABLE),
+                ENABLE, context.getTenantDomain())) {
+            properties.remove(ENABLE);
         }
         return true;
     }
