@@ -47,7 +47,7 @@ public class Constants {
         public static final String MAX_LENGTH = "max.length";
         public static final String MIN_UNIQUE_CHR = "min.unique.character";
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
-        public static final String ENABLE = "enable";
+        public static final String ENABLE_VALIDATOR = "enable.validator";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -136,12 +136,18 @@ public class Constants {
         ERROR_CODE_REGEX_MISMATCH("60021",
                 "Regex mismatch",
                 "The %s should satisfy the %s pattern."),
-        ERROR_VALIDATION_ALPHANUMERIC_FORMAT_MISMATCH("60023",
+        ERROR_INVALID_VALIDATOR_PROPERTY_VALUE("60023",
+                "INVALID_VALIDATOR_PROPERTY_VALUE",
+                "The %s is an invalid value for property %s."),
+        ERROR_VALIDATION_ALPHANUMERIC_FORMAT_MISMATCH("60024",
                 "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
                 "The %s can contain only %s pattern."),
-        ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH("60024",
+        ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH("60025",
                 "EMAIL_VALIDATION_NOT_SATISFIED",
                 "The %s can contain only %s pattern."),
+        ERROR_INPUT_VALUE_NULL("60025",
+                "INPUT_VALUE_NULL",
+                "The value cannot be null"),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",

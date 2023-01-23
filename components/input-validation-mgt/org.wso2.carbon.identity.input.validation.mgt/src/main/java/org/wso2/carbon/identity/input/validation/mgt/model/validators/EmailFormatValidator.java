@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
@@ -27,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INPUT_VALUE_NULL;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH;
 
 /**
@@ -62,8 +65,12 @@ public class EmailFormatValidator extends AbstractRulesValidator {
         String emailRegEx = DEFAULT_EMAIL_REGEX_PATTERN;
 
         // Check whether value satisfies the email format criteria.
-        if (attributesMap.containsKey(ENABLE)) {
-            if (Boolean.parseBoolean(attributesMap.get(ENABLE)) && value != null && !value.matches(emailRegEx)) {
+        if (attributesMap.containsKey(ENABLE_VALIDATOR)) {
+            if (StringUtils.isBlank(value)) {
+                throw new InputValidationMgtClientException(ERROR_INPUT_VALUE_NULL.getCode(),
+                        ERROR_INPUT_VALUE_NULL.getMessage(), ERROR_INPUT_VALUE_NULL.getDescription());
+            }
+            if (Boolean.parseBoolean(attributesMap.get(ENABLE_VALIDATOR)) && !value.matches(emailRegEx)) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getCode(),
                         ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH.getDescription(), field, emailRegEx));
@@ -84,13 +91,13 @@ public class EmailFormatValidator extends AbstractRulesValidator {
         List<Property> configProperties = new ArrayList<>();
         int parameterCount = 0;
 
-        Property enable = new Property();
-        enable.setName(ENABLE);
-        enable.setDisplayName("Email validation");
-        enable.setDescription("Validate whether the field value is in the email format.");
-        enable.setType("boolean");
-        enable.setDisplayOrder(++parameterCount);
-        configProperties.add(enable);
+        Property enableValidator = new Property();
+        enableValidator.setName(ENABLE_VALIDATOR);
+        enableValidator.setDisplayName("Email validation");
+        enableValidator.setDescription("Validate whether the field value is in the email format.");
+        enableValidator.setType("boolean");
+        enableValidator.setDisplayOrder(++parameterCount);
+        configProperties.add(enableValidator);
 
         return configProperties;
     }
@@ -106,9 +113,11 @@ public class EmailFormatValidator extends AbstractRulesValidator {
 
         Map<String, String> properties = context.getProperties();
         validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
-        if (properties.get(ENABLE) != null && !validateBoolean(properties.get(ENABLE),
-                ENABLE, context.getTenantDomain())) {
-            properties.remove(ENABLE);
+        if (properties.get(ENABLE_VALIDATOR) != null && !validateBoolean(properties.get(ENABLE_VALIDATOR),
+                ENABLE_VALIDATOR, context.getTenantDomain())) {
+            throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(),
+                    String.format(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(),
+                    properties.get(ENABLE_VALIDATOR), ENABLE_VALIDATOR));
         }
         return true;
     }
