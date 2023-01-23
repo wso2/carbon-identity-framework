@@ -1427,6 +1427,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    @Override
+    public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+        if (application == null) {
+            throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
+                    "for the provided resourceId: " + applicationId);
+        }
+        String appName = application.getApplicationName();
+        try {
+            startTenantFlow(tenantDomain);
+            return exportSP(appName, exportSecrets, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
+    }
+
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -1439,6 +1457,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         return marshalSP(serviceProvider, tenantDomain);
+    }
+    public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.doExportServiceProvider(serviceProvider, exportSecrets);
+            }
+        }
+       return serviceProvider;
     }
 
     @Override
