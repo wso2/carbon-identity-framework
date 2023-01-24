@@ -97,11 +97,12 @@ public class EndpointConfigManager {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
                 }
                 initialized = true;
-                JSONArray restrictedBrowserJArray = new JSONArray(prop.getProperty
-                        (Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS));
-                if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
-                    googleOneTapRestrictedBrowsers = prop.getProperty(
-                            Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                String browserString = prop.getProperty(Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                if (StringUtils.isNotBlank(browserString)) {
+                    JSONArray restrictedBrowserJArray = new JSONArray(browserString);
+                    if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
+                        googleOneTapRestrictedBrowsers = browserString;
+                    }
                 }
             }
         } catch (IOException e) {
