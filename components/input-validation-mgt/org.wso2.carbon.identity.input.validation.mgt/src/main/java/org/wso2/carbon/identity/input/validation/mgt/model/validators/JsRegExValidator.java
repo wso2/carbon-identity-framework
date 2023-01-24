@@ -30,12 +30,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_CODE_REGEX_MISMATCH;
 
 /**
  * JavaScript regex validator.
  */
 public class JsRegExValidator extends AbstractRegExValidator {
+
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(PASSWORD);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
