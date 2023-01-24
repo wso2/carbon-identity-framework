@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder.getFieldValidationConfigurationHandler;
+import static org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder.getFieldValidationConfigurationHandlers;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
@@ -134,7 +134,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
 
-        for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandler().values()) {
+        for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandlers().values()) {
             if (handler.canHandle(field.toLowerCase())) {
                 return handler.getDefaultValidationConfiguration(tenantDomain);
             }

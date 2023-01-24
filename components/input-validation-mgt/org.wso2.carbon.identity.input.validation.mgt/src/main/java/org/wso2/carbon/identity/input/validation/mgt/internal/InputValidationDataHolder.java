@@ -32,7 +32,7 @@ public class InputValidationDataHolder {
 
     private static ConfigurationManager configurationManager = null;
     private static Map<String, Validator> validators = new HashMap<>();
-    private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandler = new HashMap<>();
+    private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandlers = new HashMap<>();
 
     /**
      * Get Configuration Manager.
@@ -59,8 +59,8 @@ public class InputValidationDataHolder {
         return validators;
     }
 
-    public static Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandler() {
+    public static Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
 
-        return validationConfigurationHandler;
+        return validationConfigurationHandlers;
     }
 }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model;
 
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 
 import java.util.List;
@@ -48,5 +49,5 @@ public interface FieldValidationConfigurationHandler {
      * @return  boolean
      */
     boolean validateValidatorConfiguration(List<RulesConfiguration> configurationList)
-            throws InputValidationMgtException;
+            throws InputValidationMgtClientException;
 }

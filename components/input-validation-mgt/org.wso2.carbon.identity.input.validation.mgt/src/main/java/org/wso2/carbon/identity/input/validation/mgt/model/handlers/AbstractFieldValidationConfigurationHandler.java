@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
@@ -79,7 +80,7 @@ public class AbstractFieldValidationConfigurationHandler implements FieldValidat
 
     @Override
     public boolean validateValidatorConfiguration(List<RulesConfiguration> configurationList)
-            throws InputValidationMgtException {
+            throws InputValidationMgtClientException {
 
         return true;
     }

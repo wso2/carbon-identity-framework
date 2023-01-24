@@ -154,13 +154,13 @@ public class InputValidationServiceComponent {
     )
     protected void setFieldValidationConfigurationHandler(FieldValidationConfigurationHandler configurationHandler) {
 
-        InputValidationDataHolder.getFieldValidationConfigurationHandler().put(
+        InputValidationDataHolder.getFieldValidationConfigurationHandlers().put(
                 configurationHandler.getClass().getSimpleName(), configurationHandler);
     }
 
     protected void unsetFieldValidationConfigurationHandler(FieldValidationConfigurationHandler configurationHandler) {
 
-        InputValidationDataHolder.getFieldValidationConfigurationHandler()
+        InputValidationDataHolder.getFieldValidationConfigurationHandlers()
                 .remove(configurationHandler.getClass().getName());
     }
 }
