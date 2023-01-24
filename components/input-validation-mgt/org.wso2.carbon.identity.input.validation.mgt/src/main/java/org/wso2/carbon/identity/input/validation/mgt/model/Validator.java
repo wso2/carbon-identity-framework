@@ -49,7 +49,10 @@ public interface Validator {
      * @param field     Field that validator is needed to be configured.
      * @return  boolean
      */
-    boolean isAllowedField(String field);
+    default boolean isAllowedField(String field) {
+
+        return true;
+    }
 
     /**
      * Validate the configuration properties.
