@@ -162,6 +162,12 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         }
     }
 
+    @Override
+    public Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
+
+        return InputValidationDataHolder.getFieldValidationConfigurationHandlers();
+    }
+
     /**
      * Method to get realm configuration.
      *

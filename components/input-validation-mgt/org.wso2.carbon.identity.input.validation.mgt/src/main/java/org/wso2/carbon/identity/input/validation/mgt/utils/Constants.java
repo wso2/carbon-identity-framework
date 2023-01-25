@@ -137,6 +137,9 @@ public class Constants {
         ERROR_VALIDATOR_NOT_SUPPORTED_FOR_FIELD("60022",
                 "VALIDATOR NOT SUPPORTED FOR FIELD",
                 "The %s validator does not support for %s field."),
+        ERROR_INVALID_VALIDATORS_COMBINATION("60027",
+                "INVALID VALIDATOR COMBINATION",
+                "Invalid validators combination is provided for field %s."),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",

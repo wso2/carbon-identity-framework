@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
@@ -75,4 +76,11 @@ public interface InputValidationManagementService {
      * @return configuration.
      */
     List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
+
+    /**
+     * Method to get all validation configuration handler.
+     *
+     * @return Map<String, FieldValidationConfigurationHandler>.
+     */
+    Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers();
 }

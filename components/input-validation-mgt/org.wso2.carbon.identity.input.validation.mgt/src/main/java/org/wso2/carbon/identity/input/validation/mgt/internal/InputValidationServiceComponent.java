@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.input.validation.mgt.model.handlers.UsernameValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseValidator;
@@ -79,6 +80,9 @@ public class InputValidationServiceComponent {
                     new JsRegExValidator(), null);
             context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                     new InputValidationListener(), null);
+
+            context.getBundleContext().registerService(FieldValidationConfigurationHandler.class.getName(),
+                    new UsernameValidationConfigurationHandler(), null);
         } catch (Throwable throwable) {
             log.error("Error while activating Input Validation Service Component.", throwable);
         }
