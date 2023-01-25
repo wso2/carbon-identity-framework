@@ -58,13 +58,13 @@ public class EndpointConfigManager {
      */
     public static void init() {
 
+        InputStream inputStream = null;
         try {
             if (!initialized) {
                 prop = new Properties();
                 String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
                 File configFile = new File(configFilePath);
 
-                InputStream inputStream;
                 if (configFile.exists()) {
                     log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
                             Constants.TenantConstants.CONFIG_RELATIVE_PATH);
@@ -97,15 +97,24 @@ public class EndpointConfigManager {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
                 }
                 initialized = true;
-                JSONArray restrictedBrowserJArray = new JSONArray(prop.getProperty
-                        (Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS));
-                if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
-                    googleOneTapRestrictedBrowsers = prop.getProperty(
-                            Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                String browserString = prop.getProperty(Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                if (StringUtils.isNotBlank(browserString)) {
+                    JSONArray restrictedBrowserJArray = new JSONArray(browserString);
+                    if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
+                        googleOneTapRestrictedBrowsers = browserString;
+                    }
                 }
             }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("Error occurred while closing file input stream.", e);
+                }
+            }
         }
     }
 

@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
+import org.json.JSONObject;
+import org.json.XML;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -145,10 +147,12 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("Inbound Authentication Configs:").append("[");
             for (InboundAuthenticationRequestConfig requestConfig : requestConfigs) {
                 data.append("{");
-                data.append("Auth Key:").append(requestConfig.getInboundAuthKey()).append(", ");
+                data.append("Auth Key:").append(LoggerUtils.getMaskedContent(requestConfig.getInboundAuthKey())).
+                        append(", ");
                 data.append("Auth Type:").append(requestConfig.getInboundAuthType()).append(", ");
                 data.append("Config Type:").append(requestConfig.getInboundConfigType()).append(", ");
-                data.append("Inbound configuration:").append(requestConfig.getInboundConfiguration());
+                data.append("Inbound configuration:").
+                        append(maskInboundConfigurations(requestConfig.getInboundConfiguration()));
                 Property[] properties = requestConfig.getProperties();
                 if (ArrayUtils.isNotEmpty(properties)) {
                     data.append("Properties:").append("[");
@@ -158,7 +162,11 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                         joiner = ", ";
                         data.append("{");
                         data.append(property.getName()).append(":");
-                        data.append(property.getValue());
+                        if (property.getName().equals("oauthConsumerSecret")) {
+                            data.append(LoggerUtils.getMaskedContent(property.getValue()));
+                        } else {
+                            data.append(property.getValue());
+                        }
                         data.append("}");
                     }
                     data.append("]");
@@ -305,6 +313,33 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("]");
         }
         return data.toString();
+    }
+
+
+    /**
+     * Mask inbound configurations with secrets,keys.
+     *
+     * @param inboundConfigurations Inbound configurations.
+     *
+     * @return masked inbound configurations.
+     */
+    private String maskInboundConfigurations(String inboundConfigurations) {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            return inboundConfigurations;
+        }
+        if (StringUtils.isNotBlank(inboundConfigurations)) {
+            if (inboundConfigurations.contains("<oauthConsumerSecret>")) {
+                JSONObject oauthAppDO = XML.toJSONObject(inboundConfigurations);
+                JSONObject configs = oauthAppDO.getJSONObject("oAuthAppDO");
+                configs.put("oauthConsumerSecret",
+                        LoggerUtils.getMaskedContent(configs.getString("oauthConsumerSecret")));
+                oauthAppDO.put("oAuthAppDO", configs);
+                inboundConfigurations = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                        XML.toString(oauthAppDO);
+            }
+        }
+        return inboundConfigurations;
     }
 
     /**

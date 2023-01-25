@@ -420,11 +420,12 @@ public class AuthenticationEndpointUtil {
         StringBuilder responseString = new StringBuilder();
 
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    response.getEntity().getContent()));
-            String inputLine;
-            while ((inputLine = reader.readLine()) != null) {
-                responseString.append(inputLine);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    response.getEntity().getContent()))) {
+                String inputLine;
+                while ((inputLine = reader.readLine()) != null) {
+                    responseString.append(inputLine);
+                }
             }
         } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
             if (log.isDebugEnabled()) {

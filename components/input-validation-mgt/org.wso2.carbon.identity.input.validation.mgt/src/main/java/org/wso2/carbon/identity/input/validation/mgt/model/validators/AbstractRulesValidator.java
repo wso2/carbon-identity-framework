@@ -38,6 +38,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_TYPE_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Abstract rules validator.
@@ -53,6 +54,12 @@ public abstract class AbstractRulesValidator implements Validator {
     }
 
     @Override
+    public boolean isAllowedField(String field) {
+
+        return SUPPORTED_PARAMS.contains(field);
+    }
+
+    @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
 
         return true;
@@ -65,12 +72,12 @@ public abstract class AbstractRulesValidator implements Validator {
         // Validated supported properties.
         validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
 
-        if (properties.get(MIN_LENGTH) != null && validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
+        if (properties.get(MIN_LENGTH) != null && !validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
                 context.getTenantDomain())) {
             throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(), String.format(
                     ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(), properties.get(MIN_LENGTH), MIN_LENGTH));
         }
-        if (properties.get(MAX_LENGTH) != null && validatePositiveNumber(properties.get(MAX_LENGTH), MAX_LENGTH,
+        if (properties.get(MAX_LENGTH) != null && !validatePositiveNumber(properties.get(MAX_LENGTH), MAX_LENGTH,
                 context.getTenantDomain())) {
             throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(), String.format(
                     ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(), properties.get(MAX_LENGTH), MAX_LENGTH));
@@ -126,7 +133,7 @@ public abstract class AbstractRulesValidator implements Validator {
             throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
                     String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "integer", tenantDomain));
         }
-        return Integer.parseInt(value) < 0;
+        return Integer.parseInt(value) > 0;
     }
 
     protected boolean validateBoolean(String value, String property, String tenantDomain)

@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -50,7 +52,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Request ID" + "\" : \"" + workflowRequest.getRequestId() + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow request", auditData,
@@ -71,7 +73,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Workflow ID" + "\" : \"" + workflow.getWorkflowId() + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove workflow", auditData, AUDIT_SUCCESS));
@@ -92,7 +94,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Tenant ID" + "\" : \"" + tenantId + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove all workflows of a tenant", auditData,
@@ -116,7 +118,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Workflow Name" + "\" : \"" + workflowDTO.getWorkflowName() + "\",\""
                 + "Workflow  Impl ID" + "\" : \"" + workflowDTO.getWorkflowImplId() + "\",\""
@@ -144,7 +146,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Association Name" + "\" : \"" + associationName + "\",\""
                 + "Workflow ID" + "\" : \"" + workflowId + "\",\""
@@ -167,7 +169,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Remove Association", auditData, AUDIT_SUCCESS));
@@ -188,11 +190,34 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Association ID" + "\" : \"" + associationId + "\",\""
                 + "Resulting State" + "\" : \"" + isEnable + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Change Association State", auditData,
                 AUDIT_SUCCESS));
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
+     * @param username      Username of the initiator.
+     * @param tenantDomain  Tenant domain of the initiator.
+     *
+     * @return initiator for the log.
+     */
+    private String getInitiatorForLog(String username, String tenantDomain) {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            // Append tenant domain to username.
+            return UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+        }
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiator)) {
+                return initiator;
+            }
+        }
+        return LoggerUtils.getMaskedContent(username);
     }
 }
