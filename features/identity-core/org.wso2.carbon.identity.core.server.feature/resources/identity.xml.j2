@@ -1234,6 +1234,9 @@
         </Notification>
         <AskPassword>
             <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
+            {% if identity_mgt.user_onboarding.ask_password_account_activation is defined %}
+            <AccountActivation>{{identity_mgt.user_onboarding.ask_password_account_activation}}</AccountActivation>
+            {% endif %}
             <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
             <DisableRandomValueForCredentials>{{identity_mgt.user_onboarding.disable_random_value_for_credentials}}</DisableRandomValueForCredentials>
         </AskPassword>
@@ -2814,6 +2817,7 @@
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/identity/auth/v1.1</Path>
                     <Path>/api/server/v1/authenticators</Path>
+                    <Path>/api/server/v1/branding-preference</Path>
                 </SubPaths>
             </Context>
             <Context>

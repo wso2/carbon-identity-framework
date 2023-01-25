@@ -79,7 +79,7 @@ public class AbstractFieldValidationConfigurationHandler implements FieldValidat
     }
 
     @Override
-    public boolean validateValidatorConfiguration(List<RulesConfiguration> configurationList)
+    public boolean validateValidationConfiguration(List<RulesConfiguration> configurationList)
             throws InputValidationMgtClientException {
 
         return true;

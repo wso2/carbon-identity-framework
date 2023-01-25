@@ -48,6 +48,6 @@ public interface FieldValidationConfigurationHandler {
      *
      * @return  boolean
      */
-    boolean validateValidatorConfiguration(List<RulesConfiguration> configurationList)
+    boolean validateValidationConfiguration(List<RulesConfiguration> configurationList)
             throws InputValidationMgtClientException;
 }
