@@ -130,7 +130,7 @@ public abstract class AbstractRulesValidator implements Validator {
             throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
                     String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "integer", tenantDomain));
         }
-        return Integer.parseInt(value) > 0;
+        return Integer.parseInt(value) >= 0;
     }
 
     protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)
