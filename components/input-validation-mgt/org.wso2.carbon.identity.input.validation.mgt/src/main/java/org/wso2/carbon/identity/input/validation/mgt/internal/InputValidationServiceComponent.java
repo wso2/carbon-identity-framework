@@ -29,7 +29,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.identity.input.validation.mgt.model.handlers.PasswordValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AlphanumericValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.EmailFormatValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
@@ -63,6 +65,8 @@ public class InputValidationServiceComponent {
         try {
             context.getBundleContext().registerService(InputValidationManagementService.class.getName(),
                     new InputValidationManagementServiceImpl(), null);
+
+            // Register Validators.
             context.getBundleContext().registerService(Validator.class.getName(),
                     new LengthValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
@@ -85,6 +89,10 @@ public class InputValidationServiceComponent {
                     new JsRegExValidator(), null);
             context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                     new InputValidationListener(), null);
+
+            // Register field validation configuration handlers.
+            context.getBundleContext().registerService(FieldValidationConfigurationHandler.class.getName(),
+                    new PasswordValidationConfigurationHandler(), null);
         } catch (Throwable throwable) {
             log.error("Error while activating Input Validation Service Component.", throwable);
         }
@@ -141,5 +149,24 @@ public class InputValidationServiceComponent {
     protected void unsetValidator(Validator validator) {
 
         InputValidationDataHolder.getValidators().remove(validator.getClass().getName());
+    }
+
+    @Reference(
+            name = "field.validation.configuration.handler",
+            service = FieldValidationConfigurationHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFieldValidationConfigurationHandler"
+    )
+    protected void setFieldValidationConfigurationHandler(FieldValidationConfigurationHandler configurationHandler) {
+
+        InputValidationDataHolder.getFieldValidationConfigurationHandlers().put(
+                configurationHandler.getClass().getSimpleName(), configurationHandler);
+    }
+
+    protected void unsetFieldValidationConfigurationHandler(FieldValidationConfigurationHandler configurationHandler) {
+
+        InputValidationDataHolder.getFieldValidationConfigurationHandlers()
+                .remove(configurationHandler.getClass().getName());
     }
 }
