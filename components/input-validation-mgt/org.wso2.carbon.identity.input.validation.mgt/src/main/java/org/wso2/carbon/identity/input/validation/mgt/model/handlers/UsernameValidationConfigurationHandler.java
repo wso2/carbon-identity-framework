@@ -80,7 +80,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
     }
 
     @Override
-    public boolean validateValidatorConfiguration(List<RulesConfiguration> configurationList)
+    public boolean validateValidationConfiguration(List<RulesConfiguration> configurationList)
             throws InputValidationMgtClientException {
 
         List<String> validatorNames = new ArrayList<>();

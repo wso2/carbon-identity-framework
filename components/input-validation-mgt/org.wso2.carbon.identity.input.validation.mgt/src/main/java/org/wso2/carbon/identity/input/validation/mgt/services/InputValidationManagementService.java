@@ -78,7 +78,7 @@ public interface InputValidationManagementService {
     List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
 
     /**
-     * Method to get all validation configuration handler.
+     * Method to get all validation configuration handlers.
      *
      * @return Map<String, FieldValidationConfigurationHandler>.
      */

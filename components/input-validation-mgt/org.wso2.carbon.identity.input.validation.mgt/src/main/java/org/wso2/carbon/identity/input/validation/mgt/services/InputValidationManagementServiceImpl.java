@@ -60,6 +60,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Class for Input Validation Manager Implementation.
@@ -92,9 +93,10 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
-        if (configurations.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
-                    String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
+        for (String field: SUPPORTED_PARAMS) {
+            if (configurations.stream().noneMatch(config -> field.equals(config.getField()))) {
+                configurations.add(getConfigurationFromUserStore(tenantDomain, field));
+            }
         }
         return configurations;
     }
