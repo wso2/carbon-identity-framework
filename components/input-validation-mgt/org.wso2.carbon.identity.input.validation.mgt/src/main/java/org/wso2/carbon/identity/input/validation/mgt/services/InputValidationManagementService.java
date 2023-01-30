@@ -78,6 +78,16 @@ public interface InputValidationManagementService {
     List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
 
     /**
+     * Method to get configuration from user store for a given field.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param field         Field configurations needs to be retrieved.
+     * @return configuration.
+     */
+    ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
+            throws InputValidationMgtException;
+        
+    /**
      * Method to get all validation configuration handlers.
      *
      * @return Map<String, FieldValidationConfigurationHandler>.
