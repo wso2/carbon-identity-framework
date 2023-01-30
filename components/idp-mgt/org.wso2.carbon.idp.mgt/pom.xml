@@ -75,6 +75,10 @@
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
@@ -164,6 +168,7 @@
                             org.wso2.carbon.identity.role.mgt.core;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.persistence;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
