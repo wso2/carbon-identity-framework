@@ -18,24 +18,59 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_CODE_REGEX_MISMATCH;
 
 /**
  * JavaScript regex validator.
  */
 public class JsRegExValidator extends AbstractRegExValidator {
 
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(PASSWORD);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
+
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
 
-        // This is a FE validator.
+        // Validate against the Java regex in the BE.
+        String value = context.getValue();
+        boolean valid = false;
+        Map<String, String> attributesMap = context.getProperties();
+        String javaRegex = StringUtils.EMPTY;
+
+        if (attributesMap.containsKey(JS_REGEX)) {
+            String jsRegex = attributesMap.get(JS_REGEX);
+            // Convert to Java regex.
+            javaRegex = jsRegex.replaceAll("//", "/");
+
+            Pattern pattern = Pattern.compile(javaRegex);
+            Matcher matcher = pattern.matcher(value);
+            valid = matcher.matches();
+        }
+        if (!valid) {
+            throw new InputValidationMgtClientException(ERROR_CODE_REGEX_MISMATCH.getCode(),
+                    ERROR_CODE_REGEX_MISMATCH.getMessage(),
+                    String.format(ERROR_CODE_REGEX_MISMATCH.getDescription(), context.getField(), javaRegex));
+        }
         return true;
     }
 

@@ -140,6 +140,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getIni
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -1056,6 +1057,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
+        validateTenant(tenantDomain);
         String name = null;
 
         // invoking the listeners
@@ -1092,6 +1094,40 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         return name;
 
+    }
+
+    /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    @Override
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+                                                       String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(inboundKey) || StringUtils.isEmpty(inboundType) || StringUtils.isEmpty(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving resource id. One of inboundKey, inboundType or tenantDomain " +
+                        "parameters were found to be empty.");
+            }
+            return null;
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        String resourceId =  appDAO.getApplicationResourceIDByInboundKey(inboundKey, inboundType, tenantDomain);
+
+        if (resourceId == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cannot find an application resourceId for inboundKey: " + inboundKey +
+                        " inboundType: " + inboundType + " in tenantDomain: " + tenantDomain);
+            }
+        }
+        return resourceId;
     }
 
     /**

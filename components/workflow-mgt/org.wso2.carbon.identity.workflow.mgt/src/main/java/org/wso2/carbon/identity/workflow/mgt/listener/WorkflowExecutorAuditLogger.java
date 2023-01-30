@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowExecutorResult;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
@@ -51,7 +53,7 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Operation Type" + "\" : \"" + workFlowRequest.getEventType()
                 + "\",\"" + "Request parameters" + "\" : \"" + workFlowRequest.getRequestParameterAsString()
@@ -76,12 +78,35 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
         }
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+        loggedInUser = getInitiatorForLog(loggedInUser, tenantDomain);
 
         String auditData = "\"" + "Request ID" + "\" : \"" + uuid
                 + "\",\"" + "Callback Status" + "\" : \"" + status
                 + "\"";
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, "Callback for Workflow Request", auditData,
                 AUDIT_SUCCESS));
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
+     * @param username      Username of the initiator.
+     * @param tenantDomain  Tenant domain of the initiator.
+     *
+     * @return initiator for the log.
+     */
+    private String getInitiatorForLog(String username, String tenantDomain) {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            // Append tenant domain to username.
+            return UserCoreUtil.addTenantDomainToEntry(username, tenantDomain);
+        }
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiator)) {
+                return initiator;
+            }
+        }
+        return LoggerUtils.getMaskedContent(username);
     }
 }

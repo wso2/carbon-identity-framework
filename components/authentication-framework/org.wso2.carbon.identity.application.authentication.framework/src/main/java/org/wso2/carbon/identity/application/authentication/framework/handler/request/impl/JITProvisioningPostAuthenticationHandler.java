@@ -62,9 +62,6 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.handler.event.account.lock.constants.AccountConstants;
-import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
-import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -478,17 +475,24 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return federatedUsername;
     }
 
-    private boolean isAccountLocked(String username, String tenantDomain)
-            throws PostAuthenticationFailedException {
+    private boolean isAccountLocked(String username, String tenantDomain) throws PostAuthenticationFailedException {
 
-        AccountLockService accountLockService = FrameworkServiceDataHolder.getInstance().getAccountLockService();
         try {
-            return accountLockService.isAccountLocked(username, tenantDomain);
-        } catch (AccountLockServiceException e) {
+            UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            UserStoreManager userStoreManager = realm.getUserStoreManager();
+            Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
+                    FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
+            if (claimValues != null && claimValues.size() > 0) {
+                String accountLockedClaim = claimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI);
+                return Boolean.parseBoolean(accountLockedClaim);
+            }
+        } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
                     String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(), username), e);
         }
+        return false;
     }
 
     /**
@@ -505,9 +509,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
-                    AccountConstants.ACCOUNT_DISABLED_CLAIM}, UserCoreConstants.DEFAULT_PROFILE);
+                    FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
             if (claimValues != null && claimValues.size() > 0) {
-                String accountDisabledClaim = claimValues.get(AccountConstants.ACCOUNT_DISABLED_CLAIM);
+                String accountDisabledClaim = claimValues.get(FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI);
                 return Boolean.parseBoolean(accountDisabledClaim);
             }
         } catch (UserStoreException e) {

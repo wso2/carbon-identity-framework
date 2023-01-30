@@ -21,11 +21,13 @@ package org.wso2.carbon.identity.input.validation.mgt.model.validators;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH;
 
@@ -33,6 +35,16 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
  * Special character validator.
  */
 public class SpecialCharacterValidator extends AbstractRulesValidator {
+
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(PASSWORD);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
@@ -48,16 +60,16 @@ public class SpecialCharacterValidator extends AbstractRulesValidator {
             }
 
         }
-        if (attributesMap.containsKey(field + PERIOD + MIN_LENGTH)) {
-            int min = Integer.parseInt(attributesMap.get(field + PERIOD + MIN_LENGTH));
+        if (attributesMap.containsKey(MIN_LENGTH)) {
+            int min = Integer.parseInt(attributesMap.get(MIN_LENGTH));
             if (countSpecial < min) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_MIN_SPECIAL_CHR_LENGTH_MISMATCH.getDescription(), field, min));
             }
         }
-        if (attributesMap.containsKey(field + PERIOD + MAX_LENGTH)) {
-            int max = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_LENGTH));
+        if (attributesMap.containsKey(MAX_LENGTH)) {
+            int max = Integer.parseInt(attributesMap.get(MAX_LENGTH));
             if (countSpecial > max) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH.getCode(),
                         ERROR_VALIDATION_MAX_SPECIAL_CHR_LENGTH_MISMATCH.getMessage(),

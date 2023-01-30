@@ -4115,6 +4115,54 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    @Override
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantID = getTenantId(tenantDomain);
+        String applicationResourceId = null;
+        // Reading application resource id from the database.
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement statement =
+                         connection.prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE)) {
+                statement.setString(1, inboundKey);
+                statement.setString(2, inboundType);
+                statement.setInt(3, tenantID);
+                statement.setInt(4, tenantID);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        applicationResourceId = resultSet.getString(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while retrieving application " +
+                    "resourceId for inboundKey: " + inboundKey + " in inboundType: " + inboundType +
+                    " in tenantDomain: " + tenantDomain, e);
+        }
+        return applicationResourceId;
+    }
+
+    private int getTenantId(String tenantDomain) throws IdentityApplicationManagementException {
+
+        try {
+            return IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant id from tenant domain : "
+                    + tenantDomain + " for retrieve application resource id.", e);
+        }
+    }
+
+    /**
      * @param serviceProviderName
      * @param tenantDomain
      * @param localIdpAsKey

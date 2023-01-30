@@ -52,6 +52,8 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -125,6 +127,10 @@ public class ApplicationManagementServiceComponent {
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
                     new DefaultApplicationValidator(), null);
+            if (ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider() == null) {
+                ApplicationManagementServiceComponentHolder.getInstance()
+                        .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -415,5 +421,38 @@ public class ApplicationManagementServiceComponent {
             OrganizationManagementInitialize organizationManagementInitializeInstance) {
 
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManagementEnable(null);
+    }
+
+    @Reference(
+            name = "application.permission.provider",
+            service = ApplicationPermissionProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationPermissionProvider"
+    )
+    protected void setApplicationPermissionProvider(ApplicationPermissionProvider applicationPermissionProvider) {
+
+        ApplicationPermissionProvider existingApplicationPermissionProvider =
+                ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider();
+
+        if (existingApplicationPermissionProvider != null) {
+            log.warn("Multiple Application Permission Providers are registered. Permission Provider:"
+                    + existingApplicationPermissionProvider.getClass().getName() + " will be replaced with "
+                    + applicationPermissionProvider.getClass().getName());
+        }
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationPermissionProvider(applicationPermissionProvider);
+        log.info("Application permission provider got registered: " +
+                applicationPermissionProvider.getClass().getName());
+    }
+
+    protected void unsetApplicationPermissionProvider(ApplicationPermissionProvider applicationPermissionProvider) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed application permission provider.");
+        }
     }
 }

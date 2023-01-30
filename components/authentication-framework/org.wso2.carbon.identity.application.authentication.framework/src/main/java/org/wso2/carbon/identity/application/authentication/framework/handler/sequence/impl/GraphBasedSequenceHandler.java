@@ -544,6 +544,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return true;
         }
         if (context.isPassiveAuthenticate() && !context.isRequestAuthenticated()) {
+            context.getSequenceConfig().setCompleted(true);
             return true;
         }
         context.setReturning(false);

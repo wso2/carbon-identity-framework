@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Abstract regex validator.
@@ -43,6 +44,12 @@ public abstract class AbstractRegExValidator implements Validator {
     public boolean canHandle(String validatorName) {
 
         return StringUtils.equalsIgnoreCase(validatorName, this.getClass().getSimpleName());
+    }
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return SUPPORTED_PARAMS.contains(field);
     }
 
     @Override
