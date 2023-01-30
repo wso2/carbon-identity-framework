@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_DEFAULT_MIN_MAX_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_TYPE_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
@@ -73,11 +74,13 @@ public abstract class AbstractRulesValidator implements Validator {
 
         if (properties.get(MIN_LENGTH) != null && !validatePositiveNumber(properties.get(MIN_LENGTH), MIN_LENGTH,
                 context.getTenantDomain())) {
-            properties.remove(MIN_LENGTH);
+            throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(), String.format(
+                    ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(), properties.get(MIN_LENGTH), MIN_LENGTH));
         }
         if (properties.get(MAX_LENGTH) != null && !validatePositiveNumber(properties.get(MAX_LENGTH), MAX_LENGTH,
                 context.getTenantDomain())) {
-            properties.remove(MAX_LENGTH);
+            throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(), String.format(
+                    ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(), properties.get(MAX_LENGTH), MAX_LENGTH));
         }
         // Ensure maximum limit is not less than minimum limit.
         if ((properties.get(MAX_LENGTH) != null) && (properties.get(MIN_LENGTH) != null) &&
@@ -131,6 +134,20 @@ public abstract class AbstractRulesValidator implements Validator {
                     String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "integer", tenantDomain));
         }
         return Integer.parseInt(value) >= 0;
+    }
+
+    protected boolean validateBoolean(String value, String property, String tenantDomain)
+            throws InputValidationMgtClientException {
+
+        if (!Boolean.FALSE.toString().equalsIgnoreCase(value) && !Boolean.TRUE.toString().equalsIgnoreCase(value)) {
+            if (log.isDebugEnabled()) {
+                log.error(String.format("The property %s should be a %s value for the tenant %s.", property,
+                        "boolean", tenantDomain));
+            }
+            throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
+                String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "boolean", tenantDomain));
+        }
+        return true;
     }
 
     protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)

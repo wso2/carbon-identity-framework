@@ -49,6 +49,7 @@ public class Constants {
         public static final String MAX_LENGTH = "max.length";
         public static final String MIN_UNIQUE_CHR = "min.unique.character";
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
+        public static final String ENABLE_VALIDATOR = "enable.validator";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -58,6 +59,10 @@ public class Constants {
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
         public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
+        public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
+        public static final String DEFAULT_EMAIL_REGEX_PATTERN =
+                "^[\\u00C0-\\u00FF\\w&&[^.+\\-_]](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?<![+.\\-_])@" +
+                        "(?![+.\\-_])[\\w.+\\-]+\\.[a-zA-Z]{2,10}";
     }
 
     /**
@@ -135,7 +140,19 @@ public class Constants {
                 "The %s should satisfy the %s pattern."),
         ERROR_VALIDATOR_NOT_SUPPORTED_FOR_FIELD("60022",
                 "VALIDATOR NOT SUPPORTED FOR FIELD",
-                "The %s validator does not support for %s field."),
+                "The %s validator does not support for %s field."),     
+        ERROR_INVALID_VALIDATOR_PROPERTY_VALUE("60023",
+                "INVALID_VALIDATOR_PROPERTY_VALUE",
+                "The %s is an invalid value for property %s."),
+        ERROR_VALIDATION_ALPHANUMERIC_FORMAT_MISMATCH("60024",
+                "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH("60025",
+                "EMAIL_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_INPUT_VALUE_NULL("60026",
+                "INPUT_VALUE_NULL",
+                "The value cannot be null"),
         ERROR_INVALID_VALIDATORS_COMBINATION("60027",
                 "INVALID VALIDATOR COMBINATION",
                 "Invalid validators combination is provided for field %s."),
