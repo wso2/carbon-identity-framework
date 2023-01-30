@@ -37,6 +37,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_DEFAULT_MIN_MAX_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_TYPE_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Abstract rules validator.
@@ -49,6 +50,12 @@ public abstract class AbstractRulesValidator implements Validator {
     public boolean canHandle(String validatorName) {
 
         return StringUtils.equalsIgnoreCase(validatorName, this.getClass().getSimpleName());
+    }
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return SUPPORTED_PARAMS.contains(field);
     }
 
     @Override
@@ -123,7 +130,7 @@ public abstract class AbstractRulesValidator implements Validator {
             throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
                     String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), property, "integer", tenantDomain));
         }
-        return Integer.parseInt(value) > 0;
+        return Integer.parseInt(value) >= 0;
     }
 
     protected void validatePropertyName(Map<String, String> properties, String validator, String tenantDomain)

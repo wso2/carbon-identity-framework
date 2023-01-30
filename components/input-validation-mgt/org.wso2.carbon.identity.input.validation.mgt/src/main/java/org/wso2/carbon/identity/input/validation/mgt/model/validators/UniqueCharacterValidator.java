@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_UNIQUE_CHR;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_UNIQUE_CHR_MISMATCH;
 
@@ -36,6 +37,16 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
  * Unique character validator.
  */
 public class UniqueCharacterValidator extends AbstractRulesValidator {
+
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(PASSWORD);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
