@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
@@ -27,16 +28,26 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.EmailForma
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REG_EX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REG_EX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
 
 /**
  * Password Validation Configuration Handler.
@@ -59,14 +70,12 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
 
         try {
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
-                    .RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX);
-            String jsRegex = realmConfiguration.
-                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX);
+            Map<String, String> usernameRegEx = getUsernameRegEx(realmConfiguration);
 
             // Return the JsRegex if the default regex has been updated by the user.
-            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !DEFAULT_EMAIL_REGEX_PATTERN.equals(javaRegex)) {
-                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
+            if (!usernameRegEx.get(JAVA_REG_EX).isEmpty() && !usernameRegEx.get(JS_REG_EX).isEmpty() &&
+                    !DEFAULT_EMAIL_REGEX_PATTERN.equals(usernameRegEx.get(JAVA_REG_EX))) {
+                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx.get(JS_REG_EX)));
                 configuration.setRegEx(rules);
             } else {
                 rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
@@ -108,4 +117,46 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         }
         return true;
     }
+
+    private Map<String, String> getUsernameRegEx(RealmConfiguration realmConfig) {
+
+        Map<String, String> usernameRegEx = new HashMap<>();
+        if (MultitenantUtils.isEmailUserName()) {
+
+            if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX))) {
+
+                usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(
+                        PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX).replaceAll("//", "/"));
+                usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX));
+                return usernameRegEx;
+            }
+
+            if ((StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
+                    || StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX)))
+                    && (StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
+                    || StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX)))) {
+
+                usernameRegEx.put(JAVA_REG_EX, UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX
+                        .replaceAll("//", "/"));
+                usernameRegEx.put(JS_REG_EX, UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX);
+                return usernameRegEx;
+            }
+        }
+
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
+                && StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))) {
+            usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX));
+            usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX));
+            return usernameRegEx;
+        }
+
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG))
+                && StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG))) {
+            usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG));
+            usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG));
+            return usernameRegEx;
+        }
+        return usernameRegEx;
+    }
+
 }

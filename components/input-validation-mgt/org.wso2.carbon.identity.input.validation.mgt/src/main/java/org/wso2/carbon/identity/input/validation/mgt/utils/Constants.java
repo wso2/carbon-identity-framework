@@ -63,6 +63,8 @@ public class Constants {
         public static final String DEFAULT_EMAIL_REGEX_PATTERN =
                 "^[\\u00C0-\\u00FF\\w&&[^.+\\-_]](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?<![+.\\-_])@" +
                         "(?![+.\\-_])[\\w.+\\-]+\\.[a-zA-Z]{2,10}";
+        public static final String JAVA_REG_EX = "javaRegEx";
+        public static final String JS_REG_EX = "jsRegEx";
     }
 
     /**
