@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -49,10 +50,13 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
                     if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
                         // update existing secret
                         updateExistingSecretProperty(secretName, prop);
+                        prop.setValue(buildSecretReference(secretName));
                     } else {
                         // add secret to the DB
-                        addNewIdpSecretProperty(secretName, prop);
-                        prop.setValue(buildSecretReference(secretName));
+                        if (!StringUtils.isEmpty(prop.getValue())) {
+                            addNewIdpSecretProperty(secretName, prop);
+                            prop.setValue(buildSecretReference(secretName));
+                        }
                     }
                 }
             }

@@ -3040,6 +3040,7 @@ public class IdPManagementDAO {
                         .equals(newIdentityProvider.getIdentityProviderName());
 
                 // TODO: update secrets in IDN_SECRET table
+                newIdentityProvider.setId(Integer.toString(idpId));
                 IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
                         addOrUpdateIdpSecrets(newIdentityProvider);
 
