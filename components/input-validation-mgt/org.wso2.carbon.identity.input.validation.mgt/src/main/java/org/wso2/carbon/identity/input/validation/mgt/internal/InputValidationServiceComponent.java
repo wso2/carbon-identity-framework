@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationLis
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.handlers.PasswordValidationConfigurationHandler;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.AlphanumericValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.EmailFormatValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.JsRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseValidator;
@@ -79,6 +81,10 @@ public class InputValidationServiceComponent {
                     new RepeatedCharacterValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
                     new UniqueCharacterValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new EmailFormatValidator(), null);
+            context.getBundleContext().registerService(Validator.class.getName(),
+                    new AlphanumericValidator(), null);
             context.getBundleContext().registerService(Validator.class.getName(),
                     new JsRegExValidator(), null);
             context.getBundleContext().registerService(UserOperationEventListener.class.getName(),

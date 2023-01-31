@@ -65,6 +65,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
+    private String redirectURL;
     private Map<String, Serializable> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
@@ -373,6 +374,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setCurrentAuthenticator(String currentAuthenticator) {
         this.currentAuthenticator = currentAuthenticator;
+    }
+
+    public String getRedirectURL() {
+
+        return redirectURL;
+    }
+
+    public void setRedirectURL(String redirectURL) {
+
+        this.redirectURL = redirectURL;
     }
 
     public boolean isPreviousSessionFound() {
