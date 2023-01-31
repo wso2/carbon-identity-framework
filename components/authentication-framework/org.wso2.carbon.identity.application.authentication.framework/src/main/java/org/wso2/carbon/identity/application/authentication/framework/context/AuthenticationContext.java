@@ -377,10 +377,12 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     public String getRedirectURL() {
+
         return redirectURL;
     }
 
     public void setRedirectURL(String redirectURL) {
+
         this.redirectURL = redirectURL;
     }
 
