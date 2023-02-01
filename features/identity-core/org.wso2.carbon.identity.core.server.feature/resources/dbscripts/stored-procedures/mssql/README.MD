@@ -45,7 +45,32 @@ Then execute the compiled store procedure by using the EXEC function in the MSSQ
 EXEC WSO2_JTI_CLEANUP_SP;
 ```
 
+**>> mssql-tenanted-jti-cleanup.sql**
+
+This SQL script can be replaced "mssql-jti-cleanup.sql" script if the table have TENANT_ID column.
+**Compile the Stored Procedure**
+
+First, Compile the stored procedure using a MSSQL client by selecting the whole script at once and execute from the MSSQL client.
+Make sure to create the procedure in the identity database schema only.
+
+**Execute the Stored Procedure.**
+
+Then execute the compiled store procedure by using the EXEC function in the MSSQL client. Following is a sample.
+
+```
+EXEC WSO2_JTI_CLEANUP_SP;
+```
+
 **>> mssql-jti-cleanup-restore.sql**
+
+**Compile the Stored Procedure**
+
+First, Compile the stored procedure using a MSSQL client by selecting the whole script at once and execute from the MSSQL client.
+Make sure to create the procedure in the identity database schema only.
+
+**>> mssql-tenanted-jti-cleanup-restore.sql**
+
+This SQL script can be replaced "mssql-jti-cleanup-restore.sql" script if the table have TENANT_ID column.
 
 **Compile the Stored Procedure**
 
