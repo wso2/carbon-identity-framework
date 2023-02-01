@@ -75,14 +75,14 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        Map<String, String> validationRequiredField = new HashMap<>();
+        Map<String, String> validationRequiredFieldWithValues = new HashMap<>();
         if (!UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
-            validationRequiredField.put(PASSWORD, credential.toString());
+            validationRequiredFieldWithValues.put(PASSWORD, credential.toString());
         }
         if (!UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
-            validationRequiredField.put(USERNAME, userName);
+            validationRequiredFieldWithValues.put(USERNAME, userName);
         }
-        return validate(validationRequiredField, userStoreManager);
+        return validate(validationRequiredFieldWithValues, userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
@@ -125,12 +125,13 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
     /**
      * Method to validate the values.
      *
-     * @param fieldValueMap     Map of fields and values that need to be validated.
-     * @param userStoreManager  User store manager.
+     * @param inputValuesForFieldsMap     Map of fields and values that need to be validated,
+     *                                    eg: {key: username, value: abcuser}
+     * @param userStoreManager            User store manager.
      * @return  Validity of the field.
      * @throws UserStoreException   If an error occurred while validating.
      */
-    private boolean validate(Map<String, String> fieldValueMap, UserStoreManager userStoreManager)
+    private boolean validate(Map<String, String> inputValuesForFieldsMap, UserStoreManager userStoreManager)
             throws UserStoreException {
 
         int tenantId = userStoreManager.getTenantId();
@@ -142,7 +143,9 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
             configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
             UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
 
-            for (String field: fieldValueMap.keySet()) {
+            /* Validate provide value for each field in the `inputValuesForFieldsMap` against the configurations of the
+             corresponding field. */
+            for (String field: inputValuesForFieldsMap.keySet()) {
                 ValidationConfiguration configuration = configurations.stream().filter(config ->
                         field.equalsIgnoreCase(config.getField())).collect(Collectors.toList()).get(0);
                 if (configuration != null) {
@@ -152,13 +155,12 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
                         } else if (USERNAME.equals(field)) {
                             UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
                         }
-                        validateAgainstConfiguration(configuration, validators, field, fieldValueMap.get(field),
+                        String valueProvidedForField = inputValuesForFieldsMap.get(field);
+                        validateAgainstConfiguration(configuration, validators, field, valueProvidedForField,
                                 tenantDomain);
                     } catch (InputValidationMgtClientException e) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(new StringFormattedMessage("Failed to validate %s for user. " +
-                                    e.getDescription(), field));
-                        }
+                        LOG.error(new StringFormattedMessage("Failed to validate %s for user. " +
+                                e.getDescription(), field));
                         throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
                                 new PolicyViolationException(e.getDescription()));
                     }
