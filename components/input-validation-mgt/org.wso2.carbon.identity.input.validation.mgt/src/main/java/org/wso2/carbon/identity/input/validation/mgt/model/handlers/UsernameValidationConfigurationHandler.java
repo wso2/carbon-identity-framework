@@ -36,14 +36,13 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_JS_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
-import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG;
-import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX;
+import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
 
@@ -74,7 +73,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
 
             // Return the JsRegex if the default regex has been updated by the user.
             if (!usernameRegEx.isEmpty() &&
-                    !DEFAULT_EMAIL_REGEX_PATTERN.equals(usernameRegEx)) {
+                    !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
                 configuration.setRegEx(rules);
             } else {
@@ -145,12 +144,12 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             }
         }
 
-        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))) {
-            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX);
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))) {
+            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX);
         }
 
-        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG))) {
-            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG);
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG))) {
+            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG);
         }
 
         if (log.isDebugEnabled()) {
