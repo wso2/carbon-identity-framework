@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -92,5 +93,7 @@ public interface InputValidationManagementService {
      *
      * @return Map<String, FieldValidationConfigurationHandler>.
      */
-    Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers();
+    default Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
+        return new HashMap<>();
+    }
 }

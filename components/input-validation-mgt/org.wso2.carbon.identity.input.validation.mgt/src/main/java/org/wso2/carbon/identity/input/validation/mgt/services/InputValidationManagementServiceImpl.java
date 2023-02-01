@@ -87,6 +87,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
+        // If validation configuration is not found for any field, get default regex.
         for (String field: SUPPORTED_PARAMS) {
             if (configurations.stream().noneMatch(config -> field.equals(config.getField()))) {
                 configurations.add(getConfigurationFromUserStore(tenantDomain, field));

@@ -19,10 +19,13 @@
 package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AlphanumericValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.EmailFormatValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
@@ -31,28 +34,25 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REG_EX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REG_EX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JAVA_REG_EX;
-import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
 
 /**
- * Password Validation Configuration Handler.
+ * Username Validation Configuration Handler.
  */
 public class UsernameValidationConfigurationHandler extends AbstractFieldValidationConfigurationHandler {
+
+    private static final Log log = LogFactory.getLog(AbstractRegExValidator.class);
 
     @Override
     public boolean canHandle(String field) {
@@ -70,12 +70,12 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
 
         try {
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            Map<String, String> usernameRegEx = getUsernameRegEx(realmConfiguration);
+            String usernameRegEx = getUsernameRegEx(realmConfiguration);
 
             // Return the JsRegex if the default regex has been updated by the user.
-            if (!usernameRegEx.get(JAVA_REG_EX).isEmpty() && !usernameRegEx.get(JS_REG_EX).isEmpty() &&
-                    !DEFAULT_EMAIL_REGEX_PATTERN.equals(usernameRegEx.get(JAVA_REG_EX))) {
-                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx.get(JS_REG_EX)));
+            if (!usernameRegEx.isEmpty() &&
+                    !DEFAULT_EMAIL_REGEX_PATTERN.equals(usernameRegEx)) {
+                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
                 configuration.setRegEx(rules);
             } else {
                 rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
@@ -84,7 +84,8 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             }
             return configuration;
         } catch (InputValidationMgtException e) {
-            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
+            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage(),
+                    e.getDescription());
         }
     }
 
@@ -95,6 +96,8 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         List<String> validatorNames = new ArrayList<>();
         configurationList.forEach(config -> validatorNames.add(config.getValidatorName()));
         int validConfigurations = 0;
+        /* Valid configurations for username must be either EmailFormatValidator is set to true or Alphanumeric
+        validator is set to true along with Length Validator. */
         for (RulesConfiguration configuration: configurationList) {
             if (EmailFormatValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
                 if (Boolean.parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
@@ -107,56 +110,53 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                         validConfigurations += 1;
                         validatorNames.remove(LengthValidator.class.getSimpleName());
                     }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("LengthValidator must be configured along with the AlphanumericValidator for " +
+                                "username.");
+                    }
                 }
                 validatorNames.remove(AlphanumericValidator.class.getSimpleName());
             }
         }
-        if (validConfigurations != 1 || !validatorNames.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATORS_COMBINATION.getCode(),
-                    String.format(ERROR_INVALID_VALIDATORS_COMBINATION.getDescription(), USERNAME));
+
+        // To be allowed, there must be exactly one valid combination and no other
+        if (validConfigurations == 1 && validatorNames.isEmpty()) {
+            return true;
         }
-        return true;
+        throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATORS_COMBINATION.getCode(),
+                String.format(ERROR_INVALID_VALIDATORS_COMBINATION.getDescription(), USERNAME));
     }
 
-    private Map<String, String> getUsernameRegEx(RealmConfiguration realmConfig) {
+    /**
+     * Get default regex for the username.
+     *
+     * @param realmConfig   RealmConfiguration for the tenant.
+     */
+    private String getUsernameRegEx(RealmConfiguration realmConfig) {
 
-        Map<String, String> usernameRegEx = new HashMap<>();
         if (MultitenantUtils.isEmailUserName()) {
-
             if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX))) {
-
-                usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(
-                        PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX).replaceAll("//", "/"));
-                usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX));
-                return usernameRegEx;
+                return PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
             }
-
-            if ((StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
-                    || StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX)))
-                    && (StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
-                    || StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX)))) {
-
-                usernameRegEx.put(JAVA_REG_EX, UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX
-                        .replaceAll("//", "/"));
-                usernameRegEx.put(JS_REG_EX, UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX);
-                return usernameRegEx;
+            if (StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))
+                    && StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))) {
+                return UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX;
             }
         }
 
-        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))
-                && StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))) {
-            usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX));
-            usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX));
-            return usernameRegEx;
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX))) {
+            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG_EX);
         }
 
-        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG))
-                && StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG))) {
-            usernameRegEx.put(JAVA_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG));
-            usernameRegEx.put(JS_REG_EX, realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG));
-            return usernameRegEx;
+        if (StringUtils.isNotBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG))) {
+            return realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JAVA_REG);
         }
-        return usernameRegEx;
+
+        if (log.isDebugEnabled()) {
+            log.debug("No default regex configurations are found for field username");
+        }
+        return new String();
     }
 
 }
