@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_REGEX_PATTERN;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_JAVA_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INPUT_VALUE_NULL;
@@ -62,7 +62,7 @@ public class EmailFormatValidator extends AbstractRulesValidator {
         String value = context.getValue();
         String field = context.getField();
         Map<String, String> attributesMap = context.getProperties();
-        String emailRegEx = DEFAULT_EMAIL_REGEX_PATTERN;
+        String emailRegEx = DEFAULT_EMAIL_JAVA_REGEX_PATTERN;
 
         // Check whether value satisfies the email format criteria.
         if (attributesMap.containsKey(ENABLE_VALIDATOR)) {

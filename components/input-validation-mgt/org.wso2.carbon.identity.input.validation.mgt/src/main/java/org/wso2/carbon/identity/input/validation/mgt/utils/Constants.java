@@ -35,6 +35,7 @@ public class Constants {
     public static final List<String> SUPPORTED_PARAMS = Collections.unmodifiableList(
             new ArrayList<String>() {{
                 add(PASSWORD);
+                add(USERNAME);
             }});
 
     /**
@@ -60,9 +61,11 @@ public class Constants {
         public static final String PERIOD = ".";
         public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
         public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
-        public static final String DEFAULT_EMAIL_REGEX_PATTERN =
+        public static final String DEFAULT_EMAIL_JAVA_REGEX_PATTERN =
                 "^[\\u00C0-\\u00FF\\w&&[^.+\\-_]](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?<![+.\\-_])@" +
                         "(?![+.\\-_])[\\w.+\\-]+\\.[a-zA-Z]{2,10}";
+        public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
+                "^[\\u00C0-\\u00FFa-zA-Z0-9.+\\-_]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,10}$";
     }
 
     /**
@@ -153,6 +156,9 @@ public class Constants {
         ERROR_INPUT_VALUE_NULL("60026",
                 "INPUT_VALUE_NULL",
                 "The value cannot be null"),
+        ERROR_INVALID_VALIDATORS_COMBINATION("60027",
+                "INVALID VALIDATOR COMBINATION",
+                "Invalid validators combination is provided for field %s."),
 
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",

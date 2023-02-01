@@ -87,9 +87,11 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
-        if (configurations.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
-                    String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
+        // If validation configuration is not found for any field, get default regex.
+        for (String field: SUPPORTED_PARAMS) {
+            if (configurations.stream().noneMatch(config -> field.equals(config.getField()))) {
+                configurations.add(getConfigurationFromUserStore(tenantDomain, field));
+            }
         }
         return configurations;
     }
@@ -131,6 +133,11 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     @Override
+    public Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
+
+        return InputValidationDataHolder.getFieldValidationConfigurationHandlers();
+    }
+    
     public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
 
