@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessorImpl;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -95,6 +97,13 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
+
+        IdentityProviderSecretsProcessor identityProviderSecretsProcessor = mock(
+                IdentityProviderSecretsProcessorImpl.class);
+        IdpMgtServiceComponentHolder.getInstance().setIdpSecretsProcessorService(identityProviderSecretsProcessor);
+        when(identityProviderSecretsProcessor.addOrUpdateIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
+        when(identityProviderSecretsProcessor.getIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
+        when(identityProviderSecretsProcessor.deleteIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
     }
 
     @AfterMethod

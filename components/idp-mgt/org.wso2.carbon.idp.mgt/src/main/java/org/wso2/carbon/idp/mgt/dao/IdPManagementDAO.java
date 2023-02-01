@@ -2108,8 +2108,10 @@ public class IdPManagementDAO {
                         dbConnection, idPName, federatedIdp, tenantId));
 
                 // TODO: get IDP secrets from IDN_SECRET table.
-                IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
-                        getIdpSecrets(federatedIdp);
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
+                    IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
+                            getIdpSecrets(federatedIdp);
+                }
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
                     federatedIdp.setDefaultAuthenticatorConfig(IdentityApplicationManagementUtil
