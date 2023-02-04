@@ -180,9 +180,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get oAuth2 client ID.
+     * Get OAuth2 client ID.
      *
-     * @return oAuth2 client ID.
+     * @return OAuth2 client ID.
      */
     public String getClientId() {
 
@@ -190,9 +190,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set oAuth2 client ID.
+     * Set OAuth2 client ID.
      *
-     * @param clientId  oAuth2 client ID.
+     * @param clientId  OAuth2 client ID.
      */
     public void setClientId(String clientId) {
 
