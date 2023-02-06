@@ -112,7 +112,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
-
+        String syncMethod = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
@@ -158,7 +159,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 user claim update scenario.
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty()) {
+                if (!userClaims.isEmpty() && !syncMethod.equals(FrameworkConstants.SYNC_NONE)) {
                     /*
                     In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
                     To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
@@ -175,6 +176,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
                                 || indelibleClaimSet.contains(claim.getClaimUri()) ||
                                 userClaims.containsKey(claim.getClaimUri()));
+
+                        // Do not delete the claims updated locally if the syncMethod os set to persist the local
+                        // claims.
+                        if (syncMethod.equals(FrameworkConstants.PRESERVE_LOCAL)) {
+                            toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes.containsKey(claim.getClaimUri()));
+                        }
 
                         for (Claim claim : toBeDeletedFromExistingUserClaims) {
                             toBeDeletedUserClaims.add(claim.getClaimUri());
@@ -338,6 +345,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.ATTRIBUTE_SYNC_METHOD);
         }
     }
 

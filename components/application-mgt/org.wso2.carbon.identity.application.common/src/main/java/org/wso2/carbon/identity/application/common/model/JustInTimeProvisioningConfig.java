@@ -49,6 +49,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean promptConsent = false;
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
+    @XmlElement(name = "SyncAttributeMethod")
+    private String syncAttributeMethod;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -142,6 +144,21 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     public boolean isAssociateLocalUserEnabled() {
 
         return associateLocalUserEnabled;
+    }
+
+    /**
+     * To associate existing local user when JIT user provisioning is enabled.
+     *
+     * @param syncAttributeMethod to specify whether to associate existing local user when JIT user provisioning.
+     */
+    public void setSyncAttributeMethod(String syncAttributeMethod) {
+
+        this.syncAttributeMethod = syncAttributeMethod;
+    }
+
+    public String getSyncAttributeMethod() {
+
+        return syncAttributeMethod;
     }
 
     /**
