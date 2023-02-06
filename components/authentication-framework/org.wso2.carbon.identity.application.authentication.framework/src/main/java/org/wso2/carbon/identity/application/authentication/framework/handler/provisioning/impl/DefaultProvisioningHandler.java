@@ -159,7 +159,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 user claim update scenario.
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty() && !syncMethod.equals(FrameworkConstants.SYNC_NONE)) {
+                if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(syncMethod)) {
                     /*
                     In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
                     To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
@@ -179,7 +179,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                         // Do not delete the claims updated locally if the syncMethod os set to persist the local
                         // claims.
-                        if (syncMethod.equals(FrameworkConstants.PRESERVE_LOCAL)) {
+                        if (FrameworkConstants.PRESERVE_LOCAL.equals(syncMethod)) {
                             toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes.containsKey(claim.getClaimUri()));
                         }
 

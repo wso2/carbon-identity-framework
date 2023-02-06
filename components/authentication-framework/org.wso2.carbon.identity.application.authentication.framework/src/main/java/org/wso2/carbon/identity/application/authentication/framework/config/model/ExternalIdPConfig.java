@@ -253,7 +253,8 @@ public class ExternalIdPConfig implements Serializable {
     public String getSyncAttributesMethod() {
 
         String method = FrameworkConstants.SYNC_ALL;
-        if (justInTimeProConfig != null && justInTimeProConfig.getSyncAttributeMethod() != null) {
+        if (justInTimeProConfig != null &&
+                StringUtils.isNotEmpty(justInTimeProConfig.getSyncAttributeMethod())) {
             method = justInTimeProConfig.getSyncAttributeMethod();
         }
         return method;

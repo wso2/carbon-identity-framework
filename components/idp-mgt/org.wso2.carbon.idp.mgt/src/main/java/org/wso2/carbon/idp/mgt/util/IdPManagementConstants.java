@@ -92,6 +92,7 @@ public class IdPManagementConstants {
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
+    public static final String DEFAULT_SYNC_ATTRIBUTE = "ALL";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";

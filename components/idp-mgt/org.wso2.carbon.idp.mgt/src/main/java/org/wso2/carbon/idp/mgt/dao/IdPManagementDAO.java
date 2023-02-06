@@ -2184,8 +2184,8 @@ public class IdPManagementDAO {
                         .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
-                } else if (identityProviderProperty.getName()
-                        .equals(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD)) {
+                } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                        .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setSyncAttributeMethod(identityProviderProperty.getValue());
                 }
             });
@@ -2844,7 +2844,7 @@ public class IdPManagementDAO {
 
         IdentityProviderProperty syncAttribute = new IdentityProviderProperty();
         syncAttribute.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
-        syncAttribute.setValue("ALL");
+        syncAttribute.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
 
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
