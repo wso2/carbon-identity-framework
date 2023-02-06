@@ -3277,9 +3277,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 Node rootNode = filterTreeBuilder.buildTree();
                 filterData = getFilterDataFromFilterTree(rootNode);
             } catch (IOException | IdentityException e) {
-                log.error("Error occurred while converting filter query with filter tree builder.", e);
                 throw new IdentityApplicationManagementClientException(INVALID_FILTER.getCode(),
-                        "Error occurred while validating the filter.");
+                        "Filter attribute or filter condition is empty or invalid.");
             }
         }
         return filterData;
