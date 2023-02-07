@@ -122,7 +122,6 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
         Secret secret = new Secret();
         secret.setSecretName(secretName);
         secret.setSecretValue(property.getValue());
-        // secret.setDescription(property.getDescription());
         secretManager.addSecret(IDN_SECRET_TYPE_IDP_SECRETS, secret);
     }
 
