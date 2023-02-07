@@ -147,15 +147,20 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     }
 
     /**
-     * To associate existing local user when JIT user provisioning is enabled.
+     * To sync attributes coming from the federated identity providers.
      *
-     * @param syncAttributeMethod to specify whether to associate existing local user when JIT user provisioning.
+     * @param syncAttributeMethod to specify way on how to sync the attributes.
      */
     public void setSyncAttributeMethod(String syncAttributeMethod) {
 
         this.syncAttributeMethod = syncAttributeMethod;
     }
 
+    /**
+     * Get the attribute sync method.
+     *
+     * @return attribute sync method.
+     */
     public String getSyncAttributeMethod() {
 
         return syncAttributeMethod;

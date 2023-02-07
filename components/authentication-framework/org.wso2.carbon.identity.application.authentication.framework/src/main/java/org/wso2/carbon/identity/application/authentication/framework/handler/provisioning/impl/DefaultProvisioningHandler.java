@@ -112,7 +112,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
-        String syncMethod = IdentityUtil.threadLocalProperties.get()
+        String attributeSyncMethod = IdentityUtil.threadLocalProperties.get()
                 .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -159,7 +159,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 user claim update scenario.
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(syncMethod)) {
+                if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod)) {
                     /*
                     In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
                     To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
@@ -177,10 +177,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                 || indelibleClaimSet.contains(claim.getClaimUri()) ||
                                 userClaims.containsKey(claim.getClaimUri()));
 
-                        // Do not delete the claims updated locally if the syncMethod os set to persist the local
-                        // claims.
-                        if (FrameworkConstants.PRESERVE_LOCAL.equals(syncMethod)) {
-                            toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes.containsKey(claim.getClaimUri()));
+                        // Do not delete the claims updated locally if the attributeSyncMethod is set to preserve
+                        // the local claims.
+                        if (FrameworkConstants.PRESERVE_LOCAL.equals(attributeSyncMethod)) {
+                            toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes
+                                    .containsKey(claim.getClaimUri()));
                         }
 
                         for (Claim claim : toBeDeletedFromExistingUserClaims) {

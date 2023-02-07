@@ -205,7 +205,6 @@ public abstract class FrameworkConstants {
     public static final String SYNC_NONE = "NONE";
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
 
-
     private FrameworkConstants() {
 
     }
