@@ -722,7 +722,18 @@ public class CacheBackedIdPMgtDAO {
                 tenantDomain);
         for (IdentityProvider identityProvider : identityProviders) {
             String identityProviderName = identityProvider.getIdentityProviderName();
-            identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            try {
+                identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            } catch (IdentityProviderManagementClientException e) {
+                /* The IDP data might get deleted from another process. In cases like that `getIdPByName` will throw
+                 the IdentityProviderManagementClientException. Hence, we need to handle that exception and continue the
+                 iteration. */
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Continue the iteration since identity provider %s is not available " +
+                            "in cache or database of tenant domain %s", identityProviderName, tenantDomain), e);
+                }
+                identityProvider = null;
+            }
             // An IDP might get deleted from another process. Hence, identityProvider is nullable.
             if (identityProvider == null) {
                 if (log.isDebugEnabled()) {
