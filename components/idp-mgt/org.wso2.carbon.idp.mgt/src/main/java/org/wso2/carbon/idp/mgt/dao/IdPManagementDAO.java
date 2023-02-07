@@ -2107,7 +2107,7 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // TODO: get IDP secrets from IDN_SECRET table.
+                // Get IDP secrets from IDN_SECRET table.
                 if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
                     IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
                             getIdpSecrets(federatedIdp);
@@ -2749,7 +2749,7 @@ public class IdPManagementDAO {
                         dbConnection, idPId, tenantId);
             }
 
-            // TODO: add federated authenticator secret properties to IDN_SECRET table.
+            // Add federated authenticator secret properties to IDN_SECRET table.
             identityProvider.setId(createdIDP.getId());
             IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
                     addOrUpdateIdpSecrets(identityProvider);
@@ -3041,7 +3041,7 @@ public class IdPManagementDAO {
                 boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                         .equals(newIdentityProvider.getIdentityProviderName());
 
-                // TODO: update secrets in IDN_SECRET table
+                // Update secrets in IDN_SECRET table.
                 newIdentityProvider.setId(Integer.toString(idpId));
                 IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
                         addOrUpdateIdpSecrets(newIdentityProvider);

@@ -482,17 +482,6 @@ public class SecretManagerTest extends PowerMockTestCase {
                 assertEquals(SAMPLE_SECRET_VALUE1, property.getValue());
             }
         }
-
-//        Property[] idpProperties = identityProvider.getFederatedAuthenticatorConfigs()[0].getProperties();
-//        Property[] updatedIdpProperties = updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties();
-//
-//        for (Property updatedProperty : updatedIdpProperties) {
-//            for (Property property : idpProperties) {
-//                if (property.getName().equals(updatedProperty.getName())) {
-//                    assertEquals(updatedProperty.getValue(), property.getValue(), "Property values don't match.");
-//                }
-//            }
-//        }
     }
 
     @Test(priority = 30)
