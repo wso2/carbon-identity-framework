@@ -108,11 +108,9 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                     if (validatorNames.contains(LengthValidator.class.getSimpleName())) {
                         validConfigurations += 1;
                         validatorNames.remove(LengthValidator.class.getSimpleName());
-                    }
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("LengthValidator must be configured along with the AlphanumericValidator for " +
-                                "username.");
+                    } else {
+                        throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATORS_COMBINATION.getCode(),
+                            "LengthValidator must be configured along with the AlphanumericValidator for username.");
                     }
                 }
                 validatorNames.remove(AlphanumericValidator.class.getSimpleName());
@@ -139,7 +137,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                 return PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
             }
             if (StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))
-                    && StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG_EX))) {
+                    && StringUtils.isBlank(realmConfig.getUserStoreProperty(PROPERTY_USER_NAME_JS_REG))) {
                 return UserCoreConstants.RealmConfig.EMAIL_VALIDATION_REGEX;
             }
         }
