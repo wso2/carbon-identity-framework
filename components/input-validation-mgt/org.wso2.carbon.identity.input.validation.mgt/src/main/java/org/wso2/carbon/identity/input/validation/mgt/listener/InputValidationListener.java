@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.input.validation.mgt.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -38,13 +39,16 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ERROR_CODE_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 
 /**
  * Lister class to validate the password.
@@ -71,10 +75,14 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        if (UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
-            return true;
+        Map<String, String> validationRequiredFieldWithValues = new HashMap<>();
+        if (!UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
+            validationRequiredFieldWithValues.put(PASSWORD, credential.toString());
         }
-        return validate(PASSWORD, credential.toString(), userStoreManager);
+        if (!UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
+            validationRequiredFieldWithValues.put(USERNAME, userName);
+        }
+        return validate(validationRequiredFieldWithValues, userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
@@ -83,7 +91,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+        return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
     }
 
     public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential,
@@ -92,7 +100,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+        return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
     }
 
     public boolean doPreUpdateCredential(String userName, Object newCredential, Object oldCredential,
@@ -101,7 +109,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+        return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
     }
 
     public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
@@ -110,62 +118,77 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!isEnable()) {
             return true;
         }
-        return validate(PASSWORD, newCredential.toString(), userStoreManager);
+        return validate(Collections.singletonMap(PASSWORD, newCredential.toString()), userStoreManager);
 
     }
 
     /**
      * Method to validate the values.
      *
-     * @param field             Field to be validated.
-     * @param value             Value to be validated.
-     * @param userStoreManager  User store manager.
+     * @param inputValuesForFieldsMap     Map of fields and values that need to be validated,
+     *                                    eg: {key: username, value: abcuser}
+     * @param userStoreManager            User store manager.
      * @return  Validity of the field.
      * @throws UserStoreException   If an error occurred while validating.
      */
-    private boolean validate(String field, String value, UserStoreManager userStoreManager) throws UserStoreException {
+    private boolean validate(Map<String, String> inputValuesForFieldsMap, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         int tenantId = userStoreManager.getTenantId();
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        Map<String, Validator> validators = InputValidationDataHolder.getValidators();
 
         List<ValidationConfiguration> configurations;
         try {
             configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
-            configurations = configurations.stream().filter(config -> field.equalsIgnoreCase(config.getField()))
-                    .collect(Collectors.toList());
-            if (configurations.isEmpty()) {
-                return true;
-            }
             UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-            Map<String, Validator> validators = InputValidationDataHolder.getValidators();
-            ValidationConfiguration configuration = configurations.get(0);
-            List<RulesConfiguration> rules = new ArrayList<>();
-            if (configuration.getRegEx() != null) {
-                rules = configuration.getRegEx();
-            } else if (configuration.getRules() != null) {
-                rules = configuration.getRules();
-            }
-            for (RulesConfiguration rule: rules) {
-                Validator validator = validators.get(rule.getValidatorName());
-                ValidationContext context = new ValidationContext();
-                context.setField(field);
-                context.setValue(value);
-                context.setTenantDomain(tenantDomain);
-                context.setProperties(rule.getProperties());
-                validator.validate(context);
+
+            /* Validate provide value for each field in the `inputValuesForFieldsMap` against the configurations of the
+             corresponding field. */
+            for (String field: inputValuesForFieldsMap.keySet()) {
+                ValidationConfiguration configuration = configurations.stream().filter(config ->
+                        field.equalsIgnoreCase(config.getField())).collect(Collectors.toList()).get(0);
+                if (configuration != null) {
+                    try {
+                        if (PASSWORD.equals(field)) {
+                            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                        } else if (USERNAME.equals(field)) {
+                            UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+                        }
+                        String valueProvidedForField = inputValuesForFieldsMap.get(field);
+                        validateAgainstConfiguration(configuration, validators, field, valueProvidedForField,
+                                tenantDomain);
+                    } catch (InputValidationMgtClientException e) {
+                        LOG.error(new StringFormattedMessage("Failed to validate %s for user. " +
+                                e.getDescription(), field));
+                        throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
+                                new PolicyViolationException(e.getDescription()));
+                    }
+                }
             }
         } catch (InputValidationMgtException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to validate password for user. " + e.getDescription());
-            }
-            if (ERROR_NO_CONFIGURATIONS_FOUND.getCode().equals(e.getErrorCode())) {
-                return true;
-            }
-            if (e instanceof InputValidationMgtClientException) {
-                throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
-                        new PolicyViolationException(e.getDescription()));
-            }
-            return false;
+            return ERROR_WHILE_UPDATING_CONFIGURATIONS.getCode().equals(e.getErrorCode());
+        }
+        return true;
+    }
+
+    private boolean validateAgainstConfiguration(ValidationConfiguration configuration, Map<String, Validator>
+            validators, String field, String value, String tenantDomain) throws InputValidationMgtClientException {
+
+        List<RulesConfiguration> rules = new ArrayList<>();
+        if (configuration.getRegEx() != null) {
+            rules = configuration.getRegEx();
+        } else if (configuration.getRules() != null) {
+            rules = configuration.getRules();
+        }
+        for (RulesConfiguration rule: rules) {
+            Validator validator = validators.get(rule.getValidatorName());
+            ValidationContext context = new ValidationContext();
+            context.setField(field);
+            context.setValue(value);
+            context.setTenantDomain(tenantDomain);
+            context.setProperties(rule.getProperties());
+            validator.validate(context);
         }
         return true;
     }
