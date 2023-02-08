@@ -50,7 +50,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
     @XmlElement(name = "AttributeSyncMethod")
-    private String attributeSyncMethod;
+    private String attributeSyncMethod = "OVERRIDE_ALL";
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
