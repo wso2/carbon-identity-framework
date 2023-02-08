@@ -2842,9 +2842,9 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
-        IdentityProviderProperty syncAttribute = new IdentityProviderProperty();
-        syncAttribute.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
-        syncAttribute.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
+        IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
+        attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
+        attributeSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
 
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
@@ -2852,13 +2852,13 @@ public class IdPManagementDAO {
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
-            syncAttribute.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
-        identityProviderProperties.add(syncAttribute);
+        identityProviderProperties.add(attributeSyncMethod);
         return identityProviderProperties;
     }
 
