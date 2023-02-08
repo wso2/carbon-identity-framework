@@ -250,6 +250,11 @@ public class ExternalIdPConfig implements Serializable {
         return justInTimeProConfig != null && justInTimeProConfig.isAssociateLocalUserEnabled();
     }
 
+    /**
+     * Get attribute sync method.
+     *
+     * @return attribute sync method.
+     */
     public String getAttributeSyncMethod() {
 
         String method = FrameworkConstants.SYNC_ALL;
