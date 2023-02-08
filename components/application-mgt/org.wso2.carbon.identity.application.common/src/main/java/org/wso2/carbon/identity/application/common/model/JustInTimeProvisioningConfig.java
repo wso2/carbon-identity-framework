@@ -49,8 +49,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean promptConsent = false;
     @XmlElement(name = "EnableAssociateLocalUser")
     private boolean associateLocalUserEnabled = false;
-    @XmlElement(name = "SyncAttributeMethod")
-    private String syncAttributeMethod;
+    @XmlElement(name = "AttributeSyncMethod")
+    private String attributeSyncMethod;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -149,11 +149,11 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     /**
      * To sync attributes coming from the federated identity providers.
      *
-     * @param syncAttributeMethod to specify way on how to sync the attributes.
+     * @param attributeSyncMethod to specify way on how to sync the attributes.
      */
-    public void setSyncAttributeMethod(String syncAttributeMethod) {
+    public void setSyncAttributeMethod(String attributeSyncMethod) {
 
-        this.syncAttributeMethod = syncAttributeMethod;
+        this.attributeSyncMethod = attributeSyncMethod;
     }
 
     /**
@@ -163,7 +163,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      */
     public String getSyncAttributeMethod() {
 
-        return syncAttributeMethod;
+        return attributeSyncMethod;
     }
 
     /**
