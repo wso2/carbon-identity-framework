@@ -151,7 +151,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      *
      * @param attributeSyncMethod to specify way on how to sync the attributes.
      */
-    public void setSyncAttributeMethod(String attributeSyncMethod) {
+    public void setAttributeSyncMethod(String attributeSyncMethod) {
 
         this.attributeSyncMethod = attributeSyncMethod;
     }
@@ -161,7 +161,7 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      *
      * @return attribute sync method.
      */
-    public String getSyncAttributeMethod() {
+    public String getAttributeSyncMethod() {
 
         return attributeSyncMethod;
     }

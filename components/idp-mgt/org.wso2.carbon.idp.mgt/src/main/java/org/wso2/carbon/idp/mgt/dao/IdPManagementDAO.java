@@ -2186,7 +2186,7 @@ public class IdPManagementDAO {
                             .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
-                    justInTimeProvisioningConfig.setSyncAttributeMethod(identityProviderProperty.getValue());
+                    justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
                 }
             });
         }
@@ -2852,7 +2852,7 @@ public class IdPManagementDAO {
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
-            syncAttribute.setValue(justInTimeProvisioningConfig.getSyncAttributeMethod());
+            syncAttribute.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
