@@ -96,6 +96,33 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         return configurations;
     }
 
+    /**
+     * Method to get input validation configuration for a field.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param field         Field name that configuration needs to be retrieved.
+     * @return Input Validation Configuration for given field.
+     * @throws InputValidationMgtException If an error occurred in getting configuration.
+     */
+    @Override
+    public ValidationConfiguration getInputValidationConfigurationForField(String tenantDomain, String field)
+            throws InputValidationMgtException {
+
+        List<Resource> resources = getResourcesByType(tenantDomain);
+        // Convert resources to Validation Configurations.
+        List<ValidationConfiguration> configurations = new ArrayList<>();
+        for (Resource resource: resources) {
+            configurations.add(buildValidationConfigFromResource(resource));
+        }
+        // If validation configuration is not found for any field, get default regex.
+        for (ValidationConfiguration config: configurations) {
+            if (field.equals(config.getField())) {
+                return config;
+            }
+        }
+        return getConfigurationFromUserStore(tenantDomain, field);
+    }
+
     @Override
     public List<ValidatorConfiguration> getValidatorConfigurations (String tenantDomain)
             throws InputValidationMgtException {
@@ -178,7 +205,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
      * @return  Updated validation configuration.
      * @throws InputValidationMgtServerException If an error occurred when updating resource.
      */
-    private ValidationConfiguration updateValidationConfiguration(
+    @Override
+    public ValidationConfiguration updateValidationConfiguration(
             ValidationConfiguration configuration, String tenantDomain) throws InputValidationMgtServerException {
 
         String resourceName = INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + configuration.getField();
