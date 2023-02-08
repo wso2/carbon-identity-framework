@@ -201,7 +201,7 @@ public abstract class FrameworkConstants {
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
-    public static final String SYNC_ALL = "ALL";
+    public static final String SYNC_ALL = "OVERRIDE_ALL";
     public static final String SYNC_NONE = "NONE";
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
 
