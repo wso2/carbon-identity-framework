@@ -199,6 +199,12 @@ public abstract class FrameworkConstants {
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
 
+    // Attribute sync related constants.
+    public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
+    public static final String OVERRIDE_ALL = "OVERRIDE_ALL";
+    public static final String SYNC_NONE = "NONE";
+    public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
+
     private FrameworkConstants() {
 
     }
