@@ -2818,6 +2818,8 @@
                     <Path>/api/identity/auth/v1.1</Path>
                     <Path>/api/server/v1/authenticators</Path>
                     <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/([^/]+)/sessions</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2825,6 +2827,12 @@
             </Context>
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/oidc/</BasePath>
+                <SubPaths>
+                    <Path>/oidc/logout</Path>
+                </SubPaths>
             </Context>
         </WebApp>
         <Servlet>
