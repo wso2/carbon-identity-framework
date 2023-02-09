@@ -368,4 +368,39 @@ public class LocalClaimDAO extends ClaimDAO {
             log.error("An error occurred while rolling back transactions. ", e1);
         }
     }
+
+    /**
+     * Fetch mapped external claims of a local claim.
+     *
+     * @param tenantId      Tenant Id.
+     * @param localClaimURI URI of the local claim.
+     *
+     * @throws ClaimMetadataException when trying to fetch mapped external claims for a local claim,
+     */
+    public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet;
+        List<Claim> mappedExternalClaims = new ArrayList<>();
+        try {
+            String query = SQLConstants.FETCH_EXTERNAL_MAPPED_CLAIM_OF_LOCAL_CLAIM;
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, localClaimURI);
+            prepStmt.setInt(2, tenantId);
+            resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                String claimURI = resultSet.getString(SQLConstants.CLAIM_URI_COLUMN);
+                String dialectURI = resultSet.getString(SQLConstants.DIALECT_URI_COLUMN);
+                Claim claim = new Claim(dialectURI, claimURI);
+                mappedExternalClaims.add(claim);
+            }
+            return mappedExternalClaims;
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while obtaining mapped external claims for local claim.", e);
+        } finally {
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+        }
+    }
 }

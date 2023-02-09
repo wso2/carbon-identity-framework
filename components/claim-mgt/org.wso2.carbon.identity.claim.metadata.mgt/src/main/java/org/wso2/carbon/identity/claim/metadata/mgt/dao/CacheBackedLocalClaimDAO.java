@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -114,5 +115,18 @@ public class CacheBackedLocalClaimDAO {
         }
         localClaimDAO.deleteClaimMappingAttributes(tenantId, userstoreDomain);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+    }
+
+    /**
+     * Fetch mapped external claims of a local claim.
+     *
+     * @param tenantId        Tenant Id
+     * @param localClaimURI   URI of local claim
+     * @throws ClaimMetadataException If an error occurred while getting mapped external claim for local claim.
+     */
+    public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+       return this.localClaimDAO.fetchMappedExternalClaims(localClaimURI,tenantId);
     }
 }
