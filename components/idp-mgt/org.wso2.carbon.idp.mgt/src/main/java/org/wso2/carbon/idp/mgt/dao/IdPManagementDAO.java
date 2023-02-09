@@ -3199,6 +3199,7 @@ public class IdPManagementDAO {
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
             deleteIdP(dbConnection, tenantId, null, resourceId);
+            // Delete IDP related secrets from the IDN_SECRET table.
             IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().deleteIdpSecrets(identityProvider);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {

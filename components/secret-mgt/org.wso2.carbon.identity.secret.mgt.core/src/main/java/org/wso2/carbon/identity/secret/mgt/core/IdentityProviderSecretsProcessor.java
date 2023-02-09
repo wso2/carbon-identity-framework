@@ -50,9 +50,8 @@ public interface IdentityProviderSecretsProcessor {
      * This API is used to remove secrets belongs to the IDP that is being deleted
      *
      * @param identityProvider Name of the {@link IdentityProvider}.
-     * @return Returns {@link IdentityProvider} created.
      * @throws SecretManagementException Secret management exception.
      */
-    IdentityProvider deleteIdpSecrets(IdentityProvider identityProvider) throws
+    void deleteIdpSecrets(IdentityProvider identityProvider) throws
             SecretManagementException;
 }

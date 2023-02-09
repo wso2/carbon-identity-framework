@@ -88,7 +88,7 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
     }
 
     @Override
-    public IdentityProvider deleteIdpSecrets(IdentityProvider identityProvider)
+    public void deleteIdpSecrets(IdentityProvider identityProvider)
             throws SecretManagementException {
 
         for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
@@ -102,8 +102,6 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
                 }
             }
         }
-
-        return identityProvider;
     }
 
     private String buildSecretName(String idpId, String fedAuthName, String propName) {

@@ -147,8 +147,6 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 .addOrUpdateIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
         when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
                 .getIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
-        when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
-                .deleteIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
     }
 
     @AfterMethod

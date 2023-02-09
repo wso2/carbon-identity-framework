@@ -103,7 +103,6 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
         IdpMgtServiceComponentHolder.getInstance().setIdpSecretsProcessorService(identityProviderSecretsProcessor);
         when(identityProviderSecretsProcessor.addOrUpdateIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
         when(identityProviderSecretsProcessor.getIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
-        when(identityProviderSecretsProcessor.deleteIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
     }
 
     @AfterMethod
