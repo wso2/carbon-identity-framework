@@ -71,7 +71,7 @@ public class AbstractFieldValidationConfigurationHandler implements FieldValidat
             // Retrieve configs from secondary userstore if configured in the identity.xml, else from PRIMARY userstore.
             UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             String secondaryUserStoreName =
-                    IdentityUtil.getProperty("inputValidation.defaultConfigurations.secondaryUserStore");
+                    IdentityUtil.getProperty("FieldInputValidation.DefaultConfigurations.SecondaryUserStoreName");
             if (realm != null && StringUtils.isNotBlank(secondaryUserStoreName)
                     && realm.getUserStoreManager().getSecondaryUserStoreManager(secondaryUserStoreName) != null) {
                 return realm.getUserStoreManager().getSecondaryUserStoreManager(
