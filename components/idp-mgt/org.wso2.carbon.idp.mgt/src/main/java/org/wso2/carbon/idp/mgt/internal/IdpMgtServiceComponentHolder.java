@@ -144,13 +144,12 @@ public class IdpMgtServiceComponentHolder {
         this.roleManagementService = roleManagementService;
     }
 
-    public IdentityProviderSecretsProcessor getIdpSecretsProcessorService() {
+    public IdentityProviderSecretsProcessor getIdPSecretsProcessorService() {
 
         return idpSecretsProcessorService;
     }
 
-    public void setIdpSecretsProcessorService(
-            IdentityProviderSecretsProcessor idpSecretsProcessorService) {
+    public void setIdPSecretsProcessorService(IdentityProviderSecretsProcessor idpSecretsProcessorService) {
 
         this.idpSecretsProcessorService = idpSecretsProcessorService;
     }

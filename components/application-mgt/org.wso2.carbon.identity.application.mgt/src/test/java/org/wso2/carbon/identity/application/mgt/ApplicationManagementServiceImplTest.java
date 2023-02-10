@@ -131,7 +131,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         IdentityProviderSecretsProcessor identityProviderSecretsProcessor = mock(
                 IdentityProviderSecretsProcessorImpl.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdpSecretsProcessorService(identityProviderSecretsProcessor);
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(identityProviderSecretsProcessor);
         when(identityProviderSecretsProcessor.addOrUpdateIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
         when(identityProviderSecretsProcessor.getIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
     }

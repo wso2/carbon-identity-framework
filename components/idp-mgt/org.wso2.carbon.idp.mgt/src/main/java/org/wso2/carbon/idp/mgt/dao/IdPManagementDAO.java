@@ -2107,9 +2107,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // Get IDP secrets from IDN_SECRET table.
+                // Get IdP secrets from IDN_SECRET table.
                 if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
-                    IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
+                    IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
                             getIdPSecrets(federatedIdp);
                 }
 
@@ -2752,7 +2752,7 @@ public class IdPManagementDAO {
 
             // Add federated authenticator secret properties to IDN_SECRET table.
             identityProvider.setId(createdIDP.getId());
-            IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
+            IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
                     addOrUpdateIdPSecrets(identityProvider);
 
             // add federated authenticators.
@@ -3046,7 +3046,7 @@ public class IdPManagementDAO {
 
                 // Update secrets in IDN_SECRET table.
                 newIdentityProvider.setId(Integer.toString(idpId));
-                IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().
+                IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
                         addOrUpdateIdPSecrets(newIdentityProvider);
 
                 // update federated authenticators.
@@ -3203,8 +3203,8 @@ public class IdPManagementDAO {
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
             deleteIdP(dbConnection, tenantId, null, resourceId);
-            // Delete IDP related secrets from the IDN_SECRET table.
-            IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService().deleteIdPSecrets(identityProvider);
+            // Delete IdP related secrets from the IDN_SECRET table.
+            IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().deleteIdPSecrets(identityProvider);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);

@@ -157,11 +157,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         when(IdpMgtServiceComponentHolder.getInstance()).thenReturn(idpMgtServiceComponentHolder);
         IdentityProviderSecretsProcessor identityProviderSecretsProcessor = mock(
                 IdentityProviderSecretsProcessorImpl.class);
-        when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService())
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService())
                 .thenReturn(identityProviderSecretsProcessor);
-        when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
                 .addOrUpdateIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
-        when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
                 .getIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
     }
 

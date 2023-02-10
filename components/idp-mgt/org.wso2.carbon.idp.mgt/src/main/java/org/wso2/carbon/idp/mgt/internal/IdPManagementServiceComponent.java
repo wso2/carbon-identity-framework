@@ -413,16 +413,16 @@ public class IdPManagementServiceComponent {
             service = IdentityProviderSecretsProcessor.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdpSecretsProcessorService"
+            unbind = "unsetIdPSecretsProcessorService"
     )
-    private void setIdpSecretsProcessorService(IdentityProviderSecretsProcessor idpSecretsProcessorService) {
+    private void setIdPSecretsProcessorService(IdentityProviderSecretsProcessor idPSecretsProcessorService) {
 
-        IdpMgtServiceComponentHolder.getInstance().setIdpSecretsProcessorService(idpSecretsProcessorService);
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idPSecretsProcessorService);
     }
 
-    private void unsetIdpSecretsProcessorService(IdentityProviderSecretsProcessor idpSecretsProcessorService) {
+    private void unsetIdPSecretsProcessorService(IdentityProviderSecretsProcessor idPSecretsProcessorService) {
 
-        IdpMgtServiceComponentHolder.getInstance().setIdpSecretsProcessorService(null);
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(null);
     }
 
     @Reference(
