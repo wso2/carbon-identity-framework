@@ -212,8 +212,8 @@ public interface ClaimMetadataManagementService {
     /**
      * Get mapped external claims for provided local claim.
      *
-     * @param  localClaimURI Local claim URI
-     * @param  tenantDomain  Tenant domain
+     * @param  localClaimURI Local claim URI.
+     * @param  tenantDomain  Tenant domain.
      * @return List of mapped external claims.
      * @throws ClaimMetadataException If an error occurred while retrieving local claims.
      */
