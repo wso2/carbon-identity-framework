@@ -123,7 +123,7 @@ public class IdentityProviderDataRetrievalClient {
      * @param tenant     String. The tenant name of the session i.e. carbon.super.
      * @param idpCode    String. The declared identity provide code i.e. GoogleOIDCAuthenticator.
      * @param idpName    String. The identity provider name setup at carbon console i.e. Google.
-     * @param configKeys List<String>. The list of keys of required configurations i.e. ClientId, callbackUrl
+     * @param configKeys List<String>. The list of keys of required configurations i.e. ClientId, callbackUrl.
      * @return Map<String, String>. Empty String if the configuration is not found, the configuration value otherwise.
      * @throws IdentityProviderDataRetrievalClientException When there is an error with executing the get calls or
      *                                                      processing JSON objects.
@@ -181,9 +181,6 @@ public class IdentityProviderDataRetrievalClient {
             if (StringUtils.isEmpty(federatedIDPURLWithID)) {
                 return configMap;
             }
-
-            // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
-            // federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
             JSONObject federatedIdpResult = executePath(StringUtils.EMPTY, federatedIDPURLWithID);
             if (federatedIdpResult == null) {
                 return configMap;
@@ -206,14 +203,14 @@ public class IdentityProviderDataRetrievalClient {
     }
 
     /**
-     * This function executes the HTTP GET calls of given path on carbon API and returns the resulted JSON object
+     * This function executes the HTTP GET calls of given path on carbon API and returns the resulted JSON object.
      *
      * @param tenant String. The tenant name of the session i.e. carbon.super.
      * @param path   String. The context or to call without host details. i.e.
      *               api/server/v1/identity-providers?filter=name+eq+Google
      *               api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
-     * @return JSONObject. The resulted JSONObject of the GET call
-     * @throws IdentityProviderDataRetrievalClientException When there is an error with executing the get calls
+     * @return JSONObject. The resulted JSONObject of the GET call.
+     * @throws IdentityProviderDataRetrievalClientException When there is an error with executing the get calls.
      */
     private JSONObject executePath(String tenant, String path) throws IdentityProviderDataRetrievalClientException {
 
