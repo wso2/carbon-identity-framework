@@ -120,8 +120,8 @@ public class CacheBackedLocalClaimDAO {
     /**
      * Fetch mapped external claims of a local claim.
      *
-     * @param tenantId        Tenant Id
-     * @param localClaimURI   URI of local claim
+     * @param tenantId        Tenant Id.
+     * @param localClaimURI   URI of local claim.
      * @throws ClaimMetadataException If an error occurred while getting mapped external claim for local claim.
      */
     public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)

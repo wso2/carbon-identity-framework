@@ -375,21 +375,18 @@ public class LocalClaimDAO extends ClaimDAO {
      * @param tenantId      Tenant Id.
      * @param localClaimURI URI of the local claim.
      *
-     * @throws ClaimMetadataException when trying to fetch mapped external claims for a local claim,
+     * @throws ClaimMetadataException when trying to fetch mapped external claims for a local claim.
      */
     public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
             throws ClaimMetadataException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet;
         List<Claim> mappedExternalClaims = new ArrayList<>();
-        try {
-            String query = SQLConstants.FETCH_EXTERNAL_MAPPED_CLAIM_OF_LOCAL_CLAIM;
-            prepStmt = connection.prepareStatement(query);
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement prepStmt =
+                     dbConnection.prepareStatement(SQLConstants.FETCH_EXTERNAL_MAPPED_CLAIM_OF_LOCAL_CLAIM)) {
             prepStmt.setString(1, localClaimURI);
             prepStmt.setInt(2, tenantId);
-            resultSet = prepStmt.executeQuery();
+            ResultSet resultSet = prepStmt.executeQuery();
             while (resultSet.next()) {
                 String claimURI = resultSet.getString(SQLConstants.CLAIM_URI_COLUMN);
                 String dialectURI = resultSet.getString(SQLConstants.DIALECT_URI_COLUMN);
@@ -399,8 +396,6 @@ public class LocalClaimDAO extends ClaimDAO {
             return mappedExternalClaims;
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while obtaining mapped external claims for local claim.", e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 }
