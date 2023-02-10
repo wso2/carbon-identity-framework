@@ -22,36 +22,36 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 /**
- * IDP related secrets processor service interface.
+ * IdP related secrets processor service interface.
  */
 public interface IdentityProviderSecretsProcessor {
 
     /**
-     * This API is used to store encrypted IDP property secrets while adding new IDPs or updating existing IDPs.
+     * This API is used to store encrypted IdP property secrets while adding new IdPs or updating existing IdPs.
      *
      * @param identityProvider Name of the {@link IdentityProvider}.
      * @return Returns {@link IdentityProvider} created.
      * @throws SecretManagementException Secret management exception.
      */
-    IdentityProvider addOrUpdateIdpSecrets(IdentityProvider identityProvider) throws
+    IdentityProvider addOrUpdateIdPSecrets(IdentityProvider identityProvider) throws
             SecretManagementException;
 
     /**
-     * This API is used to get decrypted IDP property secrets while getting existing IDP data.
+     * This API is used to get decrypted IdP property secrets while getting existing IdP data.
      *
      * @param identityProvider Name of the {@link IdentityProvider}.
      * @return Returns {@link IdentityProvider} created.
      * @throws SecretManagementException Secret management exception.
      */
-    IdentityProvider getIdpSecrets(IdentityProvider identityProvider) throws
+    IdentityProvider getIdPSecrets(IdentityProvider identityProvider) throws
             SecretManagementException;
 
     /**
-     * This API is used to remove secrets belongs to the IDP that is being deleted
+     * This API is used to remove secrets belonging to the IdP that is being deleted.
      *
      * @param identityProvider Name of the {@link IdentityProvider}.
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteIdpSecrets(IdentityProvider identityProvider) throws
+    void deleteIdPSecrets(IdentityProvider identityProvider) throws
             SecretManagementException;
 }

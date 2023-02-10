@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS;
 
+/**
+ * Identity provider secrets processor service implementation.
+ */
 public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSecretsProcessor {
 
     private final SecretManager secretManager;
@@ -40,19 +43,18 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
     }
 
     @Override
-    public IdentityProvider addOrUpdateIdpSecrets(IdentityProvider identityProvider) throws SecretManagementException {
+    public IdentityProvider addOrUpdateIdPSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
         for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
             for (Property prop : fedAuthConfig.getProperties()) {
                 if (prop.isConfidential()) {
-                    String secretName =
-                            buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
+                    String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
                     if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                        // update existing secret
+                        // Update existing secret property.
                         updateExistingSecretProperty(secretName, prop);
                         prop.setValue(buildSecretReference(secretName));
                     } else {
-                        // add secret to the DB
+                        // Add secret to the DB.
                         if (!StringUtils.isEmpty(prop.getValue())) {
                             addNewIdpSecretProperty(secretName, prop);
                             prop.setValue(buildSecretReference(secretName));
@@ -66,18 +68,17 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
     }
 
     @Override
-    public IdentityProvider getIdpSecrets(IdentityProvider identityProvider)
+    public IdentityProvider getIdPSecrets(IdentityProvider identityProvider)
             throws SecretManagementException {
 
         for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
             for (Property prop : fedAuthConfig.getProperties()) {
                 if (prop.isConfidential()) {
-                    String secretName =
-                            buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
+                    String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
                     if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
                         ResolvedSecret resolvedSecret =
                                 secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
-                        // replace secret reference with decrypted original secret
+                        // Replace secret reference with decrypted original secret.
                         prop.setValue(resolvedSecret.getResolvedSecretValue());
                     }
                 }
@@ -88,14 +89,13 @@ public class IdentityProviderSecretsProcessorImpl implements IdentityProviderSec
     }
 
     @Override
-    public void deleteIdpSecrets(IdentityProvider identityProvider)
+    public void deleteIdPSecrets(IdentityProvider identityProvider)
             throws SecretManagementException {
 
         for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
             for (Property prop : fedAuthConfig.getProperties()) {
                 if (prop.isConfidential()) {
-                    String secretName =
-                            buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
+                    String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
                     if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
                         secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
                     }

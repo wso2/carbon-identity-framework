@@ -455,9 +455,9 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateIdpSecrets(identityProvider);
+        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
         
-        for (String secretName : idpSecretReferences(identityProvider)) {
+        for (String secretName : buildSecretNamesList(identityProvider)) {
             assertTrue(
                     secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
                     "Expected secret is not found in the data source.");
@@ -472,10 +472,10 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdpSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
 
         decryptSecret(ENCRYPTED_VALUE1);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdpSecrets(addedIdp);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdPSecrets(addedIdp);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
@@ -492,10 +492,10 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdpSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
 
-        identityProviderSecretsProcessor.deleteIdpSecrets(addedIdp);
-        for (String secretName : idpSecretReferences(identityProvider)) {
+        identityProviderSecretsProcessor.deleteIdPSecrets(addedIdp);
+        for (String secretName : buildSecretNamesList(identityProvider)) {
             assertFalse(
                     secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
                     "Expected secret is still available after delete idp secret functionality is executed.");
@@ -510,15 +510,15 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateIdpSecrets(identityProvider);
+        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
 
         IdentityProvider updatedIdpObject = buildUpdatedIdpObject(identityProvider);
         decryptSecret(ENCRYPTED_VALUE1);
         encryptSecret(SAMPLE_SECRET_VALUE2);
-        identityProviderSecretsProcessor.addOrUpdateIdpSecrets(updatedIdpObject);
+        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(updatedIdpObject);
 
         decryptSecret(ENCRYPTED_VALUE2);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdpSecrets(updatedIdpObject);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdPSecrets(updatedIdpObject);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
@@ -612,7 +612,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         return identityProvider;
     }
 
-    private List<String> idpSecretReferences(IdentityProvider identityProvider) {
+    private List<String> buildSecretNamesList(IdentityProvider identityProvider) {
 
         List<String> secretNames = new ArrayList<>();
         identityProvider.getFederatedAuthenticatorConfigs();

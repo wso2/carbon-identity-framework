@@ -160,9 +160,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService())
                 .thenReturn(identityProviderSecretsProcessor);
         when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
-                .addOrUpdateIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
+                .addOrUpdateIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
         when(IdpMgtServiceComponentHolder.getInstance().getIdpSecretsProcessorService()
-                .getIdpSecrets(anyObject())).thenReturn(new IdentityProvider());
+                .getIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
     }
 
     @AfterMethod
