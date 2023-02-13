@@ -185,7 +185,7 @@ public class DefaultStepHandlerTest {
         when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
 
         defaultStepHandler.getRedirectUrl(request, response, context, authenticatorNames,
-                showAuthFailureReason, maskUserNotExistsErrorCode, retryParam, loginPage);
+                showAuthFailureReason, retryParam, loginPage);
 
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(response).encodeRedirectURL(captor.capture());
