@@ -76,6 +76,7 @@ public class CacheBackedLocalClaimDAO {
 
         localClaimDAO.updateLocalClaim(localClaim, tenantId);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantId);
     }
 
     /**
@@ -97,6 +98,7 @@ public class CacheBackedLocalClaimDAO {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        associatedClaimCache.clearCacheEntry(localClaimURI, tenantId);
     }
 
     /**
