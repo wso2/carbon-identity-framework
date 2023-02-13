@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -167,14 +167,17 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
@@ -207,6 +210,8 @@ public class FrameworkUtils {
     private static final String HASH_CHAR = "#";
     private static final String HASH_CHAR_ENCODED = "%23";
     private static final String QUESTION_MARK = "?";
+
+    private static Boolean authenticatorNameInAuthConfigPreference;
 
     private FrameworkUtils() {
     }
@@ -612,8 +617,22 @@ public class FrameworkUtils {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             if (status != null && statusMsg != null) {
-                uriBuilder.addParameter("status", status);
-                uriBuilder.addParameter("statusMsg", statusMsg);
+                if (context != null) {
+                    Map<String, String> failureData = new HashMap<>();
+                    failureData.put(FrameworkConstants.STATUS_PARAM, status);
+                    failureData.put(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
+                    failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                    AuthenticationError authenticationError = new AuthenticationError(failureData);
+                    String errorKey = UUID.randomUUID().toString();
+                    FrameworkUtils.addAuthenticationErrorToCache(errorKey, authenticationError,
+                            context.getTenantDomain());
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
+                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
+                            context.getContextIdentifier());
+                } else {
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_PARAM, status);
+                    uriBuilder.addParameter(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
+                }
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (context != null) {
@@ -667,6 +686,10 @@ public class FrameworkUtils {
         try {
             if (StringUtils.isNotBlank(spName)) {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(MDC.get(CORRELATION_ID_MDC))) {
+                redirectURL = appendUri(redirectURL, CORRELATION_ID, MDC.get(CORRELATION_ID_MDC));
             }
 
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain)) {
@@ -740,6 +763,10 @@ public class FrameworkUtils {
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE);
     }
 
+    public static boolean isOrganizationQualifiedRequest() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() != null;
+    }
     /**
      * Remove the auth cookie in the tenanted path.
      *
@@ -749,7 +776,12 @@ public class FrameworkUtils {
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
 
-        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        String path;
+        if (isOrganizationQualifiedRequest()) {
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
+        } else {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }
 
@@ -1717,13 +1749,17 @@ public class FrameworkUtils {
         boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
                 .isAuthEndpointRedirectParamsConfigAvailable();
 
+        List<String> queryParams;
+        String action;
         if (!configAvailable) {
-            return redirectUrl;
+            queryParams = Arrays.asList("loggedInUser");
+            action = "exclude";
+        } else {
+            queryParams = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParams();
+            action = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthEndpointRedirectParamsAction();
         }
-        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParams();
-        String action = FileBasedConfigurationBuilder.getInstance()
-                .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
 
@@ -2278,7 +2314,8 @@ public class FrameworkUtils {
                 }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
+                    if (StringUtils.isNotEmpty(idpRoleMappingURI) && 
+                        idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
                         idpRoleMappingURI = entry.getKey();
                     }
                 }
@@ -3271,7 +3308,7 @@ public class FrameworkUtils {
      *
      * @param callerPath        Application caller path.
      * @param context           Authentication context.
-     * @return  reirect URL.
+     * @return  redirect URL.
      * @throws URLBuilderException  throw if an error occurred during URL generation.
      */
     public static String buildCallerPathRedirectURL(String callerPath, AuthenticationContext context)
@@ -3286,15 +3323,48 @@ public class FrameworkUtils {
          since My Account is SaaS.
          */
         if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
-            if (callerPath != null && callerPath.startsWith("/t/")) {
+            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
                 String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
                         .setTenant(callerTenant, true)
                         .build().getAbsolutePublicURL();
                 return redirectURL;
+            } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                String callerOrgId = callerPath.split("/")[2];
+                String callerPathWithoutOrgId = callerPath.replaceFirst("/o/[^/]+/", "/");
+                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
+                        .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
+                        .build().getAbsolutePublicURL();
+                return redirectURL;
             }
         }
         return callerPath;
+    }
+
+    /**
+     * Util function to check whether using authenticator name to resolve authenticatorConfig in adaptive scripts
+     * is enabled. If not authenticator display name is used.
+     *
+     * @return boolean indicating server config preference.
+     */
+    public static boolean isAuthenticatorNameInAuthConfigEnabled() {
+
+        if (authenticatorNameInAuthConfigPreference == null) {
+            authenticatorNameInAuthConfigPreference = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    AUTHENTICATOR_NAME_IN_AUTH_CONFIG));
+        }
+
+        return authenticatorNameInAuthConfigPreference;
+    }
+
+    /**
+     * Util method to check whether authentication context expiry validation is enabled.
+     *
+     * @return boolean indicating whether the validation is enabled.
+     */
+    public static boolean isAuthenticationContextExpiryEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION));
     }
 }

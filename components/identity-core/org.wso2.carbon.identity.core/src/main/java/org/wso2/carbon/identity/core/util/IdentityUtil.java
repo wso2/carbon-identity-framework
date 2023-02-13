@@ -34,6 +34,7 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -1706,5 +1707,39 @@ public class IdentityUtil {
             propertyList.add(String.valueOf(value));
         }
         return propertyList;
+    }
+
+    /**
+     * Get validity period configured for the authentication context.
+     *
+     * @return Validity period in minutes.
+     */
+    public static long getAuthenticationContextValidityPeriod() {
+
+        // We consider auth context validity period is equal to temp data cleanup timeout.
+        return getTempDataCleanUpTimeout();
+    }
+
+    /**
+     * Get the initiator id.
+     *
+     * @param userName     Username of the initiator.
+     * @param tenantDomain Tenant domain of the initiator.
+     * @return User id of the initiator.
+     */
+    public static String getInitiatorId(String userName, String tenantDomain) {
+
+        String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        if (StringUtils.isBlank(userId)) {
+            String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
+            String username = UserCoreUtil.removeDomainFromName(userName);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            try {
+                return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+            } catch (IdentityException e) {
+                log.error("Error occurred while resolving Id for the user: " + username);
+            }
+        }
+        return userId;
     }
 }

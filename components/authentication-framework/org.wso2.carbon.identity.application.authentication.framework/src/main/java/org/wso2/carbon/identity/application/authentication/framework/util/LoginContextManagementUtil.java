@@ -19,10 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -33,6 +35,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -65,6 +69,7 @@ public class LoginContextManagementUtil {
         String sessionDataKey = request.getParameter("sessionDataKey");
         String relyingParty = request.getParameter("relyingParty");
         String applicationName = request.getParameter(REQUEST_PARAM_APPLICATION);
+        String authenticators = request.getParameter("authenticators");
         String tenantDomain = getTenantDomain(request);
 
         JsonObject result = new JsonObject();
@@ -83,7 +88,7 @@ public class LoginContextManagementUtil {
 
         AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
-        if (isValidRequest(request, context)) {
+        if (isValidRequest(request, context, authenticators)) {
             if (log.isDebugEnabled()) {
                 log.debug("Setting response for the valid request.");
             }
@@ -106,13 +111,11 @@ public class LoginContextManagementUtil {
                 }
                 // Can't handle
                 result.addProperty("status", "success");
-                response.getWriter().write(result.toString());
             } else {
-
                 result.addProperty("status", "redirect");
                 result.addProperty("redirectUrl", redirectUrl);
-                response.getWriter().write(result.toString());
             }
+            response.getWriter().write(result.toString());
         }
     }
 
@@ -323,13 +326,48 @@ public class LoginContextManagementUtil {
         return stepHasMultiOption;
     }
 
-    private static boolean isValidRequest(HttpServletRequest request, AuthenticationContext context) {
+    private static boolean canHandleAuthenticator(AuthenticationContext context, String authenticators) {
 
-        boolean isValidRequest = (context != null &&
-                context.getProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER) == null);
+        List<String> authenticatorsList = new ArrayList();
+        if (authenticators != null) {
+            String[] authenticatorIdPMappings = authenticators.split(";");
+            for (String authenticatorIdPMapping : authenticatorIdPMappings) {
+                String[] authenticatorIdPMapArr = authenticatorIdPMapping.split(":");
+                authenticatorsList.add(authenticatorIdPMapArr[0]);
+            }
+        }
+
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        if (MapUtils.isNotEmpty(stepMap)) {
+            StepConfig stepConfig = stepMap.get(context.getCurrentStep());
+
+            for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+                if (!authenticatorsList.contains(authenticatorConfig.getName())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isValidRequest(HttpServletRequest request, AuthenticationContext context,
+                                          String authenticators) {
+
+        if (context == null) {
+            return false;
+        }
+
+        boolean isValidRequest = context.getProperty(FrameworkConstants.CURRENT_POST_AUTHENTICATION_HANDLER) == null;
+        if (FrameworkUtils.isAuthenticationContextExpiryEnabled() && isValidRequest) {
+            isValidRequest = FrameworkUtils.getCurrentStandardNano() <= context.getExpiryTime();
+        }
         if (isNonceCookieEnabled() && isValidRequest) {
             Cookie nonceCookie = FrameworkUtils.getCookie(request, getNonceCookieName(context));
             isValidRequest = nonceCookie != null && StringUtils.isNotBlank(nonceCookie.getValue());
+        }
+        if (StringUtils.isNotEmpty(authenticators) && isValidRequest) {
+            isValidRequest = canHandleAuthenticator(context, authenticators);
         }
         return isValidRequest;
     }

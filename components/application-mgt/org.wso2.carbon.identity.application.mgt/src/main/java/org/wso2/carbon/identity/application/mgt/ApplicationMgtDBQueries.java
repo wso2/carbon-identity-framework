@@ -91,9 +91,8 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_ID_BY_APP_NAME = "SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
     public static final String LOAD_APP_NAMES_BY_TENANT = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP WHERE " +
             "TENANT_ID = ? AND APP_NAME != ? ORDER BY ID DESC";
-    public static final String LOAD_APP_NAMES_BY_TENANT_AND_FILTER = "SELECT SP_APP.ID, SP_APP.APP_NAME, " +
-            "SP_APP.DESCRIPTION FROM SP_APP LEFT JOIN SP_INBOUND_AUTH ON SP_APP.ID = SP_INBOUND_AUTH.APP_ID WHERE " +
-            "SP_APP.TENANT_ID = ? AND SP_APP.APP_NAME != ? AND (%s) ORDER BY SP_APP.ID DESC";
+    public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP " +
+            "WHERE TENANT_ID = ? AND APP_NAME != ? AND (%s) ORDER BY ID DESC";
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ? AND " +
             "APP_NAME != ? ";
 

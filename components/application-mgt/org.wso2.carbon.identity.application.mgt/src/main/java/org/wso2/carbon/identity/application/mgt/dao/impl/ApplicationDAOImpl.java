@@ -73,6 +73,7 @@ import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplica
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterData;
@@ -101,26 +102,35 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -164,11 +174,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_ENDS_WITH = "ew";
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
-    private static final Map<String, String> SEARCH_SUPPORTED_FIELD_MAP = new HashMap<>();
+    private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
 
     static {
-        SEARCH_SUPPORTED_FIELD_MAP.put("name", "SP_APP.APP_NAME");
-        SEARCH_SUPPORTED_FIELD_MAP.put("clientId", "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(NAME_SP_PROPERTY_NAME, "SP_APP.APP_NAME");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(CLIENT_ID_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
+        SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(ISSUER_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
     }
 
     public ApplicationDAOImpl() {
@@ -1651,9 +1662,21 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProvider localServiceProvider = new ServiceProvider();
             localServiceProvider.setApplicationName(applicationName);
             localServiceProvider.setDescription("Local Service Provider");
+            localServiceProvider.setSpProperties(prepareLocalSpProperties());
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
         return getApplication(applicationId);
+    }
+
+    private ServiceProviderProperty[] prepareLocalSpProperties() {
+
+        ServiceProviderProperty[] serviceProviderProperties = new ServiceProviderProperty[1];
+        ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+        serviceProviderProperty.setName(IS_SYSTEM_RESERVED_APP_FLAG);
+        serviceProviderProperty.setValue(String.valueOf(true));
+        serviceProviderProperty.setDisplayName(IS_SYSTEM_RESERVED_APP_DISPLAY_NAME);
+        serviceProviderProperties[0] = serviceProviderProperty;
+        return serviceProviderProperties;
     }
 
     /**
@@ -1787,7 +1810,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 owner.setUserName(basicAppDataResultSet.getString(5));
                 owner.setTenantDomain(getUserTenantDomain(
                         IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)),
-                        basicAppDataResultSet.getString(5)));
+                        basicAppDataResultSet.getString(4) + "/" + basicAppDataResultSet.getString(5)));
                 owner.setUserStoreDomain(basicAppDataResultSet.getString(4));
                 serviceProvider.setOwner(owner);
                 serviceProvider.setTenantDomain(IdentityTenantUtil.getTenantDomain(basicAppDataResultSet.getInt(2)));
@@ -1849,9 +1872,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
 
-        validateAttributesForPagination(offset, limit);
-
-        if (StringUtils.isBlank(filter)) {
+        if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             return getApplicationBasicInfo(offset, limit);
         }
 
@@ -1923,9 +1944,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             appNameResultSet = getAppNamesStmt.executeQuery();
 
-            while (appNameResultSet.next()) {
-                appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
+            if (filterString.contains("SP_INBOUND_AUTH")) {
+                while (appNameResultSet.next()) {
+                    appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
+                }
+            } else {
+                while (appNameResultSet.next()) {
+                    appInfo.add(buildApplicationBasicInfo(appNameResultSet));
+                }
             }
+
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
                     e.getMessage(), e);
@@ -2027,6 +2055,33 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId)
+            throws IdentityApplicationManagementException {
+
+        int tenantID;
+        int applicationId = getAppIdUsingResourceId(applicationResourceId);
+        if (applicationId == -1) {
+            if (log.isDebugEnabled()) {
+                log.debug("There is no application with the resourceId: " + applicationResourceId);
+            }
+            return null;
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (serviceProvider == null) {
+                return  null;
+            }
+            tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
+            return getLocalAndOutboundAuthenticationConfig(applicationId, connection, tenantID, null);
+        } catch (SQLException | IdentityRuntimeException  e) {
+            throw new IdentityApplicationManagementException("Failed to get configured authenticators for application" +
+                    " id: " + applicationResourceId, e);
+        }
+    }
+
+    @Override
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
@@ -2034,9 +2089,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             // Load basic application data
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
-            if (CollectionUtils.isNotEmpty(requiredAttributes)) {
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
+
+            // Avoid iterating over similar items in requiredAttributes list.
+            Set<String> requiredAttributesSet = new HashSet<>(requiredAttributes);
+            if (requiredAttributesSet.contains(CLIENT_ID_SP_PROPERTY_NAME) &&
+                    requiredAttributesSet.contains(ISSUER_SP_PROPERTY_NAME)) {
+                requiredAttributesSet.remove(ISSUER_SP_PROPERTY_NAME);
+            }
+
+            if (CollectionUtils.isNotEmpty(requiredAttributesSet)) {
                 List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
-                for (String requiredAttribute : requiredAttributes) {
+                for (String requiredAttribute : requiredAttributesSet) {
                     if (ADVANCED_CONFIG.equals(requiredAttribute)) {
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
@@ -2045,6 +2109,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
+                    }
+                    if (CLIENT_ID_SP_PROPERTY_NAME.equals(requiredAttribute) ||
+                            ISSUER_SP_PROPERTY_NAME.equals(requiredAttribute)) {
+                        serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
+                                applicationId, connection, tenantID));
                     }
                 }
             }
@@ -2125,7 +2194,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 owner.setUserStoreDomain(rs.getString(ApplicationTableColumns.USER_STORE));
                 owner.setTenantDomain(getUserTenantDomain(
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)),
-                        rs.getString(ApplicationTableColumns.USERNAME)));
+                        rs.getString(ApplicationTableColumns.USER_STORE) + "/" +
+                                rs.getString(ApplicationTableColumns.USERNAME)));
                 serviceProvider.setOwner(owner);
                 serviceProvider.setTenantDomain(
                         IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID)));
@@ -3191,7 +3261,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (StringUtils.isBlank(filter) || filter.equals(ASTERISK)) {
             filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
             filterData.addFilterValue("%");
-        } else if (!(SEARCH_SUPPORTED_FIELD_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
+        } else if (!(SUPPORTED_SEARCH_ATTRIBUTE_MAP.keySet().contains(filter.trim().split(" ")[0]))) {
             // This formatting is to facilitate the search bar in carbon/application/list-service-providers.
             if (filter.contains(ASTERISK)) {
                 filterData.setFilterString("SP_APP.APP_NAME LIKE ?");
@@ -3204,35 +3274,39 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             try {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
                 Node rootNode = filterTreeBuilder.buildTree();
-                if (rootNode instanceof ExpressionNode) {
-                    ExpressionNode expressionNode = (ExpressionNode) rootNode;
-
-                    filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
-                            expressionNode.getOperation()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
-                            expressionNode.getValue()));
-                } else {
-                    // Currently, supports only filters with one AND/OR operation.
-                    // Have to recursively traverse the filter tree to support more than one operation.
-                    OperationNode operationNode = (OperationNode) rootNode;
-                    ExpressionNode expressionLeftNode = (ExpressionNode) rootNode.getLeftNode();
-                    ExpressionNode expressionRightNode = (ExpressionNode) rootNode.getRightNode();
-
-                    String formattedLeftNodeString = generateFilterStringForBackend(
-                            expressionLeftNode.getAttributeValue(), expressionLeftNode.getOperation());
-                    String formattedRightNodeString = generateFilterStringForBackend(
-                            expressionRightNode.getAttributeValue(), expressionRightNode.getOperation());
-
-                    filterData.setFilterString(formattedLeftNodeString + " " +
-                            operationNode.getOperation() + " " + formattedRightNodeString);
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionLeftNode.getOperation(),
-                            expressionLeftNode.getValue()));
-                    filterData.addFilterValue(generateFilterValueForBackend(expressionRightNode.getOperation(),
-                            expressionRightNode.getValue()));
-                }
+                filterData = getFilterDataFromFilterTree(rootNode);
             } catch (IOException | IdentityException e) {
-                log.error("Error occurred while converting filter for backend.", e);
+                log.error("Error occurred while converting filter query with tree builder.", e);
             }
+        }
+        return filterData;
+    }
+
+    private FilterData getFilterDataFromFilterTree(Node rootNode) {
+
+        FilterData filterData = new FilterData();
+
+        if (rootNode instanceof ExpressionNode) {
+            ExpressionNode expressionNode = (ExpressionNode) rootNode;
+
+            filterData.setFilterString(generateFilterStringForBackend(expressionNode.getAttributeValue(),
+                    expressionNode.getOperation()));
+            filterData.addFilterValue(generateFilterValueForBackend(expressionNode.getOperation(),
+                    expressionNode.getValue()));
+        } else {
+            OperationNode operationNode = (OperationNode) rootNode;
+            Node leftNode = rootNode.getLeftNode();
+            Node rightNode = rootNode.getRightNode();
+
+            FilterData leftNodeFilterData = getFilterDataFromFilterTree(leftNode);
+            FilterData rightNodeFilterData = getFilterDataFromFilterTree(rightNode);
+
+            filterData.setFilterString(leftNodeFilterData.getFilterString() + " " +
+                    operationNode.getOperation() + " " + rightNodeFilterData.getFilterString());
+            filterData.setFilterValues(
+                    Stream.of(leftNodeFilterData.getFilterValues(), rightNodeFilterData.getFilterValues())
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
         }
         return filterData;
     }
@@ -3241,11 +3315,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         // Format the filter attribute and condition to fit in a SQL where clause.
         String formattedFilterString;
-        String realSearchField = SEARCH_SUPPORTED_FIELD_MAP.get(searchField);
+        String realSearchField = SUPPORTED_SEARCH_ATTRIBUTE_MAP.get(searchField);
         if (searchOperation.equals(FILTER_EQUALS)) {
             formattedFilterString = realSearchField + " = ?";
         } else {
             formattedFilterString = realSearchField + " LIKE ?";
+        }
+
+        if (CLIENT_ID_SP_PROPERTY_NAME.equals(searchField)) {
+            formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'oauth2')";
+        } else if (ISSUER_SP_PROPERTY_NAME.equals(searchField)) {
+            formattedFilterString = "(" + formattedFilterString + " AND SP_INBOUND_AUTH.INBOUND_AUTH_TYPE = 'samlsso')";
         }
         return formattedFilterString;
     }
@@ -3348,7 +3428,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String filterValueResolvedForSQL;
             getAppNamesStmt = connection.prepareStatement(
                     String.format(
-                            ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER, filterData.getFilterString()));
+                            ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME,
+                            filterData.getFilterString()));
             getAppNamesStmt.setInt(1, tenantID);
             getAppNamesStmt.setString(2, LOCAL_SP);
             for (int i = 0; i < filterData.getFilterValues().size(); i++) {
@@ -4034,6 +4115,54 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    @Override
+    public String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantID = getTenantId(tenantDomain);
+        String applicationResourceId = null;
+        // Reading application resource id from the database.
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement statement =
+                         connection.prepareStatement(ApplicationMgtDBQueries.LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE)) {
+                statement.setString(1, inboundKey);
+                statement.setString(2, inboundType);
+                statement.setInt(3, tenantID);
+                statement.setInt(4, tenantID);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        applicationResourceId = resultSet.getString(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while retrieving application " +
+                    "resourceId for inboundKey: " + inboundKey + " in inboundType: " + inboundType +
+                    " in tenantDomain: " + tenantDomain, e);
+        }
+        return applicationResourceId;
+    }
+
+    private int getTenantId(String tenantDomain) throws IdentityApplicationManagementException {
+
+        try {
+            return IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving tenant id from tenant domain : "
+                    + tenantDomain + " for retrieve application resource id.", e);
+        }
+    }
+
+    /**
      * @param serviceProviderName
      * @param tenantDomain
      * @param localIdpAsKey
@@ -4313,7 +4442,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Map<String, String> permissions = new HashMap<>();
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(false);
             readPermissionsPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS);
             readPermissionsPrepStmt.setString(1, "%" + ApplicationMgtUtil.getApplicationPermissionPath() + "%");
             resultSet = readPermissionsPrepStmt.executeQuery();
@@ -4346,11 +4475,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             updatePermissionPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS);
             updatePermissionPrepStmt.setString(1, newPermission);
             updatePermissionPrepStmt.setString(2, id);
             updatePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(updatePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -4372,7 +4502,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int id = -1;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(false);
             loadPermissionsPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W);
             loadPermissionsPrepStmt.setString(1, permission.toLowerCase());
             resultSet = loadPermissionsPrepStmt.executeQuery();
@@ -4399,11 +4529,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             deleteRolePermissionPrepStmt = connection.prepareStatement(
                     ApplicationMgtDBQueries.REMOVE_UM_ROLE_PERMISSION);
             deleteRolePermissionPrepStmt.setInt(1, id);
             deleteRolePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteRolePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -4422,10 +4553,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         Connection connection = null;
         try {
 
-            connection = IdentityDatabaseUtil.getUserDBConnection();
+            connection = IdentityDatabaseUtil.getUserDBConnection(true);
             deletePermissionPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_UM_PERMISSIONS);
             deletePermissionPrepStmt.setInt(1, entryId);
             deletePermissionPrepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitUserDBTransaction(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deletePermissionPrepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -4447,7 +4579,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                          Connection connection, int tenantID)
             throws SQLException {
 
-        if (localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
+        if (!ApplicationConstants.AUTH_TYPE_DEFAULT.equals(localAndOutboundAuthConfig.getAuthenticationType()) &&
+                localAndOutboundAuthConfig.getAuthenticationScriptConfig() != null) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthConfig
                     .getAuthenticationScriptConfig();
             try (PreparedStatement storeAuthScriptPrepStmt = connection
@@ -4855,6 +4988,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID, tenantId);
                     deleteAppStatement.execute();
+                    deleteAuthenticationScript(application.getApplicationID(), connection);
 
                     IdentityDatabaseUtil.commitTransaction(connection);
                 } catch (SQLException ex) {
@@ -5167,6 +5301,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)
             throws SQLException, IdentityApplicationManagementException {
 
+        /*
+         * If you add a new value to basicInfo here, please consider to add it in the
+         * buildApplicationBasicInfoWithInboundConfig() function also.
+         */
         ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
@@ -5196,14 +5334,28 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private ApplicationBasicInfo buildApplicationBasicInfoWithInboundConfig(ResultSet appNameResultSet)
             throws SQLException, IdentityApplicationManagementException {
 
+        /*
+         * If you add a new value to basicInfo here, please consider to add it in the
+         * buildApplicationBasicInfo() function also.
+         */
         ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
         basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
-        basicInfo.setInboundKey(appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY));
+
+        String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
+        String inboundAuthType = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_TYPE);
+        if (StringUtils.isNotBlank(inboundAuthKey)) {
+            if (inboundAuthType.equals("oauth2")) {
+                basicInfo.setClientId(inboundAuthKey);
+            } else if (inboundAuthType.equals("samlsso")) {
+                basicInfo.setIssuer(inboundAuthKey);
+            }
+        }
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
@@ -5214,7 +5366,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             User appOwner = new User();
             appOwner.setUserStoreDomain(userStoreDomain);
             appOwner.setUserName(username);
-            appOwner.setTenantDomain(getUserTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId), username));
+            appOwner.setTenantDomain(getUserTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId),
+                    userStoreDomain + "/" + username));
 
             basicInfo.setAppOwner(appOwner);
         }
@@ -5238,7 +5391,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
+                    ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID_AND_TENANT_ID)) {
 
                 statement.setString(ApplicationTableColumns.UUID, resourceId);
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -5255,6 +5408,33 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), e);
         }
 
+        return applicationId;
+    }
+
+    /**
+     * Returns the internal application id for a given resourceId.
+     *
+     * @param resourceId        UUID of the application.
+     * @return applicationId    ID of the application.
+     * @throws IdentityApplicationManagementException If an error occurred in retrieving application ID.
+     */
+    private int getAppIdUsingResourceId(String resourceId)
+            throws IdentityApplicationManagementException {
+
+        int applicationId = -1;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                     ApplicationMgtDBQueries.LOAD_APP_ID_BY_UUID)) {
+            statement.setString(ApplicationTableColumns.UUID, resourceId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    applicationId = resultSet.getInt(ApplicationTableColumns.ID);
+                }
+            }
+        } catch (SQLException e) {
+            String msg = "Error while retrieving the application id for resourceId: %s";
+            throw new IdentityApplicationManagementException(String.format(msg, resourceId), e);
+        }
         return applicationId;
     }
 

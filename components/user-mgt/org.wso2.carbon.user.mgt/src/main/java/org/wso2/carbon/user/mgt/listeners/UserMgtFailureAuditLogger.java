@@ -19,20 +19,20 @@
 package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.Map;
+
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiator;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetForAuditLog;
 
 /**
  * This class is responsible for logging the failure events while doing User Management Tasks.
@@ -44,8 +44,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onAuthenticateFailure(String errorCode, String errorMessage, String userName, Object credential,
             UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.AUTHENTICATION_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.AUTHENTICATION_ACTION, getTargetForAuditLog(userName,
+                userStoreManager), null, errorCode, errorMessage));
         return true;
     }
 
@@ -57,11 +57,15 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(roleList)) {
             dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
         }
-        dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
+        if (LoggerUtils.isLogMaskingEnable) {
+            Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
+            dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(maskedClaimsMap));
+        } else {
+            dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
+        }
         dataObject.put(ListenerUtils.PROFILE_FIELD, profile);
-        audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), profile, errorCode,
-                errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION, getTargetForAuditLog(userName, userStoreManager),
+                profile, errorCode, errorMessage));
 
         return true;
     }
@@ -70,8 +74,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, Object oldCredential, UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), null, errorCode, errorMessage));
         return true;
     }
 
@@ -79,8 +83,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialByAdminFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), null, errorCode, errorMessage));
         return true;
     }
 
@@ -88,8 +92,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserFailure(String errorCode, String errorMessage, String userName,
             UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), null, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION, getTargetForAuditLog(userName,
+                userStoreManager), null, errorCode, errorMessage));
         return true;
     }
 
@@ -98,11 +102,15 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             String claimValue, String profileName, UserStoreManager userStoreManager) {
 
         JSONObject dataObject = new JSONObject();
+        if (LoggerUtils.isLogMaskingEnable) {
+            String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claimURI, claimValue);
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, maskedClaimValue);
+        } else {
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
+        }
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
-        dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
-        audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), dataObject, errorCode, errorMessage));
         return true;
     }
 
@@ -110,9 +118,14 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onSetUserClaimValuesFailure(String errorCode, String errorMessage, String userName,
             Map<String, String> claims, String profileName, UserStoreManager userStoreManager) {
 
-        audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), new JSONObject(claims),
-                errorCode, errorMessage));
+        if (LoggerUtils.isLogMaskingEnable) {
+            Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
+            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+                            userStoreManager), new JSONObject(maskedClaimsMap), errorCode, errorMessage));
+        } else {
+            audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+                            userStoreManager), new JSONObject(claims), errorCode, errorMessage));
+        }
         return true;
     }
 
@@ -124,9 +137,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(claims)) {
             data = new JSONArray(claims);
         }
-
-        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), data, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), data, errorCode, errorMessage));
         return true;
     }
 
@@ -137,9 +149,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), dataObject, errorCode, errorMessage));
         return true;
     }
 
@@ -149,15 +160,18 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
-            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+            if (LoggerUtils.isLogMaskingEnable) {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.getMaskedArraysOfValues(userList)));
+            } else {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+            }
         }
         if (ArrayUtils.isNotEmpty(permissions)) {
             JSONArray permissionsArray = new JSONArray(permissions);
             dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
         }
-        audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION, ListenerUtils.getEntityWithUserStoreDomain(
+                roleName, userStoreManager), dataObject, errorCode, errorMessage));
 
         return true;
     }
@@ -169,7 +183,11 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
-            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+            if (LoggerUtils.isLogMaskingEnable) {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils.getMaskedArraysOfValues(userList)));
+            } else {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+            }
         }
         if (ArrayUtils.isNotEmpty(permissions)) {
             JSONArray permissionsArray = new JSONArray(permissions);
@@ -229,9 +247,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(newRoles)) {
             dataObject.put(ListenerUtils.NEW_ROLES, new JSONArray(newRoles));
         }
-        audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION, getTargetForAuditLog(userName,
+                userStoreManager), dataObject, errorCode, errorMessage));
 
         return true;
     }
@@ -243,9 +260,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
-        audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), dataObject, errorCode, errorMessage));
 
         return true;
     }
@@ -259,9 +275,8 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(claims)) {
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONArray(claims));
         }
-        audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
-                ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager), dataObject, errorCode,
-                errorMessage));
+        audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+                        userStoreManager), dataObject, errorCode, errorMessage));
 
         return true;
     }
@@ -272,7 +287,12 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
-        dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
+        if (LoggerUtils.isLogMaskingEnable) {
+            String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimValue);
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, maskedClaimValue);
+        } else {
+            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
+        }
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
         audit.info(createAuditMessage(ListenerUtils.GET_USER_LIST_ACTION, null, dataObject, errorCode, errorMessage));
 
@@ -318,7 +338,6 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
                 ListenerUtils.INITIATOR + "=%s " + ListenerUtils.ACTION + "=%s " + ListenerUtils.TARGET + "=%s "
                         + ListenerUtils.DATA + "=%s " + ListenerUtils.OUTCOME + "=Failure " + ListenerUtils.ERROR
                         + "=%s";
-        return String.format(auditMessage, ListenerUtils.getUser(), action, target, data, error);
+        return String.format(auditMessage, getInitiator(), action, target, data, error);
     }
-
 }

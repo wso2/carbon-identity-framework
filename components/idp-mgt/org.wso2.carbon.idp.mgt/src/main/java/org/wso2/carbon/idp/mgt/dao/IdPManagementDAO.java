@@ -79,13 +79,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
@@ -2129,7 +2129,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, idpId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2163,9 +2163,9 @@ public class IdPManagementDAO {
      * @param identityProviderProperties Identity Provider Properties.
      * @return identity provider properties after removing the relevant JIT specific properties.
      */
-    private List<IdentityProviderProperty> filterIdenityProperties(IdentityProvider federatedIdp,
-                                                                   List<IdentityProviderProperty>
-                                                                           identityProviderProperties) {
+    private List<IdentityProviderProperty> filterIdentityProperties(IdentityProvider federatedIdp,
+                                                                    List<IdentityProviderProperty>
+                                                                            identityProviderProperties) {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
 
@@ -2180,6 +2180,13 @@ public class IdPManagementDAO {
                 } else if (identityProviderProperty.getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setPromptConsent(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (identityProviderProperty.getName()
+                        .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
+                    justInTimeProvisioningConfig
+                            .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
                 }
             });
         }
@@ -2191,7 +2198,11 @@ public class IdPManagementDAO {
                 identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
                         || identityProviderProperty.getName()
                         .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
-                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)));
+                        .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
+                        IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
 
@@ -2363,7 +2374,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -2521,7 +2532,7 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
-                List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
+                List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2827,15 +2838,27 @@ public class IdPManagementDAO {
         promptConsentProperty.setName(IdPManagementConstants.PROMPT_CONSENT_ENABLED);
         promptConsentProperty.setValue("false");
 
+        IdentityProviderProperty associateLocalUser = new IdentityProviderProperty();
+        associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
+        associateLocalUser.setValue("false");
+
+        IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
+        attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
+        attributeSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
+
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
+            associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
+            attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
+        identityProviderProperties.add(associateLocalUser);
+        identityProviderProperties.add(attributeSyncMethod);
         return identityProviderProperties;
     }
 
@@ -4151,36 +4174,41 @@ public class IdPManagementDAO {
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset);
-            prepStmt.setInt(4, limit);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset);
+            prepStmt.setInt(5, limit);
         } else if (databaseProductName.contains("Oracle")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset + limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset + limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset);
-            prepStmt.setInt(4, limit);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset);
+            prepStmt.setInt(5, limit);
         } else if (databaseProductName.contains("PostgreSQL")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("DB2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("INFORMIX")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX;
             prepStmt = connection.prepareStatement(sqlQuery);

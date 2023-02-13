@@ -1033,7 +1033,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('8ec6dbf1-218a-49bf-bc34-0d2db52d151c', 'CORS_CONFIGURATION', 'A resource type to keep the tenant CORS configurations'),
 ('669b99ca-cdb0-44a6-8cae-babed3b585df', 'Publisher', 'A resource type to keep the event publisher configurations'),
 ('73f6d9ca-62f4-4566-bab9-2a930ae51ba8', 'BRANDING_PREFERENCES', 'A resource type to keep the tenant branding preferences'),
-('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences');
+('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences'),
+('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,
@@ -1200,6 +1201,7 @@ CREATE TABLE IF NOT EXISTS SP_SHARED_APP (
     OWNER_ORG_ID CHAR(36) NOT NULL,
     SHARED_APP_ID CHAR(36) NOT NULL,
     SHARED_ORG_ID CHAR(36) NOT NULL,
+    SHARE_WITH_ALL_CHILDREN BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (ID),
     FOREIGN KEY (MAIN_APP_ID) REFERENCES SP_APP(UUID) ON DELETE CASCADE,
     FOREIGN KEY (SHARED_APP_ID) REFERENCES SP_APP(UUID) ON DELETE CASCADE,

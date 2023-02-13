@@ -1579,6 +1579,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('73f6d9ca-62f4-4566-bab9-2a930ae51ba8', 'BRANDING_PREFERENCES', 'A resource type to keep the tenant branding preferences')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations')
 SELECT 1 FROM dual
 /
 
@@ -1789,6 +1791,7 @@ CREATE TABLE SP_SHARED_APP (
     OWNER_ORG_ID CHAR(36) NOT NULL,
     SHARED_APP_ID CHAR(36) NOT NULL,
     SHARED_ORG_ID CHAR(36) NOT NULL,
+    SHARE_WITH_ALL_CHILDREN NUMBER(1,0) DEFAULT 0,
     PRIMARY KEY (ID),
     FOREIGN KEY (MAIN_APP_ID) REFERENCES SP_APP(UUID) ON DELETE CASCADE,
     FOREIGN KEY (SHARED_APP_ID) REFERENCES SP_APP(UUID) ON DELETE CASCADE,

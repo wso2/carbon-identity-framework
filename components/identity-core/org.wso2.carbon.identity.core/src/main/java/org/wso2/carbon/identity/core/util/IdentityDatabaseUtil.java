@@ -205,7 +205,9 @@ public class IdentityDatabaseUtil {
             if (metaData.storesLowerCaseIdentifiers()) {
                 tableName = tableName.toLowerCase();
             }
-            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[]{"TABLE"})) {
+            String schemaName = connection.getSchema();
+            String catalogName = connection.getCatalog();
+            try (ResultSet resultSet = metaData.getTables(catalogName, schemaName, tableName, new String[]{"TABLE"})) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Table - " + tableName + " available in the Identity database.");

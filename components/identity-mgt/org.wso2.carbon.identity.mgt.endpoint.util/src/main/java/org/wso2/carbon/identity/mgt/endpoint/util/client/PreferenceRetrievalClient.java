@@ -27,6 +27,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -68,7 +69,11 @@ public class PreferenceRetrievalClient {
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
+    public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
+
+    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
+    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     /**
      * Check self registration is enabled or not.
@@ -92,6 +97,18 @@ public class PreferenceRetrievalClient {
     public boolean checkSelfRegistrationLockOnCreation(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY);
+    }
+
+    /**
+     * Check send confirmation on account creation is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return returns True if send confirmation on creation is enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkSelfRegistrationSendConfirmationOnCreation(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SEND_CONFIRMATION_ON_CREATION);
     }
 
     /**
@@ -221,7 +238,8 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -276,7 +294,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -341,5 +359,15 @@ public class PreferenceRetrievalClient {
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+
+    private HttpClientBuilder createHttpClientBuilderWithHV() {
+
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().useSystemProperties();
+        if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+            X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+            httpClientBuilder.setHostnameVerifier(hv);
+        }
+        return httpClientBuilder;
     }
 }

@@ -66,6 +66,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
+    private String redirectURL;
     private Map<String, Serializable> endpointParams = new HashMap<>();
 
     private boolean forceAuthenticate;
@@ -114,6 +115,13 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
     private final Map<String, List<String>> loggedOutAuthenticators = new HashMap<>();
+
+    private boolean sendToMultiOptionPage;
+
+    /**
+     * This attribute holds the context expiry time in epoch timestamp (nanoseconds).
+     */
+    private long expiryTimeNano = 0L;
 
     public String getCallerPath() {
         return callerPath;
@@ -369,6 +377,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         this.currentAuthenticator = currentAuthenticator;
     }
 
+    public String getRedirectURL() {
+
+        return redirectURL;
+    }
+
+    public void setRedirectURL(String redirectURL) {
+
+        this.redirectURL = redirectURL;
+    }
+
     public boolean isPreviousSessionFound() {
         return previousSessionFound;
     }
@@ -437,6 +455,24 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             requestedAcr = new ArrayList<>();
         }
         requestedAcr.add(acr);
+    }
+
+    /**
+     * Get value of sendToMultiOptionPage from the authentication context.
+     * @return boolean Whether the user should be redirected to the login page to retry the authentication.
+     */
+    public boolean isSendToMultiOptionPage() {
+
+        return sendToMultiOptionPage;
+    }
+
+    /**
+     * Add value of sendToMultiOptionPage to the authentication context.
+     * @param sendToMultiOptionPage Whether the user should be redirected to the login page to retry the authentication.
+     */
+    public void setSendToMultiOptionPage(boolean sendToMultiOptionPage) {
+
+        this.sendToMultiOptionPage = sendToMultiOptionPage;
     }
 
     /**
@@ -788,5 +824,15 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public String getExternalIdPResourceId() {
 
         return this.externalIdPResourceId;
+    }
+    
+    public long getExpiryTime() {
+
+        return expiryTimeNano;
+    }
+
+    public void setExpiryTime(long expiryTimeNano) {
+
+        this.expiryTimeNano = expiryTimeNano;
     }
 }
