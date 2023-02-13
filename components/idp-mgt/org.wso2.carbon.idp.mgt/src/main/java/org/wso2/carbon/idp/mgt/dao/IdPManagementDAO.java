@@ -3206,6 +3206,7 @@ public class IdPManagementDAO {
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        String idPName = "";
         try {
             IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
@@ -3213,6 +3214,7 @@ public class IdPManagementDAO {
                 String msg = "Trying to delete non-existent Identity Provider with resource ID: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
+            idPName = identityProvider.getIdentityProviderName();
             deleteIdP(dbConnection, tenantId, null, resourceId);
             // Delete IdP related secrets from the IDN_SECRET table.
             IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().deleteIdPSecrets(identityProvider);
@@ -3222,8 +3224,8 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
         } catch (SecretManagementException e) {
-            throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider in " +
-                    "tenant : " + tenantDomain, e);
+            throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
+                    idPName + " in tenant : " + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
