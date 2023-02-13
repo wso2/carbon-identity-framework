@@ -2313,7 +2313,8 @@ public class FrameworkUtils {
                 }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
+                    if (StringUtils.isNotEmpty(idpRoleMappingURI) && 
+                        idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
                         idpRoleMappingURI = entry.getKey();
                     }
                 }

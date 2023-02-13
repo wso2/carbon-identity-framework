@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -247,6 +248,21 @@ public class ExternalIdPConfig implements Serializable {
     public boolean isAssociateLocalUserEnabled() {
 
         return justInTimeProConfig != null && justInTimeProConfig.isAssociateLocalUserEnabled();
+    }
+
+    /**
+     * Get attribute sync method.
+     *
+     * @return attribute sync method.
+     */
+    public String getAttributeSyncMethod() {
+
+        String method = FrameworkConstants.OVERRIDE_ALL;
+        if (justInTimeProConfig != null &&
+                StringUtils.isNotEmpty(justInTimeProConfig.getAttributeSyncMethod())) {
+            method = justInTimeProConfig.getAttributeSyncMethod();
+        }
+        return method;
     }
 
     /**
