@@ -47,7 +47,7 @@ EXEC WSO2_JTI_CLEANUP_SP;
 
 **>> mssql-tenanted-jti-cleanup.sql**
 
-This SQL script can be replaced "mssql-jti-cleanup.sql" script if the table have TENANT_ID column.
+If the table IDN_OIDC_JTI has TENANT_ID column, replace "mssql-jti-cleanup.sql" script with this.
 **Compile the Stored Procedure**
 
 First, Compile the stored procedure using a MSSQL client by selecting the whole script at once and execute from the MSSQL client.
@@ -70,7 +70,7 @@ Make sure to create the procedure in the identity database schema only.
 
 **>> mssql-tenanted-jti-cleanup-restore.sql**
 
-This SQL script can be replaced "mssql-jti-cleanup-restore.sql" script if the table have TENANT_ID column.
+If the table IDN_OIDC_JTI has TENANT_ID column, replace "mssql-jti-cleanup-restore.sql" script with this.
 
 **Compile the Stored Procedure**
 
