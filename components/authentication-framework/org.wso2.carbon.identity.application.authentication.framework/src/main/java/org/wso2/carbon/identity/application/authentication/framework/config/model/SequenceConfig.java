@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Configuration holder for an application
+ * Configuration holder for an application.
  */
 public class SequenceConfig implements Serializable, Cloneable {
 
@@ -43,6 +43,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
     private ApplicationConfig applicationConfig = null;
+    private OptimizedApplicationConfig optApplicationConfig = null;
     private boolean completed;
 
     private AuthenticatedUser authenticatedUser;
@@ -167,7 +168,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     }
 
     /**
-     * This method will clone current class objects
+     * This method will clone current class objects.
      * This method is to solve the issue - multiple requests for same user/SP
      *
      * @return Object object
@@ -187,6 +188,22 @@ public class SequenceConfig implements Serializable, Cloneable {
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
         sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
         sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
+        sequenceConfig.setOptApplicationConfig(this.getOptApplicationConfig());
         return sequenceConfig;
+    }
+
+    public void setRequestedAcr(List<String> requestedAcr) {
+
+        this.requestedAcr = requestedAcr;
+    }
+
+    public OptimizedApplicationConfig getOptApplicationConfig() {
+
+        return this.optApplicationConfig;
+    }
+
+    public void setOptApplicationConfig(OptimizedApplicationConfig optApplicationConfig) {
+
+        this.optApplicationConfig = optApplicationConfig;
     }
 }

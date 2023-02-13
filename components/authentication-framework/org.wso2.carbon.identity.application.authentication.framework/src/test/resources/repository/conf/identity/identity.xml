@@ -54,6 +54,10 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
+            <SessionDataStorageOptimization>
+                <!-- Enabling session data storage optimization-->
+                <Enable>true</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 

@@ -55,6 +55,10 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <SessionDataStorageOptimization>
+                <!-- Enabling session data storage optimization-->
+                <Enable>true</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
