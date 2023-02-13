@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.AssociatedClaimCache;
@@ -88,9 +89,19 @@ public class CacheBackedExternalClaimDAO {
     public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId) throws
             ClaimMetadataException {
 
+        List<ExternalClaim> externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
+        String mappedLocalClaim = null;
+        for (ExternalClaim externalClaim: externalClaimsList) {
+            if(externalClaim.getClaimURI().equals(externalClaimURI)){
+                mappedLocalClaim = externalClaim.getMappedLocalClaim();
+            }
+        }
         externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
+        if(StringUtils.isNotBlank(mappedLocalClaim)) {
+            associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantId);
+        }
     }
 
     public boolean isMappedLocalClaim(String mappedLocalClaimURI, int tenantId) throws
