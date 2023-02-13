@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
@@ -31,9 +32,11 @@ public class Constants {
 
     public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
     public static final String INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX = "input-validation-configs-";
-    public static final List<String> SUPPORTED_PARAMS = Arrays.asList(
-            PASSWORD, USERNAME
-    );
+    public static final List<String> SUPPORTED_PARAMS = Collections.unmodifiableList(
+            new ArrayList<String>() {{
+                add(PASSWORD);
+                add(USERNAME);
+            }});
 
     /**
      * Class contains the configuration related constants.
@@ -41,11 +44,13 @@ public class Constants {
     public static class Configs {
 
         // Keys for password rules validation.
+        public static final String ERROR_CODE_PREFIX = "INM-";
         public static final String VALIDATION_TYPE = "validation.type";
         public static final String MIN_LENGTH = "min.length";
         public static final String MAX_LENGTH = "max.length";
         public static final String MIN_UNIQUE_CHR = "min.unique.character";
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
+        public static final String ENABLE_VALIDATOR = "enable.validator";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
@@ -54,6 +59,13 @@ public class Constants {
         public static final String PASSWORD = "password";
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
+        public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
+        public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
+        public static final String DEFAULT_EMAIL_JAVA_REGEX_PATTERN =
+                "^[\\u00C0-\\u00FF\\w&&[^.+\\-_]](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?<![+.\\-_])@" +
+                        "(?![+.\\-_])[\\w.+\\-]+\\.[a-zA-Z]{2,10}";
+        public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
+                "^[\\u00C0-\\u00FFa-zA-Z0-9.+\\-_]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,10}$";
     }
 
     /**
@@ -126,6 +138,28 @@ public class Constants {
         ERROR_CODE_CONFIGURE_EITHER_RULES_OR_REGEX("60020",
                 "Invalid configuration format",
                 "Validation configurations can be configured with one of them: rules or regex."),
+        ERROR_CODE_REGEX_MISMATCH("60021",
+                "Regex mismatch",
+                "The %s should satisfy the %s pattern."),
+        ERROR_VALIDATOR_NOT_SUPPORTED_FOR_FIELD("60022",
+                "VALIDATOR NOT SUPPORTED FOR FIELD",
+                "The %s validator does not support for %s field."),     
+        ERROR_INVALID_VALIDATOR_PROPERTY_VALUE("60023",
+                "INVALID_VALIDATOR_PROPERTY_VALUE",
+                "The %s is an invalid value for property %s."),
+        ERROR_VALIDATION_ALPHANUMERIC_FORMAT_MISMATCH("60024",
+                "ALPHANUMERIC_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_VALIDATION_EMAIL_FORMAT_MISMATCH("60025",
+                "EMAIL_VALIDATION_NOT_SATISFIED",
+                "The %s can contain only %s pattern."),
+        ERROR_INPUT_VALUE_NULL("60026",
+                "INPUT_VALUE_NULL",
+                "The value cannot be null"),
+        ERROR_INVALID_VALIDATORS_COMBINATION("60027",
+                "INVALID VALIDATOR COMBINATION",
+                "Invalid validators combination is provided for field %s."),
+
         // Server Errors.
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get input validation configurations.",

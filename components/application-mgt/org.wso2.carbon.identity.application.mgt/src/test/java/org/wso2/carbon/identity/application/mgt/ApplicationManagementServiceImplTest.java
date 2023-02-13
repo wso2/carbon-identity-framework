@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -899,6 +901,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.getInstance();
         setInstanceValue(testSessionRealmService, RealmService.class, ApplicationManagementServiceComponentHolder.class,
                 holder);
+        setInstanceValue(new RegistryBasedApplicationPermissionProvider(), ApplicationPermissionProvider.class,
+                ApplicationManagementServiceComponentHolder.class, holder);
 
        // Configure Registry Service.
         RegistryService mockRegistryService = mock(RegistryService.class);

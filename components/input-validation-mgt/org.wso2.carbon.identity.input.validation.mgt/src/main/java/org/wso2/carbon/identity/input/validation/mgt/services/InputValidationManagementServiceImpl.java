@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
 import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder.getFieldValidationConfigurationHandlers;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.VALIDATION_TYPE;
@@ -50,11 +54,14 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
  * Class for Input Validation Manager Implementation.
  */
 public class InputValidationManagementServiceImpl implements InputValidationManagementService {
+
+    private static final Log LOG = LogFactory.getLog(InputValidationManagementServiceImpl.class);
 
     @Override
     public List<ValidationConfiguration> updateInputValidationConfiguration(
@@ -80,12 +87,40 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         for (Resource resource: resources) {
             configurations.add(buildValidationConfigFromResource(resource));
         }
-        // Handle if there are no resources found for the tenant.
-        if (configurations.isEmpty()) {
-            throw new InputValidationMgtClientException(ERROR_NO_CONFIGURATIONS_FOUND.getCode(),
-                    String.format(ERROR_NO_CONFIGURATIONS_FOUND.getDescription(), tenantDomain));
+        // If validation configuration is not found for any field, get default regex.
+        for (String field: SUPPORTED_PARAMS) {
+            if (configurations.stream().noneMatch(config -> field.equals(config.getField()))) {
+                configurations.add(getConfigurationFromUserStore(tenantDomain, field));
+            }
         }
         return configurations;
+    }
+
+    /**
+     * Method to get input validation configuration for a field.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param field         Field name that configuration needs to be retrieved.
+     * @return Input Validation Configuration for given field.
+     * @throws InputValidationMgtException If an error occurred in getting configuration.
+     */
+    @Override
+    public ValidationConfiguration getInputValidationConfigurationForField(String tenantDomain, String field)
+            throws InputValidationMgtException {
+
+        List<Resource> resources = getResourcesByType(tenantDomain);
+        // Convert resources to Validation Configurations.
+        List<ValidationConfiguration> configurations = new ArrayList<>();
+        for (Resource resource: resources) {
+            configurations.add(buildValidationConfigFromResource(resource));
+        }
+        // If validation configuration is not found for any field, get default regex.
+        for (ValidationConfiguration config: configurations) {
+            if (field.equals(config.getField())) {
+                return config;
+            }
+        }
+        return getConfigurationFromUserStore(tenantDomain, field);
     }
 
     @Override
@@ -111,6 +146,35 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     public Map<String, Validator> getValidators(String tenantDomain) {
 
         return InputValidationDataHolder.getValidators();
+    }
+
+    @Override
+    public List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain)
+            throws InputValidationMgtException {
+
+        List<ValidationConfiguration> configurations = new ArrayList<>();
+        for (String field: SUPPORTED_PARAMS) {
+            configurations.add(getConfigurationFromUserStore(tenantDomain, field));
+        }
+        return configurations;
+    }
+
+    @Override
+    public Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
+
+        return InputValidationDataHolder.getFieldValidationConfigurationHandlers();
+    }
+    
+    public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
+            throws InputValidationMgtException {
+
+        for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandlers().values()) {
+            if (handler.canHandle(field.toLowerCase())) {
+                return handler.getDefaultValidationConfiguration(tenantDomain);
+            }
+        }
+        throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
+                "Unable to find an FieldValidationConfigurationHandler for the % field.", field);
     }
 
     /**
@@ -141,7 +205,8 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
      * @return  Updated validation configuration.
      * @throws InputValidationMgtServerException If an error occurred when updating resource.
      */
-    private ValidationConfiguration updateValidationConfiguration(
+    @Override
+    public ValidationConfiguration updateValidationConfiguration(
             ValidationConfiguration configuration, String tenantDomain) throws InputValidationMgtServerException {
 
         String resourceName = INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + configuration.getField();
@@ -306,7 +371,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
         configuration.setField(resource.getResourceName().substring(
                 resource.getResourceName().lastIndexOf("-") + 1));
         Map<String, String> attributesMap = resource.getAttributes().stream()
-                        .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
+                    .collect(Collectors.toMap(Attribute::getKey, Attribute::getValue));
 
         // Build rules configurations from mapping.
         Map<String, Map<String, String>> validatorConfig = buildValidatorConfigGroup(attributesMap);

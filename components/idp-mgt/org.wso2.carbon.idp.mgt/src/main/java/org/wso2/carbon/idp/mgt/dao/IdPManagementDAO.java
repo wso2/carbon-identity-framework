@@ -2184,6 +2184,9 @@ public class IdPManagementDAO {
                         .equals(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED)) {
                     justInTimeProvisioningConfig
                             .setAssociateLocalUserEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
                 }
             });
         }
@@ -2197,6 +2200,8 @@ public class IdPManagementDAO {
                         .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
                         .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED) ||
                         IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                                 .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
@@ -2837,17 +2842,23 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
+        IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
+        attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
+        attributeSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
+
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
             promptConsentProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isPromptConsent()));
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
+            attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
+        identityProviderProperties.add(attributeSyncMethod);
         return identityProviderProperties;
     }
 
@@ -4163,36 +4174,41 @@ public class IdPManagementDAO {
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset);
-            prepStmt.setInt(4, limit);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset);
+            prepStmt.setInt(5, limit);
         } else if (databaseProductName.contains("Oracle")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset + limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset + limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, offset);
-            prepStmt.setInt(4, limit);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, offset);
+            prepStmt.setInt(5, limit);
         } else if (databaseProductName.contains("PostgreSQL")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("DB2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
             prepStmt.setString(2, id);
-            prepStmt.setInt(3, limit);
-            prepStmt.setInt(4, offset);
+            prepStmt.setString(3, id);
+            prepStmt.setInt(4, limit);
+            prepStmt.setInt(5, offset);
         } else if (databaseProductName.contains("INFORMIX")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX;
             prepStmt = connection.prepareStatement(sqlQuery);

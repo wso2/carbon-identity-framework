@@ -19,10 +19,13 @@
 package org.wso2.carbon.identity.input.validation.mgt.services;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
+import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +56,20 @@ public interface InputValidationManagementService {
             throws InputValidationMgtException;
 
     /**
+     * Method to get input validation configuration for a field.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param field         Field name that configuration needs to be retrieved.
+     * @return Input Validation Configuration for given field.
+     * @throws InputValidationMgtException If an error occurred in getting configuration.
+     */
+    default ValidationConfiguration getInputValidationConfigurationForField(String tenantDomain, String field)
+            throws InputValidationMgtException {
+
+        return new ValidationConfiguration();
+    }
+
+    /**
      * Method to get validator configurations.
      *
      * @param tenantDomain  tenant domain.
@@ -67,4 +84,45 @@ public interface InputValidationManagementService {
      * @return  Validators.
      */
     Map<String, Validator> getValidators(String tenantDomain);
+
+    /**
+     * Method to get configuration from user store.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return configuration.
+     */
+    List<ValidationConfiguration> getConfigurationFromUserStore(String tenantDomain) throws InputValidationMgtException;
+
+    /**
+     * Method to get configuration from user store for a given field.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @param field         Field configurations needs to be retrieved.
+     * @return configuration.
+     */
+    ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
+            throws InputValidationMgtException;
+        
+    /**
+     * Method to get all validation configuration handlers.
+     *
+     * @return Map<String, FieldValidationConfigurationHandler>.
+     */
+    default Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
+        return new HashMap<>();
+    }
+
+    /**
+     * Method to update validation configuration.
+     *
+     * @param configuration Validation configuration.
+     * @param tenantDomain  Tenant domain name.
+     * @return  Updated validation configuration.
+     * @throws InputValidationMgtServerException If an error occurred when updating resource.
+     */
+    default ValidationConfiguration updateValidationConfiguration(
+            ValidationConfiguration configuration, String tenantDomain) throws InputValidationMgtServerException {
+
+        return new ValidationConfiguration();
+    }
 }

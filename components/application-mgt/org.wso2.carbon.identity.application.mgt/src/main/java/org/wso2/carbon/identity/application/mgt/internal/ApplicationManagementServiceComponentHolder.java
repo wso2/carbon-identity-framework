@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
@@ -54,6 +55,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
 
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
+
+    private ApplicationPermissionProvider applicationPermissionProvider;
 
     private boolean isOrganizationManagementEnable = false;
 
@@ -234,5 +237,16 @@ public class ApplicationManagementServiceComponentHolder {
         if (organizationManagementInitializeService != null) {
             isOrganizationManagementEnable = organizationManagementInitializeService.isOrganizationManagementEnabled();
         }
+    }
+
+    public void setApplicationPermissionProvider(
+            ApplicationPermissionProvider applicationPermissionProvider) {
+
+        this.applicationPermissionProvider = applicationPermissionProvider;
+    }
+
+    public ApplicationPermissionProvider getApplicationPermissionProvider() {
+
+        return applicationPermissionProvider;
     }
 }

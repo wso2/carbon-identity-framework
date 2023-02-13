@@ -27,13 +27,24 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_CONSECUTIVE_CHR;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PERIOD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH;
 
 /**
  * Repeated character validator.
  */
 public class RepeatedCharacterValidator extends AbstractRulesValidator {
+
+    private final List<String> allowedFields = new ArrayList<String>() {{
+        add(PASSWORD);
+    }};
+
+    @Override
+    public boolean isAllowedField(String field) {
+
+        return allowedFields.contains(field);
+    }
 
     @Override
     public boolean validate(ValidationContext context) throws InputValidationMgtClientException {
@@ -55,9 +66,9 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
             }
         }
 
-        if (attributesMap.containsKey(field + PERIOD + MAX_CONSECUTIVE_CHR)) {
-            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(field + PERIOD + MAX_CONSECUTIVE_CHR));
-            if (maxConsecutiveLength < consecutiveLen) {
+        if (attributesMap.containsKey(MAX_CONSECUTIVE_CHR)) {
+            int maxConsecutiveLength = Integer.parseInt(attributesMap.get(MAX_CONSECUTIVE_CHR));
+            if (maxConsecutiveLength > 0 && maxConsecutiveLength < consecutiveLen) {
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getCode(),
                         ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getMessage(),
                         String.format(ERROR_VALIDATION_REPETITIVE_CHR_MISMATCH.getDescription(), field,
@@ -72,9 +83,11 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
 
         Map<String, String> properties = context.getProperties();
         validatePropertyName(properties, this.getClass().getSimpleName(), context.getTenantDomain());
-        if (properties.get(MAX_CONSECUTIVE_CHR) != null && validatePositiveNumber(properties.get(MAX_CONSECUTIVE_CHR),
+        if (properties.get(MAX_CONSECUTIVE_CHR) != null && !validatePositiveNumber(properties.get(MAX_CONSECUTIVE_CHR),
                 MAX_CONSECUTIVE_CHR, context.getTenantDomain())) {
-            properties.remove(MAX_CONSECUTIVE_CHR);
+            throw new InputValidationMgtClientException(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getCode(),
+                    String.format(ERROR_INVALID_VALIDATOR_PROPERTY_VALUE.getDescription(),
+                            properties.get(MAX_CONSECUTIVE_CHR), MAX_CONSECUTIVE_CHR));
         }
         return true;
     }
@@ -95,5 +108,4 @@ public class RepeatedCharacterValidator extends AbstractRulesValidator {
 
         return configProperties;
     }
-
 }
