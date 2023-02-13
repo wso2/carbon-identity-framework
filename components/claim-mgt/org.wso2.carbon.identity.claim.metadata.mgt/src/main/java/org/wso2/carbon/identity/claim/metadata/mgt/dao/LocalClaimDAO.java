@@ -374,6 +374,7 @@ public class LocalClaimDAO extends ClaimDAO {
      *
      * @param tenantId      Tenant Id.
      * @param localClaimURI URI of the local claim.
+     * @return List of associated external claims.
      *
      * @throws ClaimMetadataException when trying to fetch mapped external claims for a local claim.
      */

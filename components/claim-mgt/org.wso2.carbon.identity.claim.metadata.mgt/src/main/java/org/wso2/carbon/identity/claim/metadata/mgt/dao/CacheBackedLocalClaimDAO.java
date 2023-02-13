@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.cache.AssociatedClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
@@ -39,6 +40,7 @@ public class CacheBackedLocalClaimDAO {
     LocalClaimDAO localClaimDAO;
 
     LocalClaimCache localClaimInvalidationCache = LocalClaimCache.getInstance();
+    AssociatedClaimCache associatedClaimCache = AssociatedClaimCache.getInstance();
 
     public CacheBackedLocalClaimDAO(LocalClaimDAO localClaimDAO) {
         this.localClaimDAO = localClaimDAO;
@@ -127,6 +129,20 @@ public class CacheBackedLocalClaimDAO {
     public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
             throws ClaimMetadataException {
 
-       return this.localClaimDAO.fetchMappedExternalClaims(localClaimURI,tenantId);
+        List <Claim> associatedLocalClaims =  associatedClaimCache.getValueFromCache(localClaimURI, tenantId);
+        if (associatedLocalClaims == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cache miss for associated claims of local claim:%s for tenant:%s ",
+                        localClaimURI, tenantId));
+            }
+            associatedLocalClaims = localClaimDAO.fetchMappedExternalClaims(localClaimURI, tenantId);
+            associatedClaimCache.addToCache(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cache hit for associated claims of local claim:%s for tenant:%s ",
+                        localClaimURI, tenantId));
+            }
+        }
+        return associatedLocalClaims;
     }
 }
