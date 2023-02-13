@@ -37,6 +37,7 @@ public class AssociatedClaimCache extends BaseCache<String, ArrayList<Claim>> {
     }
 
     public static AssociatedClaimCache getInstance() {
+
         return instance;
     }
 }
