@@ -92,14 +92,14 @@ public class CacheBackedExternalClaimDAO {
         List<ExternalClaim> externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
         String mappedLocalClaim = null;
         for (ExternalClaim externalClaim: externalClaimsList) {
-            if(externalClaim.getClaimURI().equals(externalClaimURI)){
+            if (externalClaim.getClaimURI().equals(externalClaimURI)){
                 mappedLocalClaim = externalClaim.getMappedLocalClaim();
             }
         }
         externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
-        if(StringUtils.isNotBlank(mappedLocalClaim)) {
+        if (StringUtils.isNotBlank(mappedLocalClaim)) {
             associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantId);
         }
     }
