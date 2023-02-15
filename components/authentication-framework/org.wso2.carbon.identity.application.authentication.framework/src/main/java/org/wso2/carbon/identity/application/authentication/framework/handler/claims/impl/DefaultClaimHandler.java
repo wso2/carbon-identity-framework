@@ -188,7 +188,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             localToIdPClaimMap = getLocalToIdpClaimMappingWithStandardDialect(remoteClaims, idPClaimMappings, context,
                     idPStandardDialect);
         } else if (idPClaimMappings.length > 0) {
-            localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings,  true);
+            localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
             if (useLocalClaimDialectForClaimMappings()) {
                 getCombinedLocalIdpClaimMapping(authenticator.getClaimDialectURI(),
                         context.getTenantDomain(), localToIdPClaimMap, remoteClaims);
