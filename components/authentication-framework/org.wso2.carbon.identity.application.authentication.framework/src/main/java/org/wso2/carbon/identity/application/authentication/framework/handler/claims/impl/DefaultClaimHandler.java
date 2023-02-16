@@ -393,10 +393,10 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Combine the Idp claim mapping with the default mapping.
      *
-     * @param idPStandardDialect Standard Idp dialect URI.
-     * @param tenantDomain tenant domain.
-     * @param localToIdPClaimMap default local to idp claim mapping.
-     * @param remoteClaims  Claims from idp.
+     * @param idPStandardDialect    Standard Idp dialect URI.
+     * @param tenantDomain          tenant domain.
+     * @param localToIdPClaimMap    default local to idp claim mapping.
+     * @param remoteClaims          Claims from idp.
      * @return combined claim mappings.
      * @throws FrameworkException   If an exception occurred in combining the idp claims with default claims.
      */
@@ -1060,7 +1060,8 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private boolean enableMergingCustomClaimMappingsWithDefaultMappings() {
 
-        return FileBasedConfigurationBuilder.getInstance().isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
+        return FileBasedConfigurationBuilder.getInstance()
+                .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
     }
 
     /**
