@@ -76,6 +76,7 @@ public class FileBasedConfigurationBuilder {
     private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
     private boolean allowCustomClaimMappingsForAuthenticators = false;
+    private boolean canMergeCustomClaimWithDefaultClaimMapping = false;
 
     /**
      * List of URLs that receive the tenant list
@@ -221,6 +222,9 @@ public class FileBasedConfigurationBuilder {
 
             //########### Read Authenticator Claim Dialect Configs ###########
             readAllowCustomClaimMappingsForAuthenticatorsValue(rootElement);
+
+            //########## Read Authentication Claim Dialect Merge Configs ###########
+            readMergeCustomClaimMappingWithDefaultValue(rootElement);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
@@ -1101,6 +1105,17 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    private void readMergeCustomClaimMappingWithDefaultValue(OMElement documentElement) {
+
+        OMElement element = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT));
+
+        if (element != null) {
+            canMergeCustomClaimWithDefaultClaimMapping = Boolean.valueOf(element.getText());
+        }
+    }
+
     /**
      * Indicates whether a custom claim dialect can be used instead
      * of the authenticator's claim dialect.
@@ -1110,5 +1125,16 @@ public class FileBasedConfigurationBuilder {
     public boolean isCustomClaimMappingsForAuthenticatorsAllowed() {
 
         return allowCustomClaimMappingsForAuthenticators;
+    }
+
+    /**
+     * Indicates whether a custom claim dialect can be merged with
+     * authenticator's claim dialect's claims.
+     *
+     * @return True if a custom claim dialect can be used.
+     */
+    public boolean canMergeCustomClaimWithDefaultClaimMapping() {
+
+        return canMergeCustomClaimWithDefaultClaimMapping;
     }
 }

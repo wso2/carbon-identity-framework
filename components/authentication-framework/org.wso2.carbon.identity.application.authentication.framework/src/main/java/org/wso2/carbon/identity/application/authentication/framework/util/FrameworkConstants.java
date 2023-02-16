@@ -269,6 +269,8 @@ public abstract class FrameworkConstants {
         public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
         public static final String QNAME_ALLOW_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS =
                 "AllowCustomClaimMappingsForAuthenticators";
+        public static final String QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT =
+                "MergeCustomClaimMappingsWithDefaultForAuthenticators";
 
         /**
          * Configuration name for the collection of urls for receiving tenant list

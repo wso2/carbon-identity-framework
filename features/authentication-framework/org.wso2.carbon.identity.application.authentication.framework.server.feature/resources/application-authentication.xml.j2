@@ -167,6 +167,10 @@
     <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
     {% endif %}
 
+    {% if authentication.endpoint.merge_custom_claim_mappings_with_default is defined %}
+    <MergeCustomClaimMappingsWithDefaultForAuthenticators>{{authentication.endpoint.merge_custom_claim_mappings_with_default}}</MergeCustomClaimMappingsWithDefaultForAuthenticators>
+    {% endif %}
+
     {% if tenant.domain_drop_down.enable is defined %}
     <TenantDomainDropDownEnabled>{{tenant.domain_drop_down.enable}}</TenantDomainDropDownEnabled>
     {% endif %}
