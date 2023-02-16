@@ -190,6 +190,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         } else if (idPClaimMappings.length > 0) {
             localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
             if (useLocalClaimDialectForClaimMappings() && enableMergingCustomClaimMappingsWithDefaultMappings()) {
+                localToIdPClaimMap = filterLocaltoIdPClaimMap(localToIdPClaimMap, remoteClaims.keySet());
                 getMergedLocalIdpClaimMappings(authenticator.getClaimDialectURI(),
                         context.getTenantDomain(), localToIdPClaimMap, remoteClaims);
             }
@@ -255,6 +256,20 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         return spFilteredClaims;
 
+    }
+
+    /**
+     * Filter local claim mapping only if the claim value is there in the remote claim set.
+     *
+     * @param localToIdPClaimMap    Local to IdP claim mapping.
+     * @param keySet                Claim keys of remote claim set.
+     * @return  the local to idp claim mappings which comes in the remote claims.
+     */
+    private Map<String, String> filterLocaltoIdPClaimMap(Map<String, String> localToIdPClaimMap, Set<String> keySet) {
+
+        return new HashMap<>(localToIdPClaimMap.entrySet().stream()
+                .filter(claimMap -> keySet.contains(claimMap.getValue()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
     }
 
     private void setMandatoryAndRequestedClaims(ApplicationConfig appConfig,
