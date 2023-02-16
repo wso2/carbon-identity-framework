@@ -298,5 +298,4 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
         //For the File based applications, application name is set as resource id
         return getApplication(resourceId, tenantDomain);
     }
-
 }

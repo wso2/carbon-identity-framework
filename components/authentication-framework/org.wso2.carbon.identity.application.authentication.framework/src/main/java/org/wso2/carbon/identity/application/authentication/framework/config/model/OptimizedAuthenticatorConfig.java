@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
@@ -95,7 +96,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain) throws
             SessionDataStorageOptimizationException {
 
-        if (resourceId == null) {
+        if (StringUtils.isEmpty(resourceId)) {
             throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager =
@@ -115,5 +116,4 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         }
         return idp;
     }
-
 }

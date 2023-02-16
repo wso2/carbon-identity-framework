@@ -34,6 +34,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -51,10 +52,9 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     private SessionContextCache() {
 
         super(SESSION_CONTEXT_CACHE_NAME);
-        if (IdentityUtil.getProperty(
-                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable") != null) {
+        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
             isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
-                    "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable"));
+                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
         }
     }
 

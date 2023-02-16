@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -273,7 +274,7 @@ public class AuthenticationContextLoader {
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
-        if (resourceId == null) {
+        if (StringUtils.isEmpty(resourceId)) {
             throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
         }
         IdentityProviderManager manager =
