@@ -259,7 +259,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * Filter local claim mapping only if the claim is there in remote claim set.
+     * Filter local claim mapping only if the claim value is there in the remote claim set.
      *
      * @param localToIdPClaimMap    Local to IdP claim mapping.
      * @param keySet                Claim keys of remote claim set.
