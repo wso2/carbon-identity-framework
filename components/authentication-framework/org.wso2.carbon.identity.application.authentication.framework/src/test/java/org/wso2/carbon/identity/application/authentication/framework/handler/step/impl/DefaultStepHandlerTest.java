@@ -168,6 +168,7 @@ public class DefaultStepHandlerTest {
 
         // The authConfig "showAuthFailureReason" can't be null and should be true.
         String showAuthFailureReason = "true";
+        String maskUserNotExistsErrorCode = "true";
 
         // AuthenticatorNames and loginPage needs to be passed as parameters for the getRedirectUrl method.
         // Not relevant to the test flow furthermore.

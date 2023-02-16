@@ -1012,9 +1012,28 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        String maskUserNotExistsErrorCode = null;
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            if (Boolean.parseBoolean(showAuthFailureReason)) {
+                maskUserNotExistsErrorCode =
+                        parameterMap.get(FrameworkConstants.MASK_USER_NOT_EXISTS_ERROR_CODE_CONFIG);
+            }
+        }
+
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
+                if (Boolean.parseBoolean(maskUserNotExistsErrorCode) &&
+                        StringUtils.contains(errorCode, UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST)) {
+                    errorCode = UserCoreConstants.ErrorCode.INVALID_CREDENTIAL;
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Masking user not found error code: " +
+                                UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST + " with error code: " +
+                                errorCode);
+                    }
+                }
                 String reason = null;
                 if (errorCode.contains(":")) {
                     String[] errorCodeReason = errorCode.split(":", 2);

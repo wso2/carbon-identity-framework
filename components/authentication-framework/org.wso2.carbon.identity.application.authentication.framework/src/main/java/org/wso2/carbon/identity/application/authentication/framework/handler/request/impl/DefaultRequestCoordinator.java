@@ -409,6 +409,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (context != null) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
+                context.setRedirectURL(redirectURL);
             } else {
                 log.warn("Authentication context is null, redirect parameter filtering will not be done for " +
                         sessionDataKey);

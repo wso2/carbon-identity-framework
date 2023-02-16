@@ -51,7 +51,7 @@ public class EndpointConfigManager {
     private static char[] appPassword = null;
     private static String serverOrigin;
     private static boolean initialized = false;
-    private static String googleOneTapRestrictedBrowsers = "";
+    private static String googleOneTapRestrictedBrowsers = StringUtils.EMPTY;
 
     /**
      * Initialize Tenant data manager
