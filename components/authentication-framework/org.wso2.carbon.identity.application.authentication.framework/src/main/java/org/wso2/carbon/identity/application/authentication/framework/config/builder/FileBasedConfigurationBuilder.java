@@ -76,7 +76,7 @@ public class FileBasedConfigurationBuilder {
     private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
     private boolean allowCustomClaimMappingsForAuthenticators = false;
-    private boolean canMergeCustomClaimWithDefaultClaimMapping = false;
+    private boolean allowMergingCustomClaimMappingsWithDefaultClaimMappings = false;
 
     /**
      * List of URLs that receive the tenant list
@@ -1112,7 +1112,7 @@ public class FileBasedConfigurationBuilder {
                         FrameworkConstants.Config.QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT));
 
         if (element != null) {
-            canMergeCustomClaimWithDefaultClaimMapping = Boolean.valueOf(element.getText());
+            allowMergingCustomClaimMappingsWithDefaultClaimMappings = Boolean.valueOf(element.getText());
         }
     }
 
@@ -1133,8 +1133,8 @@ public class FileBasedConfigurationBuilder {
      *
      * @return True if a custom claim dialect can be used.
      */
-    public boolean canMergeCustomClaimWithDefaultClaimMapping() {
+    public boolean isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed() {
 
-        return canMergeCustomClaimWithDefaultClaimMapping;
+        return allowMergingCustomClaimMappingsWithDefaultClaimMappings;
     }
 }

@@ -168,7 +168,7 @@
     {% endif %}
 
     {% if authentication.endpoint.merge_custom_claim_mappings_with_default is defined %}
-    <MergeCustomClaimMappingsWithDefaultForAuthenticators>{{authentication.endpoint.merge_custom_claim_mappings_with_default}}</MergeCustomClaimMappingsWithDefaultForAuthenticators>
+    <AllowMergingCustomClaimMappingsWithDefaultClaimMappings>{{authentication.endpoint.enable_merging_custom_claim_mappings_with_default}}</AllowMergingCustomClaimMappingsWithDefaultClaimMappings>
     {% endif %}
 
     {% if tenant.domain_drop_down.enable is defined %}

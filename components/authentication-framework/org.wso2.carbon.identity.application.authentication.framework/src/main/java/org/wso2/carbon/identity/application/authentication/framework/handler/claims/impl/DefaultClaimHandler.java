@@ -189,7 +189,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     idPStandardDialect);
         } else if (idPClaimMappings.length > 0) {
             localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
-            if (useLocalClaimDialectForClaimMappings() && shouldCombineCustomClaimMappingWithDefault()) {
+            if (useLocalClaimDialectForClaimMappings() && enableMergingCustomClaimMappingsWithDefaultMappings()) {
                 getCombinedLocalIdpClaimMapping(authenticator.getClaimDialectURI(),
                         context.getTenantDomain(), localToIdPClaimMap, remoteClaims);
             }
@@ -1058,9 +1058,9 @@ public class DefaultClaimHandler implements ClaimHandler {
      *
      * @return True if both need to be combined.
      */
-    private boolean shouldCombineCustomClaimMappingWithDefault() {
+    private boolean enableMergingCustomClaimMappingsWithDefaultMappings() {
 
-        return FileBasedConfigurationBuilder.getInstance().canMergeCustomClaimWithDefaultClaimMapping();
+        return FileBasedConfigurationBuilder.getInstance().isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
     }
 
     /**
