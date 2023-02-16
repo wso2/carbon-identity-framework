@@ -224,7 +224,7 @@ public class FileBasedConfigurationBuilder {
             readAllowCustomClaimMappingsForAuthenticatorsValue(rootElement);
 
             //########## Read Authentication Claim Dialect Merge Configs ###########
-            readMergeCustomClaimMappingWithDefaultValue(rootElement);
+            readAllowMergingCustomClaimMappingsWithDefaultClaimMappings(rootElement);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
@@ -1105,7 +1105,7 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
-    private void readMergeCustomClaimMappingWithDefaultValue(OMElement documentElement) {
+    private void readAllowMergingCustomClaimMappingsWithDefaultClaimMappings(OMElement documentElement) {
 
         OMElement element = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(

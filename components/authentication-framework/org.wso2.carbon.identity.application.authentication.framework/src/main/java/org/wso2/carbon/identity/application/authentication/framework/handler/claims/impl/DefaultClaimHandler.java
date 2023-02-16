@@ -190,7 +190,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         } else if (idPClaimMappings.length > 0) {
             localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
             if (useLocalClaimDialectForClaimMappings() && enableMergingCustomClaimMappingsWithDefaultMappings()) {
-                getCombinedLocalIdpClaimMapping(authenticator.getClaimDialectURI(),
+                getMergedLocalIdpClaimMappings(authenticator.getClaimDialectURI(),
                         context.getTenantDomain(), localToIdPClaimMap, remoteClaims);
             }
         } else {
@@ -400,7 +400,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @return combined claim mappings.
      * @throws FrameworkException   If an exception occurred in combining the idp claims with default claims.
      */
-    private Map<String, String> getCombinedLocalIdpClaimMapping(String idPStandardDialect, String tenantDomain,
+    private Map<String, String> getMergedLocalIdpClaimMappings(String idPStandardDialect, String tenantDomain,
                                                                 Map<String, String> localToIdPClaimMap,
                                                                 Map<String, String> remoteClaims) throws
             FrameworkException {
@@ -417,7 +417,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
 
             return localToIdPClaimMap;
-        } catch (Exception e) {
+        } catch (FrameworkException e) {
             throw new FrameworkException("Error occurred while getting all claim mappings from " +
                     idPStandardDialect + " dialect for " +
                     tenantDomain + " to handle federated claims", e);
