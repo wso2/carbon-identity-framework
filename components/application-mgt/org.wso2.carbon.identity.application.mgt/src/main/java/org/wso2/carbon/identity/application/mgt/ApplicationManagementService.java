@@ -302,6 +302,20 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             username, boolean isUpdate) throws IdentityApplicationManagementException;
 
     /**
+     * Import Service Provider application from file.
+     *
+     * @param spFileContent xml string of the SP and file name
+     * @param tenantDomain  tenant Domain
+     * @param username      username
+     * @param fileType      file type
+     * @param isUpdate      isUpdate
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
+            username, String fileType, boolean isUpdate) throws IdentityApplicationManagementException;
+
+    /**
      * Import Service Provider application from object.
      *
      * @param serviceProvider

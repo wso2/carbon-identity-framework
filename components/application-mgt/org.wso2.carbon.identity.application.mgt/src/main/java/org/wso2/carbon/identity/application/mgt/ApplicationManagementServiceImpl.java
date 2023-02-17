@@ -145,6 +145,9 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+
 /**
  * Application management service implementation.
  */
@@ -1303,6 +1306,31 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
+                                              String fileType, boolean isUpdate)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Importing service provider from file " + spFileContent.getFileName());
+        }
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+
+        if (fileType.equals("xml")) {
+            serviceProvider = unmarshalSP(spFileContent, tenantDomain);
+        } else if (fileType.equals("yml")) {
+            serviceProvider = deserializationSP(spFileContent, tenantDomain);
+        }
+        ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Service provider %s@%s created successfully from file %s",
+                    serviceProvider.getApplicationName(), tenantDomain, spFileContent.getFileName()));
+        }
+
+        return importResponse;
+    }
+
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1969,6 +1997,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
                     "configuration ", e);
+        }
+    }
+
+    /**
+     * Convert yml file of service provider to object.
+     *
+     * @param spFileContent xml string of the SP and file name
+     * @param tenantDomain  tenant domain name
+     * @return Service Provider
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    private ServiceProvider deserializationSP(SpFileContent spFileContent, String tenantDomain)
+            throws IdentityApplicationManagementException {
+        if (StringUtils.isEmpty(spFileContent.getContent())) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
+                    " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
+        }
+        try {
+            Yaml yaml = new Yaml(new Constructor(ServiceProvider.class));
+            ServiceProvider serviceProvider = yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
+            return serviceProvider;
+        } catch (Exception e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
+                    "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }
     }
 
