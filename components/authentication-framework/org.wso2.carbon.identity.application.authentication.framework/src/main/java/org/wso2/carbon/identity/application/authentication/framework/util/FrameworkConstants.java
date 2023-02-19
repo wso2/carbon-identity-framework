@@ -88,6 +88,7 @@ public abstract class FrameworkConstants {
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
     public static final String LOCAL = "LOCAL";
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
+    public static final String MASK_USER_NOT_EXISTS_ERROR_CODE_CONFIG = "maskUserNotExistsErrorCode";
     public static final String SHOW_AUTH_FAILURE_REASON_ON_LOGIN_PAGE_CONF = "showAuthFailureReasonOnLoginPage";
     public static final String REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF = "redirectToRetryPageOnAccountLock";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
@@ -275,6 +276,8 @@ public abstract class FrameworkConstants {
         public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
         public static final String QNAME_ALLOW_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS =
                 "AllowCustomClaimMappingsForAuthenticators";
+        public static final String QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT =
+                "AllowMergingCustomClaimMappingsWithDefaultClaimMappings";
 
         /**
          * Configuration name for the collection of urls for receiving tenant list

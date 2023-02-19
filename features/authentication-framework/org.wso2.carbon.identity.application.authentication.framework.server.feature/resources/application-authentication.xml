@@ -252,4 +252,10 @@
     -->
     <!--<AllowCustomClaimMappingsForAuthenticators>true</AllowCustomClaimMappingsForAuthenticators>-->
 
+    <!--
+    Allow federated authenticators to use IDP claim mappings combined with the default authenticator claim mappings.
+    Default value: false
+    -->
+    <!--<AllowMergingCustomClaimMappingsWithDefaultClaimMappings>true</AllowMergingCustomClaimMappingsWithDefaultClaimMappings>-->
+
 </ApplicationAuthentication>
