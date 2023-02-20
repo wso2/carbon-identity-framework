@@ -158,6 +158,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
     private static final String TARGET_APPLICATION = "APPLICATION";
     private static final String USER = "USER";
+    private static final String EXPORT_MEDIA_TYPE_XML = "xml";
+    private static final String EXPORT_MEDIA_TYPE_YAML = "yml";
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -1291,19 +1293,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Importing service provider from file " + spFileContent.getFileName());
-        }
-
-        ServiceProvider serviceProvider = unmarshalSP(spFileContent, tenantDomain);
-        ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Service provider %s@%s created successfully from file %s",
-                    serviceProvider.getApplicationName(), tenantDomain, spFileContent.getFileName()));
-        }
-
-        return importResponse;
+        return importSPApplication(spFileContent, tenantDomain, username, EXPORT_MEDIA_TYPE_XML, isUpdate);
     }
 
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
@@ -1314,13 +1304,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.debug("Importing service provider from file " + spFileContent.getFileName());
         }
 
-        ServiceProvider serviceProvider = new ServiceProvider();
+        ServiceProvider serviceProvider;
 
-        if (fileType.equals("xml")) {
-            serviceProvider = unmarshalSP(spFileContent, tenantDomain);
-        } else if (fileType.equals("yml")) {
+        if (fileType.equals(EXPORT_MEDIA_TYPE_YAML)) {
             serviceProvider = deserializationSP(spFileContent, tenantDomain);
+        } else {
+            serviceProvider = unmarshalSP(spFileContent, tenantDomain);
         }
+
         ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
 
         if (log.isDebugEnabled()) {
@@ -2003,17 +1994,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Convert yml file of service provider to object.
      *
-     * @param spFileContent xml string of the SP and file name
-     * @param tenantDomain  tenant domain name
-     * @return Service Provider
-     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     * @param spFileContent xml string of the SP and file name.
+     * @param tenantDomain  tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
     private ServiceProvider deserializationSP(SpFileContent spFileContent, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         if (StringUtils.isEmpty(spFileContent.getContent())) {
             throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
                     " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
         }
+
         try {
             Yaml yaml = new Yaml(new Constructor(ServiceProvider.class));
             ServiceProvider serviceProvider = yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
