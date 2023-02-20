@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServer
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -537,13 +536,5 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
                 claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI)).findFirst().isPresent();
-    }
-
-    @Override
-     public List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
-            ClaimMetadataException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        return this.localClaimDAO.fetchMappedExternalClaims(localClaimURI, tenantId);
     }
 }
