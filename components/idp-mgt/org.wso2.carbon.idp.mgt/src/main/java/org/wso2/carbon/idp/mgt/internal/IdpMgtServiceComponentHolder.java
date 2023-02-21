@@ -19,12 +19,14 @@
 package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -53,7 +55,7 @@ public class IdpMgtServiceComponentHolder {
     private RegistryService registryService;
     private RoleManagementService roleManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
-    private IdentityProviderSecretsProcessor idpSecretsProcessorService;
+    private SecretsProcessor<IdentityProvider> idpSecretsProcessorService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -144,12 +146,12 @@ public class IdpMgtServiceComponentHolder {
         this.roleManagementService = roleManagementService;
     }
 
-    public IdentityProviderSecretsProcessor getIdPSecretsProcessorService() {
+    public SecretsProcessor<IdentityProvider> getIdPSecretsProcessorService() {
 
         return idpSecretsProcessorService;
     }
 
-    public void setIdPSecretsProcessorService(IdentityProviderSecretsProcessor idpSecretsProcessorService) {
+    public void setIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idpSecretsProcessorService) {
 
         this.idpSecretsProcessorService = idpSecretsProcessorService;
     }

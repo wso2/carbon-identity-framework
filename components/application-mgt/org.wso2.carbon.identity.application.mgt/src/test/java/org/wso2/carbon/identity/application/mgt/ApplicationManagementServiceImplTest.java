@@ -60,8 +60,8 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessorImpl;
+import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -129,11 +129,12 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
 
-        IdentityProviderSecretsProcessor identityProviderSecretsProcessor = mock(
-                IdentityProviderSecretsProcessorImpl.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(identityProviderSecretsProcessor);
-        when(identityProviderSecretsProcessor.addOrUpdateIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
-        when(identityProviderSecretsProcessor.getIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
+        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
+                IdPSecretsProcessor.class);
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
+        when(idpSecretsProcessor.addOrUpdateSecrets(anyObject())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.associateSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @DataProvider(name = "addApplicationDataProvider")

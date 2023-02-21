@@ -44,8 +44,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.IdentityProviderSecretsProcessorImpl;
+import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
@@ -155,14 +155,14 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         mockStatic(IdpMgtServiceComponentHolder.class);
         IdpMgtServiceComponentHolder idpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
         when(IdpMgtServiceComponentHolder.getInstance()).thenReturn(idpMgtServiceComponentHolder);
-        IdentityProviderSecretsProcessor identityProviderSecretsProcessor = mock(
-                IdentityProviderSecretsProcessorImpl.class);
+        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
+                IdPSecretsProcessor.class);
         when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService())
-                .thenReturn(identityProviderSecretsProcessor);
+                .thenReturn(idpSecretsProcessor);
         when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
-                .addOrUpdateIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
+                .associateSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
         when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
-                .getIdPSecrets(anyObject())).thenReturn(new IdentityProvider());
+                .addOrUpdateSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @AfterMethod

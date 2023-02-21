@@ -81,7 +81,7 @@ public class SecretManagerTest extends PowerMockTestCase {
     private Connection connection;
     private CryptoUtil cryptoUtil;
     private SecretResolveManager secretResolveManager;
-    private IdentityProviderSecretsProcessor identityProviderSecretsProcessor;
+    private SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor;
 
     private static final String SAMPLE_SECRET_NAME1 = "sample-secret1";
     private static final String SAMPLE_SECRET_NAME2 = "sample-secret2";
@@ -455,7 +455,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
+        identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
         
         for (String secretName : buildSecretNamesList(identityProvider)) {
             assertTrue(
@@ -472,10 +472,10 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
 
         decryptSecret(ENCRYPTED_VALUE1);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdPSecrets(addedIdp);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.associateSecrets(addedIdp);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
@@ -492,9 +492,9 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
 
-        identityProviderSecretsProcessor.deleteIdPSecrets(addedIdp);
+        identityProviderSecretsProcessor.deleteSecrets(addedIdp);
         for (String secretName : buildSecretNamesList(identityProvider)) {
             assertFalse(
                     secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
@@ -510,15 +510,15 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(identityProvider);
+        identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
 
         IdentityProvider updatedIdpObject = buildUpdatedIdpObject(identityProvider);
         decryptSecret(ENCRYPTED_VALUE1);
         encryptSecret(SAMPLE_SECRET_VALUE2);
-        identityProviderSecretsProcessor.addOrUpdateIdPSecrets(updatedIdpObject);
+        identityProviderSecretsProcessor.addOrUpdateSecrets(updatedIdpObject);
 
         decryptSecret(ENCRYPTED_VALUE2);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.getIdPSecrets(updatedIdpObject);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.associateSecrets(updatedIdpObject);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
@@ -535,7 +535,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         mockIdentityTenantUtility();
         secretManager = new SecretManagerImpl();
         secretResolveManager = new SecretResolveManagerImpl();
-        identityProviderSecretsProcessor = new IdentityProviderSecretsProcessorImpl();
+        identityProviderSecretsProcessor = new IdPSecretsProcessor();
     }
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain) {
