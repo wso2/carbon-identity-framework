@@ -141,7 +141,6 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         List<ValidationConfiguration> configurations;
         try {
             configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
-            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
 
             /* Validate provide value for each field in the `inputValuesForFieldsMap` against the configurations of the
              corresponding field. */
