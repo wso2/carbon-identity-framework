@@ -116,6 +116,10 @@
             <Parameter name="UserInfoEndpoint">https://graph.facebook.com/me</Parameter>
                         <!--<Parameter name="ClaimDialectUri">http://wso2.org/facebook/claims</Parameter>-->
         </AuthenticatorConfig>
+        <AuthenticatorConfig name="AppleOIDCAuthenticator" enabled="true">
+            <Parameter name="AppleTokenEndpoint">https://appleid.apple.com/auth/token</Parameter>
+            <Parameter name="AppleAuthzEndpoint">https://appleid.apple.com/auth/authorize</Parameter>
+        </AuthenticatorConfig>
         <AuthenticatorConfig  name="FIDOAuthenticator" enabled="true">
             <Parameter name="FidoAuth">/authenticationendpoint/fido-auth.jsp</Parameter>
             <Parameter name="Fido2Auth">/authenticationendpoint/fido2-auth.jsp</Parameter>
