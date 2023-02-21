@@ -161,6 +161,9 @@
 
 <div id="middle">
     <h2><fmt:message key="entitled.data.search"/></h2>
+    <%
+        if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/entitlement/pdp")) {
+    %>
     <div id="workArea">
         <form id="requestForm" name="requestForm" method="post" action="advance-search.jsp">
         <table class="styledLeft noBorders">
@@ -348,5 +351,8 @@
             </tbody>
         </table>
     </div>
+    <%
+        }
+    %>
 </div>
 </fmt:bundle>
