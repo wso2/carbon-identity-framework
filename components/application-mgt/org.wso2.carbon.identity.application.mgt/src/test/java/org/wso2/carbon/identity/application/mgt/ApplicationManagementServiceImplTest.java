@@ -356,17 +356,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         ServiceProvider serviceProvider1 = new ServiceProvider();
         serviceProvider1.setApplicationName(APPLICATION_NAME_1);
-        addApplicationConfigurations(serviceProvider1);
         setApplicationInboundAuthConfigs(serviceProvider1, APPLICATION_INBOUND_AUTH_KEY_1, "oauth2");
 
         ServiceProvider serviceProvider2 = new ServiceProvider();
         serviceProvider2.setApplicationName(APPLICATION_NAME_2);
-        addApplicationConfigurations(serviceProvider2);
         setApplicationInboundAuthConfigs(serviceProvider2, APPLICATION_INBOUND_AUTH_KEY_2, "oauth2");
 
         return new Object[][]{
-                {serviceProvider1, serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
-                {serviceProvider1, serviceProvider2, SAMPLE_TENANT_DOMAIN, USERNAME_2}
+                {serviceProvider1, serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1}
         };
     }
 
@@ -428,8 +425,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo[0].getClientId(), APPLICATION_INBOUND_AUTH_KEY_1);
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP1.getApplicationName(), tenantDomain, username);
-        applicationManagementService.deleteApplication(inputSP2.getApplicationName(), tenantDomain, username);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        applicationManagementService.deleteApplications(tenantId);
     }
 
     @DataProvider(name = "getSAMLApplicationDataProvider")
@@ -437,17 +434,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         ServiceProvider serviceProvider1 = new ServiceProvider();
         serviceProvider1.setApplicationName(APPLICATION_NAME_1);
-        addApplicationConfigurations(serviceProvider1);
         setApplicationInboundAuthConfigs(serviceProvider1, APPLICATION_INBOUND_AUTH_KEY_1, "samlsso");
 
         ServiceProvider serviceProvider2 = new ServiceProvider();
         serviceProvider2.setApplicationName(APPLICATION_NAME_2);
-        addApplicationConfigurations(serviceProvider2);
         setApplicationInboundAuthConfigs(serviceProvider2, APPLICATION_INBOUND_AUTH_KEY_2, "samlsso");
 
         return new Object[][]{
-                {serviceProvider1, serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1},
-                {serviceProvider1, serviceProvider2, SAMPLE_TENANT_DOMAIN, USERNAME_2}
+                {serviceProvider1, serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1}
         };
     }
 
@@ -509,8 +503,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationBasicInfo[0].getIssuer(), APPLICATION_INBOUND_AUTH_KEY_1);
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP1.getApplicationName(), tenantDomain, username);
-        applicationManagementService.deleteApplication(inputSP2.getApplicationName(), tenantDomain, username);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        applicationManagementService.deleteApplications(tenantId);
     }
 
     @Test
@@ -587,8 +581,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                         APPLICATION_INBOUND_AUTH_KEY_1)), 0);
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP1.getApplicationName(), tenantDomain, username);
-        applicationManagementService.deleteApplication(inputSP2.getApplicationName(), tenantDomain, username);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        applicationManagementService.deleteApplications(tenantId);
     }
 
     @Test(dataProvider = "getSAMLApplicationDataProvider")
@@ -629,8 +623,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                         APPLICATION_INBOUND_AUTH_KEY_1)), 0);
 
         // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP1.getApplicationName(), tenantDomain, username);
-        applicationManagementService.deleteApplication(inputSP2.getApplicationName(), tenantDomain, username);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        applicationManagementService.deleteApplications(tenantId);
     }
 
     @DataProvider(name = "getIdentityProviderDataProvider")
