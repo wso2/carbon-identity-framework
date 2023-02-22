@@ -26,15 +26,8 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 public interface SecretsProcessor<T> {
 
     /**
-     * This API is used to get decrypted secrets and associate with the object.
-     *
-     * @param object Name of the {@link T}.
-     * @throws SecretManagementException Secret management exception.
-     */
-    T decryptAssociatedSecrets(T object) throws SecretManagementException;
-
-    /**
-     * This API is used to store encrypted secrets to the IDN_SECRET table.
+     * This method is used to encrypt and store the secret values in the object
+     * and replace the secret value with the reference.
      *
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
@@ -42,7 +35,15 @@ public interface SecretsProcessor<T> {
     T encryptAssociatedSecrets(T object) throws SecretManagementException;
 
     /**
-     * This API is used to remove secrets belonging to the object that is being deleted.
+     * This method is used to replace secret references in the object with original decrypted secret values.
+     *
+     * @param object Name of the {@link T}.
+     * @throws SecretManagementException Secret management exception.
+     */
+    T decryptAssociatedSecrets(T object) throws SecretManagementException;
+
+    /**
+     * This API is used to remove secrets from the DB which belongs to the object that is being deleted.
      *
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.

@@ -2107,16 +2107,15 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // Get IdP secrets from IDN_SECRET table.
+                // Retrieve encrypted secrets from DB, decrypt and set to the federated authenticator configs.
+                if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() == null) {
+                    throw new IdentityProviderManagementException(
+                            "Error while retrieving secrets of identity provider: " + idPName + " in tenant: " +
+                                    tenantDomain + ". IdPSecretsProcessorService is not available.");
+                }
                 if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
-                    if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
-                        federatedIdp = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
-                                decryptAssociatedSecrets(federatedIdp);
-                    } else {
-                        throw new IdentityProviderManagementException(
-                                "Error while retrieving secrets of identity provider: " + idPName + " in tenant: " +
-                                        tenantDomain + ". IdPSecretsProcessorService is not available.");
-                    }
+                    federatedIdp = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
+                            decryptAssociatedSecrets(federatedIdp);
                 }
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
