@@ -171,7 +171,9 @@ public class OptimizedApplicationConfig implements Serializable {
             SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the application config has started");
+            log.debug("Optimization process for the application config has started with service provider resource id: "
+                    + applicationConfig.getServiceProvider().getApplicationResourceId() + " and tenant domain: "
+                    + tenantDomain + ".");
         }
         this.serviceProviderResourceId = applicationConfig.getServiceProvider().getApplicationResourceId();
         List<OptimizedAuthStep> optimizedAuthSteps = new ArrayList<>();
