@@ -134,7 +134,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
         when(idpSecretsProcessor.encryptAssociatedSecrets(anyObject())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
-        when(idpSecretsProcessor.decryptAssociatedSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptAssociatedSecrets(anyObject())).thenAnswer(invocation ->
+                invocation.getArguments()[0]);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
