@@ -45,7 +45,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Application management admin service
+ * Application management admin service.
  */
 public class ApplicationManagementAdminService extends AbstractAdmin {
 
@@ -112,7 +112,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get Service provider information for given application name
+     * Get Service provider information for given application name.
      *
      * @param applicationName Application name
      * @return service provider
@@ -136,7 +136,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all basic application information
+     * Get all basic application information.
      *
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -182,7 +182,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all basic application information with paginated manner
+     * Get all basic application information with paginated manner.
      *
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -411,7 +411,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Update application
+     * Update application.
      *
      * @param serviceProvider Service provider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -437,7 +437,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Delete Application
+     * Delete Application.
      *
      * @param applicationName Application name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -459,7 +459,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get identity provider by identity provider name
+     * Get identity provider by identity provider name.
      *
      * @param federatedIdPName Federated identity provider name
      * @return Identity provider
@@ -479,7 +479,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all identity providers
+     * Get all identity providers.
      *
      * @return Identity providers array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -498,7 +498,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all local authenticators
+     * Get all local authenticators.
      *
      * @return local authenticators array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -518,7 +518,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all request path authenticator config
+     * Get all request path authenticator config.
      *
      * @return Request path authenticator config array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -539,7 +539,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get all local claim uris
+     * Get all local claim uris.
      *
      * @return claim uri array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
@@ -558,7 +558,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
-     * Retrieve the set of authentication templates configured from file system in JSON format
+     * Retrieve the set of authentication templates configured from file system in JSON format.
      *
      * @return Authentication templates.
      */
@@ -803,18 +803,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     private ArrayList<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(
             ApplicationBasicInfo[] applicationBasicInfos, String userName)
             throws IdentityApplicationManagementException {
-
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
-                appInfo.add(applicationBasicInfo);
-                if (log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + userName);
-                }
-            }
-        }
-        return appInfo;
+                
+        return ApplicationMgtUtil.filterApplicationsForUser(applicationBasicInfos, userName);
     }
 
     /**
