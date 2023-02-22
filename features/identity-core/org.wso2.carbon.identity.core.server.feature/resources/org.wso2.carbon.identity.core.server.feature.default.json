@@ -584,6 +584,7 @@
     "/oidc/",
     "/samlsso(.*)",
     "/samlartresolve",
+    "/services/",
     "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
