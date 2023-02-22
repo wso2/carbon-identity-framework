@@ -44,6 +44,14 @@
             <artifactId>org.wso2.carbon.user.mgt.ui.feature</artifactId>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -71,6 +79,10 @@
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.ui.feature:${project.version}
                                 </includedFeatureDef>
                             </includedFeatures>
+                            <bundles>
+                                <bundleDef>org.wso2.orbit.org.apache.commons:commons-compress</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.apache.xmlbeans:xmlbeans</bundleDef>
+                            </bundles>
                         </configuration>
                     </execution>
                 </executions>
