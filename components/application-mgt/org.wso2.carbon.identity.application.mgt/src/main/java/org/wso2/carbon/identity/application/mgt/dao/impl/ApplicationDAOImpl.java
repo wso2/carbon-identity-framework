@@ -121,6 +121,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_FILTER;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
@@ -3254,7 +3255,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return sqlfilter;
     }
 
-    private FilterData getFilterDataForDBQuery(String filter) {
+    private FilterData getFilterDataForDBQuery(String filter) throws IdentityApplicationManagementException {
 
         FilterData filterData = new FilterData();
 
@@ -3276,7 +3277,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 Node rootNode = filterTreeBuilder.buildTree();
                 filterData = getFilterDataFromFilterTree(rootNode);
             } catch (IOException | IdentityException e) {
-                log.error("Error occurred while converting filter query with tree builder.", e);
+                throw new IdentityApplicationManagementClientException(INVALID_FILTER.getCode(),
+                        "Filter attribute or filter condition is empty or invalid.");
             }
         }
         return filterData;
