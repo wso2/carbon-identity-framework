@@ -68,5 +68,4 @@ public class SessionContextLoader {
         entry.resetOptimizedSessionContext();
         return entry;
     }
-
 }

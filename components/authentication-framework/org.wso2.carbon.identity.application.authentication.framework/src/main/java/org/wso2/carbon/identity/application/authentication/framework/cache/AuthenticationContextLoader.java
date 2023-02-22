@@ -242,6 +242,12 @@ public class AuthenticationContextLoader {
             if (serviceProvider == null) {
                 return null;
             }
+            if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
+                throw new SessionDataStorageOptimizationException(
+                        String.format("Cannot find the LocalAndOutBoundAuthenticationConfig for the " +
+                                        "Service Provider by the resource ID: %s tenant domain: %s",
+                                optApplicationConfig.getServiceProviderResourceId(), tenantDomain));
+            }
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementException | FrameworkException e) {
