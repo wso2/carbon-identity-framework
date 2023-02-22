@@ -31,7 +31,7 @@ public interface SecretsProcessor<T> {
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
      */
-    T associateSecrets(T object) throws SecretManagementException;
+    T decryptAssociatedSecrets(T object) throws SecretManagementException;
 
     /**
      * This API is used to store encrypted secrets to the IDN_SECRET table.
@@ -39,7 +39,7 @@ public interface SecretsProcessor<T> {
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
      */
-    T addOrUpdateSecrets(T object) throws SecretManagementException;
+    T encryptAssociatedSecrets(T object) throws SecretManagementException;
 
     /**
      * This API is used to remove secrets belonging to the object that is being deleted.
@@ -47,6 +47,6 @@ public interface SecretsProcessor<T> {
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
      */
-    void deleteSecrets(T object) throws SecretManagementException;
+    void deleteAssociatedSecrets(T object) throws SecretManagementException;
 
 }

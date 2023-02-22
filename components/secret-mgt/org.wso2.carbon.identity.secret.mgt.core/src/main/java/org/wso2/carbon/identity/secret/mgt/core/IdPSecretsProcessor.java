@@ -43,21 +43,22 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     }
 
     @Override
-    public IdentityProvider associateSecrets(IdentityProvider identityProvider) throws SecretManagementException {
+    public IdentityProvider decryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
         IdentityProvider clonedIdP;
         try {
             clonedIdP = (IdentityProvider) identityProvider.clone();
             for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
                 for (Property prop : fedAuthConfig.getProperties()) {
-                    if (prop.isConfidential()) {
-                        String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                        if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                            ResolvedSecret resolvedSecret =
-                                    secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
-                            // Replace secret reference with decrypted original secret.
-                            prop.setValue(resolvedSecret.getResolvedSecretValue());
-                        }
+                    if (!prop.isConfidential()) {
+                        continue;
+                    }
+                    String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
+                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                        ResolvedSecret resolvedSecret =
+                                secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                        // Replace secret reference with decrypted original secret.
+                        prop.setValue(resolvedSecret.getResolvedSecretValue());
                     }
                 }
             }
@@ -70,26 +71,28 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     }
 
     @Override
-    public IdentityProvider addOrUpdateSecrets(IdentityProvider identityProvider) throws SecretManagementException {
+    public IdentityProvider encryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
         IdentityProvider clonedIdP;
         try {
             clonedIdP = (IdentityProvider) identityProvider.clone();
             for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
                 for (Property prop : fedAuthConfig.getProperties()) {
-                    if (prop.isConfidential()) {
-                        String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                        if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                            // Update existing secret property.
-                            updateExistingSecretProperty(secretName, prop);
-                            prop.setValue(buildSecretReference(secretName));
-                        } else {
-                            // Add secret to the DB.
-                            if (!StringUtils.isEmpty(prop.getValue())) {
-                                addNewIdpSecretProperty(secretName, prop);
-                                prop.setValue(buildSecretReference(secretName));
-                            }
+                    if (!prop.isConfidential()) {
+                        continue;
+                    }
+                    String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
+                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                        // Update existing secret property.
+                        updateExistingSecretProperty(secretName, prop);
+                        prop.setValue(buildSecretReference(secretName));
+                    } else {
+                        // Add secret to the DB.
+                        if (StringUtils.isEmpty(prop.getValue())) {
+                            continue;
                         }
+                        addNewIdpSecretProperty(secretName, prop);
+                        prop.setValue(buildSecretReference(secretName));
                     }
                 }
             }
@@ -102,15 +105,16 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     }
 
     @Override
-    public void deleteSecrets(IdentityProvider identityProvider) throws SecretManagementException {
+    public void deleteAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
         for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
             for (Property prop : fedAuthConfig.getProperties()) {
-                if (prop.isConfidential()) {
-                    String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
-                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                        secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
-                    }
+                if (!prop.isConfidential()) {
+                    continue;
+                }
+                String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
+                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                    secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
                 }
             }
         }

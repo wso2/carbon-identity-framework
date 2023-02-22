@@ -455,7 +455,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
+        identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
         
         for (String secretName : buildSecretNamesList(identityProvider)) {
             assertTrue(
@@ -472,10 +472,10 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
 
         decryptSecret(ENCRYPTED_VALUE1);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.associateSecrets(addedIdp);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.decryptAssociatedSecrets(addedIdp);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
@@ -492,9 +492,9 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
+        IdentityProvider addedIdp = identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
 
-        identityProviderSecretsProcessor.deleteSecrets(addedIdp);
+        identityProviderSecretsProcessor.deleteAssociatedSecrets(addedIdp);
         for (String secretName : buildSecretNamesList(identityProvider)) {
             assertFalse(
                     secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
@@ -510,15 +510,15 @@ public class SecretManagerTest extends PowerMockTestCase {
         ));
         IdentityProvider identityProvider = buildIDPObject();
         encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.addOrUpdateSecrets(identityProvider);
+        identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
 
         IdentityProvider updatedIdpObject = buildUpdatedIdpObject(identityProvider);
         decryptSecret(ENCRYPTED_VALUE1);
         encryptSecret(SAMPLE_SECRET_VALUE2);
-        identityProviderSecretsProcessor.addOrUpdateSecrets(updatedIdpObject);
+        identityProviderSecretsProcessor.encryptAssociatedSecrets(updatedIdpObject);
 
         decryptSecret(ENCRYPTED_VALUE2);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.associateSecrets(updatedIdpObject);
+        IdentityProvider updatedIdp = identityProviderSecretsProcessor.decryptAssociatedSecrets(updatedIdpObject);
 
         for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
