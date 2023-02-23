@@ -3238,7 +3238,7 @@ public class IdPManagementDAO {
                 IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().deleteAssociatedSecrets(identityProvider);
             } else {
                 throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
-                        idPName + " in tenant : " + tenantDomain + ". IdPSecretsProcessorService2 is not available.");
+                        idPName + " in tenant : " + tenantDomain + ". IdPSecretsProcessorService is not available.");
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
