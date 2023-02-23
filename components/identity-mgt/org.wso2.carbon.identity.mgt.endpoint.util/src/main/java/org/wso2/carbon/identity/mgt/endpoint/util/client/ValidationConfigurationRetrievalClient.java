@@ -60,6 +60,9 @@ public class ValidationConfigurationRetrievalClient {
     private static final String MIN_UNIQUE_KEY = "minUniqueChr";
     private static final String MAX_REPEATED_KEY = "maxConsecutiveChr";
     private static final String PROPERTIES = "properties";
+    private static final String VALIDATOR = "enable.validator";
+    private static final String EMAIL_VALIDATOR_KEY = "emailFormatValidator";
+    private static final String ALPHANUMERIC_VALIDATOR_KEY = "alphanumericFormatValidator";
 
     /**
      * Get validation configurations.
@@ -118,27 +121,27 @@ public class ValidationConfigurationRetrievalClient {
                         JSONObject rule = rules.getJSONObject(j);
                         String name = (String)rule.get("validator");
                         if (name.equalsIgnoreCase("LengthValidator")) {
-                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MIN_LENGTH_KEY);
-                            addValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MAX_LENGTH_KEY);
                         } else if (name.equalsIgnoreCase("NumeralValidator")) {
-                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MIN_NUMBER_KEY);
                         } else if (name.equalsIgnoreCase("LowerCaseValidator")) {
-                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MIN_LOWER_CASE_KEY);
                         } else if (name.equalsIgnoreCase("UpperCaseValidator")) {
-                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MIN_UPPER_CASE_KEY);
                         } else if (name.equalsIgnoreCase("SpecialCharacterValidator")) {
-                            addValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
                                     MIN_SPECIAL_KEY);
                         } else if (name.equalsIgnoreCase("UniqueCharacterValidator")) {
-                            addValue(MIN_UNIQUE_CHR, (JSONArray) rule.get(PROPERTIES),
+                            addIntegerValue(MIN_UNIQUE_CHR, (JSONArray) rule.get(PROPERTIES),
                                     passwordConfig, MIN_UNIQUE_KEY);
                         } else if (name.equalsIgnoreCase("RepeatedCharacterValidator")) {
-                            addValue(MAX_CONSECUTIVE_CHR, (JSONArray) rule.get(PROPERTIES),
+                            addIntegerValue(MAX_CONSECUTIVE_CHR, (JSONArray) rule.get(PROPERTIES),
                                     passwordConfig, MAX_REPEATED_KEY);
                         }
                     }
@@ -156,7 +159,58 @@ public class ValidationConfigurationRetrievalClient {
         return passwordConfig;
     }
 
-    private void addValue(String propertyName, JSONArray properties, JSONObject response, String key) {
+    /**
+     * Method to get username configuration.
+     *
+     * @param tenantDomain  tenant domain.
+     * @return  json object of username configuration.
+     * @throws ValidationConfigurationRetrievalClientException If an error occurred in getting username configuration.
+     */
+    public JSONObject getUsernameConfiguration(String tenantDomain)
+            throws ValidationConfigurationRetrievalClientException {
+
+        JSONObject usernameConfig = new JSONObject();
+        JSONArray configurations = getConfigurations(tenantDomain);
+
+        if (configurations != null && configurations.length() > 0) {
+            for (int i = 0; i < configurations.length(); i++) {
+                JSONObject config = (JSONObject) configurations.get(i);
+                if (((String)config.get("field")).equalsIgnoreCase("username")) {
+                    JSONArray rules = (JSONArray) config.get("rules");
+                    for (int j = 0; j < rules.length(); j++) {
+                        JSONObject rule = rules.getJSONObject(j);
+                        String name = (String)rule.get("validator");
+                        if (name.equalsIgnoreCase("LengthValidator")) {
+                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), usernameConfig,
+                                    MIN_LENGTH_KEY);
+                            addIntegerValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), usernameConfig,
+                                    MAX_LENGTH_KEY);
+                        } else if (name.equalsIgnoreCase("AlphanumericValidator")) {
+                            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), usernameConfig,
+                                    ALPHANUMERIC_VALIDATOR_KEY);
+                        } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
+                            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), usernameConfig,
+                                    EMAIL_VALIDATOR_KEY);
+                        }
+                    }
+                }
+            }
+        }
+        if (usernameConfig.length() == 0) {
+            usernameConfig.put(EMAIL_VALIDATOR_KEY, Boolean.TRUE);
+        }
+        return usernameConfig;
+    }
+
+    /**
+     * Method to add an integer value for the configuration json.
+     *
+     * @param propertyName  Property name of the validator need to be added.
+     * @param properties    Property map of the validator.
+     * @param response      JSON response that property value need to be added to.
+     * @param key           Key of mapping in JSON object that property value need to be added to.
+     */
+    private void addIntegerValue(String propertyName, JSONArray properties, JSONObject response, String key) {
 
         for(int i = 0; i < properties.length(); i++) {
             JSONObject property = properties.getJSONObject(i);
@@ -165,6 +219,24 @@ public class ValidationConfigurationRetrievalClient {
             }
         }
         return;
+    }
+
+    /**
+     * Method to add a boolean value for the configuration json.
+     *
+     * @param propertyName  Property name of the validator need to be added.
+     * @param properties    Property map of the validator.
+     * @param response      JSON response that property value need to be added to.
+     * @param key           Key of mapping in JSON object that property value need to be added to.
+     */
+    private void addBooleanValue(String propertyName, JSONArray properties, JSONObject response, String key) {
+
+        for(int i = 0; i < properties.length(); i++) {
+            JSONObject property = properties.getJSONObject(i);
+            if (((String)property.get("key")).equalsIgnoreCase(propertyName)) {
+                response.put(key, Boolean.parseBoolean((String) property.get("value")));
+            }
+        }
     }
 
     private String getValidationMgtEndpoint(String tenantDomain)
