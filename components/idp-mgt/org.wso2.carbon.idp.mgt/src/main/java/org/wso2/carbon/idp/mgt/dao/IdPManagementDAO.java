@@ -2834,7 +2834,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("An error occurred while storing encrypted IDP secrets of " +
-                    "Identity provider : " +identityProvider.getIdentityProviderName() + " in tenant : "
+                    "Identity provider : " + identityProvider.getIdentityProviderName() + " in tenant : "
                     + IdentityTenantUtil.getTenantDomain(tenantId), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
