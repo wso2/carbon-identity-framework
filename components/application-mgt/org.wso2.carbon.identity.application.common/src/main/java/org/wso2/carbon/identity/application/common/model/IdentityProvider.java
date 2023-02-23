@@ -54,7 +54,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "IdentityProvider")
-public class IdentityProvider implements Serializable, Cloneable {
+public class IdentityProvider implements Serializable {
 
     private static final long serialVersionUID = 2199048941051702943L;
 
@@ -899,34 +899,5 @@ public class IdentityProvider implements Serializable, Cloneable {
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
-    }
-
-    public Object clone() throws CloneNotSupportedException {
-
-        IdentityProvider idp = (IdentityProvider) super.clone();
-        idp.setId(this.id);
-        idp.setIdentityProviderName(this.identityProviderName);
-        idp.setIdentityProviderDescription(this.identityProviderDescription);
-        idp.setAlias(this.alias);
-        idp.setPrimary(this.primary);
-        idp.setFederationHub(this.federationHub);
-        idp.setHomeRealmId(this.homeRealmId);
-        idp.setProvisioningRole(this.provisioningRole);
-        idp.setDisplayName(this.displayName);
-        idp.setEnable(this.enable);
-        idp.setFederatedAuthenticatorConfigs(this.federatedAuthenticatorConfigs);
-        idp.setDefaultAuthenticatorConfig(this.defaultAuthenticatorConfig);
-        idp.setProvisioningConnectorConfigs(this.provisioningConnectorConfigs);
-        idp.setDefaultProvisioningConnectorConfig(this.defaultProvisioningConnectorConfig);
-        idp.setClaimConfig(this.claimConfig);
-        idp.setCertificate(this.certificate);
-        idp.setPermissionAndRoleConfig(this.permissionAndRoleConfig);
-        idp.setJustInTimeProvisioningConfig(this.justInTimeProvisioningConfig);
-        idp.setIdpProperties(this.idpProperties);
-        idp.setImageUrl(this.imageUrl);
-        idp.setResourceId(this.resourceId);
-        idp.setTemplateId(this.templateId);
-
-        return idp;
     }
 }

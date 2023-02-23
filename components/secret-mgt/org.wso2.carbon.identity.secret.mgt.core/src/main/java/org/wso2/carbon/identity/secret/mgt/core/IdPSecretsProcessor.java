@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -35,36 +36,32 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
 
     private final SecretManager secretManager;
     private final SecretResolveManager secretResolveManager;
+    private final Gson gson;
 
     public IdPSecretsProcessor() {
 
         this.secretManager = new SecretManagerImpl();
         this.secretResolveManager = new SecretResolveManagerImpl();
+        this.gson = new Gson();
     }
 
     @Override
     public IdentityProvider decryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
-        IdentityProvider clonedIdP;
-        try {
-            clonedIdP = (IdentityProvider) identityProvider.clone();
-            for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
-                for (Property prop : fedAuthConfig.getProperties()) {
-                    if (!prop.isConfidential()) {
-                        continue;
-                    }
-                    String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                        ResolvedSecret resolvedSecret =
-                                secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
-                        // Replace secret reference with decrypted original secret.
-                        prop.setValue(resolvedSecret.getResolvedSecretValue());
-                    }
+        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
+        for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
+            for (Property prop : fedAuthConfig.getProperties()) {
+                if (!prop.isConfidential()) {
+                    continue;
+                }
+                String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
+                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                    ResolvedSecret resolvedSecret =
+                            secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                    // Replace secret reference with decrypted original secret.
+                    prop.setValue(resolvedSecret.getResolvedSecretValue());
                 }
             }
-        } catch (CloneNotSupportedException e) {
-            throw new SecretManagementException("Error while cloning identity provider: " +
-                    identityProvider.getIdentityProviderName(), e.getMessage());
         }
 
         return clonedIdP;
@@ -73,32 +70,26 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     @Override
     public IdentityProvider encryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
-        IdentityProvider clonedIdP;
-        try {
-            clonedIdP = (IdentityProvider) identityProvider.clone();
-            for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
-                for (Property prop : fedAuthConfig.getProperties()) {
-                    if (!prop.isConfidential()) {
+        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
+        for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
+            for (Property prop : fedAuthConfig.getProperties()) {
+                if (!prop.isConfidential()) {
+                    continue;
+                }
+                String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
+                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                    // Update existing secret property.
+                    updateExistingSecretProperty(secretName, prop);
+                    prop.setValue(buildSecretReference(secretName));
+                } else {
+                    // Add secret to the DB.
+                    if (StringUtils.isEmpty(prop.getValue())) {
                         continue;
                     }
-                    String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                        // Update existing secret property.
-                        updateExistingSecretProperty(secretName, prop);
-                        prop.setValue(buildSecretReference(secretName));
-                    } else {
-                        // Add secret to the DB.
-                        if (StringUtils.isEmpty(prop.getValue())) {
-                            continue;
-                        }
-                        addNewIdpSecretProperty(secretName, prop);
-                        prop.setValue(buildSecretReference(secretName));
-                    }
+                    addNewIdpSecretProperty(secretName, prop);
+                    prop.setValue(buildSecretReference(secretName));
                 }
             }
-        } catch (CloneNotSupportedException e) {
-            throw new SecretManagementException("Error while cloning identity provider: " +
-                    identityProvider.getIdentityProviderName(), e.getMessage());
         }
 
         return clonedIdP;

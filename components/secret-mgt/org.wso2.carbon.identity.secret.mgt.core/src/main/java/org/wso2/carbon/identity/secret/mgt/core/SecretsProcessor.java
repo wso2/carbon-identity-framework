@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 public interface SecretsProcessor<T> {
 
     /**
-     * This method is used to encrypt and store the secret values in the object
+     * This method is used to encrypt and store the secret values in the DB
      * and replace the secret value with the reference.
      *
      * @param object Name of the {@link T}.
@@ -35,7 +35,8 @@ public interface SecretsProcessor<T> {
     T encryptAssociatedSecrets(T object) throws SecretManagementException;
 
     /**
-     * This method is used to replace secret references in the object with original decrypted secret values.
+     * This method is used to retrieve encrypted secret values from the DB, decrypt them
+     * and replace secret references in the object.
      *
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
