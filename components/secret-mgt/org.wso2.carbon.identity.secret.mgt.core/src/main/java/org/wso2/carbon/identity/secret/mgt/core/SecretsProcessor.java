@@ -27,7 +27,7 @@ public interface SecretsProcessor<T> {
 
     /**
      * This method is used to encrypt and store the secret values in the DB
-     * and replace the secret value with the reference.
+     * and replace the secret value in the object with a reference.
      *
      * @param object Name of the {@link T}.
      * @throws SecretManagementException Secret management exception.
