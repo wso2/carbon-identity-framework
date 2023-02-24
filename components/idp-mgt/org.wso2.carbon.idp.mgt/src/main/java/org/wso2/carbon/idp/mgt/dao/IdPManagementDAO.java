@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -2106,6 +2107,17 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the federated authenticator configs.
+                if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() == null) {
+                    throw new IdentityProviderManagementException(
+                            "Error while retrieving secrets of identity provider: " + idPName + " in tenant: " +
+                                    tenantDomain + ". IdPSecretsProcessorService is not available.");
+                }
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
+                    federatedIdp = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
+                            decryptAssociatedSecrets(federatedIdp);
+                }
+
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
                     federatedIdp.setDefaultAuthenticatorConfig(IdentityApplicationManagementUtil
                             .getFederatedAuthenticator(federatedIdp.getFederatedAuthenticatorConfigs(),
@@ -2146,6 +2158,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider : " +
+                    idPName + " in tenant : " + tenantDomain, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -2745,6 +2760,17 @@ public class IdPManagementDAO {
                         dbConnection, idPId, tenantId);
             }
 
+            // Add federated authenticator secret properties to IDN_SECRET table.
+            identityProvider.setId(createdIDP.getId());
+            if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
+                identityProvider = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
+                        encryptAssociatedSecrets(identityProvider);
+            } else {
+                throw new IdentityProviderManagementException("An error occurred while storing encrypted IDP secrets of " +
+                        "Identity provider : " + identityProvider.getIdentityProviderName() + " in tenant : "
+                        + IdentityTenantUtil.getTenantDomain(tenantId) + ". IdPSecretsProcessorService is not available.");
+            }
+
             // add federated authenticators.
             addFederatedAuthenticatorConfigs(identityProvider.getFederatedAuthenticatorConfigs(),
                     dbConnection, idPId, tenantId);
@@ -2806,6 +2832,10 @@ public class IdPManagementDAO {
                     + tenantId, e);
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("An error occurred while storing encrypted IDP secrets of " +
+                    "Identity provider : " + identityProvider.getIdentityProviderName() + " in tenant : "
+                    + IdentityTenantUtil.getTenantDomain(tenantId), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
@@ -3035,6 +3065,18 @@ public class IdPManagementDAO {
 
                 boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                         .equals(newIdentityProvider.getIdentityProviderName());
+
+                // Update secrets in IDN_SECRET table.
+                newIdentityProvider.setId(Integer.toString(idpId));
+                if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
+                    newIdentityProvider = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
+                            encryptAssociatedSecrets(newIdentityProvider);
+                } else {
+                    throw new IdentityProviderManagementException("An error occurred while updating the secrets of the " +
+                            "identity provider : " + currentIdentityProvider.getIdentityProviderName() + " in tenant : " +
+                            IdentityTenantUtil.getTenantDomain(tenantId) + ". The IdPSecretsProcessorService is not available.");
+                }
+
                 // update federated authenticators.
                 updateFederatedAuthenticatorConfigs(
                         newIdentityProvider.getFederatedAuthenticatorConfigs(),
@@ -3074,6 +3116,10 @@ public class IdPManagementDAO {
                     "information  for tenant " + tenantId, e);
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("An error occurred while updating the secrets of the " +
+                    "identity provider : " + currentIdentityProvider.getIdentityProviderName() + " in tenant : " +
+                    IdentityTenantUtil.getTenantDomain(tenantId), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt1);
             IdentityDatabaseUtil.closeStatement(prepStmt2);
@@ -3177,6 +3223,7 @@ public class IdPManagementDAO {
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        String idPName = "";
         try {
             IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
@@ -3184,12 +3231,23 @@ public class IdPManagementDAO {
                 String msg = "Trying to delete non-existent Identity Provider with resource ID: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
+            idPName = identityProvider.getIdentityProviderName();
             deleteIdP(dbConnection, tenantId, null, resourceId);
+            // Delete IdP related secrets from the IDN_SECRET table.
+            if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
+                IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().deleteAssociatedSecrets(identityProvider);
+            } else {
+                throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
+                        idPName + " in tenant : " + tenantDomain + ". IdPSecretsProcessorService is not available.");
+            }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
+                    idPName + " in tenant : " + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
