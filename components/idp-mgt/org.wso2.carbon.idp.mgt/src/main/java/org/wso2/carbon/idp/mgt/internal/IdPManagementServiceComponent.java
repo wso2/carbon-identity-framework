@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -405,6 +406,23 @@ public class IdPManagementServiceComponent {
     private void unsetRoleManagementService(RoleManagementService roleManagementService) {
 
         IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor",
+            service = SecretsProcessor.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdPSecretsProcessorService"
+    )
+    private void setIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idPSecretsProcessorService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idPSecretsProcessorService);
+    }
+
+    private void unsetIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idPSecretsProcessorService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(null);
     }
 
     @Reference(

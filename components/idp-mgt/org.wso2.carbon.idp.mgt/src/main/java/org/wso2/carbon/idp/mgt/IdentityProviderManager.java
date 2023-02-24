@@ -2325,6 +2325,7 @@ public class IdentityProviderManager implements IdpManager {
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
 
+        markConfidentialPropertiesUsingMetadata(newIdentityProvider);
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {

@@ -60,8 +60,12 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
@@ -76,6 +80,7 @@ import java.nio.file.Paths;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -119,10 +124,18 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private ApplicationManagementServiceImpl applicationManagementService;
 
     @BeforeClass
-    public void setup() throws RegistryException, UserStoreException {
+    public void setup() throws RegistryException, UserStoreException, SecretManagementException {
 
         setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+
+        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
+                IdPSecretsProcessor.class);
+        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
+        when(idpSecretsProcessor.encryptAssociatedSecrets(anyObject())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptAssociatedSecrets(anyObject())).thenAnswer(invocation ->
+                invocation.getArguments()[0]);
     }
 
     @DataProvider(name = "addApplicationDataProvider")

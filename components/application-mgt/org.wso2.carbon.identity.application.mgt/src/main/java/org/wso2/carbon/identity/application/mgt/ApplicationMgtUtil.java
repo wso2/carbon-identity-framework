@@ -32,6 +32,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -52,6 +53,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -277,6 +279,55 @@ public class ApplicationMgtUtil {
             isRoleAlreadyApplied = Arrays.asList(roleListOfUser).contains(roleName);
         }
         return isRoleAlreadyApplied;
+    }
+
+    /**
+     * Filter the user authorized applications out of the list of applications.
+     *
+     * @param applicationBasicInfos The list of applications with the basic information.
+     * @param username              The name of the authenticated user.
+     * @return List of user authorized applications.
+     * @throws IdentityApplicationManagementException
+     */
+    public static List<ApplicationBasicInfo> filterAuthorizedApplicationBasicInfo(
+            ApplicationBasicInfo[] applicationBasicInfos, String username)
+            throws IdentityApplicationManagementException {
+
+        List<ApplicationBasicInfo> appInfo = new ArrayList<>();
+        UserStoreManager userStoreManager;
+        String[] userRoles = new String[0];
+        try {
+            userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+                userRoles = userStoreManager.getRoleListOfUser(username);
+            }
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving the role list of the user: " +
+                    username, e);
+        }
+
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            String applicationRoleName = getAppRoleName(applicationBasicInfo.getApplicationName());
+            if (log.isDebugEnabled()) {
+                log.debug("Checking the authorization for the user : " + username + " for application: "  +
+                        applicationBasicInfo.getApplicationName());
+            }
+            try {
+                if (userStoreManager instanceof AbstractUserStoreManager &&
+                        ((AbstractUserStoreManager) userStoreManager).isUserInRole(username, applicationRoleName) ||
+                        Arrays.asList(userRoles).contains(applicationRoleName)) {
+                    appInfo.add(applicationBasicInfo);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Retrieving basic information of application: " +
+                                applicationBasicInfo.getApplicationName() + "username: " + username);
+                    }
+                }
+            } catch (UserStoreException e) {
+                throw new IdentityApplicationManagementException("Error while checking authorization for user: " +
+                        username + " for application: " + applicationBasicInfo.getApplicationName(), e);
+            }
+        }
+        return appInfo;
     }
 
     private static String getAppRoleName(String applicationName) {

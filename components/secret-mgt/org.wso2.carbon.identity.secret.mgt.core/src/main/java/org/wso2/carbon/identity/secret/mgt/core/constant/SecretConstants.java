@@ -34,6 +34,7 @@ public class SecretConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_DESCRIPTION = "DESCRIPTION";
     public static final String DB_TABLE_SECRET = "IDN_SECRET";
     public static final String DB_TABLE_SECRET_TYPE = "IDN_SECRET_TYPE";
+    public static final String IDN_SECRET_TYPE_IDP_SECRETS = "IDP_SECRET_PROPERTIES";
 
     public enum ErrorMessages {
         ERROR_CODE_UNEXPECTED("SECRETM_00001", "Unexpected Error"),

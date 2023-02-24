@@ -59,7 +59,8 @@ public class InputValidationManagementServiceTest extends PowerMockTestCase {
 
     private InputValidationManagementService service;
     private String tenantName = "testTenant";
-    private String field = "password";
+    private String fieldPassword = "password";
+    private String fieldUsername = "username";
 
     @BeforeMethod
     public void setup() {
@@ -104,13 +105,13 @@ public class InputValidationManagementServiceTest extends PowerMockTestCase {
         when(InputValidationDataHolder.getConfigurationManager()).thenReturn(configurationManager);
         try {
             when(configurationManager.getResource(INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME,
-                        INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field))
-                        .thenReturn(resources.getResources().get(0));
+                    INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + fieldPassword))
+                    .thenReturn(resources.getResources().get(0));
             when(configurationManager.replaceResource(anyString(), (Resource) any()))
                     .thenReturn(resources.getResources().get(0));
             List<ValidationConfiguration> updated = service.updateInputValidationConfiguration(getValidationConfig(),
                     tenantName);
-            Assert.assertEquals(updated.get(0).getField(), field);
+            Assert.assertEquals(updated.get(0).getField(), fieldPassword);
             Assert.assertEquals(updated.get(0).getRules().size(), 1);
         } catch (ConfigurationManagementException | InputValidationMgtException e) {
             Assert.fail();
@@ -121,22 +122,35 @@ public class InputValidationManagementServiceTest extends PowerMockTestCase {
 
         Resources resources = new Resources();
         List<Resource> resourceList = new ArrayList<>();
-        List<Attribute> attributes = new ArrayList<>();
+        List<Attribute> attributesForPassword = new ArrayList<>();
 
-        Attribute attribute = new Attribute();
-        attribute.setKey("LengthValidator.min.length");
-        attribute.setValue("5");
-        attributes.add(attribute);
+        Attribute attribute1 = new Attribute();
+        attribute1.setKey("LengthValidator.min.length");
+        attribute1.setValue("5");
+        attributesForPassword.add(attribute1);
 
         Attribute type = new Attribute();
         type.setKey("validation.type");
         type.setValue("RULE");
-        attributes.add(type);
+        attributesForPassword.add(type);
 
-        Resource resource = new Resource();
-        resource.setAttributes(attributes);
-        resource.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + field);
-        resourceList.add(resource);
+        List<Attribute> attributesForUsername = new ArrayList<>();
+
+        Attribute attribute2 = new Attribute();
+        attribute2.setKey("isEmail");
+        attribute2.setValue("true");
+        attributesForUsername.add(attribute1);
+
+        Resource resourceForPassword = new Resource();
+        resourceForPassword.setAttributes(attributesForPassword);
+        resourceForPassword.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + fieldPassword);
+        resourceList.add(resourceForPassword);
+
+        Resource resourceForUsername = new Resource();
+        resourceForUsername.setAttributes(attributesForPassword);
+        resourceForUsername.setResourceName(INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX + fieldUsername);
+        resourceList.add(resourceForUsername);
+
         resources.setResources(resourceList);
         return resources;
     }
@@ -154,7 +168,7 @@ public class InputValidationManagementServiceTest extends PowerMockTestCase {
 
         List<ValidationConfiguration> configurations = new ArrayList<>();
         ValidationConfiguration configuration = new ValidationConfiguration();
-        configuration.setField(field);
+        configuration.setField(fieldPassword);
         configuration.setRules(rules);
         configurations.add(configuration);
         return configurations;
