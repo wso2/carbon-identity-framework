@@ -77,6 +77,7 @@ public class FileBasedConfigurationBuilder {
     private String authenticationEndpointMissingClaimsURL;
     private boolean allowCustomClaimMappingsForAuthenticators = false;
     private boolean allowMergingCustomClaimMappingsWithDefaultClaimMappings = false;
+    private boolean allowConsentPageRedirectParams = false;
 
     /**
      * List of URLs that receive the tenant list
@@ -225,6 +226,10 @@ public class FileBasedConfigurationBuilder {
 
             //########## Read Authentication Claim Dialect Merge Configs ###########
             readAllowMergingCustomClaimMappingsWithDefaultClaimMappings(rootElement);
+
+            //########## Read Allow Consent Page Redirect Params Configs ###########
+            readAllowConsentPageRedirectParams(rootElement);
+
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
@@ -512,6 +517,17 @@ public class FileBasedConfigurationBuilder {
                     this.authEndpointRedirectParams.add(redirectParamName);
                 }
             }
+        }
+    }
+
+    private void readAllowConsentPageRedirectParams(OMElement documentElement) {
+
+        OMElement element = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_ALLOW_CONSENT_PAGE_REDIRECT_PARAMS));
+
+        if (element != null) {
+            allowConsentPageRedirectParams = Boolean.valueOf(element.getText());
         }
     }
 
@@ -1136,5 +1152,15 @@ public class FileBasedConfigurationBuilder {
     public boolean isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed() {
 
         return allowMergingCustomClaimMappingsWithDefaultClaimMappings;
+    }
+
+    /**
+     * Indicates whether the query params are allowed in the consent page.
+     *
+     * @return True if query params are allowed in consent page redirect url.
+     */
+    public boolean isConsentPageRedirectParamsAllowed() {
+
+        return allowConsentPageRedirectParams;
     }
 }

@@ -57,6 +57,7 @@
     "password",
     "SAMLRequest"
   ],
+  "authentication.endpoint.enable_consent_page_redirect_params.allowConsentPageRedirectParams": false,
 
   "authentication.authenticator.basic.name": "BasicAuthenticator",
   "authentication.authenticator.basic.enable": true,

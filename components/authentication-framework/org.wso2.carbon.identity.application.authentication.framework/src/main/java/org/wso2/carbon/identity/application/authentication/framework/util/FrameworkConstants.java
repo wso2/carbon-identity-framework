@@ -273,6 +273,8 @@ public abstract class FrameworkConstants {
         public static final String QNAME_SEQUENCES = "Sequences";
         public static final String QNAME_AUTH_ENDPOINT_QUERY_PARAMS = "AuthenticationEndpointQueryParams";
         public static final String QNAME_AUTH_ENDPOINT_REDIRECT_PARAMS = "AuthenticationEndpointRedirectParams";
+        public static final String QNAME_ALLOW_CONSENT_PAGE_REDIRECT_PARAMS =
+                "AllowConsentPageRedirectParams";
         public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
         public static final String QNAME_ALLOW_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS =
                 "AllowCustomClaimMappingsForAuthenticators";

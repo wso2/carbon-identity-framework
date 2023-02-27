@@ -188,6 +188,7 @@ import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClai
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
     public static final String TENANT_DOMAIN = "tenantDomain";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
@@ -1834,6 +1835,73 @@ public class FrameworkUtils {
                         dataStoreMap.put(paramName, paramValue);
                         iterator.remove();
                     }
+                }
+            }
+        }
+        uriBuilder.clearParameters();
+        uriBuilder.setParameters(queryParamsList);
+        String redirectURLWithFilteredParams = uriBuilder.toString();
+
+        // Decode the hash character if the redirect URL is a fragmented URL.
+        if (isAFragmentURL) {
+            int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+            redirectURLWithFilteredParams =
+                    redirectURLWithFilteredParams.substring(0, splitIndex).replace(HASH_CHAR_ENCODED, HASH_CHAR)
+                            + redirectURLWithFilteredParams.substring(splitIndex);
+        }
+        return redirectURLWithFilteredParams;
+    }
+
+    public static String getConsentPageRedirectURLWithFilteredParams(String redirectUrl, Map<String,
+            Serializable> dataStoreMap) {
+
+        String action = "exclude";
+
+        URIBuilder uriBuilder;
+
+        // Check if the URL is a fragment URL. Only the path of the URL is considered here.
+        boolean isAFragmentURL =
+                redirectUrl != null && redirectUrl.contains(HASH_CHAR) && redirectUrl.contains(QUESTION_MARK)
+                        && redirectUrl.indexOf(HASH_CHAR) < redirectUrl.indexOf(QUESTION_MARK);
+        try {
+            // Encode the hash character if the redirect URL is a fragmented URL.
+            if (isAFragmentURL) {
+                int splitIndex = redirectUrl.indexOf(QUESTION_MARK);
+                uriBuilder = new URIBuilder(redirectUrl.substring(0, splitIndex).replace(HASH_CHAR, HASH_CHAR_ENCODED)
+                        + redirectUrl.substring(splitIndex));
+            } else {
+                uriBuilder = new URIBuilder(redirectUrl);
+            }
+        } catch (URISyntaxException e) {
+            log.warn("Unable to filter redirect params for url." + redirectUrl, e);
+            return redirectUrl;
+        }
+
+        // If the host name is not white listed then the query params will not be removed from the redirect url.
+        List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts)
+                && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+            return redirectUrl;
+        }
+
+        List<NameValuePair> queryParamsList = uriBuilder.getQueryParams();
+
+        if (action != null
+                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY_CONSENT.equals(paramName)) {
+                        continue;
+                    }
+
+                    dataStoreMap.put(paramName, paramValue);
+                    iterator.remove();
                 }
             }
         }
