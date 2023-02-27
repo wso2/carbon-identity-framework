@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,9 +50,11 @@ import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.Permission;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -217,6 +220,82 @@ public class ApplicationMgtUtil {
         }
     }
 
+    public static String getB2BSelfServiceSystemUser(String tenantDomain) {
+//        String userName = "DEFAULT/b2b-ss-system-user2";
+        String userName = IdentityUtil.getProperty("OrganizationB2BSelfService.SystemUserName");
+        String userStore = IdentityUtil.getProperty("OrganizationB2BSelfService.SystemUserUserStoreName");
+
+        userName = userStore + CarbonConstants.DOMAIN_SEPARATOR + userName;
+        AbstractUserStoreManager userStoreManager;
+        try {
+            userStoreManager = (AbstractUserStoreManager)
+                    CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+            UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+            // create a role for the application and assign the user to that role.
+            if (!userStoreManager.isExistingUser(userName)) {
+               userStoreManager.addUser(userName, generatePassword().toCharArray(), null, null,
+                       null, false);
+                createB2BSelfServiceRole(tenantDomain, userName);
+            }
+            return userStoreManager.getUserIDFromUserName(userName);
+        } catch (UserStoreException | IdentityApplicationManagementException e) {
+            log.debug("Exception while creating self service user for tenant " + tenantDomain, e);
+            return null;
+        } finally {
+            UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
+            UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
+        }
+    }
+
+    private static String generatePassword() {
+        return RandomStringUtils.randomNumeric(12);
+    }
+
+    /**
+     * Create the system role for the application and assign the user to that role.
+     *
+     * @param
+     * @throws IdentityApplicationManagementException
+     */
+    public static void createB2BSelfServiceRole(String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        String roleName = IdentityUtil.getProperty("OrganizationB2BSelfService.SystemUserRoleName");
+        List<String> permissions1 = IdentityUtil.getPropertyAsList("OrganizationB2BSelfService." +
+                "SystemUserPermissions.Permission");
+        List<Permission> permissionList = new ArrayList<>();
+//        for (String permission : permissions) {
+//            Permission systemPermission1 = new Permission(permission, UserMgtConstants.EXECUTE_ACTION);
+//            permissionList.add(systemPermission1);
+//        }
+        permissions1.stream().forEach(permission -> {
+            permissionList.add(new Permission(permission, UserMgtConstants.EXECUTE_ACTION));
+        });
+
+//        roleName = UserCoreConstants.INTERNAL_DOMAIN
+//                + CarbonConstants.DOMAIN_SEPARATOR + "b2b-self-service-admin-role2";
+        roleName = UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR + roleName;
+//        Permission permission1 = new Permission("/permission/admin/manage/identity/organizationmgt/create",
+//                UserMgtConstants.EXECUTE_ACTION);
+//        Permission permission2 = new Permission("/permission/admin/manage/identity/organizationmgt/view",
+//                UserMgtConstants.EXECUTE_ACTION);
+        String[] usernames = {username};
+//        Permission[] permissions = {permission1, permission2};
+        Permission[] permissions = permissionList.toArray(new Permission[permissionList.size()]);
+        UserStoreManager userStoreManager = null;
+        try {
+            userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (log.isDebugEnabled()) {
+                log.debug("Creating system role : " + roleName + " and assign the user : "
+                        + Arrays.toString(usernames) + " to that role for tenant " + tenantDomain);
+            }
+            userStoreManager.addRole(roleName, usernames, permissions);
+        } catch (UserStoreException e) {
+            assignRoleToUser(username, roleName, userStoreManager, e);
+        }
+    }
+
     /**
      * If the Application/<sp-name> role addition has failed giving role already exists issue, then
      * assign the role to user.
@@ -233,7 +312,8 @@ public class ApplicationMgtUtil {
         String errorMsgString = String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.getMessage(), roleName);
         String errMsg = e.getMessage();
         if (errMsg != null && (errMsg.contains(ERROR_CODE_ROLE_ALREADY_EXISTS.getCode()) ||
-                errorMsgString.contains(errMsg))) {
+                errorMsgString.contains(errMsg)) || errMsg.contains("31701") ||
+                errMsg.contains("Please pick another role name")) {
             String[] newRoles = {roleName};
             if (log.isDebugEnabled()) {
                 log.debug("Application role is already created. Skip creating: " + roleName + " and assigning" +
