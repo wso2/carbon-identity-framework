@@ -126,6 +126,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
@@ -406,6 +408,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(application);
             serviceProviderProperties.add(isManagementAppProperty);
+
+            ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppPropertyProperty(application);
+            serviceProviderProperties.add(isB2BSSAppProperty);
 
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
@@ -2006,6 +2011,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
+            serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2145,6 +2151,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (StringUtils.EMPTY.equals(value)) {
             return true;
         }
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsB2BSSApp(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_B2B_SS_APP_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
         return Boolean.parseBoolean(value);
     }
 
@@ -4706,6 +4722,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(sp);
         spPropertyMap.put(isManagementAppProperty.getName(), isManagementAppProperty);
 
+        ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppPropertyProperty(sp);
+        spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
+
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
     }
 
@@ -4716,6 +4735,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         isManagementAppProperty.setDisplayName(IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME);
         isManagementAppProperty.setValue(String.valueOf(sp.isManagementApp()));
         return isManagementAppProperty;
+    }
+
+    private ServiceProviderProperty buildIsB2BSSAppPropertyProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isB2BSSAppProperty = new ServiceProviderProperty();
+        isB2BSSAppProperty.setName(IS_B2B_SS_APP_SP_PROPERTY_NAME);
+        isB2BSSAppProperty.setDisplayName(IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME);
+        isB2BSSAppProperty.setValue(String.valueOf(sp.isB2BSelfServiceApp()));
+        return isB2BSSAppProperty;
     }
 
     private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
