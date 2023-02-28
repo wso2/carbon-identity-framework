@@ -118,32 +118,7 @@ public class ValidationConfigurationRetrievalClient {
                 if (((String)config.get("field")).equalsIgnoreCase("password")) {
                     JSONArray rules = (JSONArray) config.get("rules");
                     for (int j = 0; j < rules.length(); j++) {
-                        JSONObject rule = rules.getJSONObject(j);
-                        String name = (String)rule.get("validator");
-                        if (name.equalsIgnoreCase("LengthValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MIN_LENGTH_KEY);
-                            addIntegerValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MAX_LENGTH_KEY);
-                        } else if (name.equalsIgnoreCase("NumeralValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MIN_NUMBER_KEY);
-                        } else if (name.equalsIgnoreCase("LowerCaseValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MIN_LOWER_CASE_KEY);
-                        } else if (name.equalsIgnoreCase("UpperCaseValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MIN_UPPER_CASE_KEY);
-                        } else if (name.equalsIgnoreCase("SpecialCharacterValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), passwordConfig,
-                                    MIN_SPECIAL_KEY);
-                        } else if (name.equalsIgnoreCase("UniqueCharacterValidator")) {
-                            addIntegerValue(MIN_UNIQUE_CHR, (JSONArray) rule.get(PROPERTIES),
-                                    passwordConfig, MIN_UNIQUE_KEY);
-                        } else if (name.equalsIgnoreCase("RepeatedCharacterValidator")) {
-                            addIntegerValue(MAX_CONSECUTIVE_CHR, (JSONArray) rule.get(PROPERTIES),
-                                    passwordConfig, MAX_REPEATED_KEY);
-                        }
+                        addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
                     }
                 }
             }
@@ -178,20 +153,7 @@ public class ValidationConfigurationRetrievalClient {
                 if (((String)config.get("field")).equalsIgnoreCase("username")) {
                     JSONArray rules = (JSONArray) config.get("rules");
                     for (int j = 0; j < rules.length(); j++) {
-                        JSONObject rule = rules.getJSONObject(j);
-                        String name = (String)rule.get("validator");
-                        if (name.equalsIgnoreCase("LengthValidator")) {
-                            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), usernameConfig,
-                                    MIN_LENGTH_KEY);
-                            addIntegerValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), usernameConfig,
-                                    MAX_LENGTH_KEY);
-                        } else if (name.equalsIgnoreCase("AlphanumericValidator")) {
-                            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), usernameConfig,
-                                    ALPHANUMERIC_VALIDATOR_KEY);
-                        } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
-                            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), usernameConfig,
-                                    EMAIL_VALIDATOR_KEY);
-                        }
+                        addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
                     }
                 }
             }
@@ -263,5 +225,46 @@ public class ValidationConfigurationRetrievalClient {
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+
+    /**
+     * Method to add a rule to the configuration json.
+     *
+     * @param rule      Rule need to be added to the configuration.
+     * @param config    Configuration object.
+     */
+    private void addRuleToConfiguration(JSONObject rule, JSONObject config) {
+
+        String name = (String)rule.get("validator");
+        if (name.equalsIgnoreCase("LengthValidator")) {
+            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MIN_LENGTH_KEY);
+            addIntegerValue(MAX_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MAX_LENGTH_KEY);
+        } else if (name.equalsIgnoreCase("NumeralValidator")) {
+            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MIN_NUMBER_KEY);
+        } else if (name.equalsIgnoreCase("LowerCaseValidator")) {
+            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MIN_LOWER_CASE_KEY);
+        } else if (name.equalsIgnoreCase("UpperCaseValidator")) {
+            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MIN_UPPER_CASE_KEY);
+        } else if (name.equalsIgnoreCase("SpecialCharacterValidator")) {
+            addIntegerValue(MIN_LENGTH, (JSONArray) rule.get(PROPERTIES), config,
+                    MIN_SPECIAL_KEY);
+        } else if (name.equalsIgnoreCase("UniqueCharacterValidator")) {
+            addIntegerValue(MIN_UNIQUE_CHR, (JSONArray) rule.get(PROPERTIES),
+                    config, MIN_UNIQUE_KEY);
+        } else if (name.equalsIgnoreCase("RepeatedCharacterValidator")) {
+            addIntegerValue(MAX_CONSECUTIVE_CHR, (JSONArray) rule.get(PROPERTIES),
+                    config, MAX_REPEATED_KEY);
+        } else if (name.equalsIgnoreCase("AlphanumericValidator")) {
+            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
+                    ALPHANUMERIC_VALIDATOR_KEY);
+        } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
+            addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
+                    EMAIL_VALIDATOR_KEY);
+        }
     }
 }
