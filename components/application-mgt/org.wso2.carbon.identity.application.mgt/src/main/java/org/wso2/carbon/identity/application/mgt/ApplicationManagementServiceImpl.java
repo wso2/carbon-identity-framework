@@ -147,6 +147,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * Application management service implementation.
@@ -158,8 +159,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
     private static final String TARGET_APPLICATION = "APPLICATION";
     private static final String USER = "USER";
-    private static final String EXPORT_MEDIA_TYPE_XML = "xml";
-    private static final String EXPORT_MEDIA_TYPE_YAML = "yml";
+    private static final String MEDIA_TYPE_XML = "application/xml";
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -1293,7 +1293,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
-        return importSPApplication(spFileContent, tenantDomain, username, EXPORT_MEDIA_TYPE_XML, isUpdate);
+        return importSPApplication(spFileContent, tenantDomain, username, MEDIA_TYPE_XML, isUpdate);
     }
 
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
@@ -1306,7 +1306,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider;
 
-        if (fileType.equals(EXPORT_MEDIA_TYPE_YAML)) {
+        if (fileType.contains("yaml")) {
             serviceProvider = deserializationSP(spFileContent, tenantDomain);
         } else {
             serviceProvider = unmarshalSP(spFileContent, tenantDomain);
@@ -1432,18 +1432,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
 
-        ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
-        if (application == null) {
-            throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
-                    "for the provided resourceId: " + applicationId);
-        }
-        String appName = application.getApplicationName();
-        try {
-            startTenantFlow(tenantDomain);
-            return exportSPApplication(appName, exportSecrets, tenantDomain);
-        } finally {
-            endTenantFlow();
-        }
+        ServiceProvider serviceProvider = exportSPFromAppID(applicationId, exportSecrets, tenantDomain);
+        return marshalSP(serviceProvider, tenantDomain);
     }
 
     @Override
@@ -1467,21 +1457,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.doExportServiceProvider(serviceProvider, exportSecrets);
-            }
-        }
+        ServiceProvider serviceProvider = exportSP(applicationName, exportSecrets, tenantDomain);
         return marshalSP(serviceProvider, tenantDomain);
     }
+
     public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-        // invoking the listeners
+        // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
@@ -1994,8 +1978,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Convert yml file of service provider to object.
      *
-     * @param spFileContent xml string of the SP and file name.
-     * @param tenantDomain  tenant domain name.
+     * @param spFileContent XML string of the SP and file name.
+     * @param tenantDomain  Tenant domain name.
      * @return Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
@@ -2011,7 +1995,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             Yaml yaml = new Yaml(new Constructor(ServiceProvider.class));
             ServiceProvider serviceProvider = yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
             return serviceProvider;
-        } catch (Exception e) {
+        } catch (YAMLException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }

@@ -230,6 +230,7 @@
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.yaml.snakeyaml.constructor,
+                            org.yaml.snakeyaml.error,
                             org.yaml.snakeyaml,
                         </Import-Package>
                         <Export-Package>
