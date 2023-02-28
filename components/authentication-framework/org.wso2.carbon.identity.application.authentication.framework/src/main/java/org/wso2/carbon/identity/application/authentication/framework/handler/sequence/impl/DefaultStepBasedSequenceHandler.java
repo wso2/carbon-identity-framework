@@ -614,6 +614,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING,
                     idpToLocalRoleMapping);
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD,
+                    context.getExternalIdP().getAttributeSyncMethod());
             FrameworkUtils.getProvisioningHandler()
                     .handle(mappedRoles, subjectIdentifier, extAttributesValueMap, userStoreDomain,
                             context.getTenantDomain());
