@@ -154,7 +154,7 @@
   "oauth.grant_type.device_code.expiry_time": "10m",
   "oauth.grant_type.device_code.polling_interval": "5s",
   "oauth.grant_type.device_code.key_set": "BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789",
-
+  "oauth.public_client_support.grant_type_names": [],
   "oauth.dcrm.application_role_permission_required_to_view": true,
 
   "oauth.enable_jwt_token_validation_during_introspection": true,
