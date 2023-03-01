@@ -60,10 +60,15 @@ public class PreferenceRetrievalClient {
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
+    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY = "admin.session.advisory" +
+            ".banner.enable";
+    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_DESCRIPTION_PROPERTY = "admin.session.advisory" +
+            ".banner.description";
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
     private static final String RECOVERY_CONNECTOR = "account-recovery";
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
+    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER = "admin.session.advisory.banner.handler";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_VALUE = "value";
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
@@ -156,7 +161,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean checkPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
-        List<String> propertyNameList = new ArrayList<String>();
+        List<String> propertyNameList = new ArrayList<>();
         propertyNameList.add(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
         propertyNameList.add(QUESTION_PASSWORD_RECOVERY_PROPERTY);
         return checkMultiplePreference(tenant, RECOVERY_CONNECTOR, propertyNameList);
@@ -172,6 +177,33 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiAttributeLogin(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, MULTI_ATTRIBUTE_LOGIN_HANDLER, MULTI_ATTRIBUTE_LOGIN_PROPERTY);
+    }
+
+    /**
+     * Check admin session advisory banner control is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if admin session advisory banner control enabled.
+     * @throws PreferenceRetrievalClientException
+     */
+    public boolean checkAdminSessionAdvisoryBannerControlEnabled(String tenant) throws
+            PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER,
+                ADMIN_SESSION_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY);
+    }
+
+    /**
+     * Get admin session advisory banner description.
+     *
+     * @param tenant tenant domain name.
+     * @return returns admin session advisory banner description.
+     * @throws PreferenceRetrievalClientException
+     */
+    public String getAdminSessionAdvisoryBannerDescription(String tenant) throws PreferenceRetrievalClientException {
+
+        return getConnectorPropertyValue(tenant, ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER,
+                ADMIN_SESSION_ADVISORY_BANNER_CONTROL_DESCRIPTION_PROPERTY);
     }
 
     /**
@@ -238,7 +270,25 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
+        String propertyValue = getConnectorPropertyValue(tenant, connectorName, propertyName);
+        if (propertyValue != null) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Check for connector property value in the given tenant.
+     *
+     * @param tenant        Tenant domain name.
+     * @param connectorName Name of the connector.
+     * @param propertyName  Property name to check.
+     * @return returns the connector property value.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    private String getConnectorPropertyValue(String tenant, String connectorName, String propertyName)
+            throws PreferenceRetrievalClientException {
+
         try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
@@ -264,17 +314,17 @@ public class PreferenceRetrievalClient {
                         JSONObject config = responseProperties.getJSONObject(itemIndex);
                         if (StringUtils.equalsIgnoreCase(
                                 responseProperties.getJSONObject(itemIndex).getString(PROPERTY_NAME), propertyName)) {
-                            return Boolean.valueOf(config.getString(PROPERTY_VALUE));
+                            return config.getString(PROPERTY_VALUE);
                         }
                     }
                 }
-                return defaultValue;
+                return null;
             } finally {
                 post.releaseConnection();
             }
         } catch (IOException e) {
             // Logging and throwing since this is a client.
-            String msg = "Error while checking preference for connector : " + connectorName + " in tenant : " + tenant;
+            String msg = "Error while retrieving value for connector : " + connectorName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
@@ -318,7 +368,7 @@ public class PreferenceRetrievalClient {
                     JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
                     for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
                         JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (Boolean.valueOf(config.getString(PROPERTY_VALUE))) {
+                        if (Boolean.TRUE.equals(Boolean.valueOf(config.getString(PROPERTY_VALUE)))) {
                             return true;
                         }
                     }
