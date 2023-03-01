@@ -36,11 +36,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Local authenticator configuration of an application.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalAuthenticatorConfig")
+@JsonIgnoreProperties(value = {"valid"})
 public class LocalAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = 3363298518257599291L;

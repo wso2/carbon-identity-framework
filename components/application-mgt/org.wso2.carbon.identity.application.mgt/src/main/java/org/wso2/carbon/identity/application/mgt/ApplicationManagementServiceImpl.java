@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -1308,6 +1310,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (fileType.contains("yaml")) {
             serviceProvider = deserializationSP(spFileContent, tenantDomain);
+        } else if (fileType.contains("json")) {
+            serviceProvider = objectMapperSP(spFileContent, tenantDomain);
         } else {
             serviceProvider = unmarshalSP(spFileContent, tenantDomain);
         }
@@ -1978,7 +1982,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Convert yml file of service provider to object.
      *
-     * @param spFileContent XML string of the SP and file name.
+     * @param spFileContent YAML string of the SP and file name.
      * @param tenantDomain  Tenant domain name.
      * @return Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
@@ -1996,6 +2000,32 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
             return serviceProvider;
         } catch (YAMLException e) {
+            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
+                    "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
+        }
+    }
+
+    /**
+     * Convert json file of service provider to object.
+     *
+     * @param spFileContent JSON string of the SP and file name.
+     * @param tenantDomain  Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    private ServiceProvider objectMapperSP(SpFileContent spFileContent, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(spFileContent.getContent())) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
+                    " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
+        }
+
+        try {
+            ServiceProvider serviceProvider = new ObjectMapper().readValue(spFileContent.getContent(),
+                                                                            ServiceProvider.class);
+            return serviceProvider;
+        } catch (JsonProcessingException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }

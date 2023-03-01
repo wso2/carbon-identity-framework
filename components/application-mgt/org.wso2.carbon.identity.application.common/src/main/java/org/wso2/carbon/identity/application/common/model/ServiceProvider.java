@@ -35,6 +35,8 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Application configuration.
  */
@@ -67,6 +69,7 @@ public class ServiceProvider implements Serializable {
     private String jwksUri;
 
     @XmlTransient
+    @JsonIgnore
     private User owner;
 
     @XmlTransient
