@@ -389,7 +389,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 5);
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), expectedResult);
 
-        // Delete all applications in super tenant.
+        // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
@@ -432,7 +432,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 5);
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), expectedResult);
 
-        // Delete all applications in super tenant.
+        // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
@@ -507,7 +507,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
                 filter), expectedResult);
 
-        // Delete all applications in super tenant.
+        // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
@@ -554,7 +554,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
                 filter), expectedResult);
 
-        // Delete all applications in super tenant.
+        // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
@@ -686,7 +686,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(actual.getOwner().getUserName(), USERNAME_1);
         Assert.assertEquals(actual.getDescription(), inputSP.getDescription());
 
-        // Deleting added application.
+        // Deleting all added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
