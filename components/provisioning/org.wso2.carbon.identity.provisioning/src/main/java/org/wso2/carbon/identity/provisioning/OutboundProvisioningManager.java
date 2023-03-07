@@ -564,7 +564,7 @@ public class OutboundProvisioningManager {
                         boolean isBlocking = entry.getValue().isBlocking();
                         boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
                         if (isPolicyEnabled) {
-                            // engage policy evaluation here
+                            // Engage policy evaluation here
                         }
                         if (isAllowed) {
                             executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
