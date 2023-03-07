@@ -522,11 +522,13 @@ public class ServiceProvider implements Serializable {
     }
 
     public boolean isB2BSelfServiceApp() {
+
         return isB2BSelfServiceApp;
     }
 
-    public void setB2BSelfServiceApp(boolean b2BSelfServiceApp) {
-        isB2BSelfServiceApp = b2BSelfServiceApp;
+    public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
+
+        this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 }
 
