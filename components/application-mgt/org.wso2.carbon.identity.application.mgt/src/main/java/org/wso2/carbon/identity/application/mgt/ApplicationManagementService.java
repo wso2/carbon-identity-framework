@@ -375,10 +375,11 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * Get configured authenticators of an application.
      *
      * @param applicationID ID of an application.
+     * @param tenantDomain  Tenant domain.
      * @return list of configured authenticators.
      * @throws IdentityApplicationManagementException If error occurs in retrieving configured authenticators.
      */
-    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
+    public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     @Override

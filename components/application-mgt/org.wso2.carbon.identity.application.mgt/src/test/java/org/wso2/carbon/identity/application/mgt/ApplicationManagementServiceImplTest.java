@@ -511,7 +511,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         ApplicationBasicInfo applicationBasicInfo = applicationManagementService
                 .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
         String resourceID = applicationBasicInfo.getApplicationResourceId();
-        AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID);
+        AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID,
+                SUPER_TENANT_DOMAIN_NAME);
 
         Assert.assertEquals(steps.length, 1);
         Assert.assertEquals(steps[0].getStepOrder(), 1);

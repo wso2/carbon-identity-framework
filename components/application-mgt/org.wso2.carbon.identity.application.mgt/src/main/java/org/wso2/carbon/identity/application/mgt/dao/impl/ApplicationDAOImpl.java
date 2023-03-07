@@ -2056,7 +2056,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId)
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         int tenantID;
