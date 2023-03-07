@@ -409,7 +409,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(application);
             serviceProviderProperties.add(isManagementAppProperty);
 
-            ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppPropertyProperty(application);
+            ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(application);
             serviceProviderProperties.add(isB2BSSAppProperty);
 
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
@@ -4722,7 +4722,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(sp);
         spPropertyMap.put(isManagementAppProperty.getName(), isManagementAppProperty);
 
-        ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppPropertyProperty(sp);
+        ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
 
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
@@ -4737,7 +4737,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return isManagementAppProperty;
     }
 
-    private ServiceProviderProperty buildIsB2BSSAppPropertyProperty(ServiceProvider sp) {
+    private ServiceProviderProperty buildIsB2BSSAppProperty(ServiceProvider sp) {
 
         ServiceProviderProperty isB2BSSAppProperty = new ServiceProviderProperty();
         isB2BSSAppProperty.setName(IS_B2B_SS_APP_SP_PROPERTY_NAME);
