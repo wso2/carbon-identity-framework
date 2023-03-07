@@ -21,6 +21,7 @@
         <version>5.25.125-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+    <version>5.25.120</version>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.application.common</artifactId>

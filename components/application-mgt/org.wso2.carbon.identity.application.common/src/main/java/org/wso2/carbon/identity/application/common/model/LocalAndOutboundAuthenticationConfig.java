@@ -46,6 +46,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String USE_USERSTORE_DOMAIN_IN_ROLES = "UseUserstoreDomainInRoles";
     private static final String SKIP_CONSENT = "SkipConsent";
     private static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
+    private static final String EXTERNAL_CONSENT_MANAGEMENT = "externalConsentManagement";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -88,6 +89,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     @XmlElement(name = SKIP_LOGOUT_CONSENT)
     private boolean skipLogoutConsent = false;
+
+    @XmlElement(name = EXTERNAL_CONSENT_MANAGEMENT)
+    private boolean externalConsentManagement = false;
 
     @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
@@ -187,6 +191,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             } else if (SKIP_LOGOUT_CONSENT.equals(member.getLocalName())) {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
+                }
+            } else if (EXTERNAL_CONSENT_MANAGEMENT.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setExternalConsentManagement(true);
                 }
             }
         }
@@ -342,5 +350,15 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setSkipLogoutConsent(boolean skipLogoutConsent) {
 
         this.skipLogoutConsent = skipLogoutConsent;
+    }
+
+    public boolean isExternalConsentManagement() {
+
+        return externalConsentManagement;
+    }
+
+    public void setExternalConsentManagement(boolean externalConsentManagement) {
+
+        this.externalConsentManagement = externalConsentManagement;
     }
 }
