@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.consent.mgt.IdentityConsentMgtUtils;
@@ -97,17 +98,18 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
     /**
      * When an application is deleted, it will delete all relevant receipts issued againsed that application.
      *
-     * @param applicationName Name of the application which is getting deleted.
+     * @param serviceProvider Application which is getting deleted.
      * @param tenantDomain    Tenant domain of the application.
      * @param userName        Username of the person who does the deletion.
      * @return true.
      * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
      */
     @Override
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+    public boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
         ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
+        String applicationName = serviceProvider.getApplicationName();
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain: %s.",
@@ -122,7 +124,7 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
             }
             receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Deleting receipt with id : %s, issued for user: ", receiptListResponse
+                    log.debug(String.format("Deleting receipt with id : %s, issued for user: %s", receiptListResponse
                             .getConsentReceiptId(), receiptListResponse.getPiiPrincipalId()));
                 }
                 consentManager.deleteReceipt(receiptListResponse.getConsentReceiptId());

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.consent.mgt.internal;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 
 /**
  * Holds data for Identity Consent Mgt component.
@@ -31,6 +32,8 @@ public class IdentityConsentDataHolder {
     private ConsentManager consentManager = null;
     private PrivilegedConsentManager privilegedConsentManager = null;
     private SSOConsentService ssoConsentService = null;
+
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     private IdentityConsentDataHolder() {
 
@@ -95,4 +98,14 @@ public class IdentityConsentDataHolder {
         this.ssoConsentService = ssoConsentService;
     }
 
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    public void setClaimMetadataManagementService(
+            ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
+    }
 }
