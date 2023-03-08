@@ -78,6 +78,10 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
 
+    @XmlElementWrapper(name = "ApplicationRoleMappingConfigs")
+    @XmlElement(name = "ApplicationRoleMappingConfig")
+    private AppRoleMappingConfig[] applicationRoleMappingConfig = new AppRoleMappingConfig[0];
+
     @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
     @XmlElement(name = "RequestPathAuthenticatorConfig")
     private RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs;
@@ -188,6 +192,28 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(LocalAndOutboundAuthenticationConfig
                                 .build(element));
+            }  else if ("ApplicationRoleMappingConfigs".equals(elementName)) {
+                Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
+                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new
+                        ArrayList<>();
+
+                if (applicationRoleMappingTypeIter != null) {
+                    while (applicationRoleMappingTypeIter.hasNext()) {
+                        OMElement applicationRoleMappingTypeElement = (OMElement) (applicationRoleMappingTypeIter
+                                .next());
+                        AppRoleMappingConfig applicationRoleMappingConfig = AppRoleMappingConfig
+                                .build(applicationRoleMappingTypeElement);
+                        if (applicationRoleMappingConfig != null) {
+                            applicationRoleMappingConfigsArrList.add(applicationRoleMappingConfig);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(applicationRoleMappingConfigsArrList)) {
+                    AppRoleMappingConfig[] applicationRoleMappingTypeArr = applicationRoleMappingConfigsArrList
+                            .toArray(new AppRoleMappingConfig[0]);
+                    serviceProvider
+                            .setApplicationRoleMappingConfig(applicationRoleMappingTypeArr);
+                }
             } else if ("RequestPathAuthenticatorConfigs".equals(elementName)) {
                 // build request-path authentication configurations.
                 Iterator<?> requestPathAuthenticatorConfigsIter = element.getChildElements();
@@ -325,6 +351,20 @@ public class ServiceProvider implements Serializable {
      */
     public void setOutboundProvisioningConfig(OutboundProvisioningConfig outboundProvisioningConfig) {
         this.outboundProvisioningConfig = outboundProvisioningConfig;
+    }
+
+    /**
+     * @return
+     */
+    public AppRoleMappingConfig[] getApplicationRoleMappingConfig() {
+        return applicationRoleMappingConfig;
+    }
+
+    /**
+     * @param applicationRoleMappingConfig
+     */
+    public void setApplicationRoleMappingConfig(AppRoleMappingConfig[] applicationRoleMappingConfig) {
+        this.applicationRoleMappingConfig = applicationRoleMappingConfig;
     }
 
     /**
