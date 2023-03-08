@@ -126,6 +126,7 @@ public interface ApplicationDAO {
      * @param applicationId ID of an application.
      * @return Authentication configurations.
      * @throws IdentityApplicationManagementException
+     * @deprecated use {@link #getConfiguredAuthenticators(String, String)} instead.
      */
     @Deprecated
     LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)

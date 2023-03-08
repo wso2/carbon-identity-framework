@@ -388,6 +388,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @param applicationID ID of an application.
      * @return list of configured authenticators.
      * @throws IdentityApplicationManagementException If error occurs in retrieving configured authenticators.
+     * @deprecated use {@link #getConfiguredAuthenticators(String, String)} instead.
      */
     @Deprecated
     public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)

@@ -2056,7 +2056,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    @Deprecated
     public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationResourceId)
             throws IdentityApplicationManagementException {
 
