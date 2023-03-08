@@ -83,17 +83,6 @@ public class AuthenticationContextCache extends
      */
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
 
-        if (isSessionDataStorageOptimizationEnabled && entry.getContext() != null) {
-            try {
-                AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
-            } catch (SessionDataStorageOptimizationException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Error occurred while optimizing the Authentication context with " +
-                            "context id: %s", entry.getContext().getContextIdentifier()), e);
-                }
-                return;
-            }
-        }
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -115,6 +104,17 @@ public class AuthenticationContextCache extends
                             ", Cache type : " + AUTHENTICATION_CONTEXT_CACHE_NAME +
                             ", Operation : STORE ]";
                     log.debug("Authentication context is stored with details " + message);
+                }
+                if (isSessionDataStorageOptimizationEnabled && entry.getContext() != null) {
+                    try {
+                        AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
+                    } catch (SessionDataStorageOptimizationException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("Error occurred while optimizing the Authentication context with " +
+                                    "context id: %s", entry.getContext().getContextIdentifier()), e);
+                        }
+                        return;
+                    }
                 }
                 SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
                         entry, tenantId);
