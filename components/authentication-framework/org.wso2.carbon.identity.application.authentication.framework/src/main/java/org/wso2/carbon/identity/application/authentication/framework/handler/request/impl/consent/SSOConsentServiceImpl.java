@@ -669,13 +669,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             try {
                 piiCategory = getConsentManager().getPIICategoryByName(requestedClaim.getClaimUri());
             } catch (ConsentManagementClientException e) {
-
-                if (isInvalidPIICategoryError(e)) {
-                    piiCategory = addPIICategoryForClaim(requestedClaim);
-                } else {
-                    throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving" +
-                            " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
-                }
+                throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving" +
+                        " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
             } catch (ConsentManagementException e) {
                 throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving " +
                         "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
@@ -685,25 +680,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             piiCategoryIds.add(piiCategoryValidity);
         }
         return piiCategoryIds;
-    }
-
-    private PIICategory addPIICategoryForClaim(ClaimMetaData claim) throws SSOConsentServiceException {
-
-        PIICategory piiCategory;
-        PIICategory piiCategoryInput = new PIICategory(claim.getClaimUri(), claim.getDescription(), false, claim
-                .getDisplayName());
-        try {
-            piiCategory = getConsentManager().addPIICategory(piiCategoryInput);
-        } catch (ConsentManagementException e) {
-            throw new SSOConsentServiceException("Consent PII category error", "Error while adding" +
-                    " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
-        }
-        return piiCategory;
-    }
-
-    private boolean isInvalidPIICategoryError(ConsentManagementClientException e) {
-
-        return ERROR_CODE_PII_CAT_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 
     private PurposeCategory getDefaultPurposeCategory() throws SSOConsentServiceException {
@@ -1114,6 +1090,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private ClaimMetaData buildClaimMetaData(int claimId, LocalClaim localClaim, String claimURI) {
 
         ClaimMetaData claimMetaData = new ClaimMetaData();
+
         claimMetaData.setId(claimId);
         claimMetaData.setClaimUri(claimURI);
         String displayName = localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY);

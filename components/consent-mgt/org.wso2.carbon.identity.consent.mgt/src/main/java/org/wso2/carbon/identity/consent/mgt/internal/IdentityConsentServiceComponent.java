@@ -30,8 +30,10 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.consent.mgt.handler.ConsentDeletionUserEventHandler;
 import org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener;
+import org.wso2.carbon.identity.consent.mgt.listener.PIICategoryAppMgtListener;
 import org.wso2.carbon.identity.consent.mgt.listener.TenantConsentMgtListener;
 import org.wso2.carbon.identity.consent.mgt.services.ConsentUtilityService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -58,6 +60,8 @@ public class IdentityConsentServiceComponent {
                     new ConsentDeletionUserEventHandler(), null);
             ctxt.getBundleContext().registerService(ApplicationMgtListener.class.getName(),
                     new ConsentDeletionAppMgtListener(), null);
+            ctxt.getBundleContext().registerService(ApplicationMgtListener.class.getName(),
+                    new PIICategoryAppMgtListener(), null);
             ctxt.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantConsentMgtListener()
                     , null);
             ctxt.getBundleContext().registerService(ConsentUtilityService.class.getName(), new ConsentUtilityService
@@ -125,6 +129,24 @@ public class IdentityConsentServiceComponent {
     protected void unsetSSOConsentService(SSOConsentService ssoConsentService) {
 
         IdentityConsentDataHolder.getInstance().setSSOConsentService(null);
+    }
+
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        IdentityConsentDataHolder.getInstance().setClaimMetadataManagementService(
+                claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        IdentityConsentDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 
     @Reference(
