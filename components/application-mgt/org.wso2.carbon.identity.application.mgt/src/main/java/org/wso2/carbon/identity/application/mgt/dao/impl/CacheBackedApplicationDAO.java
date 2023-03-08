@@ -297,6 +297,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
         return localAndOutboundAuthenticationConfig;
     }
+
     public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
             throws IdentityApplicationManagementException {
 

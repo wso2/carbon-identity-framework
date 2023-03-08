@@ -1610,6 +1610,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return authenticationSteps;
     }
 
+    @Override
+    @Deprecated
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
+            throws IdentityApplicationManagementException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return getConfiguredAuthenticators(applicationID, tenantDomain);
+    }
+
     /**
      * Add SP template to database and cache.
      *
