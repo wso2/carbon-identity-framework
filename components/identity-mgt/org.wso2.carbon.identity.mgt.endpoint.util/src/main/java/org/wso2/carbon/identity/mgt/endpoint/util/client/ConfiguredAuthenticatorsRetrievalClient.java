@@ -58,12 +58,12 @@ public class ConfiguredAuthenticatorsRetrievalClient {
      * @throws ConfiguredAuthenticatorsRetrievalClientException if exception occurs when retrieving configured
      * authenticators.
      */
-    public JSONArray getConfiguredAuthenticators(String applicationId)
+    public JSONArray getConfiguredAuthenticators(String applicationId, String tenantDomain)
             throws ConfiguredAuthenticatorsRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             HttpGet request =
-                    new HttpGet(getApplicationsEndpoint() + "/" + Encode.forUriComponent(applicationId) +
+                    new HttpGet(getApplicationsEndpoint(tenantDomain) + "/" + Encode.forUriComponent(applicationId) +
                             AUTHENTICATORS);
             setAuthorizationHeader(request);
 
@@ -88,9 +88,9 @@ public class ConfiguredAuthenticatorsRetrievalClient {
         return null;
     }
 
-    private String getApplicationsEndpoint() throws ConfiguredAuthenticatorsRetrievalClientException {
+    private String getApplicationsEndpoint(String tenantDomain) throws ConfiguredAuthenticatorsRetrievalClientException {
 
-        return getEndpoint(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, APPLICATION_API_RELATIVE_PATH);
+        return getEndpoint(tenantDomain, APPLICATION_API_RELATIVE_PATH);
     }
 
     private String getEndpoint(String tenantDomain, String context)
