@@ -86,6 +86,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_POPULATE_PII_CATEGORIES_AT_RUNTIME;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
@@ -109,10 +110,12 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private static final String DEFAULT_PURPOSE_GROUP = "DEFAULT";
     private static final String DEFAULT_PURPOSE_GROUP_TYPE = "SP";
     private boolean ssoConsentEnabled = true;
+    private boolean populatePIICategories = true;
 
     public SSOConsentServiceImpl() {
 
         readSSOConsentEnabledConfig();
+        readPopulatePIICategoriesConfig();
     }
 
     /**
@@ -362,6 +365,31 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             }
         }
         ssoConsentEnabled = true;
+    }
+
+    private void readPopulatePIICategoriesConfig() {
+
+        IdentityConfigParser identityConfigParser = IdentityConfigParser.getInstance();
+        OMElement consentElement = identityConfigParser.getConfigElement(CONFIG_ELEM_CONSENT);
+
+        if (consentElement != null) {
+
+            OMElement populatePIICategoriesElem = consentElement.getFirstChildWithName(
+                    new QName(IDENTITY_DEFAULT_NAMESPACE, CONFIG_ELEM_POPULATE_PII_CATEGORIES_AT_RUNTIME));
+
+            if (populatePIICategoriesElem != null) {
+                String populatePIICategoriesElemText = populatePIICategoriesElem.getText();
+                if (isNotBlank(populatePIICategoriesElemText)) {
+                    populatePIICategories = Boolean.parseBoolean(populatePIICategoriesElemText);
+                    if (isDebugEnabled()) {
+                        logDebug("PII Categories " + (populatePIICategories ? "can" : "can't") +
+                                " be populated at the runtime.");
+                    }
+                    return;
+                }
+            }
+        }
+        populatePIICategories = true;
     }
 
     private ClaimMapping[] getSpClaimMappings(ServiceProvider serviceProvider) {
@@ -669,8 +697,12 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             try {
                 piiCategory = getConsentManager().getPIICategoryByName(requestedClaim.getClaimUri());
             } catch (ConsentManagementClientException e) {
-                throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving" +
-                        " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                if (isInvalidPIICategoryError(e) && populatePIICategories) {
+                    piiCategory = addPIICategoryForClaim(requestedClaim);
+                } else {
+                    throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving" +
+                            " PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
+                }
             } catch (ConsentManagementException e) {
                 throw new SSOConsentServiceException("Consent PII category error", "Error while retrieving " +
                         "PII category: " + DEFAULT_PURPOSE_CATEGORY, e);
@@ -680,6 +712,25 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             piiCategoryIds.add(piiCategoryValidity);
         }
         return piiCategoryIds;
+    }
+
+    private PIICategory addPIICategoryForClaim(ClaimMetaData claim) throws SSOConsentServiceException {
+
+        PIICategory piiCategory;
+        PIICategory piiCategoryInput = new PIICategory(claim.getClaimUri(), claim.getDescription(), false, claim
+                .getDisplayName());
+        try {
+            piiCategory = getConsentManager().addPIICategory(piiCategoryInput);
+        } catch (ConsentManagementException e) {
+            throw new SSOConsentServiceException("Consent PII category error", "Error while adding" +
+                    " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
+        }
+        return piiCategory;
+    }
+
+    private boolean isInvalidPIICategoryError(ConsentManagementClientException e) {
+
+        return ERROR_CODE_PII_CAT_NAME_INVALID.getCode().equals(e.getErrorCode());
     }
 
     private PurposeCategory getDefaultPurposeCategory() throws SSOConsentServiceException {
@@ -1090,7 +1141,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private ClaimMetaData buildClaimMetaData(int claimId, LocalClaim localClaim, String claimURI) {
 
         ClaimMetaData claimMetaData = new ClaimMetaData();
-
         claimMetaData.setId(claimId);
         claimMetaData.setClaimUri(claimURI);
         String displayName = localClaim.getClaimProperties().get(DISPLAY_NAME_PROPERTY);

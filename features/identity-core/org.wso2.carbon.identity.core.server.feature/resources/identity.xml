@@ -715,6 +715,8 @@
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>true</PromptSubjectClaimRequestedConsent>
+        <!--Specify if the PII Categories can be populated at runtime.-->
+        <PopulatePIICategoriesAtRuntime>true</PopulatePIICategoriesAtRuntime>
     </Consent>
 
     <SecurityTokenService>

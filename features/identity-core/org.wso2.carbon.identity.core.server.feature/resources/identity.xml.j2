@@ -1001,6 +1001,8 @@
         <EnableSSOConsentManagement>{{authentication.consent.prompt}}</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
+        <!--Specify if the PII Categories can be populated at runtime.-->
+        <PopulatePIICategoriesAtRuntime>{{authentication.consent.pii_categories.populate_at_runtime}}</PopulatePIICategoriesAtRuntime>
     </Consent>
 
     <SecurityTokenService>
