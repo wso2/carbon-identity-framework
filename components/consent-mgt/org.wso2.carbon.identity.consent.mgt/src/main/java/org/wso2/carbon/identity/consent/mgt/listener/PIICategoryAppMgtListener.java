@@ -34,9 +34,11 @@ import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
 
 import java.util.List;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
+
 /**
- * Takes care of deleting consents / receipts which are issued against a service provider. When the service provider
- * is deleted, consents issued against the service provider will be deleted through this listener.
+ * Takes care of populating PII categories in the database when the service provider
+ * is updated with requested claims.
  */
 public class PIICategoryAppMgtListener extends AbstractApplicationMgtListener {
 
@@ -71,7 +73,7 @@ public class PIICategoryAppMgtListener extends AbstractApplicationMgtListener {
     /**
      * Overridden the default value.
      *
-     * @return
+     * @return the order of the listener.
      */
     @Override
     public int getDefaultOrderId() {
@@ -79,6 +81,15 @@ public class PIICategoryAppMgtListener extends AbstractApplicationMgtListener {
         return 908;
     }
 
+    /**
+     * Add PII categories when the requested claims are added after creating an application
+     *
+     * @param serviceProvider {@link ServiceProvider}
+     * @param tenantDomain    Tenant domain
+     * @param userName        Username
+     * @return true if the operation is successful
+     * @throws IdentityApplicationManagementException when an exception occurs while adding PII categories
+     */
     public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
@@ -86,6 +97,15 @@ public class PIICategoryAppMgtListener extends AbstractApplicationMgtListener {
         return true;
     }
 
+    /**
+     * Add PII categories when the requested claims are added after updating an application
+     *
+     * @param serviceProvider {@link ServiceProvider}
+     * @param tenantDomain    Tenant domain
+     * @param userName        Username
+     * @return true if the operation is successful
+     * @throws IdentityApplicationManagementException when an exception occurs while adding PII categories
+     */
     public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
@@ -114,15 +134,14 @@ public class PIICategoryAppMgtListener extends AbstractApplicationMgtListener {
                     if (claim != null) {
                         try {
                             PIICategory piiCategoryInput =
-                                    new PIICategory(claimUri, claim.getClaimProperty("Description"), false, claim
-                                            .getClaimProperty("DisplayName"));
+                                    new PIICategory(claimUri, claim.getClaimProperty(DESCRIPTION_PROPERTY), false,
+                                            claim.getClaimProperty(DESCRIPTION_PROPERTY));
                             if (!getConsentManager().isPIICategoryExists(claimUri)) {
                                 getConsentManager().addPIICategory(piiCategoryInput);
                             }
                         } catch (ConsentManagementException e) {
                             throw new IdentityApplicationManagementException("Consent PII category error",
-                                    "Error while adding" +
-                                            " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
+                                    "Error while adding PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
                         }
                     }
                 }
