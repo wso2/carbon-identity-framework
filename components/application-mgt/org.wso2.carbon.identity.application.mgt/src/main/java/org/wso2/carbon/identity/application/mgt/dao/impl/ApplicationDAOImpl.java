@@ -140,6 +140,8 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_MANAGEMENT;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_MANAGEMENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
@@ -176,7 +178,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
-
+    
     static {
         SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(NAME_SP_PROPERTY_NAME, "SP_APP.APP_NAME");
         SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(CLIENT_ID_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
@@ -2810,6 +2812,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
+                } else if (USE_EXTERNAL_CONSENT_MANAGEMENT.equals(name)) {
+                    localAndOutboundConfig.setUseExternalConsentManagement(Boolean.parseBoolean(value));
                 }
             }
         }
@@ -4687,6 +4691,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProviderProperty skipLogoutConsentProperty = buildSkipLogoutConsentProperty(sp);
             spPropertyMap.put(skipLogoutConsentProperty.getName(), skipLogoutConsentProperty);
+
+            ServiceProviderProperty useExternalConsentManagementProperty =
+                    buildUseExternalConsentManagementProperty(sp);
+            spPropertyMap.put(useExternalConsentManagementProperty.getName(), useExternalConsentManagementProperty);
         }
 
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
@@ -4748,6 +4756,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         skipLogoutConsentProperty.setValue(
                 String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipLogoutConsent()));
         return skipLogoutConsentProperty;
+    }
+
+    private ServiceProviderProperty buildUseExternalConsentManagementProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty useExternalConsentManagementProperty = new ServiceProviderProperty();
+        useExternalConsentManagementProperty.setName(USE_EXTERNAL_CONSENT_MANAGEMENT);
+        useExternalConsentManagementProperty.setDisplayName(USE_EXTERNAL_CONSENT_MANAGEMENT_DISPLAY_NAME);
+
+        useExternalConsentManagementProperty.setValue(
+                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isExternalConsentManagement()));
+        return useExternalConsentManagementProperty;
     }
 
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
