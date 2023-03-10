@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -72,6 +73,7 @@ public class FrameworkServiceDataHolder {
     private RealmService realmService = null;
     private RegistryService registryService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
+    private ApplicationRolesResolver applicationRolesResolver = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
     private List<IdentityProcessor> identityProcessors = new ArrayList<>();
@@ -157,6 +159,16 @@ public class FrameworkServiceDataHolder {
     public List<ApplicationAuthenticator> getAuthenticators() {
 
         return authenticators;
+    }
+
+    public void setApplicationRolesResolver(ApplicationRolesResolver applicationRolesResolver) {
+
+        this.applicationRolesResolver = applicationRolesResolver;
+    }
+
+    public ApplicationRolesResolver getApplicationRolesResolver() {
+
+        return applicationRolesResolver;
     }
 
     public long getNanoTimeReference() {
