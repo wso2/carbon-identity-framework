@@ -42,7 +42,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application id.
      *
-     * @return application id.
+     * @return Application id.
      */
     public int getApplicationId() {
 
@@ -52,7 +52,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application id.
      *
-     * @param applicationId application id.
+     * @param applicationId Application id.
      */
     public void setApplicationId(int applicationId) {
 
@@ -62,7 +62,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application name.
      *
-     * @return application name.
+     * @return Application name.
      */
     public String getApplicationName() {
 
@@ -72,7 +72,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application name.
      *
-     * @param applicationName   application name.
+     * @param applicationName   Application name.
      */
     public void setApplicationName(String applicationName) {
 
@@ -82,7 +82,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application description.
      *
-     * @return description.
+     * @return Description.
      */
     public String getDescription() {
 
@@ -92,7 +92,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application description.
      *
-     * @param description   description.
+     * @param description   Description.
      */
     public void setDescription(String description) {
 
@@ -102,7 +102,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application resource id.
      *
-     * @return application resource id.
+     * @return Application resource id.
      */
     public String getApplicationResourceId() {
 
@@ -112,7 +112,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application resource id.
      *
-     * @param applicationResourceId application resource id.
+     * @param applicationResourceId Application resource id.
      */
     public void setApplicationResourceId(String applicationResourceId) {
 
@@ -122,7 +122,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get image URL.
      *
-     * @return image URL.
+     * @return Image URL.
      */
     public String getImageUrl() {
 
@@ -132,7 +132,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application image URL.
      *
-     * @param imageUrl  application image URL.
+     * @param imageUrl  Application image URL.
      */
     public void setImageUrl(String imageUrl) {
 
@@ -142,7 +142,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get access URL.
      *
-     * @return access URL.
+     * @return Access URL.
      */
     public String getAccessUrl() {
 
@@ -152,7 +152,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set access URL.
      *
-     * @param accessUrl access URL.
+     * @param accessUrl Access URL.
      */
     public void setAccessUrl(String accessUrl) {
 
@@ -162,7 +162,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get app owner details.
      *
-     * @return app owner details.
+     * @return App owner details.
      */
     public User getAppOwner() {
 
@@ -172,7 +172,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application owner details.
      *
-     * @param appOwner  application owner details.
+     * @param appOwner  Application owner details.
      */
     public void setAppOwner(User appOwner) {
 
@@ -180,9 +180,9 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Get oAuth2 client ID.
+     * Get OAuth2 client ID.
      *
-     * @return oAuth2 client ID.
+     * @return OAuth2 client ID.
      */
     public String getClientId() {
 
@@ -190,11 +190,11 @@ public class ApplicationBasicInfo implements Serializable {
     }
 
     /**
-     * Set oAuth2 client ID.
+     * Set OAuth2 client ID.
      *
-     * @param clientId  oAuth2 client ID.
+     * @param clientId  OAuth2 client ID.
      */
-    public  void setClientId(String clientId) {
+    public void setClientId(String clientId) {
 
         this.clientId = clientId;
     }
@@ -214,7 +214,7 @@ public class ApplicationBasicInfo implements Serializable {
      *
      * @param issuer  SAML issuer.
      */
-    public  void setIssuer(String issuer) {
+    public void setIssuer(String issuer) {
 
         this.issuer = issuer;
     }
@@ -222,7 +222,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Get application tenant domain.
      *
-     * @return tenantDomain
+     * @return Tenant domain
      */
     public String getTenantDomain() {
 
@@ -232,7 +232,7 @@ public class ApplicationBasicInfo implements Serializable {
     /**
      * Set application tenant domain.
      *
-     * @param tenantDomain application tenant domain
+     * @param tenantDomain Application tenant domain
      */
     public void setTenantDomain(String tenantDomain) {
 

@@ -427,7 +427,8 @@ public class SecretManagerImpl implements SecretManager {
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
-    private boolean isSecretExist(String secretTypeName, String secretName) throws SecretManagementException {
+    @Override
+    public boolean isSecretExist(String secretTypeName, String secretName) throws SecretManagementException {
 
         try {
             getSecret(secretTypeName, secretName);

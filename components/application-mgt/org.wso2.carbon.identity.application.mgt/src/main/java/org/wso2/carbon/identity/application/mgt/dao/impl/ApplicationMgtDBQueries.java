@@ -64,6 +64,11 @@ public class ApplicationMgtDBQueries {
             " VALUES (?,?,?,?,?)";
     public static final String STORE_CLAIM_MAPPING = "INSERT INTO SP_CLAIM_MAPPING (TENANT_ID, IDP_CLAIM, SP_CLAIM, " +
             "APP_ID, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE) VALUES (?,?,?,?,?,?,?)";
+
+    public static final String UPDATE_SP_IDP_ATTR = "INSERT INTO SP_IDP_ATTR (APP_ID, IDP_ID, ATTR_KEY, " +
+            "ATTR_VALUE) VALUES (?,?,?,?)";
+    public static final String DELETE_SP_IDP_ATTR = "DELETE FROM SP_IDP_ATTR WHERE APP_ID = ? AND ATTR_KEY = ?";
+
     public static final String STORE_ROLE_MAPPING =
             "INSERT INTO SP_ROLE_MAPPING (TENANT_ID, IDP_ROLE, SP_ROLE, APP_ID)" +
                     " VALUES (?,?,?,?)";
@@ -171,6 +176,12 @@ public class ApplicationMgtDBQueries {
             + "WHERE INBOUND_AUTH_KEY = ? AND INBOUND_AUTH_TYPE = ? AND SP_APP.TENANT_ID = ? "
             + "AND SP_INBOUND_AUTH.TENANT_ID=?";
 
+    public static final String LOAD_APP_UUID_BY_CLIENT_ID_AND_TYPE = "SELECT UUID "
+            + "FROM SP_APP INNER JOIN SP_INBOUND_AUTH "
+            + "ON SP_APP.ID = SP_INBOUND_AUTH.APP_ID "
+            + "WHERE INBOUND_AUTH_KEY = ? AND INBOUND_AUTH_TYPE = ? AND SP_APP.TENANT_ID = ? "
+            + "AND SP_INBOUND_AUTH.TENANT_ID=?";
+
     public static final String LOAD_BASIC_APP_INFO_BY_APP_NAME = "SELECT ID, TENANT_ID, APP_NAME, USER_STORE, " +
             "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
             "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
@@ -204,6 +215,9 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_CLAIM_MAPPING_BY_APP_ID = "SELECT IDP_CLAIM, SP_CLAIM, IS_REQUESTED, " +
             "IS_MANDATORY, DEFAULT_VALUE " +
             "FROM SP_CLAIM_MAPPING WHERE APP_ID = ? AND TENANT_ID = ?";
+    public static final String LOAD_SP_IDP_ATTR_BY_APP_ID_AND_ATTR_KEY = "SELECT APP_ID, IDP_ID, ATTR_KEY, " +
+            "ATTR_VALUE " +
+            "FROM SP_IDP_ATTR WHERE APP_ID = ? AND ATTR_KEY = ?";
     public static final String LOAD_CLAIM_MAPPING_BY_APP_NAME = "SELECT IDP_CLAIM, SP_CLAIM, IS_REQUESTED," +
             " IS_MANDATORY, DEFAULT_VALUE "
             + "FROM SP_CLAIM_MAPPING WHERE APP_ID = (SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?)";
@@ -265,6 +279,10 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_IDP_AUTHENTICATOR_ID = "SELECT A.ID FROM IDP_AUTHENTICATOR A JOIN IDP B ON A" +
             ".IDP_ID= B.ID WHERE A.NAME =? AND B.NAME=? AND ((A.TENANT_ID =? AND B.TENANT_ID =?) OR (B.TENANT_ID=? " +
             "AND B.NAME LIKE 'SHARED_%'))";
+
+    public static final String SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
+
+    public static final String GET_IDP_NAME_BY_IDP_ID = "SELECT NAME FROM IDP WHERE ID = ?";
     public static final String LOAD_IDP_AND_AUTHENTICATOR_NAMES = "SELECT A.NAME, B.NAME, " +
             "B.DISPLAY_NAME FROM IDP A JOIN IDP_AUTHENTICATOR B ON A.ID = B.IDP_ID WHERE B.ID =? AND ((A.TENANT_ID =?" +
             " AND B.TENANT_ID =?) OR  (A.TENANT_ID=? AND A.NAME LIKE 'SHARED_%' AND B.TENANT_ID=?))";

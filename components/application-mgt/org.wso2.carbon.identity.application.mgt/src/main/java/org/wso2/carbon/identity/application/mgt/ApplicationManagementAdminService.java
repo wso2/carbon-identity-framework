@@ -39,6 +39,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -800,21 +801,19 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         this.customInboundAuthenticatorConfigs = customAuthenticatorConfigs;
     }
 
-    private ArrayList<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(
+    private List<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(
             ApplicationBasicInfo[] applicationBasicInfos, String userName)
             throws IdentityApplicationManagementException {
 
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
-                appInfo.add(applicationBasicInfo);
-                if (log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + userName);
-                }
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Validating user with application roles is disabled. Therefore, " +
+                        "user: %s will be authorized for all applications", userName));
             }
+            return Arrays.asList(applicationBasicInfos);
         }
-        return appInfo;
+        return ApplicationMgtUtil.filterAuthorizedApplicationBasicInfo(applicationBasicInfos, userName);
     }
 
     /**

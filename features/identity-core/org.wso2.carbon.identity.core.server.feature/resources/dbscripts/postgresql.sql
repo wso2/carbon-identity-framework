@@ -640,6 +640,17 @@ CREATE TABLE IDP (
   UNIQUE (UUID)
 );
 
+DROP TABLE IF EXISTS SP_IDP_ATTR;
+CREATE TABLE IF NOT EXISTS SP_IDP_ATTR (
+    APP_ID INTEGER NOT NULL,
+    IDP_ID INTEGER NOT NULL,
+    ATTR_KEY VARCHAR(255) NOT NULL,
+    ATTR_VALUE VARCHAR(255) NOT NULL,
+    PRIMARY KEY (APP_ID, IDP_ID, ATTR_KEY),
+    FOREIGN KEY (IDP_ID) REFERENCES IDP (ID) ON DELETE CASCADE,
+    FOREIGN KEY (APP_ID) REFERENCES SP_APP (ID) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS IDP_ROLE;
 DROP SEQUENCE IF EXISTS IDP_ROLE_SEQ;
 CREATE SEQUENCE IDP_ROLE_SEQ;
@@ -1209,7 +1220,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('669b99ca-cdb0-44a6-8cae-babed3b585df', 'Publisher', 'A resource type to keep the event publisher configurations'),
 ('73f6d9ca-62f4-4566-bab9-2a930ae51ba8', 'BRANDING_PREFERENCES', 'A resource type to keep the tenant branding preferences'),
 ('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences'),
-('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations');
+('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations'),
+('f4e83b8a-d1c4-a0d6-03a7-d48e268c60c5', 'PK_JWT_CONFIGURATION', 'A resource type to keep the tenant private key jwt configuration.');
 
 DROP TABLE IF EXISTS IDN_CONFIG_RESOURCE;
 CREATE TABLE IDN_CONFIG_RESOURCE (
@@ -1372,18 +1384,20 @@ CREATE TABLE IDN_SECRET_TYPE (
 );
 
 INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
-('1358bdbf-e0cc-4268-a42c-c3e0960e13f0', 'ADAPTIVE_AUTH_CALL_CHOREO', 'Secret type to uniquely identify secrets relevant to callChoreo adaptive auth function');
+('1358bdbf-e0cc-4268-a42c-c3e0960e13f0', 'ADAPTIVE_AUTH_CALL_CHOREO', 'Secret type to uniquely identify secrets relevant to callChoreo adaptive auth function'),
+('c508ca28-60c0-4493-a758-77e4173ffdb9', 'IDP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity providers');
 
 DROP TABLE IF EXISTS IDN_SECRET;
 CREATE TABLE IDN_SECRET (
     ID VARCHAR(255) NOT NULL,
     TENANT_ID INT NOT NULL,
-    SECRET_NAME VARCHAR(255) NOT NULL,
+    SECRET_NAME VARCHAR(1023) NOT NULL,
     SECRET_VALUE VARCHAR(8000) NOT NULL,
     CREATED_TIME TIMESTAMP NOT NULL,
     LAST_MODIFIED TIMESTAMP NOT NULL,
     TYPE_ID VARCHAR(255) NOT NULL,
     DESCRIPTION VARCHAR(1023) NULL,
+    KEY_ID VARCHAR(255) NULL,
     PRIMARY KEY (ID),
     FOREIGN KEY (TYPE_ID) REFERENCES IDN_SECRET_TYPE(ID) ON DELETE CASCADE,
     UNIQUE (SECRET_NAME, TENANT_ID, TYPE_ID)
@@ -1497,3 +1511,6 @@ CREATE INDEX IDX_CORS_SP_APP_ID ON IDN_CORS_ASSOCIATION (SP_APP_ID);
 
 -- IDN_CORS_ASSOCIATION --
 CREATE INDEX IDX_CORS_ORIGIN_ID ON IDN_CORS_ASSOCIATION (IDN_CORS_ORIGIN_ID);
+
+-- IDN_SECRET --
+CREATE INDEX IDN_SECRET_TYPE_ID ON IDN_SECRET (TYPE_ID);

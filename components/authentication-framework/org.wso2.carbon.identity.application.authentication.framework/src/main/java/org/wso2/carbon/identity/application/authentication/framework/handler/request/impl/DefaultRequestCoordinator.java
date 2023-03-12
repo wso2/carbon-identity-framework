@@ -406,10 +406,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (responseWrapper.isRedirect()) {
             String redirectURL;
-            if (context != null && (context.getExternalIdP() == null ||
-                    FrameworkConstants.LOCAL.equals(context.getExternalIdP().getIdPName()))) {
+            if (context != null) {
                 redirectURL = FrameworkUtils.getRedirectURLWithFilteredParams(responseWrapper.getRedirectURL(),
                         context);
+                context.setRedirectURL(redirectURL);
             } else {
                 log.warn("Authentication context is null, redirect parameter filtering will not be done for " +
                         sessionDataKey);

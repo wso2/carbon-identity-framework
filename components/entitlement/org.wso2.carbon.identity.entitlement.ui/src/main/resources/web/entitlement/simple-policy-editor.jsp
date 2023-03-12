@@ -591,11 +591,11 @@ if(elementDTOList != null && elementDTOList.size() > 0){
                     <%
                         if (selectedRuleUserAttributeValue != null && selectedRuleUserAttributeValue.trim().length() > 0) {
                     %>
-                        <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>"/>
+                        <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>" autocomplete="off"/>
                     <%
                         } else {
                     %>
-                        <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" />
+                        <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" autocomplete="off"/>
                     <%
                         }
                     %>
@@ -782,11 +782,11 @@ if(elementDTOList != null && elementDTOList.size() > 0){
                   <td> <%
                       if (selectedRuleUserAttributeValue != null && selectedRuleUserAttributeValue.trim().length() > 0) {
                   %>
-                      <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>"/>
+                      <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>" autocomplete="off"/>
                   <%
                       } else {
                   %>
-                      <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" />
+                      <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" autocomplete="off"/>
                   <%
                       }
                   %>
@@ -938,11 +938,11 @@ if(elementDTOList != null && elementDTOList.size() > 0){
                                 <td> <%
                                     if (selectedRuleUserAttributeValue != null && selectedRuleUserAttributeValue.trim().length() > 0) {
                                 %>
-                                    <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>"/>
+                                    <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" value="<%=Encode.forHtmlAttribute(selectedRuleUserAttributeValue)%>" autocomplete="off"/>
                                     <%
                                     } else {
                                     %>
-                                    <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" />
+                                    <input type="text" name="userRuleAttributeValue_0" id="userRuleAttributeValue_0" autocomplete="off"/>
                                     <%
                                         }
                                     %>

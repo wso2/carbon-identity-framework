@@ -160,7 +160,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
-        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect()
+                || idPClaimMappings.length == 0;
 
         // When null the local claim dialect will be used.
         String idPStandardDialect = null;
@@ -189,6 +190,11 @@ public class DefaultClaimHandler implements ClaimHandler {
                     idPStandardDialect);
         } else if (idPClaimMappings.length > 0) {
             localToIdPClaimMap = FrameworkUtils.getClaimMappings(idPClaimMappings, true);
+            if (useLocalClaimDialectForClaimMappings() && enableMergingCustomClaimMappingsWithDefaultMappings()) {
+                localToIdPClaimMap = filterLocaltoIdPClaimMap(localToIdPClaimMap, remoteClaims.keySet());
+                getMergedLocalIdpClaimMappings(authenticator.getClaimDialectURI(),
+                        context.getTenantDomain(), localToIdPClaimMap, remoteClaims);
+            }
         } else {
             log.warn("Authenticator : " + authenticator.getFriendlyName() + " does not have " +
                      "a standard dialect and IdP : " + context.getExternalIdP().getIdPName() +
@@ -251,6 +257,20 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         return spFilteredClaims;
 
+    }
+
+    /**
+     * Filter local claim mapping only if the claim value is there in the remote claim set.
+     *
+     * @param localToIdPClaimMap    Local to IdP claim mapping.
+     * @param keySet                Claim keys of remote claim set.
+     * @return  the local to idp claim mappings which comes in the remote claims.
+     */
+    private Map<String, String> filterLocaltoIdPClaimMap(Map<String, String> localToIdPClaimMap, Set<String> keySet) {
+
+        return new HashMap<>(localToIdPClaimMap.entrySet().stream()
+                .filter(claimMap -> keySet.contains(claimMap.getValue()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
     }
 
     private void setMandatoryAndRequestedClaims(ApplicationConfig appConfig,
@@ -383,6 +403,40 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
                 localUnfilteredClaimsForNullValues.put(localClaimURI, claimValue);
             }
+        }
+    }
+
+    /**
+     * Combine the Idp claim mapping with the default mapping.
+     *
+     * @param idPStandardDialect    Standard Idp dialect URI.
+     * @param tenantDomain          tenant domain.
+     * @param localToIdPClaimMap    default local to idp claim mapping.
+     * @param remoteClaims          Claims from idp.
+     * @return combined claim mappings.
+     * @throws FrameworkException   If an exception occurred in combining the idp claims with default claims.
+     */
+    private Map<String, String> getMergedLocalIdpClaimMappings(String idPStandardDialect, String tenantDomain,
+                                                                Map<String, String> localToIdPClaimMap,
+                                                                Map<String, String> remoteClaims) throws
+            FrameworkException {
+
+        if (idPStandardDialect == null) {
+            idPStandardDialect = ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+        }
+        try {
+            Map<String, String> localToIdpClaimMappingWithStandardDialect =
+                    getClaimMappings(idPStandardDialect, remoteClaims.keySet(),
+                            tenantDomain, true);
+            localToIdPClaimMap.putAll(localToIdpClaimMappingWithStandardDialect.entrySet().stream()
+                    .filter(x -> !localToIdPClaimMap.containsKey(x.getKey()))
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+
+            return localToIdPClaimMap;
+        } catch (FrameworkException e) {
+            throw new FrameworkException("Error occurred while getting all claim mappings from " +
+                    idPStandardDialect + " dialect for " +
+                    tenantDomain + " to handle federated claims", e);
         }
     }
 
@@ -1011,6 +1065,19 @@ public class DefaultClaimHandler implements ClaimHandler {
     private boolean useLocalClaimDialectForClaimMappings() {
 
         return FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+    }
+
+    /**
+     * Checks if a configuration is available indicating to combine the custom claim
+     * dialect with the federated authenticator's dialect when a custom dialect
+     * claim mapping is used.
+     *
+     * @return True if both need to be combined.
+     */
+    private boolean enableMergingCustomClaimMappingsWithDefaultMappings() {
+
+        return FileBasedConfigurationBuilder.getInstance()
+                .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
     }
 
     /**
