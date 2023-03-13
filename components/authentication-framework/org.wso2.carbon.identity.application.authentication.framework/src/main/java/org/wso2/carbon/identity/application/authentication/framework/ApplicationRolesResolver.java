@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
+/**
+ * Application roles resolver interface.
+ */
 public interface ApplicationRolesResolver {
-    String[]  getRoles(AuthenticatedUser authenticatedUser, String applicationId);
+    String[]  getRoles(AuthenticatedUser authenticatedUser, int applicationId);
 }
