@@ -2139,9 +2139,11 @@
 
         <!--Timeouts for callChore token call and adaptive endpoint-->
         <!--Default timeout in milliseconds-->
-        <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
-        <HTTPReadTimeout>1000</HTTPReadTimeout>
-        <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+        <CallChoreo>
+            <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>1000</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+        </CallChoreo>
         <!--End of default configs for callChore timeouts-->
 
         <!--Whether to use authenticator name or display name in authenticationOptions-->
