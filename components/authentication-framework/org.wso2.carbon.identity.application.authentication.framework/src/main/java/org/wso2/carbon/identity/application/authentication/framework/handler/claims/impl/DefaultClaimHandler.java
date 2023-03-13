@@ -26,6 +26,7 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -39,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -137,6 +139,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (idPClaimMappings == null) {
             idPClaimMappings = new ClaimMapping[0];
         }
+
+        handleApplicationRolesForFederatedUser(context, idPClaimMappings);
 
         Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getClaimMappings();
@@ -554,6 +558,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
+
+        handleApplicationRolesForLocalUser(context);
 
         // Insert the runtime claims from the context. The priority is for runtime claims.
         allLocalClaims.putAll(context.getRuntimeClaims());
@@ -1098,6 +1104,69 @@ public class DefaultClaimHandler implements ClaimHandler {
                         .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
             }
         }
+    }
+
+    private void handleApplicationRolesForFederatedUser(AuthenticationContext context,
+                                                          ClaimMapping[] idPClaimMappings) {
+        if (idPClaimMappings != null) {
+            boolean hasAppRoleClaimMapping = false;
+            for (ClaimMapping claimMapping : idPClaimMappings) {
+                if (claimMapping.getLocalClaim().getClaimUri().equals(FrameworkConstants.APP_ROLES_CLAIM)) {
+                    hasAppRoleClaimMapping = true;
+                    break;
+                }
+            }
+            String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
+                    .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
+            boolean isResponseTypeCode = Arrays.asList(context.getAuthenticationRequest().
+                    getRequestQueryParam("response_type")).contains("code");
+            AppRoleMappingConfig[] appRoleMappingConfigs = context.getSequenceConfig().getApplicationConfig()
+                    .getServiceProvider().getApplicationRoleMappingConfig();
+            String fidpName = context.getSequenceConfig().getAuthenticatedUser().getFederatedIdPName();
+            boolean useAppRoleMapping = false;
+            for (AppRoleMappingConfig appRoleMappingConfig : appRoleMappingConfigs) {
+                if (appRoleMappingConfig.getIdPName().equals(fidpName)) {
+                    useAppRoleMapping = appRoleMappingConfig.isUseAppRoleMappings();
+                    break;
+                }
+            }
+            if (hasAppRoleClaimMapping && (isResponseTypeCode || requestedAppRoleClaim != null)) {
+                String appRoles;
+                if (useAppRoleMapping) {
+                    appRoles = getApplicationRoles(context);
+                    if (appRoles != null) {
+                        context.addRuntimeClaim(FrameworkConstants.APP_ROLES_CLAIM, appRoles);
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleApplicationRolesForLocalUser(AuthenticationContext context) {
+        String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
+                .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
+        if (requestedAppRoleClaim != null) {
+            String appRoles = getApplicationRoles(context);
+            if (appRoles != null) {
+                context.addRuntimeClaim(FrameworkConstants.APP_ROLES_CLAIM, appRoles);
+            }
+        }
+    }
+
+    private String getApplicationRoles(AuthenticationContext context) {
+
+        AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+        int applicationId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
+
+        ApplicationRolesResolver appRolesResolver =  FrameworkServiceDataHolder.getInstance()
+                .getApplicationRolesResolver();
+        if (appRolesResolver != null) {
+            String[] appRoles = appRolesResolver.getRoles(authenticatedUser, applicationId);
+            if (appRoles != null) {
+                return String.join(FrameworkUtils.getMultiAttributeSeparator(), appRoles);
+            }
+        }
+        return null;
     }
 
     private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
