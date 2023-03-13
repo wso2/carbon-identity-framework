@@ -162,6 +162,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final String TARGET_APPLICATION = "APPLICATION";
     private static final String USER = "USER";
     private static final String MEDIA_TYPE_XML = "application/xml";
+    private static final String[] VALID_MEDIA_TYPES_XML = {"application/xml", "text/xml"};
+    private static final String[] VALID_MEDIA_TYPES_YAML = {"application/yaml", "text/yaml", "application/x-yaml"};
+    private static final String[] VALID_MEDIA_TYPES_JSON = {"application/json", "text/json"};
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -1292,28 +1295,61 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    /**
+     * Import Service Provider application from file.
+     *
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     * @deprecated Use {@link #importSPApplication(SpFileContent, String, String, String, boolean)} instead.
+     */
+    @Deprecated
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
         return importSPApplication(spFileContent, tenantDomain, username, MEDIA_TYPE_XML, isUpdate);
     }
 
+    /**
+     * Import Service Provider application from file.
+     *
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param fileType      Type of file being imported.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               String fileType, boolean isUpdate)
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Importing service provider from file " + spFileContent.getFileName());
+            log.debug("Importing service provider from file " + spFileContent.getFileName()
+                       + " file type " + fileType);
+        }
+
+        if (StringUtils.isEmpty(spFileContent.getContent())) {
+            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file "
+                    + " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
         }
 
         ServiceProvider serviceProvider;
 
-        if (fileType.contains("yaml")) {
-            serviceProvider = deserializationSP(spFileContent, tenantDomain);
-        } else if (fileType.contains("json")) {
-            serviceProvider = objectMapperSP(spFileContent, tenantDomain);
+        if (Arrays.asList(VALID_MEDIA_TYPES_XML).contains(fileType)) {
+            serviceProvider = parseServiceProviderFromXml(spFileContent, tenantDomain);
+        } else if (Arrays.asList(VALID_MEDIA_TYPES_YAML).contains(fileType)) {
+            serviceProvider = parseServiceProviderFromYaml(spFileContent, tenantDomain);
+        } else if (Arrays.asList(VALID_MEDIA_TYPES_JSON).contains(fileType)) {
+            serviceProvider = parseServiceProviderFromJson(spFileContent, tenantDomain);
         } else {
-            serviceProvider = unmarshalSP(spFileContent, tenantDomain);
+            log.warn("Unsupported file type " + fileType + " for file " + spFileContent.getFileName() + " . " +
+                    "Defaulting to XML parsing");
+            serviceProvider = parseServiceProviderFromXml(spFileContent, tenantDomain);
         }
 
         ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
@@ -1326,6 +1362,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Import Service Provider application from object.
+     *
+     * @param serviceProvider Service Provider object.
+     * @param tenantDomain    Tenant Domain name.
+     * @param username        User performing the operation.
+     * @param isUpdate        Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException
+     */
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1432,6 +1478,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     @Override
     public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
@@ -1440,24 +1495,52 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return marshalSP(serviceProvider, tenantDomain);
     }
 
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     @Override
     public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Exporting service provider from application ID " + applicationId);
+        }
+
         ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+
         if (application == null) {
             throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
                     "for the provided resourceId: " + applicationId);
         }
         String appName = application.getApplicationName();
+
         try {
             startTenantFlow(tenantDomain);
             return exportSP(appName, exportSecrets, tenantDomain);
         } finally {
             endTenantFlow();
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Service provider %s@%s exported successfully", appName, tenantDomain));
+            }
         }
+
     }
 
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -1465,8 +1548,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return marshalSP(serviceProvider, tenantDomain);
     }
 
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Exporting service provider " + applicationName + " from tenant " + tenantDomain);
+        }
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
         // Invoking the listeners.
@@ -1476,7 +1572,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 listener.doExportServiceProvider(serviceProvider, exportSecrets);
             }
         }
-       return serviceProvider;
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Service provider %s@%s exported successfully", applicationName, tenantDomain));
+        }
+
+        return serviceProvider;
     }
 
     @Override
@@ -1979,52 +2080,29 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    /**
-     * Convert yml file of service provider to object.
-     *
-     * @param spFileContent YAML string of the SP and file name.
-     * @param tenantDomain  Tenant domain name.
-     * @return Service Provider.
-     * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     */
-    private ServiceProvider deserializationSP(SpFileContent spFileContent, String tenantDomain)
+    private ServiceProvider parseServiceProviderFromXml(SpFileContent spFileContent, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (StringUtils.isEmpty(spFileContent.getContent())) {
-            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
-                    " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
-        }
+        return unmarshalSP(spFileContent.getContent(), tenantDomain);
+    }
+
+    private ServiceProvider parseServiceProviderFromYaml(SpFileContent spFileContent, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         try {
             Yaml yaml = new Yaml(new Constructor(ServiceProvider.class));
-            ServiceProvider serviceProvider = yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
-            return serviceProvider;
+            return yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
         } catch (YAMLException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }
     }
 
-    /**
-     * Convert json file of service provider to object.
-     *
-     * @param spFileContent JSON string of the SP and file name.
-     * @param tenantDomain  Tenant domain name.
-     * @return Service Provider.
-     * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     */
-    private ServiceProvider objectMapperSP(SpFileContent spFileContent, String tenantDomain)
+    private ServiceProvider parseServiceProviderFromJson(SpFileContent spFileContent, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (StringUtils.isEmpty(spFileContent.getContent())) {
-            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file" +
-                    " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
-        }
-
         try {
-            ServiceProvider serviceProvider = new ObjectMapper().readValue(spFileContent.getContent(),
-                                                                            ServiceProvider.class);
-            return serviceProvider;
+            return new ObjectMapper().readValue(spFileContent.getContent(), ServiceProvider.class);
         } catch (JsonProcessingException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);

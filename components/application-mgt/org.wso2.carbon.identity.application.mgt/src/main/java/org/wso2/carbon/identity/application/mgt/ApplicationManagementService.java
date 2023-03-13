@@ -245,10 +245,10 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Export Service Provider application using application ID.
      *
-     * @param applicationId ID of the SP
-     * @param exportSecrets Specify whether to export the secrets or not.
-     * @param tenantDomain  Tenant domain
-     * @return xml string of the SP
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return XML string of the Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
@@ -260,9 +260,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Export Service Provider application using application ID.
      *
-     * @param applicationId ID of the SP.
-     * @param exportSecrets Specify whether to export the secrets or not.
-     * @param tenantDomain  Tenant domain.
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
      * @return Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
@@ -275,10 +275,10 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Export Service Provider application.
      *
-     * @param applicationName name of the SP
-     * @param exportSecrets   is export the secrets
-     * @param tenantDomain    tenant Domain
-     * @return xml string of the SP
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return XML string of the Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     public abstract String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
@@ -287,9 +287,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Export Service Provider application.
      *
-     * @param applicationName name of the SP.
-     * @param exportSecrets   is export the secrets.
-     * @param tenantDomain    tenant Domain.
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
      * @return Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
@@ -299,12 +299,13 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Import Service Provider application from file.
      *
-     * @param spFileContent xml string of the SP and file name
-     * @param tenantDomain  tenant Domain
-     * @param username      username
-     * @param isUpdate      isUpdate
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
      * @return ImportResponse
-     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     * @deprecated Use {@link #importSPApplication(SpFileContent, String, String, String, boolean)} instead.
      */
     @Deprecated
     public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
@@ -313,11 +314,11 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Import Service Provider application from file.
      *
-     * @param spFileContent xml string of the SP and file name.
-     * @param tenantDomain  tenant Domain.
-     * @param username      username.
-     * @param fileType      file type.
-     * @param isUpdate      isUpdate.
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param fileType      Type of file being imported.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
      * @return ImportResponse.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
@@ -327,10 +328,10 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Import Service Provider application from object.
      *
-     * @param serviceProvider
-     * @param tenantDomain
-     * @param username
-     * @param isUpdate
+     * @param serviceProvider Service Provider object.
+     * @param tenantDomain    Tenant Domain name.
+     * @param username        User performing the operation.
+     * @param isUpdate        Whether to update an existing Service Provider or create a new one.
      * @return ImportResponse
      * @throws IdentityApplicationManagementException
      */
