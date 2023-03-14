@@ -59,11 +59,11 @@ public class PreferenceRetrievalClient {
     private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
-    private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
+    private static final String LOGIN_RESOLVER_PROPERTY = "account.login.resolver.handler.enable";
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
     private static final String RECOVERY_CONNECTOR = "account-recovery";
-    private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
+    private static final String LOGIN_RESOLVER_HANDLER = "login.resolver.handler";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_VALUE = "value";
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
@@ -171,7 +171,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean checkMultiAttributeLogin(String tenant) throws PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, MULTI_ATTRIBUTE_LOGIN_HANDLER, MULTI_ATTRIBUTE_LOGIN_PROPERTY);
+        return checkPreference(tenant, LOGIN_RESOLVER_HANDLER, LOGIN_RESOLVER_PROPERTY);
     }
 
     /**

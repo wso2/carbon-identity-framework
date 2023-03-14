@@ -24,7 +24,11 @@ import java.util.List;
 
 /**
  * This interface is used to implement a user name resolver class.
+ *
+ * @deprecated To generalize the resolver concept and make it extensible.
+ * Use the {@link org.wso2.carbon.identity.login.resolver.mgt.LoginResolver} class instead.
  */
+@Deprecated
 public interface MultiAttributeLoginResolver {
 
     /**

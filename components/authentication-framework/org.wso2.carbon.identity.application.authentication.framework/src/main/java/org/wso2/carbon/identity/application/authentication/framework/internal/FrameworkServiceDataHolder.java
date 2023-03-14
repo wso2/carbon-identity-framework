@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.login.resolver.mgt.LoginResolverService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -96,6 +97,7 @@ public class FrameworkServiceDataHolder {
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
     private ServerSessionManagementService serverSessionManagementService;
+    private LoginResolverService loginResolverService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
@@ -235,11 +237,31 @@ public class FrameworkServiceDataHolder {
         this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }
 
+    public LoginResolverService getLoginResolverService() {
+
+        return loginResolverService;
+    }
+
+    public void setLoginResolverService(LoginResolverService loginResolverService) {
+
+        this.loginResolverService = loginResolverService;
+    }
+
+    /**
+     * @deprecated To generalize the resolver concept and make it extensible.
+     * Use the {@link #getLoginResolverService()} method instead.
+     */
+    @Deprecated
     public MultiAttributeLoginService getMultiAttributeLoginService() {
 
         return multiAttributeLoginService;
     }
 
+    /**
+     * @deprecated To generalize the resolver concept and make it extensible.
+     * Use the {@link #setLoginResolverService(LoginResolverService)} ()} method instead.
+     */
+    @Deprecated
     public void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLoginService) {
 
         this.multiAttributeLoginService = multiAttributeLoginService;
