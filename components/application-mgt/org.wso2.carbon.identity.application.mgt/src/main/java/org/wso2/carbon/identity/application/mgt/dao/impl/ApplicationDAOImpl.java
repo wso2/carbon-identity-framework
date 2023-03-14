@@ -178,7 +178,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String FILTER_EQUALS = "eq";
     private static final String FILTER_CONTAINS = "co";
     private static final Map<String, String> SUPPORTED_SEARCH_ATTRIBUTE_MAP = new HashMap<>();
-    
+
     static {
         SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(NAME_SP_PROPERTY_NAME, "SP_APP.APP_NAME");
         SUPPORTED_SEARCH_ATTRIBUTE_MAP.put(CLIENT_ID_SP_PROPERTY_NAME, "SP_INBOUND_AUTH.INBOUND_AUTH_KEY");
