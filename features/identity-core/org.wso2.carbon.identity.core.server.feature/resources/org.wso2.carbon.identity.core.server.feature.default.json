@@ -249,6 +249,7 @@
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,
+  "passive_sts.disable_applies_to_in_response": false,
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
