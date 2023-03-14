@@ -24,6 +24,11 @@ package org.wso2.carbon.identity.application.mgt;
  * TODO : Make the queries configurable from a file TODO : Use transactions and joins
  * SQL queries are internal implementation of the DAO layer and should not be exposed to components outside
  */
+
+/**
+ * @deprecated Use {@link org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries}
+ * instead.
+ */
 @Deprecated
 public class ApplicationMgtDBQueries {
 
