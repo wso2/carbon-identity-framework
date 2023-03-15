@@ -51,6 +51,8 @@ public class ServiceProvider implements Serializable {
     private static final String TEMPLATE_ID = "TemplateId";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
+    private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+
     @XmlTransient
     private int applicationID = 0;
 
@@ -122,6 +124,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_MANAGEMENT_APP)
     private boolean isManagementApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
+    private boolean isB2BSelfServiceApp;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -513,6 +519,16 @@ public class ServiceProvider implements Serializable {
     public void setManagementApp(boolean managementApp) {
 
         isManagementApp = managementApp;
+    }
+
+    public boolean isB2BSelfServiceApp() {
+
+        return isB2BSelfServiceApp;
+    }
+
+    public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
+
+        this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 }
 
