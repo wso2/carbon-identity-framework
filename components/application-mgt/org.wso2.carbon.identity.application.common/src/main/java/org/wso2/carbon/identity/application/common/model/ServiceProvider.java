@@ -194,8 +194,8 @@ public class ServiceProvider implements Serializable {
                                 .build(element));
             }  else if ("ApplicationRoleMappingConfigs".equals(elementName)) {
                 Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
-                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new
-                        ArrayList<>();
+                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = 
+                        new ArrayList<>();
 
                 if (applicationRoleMappingTypeIter != null) {
                     while (applicationRoleMappingTypeIter.hasNext()) {

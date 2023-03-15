@@ -283,6 +283,7 @@ public class ApplicationMgtDBQueries {
     public static final String SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
 
     public static final String GET_IDP_NAME_BY_IDP_ID = "SELECT NAME FROM IDP WHERE ID = ?";
+    
     public static final String LOAD_IDP_AND_AUTHENTICATOR_NAMES = "SELECT A.NAME, B.NAME, " +
             "B.DISPLAY_NAME FROM IDP A JOIN IDP_AUTHENTICATOR B ON A.ID = B.IDP_ID WHERE B.ID =? AND ((A.TENANT_ID =?" +
             " AND B.TENANT_ID =?) OR  (A.TENANT_ID=? AND A.NAME LIKE 'SHARED_%' AND B.TENANT_ID=?))";
