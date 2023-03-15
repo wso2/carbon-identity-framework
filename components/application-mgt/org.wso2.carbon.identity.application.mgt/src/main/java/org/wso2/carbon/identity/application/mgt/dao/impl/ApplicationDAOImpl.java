@@ -1503,11 +1503,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (applicationRoleMappingConfigs != null) {
                 for (AppRoleMappingConfig applicationRoleMappingConfig : applicationRoleMappingConfigs) {
 
-                    // get idp id using idp name
+                    // Get idp id using idp name.
                     int idpId = getIdPId(connection, tenantID, applicationRoleMappingConfig.getIdPName());
 
                     updateAppRoleMappingPrepStmt.setInt(1, applicationId);
-
                     updateAppRoleMappingPrepStmt.setInt(2, idpId);
                     updateAppRoleMappingPrepStmt.setString(3, APP_ROLE_MAPPINGS_KEY);
                     updateAppRoleMappingPrepStmt.setString(4, applicationRoleMappingConfig
@@ -2890,7 +2889,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (getAppRoleMappingConfigResultSet.next()) {
                 String attrKey = getAppRoleMappingConfigResultSet.getString(3);
-                if (attrKey.equals(APP_ROLE_MAPPINGS_KEY)) {
+                if (APP_ROLE_MAPPINGS_KEY.equals(attrKey)) {
                     int idpId = getAppRoleMappingConfigResultSet.getInt(2);
                     String idpName = getIdPName(connection, idpId);
                     AppRoleMappingConfig appRoleMappingConfig = new AppRoleMappingConfig();
