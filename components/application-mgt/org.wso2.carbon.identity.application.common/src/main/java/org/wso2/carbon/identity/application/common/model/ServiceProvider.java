@@ -45,6 +45,8 @@ public class ServiceProvider implements Serializable {
 
     private static final long serialVersionUID = 4754526832588478582L;
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
+    private static final String APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER = "ApplicationRoleMappingConfigs";
+    private static final String APPLICATION_ROLE_MAPPING_CONFIG = "ApplicationRoleMappingConfig";
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
     private static final String ACCESS_URL = "AccessUrl";
@@ -84,8 +86,8 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
 
-    @XmlElementWrapper(name = "ApplicationRoleMappingConfigs")
-    @XmlElement(name = "ApplicationRoleMappingConfig")
+    @XmlElementWrapper(name = APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER)
+    @XmlElement(name = APPLICATION_ROLE_MAPPING_CONFIG)
     private AppRoleMappingConfig[] applicationRoleMappingConfig = new AppRoleMappingConfig[0];
 
     @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
@@ -204,10 +206,10 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(LocalAndOutboundAuthenticationConfig
                                 .build(element));
-            }  else if ("ApplicationRoleMappingConfigs".equals(elementName)) {
+            }  else if (APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER.equals(elementName)) {
+                // Build application role mapping configurations.
                 Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
-                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = 
-                        new ArrayList<>();
+                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new ArrayList<>();
 
                 if (applicationRoleMappingTypeIter != null) {
                     while (applicationRoleMappingTypeIter.hasNext()) {
