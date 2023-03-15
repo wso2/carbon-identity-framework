@@ -452,6 +452,15 @@
         </SupportedGrantTypes>
 
         <!--
+            Defines the grant types which are supported for a client to be authorized as a public client.
+        -->
+        <PublicClientSupportedGrantTypes>
+        {% for grantTypeName in oauth.public_client_support.grant_type_names %}
+            <GrantTypeName>{{grantTypeName}}</GrantTypeName>
+        {% endfor %}
+        </PublicClientSupportedGrantTypes>
+
+        <!--
             Defines the grant types that will filter user claims based on user consent in their responses such as
             id_token or user info response.
 
@@ -896,6 +905,21 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <JWT>
+            <RenewTokenWithoutRevokingExisting>
+                <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
+                {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
+                <AllowedGrantTypes>
+                    {% for allowed_grant_type in oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types %}
+                    <AllowedGrantType>{{allowed_grant_type}}</AllowedGrantType>
+                    {% endfor %}
+                </AllowedGrantTypes>
+                {% endif %}
+            </RenewTokenWithoutRevokingExisting>
+        </JWT>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
@@ -998,6 +1022,7 @@
         <RetryURL>{{passive_sts.endpoints.retry}}</RetryURL>
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
+        <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
     </PassiveSTS>
 
     <EntitlementSettings>
@@ -2904,6 +2929,15 @@
         <HTTPReadTimeout>{{authentication.adaptive.http_connections.read_timeout}}</HTTPReadTimeout>
         <HTTPConnectionRequestTimeout>{{authentication.adaptive.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
         <!--End of default configs for timeouts-->
+
+        <!--Timeouts for callChore token call and adaptive endpoint-->
+        <!--Default timeout in milliseconds-->
+        <CallChoreo>
+          <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
+          <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
+          <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+        </CallChoreo>
+        <!--End of default configs for callChore timeouts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->
