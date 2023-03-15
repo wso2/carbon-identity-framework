@@ -67,6 +67,7 @@ public class ApplicationMgtDBQueries {
 
     public static final String UPDATE_SP_IDP_ATTR = "INSERT INTO SP_IDP_ATTR (APP_ID, IDP_ID, ATTR_KEY, " +
             "ATTR_VALUE) VALUES (?,?,?,?)";
+
     public static final String DELETE_SP_IDP_ATTR = "DELETE FROM SP_IDP_ATTR WHERE APP_ID = ? AND ATTR_KEY = ?";
 
     public static final String STORE_ROLE_MAPPING =
@@ -216,8 +217,7 @@ public class ApplicationMgtDBQueries {
             "IS_MANDATORY, DEFAULT_VALUE " +
             "FROM SP_CLAIM_MAPPING WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_SP_IDP_ATTR_BY_APP_ID_AND_ATTR_KEY = "SELECT APP_ID, IDP_ID, ATTR_KEY, " +
-            "ATTR_VALUE " +
-            "FROM SP_IDP_ATTR WHERE APP_ID = ? AND ATTR_KEY = ?";
+            "ATTR_VALUE FROM SP_IDP_ATTR WHERE APP_ID = ? AND ATTR_KEY = ?";
     public static final String LOAD_CLAIM_MAPPING_BY_APP_NAME = "SELECT IDP_CLAIM, SP_CLAIM, IS_REQUESTED," +
             " IS_MANDATORY, DEFAULT_VALUE "
             + "FROM SP_CLAIM_MAPPING WHERE APP_ID = (SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?)";

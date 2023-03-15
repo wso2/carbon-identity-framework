@@ -35,14 +35,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "ApplicationRoleMappingConfig")
 public class AppRoleMappingConfig implements Serializable {
 
-    private static final long serialVersionUID = 497647508006862448L;
+    private static final long serialVersionUID = -1870576785207238676L;
+    private static final String IDP_NAME = "IdPName";
+    private static final String USE_APP_ROLE_MAPPINGS = "UseAppRoleMappings";
 
-    @XmlElement(name = "IdPName")
+    @XmlElement(name = IDP_NAME)
     private String idPName;
 
-    @XmlElement(name = "UseAppRoleMappings")
+    @XmlElement(name = USE_APP_ROLE_MAPPINGS)
     private boolean useAppRoleMappings;
 
+    /**
+     * Build ApplicationRoleMappingConfig from OMElement.
+     *
+     * @param applicationRoleMappingConfigOM OMElement
+     * @return ApplicationRoleMappingConfig
+     */
     public static AppRoleMappingConfig build(OMElement applicationRoleMappingConfigOM) {
 
         AppRoleMappingConfig applicationRoleMappingType = new AppRoleMappingConfig();
@@ -50,9 +58,9 @@ public class AppRoleMappingConfig implements Serializable {
 
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
-            if ("IdPName".equals(omElement.getLocalName())) {
+            if (IDP_NAME.equals(omElement.getLocalName())) {
                 applicationRoleMappingType.setIdPName(omElement.getText());
-            } else if ("UseAppRoleMappings".equals(omElement.getLocalName())) {
+            } else if (USE_APP_ROLE_MAPPINGS.equals(omElement.getLocalName())) {
                 applicationRoleMappingType.setUseAppRoleMappings(Boolean.parseBoolean(omElement.getText()));
             }
         }
