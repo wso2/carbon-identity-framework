@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
@@ -281,6 +282,20 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");
         }
+    }
+
+    @Override
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig;
+        ServiceProvider application = getApplicationFromCacheByResourceId(applicationID, tenantDomain);
+        if (application != null) {
+            localAndOutboundAuthenticationConfig = application.getLocalAndOutBoundAuthenticationConfig();
+        } else {
+            localAndOutboundAuthenticationConfig = appDAO.getConfiguredAuthenticators(applicationID, tenantDomain);
+        }
+        return localAndOutboundAuthenticationConfig;
     }
 
     public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)

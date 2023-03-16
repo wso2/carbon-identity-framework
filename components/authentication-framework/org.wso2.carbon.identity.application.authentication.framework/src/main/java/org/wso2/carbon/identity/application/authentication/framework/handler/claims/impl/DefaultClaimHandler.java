@@ -160,7 +160,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
-        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect()
+                || idPClaimMappings.length == 0;
 
         // When null the local claim dialect will be used.
         String idPStandardDialect = null;
