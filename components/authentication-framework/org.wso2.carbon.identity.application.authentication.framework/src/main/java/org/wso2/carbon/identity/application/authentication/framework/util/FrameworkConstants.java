@@ -69,6 +69,7 @@ public abstract class FrameworkConstants {
     public static final String REMAINING_ATTEMPTS = "remainingAttempts";
     public static final String FAILED_USERNAME = "failedUsername";
     public static final String LOCK_REASON = "lockedReason";
+    public static final String NOT_SATISFY_PREREQUISITES_REASON = "NotSatisfyAuthenticatorPrerequisitesReason";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.

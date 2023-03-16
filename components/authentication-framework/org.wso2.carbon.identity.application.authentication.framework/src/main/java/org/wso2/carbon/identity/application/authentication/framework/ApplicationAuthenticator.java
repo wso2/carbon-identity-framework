@@ -109,4 +109,16 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return new String[0];
     }
+
+    /**
+     * Check whether user satisfies all the pre-requisites of the authenticator to be authenticated with.
+     *
+     * @param request       Request which comes to the framework for authentication.
+     * @param context       Authentication context.
+     * @return boolean if satisfies all the pre-requisites of the authenticator.
+     */
+    default boolean isSatisfyAuthenticatorPrerequisites(HttpServletRequest request, AuthenticationContext context)
+            throws AuthenticationFailedException {
+        return true;
+    }
 }

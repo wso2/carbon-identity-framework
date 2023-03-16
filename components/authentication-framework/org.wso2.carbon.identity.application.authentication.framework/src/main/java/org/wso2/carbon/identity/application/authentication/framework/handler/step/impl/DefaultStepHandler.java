@@ -317,13 +317,56 @@ public class DefaultStepHandler implements StepHandler {
                 boolean isAuthFlowHandlerOrBasicAuthInMultiOptionStep = false;
                 AuthenticatorConfig authenticatorConfig = null;
 
+                List<AuthenticatorConfig> filteredAuthConfigList = new ArrayList<>();
+
+                /*
+                 Check user satisfies all the prerequisites of each authenticator and append only filtered
+                 authenticator to the redirection URL.
+                */
+                for (AuthenticatorConfig authConfig : authConfigList) {
+                    ApplicationAuthenticator authenticator = authConfig.getApplicationAuthenticator();
+                    try {
+                        if (authenticator != null && authenticator
+                                .isSatisfyAuthenticatorPrerequisites(request, context)) {
+                            filteredAuthConfigList.add(authConfig);
+                        }
+                    } catch (AuthenticationFailedException e) {
+                        throw new FrameworkException(e.getErrorCode(), e.getMessage(), e);
+                    }
+                }
+
+                /*
+                 If filtered autheticator list for the auth step is empty, and unfiltered list is not empty, redirect
+                 user to an error page to indicate user does not satisfy pre-requisites any of the authencators
+                 configured to the auth step.
+                */
+                if (filteredAuthConfigList.isEmpty() & !authConfigList.isEmpty()) {
+                    try {
+                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                        URIBuilder uriBuilder = new URIBuilder(errorPage);
+
+                        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                            uriBuilder.addParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT,
+                                    context.getUserTenantDomain());
+                        }
+                        uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                        uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
+                                context.getContextIdentifier());
+
+                        response.sendRedirect(uriBuilder.build().toString());
+                        return;
+                    } catch (IOException | URISyntaxException e) {
+                        throw new FrameworkException(e.getMessage(), e);
+                    }
+                }
+
                 // Are there multiple authenticators?
-                if (authConfigList.size() > 1) {
+                if (filteredAuthConfigList.size() > 1) {
                     sendToPage = true;
                     // To identify whether multiple authentication options are available along with an authentication
                     // flow handler or basic authenticator. If available, doAuthentication will be executed before
                     // redirecting to the multi option page.
-                    for (AuthenticatorConfig config : authConfigList) {
+                    for (AuthenticatorConfig config : filteredAuthConfigList) {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) ||
                                 (config.getApplicationAuthenticator() instanceof LocalApplicationAuthenticator &&
                                         (BASIC_AUTH_MECHANISM).equalsIgnoreCase(config.getApplicationAuthenticator()
@@ -336,7 +379,7 @@ public class DefaultStepHandler implements StepHandler {
                     }
                 } else {
                     // Are there multiple IdPs in the single authenticator?
-                    authenticatorConfig = authConfigList.get(0);
+                    authenticatorConfig = filteredAuthConfigList.get(0);
                     if (authenticatorConfig.getIdpNames().size() > 1) {
                         sendToPage = true;
                     }
