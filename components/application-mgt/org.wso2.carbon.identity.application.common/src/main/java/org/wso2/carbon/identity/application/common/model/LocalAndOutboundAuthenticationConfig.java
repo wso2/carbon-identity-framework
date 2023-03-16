@@ -47,6 +47,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String SKIP_CONSENT = "SkipConsent";
     private static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
     private static final String USE_EXTERNAL_CONSENT_MANAGEMENT = "useExternalConsentManagement";
+    private static final String EXTERNAL_CONSENT_URL = "externalConsentUrl";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -92,6 +93,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     @XmlElement(name = USE_EXTERNAL_CONSENT_MANAGEMENT)
     private boolean useExternalConsentManagement = false;
+
+    @XmlElement(name = EXTERNAL_CONSENT_URL)
+    private String externalConsentUrl;
 
     @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
@@ -196,6 +200,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setUseExternalConsentManagement(true);
                 }
+            } else if (EXTERNAL_CONSENT_URL.equals(member.getLocalName())) {
+                localAndOutboundAuthenticationConfig.setExetrnalConsentUrl(member.getText());
             }
         }
 
@@ -360,5 +366,19 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setUseExternalConsentManagement(boolean useExternalConsentManagement) {
 
         this.useExternalConsentManagement = useExternalConsentManagement;
+    }
+
+    /**
+     * @return
+     */
+    public String getExternalConsentUrl() {
+        return externalConsentUrl;
+    }
+
+    /**
+     * @param externalConsentUrl
+     */
+    public void setExetrnalConsentUrl(String externalConsentUrl) {
+        this.externalConsentUrl = externalConsentUrl;
     }
 }
