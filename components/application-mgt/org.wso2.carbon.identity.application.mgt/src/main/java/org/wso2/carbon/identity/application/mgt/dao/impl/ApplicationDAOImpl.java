@@ -4782,18 +4782,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ServiceProviderProperty externalConsentURLProperty = new ServiceProviderProperty();
 
-        if (sp.getLocalAndOutBoundAuthenticationConfig().isExternalConsentManagement()) {
-            if (StringUtils.isNotBlank(sp.getLocalAndOutBoundAuthenticationConfig().getExternalConsentUrl())) {
-
-                externalConsentURLProperty.setName(EXTERNAL_CONSENT_URL);
-                externalConsentURLProperty.setDisplayName(EXTERNAL_CONSENT_URL_DISPLAY_NAME);
-                externalConsentURLProperty.setValue(sp.getLocalAndOutBoundAuthenticationConfig().
-                        getExternalConsentUrl());
-            } else {
-                throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
-                        "service provider: " + sp.getApplicationName());
-            }
+        if (sp.getLocalAndOutBoundAuthenticationConfig().isExternalConsentManagement() &&
+                StringUtils.isBlank(sp.getLocalAndOutBoundAuthenticationConfig().getExternalConsentUrl())) {
+            throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
+                    "service provider: " + sp.getApplicationName());
         }
+
+        externalConsentURLProperty.setName(EXTERNAL_CONSENT_URL);
+        externalConsentURLProperty.setDisplayName(EXTERNAL_CONSENT_URL_DISPLAY_NAME);
+        externalConsentURLProperty.setValue(sp.getLocalAndOutBoundAuthenticationConfig().
+                        getExternalConsentUrl());
+
         return externalConsentURLProperty;
     }
 
