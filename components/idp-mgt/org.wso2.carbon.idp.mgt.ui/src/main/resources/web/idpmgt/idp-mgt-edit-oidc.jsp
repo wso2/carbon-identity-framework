@@ -51,7 +51,6 @@
     String userInfoEndpoint = null;
     String logoutUrlOIDC = null;
     boolean isOIDCUserIdInClaims = false;
-    String scopes = StringUtils.EMPTY;
     String oidcQueryParam = StringUtils.EMPTY;
     
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
@@ -132,6 +131,11 @@
                     if (basicAuthEnabledProp != null) {
                         isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
+                    Property pkceEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_PKCE_ENABLED);
+                    if (pkceEnabledProp != null) {
+                        isOIDCPKCEEnabled = Boolean.parseBoolean(pkceEnabledProp.getValue());
+                    }
                 }
             }
         }
@@ -191,7 +195,7 @@
     if (StringUtils.isBlank(scopes) && !oidcQueryParam.toLowerCase().contains("scope=")) {
        scopes = "openid";
     }
-    
+
 %>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
 
@@ -375,6 +379,18 @@
                                type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.enable.basicauth.help'/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.pkce'/>:</td>
+                <td>
+                    <div class="sectionCheckbox">
+                        <input id="oidcPKCEEnabled" name="oidcPKCEEnabled"
+                               type="checkbox" <%=oidcPKCEEnabledChecked%> />
+                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.pkce.help'/>
                         </span>
                     </div>
                 </td>
