@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
+import org.wso2.carbon.identity.application.common.model.ExternalConsentManagementConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -2815,13 +2816,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
                 } else if (USE_EXTERNAL_CONSENT_MANAGEMENT.equals(name)) {
-                    localAndOutboundConfig.setUseExternalConsentManagement(Boolean.parseBoolean(value));
+                    getExternalConsentManagementConfig(localAndOutboundConfig)
+                            .setEnabled((Boolean.parseBoolean(value)));
                 } else if (EXTERNAL_CONSENT_URL.equals(name)) {
-                    localAndOutboundConfig.setExetrnalConsentUrl(value);
+                    getExternalConsentManagementConfig(localAndOutboundConfig).setExternalConsentUrl(value);
                 }
             }
         }
     }
+
+    private ExternalConsentManagementConfig getExternalConsentManagementConfig (
+            LocalAndOutboundAuthenticationConfig config) {
+
+        if (config.getExternalConsentManagement() == null) {
+            config.setExternalConsentManagement(new ExternalConsentManagementConfig());
+        }
+
+        return config.getExternalConsentManagement();
+    }
+
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
             throws SQLException, IdentityApplicationManagementException {
@@ -4769,11 +4782,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private ServiceProviderProperty buildUseExternalConsentManagementProperty(ServiceProvider sp) {
 
         ServiceProviderProperty useExternalConsentManagementProperty = new ServiceProviderProperty();
-        useExternalConsentManagementProperty.setName(USE_EXTERNAL_CONSENT_MANAGEMENT);
-        useExternalConsentManagementProperty.setDisplayName(USE_EXTERNAL_CONSENT_MANAGEMENT_DISPLAY_NAME);
 
-        useExternalConsentManagementProperty.setValue(
-                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isExternalConsentManagement()));
+        ExternalConsentManagementConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
+                .getExternalConsentManagement();
+        if (consentConfig != null) {
+            useExternalConsentManagementProperty.setName(USE_EXTERNAL_CONSENT_MANAGEMENT);
+            useExternalConsentManagementProperty.setDisplayName(USE_EXTERNAL_CONSENT_MANAGEMENT_DISPLAY_NAME);
+
+            useExternalConsentManagementProperty.setValue(String.valueOf(consentConfig.isEnabled()));
+        }
+
         return useExternalConsentManagementProperty;
     }
 
@@ -4782,20 +4800,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ServiceProviderProperty externalConsentURLProperty = new ServiceProviderProperty();
 
-        if (sp.getLocalAndOutBoundAuthenticationConfig().isExternalConsentManagement() &&
-                StringUtils.isBlank(sp.getLocalAndOutBoundAuthenticationConfig().getExternalConsentUrl())) {
-            throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
-                    "service provider: " + sp.getApplicationName());
+        ExternalConsentManagementConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
+                .getExternalConsentManagement();
+
+        if (consentConfig != null) {
+            if (consentConfig.isEnabled() && StringUtils.isBlank(consentConfig.getExternalConsentUrl())) {
+                throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
+                        "service provider: " + sp.getApplicationName());
+            }
+            externalConsentURLProperty.setName(EXTERNAL_CONSENT_URL);
+            externalConsentURLProperty.setDisplayName(EXTERNAL_CONSENT_URL_DISPLAY_NAME);
+
+            externalConsentURLProperty.setValue(consentConfig.getExternalConsentUrl());
         }
-
-        externalConsentURLProperty.setName(EXTERNAL_CONSENT_URL);
-        externalConsentURLProperty.setDisplayName(EXTERNAL_CONSENT_URL_DISPLAY_NAME);
-        externalConsentURLProperty.setValue(sp.getLocalAndOutBoundAuthenticationConfig().
-                        getExternalConsentUrl());
-
         return externalConsentURLProperty;
     }
-
+    
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
 
         ServiceProviderProperty property = new ServiceProviderProperty();

@@ -2731,55 +2731,6 @@ public class FrameworkUtils {
     }
 
     /**
-     * Check whether useExternalConsentManagement or not.
-     *
-     * @param serviceProvider Service provider.
-     * @return true/false Use the external consent management or not
-     */
-    public static boolean isUseExternalConsentManagementForSP(ServiceProvider serviceProvider) {
-
-        if (serviceProvider == null) {
-            throw new IllegalArgumentException("A null reference received for service provider.");
-        }
-        boolean isUseExternalConsentManagement = false;
-        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            isUseExternalConsentManagement = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isExternalConsentManagement();
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("UseExternalConsentManagement: " + isUseExternalConsentManagement + " for application: " +
-                    serviceProvider.getApplicationName() + " with id: " + serviceProvider.getApplicationID());
-        }
-
-        return isUseExternalConsentManagement;
-    }
-
-    /**
-     * Get the value of external consent url.
-     *
-     * @param serviceProvider Service provider.
-     * @return external consent url.
-     */
-    public static String getExternalConsentURLForSP(ServiceProvider serviceProvider) {
-
-        if (serviceProvider == null) {
-            throw new IllegalArgumentException("A null reference received for service provider.");
-        }
-        String externalConsentURL = null;
-        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            externalConsentURL = serviceProvider.getLocalAndOutBoundAuthenticationConfig().getExternalConsentUrl();
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("External Consent URL: " + externalConsentURL + " for application: " +
-                    serviceProvider.getApplicationName() + " with id: " + serviceProvider.getApplicationID());
-        }
-
-        return externalConsentURL;
-    }
-
-    /**
      * Check whether the specified column of the specified table exists in the Identity database.
      *
      * @param tableName name of the table.

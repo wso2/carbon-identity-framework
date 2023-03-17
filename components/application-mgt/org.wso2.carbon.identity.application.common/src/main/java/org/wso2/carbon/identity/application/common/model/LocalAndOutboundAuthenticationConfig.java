@@ -46,8 +46,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String USE_USERSTORE_DOMAIN_IN_ROLES = "UseUserstoreDomainInRoles";
     private static final String SKIP_CONSENT = "SkipConsent";
     private static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
-    private static final String USE_EXTERNAL_CONSENT_MANAGEMENT = "useExternalConsentManagement";
-    private static final String EXTERNAL_CONSENT_URL = "externalConsentUrl";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -56,6 +54,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_STEPS = "AuthenticationSteps";
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
+    private static final String EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION = "ExternalConsentManagementConfiguration";
 
     @XmlElementWrapper(name = "AuthenticationSteps")
     @XmlElement(name = "AuthenticationStep")
@@ -91,17 +90,14 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     @XmlElement(name = SKIP_LOGOUT_CONSENT)
     private boolean skipLogoutConsent = false;
 
-    @XmlElement(name = USE_EXTERNAL_CONSENT_MANAGEMENT)
-    private boolean useExternalConsentManagement = false;
-
-    @XmlElement(name = EXTERNAL_CONSENT_URL)
-    private String externalConsentUrl;
-
     @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
 
     @XmlElement(name = AUTHENTICATION_SCRIPT)
     private AuthenticationScriptConfig authenticationScriptConfig;
+
+    @XmlElement(name = EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION)
+    private ExternalConsentManagementConfig externalConsentManagementConfig;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -196,12 +192,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
                 }
-            } else if (USE_EXTERNAL_CONSENT_MANAGEMENT.equals(member.getLocalName())) {
-                if (Boolean.parseBoolean(member.getText())) {
-                    localAndOutboundAuthenticationConfig.setUseExternalConsentManagement(true);
-                }
-            } else if (EXTERNAL_CONSENT_URL.equals(member.getLocalName())) {
-                localAndOutboundAuthenticationConfig.setExetrnalConsentUrl(member.getText());
+            } else if (EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION.equals(member.getLocalName())) {
+                localAndOutboundAuthenticationConfig.externalConsentManagementConfig = ExternalConsentManagementConfig
+                        .build(member);
             }
         }
 
@@ -358,27 +351,14 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.skipLogoutConsent = skipLogoutConsent;
     }
 
-    public boolean isExternalConsentManagement() {
+    public ExternalConsentManagementConfig getExternalConsentManagement() {
 
-        return useExternalConsentManagement;
+        return externalConsentManagementConfig;
     }
 
-    public void setUseExternalConsentManagement(boolean useExternalConsentManagement) {
+    public void setExternalConsentManagement(ExternalConsentManagementConfig externalConsentManagementConfig) {
 
-        this.useExternalConsentManagement = useExternalConsentManagement;
+            this.externalConsentManagementConfig = externalConsentManagementConfig;
     }
 
-    /**
-     * @return
-     */
-    public String getExternalConsentUrl() {
-        return externalConsentUrl;
-    }
-
-    /**
-     * @param externalConsentUrl
-     */
-    public void setExetrnalConsentUrl(String externalConsentUrl) {
-        this.externalConsentUrl = externalConsentUrl;
-    }
 }
