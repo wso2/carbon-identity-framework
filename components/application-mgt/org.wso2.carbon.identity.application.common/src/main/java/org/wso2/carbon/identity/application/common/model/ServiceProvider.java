@@ -356,16 +356,24 @@ public class ServiceProvider implements Serializable {
     }
 
     /**
-     * @return
+     * Returns the application role mapping configuration which indicates whether an IdP should
+     * use application role mapping for IdP roles for this application.
+     *
+     * @return Application role mapping configuration.
      */
     public AppRoleMappingConfig[] getApplicationRoleMappingConfig() {
+
         return applicationRoleMappingConfig;
     }
 
     /**
-     * @param applicationRoleMappingConfig
+     * Sets the application role mapping configuration which indicates whether an IdP should use
+     * application role mapping for IdP roles for this application.
+     *
+     * @param applicationRoleMappingConfig The application role mapping configuration.
      */
     public void setApplicationRoleMappingConfig(AppRoleMappingConfig[] applicationRoleMappingConfig) {
+
         this.applicationRoleMappingConfig = applicationRoleMappingConfig;
     }
 

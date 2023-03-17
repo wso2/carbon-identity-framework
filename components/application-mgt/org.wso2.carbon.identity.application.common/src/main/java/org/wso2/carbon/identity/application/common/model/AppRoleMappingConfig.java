@@ -46,7 +46,8 @@ public class AppRoleMappingConfig implements Serializable {
     private boolean useAppRoleMappings;
 
     /**
-     * Build ApplicationRoleMappingConfig from OMElement.
+     * Build ApplicationRoleMappingConfig from OMElement which indicates whether the IdP will use mappings from
+     * idp-roles to application roles for the application.
      *
      * @param applicationRoleMappingConfigOM OMElement
      * @return ApplicationRoleMappingConfig
@@ -68,6 +69,8 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
+     * Returns the name of the federated IdP used for application role mapping.
+     *
      * @return IdPName
      */
     public String getIdPName() {
@@ -76,6 +79,8 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
+     * Sets the name of the federated IdP used for application role mapping.
+     *
      * @param idPName IdPName
      */
     public void setIdPName(String idPName) {
@@ -84,6 +89,8 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
+     * Returns whether the IdP will use mappings from idp-roles to application roles for the application.
+     *
      * @return useAppRoleMappings
      */
     public boolean isUseAppRoleMappings() {
@@ -92,6 +99,8 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
+     * Returns whether the IdP will use mappings from idp-roles to application roles for the application.
+     *
      * @param useAppRoleMappings useAppRoleMappings
      */
     public void setUseAppRoleMappings(boolean useAppRoleMappings) {
