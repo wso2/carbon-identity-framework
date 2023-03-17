@@ -2831,10 +2831,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (config.getExternalConsentManagement() == null) {
             config.setExternalConsentManagement(new ExternalConsentManagementConfig());
         }
-
         return config.getExternalConsentManagement();
     }
-
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
             throws SQLException, IdentityApplicationManagementException {
