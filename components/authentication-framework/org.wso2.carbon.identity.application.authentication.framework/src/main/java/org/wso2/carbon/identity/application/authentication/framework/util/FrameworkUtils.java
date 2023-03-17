@@ -96,6 +96,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
@@ -2728,6 +2729,56 @@ public class FrameworkUtils {
         }
 
         return isSkipLogoutConsent;
+    }
+
+    /**
+     * Check whether external consent management is enabled.
+     *
+     * @param serviceProvider Service provider.
+     * @return true/false external consent management is enabled or not.
+     */
+    public static boolean isExternalConsentManagementEnabledForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+        boolean isEnabled = false;
+        LocalAndOutboundAuthenticationConfig config = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        if (config != null && config.getExternalConsentManagement() != null) {
+            isEnabled = config.getExternalConsentManagement().isEnabled();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("externalConsentManagement: " + isEnabled + " for application: " +
+                    serviceProvider.getApplicationName() + " with id: " + serviceProvider.getApplicationID());
+        }
+
+        return isEnabled;
+    }
+
+    /**
+     * Get the external consent management url.
+     *
+     * @param serviceProvider Service provider.
+     * @return external consent url.
+     */
+    public static String getExternalConsentUrlForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+        String externalConsentUrl = "";
+        LocalAndOutboundAuthenticationConfig config = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        if (config != null && config.getExternalConsentManagement() != null) {
+            externalConsentUrl = config.getExternalConsentManagement().getExternalConsentUrl();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("externalConsentUrl: " + externalConsentUrl + " for application: " +
+                    serviceProvider.getApplicationName() + " with id: " + serviceProvider.getApplicationID());
+        }
+
+        return externalConsentUrl;
     }
 
     /**
