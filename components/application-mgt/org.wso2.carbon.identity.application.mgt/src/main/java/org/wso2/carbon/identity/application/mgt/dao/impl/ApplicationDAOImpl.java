@@ -1515,7 +1515,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (attributeStepFIdPs.contains(fidPName)) {
                         // Get idp id using idp name.
                         int idpId = getIdPId(connection, tenantID, applicationRoleMappingConfig.getIdPName());
-
                         updateAppRoleMappingPrepStmt.setInt(1, applicationId);
                         updateAppRoleMappingPrepStmt.setInt(2, idpId);
                         updateAppRoleMappingPrepStmt.setString(3, APP_ROLE_MAPPINGS_KEY);
