@@ -342,7 +342,7 @@ public class DefaultStepHandler implements StepHandler {
                 */
                 if (filteredAuthConfigList.isEmpty() & !authConfigList.isEmpty()) {
                     try {
-                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointErrorURL();
                         URIBuilder uriBuilder = new URIBuilder(errorPage);
 
                         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
