@@ -251,11 +251,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @return XML string of the Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
-                                               String tenantDomain) throws IdentityApplicationManagementException {
-
-        return null;
-    }
+    public abstract String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
+                                                        String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Export Service Provider application using application ID.
@@ -266,11 +264,8 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @return Service Provider.
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
      */
-    public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
-                                               String tenantDomain) throws IdentityApplicationManagementException {
-
-        return null;
-    }
+    public abstract ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Export Service Provider application.

@@ -1330,7 +1330,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (log.isDebugEnabled()) {
             log.debug("Importing service provider from file " + spFileContent.getFileName()
-                       + " file type " + fileType);
+                       + " of file type " + fileType);
         }
 
         if (StringUtils.isEmpty(spFileContent.getContent())) {
@@ -1375,16 +1375,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Importing service provider from object " + serviceProvider.getApplicationName());
-        }
-
         ImportResponse importResponse = importApplication(serviceProvider, tenantDomain, username, isUpdate);
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Service provider %s@%s created successfully from object",
-                    serviceProvider.getApplicationName(), tenantDomain));
-        }
 
         return importResponse;
     }
@@ -1508,16 +1499,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Exporting service provider from application ID " + applicationId);
-        }
-
         ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
 
         if (application == null) {
             throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
                     "for the provided resourceId: " + applicationId);
         }
+
         String appName = application.getApplicationName();
 
         try {
@@ -1525,9 +1513,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return exportSP(appName, exportSecrets, tenantDomain);
         } finally {
             endTenantFlow();
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Service provider %s@%s exported successfully", appName, tenantDomain));
-            }
         }
 
     }
@@ -1560,21 +1545,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Exporting service provider " + applicationName + " from tenant " + tenantDomain);
-        }
-
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
+
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
                 listener.doExportServiceProvider(serviceProvider, exportSecrets);
             }
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Service provider %s@%s exported successfully", applicationName, tenantDomain));
         }
 
         return serviceProvider;
