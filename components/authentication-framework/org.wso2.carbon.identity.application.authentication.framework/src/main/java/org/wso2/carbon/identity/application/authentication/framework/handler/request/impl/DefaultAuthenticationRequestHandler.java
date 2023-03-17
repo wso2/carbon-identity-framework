@@ -28,6 +28,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -40,12 +41,14 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -87,6 +90,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 
 /**
  * Default authentication request handler.
@@ -97,6 +101,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
+    private static String initialRequestSessionDataKey;
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 
@@ -120,7 +125,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AuthenticationContext context) throws FrameworkException {
+                       AuthenticationContext context) throws FrameworkException, CookieValidationFailedException {
 
         if (log.isDebugEnabled()) {
             log.debug("In authentication flow");
@@ -141,6 +146,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // if this is the start of the authentication flow
         if (currentStep == 0) {
+            FrameworkUtils.addAuthenticationRequestToCache(context.getCallerSessionKey(),
+                    (AuthenticationRequestCacheEntry) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_REQUEST));
             handleSequenceStart(request, response, context);
         }
 
@@ -178,8 +185,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         if (validateNonceCookie(request, context)) {
                             addOrUpdateNonceCookie = true;
                         } else {
-                            throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
-                                    "matching " +
+                            FrameworkUtils.setRestartLoginFlow(true);
+                            throw new CookieValidationFailedException( "Session nonce cookie value is not " + "matching " +
                                     "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
                         }
                     } else if (context.getProperty(nonceCookieName) == null) {
@@ -241,6 +248,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkServiceDataHolder.getInstance().getPostAuthenticationMgtService();
 
         if (context.getSequenceConfig().isCompleted()) {
+            FrameworkUtils.removeAuthenticationRequestFromCache(context.getCallerSessionKey());
             if (postAuthenticationMgtService != null) {
                 postAuthenticationMgtService.handlePostAuthentication(request, response, context);
             } else {

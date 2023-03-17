@@ -100,6 +100,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 
 /**
  * Request Coordinator
@@ -137,7 +138,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException,
+            CookieValidationFailedException {
 
         CommonAuthResponseWrapper responseWrapper = null;
         if (response instanceof CommonAuthResponseWrapper) {
@@ -185,7 +187,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         }
                     }
 
-                } else if (!isCommonAuthLogoutRequest(request)) {
+                } else if (!isCommonAuthLogoutRequest(request) && !FrameworkUtils.isRestartLoginFlow()) {
                     // sessionDataKey is null and not a common auth logout request
                     if (log.isDebugEnabled()) {
                         log.debug("Session data key is null in the request and not a logout request.");
@@ -361,6 +363,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     e.getErrorCode());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
+        } catch (CookieValidationFailedException e) {
+            throw new CookieValidationFailedException("cookie validation failed.", e);
         } catch (Exception e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
@@ -376,7 +380,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
-            unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            if (!FrameworkUtils.isRestartLoginFlow()) {
+                unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            }
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -557,7 +563,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         // "sessionDataKey" - calling servlet maintains its state information
         // using this
-        String callerSessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
+        String callerSessionDataKey;
+        if (FrameworkUtils.isRestartLoginFlow()) {
+            callerSessionDataKey = request.getParameter(FrameworkConstants.CALLER_SESSION_DATA_KEY);
+            FrameworkUtils.setRestartLoginFlow(false);
+        } else {
+            callerSessionDataKey = request.getParameter(FrameworkConstants.SESSION_DATA_KEY);
+        }
 
         // "commonAuthCallerPath" - path of the calling servlet. This is the url
         // response should be sent to

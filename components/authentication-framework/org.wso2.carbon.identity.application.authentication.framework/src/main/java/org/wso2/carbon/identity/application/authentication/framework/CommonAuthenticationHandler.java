@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
@@ -37,12 +38,12 @@ public class CommonAuthenticationHandler {
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, CookieValidationFailedException {
         doPost(request, response);
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, CookieValidationFailedException {
 
         if (FrameworkUtils.getMaxInactiveInterval() == 0) {
             FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());

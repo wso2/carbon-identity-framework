@@ -213,6 +213,8 @@ public class FrameworkUtils {
 
     private static Boolean authenticatorNameInAuthConfigPreference;
 
+    private static Boolean restartLoginFlow = false;
+
     private FrameworkUtils() {
     }
 
@@ -936,6 +938,14 @@ public class FrameworkUtils {
                                  Integer age, SameSiteCookie setSameSite) {
 
         setCookie(req, resp, cookieName, id, age, setSameSite, null);
+    }
+
+    public static Boolean isRestartLoginFlow() {
+        return restartLoginFlow;
+    }
+
+    public static void setRestartLoginFlow(Boolean status) {
+        restartLoginFlow = status;
     }
 
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,

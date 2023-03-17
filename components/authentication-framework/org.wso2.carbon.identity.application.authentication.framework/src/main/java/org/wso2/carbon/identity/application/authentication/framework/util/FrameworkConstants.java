@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 public abstract class FrameworkConstants {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String CALLER_SESSION_DATA_KEY = "callerSessionDataKey";
     public static final String QUERY_PARAMS = "commonAuthQueryParams";
     public static final String SUBJECT = "subject";
     public static final String DEFAULT_SEQUENCE = "default";
@@ -358,6 +359,7 @@ public abstract class FrameworkConstants {
         public static final String IDF = "idf";
         public static final String IDENTIFIER_CONSENT = "identifier_consent";
         public static final String RESTART_FLOW = "restart_flow";
+        public static final String RESTART_LOGIN_FLOW = "restart_login_flow";
         public static final String LOGIN_TENANT_DOMAIN = "t";
         public static final String USER_TENANT_DOMAIN_HINT = "ut";
         public static final String CORRELATION_ID = "crId";
