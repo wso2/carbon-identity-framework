@@ -259,7 +259,6 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
-
         public static final String QNAME_AUTHENTICATION_ENDPOINT_ERROR_URL = "AuthenticationEndpointErrorURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL = "IdentifierFirstConfirmationURL";
@@ -448,7 +447,6 @@ public abstract class FrameworkConstants {
 
         public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
         public static final String AUTHENTICATION_ENDPOINT_RETRY = "/authenticationendpoint/retry.do";
-
         public static final String AUTHENTICATION_ENDPOINT_ERROR = "/authenticationendpoint/error.do";
         public static final String AUTHENTICATION_ENDPOINT_WAIT = "/authenticationendpoint/wait.do";
         public static final String IDENTIFIER_FIRST_CONFIRMATION = "/authenticationendpoint/idf-confirm.do";
