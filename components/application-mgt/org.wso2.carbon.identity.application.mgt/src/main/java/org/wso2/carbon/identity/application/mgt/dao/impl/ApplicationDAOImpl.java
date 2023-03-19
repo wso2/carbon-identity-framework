@@ -1504,7 +1504,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         int applicationId = serviceProvider.getApplicationID();
-        List<String> attributeStepFIdPs =  getAttributeStepFIdPs(serviceProvider);
+        List<String> attributeStepFIdPs =
+                getAttributeStepFIdPs(serviceProvider.getLocalAndOutBoundAuthenticationConfig());
         deleteAppRoleMappingConfiguration(applicationId, connection);
 
         try (PreparedStatement updateAppRoleMappingPrepStmt = connection
@@ -4558,22 +4559,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Retrieves the list of federated IDPs in the attribute step of the service provider.
      *
-     * @param serviceProvider ServiceProvider object.
+     * @param localAndOutboundAuthenticationConfig Local and Outbound Authentication Configuration.
      * @return List of Federated IDPs in the attribute step.
      */
-    private List<String> getAttributeStepFIdPs (ServiceProvider serviceProvider) {
+    private List<String> getAttributeStepFIdPs(
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig) {
 
-        AuthenticationStep attributeAuthStep = serviceProvider.getLocalAndOutBoundAuthenticationConfig().
-                getAuthenticationStepForAttributes();
+        // If localAndOutboundAuthenticationConfig is null, no federated IDPs are configured.
+        if (localAndOutboundAuthenticationConfig == null) {
+            return new ArrayList<>();
+        }
+        AuthenticationStep attributeAuthStep =
+                localAndOutboundAuthenticationConfig.getAuthenticationStepForAttributes();
         IdentityProvider[] authStepFederatedIdentityProviders = null;
         if (attributeAuthStep == null) {
-            for (AuthenticationStep authenticationStep : serviceProvider.getLocalAndOutBoundAuthenticationConfig().
-                    getAuthenticationSteps()) {
-                if (authenticationStep.isAttributeStep()) {
-                    attributeAuthStep = authenticationStep;
-                    break;
-                }
-            }
+            attributeAuthStep = Arrays.stream(localAndOutboundAuthenticationConfig.getAuthenticationSteps()).
+                    filter(AuthenticationStep::isAttributeStep).findFirst().orElse(null);
         }
         if (attributeAuthStep != null) {
             authStepFederatedIdentityProviders = attributeAuthStep.getFederatedIdentityProviders();
