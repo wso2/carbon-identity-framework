@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
@@ -90,6 +91,7 @@ public class IdentityProvider implements Serializable {
     private static final String TEMPLATE_ID = "TemplateId";
 
     @XmlTransient
+    @JsonIgnore
     private String id;
 
     @XmlElement(name = "IdentityProviderName")
@@ -146,7 +148,10 @@ public class IdentityProvider implements Serializable {
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
 
     @XmlTransient
+    @JsonIgnore
     private IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+
+    @JsonIgnore
     private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
 
     @IgnoreNullElement
@@ -155,6 +160,7 @@ public class IdentityProvider implements Serializable {
 
     @IgnoreNullElement
     @XmlTransient
+    @JsonIgnore
     private String resourceId;
 
     @IgnoreNullElement

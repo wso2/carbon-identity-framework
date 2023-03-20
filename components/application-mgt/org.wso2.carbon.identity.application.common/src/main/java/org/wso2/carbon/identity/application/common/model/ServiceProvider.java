@@ -54,6 +54,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     @XmlTransient
+    @JsonIgnore
     private int applicationID = 0;
 
     @XmlElement(name = "ApplicationName")
@@ -73,6 +74,7 @@ public class ServiceProvider implements Serializable {
     private User owner;
 
     @XmlTransient
+    @JsonIgnore
     private String tenantDomain;
 
     @XmlElement(name = "InboundAuthenticationConfig")
@@ -101,10 +103,12 @@ public class ServiceProvider implements Serializable {
     private boolean saasApp;
 
     @XmlTransient
+    @JsonIgnore
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
     @IgnoreNullElement
     @XmlTransient
+    @JsonIgnore
     private String applicationResourceId;
 
     @IgnoreNullElement
