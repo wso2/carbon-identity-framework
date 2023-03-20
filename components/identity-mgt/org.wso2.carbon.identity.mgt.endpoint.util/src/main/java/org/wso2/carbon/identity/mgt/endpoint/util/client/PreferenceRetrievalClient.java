@@ -368,7 +368,7 @@ public class PreferenceRetrievalClient {
                     JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
                     for (int itemIndex = 0, totalObject = responseProperties.length(); itemIndex < totalObject; itemIndex++) {
                         JSONObject config = responseProperties.getJSONObject(itemIndex);
-                        if (Boolean.TRUE.equals(Boolean.valueOf(config.getString(PROPERTY_VALUE)))) {
+                        if (Boolean.parseBoolean(config.getString(PROPERTY_VALUE))) {
                             return true;
                         }
                     }
