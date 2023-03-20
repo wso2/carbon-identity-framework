@@ -66,6 +66,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeExistingNonceCookies;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 /**
@@ -148,6 +149,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // without waiting till a logout response is received from federated IDP.
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
+        // Remove all the existing nonce cookies if they persists.
+        removeExistingNonceCookies(request, response);
         // remove the cookie
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());

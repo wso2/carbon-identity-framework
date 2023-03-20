@@ -121,7 +121,6 @@ public class SessionNonceCookieUtil {
             FrameworkUtils.removeCookie(request, response, cookieName);
             context.removeProperty(cookieName);
         }
-        removeExistingNonceCookies(request, response);
     }
 
     /**
@@ -143,7 +142,7 @@ public class SessionNonceCookieUtil {
      * @param request HttpServletRequest
      * @param response HttpServletResponse
      */
-    private static void removeExistingNonceCookies(HttpServletRequest request, HttpServletResponse response) {
+    public static void removeExistingNonceCookies(HttpServletRequest request, HttpServletResponse response) {
 
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
