@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
