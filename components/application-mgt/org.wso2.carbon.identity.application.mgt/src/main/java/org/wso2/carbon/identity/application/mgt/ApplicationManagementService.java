@@ -300,25 +300,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @param isUpdate      Whether to update an existing Service Provider or create a new one.
      * @return ImportResponse
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     * @deprecated Use {@link #importSPApplication(SpFileContent, String, String, String, boolean)} instead.
      */
-    @Deprecated
     public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
             username, boolean isUpdate) throws IdentityApplicationManagementException;
-
-    /**
-     * Import Service Provider application from file.
-     *
-     * @param spFileContent XML string of the Service Provider and file name.
-     * @param tenantDomain  Tenant Domain name.
-     * @param username      User performing the operation.
-     * @param fileType      Type of file being imported.
-     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
-     * @return ImportResponse.
-     * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     */
-    public abstract ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String
-            username, String fileType, boolean isUpdate) throws IdentityApplicationManagementException;
 
     /**
      * Import Service Provider application from object.

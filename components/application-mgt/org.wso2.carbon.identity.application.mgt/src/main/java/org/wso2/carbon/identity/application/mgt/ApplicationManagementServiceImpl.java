@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -147,10 +145,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.error.YAMLException;
-
 /**
  * Application management service implementation.
  */
@@ -161,10 +155,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
     private static final String TARGET_APPLICATION = "APPLICATION";
     private static final String USER = "USER";
-    private static final String MEDIA_TYPE_XML = "application/xml";
-    private static final String[] VALID_MEDIA_TYPES_XML = {"application/xml", "text/xml"};
-    private static final String[] VALID_MEDIA_TYPES_YAML = {"application/yaml", "text/yaml", "application/x-yaml"};
-    private static final String[] VALID_MEDIA_TYPES_JSON = {"application/json", "text/json"};
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -1304,54 +1294,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @param isUpdate      Whether to update an existing Service Provider or create a new one.
      * @return ImportResponse
      * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     * @deprecated Use {@link #importSPApplication(SpFileContent, String, String, String, boolean)} instead.
      */
-    @Deprecated
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
-        return importSPApplication(spFileContent, tenantDomain, username, MEDIA_TYPE_XML, isUpdate);
-    }
-
-    /**
-     * Import Service Provider application from file.
-     *
-     * @param spFileContent XML string of the Service Provider and file name.
-     * @param tenantDomain  Tenant Domain name.
-     * @param username      User performing the operation.
-     * @param fileType      Type of file being imported.
-     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
-     * @return ImportResponse.
-     * @throws IdentityApplicationManagementException Identity Application Management Exception.
-     */
-    public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
-                                              String fileType, boolean isUpdate)
-            throws IdentityApplicationManagementException {
-
         if (log.isDebugEnabled()) {
-            log.debug("Importing service provider from file " + spFileContent.getFileName()
-                       + " of file type " + fileType);
+            log.debug("Importing service provider from file " + spFileContent.getFileName());
         }
 
-        if (StringUtils.isEmpty(spFileContent.getContent())) {
-            throw new IdentityApplicationManagementException(String.format("Empty Service Provider configuration file "
-                    + " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
-        }
-
-        ServiceProvider serviceProvider;
-
-        if (Arrays.asList(VALID_MEDIA_TYPES_XML).contains(fileType)) {
-            serviceProvider = parseServiceProviderFromXml(spFileContent, tenantDomain);
-        } else if (Arrays.asList(VALID_MEDIA_TYPES_YAML).contains(fileType)) {
-            serviceProvider = parseServiceProviderFromYaml(spFileContent, tenantDomain);
-        } else if (Arrays.asList(VALID_MEDIA_TYPES_JSON).contains(fileType)) {
-            serviceProvider = parseServiceProviderFromJson(spFileContent, tenantDomain);
-        } else {
-            log.warn("Unsupported file type " + fileType + " for file " + spFileContent.getFileName() + " . " +
-                    "Defaulting to XML parsing");
-            serviceProvider = parseServiceProviderFromXml(spFileContent, tenantDomain);
-        }
-
+        ServiceProvider serviceProvider = unmarshalSP(spFileContent, tenantDomain);
         ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
 
         if (log.isDebugEnabled()) {
@@ -1375,7 +1326,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Importing service provider from object " + serviceProvider.getApplicationName());
+        }
+
         ImportResponse importResponse = importApplication(serviceProvider, tenantDomain, username, isUpdate);
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Service provider %s@%s created successfully from object",
+                    serviceProvider.getApplicationName(), tenantDomain));
+        }
 
         return importResponse;
     }
@@ -2055,35 +2015,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
                     "configuration ", e);
-        }
-    }
-
-    private ServiceProvider parseServiceProviderFromXml(SpFileContent spFileContent, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        return unmarshalSP(spFileContent.getContent(), tenantDomain);
-    }
-
-    private ServiceProvider parseServiceProviderFromYaml(SpFileContent spFileContent, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        try {
-            Yaml yaml = new Yaml(new Constructor(ServiceProvider.class));
-            return yaml.loadAs(spFileContent.getContent(), ServiceProvider.class);
-        } catch (YAMLException e) {
-            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
-                    "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
-        }
-    }
-
-    private ServiceProvider parseServiceProviderFromJson(SpFileContent spFileContent, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        try {
-            return new ObjectMapper().readValue(spFileContent.getContent(), ServiceProvider.class);
-        } catch (JsonProcessingException e) {
-            throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
-                    "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);
         }
     }
 
