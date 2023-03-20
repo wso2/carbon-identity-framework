@@ -69,6 +69,7 @@ public abstract class FrameworkConstants {
     public static final String REMAINING_ATTEMPTS = "remainingAttempts";
     public static final String FAILED_USERNAME = "failedUsername";
     public static final String LOCK_REASON = "lockedReason";
+    public static final String NOT_SATISFY_PREREQUISITES_REASON = "NotSatisfyAuthenticatorPrerequisitesReason";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -258,6 +259,7 @@ public abstract class FrameworkConstants {
         // Constant definitions for other QNames
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_ERROR_URL = "AuthenticationEndpointErrorURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL = "IdentifierFirstConfirmationURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
@@ -445,6 +447,7 @@ public abstract class FrameworkConstants {
 
         public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
         public static final String AUTHENTICATION_ENDPOINT_RETRY = "/authenticationendpoint/retry.do";
+        public static final String AUTHENTICATION_ENDPOINT_ERROR = "/authenticationendpoint/error.do";
         public static final String AUTHENTICATION_ENDPOINT_WAIT = "/authenticationendpoint/wait.do";
         public static final String IDENTIFIER_FIRST_CONFIRMATION = "/authenticationendpoint/idf-confirm.do";
         public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
