@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -35,8 +37,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Local authenticator configuration of an application.
