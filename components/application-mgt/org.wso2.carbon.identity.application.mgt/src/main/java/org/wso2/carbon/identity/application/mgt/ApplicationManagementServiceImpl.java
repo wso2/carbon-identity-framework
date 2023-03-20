@@ -650,6 +650,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     .isManagementApp();
             serviceProvider.setManagementApp(isManagementApp);
 
+            // Updating the isB2BSelfService flag of application is blocked, thus set it to stored value
+            serviceProvider.setB2BSelfServiceApp(appDAO.getApplication(serviceProvider.getApplicationID())
+                    .isB2BSelfServiceApp());
+
             doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdatedInRequest(serviceProvider)) {
