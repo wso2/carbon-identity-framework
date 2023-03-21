@@ -30,5 +30,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface RequestCoordinator {
 
-    void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, CookieValidationFailedException;
+    void handle(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, CookieValidationFailedException;
 }
