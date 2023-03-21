@@ -229,10 +229,6 @@
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
-
-                            org.yaml.snakeyaml.constructor; version="${org.yaml.snakeyaml.version.range}",
-                            org.yaml.snakeyaml.error; version="${org.yaml.snakeyaml.version.range}",
-                            org.yaml.snakeyaml; version="${org.yaml.snakeyaml.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,
