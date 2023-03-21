@@ -18,17 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 public class CommonAuthenticationServlet extends HttpServlet {
 
     private static final long serialVersionUID = -7182121722709941646L;
-    private static final Log log = LogFactory.getLog(CommonAuthenticationServlet.class);
 
     @Override
     public void init() {
@@ -65,25 +60,10 @@ public class CommonAuthenticationServlet extends HttpServlet {
             }
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
-
-            log.warn("Session nonce cookie validation has failed. Hence, restarting the login flow.");
-
-            AuthenticationContext context = FrameworkUtils.getContextData(request);
-            String callerSessionDataKey = context.getCallerSessionKey();
-            AuthenticationRequestCacheEntry authRequest = FrameworkUtils.getAuthenticationRequestFromCache
-                    (callerSessionDataKey);
-
-            CommonAuthRequestWrapper requestWrapper = new CommonAuthRequestWrapper(request);
-            requestWrapper.setParameter(FrameworkConstants.RequestParams.TYPE, context.getRequestType());
-            requestWrapper.setParameter(FrameworkConstants.CALLER_SESSION_DATA_KEY, callerSessionDataKey);
-            requestWrapper.setAttribute(FrameworkConstants.RequestAttribute.AUTH_REQUEST, authRequest);
-
-            //set sessionDataKey to the request if it is not set
-            if (request.getParameter(FrameworkConstants.SESSION_DATA_KEY) == null) {
-                requestWrapper.setParameter(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey);
-            }
-
-            doPost(requestWrapper, response);
+            // restart the login flow as cookie validation has failed
+            Map<String, Object> modifiedObj = FrameworkUtils.restartLoginFlow(request, response);
+            doPost((HttpServletRequest) modifiedObj.get(FrameworkConstants.JSAttributes.JS_REQUEST),
+                    (HttpServletResponse) modifiedObj.get(FrameworkConstants.JSAttributes.JS_RESPONSE));
         }
     }
 }

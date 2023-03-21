@@ -93,6 +93,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -231,6 +232,39 @@ public class FrameworkUtils {
     public static void addAuthenticationRequestToCache(String key, AuthenticationRequestCacheEntry authReqEntry) {
         AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
         AuthenticationRequestCache.getInstance().addToCache(cacheKey, authReqEntry);
+    }
+
+    /**
+     * Restarts the login flow when session nonce cookie validation failed.
+     * @param request  HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return Map<String, Object> with modified request and response.
+     */
+    public static Map<String, Object> restartLoginFlow(HttpServletRequest request, HttpServletResponse response) {
+
+        // Create a HashMap to store modified request and response
+        Map<String, Object> resultMap = new HashMap<>();
+
+        log.warn("Session nonce cookie validation has failed. Hence, restarting the login flow.");
+
+        AuthenticationContext context = FrameworkUtils.getContextData(request);
+        String callerSessionDataKey = context.getCallerSessionKey();
+        AuthenticationRequestCacheEntry authRequest = FrameworkUtils.getAuthenticationRequestFromCache
+                (callerSessionDataKey);
+
+        // set the parameters which are necessary to restart the login flow.
+        CommonAuthRequestWrapper requestWrapper = new CommonAuthRequestWrapper(request);
+        requestWrapper.setParameter(FrameworkConstants.RequestParams.TYPE, context.getRequestType());
+        requestWrapper.setParameter(FrameworkConstants.CALLER_SESSION_DATA_KEY, callerSessionDataKey);
+        requestWrapper.setAttribute(FrameworkConstants.RequestAttribute.AUTH_REQUEST, authRequest);
+
+        //set sessionDataKey to the request if it is not set
+        if (request.getParameter(FrameworkConstants.SESSION_DATA_KEY) == null) {
+            requestWrapper.setParameter(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey);
+        }
+        resultMap.put(FrameworkConstants.JSAttributes.JS_REQUEST, requestWrapper);
+        resultMap.put(FrameworkConstants.JSAttributes.JS_RESPONSE, response);
+        return resultMap;
     }
 
     /**
@@ -864,6 +898,7 @@ public class FrameworkUtils {
         }
     }
 
+
     /**
      * @param req
      * @param resp
@@ -940,10 +975,18 @@ public class FrameworkUtils {
         setCookie(req, resp, cookieName, id, age, setSameSite, null);
     }
 
+    /**
+     * return the restart login flow status.
+     * @return status of the restart login flow.
+     */
     public static Boolean isRestartLoginFlow() {
         return restartLoginFlow;
     }
 
+    /**
+     * Enable or disable the restart login flow.
+     * @param status status of the restart login flow.
+     */
     public static void setRestartLoginFlow(Boolean status) {
         restartLoginFlow = status;
     }

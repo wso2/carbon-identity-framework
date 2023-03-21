@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -38,16 +40,23 @@ public class CommonAuthenticationHandler {
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, CookieValidationFailedException {
+            throws ServletException, IOException {
         doPost(request, response);
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, CookieValidationFailedException {
+            throws ServletException, IOException {
 
-        if (FrameworkUtils.getMaxInactiveInterval() == 0) {
-            FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
+        try {
+            if (FrameworkUtils.getMaxInactiveInterval() == 0) {
+                FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
+            }
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (CookieValidationFailedException e) {
+            // restart the login flow as cookie validation has failed
+            Map<String, Object> modifiedObj = FrameworkUtils.restartLoginFlow(request, response);
+            doPost((HttpServletRequest) modifiedObj.get(FrameworkConstants.JSAttributes.JS_REQUEST),
+                    (HttpServletResponse) modifiedObj.get(FrameworkConstants.JSAttributes.JS_RESPONSE));
         }
-        FrameworkUtils.getRequestCoordinator().handle(request, response);
     }
 }
