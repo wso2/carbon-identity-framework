@@ -64,6 +64,7 @@ public class SessionNonceCookieUtil {
                                       AuthenticationContext context) {
 
         if (isNonceCookieEnabled()) {
+            removeExistingNonceCookies(request, response, context);
             String nonceId = UUIDGenerator.generateUUID();
             String cookieName = getNonceCookieName(context);
             // Multiplying the TempDataCleanUpTimeout by 2, because the task runs in every TempDataCleanUpTimeout
@@ -121,7 +122,6 @@ public class SessionNonceCookieUtil {
             FrameworkUtils.removeCookie(request, response, cookieName);
             context.removeProperty(cookieName);
         }
-        removeExistingNonceCookies(request, response, context);
     }
 
     /**
