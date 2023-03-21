@@ -121,6 +121,7 @@ public class SessionNonceCookieUtil {
             FrameworkUtils.removeCookie(request, response, cookieName);
             context.removeProperty(cookieName);
         }
+        removeExistingNonceCookies(request, response, context);
     }
 
     /**
@@ -142,7 +143,8 @@ public class SessionNonceCookieUtil {
      * @param request HttpServletRequest
      * @param response HttpServletResponse
      */
-    public static void removeExistingNonceCookies(HttpServletRequest request, HttpServletResponse response) {
+    public static void removeExistingNonceCookies(HttpServletRequest request, HttpServletResponse response,
+                                                  AuthenticationContext context) {
 
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -152,6 +154,7 @@ public class SessionNonceCookieUtil {
             String cookieName = cookie.getName();
             if (StringUtils.isNotEmpty(cookieName) && cookieName.startsWith(NONCE_COOKIE)) {
                 FrameworkUtils.removeCookie(request, response, cookieName);
+                context.removeProperty(cookieName);
             }
         }
     }
