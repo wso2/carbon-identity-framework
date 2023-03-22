@@ -33,13 +33,13 @@ public class ExternalizedConsentPageConfig implements Serializable {
     private static final long serialVersionUID = 928301275168169633L;
 
     private static final String ENABLED_ELEM = "Enabled";
-    private static final String URL_ELEM = "ConsentUrl";
+    private static final String URL_ELEM = "ConsentPageUrl";
 
     @XmlElement(name = ENABLED_ELEM)
     private boolean enabled;
 
     @XmlElement(name = URL_ELEM)
-    private String consentUrl;
+    private String consentPageUrl;
 
     public boolean isEnabled() {
 
@@ -51,14 +51,14 @@ public class ExternalizedConsentPageConfig implements Serializable {
         this.enabled = enabled;
     }
 
-    public String getExternalConsentUrl() {
+    public String getExternalConsentPageUrl() {
 
-        return consentUrl;
+        return consentPageUrl;
     }
 
-    public void setExternalConsentUrl(String consentUrl) {
+    public void setExternalConsentPageUrl(String consentPageUrl) {
 
-        this.consentUrl = consentUrl;
+        this.consentPageUrl = consentPageUrl;
     }
 
     /**
@@ -66,7 +66,7 @@ public class ExternalizedConsentPageConfig implements Serializable {
      * The OMElement is of the form below
      * <ExternalizedConsentPageConfiguration>
      * <Enabled></Enabled>
-     * <ConsentUrl></ConsentUrl>
+     * <ConsentPageUrl></ConsentPageUrl>
      * </ExternalizedConsentPageConfiguration>
      *
      * @param externalizedConsentPageConfigOM OMElement to populate externalizedConsentPageConfig
@@ -86,7 +86,7 @@ public class ExternalizedConsentPageConfig implements Serializable {
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
                 externalizedConsentPageConfig.setEnabled(Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setExternalConsentUrl(omElement.getText());
+                externalizedConsentPageConfig.setExternalConsentPageUrl(omElement.getText());
             }
         }
 
