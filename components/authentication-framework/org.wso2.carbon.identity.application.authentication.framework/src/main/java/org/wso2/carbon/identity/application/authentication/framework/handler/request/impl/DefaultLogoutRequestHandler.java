@@ -66,6 +66,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeExistingNonceCookies;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 /**
@@ -255,6 +256,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         try {
             context.clearLoggedOutAuthenticators();
+            removeExistingNonceCookies(request, response, context);
             sendResponse(request, response, context, true);
         } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
