@@ -26,9 +26,9 @@ import java.util.Iterator;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
- * Representation of an ExternalizeConsentPage Config.
+ * Representation of an ExternalizedConsentPage Config.
  */
-public class ExternalizeConsentPageConfig implements Serializable {
+public class ExternalizedConsentPageConfig implements Serializable {
 
     private static final long serialVersionUID = 928301275168169633L;
 
@@ -62,36 +62,36 @@ public class ExternalizeConsentPageConfig implements Serializable {
     }
 
     /**
-     * Returns a ExternalConsentManagementConfig instance populated from the given OMElement
+     * Returns a ExternalizedConsentPageConfig instance populated from the given OMElement
      * The OMElement is of the form below
-     * <ExternalizeConsentPageConfiguration>
+     * <ExternalizedConsentPageConfiguration>
      * <Enabled></Enabled>
      * <ConsentUrl></ConsentUrl>
-     * </ExternalizeConsentPageConfiguration>
+     * </ExternalizedConsentPageConfiguration>
      *
-     * @param externalizeConsentPageConfigOM OMElement to populate externalConsentManagementConfig
-     * @return populated ExternalConsentManagementConfig instance
+     * @param externalizedConsentPageConfigOM OMElement to populate externalizedConsentPageConfig
+     * @return populated ExternalizedConsentPageConfig instance
      */
-    public static ExternalizeConsentPageConfig build(OMElement externalizeConsentPageConfigOM) {
+    public static ExternalizedConsentPageConfig build(OMElement externalizedConsentPageConfigOM) {
 
-        ExternalizeConsentPageConfig externalizeConsentPageConfig = new ExternalizeConsentPageConfig();
+        ExternalizedConsentPageConfig externalizedConsentPageConfig = new ExternalizedConsentPageConfig();
 
-        if (externalizeConsentPageConfigOM == null) {
-            return externalizeConsentPageConfig;
+        if (externalizedConsentPageConfigOM == null) {
+            return externalizedConsentPageConfig;
         }
 
-        Iterator<?> iterator = externalizeConsentPageConfigOM.getChildElements();
+        Iterator<?> iterator = externalizedConsentPageConfigOM.getChildElements();
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
-                externalizeConsentPageConfig.setEnabled(
+                externalizedConsentPageConfig.setEnabled(
                                 Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
-                externalizeConsentPageConfig.setExternalConsentUrl(omElement.getText());
+                externalizedConsentPageConfig.setExternalConsentUrl(omElement.getText());
             }
         }
 
-        return externalizeConsentPageConfig;
+        return externalizedConsentPageConfig;
     }
 
 }
