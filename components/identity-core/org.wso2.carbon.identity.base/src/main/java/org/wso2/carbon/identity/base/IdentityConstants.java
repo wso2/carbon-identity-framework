@@ -397,6 +397,8 @@ public class IdentityConstants {
         public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
         public static final String PASSIVE_STS_SLO_HOST_NAME_VERIFICATION_ENABLED =
                 "PassiveSTS.SLOHostNameVerificationEnabled";
+        public static final String PASSIVE_STS_DISABLE_APPLIES_TO_IN_RESPONSE =
+                "PassiveSTS.DisableAppliesToInPassiveSTSResponse";
     }
 
     /**
