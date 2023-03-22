@@ -187,7 +187,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         }
                     }
 
-                } else if (!isCommonAuthLogoutRequest(request) && !FrameworkUtils.isRestartLoginFlow()) {
+                } else if (!isCommonAuthLogoutRequest(request)) {
                     // sessionDataKey is null and not a common auth logout request
                     if (log.isDebugEnabled()) {
                         log.debug("Session data key is null in the request and not a logout request.");
