@@ -54,7 +54,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_STEPS = "AuthenticationSteps";
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
-    private static final String EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION = "ExternalConsentManagementConfiguration";
+    private static final String EXTERNALIZE_CONSENT_PAGE_CONFIGURATION = "ExternalizeConsentPageConfiguration";
 
     @XmlElementWrapper(name = "AuthenticationSteps")
     @XmlElement(name = "AuthenticationStep")
@@ -96,8 +96,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     @XmlElement(name = AUTHENTICATION_SCRIPT)
     private AuthenticationScriptConfig authenticationScriptConfig;
 
-    @XmlElement(name = EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION)
-    private ExternalConsentManagementConfig externalConsentManagementConfig;
+    @XmlElement(name = EXTERNALIZE_CONSENT_PAGE_CONFIGURATION)
+    private ExternalizeConsentPageConfig externalizeConsentPageConfig;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -192,8 +192,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
                 }
-            } else if (EXTERNAL_CONSENT_MANAGEMENT_CONFIGURATION.equals(member.getLocalName())) {
-                localAndOutboundAuthenticationConfig.externalConsentManagementConfig = ExternalConsentManagementConfig
+            } else if (EXTERNALIZE_CONSENT_PAGE_CONFIGURATION.equals(member.getLocalName())) {
+                localAndOutboundAuthenticationConfig.externalizeConsentPageConfig = ExternalizeConsentPageConfig
                         .build(member);
             }
         }
@@ -351,14 +351,14 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.skipLogoutConsent = skipLogoutConsent;
     }
 
-    public ExternalConsentManagementConfig getExternalConsentManagement() {
+    public ExternalizeConsentPageConfig getExternalizeConsentPageConfig() {
 
-        return externalConsentManagementConfig;
+        return externalizeConsentPageConfig;
     }
 
-    public void setExternalConsentManagement(ExternalConsentManagementConfig externalConsentManagementConfig) {
+    public void setExternalizeConsentPageConfig(ExternalizeConsentPageConfig externalizeConsentPageConfig) {
 
-            this.externalConsentManagementConfig = externalConsentManagementConfig;
+            this.externalizeConsentPageConfig = externalizeConsentPageConfig;
     }
 
 }

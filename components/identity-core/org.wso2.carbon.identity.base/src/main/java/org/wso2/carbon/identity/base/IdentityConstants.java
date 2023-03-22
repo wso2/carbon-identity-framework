@@ -152,10 +152,10 @@ public class IdentityConstants {
     public static final String SKIP_CONSENT="skipConsent";
     public static final String SKIP_LOGOUT_CONSENT_DISPLAY_NAME = "Skip Logout Consent";
     public static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
-    public static final String USE_EXTERNAL_CONSENT_MANAGEMENT_DISPLAY_NAME = "Use External Consent Management";
-    public static final String USE_EXTERNAL_CONSENT_MANAGEMENT = "useExternalConsentManagement";
-    public static final String EXTERNAL_CONSENT_URL_DISPLAY_NAME= "External Consent URL";
-    public static final String EXTERNAL_CONSENT_URL = "externalConsentUrl";
+    public static final String USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME = "Use Externalize Consent Page";
+    public static final String USE_EXTERNAL_CONSENT_PAGE = "useExternalConsentPage";
+    public static final String EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME= "External Consent Page URL";
+    public static final String EXTERNAL_CONSENT_PAGE_URL = "externalConsentPageUrl";
 
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
