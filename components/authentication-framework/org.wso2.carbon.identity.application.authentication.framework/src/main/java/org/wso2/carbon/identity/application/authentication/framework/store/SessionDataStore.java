@@ -303,7 +303,7 @@ public class SessionDataStore {
         return getSessionContextDataByOperation(key, type, OPERATION_STORE);
     }
 
-    private SessionContextDO getSessionContextDataByOperation(String key, String type, String _operation) {
+    private SessionContextDO getSessionContextDataByOperation(String key, String type, String requiredOperation) {
 
         if (log.isDebugEnabled()) {
             log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
@@ -347,7 +347,7 @@ public class SessionDataStore {
             if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
-                if ((_operation.equals(operation))) {
+                if ((requiredOperation.equals(operation))) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
