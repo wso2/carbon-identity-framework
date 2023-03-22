@@ -84,8 +84,7 @@ public class ExternalizedConsentPageConfig implements Serializable {
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setEnabled(
-                                Boolean.parseBoolean(omElement.getText()));
+                externalizedConsentPageConfig.setEnabled(Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
                 externalizedConsentPageConfig.setExternalConsentUrl(omElement.getText());
             }
