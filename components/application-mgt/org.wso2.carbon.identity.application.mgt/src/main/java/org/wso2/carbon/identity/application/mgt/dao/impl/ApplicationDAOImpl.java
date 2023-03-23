@@ -2843,7 +2843,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     getExternalizedConsentPageConfig(localAndOutboundConfig)
                             .setEnabled((Boolean.parseBoolean(value)));
                 } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setExternalConsentPageUrl(value);
+                    getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
                 }
             }
         }
@@ -4837,14 +4837,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .getExternalizedConsentPageConfig();
 
         if (consentConfig != null) {
-            if (consentConfig.isEnabled() && StringUtils.isBlank(consentConfig.getExternalConsentPageUrl())) {
+            if (consentConfig.isEnabled() && StringUtils.isBlank(consentConfig.getConsentPageUrl())) {
                 throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
                         "service provider: " + sp.getApplicationName());
             }
             externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
             externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
 
-            externalConsentPageURLProperty.setValue(consentConfig.getExternalConsentPageUrl());
+            externalConsentPageURLProperty.setValue(consentConfig.getConsentPageUrl());
         }
         return externalConsentPageURLProperty;
     }

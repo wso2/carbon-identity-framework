@@ -51,12 +51,12 @@ public class ExternalizedConsentPageConfig implements Serializable {
         this.enabled = enabled;
     }
 
-    public String getExternalConsentPageUrl() {
+    public String getConsentPageUrl() {
 
         return consentPageUrl;
     }
 
-    public void setExternalConsentPageUrl(String consentPageUrl) {
+    public void setConsentPageUrl(String consentPageUrl) {
 
         this.consentPageUrl = consentPageUrl;
     }
@@ -86,7 +86,7 @@ public class ExternalizedConsentPageConfig implements Serializable {
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
                 externalizedConsentPageConfig.setEnabled(Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setExternalConsentPageUrl(omElement.getText());
+                externalizedConsentPageConfig.setConsentPageUrl(omElement.getText());
             }
         }
 
