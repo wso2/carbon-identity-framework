@@ -21,8 +21,12 @@ package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
+import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
@@ -156,4 +160,50 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         return new String();
     }
 
+    /**
+     * Perform post actions after validation configuration are updated.
+     *
+     * @param tenantDomain      Tenant Domain.
+     * @param configuration     Updated validation configuration.
+     */
+    @Override
+    public void postValidationConfigurationUpdateHandler(String tenantDomain, ValidationConfiguration configuration)
+            throws InputValidationMgtServerException {
+
+        for (RulesConfiguration rule: configuration.getRules()) {
+            /*
+             Set required and support by default properties of the email attribute to true, when username field
+             validation configurations are set to emailFormatValidator.
+             */
+            if ("EmailFormatValidator".equals(rule.getValidatorName())) {
+                if (Boolean.parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
+                    try {
+                        updateEmailClaim(tenantDomain);
+                    } catch (ClaimMetadataException e) {
+                        throw new InputValidationMgtServerException(e);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * Set required and support by default properties of the email attribute to true.
+     *
+     * @param tenantDomain   Tenant Domain.
+     */
+    private void updateEmailClaim(String tenantDomain) throws ClaimMetadataException {
+        List<LocalClaim> localClaimList = InputValidationDataHolder.getInstance()
+        .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+        for (LocalClaim claim : localClaimList) {
+            if (StringUtils.equals(claim.getClaimURI(), "http://wso2.org/claims/emailaddress")) {
+                claim.setClaimProperty("Required", Boolean.TRUE.toString());
+                claim.setClaimProperty("SupportedByDefault", Boolean.TRUE.toString());
+                InputValidationDataHolder.getInstance().getClaimMetadataManagementService()
+                .updateLocalClaim(claim, tenantDomain);
+                break;
+            }
+        }
+    }
 }

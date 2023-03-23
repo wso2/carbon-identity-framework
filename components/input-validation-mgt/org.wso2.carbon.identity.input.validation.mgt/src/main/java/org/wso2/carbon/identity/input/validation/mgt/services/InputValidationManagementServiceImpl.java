@@ -52,6 +52,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_NO_CONFIGURATIONS_FOUND;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_ADDING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.FIELD_VALIDATION_CONFIG_HANDLER_MAP;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
@@ -221,6 +222,15 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
             // Update the existing resource.
             updatedResource = updateResource(newResource, tenantDomain);
         }
+
+        // Execute post actions of validation configuration update.
+        FieldValidationConfigurationHandler handler = InputValidationDataHolder
+                .getFieldValidationConfigurationHandlers().get(FIELD_VALIDATION_CONFIG_HANDLER_MAP.get(
+                configuration.getField()));
+        if (handler != null) {
+            handler.postValidationConfigurationUpdateHandler(tenantDomain, configuration);
+        }
+
         return buildValidationConfigFromResource(updatedResource);
     }
 
