@@ -364,7 +364,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
         } catch (CookieValidationFailedException e) {
-            throw new CookieValidationFailedException("cookie validation failed.", e);
+            throw e;
         } catch (Exception e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
