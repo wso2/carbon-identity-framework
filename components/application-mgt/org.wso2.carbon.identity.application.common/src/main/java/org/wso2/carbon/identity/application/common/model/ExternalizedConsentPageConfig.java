@@ -64,10 +64,10 @@ public class ExternalizedConsentPageConfig implements Serializable {
     /**
      * Returns a ExternalizedConsentPageConfig instance populated from the given OMElement
      * The OMElement is of the form below
-     * <ExternalizedConsentPageConfiguration>
+     * <ExternalizedConsentPageConfig>
      * <Enabled></Enabled>
      * <ConsentPageUrl></ConsentPageUrl>
-     * </ExternalizedConsentPageConfiguration>
+     * </ExternalizedConsentPageConfig>
      *
      * @param externalizedConsentPageConfigOM OMElement to populate externalizedConsentPageConfig
      * @return populated ExternalizedConsentPageConfig instance

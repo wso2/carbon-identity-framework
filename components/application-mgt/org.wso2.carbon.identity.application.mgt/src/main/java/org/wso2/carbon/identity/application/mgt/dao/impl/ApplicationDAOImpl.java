@@ -2840,8 +2840,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
                 } else if (USE_EXTERNALIZED_CONSENT_PAGE.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig)
-                            .setEnabled((Boolean.parseBoolean(value)));
+                    getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled((Boolean.parseBoolean(value)));
                 } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
                     getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
                 }
