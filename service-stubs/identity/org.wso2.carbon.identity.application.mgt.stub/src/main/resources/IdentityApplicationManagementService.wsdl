@@ -599,8 +599,8 @@
             </xs:complexType>
             <xs:complexType name="ExternalizedConsentPageConfig">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="consentPageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="externalizedConsentPageUrl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enabledExternalizedConsentPage" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="OutboundProvisioningConfig">

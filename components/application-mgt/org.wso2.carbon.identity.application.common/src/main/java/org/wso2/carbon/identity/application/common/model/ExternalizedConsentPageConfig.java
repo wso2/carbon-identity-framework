@@ -32,41 +32,41 @@ public class ExternalizedConsentPageConfig implements Serializable {
 
     private static final long serialVersionUID = 928301275168169633L;
 
-    private static final String ENABLED_ELEM = "Enabled";
-    private static final String URL_ELEM = "ConsentPageUrl";
+    private static final String ENABLED_ELEM = "EnabledExternalizedConsentPage";
+    private static final String URL_ELEM = "ExternalizedConsentPageUrl";
 
     @XmlElement(name = ENABLED_ELEM)
-    private boolean enabled;
+    private boolean enabledExternalizedConsentPage = false;
 
     @XmlElement(name = URL_ELEM)
-    private String consentPageUrl;
+    private String externalizedConsentPageUrl;
 
-    public boolean isEnabled() {
+    public boolean isEnabledExternalizedConsentPage() {
 
-        return enabled;
+        return enabledExternalizedConsentPage;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabledExternalizedConsentPage(boolean enabled) {
 
-        this.enabled = enabled;
+        this.enabledExternalizedConsentPage = enabled;
     }
 
-    public String getConsentPageUrl() {
+    public String getExternalizedConsentPageUrl() {
 
-        return consentPageUrl;
+        return externalizedConsentPageUrl;
     }
 
-    public void setConsentPageUrl(String consentPageUrl) {
+    public void setExternalizedConsentPageUrl(String consentPageUrl) {
 
-        this.consentPageUrl = consentPageUrl;
+        this.externalizedConsentPageUrl = consentPageUrl;
     }
 
     /**
      * Returns a ExternalizedConsentPageConfig instance populated from the given OMElement
      * The OMElement is of the form below
      * <ExternalizedConsentPageConfig>
-     * <Enabled></Enabled>
-     * <ConsentPageUrl></ConsentPageUrl>
+     * <EnabledExternalizedConsentPage></EnabledExternalizedConsentPage>
+     * <ExternalizedConsentPageUrl></ExternalizedConsentPageUrl>
      * </ExternalizedConsentPageConfig>
      *
      * @param externalizedConsentPageConfigOM OMElement to populate externalizedConsentPageConfig
@@ -84,9 +84,10 @@ public class ExternalizedConsentPageConfig implements Serializable {
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setEnabled(Boolean.parseBoolean(omElement.getText()));
+                externalizedConsentPageConfig.setEnabledExternalizedConsentPage(
+                        Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setConsentPageUrl(omElement.getText());
+                externalizedConsentPageConfig.setExternalizedConsentPageUrl(omElement.getText());
             }
         }
 
