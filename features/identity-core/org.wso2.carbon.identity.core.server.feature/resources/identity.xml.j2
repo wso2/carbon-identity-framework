@@ -57,6 +57,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
             </TempDataCleanup>
+            <SessionAndTempDataSeparation>
+                <Enable>{{session_data.session_data_persist.session_and_temp_data_separation_enabled.enable}}</Enable>
+            </SessionAndTempDataSeparation>
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
