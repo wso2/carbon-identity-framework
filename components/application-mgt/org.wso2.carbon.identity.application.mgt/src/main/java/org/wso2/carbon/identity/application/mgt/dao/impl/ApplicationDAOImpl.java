@@ -2840,10 +2840,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
                 } else if (USE_EXTERNALIZED_CONSENT_PAGE.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabledExternalizedConsentPage(
-                            Boolean.parseBoolean(value));
+                    getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled(Boolean.parseBoolean(value));
                 } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setExternalizedConsentPageUrl(value);
+                    getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
                 }
             }
         }
@@ -4823,7 +4822,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             useExternalizedConsentPageProperty.setDisplayName(USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME);
 
             useExternalizedConsentPageProperty.setValue(String.valueOf(
-                    consentConfig.isEnabledExternalizedConsentPage()));
+                    consentConfig.isEnabled()));
         }
 
         return useExternalizedConsentPageProperty;
@@ -4838,15 +4837,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .getExternalizedConsentPageConfig();
 
         if (consentConfig != null) {
-            if (consentConfig.isEnabledExternalizedConsentPage() &&
-                    StringUtils.isBlank(consentConfig.getExternalizedConsentPageUrl())) {
+            if (consentConfig.isEnabled() &&
+                    StringUtils.isBlank(consentConfig.getConsentPageUrl())) {
                 throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
                         "service provider: " + sp.getApplicationName());
             }
             externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
             externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
 
-            externalConsentPageURLProperty.setValue(consentConfig.getExternalizedConsentPageUrl());
+            externalConsentPageURLProperty.setValue(consentConfig.getConsentPageUrl());
         }
         return externalConsentPageURLProperty;
     }

@@ -23,50 +23,55 @@ import org.apache.axiom.om.OMElement;
 import java.io.Serializable;
 import java.util.Iterator;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Representation of an ExternalizedConsentPage Config.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "ExternalizedConsentPageConfig")
 public class ExternalizedConsentPageConfig implements Serializable {
 
     private static final long serialVersionUID = 928301275168169633L;
 
-    private static final String ENABLED_ELEM = "EnabledExternalizedConsentPage";
-    private static final String URL_ELEM = "ExternalizedConsentPageUrl";
+    private static final String ENABLED_ELEM = "Enabled";
+    private static final String URL_ELEM = "ConsentPageUrl";
 
     @XmlElement(name = ENABLED_ELEM)
-    private boolean enabledExternalizedConsentPage = false;
+    private boolean enabled = false;
 
     @XmlElement(name = URL_ELEM)
-    private String externalizedConsentPageUrl;
+    private String consentPageUrl;
 
-    public boolean isEnabledExternalizedConsentPage() {
+    public boolean isEnabled() {
 
-        return enabledExternalizedConsentPage;
+        return enabled;
     }
 
-    public void setEnabledExternalizedConsentPage(boolean enabled) {
+    public void setEnabled(boolean enabled) {
 
-        this.enabledExternalizedConsentPage = enabled;
+        this.enabled = enabled;
     }
 
-    public String getExternalizedConsentPageUrl() {
+    public String getConsentPageUrl() {
 
-        return externalizedConsentPageUrl;
+        return consentPageUrl;
     }
 
-    public void setExternalizedConsentPageUrl(String consentPageUrl) {
+    public void setConsentPageUrl(String consentPageUrl) {
 
-        this.externalizedConsentPageUrl = consentPageUrl;
+        this.consentPageUrl = consentPageUrl;
     }
 
     /**
      * Returns a ExternalizedConsentPageConfig instance populated from the given OMElement
      * The OMElement is of the form below
      * <ExternalizedConsentPageConfig>
-     * <EnabledExternalizedConsentPage></EnabledExternalizedConsentPage>
-     * <ExternalizedConsentPageUrl></ExternalizedConsentPageUrl>
+     * <Enabled></Enabled>
+     * <ConsentPageUrl></ConsentPageUrl>
      * </ExternalizedConsentPageConfig>
      *
      * @param externalizedConsentPageConfigOM OMElement to populate externalizedConsentPageConfig
@@ -84,10 +89,9 @@ public class ExternalizedConsentPageConfig implements Serializable {
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
             if (ENABLED_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setEnabledExternalizedConsentPage(
-                        Boolean.parseBoolean(omElement.getText()));
+                externalizedConsentPageConfig.setEnabled(Boolean.parseBoolean(omElement.getText()));
             } else if (URL_ELEM.equals(omElement.getLocalName())) {
-                externalizedConsentPageConfig.setExternalizedConsentPageUrl(omElement.getText());
+                externalizedConsentPageConfig.setConsentPageUrl(omElement.getText());
             }
         }
 
