@@ -575,9 +575,10 @@ public class UserSessionStore {
                         preparedStatement.setString(8, inboundAuth);
                     });
                 } else {
-                    if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION) ||
-                            JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
-                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2;
+                    if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL;
+                    } else if (JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
+                        query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2;
                     } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION) ||
                             JdbcUtils.isMariaDB(JdbcUtils.Database.SESSION)) {
                         query = SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MYSQL_OR_MARIADB;
