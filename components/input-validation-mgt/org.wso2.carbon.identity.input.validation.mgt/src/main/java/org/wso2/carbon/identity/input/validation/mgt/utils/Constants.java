@@ -47,11 +47,15 @@ public class Constants {
                 put(USERNAME, UsernameValidationConfigurationHandler.class.getSimpleName());
                 put(PASSWORD, PasswordValidationConfigurationHandler.class.getSimpleName());
             }});
+    public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
 
     /**
      * Class contains the configuration related constants.
      */
     public static class Configs {
+
+        // Validator names.
+        public static final String EMAIL_FORMAT_VALIDATOR = "EmailFormatValidator";
 
         // Keys for password rules validation.
         public static final String ERROR_CODE_PREFIX = "INM-";

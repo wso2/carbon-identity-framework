@@ -41,9 +41,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_JS_REGEX_PATTERN;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.EMAIL_CLAIM_URI;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
@@ -175,7 +177,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
              Set required and support by default properties of the email attribute to true, when username field
              validation configurations are set to emailFormatValidator.
              */
-            if ("EmailFormatValidator".equals(rule.getValidatorName())) {
+            if (rule != null && EMAIL_FORMAT_VALIDATOR.equals(rule.getValidatorName())) {
                 if (Boolean.parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
                     try {
                         updateEmailClaim(tenantDomain);
@@ -194,14 +196,20 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
      * @param tenantDomain   Tenant Domain.
      */
     private void updateEmailClaim(String tenantDomain) throws ClaimMetadataException {
+
         List<LocalClaim> localClaimList = InputValidationDataHolder.getInstance()
-        .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+                .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+
+        if (localClaimList.isEmpty()) {
+            return;
+        }
+
         for (LocalClaim claim : localClaimList) {
-            if (StringUtils.equals(claim.getClaimURI(), "http://wso2.org/claims/emailaddress")) {
+            if (StringUtils.equals(claim.getClaimURI(), EMAIL_CLAIM_URI)) {
                 claim.setClaimProperty("Required", Boolean.TRUE.toString());
                 claim.setClaimProperty("SupportedByDefault", Boolean.TRUE.toString());
                 InputValidationDataHolder.getInstance().getClaimMetadataManagementService()
-                .updateLocalClaim(claim, tenantDomain);
+                        .updateLocalClaim(claim, tenantDomain);
                 break;
             }
         }
