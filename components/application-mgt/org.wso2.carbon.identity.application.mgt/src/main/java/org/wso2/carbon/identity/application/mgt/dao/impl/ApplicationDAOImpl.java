@@ -4710,8 +4710,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return null;
     }
 
-    private void updateConfigurationsAsServiceProperties(ServiceProvider sp) throws
-            IdentityApplicationManagementException {
+    private void updateConfigurationsAsServiceProperties(ServiceProvider sp) {
 
         if (sp.getSpProperties() == null) {
             sp.setSpProperties(new ServiceProviderProperty[0]);
@@ -4828,8 +4827,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return useExternalizedConsentPageProperty;
     }
 
-    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) throws
-            IdentityApplicationManagementException {
+    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) {
 
         ServiceProviderProperty externalConsentPageURLProperty = new ServiceProviderProperty();
 
@@ -4837,11 +4835,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .getExternalizedConsentPageConfig();
 
         if (consentConfig != null) {
-            if (consentConfig.isEnabled() &&
-                    StringUtils.isBlank(consentConfig.getConsentPageUrl())) {
-                throw new IdentityApplicationManagementException("External consent URL is not configured for the " +
-                        "service provider: " + sp.getApplicationName());
-            }
             externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
             externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
 
