@@ -58,7 +58,7 @@ public interface FieldValidationConfigurationHandler {
      * @param tenantDomain      Tenant Domain.
      * @param configuration     Updated validation configuration.
      */
-    default void postValidationConfigurationUpdateHandler(String tenantDomain, ValidationConfiguration configuration)
+    default void handlePostValidationConfigurationUpdate(String tenantDomain, ValidationConfiguration configuration)
             throws InputValidationMgtServerException {
     }
 }

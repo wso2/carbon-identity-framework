@@ -169,7 +169,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
      * @param configuration     Updated validation configuration.
      */
     @Override
-    public void postValidationConfigurationUpdateHandler(String tenantDomain, ValidationConfiguration configuration)
+    public void handlePostValidationConfigurationUpdate(String tenantDomain, ValidationConfiguration configuration)
             throws InputValidationMgtServerException {
 
         for (RulesConfiguration rule: configuration.getRules()) {

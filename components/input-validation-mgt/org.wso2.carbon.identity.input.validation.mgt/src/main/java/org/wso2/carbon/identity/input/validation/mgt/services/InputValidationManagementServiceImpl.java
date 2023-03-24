@@ -228,7 +228,7 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
                 .getFieldValidationConfigurationHandlers().get(FIELD_VALIDATION_CONFIG_HANDLER_MAP.get(
                 configuration.getField()));
         if (handler != null) {
-            handler.postValidationConfigurationUpdateHandler(tenantDomain, configuration);
+            handler.handlePostValidationConfigurationUpdate(tenantDomain, configuration);
         }
 
         return buildValidationConfigFromResource(updatedResource);
