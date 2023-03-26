@@ -40,8 +40,8 @@ public class AuthenticationContextCache extends
     private static final String AUTHENTICATION_CONTEXT_CACHE_NAME = "AuthenticationContextCache";
     private static final Log log = LogFactory.getLog(AuthenticationContextCache.class);
     private static volatile AuthenticationContextCache instance;
-    private boolean isTemporarySessionDataPersistEnabled = false;
-    private boolean isSessionDataStorageOptimizationEnabled = true;
+    private final boolean isTemporarySessionDataPersistEnabled;
+    private final boolean isSessionDataStorageOptimizationEnabled;
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -51,11 +51,15 @@ public class AuthenticationContextCache extends
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
+        } else {
+            isTemporarySessionDataPersistEnabled = false;
         }
         if (IdentityUtil.getProperty(
                 "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable") != null) {
             isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
                     "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable"));
+        } else {
+            isSessionDataStorageOptimizationEnabled = true;
         }
     }
 
@@ -118,14 +122,12 @@ public class AuthenticationContextCache extends
                 }
                 SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
                         entry, tenantId);
-                if (isSessionDataStorageOptimizationEnabled) {
-                    try {
-                        AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
-                    } catch (SessionDataStorageOptimizationException e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(String.format("Error occurred while loading optimized authentication context " +
-                                    "with context id: %s", entry.getContext().getContextIdentifier()), e);
-                        }
+                try {
+                    AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+                } catch (SessionDataStorageOptimizationException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Error occurred while loading optimized authentication context " +
+                                "with context id: %s", entry.getContext().getContextIdentifier()), e);
                     }
                 }
             }

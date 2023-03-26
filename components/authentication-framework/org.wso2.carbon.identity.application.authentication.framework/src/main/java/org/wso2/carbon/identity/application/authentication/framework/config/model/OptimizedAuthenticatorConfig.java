@@ -58,7 +58,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         this.enabled = authenticatorConfig.isEnabled();
         this.authenticatorStateInfo = authenticatorConfig.getAuthenticatorStateInfo();
         this.parameterMap = authenticatorConfig.getParameterMap();
-        this.idPResourceIds = getIdPResourceIds(authenticatorConfig.getIdps());
+        this.idPResourceIds = authenticatorConfig.getIdPResourceIds();
     }
 
     private List<String> getIdPResourceIds(Map<String, IdentityProvider> idps) {
@@ -83,6 +83,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         authenticatorConfig.setParameterMap(this.parameterMap);
         Map<String, IdentityProvider> idps = new HashMap<>();
         List<String> idpNames = new ArrayList<>();
+        // TODO need to revisit - exceptions thrown within this for loop.
         for (String resourceId : this.idPResourceIds) {
             IdentityProvider idp = getIdPByResourceID(resourceId, tenantDomain);
             idps.put(idp.getIdentityProviderName(), idp);

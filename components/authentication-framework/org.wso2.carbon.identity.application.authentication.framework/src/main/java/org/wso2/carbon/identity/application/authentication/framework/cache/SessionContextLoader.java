@@ -46,7 +46,8 @@ public class SessionContextLoader {
     }
 
 
-    public SessionContextCacheEntry optimizeSessionContextCacheEntry(SessionContextCacheEntry entry) {
+    public SessionContextCacheEntry optimizeSessionContextCacheEntry(SessionContextCacheEntry entry)
+            throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Optimization process for the session context with context id: %s has started.",
