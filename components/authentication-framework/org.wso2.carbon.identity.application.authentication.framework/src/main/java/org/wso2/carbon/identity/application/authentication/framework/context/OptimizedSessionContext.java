@@ -20,16 +20,24 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedSequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,14 +55,15 @@ public class OptimizedSessionContext implements Serializable {
 
     private static final Log log = LogFactory.getLog(OptimizedSessionContext.class);
 
-    public OptimizedSessionContext(SessionContext sessionContext) {
+    public OptimizedSessionContext(SessionContext sessionContext) throws SessionDataStorageOptimizationException {
 
+        Object authUser = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        // TODO : Need to check whether this is the correct way to get the tenant domain.
+        this.tenantDomain = authUser instanceof AuthenticatedUser ?
+                ((AuthenticatedUser) authUser).getTenantDomain() : null;
         this.optimizedAuthenticatedSequences = getOptimizedAuthenticatedSequences(
                 sessionContext.getAuthenticatedSequences());
         this.optimizedAuthenticatedIdPs = getOptimizedAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
-        Object authUser = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        this.tenantDomain = authUser instanceof AuthenticatedUser ?
-                ((AuthenticatedUser) authUser).getTenantDomain() : null;
         this.isRememberMe = sessionContext.isRememberMe();
         this.properties = sessionContext.getProperties();
         this.sessionAuthHistory = sessionContext.getSessionAuthHistory();
@@ -65,10 +74,30 @@ public class OptimizedSessionContext implements Serializable {
         }
     }
 
-    private Map<String, OptimizedSequenceConfig> getOptimizedAuthenticatedSequences(Map<String, SequenceConfig>
-                                                                                            authenticatedSequences) {
+    private Map<String, OptimizedSequenceConfig> getOptimizedAuthenticatedSequences
+            (Map<String, SequenceConfig> authenticatedSequences) throws SessionDataStorageOptimizationException {
 
         Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences = new HashMap<>();
+        for (Map.Entry<String, SequenceConfig> entry : authenticatedSequences.entrySet()) {
+            SequenceConfig sequenceConfig = entry.getValue();
+            for (Map.Entry<Integer, StepConfig> mapEntry : sequenceConfig.getStepMap().entrySet()) {
+                StepConfig stepConfig = mapEntry.getValue();
+                List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+                for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
+                    List<String> idPResourceId = new ArrayList<>();
+                    for (Map.Entry<String, IdentityProvider> idpEntry : authenticatorConfig.getIdps().entrySet()) {
+                        IdentityProvider idp = idpEntry.getValue();
+                        String idpName = idpEntry.getKey();
+                        if (idp.getResourceId() == null) {
+                            idPResourceId.add(getIdPByIdPName(idpName, this.tenantDomain).getResourceId());
+                        } else {
+                            idPResourceId.add(idp.getResourceId());
+                        }
+                    }
+                    authenticatorConfig.setIdPResourceIds(idPResourceId);
+                }
+            }
+        }
         authenticatedSequences.forEach((appName, sequenceConfig) -> optimizedAuthenticatedSequences.put(appName,
                 new OptimizedSequenceConfig(sequenceConfig)));
         return optimizedAuthenticatedSequences;
@@ -140,4 +169,22 @@ public class OptimizedSessionContext implements Serializable {
         return authenticatedIdPs;
     }
 
+    private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)
+            throws SessionDataStorageOptimizationException {
+
+        IdentityProviderManager manager =
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
+        IdentityProvider idp;
+        try {
+            idp = manager.getIdPByName(idPName, tenantDomain);
+            if (idp == null) {
+                throw new SessionDataStorageOptimizationException(String.format(
+                        "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
+            }
+        } catch (IdentityProviderManagementException e) {
+            throw new SessionDataStorageOptimizationException(String.format(
+                    "Failed to get the Identity Provider by name: %s tenant domain: %s", idPName, tenantDomain), e);
+        }
+        return idp;
+    }
 }

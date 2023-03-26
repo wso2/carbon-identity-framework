@@ -29,12 +29,10 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -45,17 +43,13 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";
     private static final Log log = LogFactory.getLog(SessionContextCache.class);
-    private Boolean isSessionDataStorageOptimizationEnabled = true;
+    private final boolean isSessionDataStorageOptimizationEnabled = true;
 
     private static volatile SessionContextCache instance;
 
     private SessionContextCache() {
 
         super(SESSION_CONTEXT_CACHE_NAME);
-        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
-            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
-                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
-        }
     }
 
     public static SessionContextCache getInstance() {
@@ -85,7 +79,14 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
         if (isSessionDataStorageOptimizationEnabled) {
-            entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
+            try {
+                entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
+            } catch (SessionDataStorageOptimizationException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Error occurred while optimizing the Session context with " +
+                            "context id: %s", entry.getContext(), e));
+                }
+            }
         }
         if (authUser != null && authUser instanceof AuthenticatedUser) {
             String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
@@ -150,7 +151,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
         if (sessionContextDO != null) {
             cacheEntry = new SessionContextCacheEntry(sessionContextDO);
-            if (cacheEntry.getContext() == null && cacheEntry.getOptimizedSessionContext() != null) {
+            if (cacheEntry.getOptimizedSessionContext() != null) {
                 try {
                     cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
                 } catch (SessionDataStorageOptimizationException e) {
