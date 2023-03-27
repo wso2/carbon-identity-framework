@@ -184,7 +184,7 @@ public class PreferenceRetrievalClient {
      * @return returns true if admin session advisory banner control enabled.
      * @throws PreferenceRetrievalClientException type of exception.
      */
-    public boolean checkAdminAdvisoryBannerControlEnabled(String tenant) throws
+    public boolean checkAdminAdvisoryBannerEnabled(String tenant) throws
             PreferenceRetrievalClientException {
 
         return checkPreference(tenant, ADMIN_ADVISORY_BANNER_CONTROL_HANDLER,
