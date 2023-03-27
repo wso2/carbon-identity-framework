@@ -35,6 +35,7 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
@@ -800,6 +801,26 @@ public class FrameworkServiceComponent {
     protected void unsetClaimFilter(ClaimFilter claimFilter) {
 
         FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
+    }
+
+    @Reference(
+            name = "approles.resolver.service",
+            service = ApplicationRolesResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAppRolesResolverService"
+    )
+    protected void setAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Application Roles Resolver is set in the Application Authentication Framework bundle.");
+        }
+        FrameworkServiceDataHolder.getInstance().setApplicationRolesResolver(applicationRolesResolver);
+    }
+
+    protected void unsetAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        FrameworkServiceDataHolder.getInstance().setApplicationRolesResolver(null);
     }
 
     @Reference(
