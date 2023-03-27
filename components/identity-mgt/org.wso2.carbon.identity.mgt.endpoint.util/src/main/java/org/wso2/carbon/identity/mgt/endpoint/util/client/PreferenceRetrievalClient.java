@@ -60,15 +60,13 @@ public class PreferenceRetrievalClient {
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
-    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY = "admin.session.advisory" +
-            ".banner.enable";
-    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_DESCRIPTION_PROPERTY = "admin.session.advisory" +
-            ".banner.description";
+    private static final String ADMIN_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY = "admin.advisory.banner.enable";
+    private static final String ADMIN_ADVISORY_BANNER_CONTROL_CONTENT_PROPERTY = "admin.advisory.banner.content";
     private static final String CONNECTOR_NAME = "connector-name";
     private static final String SELF_SIGN_UP_CONNECTOR = "self-sign-up";
     private static final String RECOVERY_CONNECTOR = "account-recovery";
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
-    private static final String ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER = "admin.session.advisory.banner.handler";
+    private static final String ADMIN_ADVISORY_BANNER_CONTROL_HANDLER = "admin.advisory.banner.handler";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_VALUE = "value";
     private static final String TYPING_DNA_CONNECTOR = "typingdna-config";
@@ -180,30 +178,30 @@ public class PreferenceRetrievalClient {
     }
 
     /**
-     * Check admin session advisory banner control is enabled or not.
+     * Check admin advisory banner control is enabled or not.
      *
      * @param tenant tenant domain name.
      * @return returns true if admin session advisory banner control enabled.
-     * @throws PreferenceRetrievalClientException
+     * @throws PreferenceRetrievalClientException type of exception.
      */
-    public boolean checkAdminSessionAdvisoryBannerControlEnabled(String tenant) throws
+    public boolean checkAdminAdvisoryBannerControlEnabled(String tenant) throws
             PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER,
-                ADMIN_SESSION_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY);
+        return checkPreference(tenant, ADMIN_ADVISORY_BANNER_CONTROL_HANDLER,
+                ADMIN_ADVISORY_BANNER_CONTROL_ENABLE_PROPERTY);
     }
 
     /**
-     * Get admin session advisory banner description.
+     * Get admin advisory banner content.
      *
      * @param tenant tenant domain name.
      * @return returns admin session advisory banner description.
-     * @throws PreferenceRetrievalClientException
+     * @throws PreferenceRetrievalClientException type of exception.
      */
-    public String getAdminSessionAdvisoryBannerDescription(String tenant) throws PreferenceRetrievalClientException {
+    public String retrieveAdminAdvisoryBannerContent(String tenant) throws PreferenceRetrievalClientException {
 
-        return getConnectorPropertyValue(tenant, ADMIN_SESSION_ADVISORY_BANNER_CONTROL_HANDLER,
-                ADMIN_SESSION_ADVISORY_BANNER_CONTROL_DESCRIPTION_PROPERTY);
+        return retrievePreferenceContent(tenant, ADMIN_ADVISORY_BANNER_CONTROL_HANDLER,
+                ADMIN_ADVISORY_BANNER_CONTROL_CONTENT_PROPERTY);
     }
 
     /**
@@ -255,6 +253,25 @@ public class PreferenceRetrievalClient {
             throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, connectorName, propertyName, true);
+    }
+
+    /**
+     * Retrieve the preference content in the given tenant.
+     *
+     * @param tenant        tenant domain name.
+     * @param connectorName name of the connector.
+     * @param propertyName  property to check.
+     * @return returns true if the property is enabled.
+     * @throws PreferenceRetrievalClientException
+     */
+    public String retrievePreferenceContent(String tenant, String connectorName, String propertyName)
+            throws PreferenceRetrievalClientException {
+
+        String propertyValue = getConnectorPropertyValue(tenant, connectorName, propertyName);
+        if (propertyValue != null) {
+            return propertyValue;
+        }
+        return StringUtils.EMPTY;
     }
 
     /**
