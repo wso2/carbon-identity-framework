@@ -16,6 +16,7 @@
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idPGroupConfig" nillable="true" type="ax2437:IdPGroupConfig"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2437:IdentityProviderProperty"/>
@@ -113,6 +114,11 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2437:Property"/>
                     <xs:element minOccurs="0" name="rulesEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdPGroupConfig">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpGroups" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">
