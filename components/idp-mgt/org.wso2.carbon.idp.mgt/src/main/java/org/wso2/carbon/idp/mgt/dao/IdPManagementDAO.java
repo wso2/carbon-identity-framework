@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroupConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
@@ -646,6 +647,10 @@ public class IdPManagementDAO {
                             // Get permission and role configuration.
                             identityProvider.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                                     dbConnection, idPName, idpId, tenantId));
+                            break;
+                        case IdPManagementConstants.IDP_GROUPS:
+                            // Get idp groups.
+                            identityProvider.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
                             break;
                         case IdPManagementConstants.IDP_FEDERATED_AUTHENTICATORS:
                             String defaultAuthenticatorName = resultSet.getString("DEFAULT_AUTHENTICATOR_NAME");
@@ -1506,6 +1511,36 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Get the Identity Provider Group Configuration.
+     *
+     * @param dbConnection Connection to the database.
+     * @param idPId        Identity Provider ID.
+     * @return IdPGroupConfig Identity Provider Group Configuration.
+     * @throws SQLException Error when executing getting idp groups from database.
+     */
+    public IdPGroupConfig getIdPGroupConfiguration(Connection dbConnection, int idPId)
+            throws SQLException {
+
+        IdPGroupConfig idPGroupConfiguration = new IdPGroupConfig();
+
+        try (PreparedStatement getIdPGroupsConfigPrepStmt = dbConnection.prepareStatement(
+                IdPManagementConstants.SQLQueries.GET_IDP_GROUPS_SQL)) {
+
+            List<String> idpGroupList = new ArrayList<String>();
+            getIdPGroupsConfigPrepStmt.setInt(1, idPId);
+
+            try (ResultSet getIdPGroupsConfigResultSet = getIdPGroupsConfigPrepStmt.executeQuery()) {
+                while (getIdPGroupsConfigResultSet.next()) {
+                    idpGroupList.add(getIdPGroupsConfigResultSet.getString("GROUP_NAME"));
+                }
+            }
+
+            idPGroupConfiguration.setIdpGroups(idpGroupList.toArray(new String[0]));
+        }
+        return idPGroupConfiguration;
+    }
+
+    /**
      * @param provisioningConnectors
      * @param dbConnection
      * @param idpId
@@ -2145,6 +2180,9 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
+                // Get federated idp groups.
+                federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
+
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, idpId));
 
@@ -2396,6 +2434,9 @@ public class IdPManagementDAO {
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
 
+                // Get federated idp groups.
+                federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
+
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
@@ -2553,6 +2594,9 @@ public class IdPManagementDAO {
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Get federated idp groups.
+                federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
@@ -2797,6 +2841,11 @@ public class IdPManagementDAO {
                                 .getPermissionAndRoleConfig().getRoleMappings());
                     }
                 }
+            }
+
+            // Add idp groups configuration.
+            if (identityProvider.getIdPGroupConfig() != null) {
+                addIdPGroups(dbConnection, idPId, tenantId, identityProvider.getIdPGroupConfig().getIdpGroups());
             }
 
             // add claim configuration.
@@ -3097,6 +3146,10 @@ public class IdPManagementDAO {
                 // update role configuration.
                 updateRoleConfiguration(dbConnection, idpId, tenantId,
                         newIdentityProvider.getPermissionAndRoleConfig());
+
+                // Update idp group configuration.
+                updateIdPGroupConfiguration(dbConnection, idpId, tenantId,
+                        newIdentityProvider.getIdPGroupConfig());
 
                 // // update provisioning connectors.
                 updateProvisioningConnectorConfigs(
@@ -3441,6 +3494,25 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Delete all the idp groups associated with the identity provider.
+     *
+     * @param dbConnection Connection to the database
+     * @param idpId        ID of the identity provider
+     * @throws IdentityProviderManagementException Error when deleting the identity provider
+     * @throws SQLException                        SQL Error when deleting the identity provider
+     */
+    private void deleteAllIdPGroups(Connection dbConnection, int idpId)
+            throws IdentityProviderManagementException, SQLException {
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
+                IdPManagementConstants.SQLQueries.DELETE_ALL_GROUPS_SQL)) {
+
+            prepStmt.setInt(1, idpId);
+            prepStmt.executeUpdate();
+        }
+    }
+
+    /**
      * @param newClaimURI
      * @param oldClaimURI
      * @param tenantId
@@ -3707,6 +3779,37 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Add Identity Provider groups.
+     *
+     * @param conn          Database connection.
+     * @param idPId         Identity Provider ID.
+     * @param tenantId      Tenant ID of the Identity Provider.
+     * @param idpGroupNames List of Identity Provider groups.
+     * @throws SQLException Database exception when adding Identity Provider groups.
+     */
+    private void addIdPGroups(Connection conn, int idPId, int tenantId, String[] idpGroupNames)
+            throws SQLException {
+
+        if (idpGroupNames == null || idpGroupNames.length == 0) {
+            return;
+        }
+
+        try (PreparedStatement addIdPGroupsPrepStmt = conn.prepareStatement(
+                IdPManagementConstants.SQLQueries.ADD_IDP_GROUPS_SQL)) {
+            for (String idpGroup : idpGroupNames) {
+                addIdPGroupsPrepStmt.setInt(1, idPId);
+                addIdPGroupsPrepStmt.setInt(2, tenantId);
+                addIdPGroupsPrepStmt.setString(3, idpGroup);
+                addIdPGroupsPrepStmt.addBatch();
+                addIdPGroupsPrepStmt.clearParameters();
+            }
+
+            addIdPGroupsPrepStmt.executeBatch();
+
+        }
+    }
+
+    /**
      * @param conn
      * @param idPId
      * @param tenantId
@@ -3912,6 +4015,31 @@ public class IdPManagementDAO {
         // add identity provider role mappings.
         addIdPRoleMappings(conn, idPId, tenantId, newRoleConfiguration.getRoleMappings());
 
+    }
+
+    /**
+     * Update the idp group configuration.
+     *
+     * @param conn              Database connection.
+     * @param idPId             IdP id of the Identity Provider.
+     * @param tenantId          Tenant id of the Identity Provider.
+     * @param newIdPGroupConfig New idp group configuration.
+     * @throws SQLException                        Exception when updating the idp groups in the database.
+     * @throws IdentityProviderManagementException Exception when updating the idp groups
+     */
+    private void updateIdPGroupConfiguration(Connection conn, int idPId, int tenantId,
+                                             IdPGroupConfig newIdPGroupConfig) throws SQLException,
+            IdentityProviderManagementException {
+
+        // Delete all identity provider groups.
+        deleteAllIdPGroups(conn, idPId);
+
+        if (newIdPGroupConfig == null) {
+            return;
+        }
+
+        // Add identity provider groups.
+        addIdPGroups(conn, idPId, tenantId, newIdPGroupConfig.getIdpGroups());
     }
 
     /**

@@ -77,6 +77,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CLAIM_CONFIG = "ClaimConfig";
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG = "IdpGroupConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private static final String FILE_ELEMENT_ISSUER = "Issuer";
@@ -143,6 +144,9 @@ public class IdentityProvider implements Serializable {
 
     @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
+
+    @XmlElement(name = FILE_ELEMENT_IDP_GROUP_CONFIG)
+    private IdPGroupConfig idPGroupConfig;
 
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
@@ -317,6 +321,8 @@ public class IdentityProvider implements Serializable {
             } else if (FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG.equals(elementName)) {
                 identityProvider
                         .setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (FILE_ELEMENT_IDP_GROUP_CONFIG.equals(elementName)) {
+                identityProvider.setIdPGroupConfig(IdPGroupConfig.build(element));
             } else if (FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG.equals(elementName)) {
                 identityProvider.setJustInTimeProvisioningConfig(JustInTimeProvisioningConfig
                         .build(element));
@@ -720,6 +726,26 @@ public class IdentityProvider implements Serializable {
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get the IdP Groups of the identity provider.
+     *
+     * @return the IdP Group Configuration
+     */
+    public IdPGroupConfig getIdPGroupConfig() {
+
+        return idPGroupConfig;
+    }
+
+    /**
+     * Set the IdP Groups of the identity provider.
+     *
+     * @param idPGroupConfig the IdP Group Configuration
+     */
+    public void setIdPGroupConfig(IdPGroupConfig idPGroupConfig) {
+
+        this.idPGroupConfig = idPGroupConfig;
     }
 
     /**
