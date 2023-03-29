@@ -347,7 +347,7 @@ public class SessionDataStore {
             if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
-                if ((requiredOperation.equals(operation))) {
+                if (StringUtils.equalsIgnoreCase(requiredOperation, operation)) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
