@@ -25,7 +25,8 @@ import org.wso2.carbon.identity.base.IdentityException;
  */
 public class ApplicationRolesException extends IdentityException {
 
-    private static final long serialVersionUID = 4037461438343881313L;
+    private static final long serialVersionUID = 3472136645895636620L;
+
     public ApplicationRolesException(String message) {
 
         super(message);

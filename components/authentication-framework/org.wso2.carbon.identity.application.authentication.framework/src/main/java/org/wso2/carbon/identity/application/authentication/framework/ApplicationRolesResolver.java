@@ -22,9 +22,18 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
- * Application roles resolver interface.
+ * Application roles resolver interface. Any application roles resolver should implement this interface.
  */
 public interface ApplicationRolesResolver {
-    String[]  getRoles(AuthenticatedUser authenticatedUser, String applicationId) throws ApplicationRolesException;
+
+    /**
+     * Get the application roles for the authenticated user.
+     *
+     * @param authenticatedUser Authenticated user to get the application roles for.
+     * @param applicationId     Application ID of the application.
+     * @return Array of application roles.
+     * @throws ApplicationRolesException ApplicationRolesException when an error occurs while getting the application roles.
+     */
+    String[] getRoles(AuthenticatedUser authenticatedUser, String applicationId) throws ApplicationRolesException;
 
 }

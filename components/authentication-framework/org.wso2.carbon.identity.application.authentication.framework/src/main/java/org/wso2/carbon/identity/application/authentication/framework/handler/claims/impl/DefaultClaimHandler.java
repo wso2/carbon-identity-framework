@@ -1107,6 +1107,15 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
+    /**
+     * Add the application roles of federated user to remote claims.
+     *
+     * @param stepConfig StepConfig of current step.
+     * @param context AuthenticationContext of current authentication flow.
+     * @param idPClaimMappings Claim mappings of IdP of the current step.
+     * @param remoteClaims Remote claims of the current step authenticated user.
+     * @throws FrameworkException Exception on handling application roles for federated user.
+     */
     private void handleApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
                                                         ClaimMapping[] idPClaimMappings,
                                                         Map<String, String> remoteClaims) throws FrameworkException {
@@ -1123,11 +1132,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
             String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
                     .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
-            boolean isScopeValidated = false;
-            String[] responseType = context.getAuthenticationRequest().getRequestQueryParam("response_type");
-            if (responseType != null && Arrays.asList(responseType).contains("code")) {
-                isScopeValidated = true;
-            }
 
             AppRoleMappingConfig[] appRoleMappingConfigs = context.getSequenceConfig().getApplicationConfig()
                     .getServiceProvider().getApplicationRoleMappingConfig();
@@ -1139,7 +1143,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     break;
                 }
             }
-            if (hasAppRoleClaimMapping && (isScopeValidated || requestedAppRoleClaim != null)) {
+            if (hasAppRoleClaimMapping && (requestedAppRoleClaim != null)) {
                 String appRoles;
                 if (useAppRoleMapping) {
                     appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
@@ -1151,6 +1155,14 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
+    /**
+     * Add the application roles of local user to local claims.
+     *
+     * @param stepConfig StepConfig of current step.
+     * @param context AuthenticationContext of current authentication flow.
+     * @param allLocalClaims All local claims of the current authenticated user.
+     * @throws FrameworkException Exception on handling application roles for local user.
+     */
     private void handleApplicationRolesForLocalUser(StepConfig stepConfig, AuthenticationContext context,
                                                     Map<String, String> allLocalClaims)
             throws FrameworkException {
@@ -1170,12 +1182,20 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
     }
 
+    /**
+     * Get the application roles of the authenticated user for application roles resolver if available.
+     *
+     * @param authenticatedUser Authenticated user to get the application roles for.
+     * @param context Authentication context.
+     * @return Application roles of the authenticated user.
+     * @throws FrameworkException Exception on getting application roles.
+     */
     private String getApplicationRoles(AuthenticatedUser authenticatedUser, AuthenticationContext context)
             throws FrameworkException {
 
         String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
                 .getApplicationResourceId();
-        ApplicationRolesResolver appRolesResolver =  FrameworkServiceDataHolder.getInstance()
+        ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
                 .getApplicationRolesResolver();
         if (appRolesResolver != null) {
             String[] appRoles;
@@ -1189,7 +1209,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                 return String.join(FrameworkUtils.getMultiAttributeSeparator(), appRoles);
             }
         }
-        return null;
+        // Return empty string if no application roles resolver is available.
+        return StringUtils.EMPTY;
     }
 
     private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
