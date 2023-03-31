@@ -34,9 +34,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.claim.metadata.mgt</module>
-        <module>org.wso2.carbon.identity.claim.metadata.mgt.ui</module>
         <module>org.wso2.carbon.claim.mgt</module>
-        <module>org.wso2.carbon.claim.mgt.ui</module>
     </modules>
 
 </project>
