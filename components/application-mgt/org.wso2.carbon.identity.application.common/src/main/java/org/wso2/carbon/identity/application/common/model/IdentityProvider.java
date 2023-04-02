@@ -77,6 +77,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CLAIM_CONFIG = "ClaimConfig";
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER = "IdpGroupConfigs";
     private static final String FILE_ELEMENT_IDP_GROUP_CONFIG = "IdpGroupConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
@@ -145,8 +146,9 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
 
+    @XmlElementWrapper(name = FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER)
     @XmlElement(name = FILE_ELEMENT_IDP_GROUP_CONFIG)
-    private IdPGroupConfig idPGroupConfig;
+    private IdPGroup[] idPGroupConfig;
 
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
@@ -299,6 +301,25 @@ public class IdentityProvider implements Serializable {
                     identityProvider
                             .setProvisioningConnectorConfigs(provisioningConnectorConfigsArr);
                 }
+            } else if (FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER.equals(elementName)) {
+                // Build IdP groups configuration.
+                Iterator<?> idpGroupsIter = element.getChildElements();
+                List<IdPGroup> idPGroupArrayList = new ArrayList<>();
+
+                if (idpGroupsIter != null) {
+                    while (idpGroupsIter.hasNext()) {
+                        OMElement idPGroupElement = (OMElement) (idpGroupsIter.next());
+                        IdPGroup idPGroup = IdPGroup
+                                .build(idPGroupElement);
+                        if (idPGroup != null) {
+                            idPGroupArrayList.add(idPGroup);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(idPGroupArrayList)) {
+                    IdPGroup[] idPGroupsConfig = idPGroupArrayList.toArray(new IdPGroup[0]);
+                    identityProvider.setIdPGroupConfig(idPGroupsConfig);
+                }
             } else if (FILE_ELEMENT_DEFAULT_PROVISIONING_CONNECTOR_CONFIG.equals(elementName)) {
                 if (element.getText().trim().isEmpty()) {
                     try {
@@ -321,8 +342,6 @@ public class IdentityProvider implements Serializable {
             } else if (FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG.equals(elementName)) {
                 identityProvider
                         .setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
-            } else if (FILE_ELEMENT_IDP_GROUP_CONFIG.equals(elementName)) {
-                identityProvider.setIdPGroupConfig(IdPGroupConfig.build(element));
             } else if (FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG.equals(elementName)) {
                 identityProvider.setJustInTimeProvisioningConfig(JustInTimeProvisioningConfig
                         .build(element));
@@ -733,7 +752,7 @@ public class IdentityProvider implements Serializable {
      *
      * @return the IdP Group Configuration
      */
-    public IdPGroupConfig getIdPGroupConfig() {
+    public IdPGroup[] getIdPGroupConfig() {
 
         return idPGroupConfig;
     }
@@ -743,7 +762,7 @@ public class IdentityProvider implements Serializable {
      *
      * @param idPGroupConfig the IdP Group Configuration
      */
-    public void setIdPGroupConfig(IdPGroupConfig idPGroupConfig) {
+    public void setIdPGroupConfig(IdPGroup[] idPGroupConfig) {
 
         this.idPGroupConfig = idPGroupConfig;
     }

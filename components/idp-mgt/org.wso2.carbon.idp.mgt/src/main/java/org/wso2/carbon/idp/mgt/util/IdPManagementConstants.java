@@ -270,8 +270,8 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_ROLES_SQL = "INSERT INTO IDP_ROLE (IDP_ID, TENANT_ID, ROLE) "
                 + "VALUES (?, ?, ?)";
 
-        public static final String ADD_IDP_GROUPS_SQL = "INSERT INTO IDP_GROUP (IDP_ID, TENANT_ID, GROUP_NAME) "
-                + "VALUES (?, ?, ?)";
+        public static final String ADD_IDP_GROUPS_SQL = "INSERT INTO IDP_GROUP (IDP_ID, TENANT_ID, GROUP_NAME, UUID) "
+                + "VALUES (?, ?, ?, ?)";
 
         public static final String DELETE_IDP_ROLES_SQL = "DELETE FROM IDP_ROLE "
                 + "WHERE (IDP_ID=? AND ROLE=?)";
@@ -282,7 +282,7 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ROLES_SQL = "SELECT ID, ROLE  FROM IDP_ROLE "
                 + "WHERE IDP_ID=?";
 
-        public static final String GET_IDP_GROUPS_SQL = "SELECT ID, GROUP_NAME FROM IDP_GROUP "
+        public static final String GET_IDP_GROUPS_SQL = "SELECT ID, GROUP_NAME, UUID FROM IDP_GROUP "
                 + "WHERE IDP_ID=?";
         public static final String DELETE_IDP_ROLE_MAPPINGS_SQL = "DELETE FROM IDP_ROLE_MAPPING "
                 + "WHERE (IDP_ROLE_ID=? AND TENANT_ID=? AND USER_STORE_ID = ? AND LOCAL_ROLE=?)";

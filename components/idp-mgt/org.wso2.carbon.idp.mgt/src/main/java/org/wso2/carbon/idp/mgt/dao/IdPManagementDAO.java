@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdPGroupConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
@@ -1518,24 +1518,26 @@ public class IdPManagementDAO {
      * @return IdPGroupConfig Identity Provider Group Configuration.
      * @throws SQLException Error when executing getting idp groups from database.
      */
-    public IdPGroupConfig getIdPGroupConfiguration(Connection dbConnection, int idPId)
+    public IdPGroup[] getIdPGroupConfiguration(Connection dbConnection, int idPId)
             throws SQLException {
 
-        IdPGroupConfig idPGroupConfiguration = new IdPGroupConfig();
+        IdPGroup[] idPGroupConfiguration;
 
         try (PreparedStatement getIdPGroupsConfigPrepStmt = dbConnection.prepareStatement(
                 IdPManagementConstants.SQLQueries.GET_IDP_GROUPS_SQL)) {
 
-            List<String> idpGroupList = new ArrayList<String>();
+            List<IdPGroup> idpGroupList = new ArrayList<>();
             getIdPGroupsConfigPrepStmt.setInt(1, idPId);
 
             try (ResultSet getIdPGroupsConfigResultSet = getIdPGroupsConfigPrepStmt.executeQuery()) {
                 while (getIdPGroupsConfigResultSet.next()) {
-                    idpGroupList.add(getIdPGroupsConfigResultSet.getString("GROUP_NAME"));
+                    IdPGroup idPGroup = new IdPGroup();
+                    idPGroup.setIdpGroupName(getIdPGroupsConfigResultSet.getString(2));
+                    idPGroup.setIdpGroupId(getIdPGroupsConfigResultSet.getString(3));
+                    idpGroupList.add(idPGroup);
                 }
             }
-
-            idPGroupConfiguration.setIdpGroups(idpGroupList.toArray(new String[0]));
+            idPGroupConfiguration = idpGroupList.toArray(new IdPGroup[0]);
         }
         return idPGroupConfiguration;
     }
@@ -2845,7 +2847,7 @@ public class IdPManagementDAO {
 
             // Add idp groups configuration.
             if (identityProvider.getIdPGroupConfig() != null) {
-                addIdPGroups(dbConnection, idPId, tenantId, identityProvider.getIdPGroupConfig().getIdpGroups());
+                addIdPGroups(dbConnection, idPId, tenantId, identityProvider.getIdPGroupConfig(), false);
             }
 
             // add claim configuration.
@@ -3781,31 +3783,39 @@ public class IdPManagementDAO {
     /**
      * Add Identity Provider groups.
      *
-     * @param conn          Database connection.
-     * @param idPId         Identity Provider ID.
-     * @param tenantId      Tenant ID of the Identity Provider.
-     * @param idpGroupNames List of Identity Provider groups.
+     * @param conn      Database connection.
+     * @param idPId     Identity Provider ID.
+     * @param tenantId  Tenant ID of the Identity Provider.
+     * @param idPGroups List of Identity Provider groups.
      * @throws SQLException Database exception when adding Identity Provider groups.
      */
-    private void addIdPGroups(Connection conn, int idPId, int tenantId, String[] idpGroupNames)
+    private void addIdPGroups(Connection conn, int idPId, int tenantId, IdPGroup[] idPGroups, boolean isUpdate)
             throws SQLException {
 
-        if (idpGroupNames == null || idpGroupNames.length == 0) {
+        if (idPGroups == null || idPGroups.length == 0) {
             return;
         }
-
         try (PreparedStatement addIdPGroupsPrepStmt = conn.prepareStatement(
                 IdPManagementConstants.SQLQueries.ADD_IDP_GROUPS_SQL)) {
-            for (String idpGroup : idpGroupNames) {
+            for (IdPGroup idpGroup : idPGroups) {
+                if (StringUtils.isBlank(idpGroup.getIdpGroupName())) {
+                    continue;
+                }
+                if (!isUpdate && StringUtils.isNotBlank(idpGroup.getIdpGroupId())) {
+                    log.debug("IdP Group ID should be null for new IdP Group. Hence not adding the IdP group.");
+                    continue;
+                }
+                if (StringUtils.isBlank(idpGroup.getIdpGroupId())) {
+                    idpGroup.setIdpGroupId(UUID.randomUUID().toString());
+                }
                 addIdPGroupsPrepStmt.setInt(1, idPId);
                 addIdPGroupsPrepStmt.setInt(2, tenantId);
-                addIdPGroupsPrepStmt.setString(3, idpGroup);
+                addIdPGroupsPrepStmt.setString(3, idpGroup.getIdpGroupName());
+                addIdPGroupsPrepStmt.setString(4, idpGroup.getIdpGroupId());
                 addIdPGroupsPrepStmt.addBatch();
                 addIdPGroupsPrepStmt.clearParameters();
             }
-
             addIdPGroupsPrepStmt.executeBatch();
-
         }
     }
 
@@ -4020,26 +4030,42 @@ public class IdPManagementDAO {
     /**
      * Update the idp group configuration.
      *
-     * @param conn              Database connection.
-     * @param idPId             IdP id of the Identity Provider.
-     * @param tenantId          Tenant id of the Identity Provider.
+     * @param conn Database connection.
+     * @param idPId IdP id of the Identity Provider.
+     * @param tenantId Tenant id of the Identity Provider.
      * @param newIdPGroupConfig New idp group configuration.
-     * @throws SQLException                        Exception when updating the idp groups in the database.
+     * @throws SQLException Exception when updating the idp groups in the database.
      * @throws IdentityProviderManagementException Exception when updating the idp groups
      */
-    private void updateIdPGroupConfiguration(Connection conn, int idPId, int tenantId,
-                                             IdPGroupConfig newIdPGroupConfig) throws SQLException,
-            IdentityProviderManagementException {
+    private void updateIdPGroupConfiguration(Connection conn, int idPId, int tenantId, IdPGroup[] newIdPGroupConfig)
+            throws SQLException, IdentityProviderManagementException {
 
+        // Filter IdP groups with valid UUIDs.
+        validateIdForIdPGroups(conn, idPId, newIdPGroupConfig);
         // Delete all identity provider groups.
         deleteAllIdPGroups(conn, idPId);
+        // Add identity provider groups.
+        addIdPGroups(conn, idPId, tenantId, newIdPGroupConfig, true);
+    }
 
-        if (newIdPGroupConfig == null) {
+    /**
+     * @param conn Database connection.
+     * @param idPId IdP id of the Identity Provider.
+     * @param IdPGroupsToUpdate New idp group configuration.
+     * @throws SQLException Exception when retrieving the old idp groups in the database.
+     */
+    private void validateIdForIdPGroups(Connection conn, int idPId, IdPGroup[] IdPGroupsToUpdate) throws SQLException {
+
+        if (ArrayUtils.isEmpty(IdPGroupsToUpdate)) {
             return;
         }
-
-        // Add identity provider groups.
-        addIdPGroups(conn, idPId, tenantId, newIdPGroupConfig.getIdpGroups());
+        IdPGroup[] existingIdPGroups = getIdPGroupConfiguration(conn, idPId);
+        String[] existingIdPGroupIds = Arrays.stream(existingIdPGroups).map(IdPGroup::getIdpGroupId)
+                .toArray(String[]::new);
+        // Set null to the IdP group id if it is not in the existing IdP groups.
+        Arrays.stream(IdPGroupsToUpdate)
+                .filter(idPGroup -> !ArrayUtils.contains(existingIdPGroupIds, idPGroup.getIdpGroupId()))
+                .forEach(idPGroup -> idPGroup.setIdpGroupId(null));
     }
 
     /**
