@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
@@ -83,6 +84,12 @@ public class IdPManagementUIUtil {
     public static final String PAGE_NUMBER = "pageNumber";
 
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
+
+    public static final String CHECKBOX_ON = "on";
+
+    public static final String PROPERTY_TRUE = "true";
+
+    public static final String PROPERTY_FALSE = "false";
 
     /**
      * Validates an URI.
@@ -1380,10 +1387,11 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED);
-        if (paramMap.get("oidcPKCEEnabled") != null && "on".equals(paramMap.get("oidcPKCEEnabled"))) {
-            property.setValue("true");
-        } else {
-            property.setValue("false");
+        property.setValue(PROPERTY_FALSE);
+        if (paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME) != null
+                && CHECKBOX_ON.equals(
+                        paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME))) {
+            property.setValue(PROPERTY_TRUE);
         }
         properties[10] = property;
 
