@@ -498,12 +498,12 @@
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
                 {% if callback_handler.priority is defined %}
-                    <Priority Value="{{callback_handler.priority}}"/>
+                    <Priority>{{callback_handler.priority}}</Priority>
                 {% endif %}
                 {% if callback_handler.properties is defined %}
                   <Properties>
                     {% for key,value in callback_handler.properties.items() %}
-                      <Properties> name="{{key}}">{{value}} </Properties>
+                      <Property> name="{{key}}">{{value}}</Property>
                     {% endfor %}
                   </Properties>
                  {% endif %}
