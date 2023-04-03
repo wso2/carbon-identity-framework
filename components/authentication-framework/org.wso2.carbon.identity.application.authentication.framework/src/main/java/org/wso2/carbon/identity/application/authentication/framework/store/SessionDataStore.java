@@ -147,6 +147,7 @@ public class SessionDataStore {
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
+    private static boolean sessionAndTempDataSeparationEnabled = false;
 
     static {
         try {
@@ -163,6 +164,9 @@ public class SessionDataStore {
             if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 tempDataCleanupEnabled = Boolean.parseBoolean(isTempDataCleanupEnabledVal);
             }
+
+            sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(IdentityUtil
+                    .getProperty("JDBCPersistenceManager.SessionDataPersist.SessionAndTempDataSeparation.Enable"));
 
             String maxTempDataPoolSizeValue
                     = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
@@ -699,7 +703,7 @@ public class SessionDataStore {
 
     private String getSessionStoreDBQuery(String query, String type) {
 
-        if (tempDataCleanupEnabled && isTempCache(type)) {
+        if ((sessionAndTempDataSeparationEnabled || tempDataCleanupEnabled) && isTempCache(type)) {
             query = replaceTableName(query);
         }
         return query;
