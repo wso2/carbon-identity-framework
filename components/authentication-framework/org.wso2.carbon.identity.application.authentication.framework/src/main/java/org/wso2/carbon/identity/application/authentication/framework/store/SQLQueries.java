@@ -82,7 +82,17 @@ public class SQLQueries {
     public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2 =
             "MERGE INTO IDN_AUTH_SESSION_APP_INFO KEY(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) VALUES(?, ?, ?, ?)";
 
-    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2 =
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
+                    "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "ON (T.SESSION_ID = S.SESSION_ID AND " +
+                    "T.SUBJECT = S.SUBJECT AND " +
+                    "T.APP_ID = S.APP_ID AND " +
+                    "T.INBOUND_AUTH_TYPE = S.INBOUND_AUTH_TYPE ) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "VALUES (S.SESSION_ID,S.SUBJECT,S.APP_ID,S.INBOUND_AUTH_TYPE)";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL =
             "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
                     "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
                     "ON (T.SESSION_ID = S.SESSION_ID AND " +
