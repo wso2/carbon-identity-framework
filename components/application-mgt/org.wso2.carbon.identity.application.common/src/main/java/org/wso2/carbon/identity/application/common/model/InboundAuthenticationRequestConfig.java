@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -57,8 +58,11 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     @XmlElement(name = "friendlyName")
     private String friendlyName;
 
-    @XmlElement(name = "inboundConfiguration")
+    @JsonIgnore
     private String inboundConfiguration;
+
+    @XmlElement(name = "InboundConfigurationProtocol")
+    private InboundConfigurationProtocol inboundConfigurationProtocol;
 
     @XmlElementWrapper(name = "Properties")
     @XmlElement(name = "Property")
@@ -207,4 +211,15 @@ public class InboundAuthenticationRequestConfig implements Serializable {
 
         this.inboundConfiguration = inboundConfiguration;
     }
+
+    public InboundConfigurationProtocol getInboundConfigurationProtocol() {
+
+        return this.inboundConfigurationProtocol;
+    }
+
+    public void setInboundConfigurationProtocol(InboundConfigurationProtocol inboundConfigurationProtocol) {
+
+        this.inboundConfigurationProtocol = inboundConfigurationProtocol;
+    }
+
 }
