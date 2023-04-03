@@ -208,6 +208,7 @@
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
+  "oauth.oidc.allow_additional_params_from_post_logout_redirect_uri": false,
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
