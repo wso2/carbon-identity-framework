@@ -586,8 +586,7 @@
     "/oidc/",
     "/samlsso(.*)",
     "/samlartresolve",
-    "/passivests",
-    "/longwaitstatus(.*)"
+    "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
