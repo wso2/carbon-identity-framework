@@ -30,7 +30,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.CertificateInfo;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
