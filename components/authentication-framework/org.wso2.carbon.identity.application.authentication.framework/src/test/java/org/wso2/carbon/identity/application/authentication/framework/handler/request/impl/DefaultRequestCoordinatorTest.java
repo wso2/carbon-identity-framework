@@ -23,7 +23,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
@@ -35,9 +37,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestAttribute.AUTH_REQUEST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SESSION_DATA_KEY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
@@ -48,11 +52,14 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
+    private AuthenticationRequestCacheEntry authRequest;
+    private AuthenticationRequest authenticationRequest;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         requestCoordinator = new DefaultRequestCoordinator();
+        authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
     }
 
     @AfterMethod
@@ -64,14 +71,14 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
     public Object[][] provideTenantDomain() {
 
         return new Object[][]{
-                {true, null, null, SUPER_TENANT_DOMAIN_NAME},
-                {false, null, null, SUPER_TENANT_DOMAIN_NAME},
+                {true, null, null, SUPER_TENANT_DOMAIN_NAME, "dummy_data_key"},
+                {false, null, null, SUPER_TENANT_DOMAIN_NAME, "dummy_data_key"},
 
-                {true, "foo.com", "xyz.com", "foo.com"},
-                {false, "foo.com", "xyz.com", "xyz.com"},
+                {true, "foo.com", "xyz.com", "foo.com", "dummy_data_key"},
+                {false, "foo.com", "xyz.com", "xyz.com", "dummy_data_key"},
 
-                {true, null, "xyz.com", "xyz.com"},
-                {false, null, "xyz.com", "xyz.com"},
+                {true, null, "xyz.com", "xyz.com", null},
+                {false, null, "xyz.com", "xyz.com", "dummy_data_key"},
         };
     }
 
@@ -79,7 +86,8 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
     public void testTenantDomainInAuthenticationContext(boolean isTenantQualifiedUrlModeEnabled,
                                                         String tenantDomainInThreadLocal,
                                                         String tenantDomainInRequestParam,
-                                                        String expected) throws Exception {
+                                                        String expected,
+                                                        String sessionDataKey) throws Exception {
 
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(isTenantQualifiedUrlModeEnabled);
@@ -89,6 +97,8 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
         when(request.getParameter(TYPE)).thenReturn("oauth");
         when(request.getParameter(LOGOUT)).thenReturn("true");
         when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomainInRequestParam);
+        when(request.getParameter(SESSION_DATA_KEY)).thenReturn(sessionDataKey);
+        when(request.getAttribute(AUTH_REQUEST)).thenReturn(authRequest);
 
         HttpServletResponse response = mock(HttpServletResponse.class);
 
