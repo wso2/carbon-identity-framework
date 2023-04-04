@@ -211,6 +211,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 returning = true;
                 context = FrameworkUtils.getContextData(request);
                 associateTransientRequestData(request, responseWrapper, context);
+
+                if ((context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW) != null) &&
+                        (context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW).equals(true))) {
+                    returning = false;
+                    context.initializeAnalyticsData();
+                }
             }
 
             if (context != null) {
@@ -308,11 +314,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
-                // if this is the flow start, store the original request in the context
-                if (!context.isReturning() && authRequest != null) {
-                    context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
-                }
-
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                 } else {
@@ -367,8 +368,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
-                        "suspicious.authentication.attempts.description");
+                log.warn("Session nonce cookie validation has failed. Hence, restarting the login flow.");
+                context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
+                context.setProperty(FrameworkConstants.RESTART_LOGIN_FLOW, true);
+                FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+                handle(request, response);
             } else {
                 log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
@@ -552,6 +556,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response)
             throws FrameworkException {
 
+        AuthenticationRequestCacheEntry authRequest;
+
         if (log.isDebugEnabled()) {
             log.debug("Initializing the flow");
         }
@@ -575,6 +581,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
         String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
+        authRequest = getAuthenticationRequest(request, callerSessionDataKey);
 
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
@@ -586,6 +593,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setUserTenantDomainHint(userDomain);
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
+        context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
@@ -663,6 +671,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         associateTransientRequestData(request, response, context);
         findPreviousAuthenticatedSession(request, context);
         buildOutboundQueryString(request, context);
+
+        // we'll use the cloned context to re-initiate the login flow when session nonce cookie validation failed.
+        if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
+            context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+        }
 
         return context;
     }
