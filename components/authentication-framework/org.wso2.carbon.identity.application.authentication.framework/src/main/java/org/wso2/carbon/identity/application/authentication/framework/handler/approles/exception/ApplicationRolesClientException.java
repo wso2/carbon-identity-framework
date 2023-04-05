@@ -16,24 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.exception;
-
-import org.wso2.carbon.identity.base.IdentityException;
+package org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception;
 
 /**
- * Application roles exception.
+ * Application roles client exception.
  */
-public class ApplicationRolesException extends IdentityException {
+public class ApplicationRolesClientException extends ApplicationRolesException {
 
-    private static final long serialVersionUID = 3472136645895636620L;
+    public ApplicationRolesClientException(String message, String description, String errorCode) {
 
-    public ApplicationRolesException(String message) {
-
-        super(message);
+        super(message, description, errorCode);
     }
 
-    public ApplicationRolesException(String message, Throwable cause) {
+    public ApplicationRolesClientException(String message, String description, String errorCode, Throwable cause) {
 
-        super(message, cause);
+        super(message, description, errorCode, cause);
     }
 }

@@ -26,15 +26,15 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -1110,47 +1110,45 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Add the application roles of federated user to remote claims.
      *
-     * @param stepConfig StepConfig of current step.
-     * @param context AuthenticationContext of current authentication flow.
+     * @param stepConfig       StepConfig of current step.
+     * @param context          AuthenticationContext of current authentication flow.
      * @param idPClaimMappings Claim mappings of IdP of the current step.
-     * @param remoteClaims Remote claims of the current step authenticated user.
+     * @param remoteClaims     Remote claims of the current step authenticated user.
      * @throws FrameworkException Exception on handling application roles for federated user.
      */
     private void handleApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
                                                         ClaimMapping[] idPClaimMappings,
-                                                        Map<String, String> remoteClaims) throws FrameworkException {
+                                                        Map<String, String> remoteClaims)
+            throws FrameworkException {
 
-        if (idPClaimMappings != null && stepConfig.isSubjectAttributeStep()) {
-            boolean hasAppRoleClaimMapping = false;
-            String idpAppRoleClaimUri = null;
-            for (ClaimMapping claimMapping : idPClaimMappings) {
-                if (claimMapping.getLocalClaim().getClaimUri().equals(FrameworkConstants.APP_ROLES_CLAIM)) {
-                    hasAppRoleClaimMapping = true;
-                    idpAppRoleClaimUri = claimMapping.getRemoteClaim().getClaimUri();
-                    break;
-                }
-            }
-            String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
-                    .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
-
-            AppRoleMappingConfig[] appRoleMappingConfigs = context.getSequenceConfig().getApplicationConfig()
-                    .getServiceProvider().getApplicationRoleMappingConfig();
-            String fidpName = stepConfig.getAuthenticatedIdP();
-            boolean useAppRoleMapping = false;
-            for (AppRoleMappingConfig appRoleMappingConfig : appRoleMappingConfigs) {
-                if (appRoleMappingConfig.getIdPName().equals(fidpName)) {
-                    useAppRoleMapping = appRoleMappingConfig.isUseAppRoleMappings();
-                    break;
-                }
-            }
-            if (hasAppRoleClaimMapping && (requestedAppRoleClaim != null)) {
-                String appRoles;
-                if (useAppRoleMapping) {
-                    appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
-                    if (appRoles != null) {
-                        remoteClaims.put(idpAppRoleClaimUri, appRoles);
-                    }
-                }
+        // IdP claim mappings should be available and the current step should be a subject attribute step.
+        if (idPClaimMappings == null || !stepConfig.isSubjectAttributeStep()) {
+            return;
+        }
+        // Get the remote claim URI of the application role claim.
+        String idpAppRoleClaimUri = Arrays.stream(idPClaimMappings)
+                .filter(claimMapping -> claimMapping.getLocalClaim().getClaimUri()
+                        .equals(FrameworkConstants.APP_ROLES_CLAIM))
+                .map(claimMapping -> claimMapping.getRemoteClaim().getClaimUri())
+                .findFirst()
+                .orElse(null);
+        // If there is no application role claim mapping, no need to proceed.
+        if (idpAppRoleClaimUri == null) {
+            return;
+        }
+        // Regardless of whether the application role claim is requested from the SP, we need to add it to the remote
+        // claims since otherwise we wouldn't know if application roles are resolved or not at a later stage.
+        AppRoleMappingConfig[] appRoleMappingConfigs = context.getSequenceConfig().getApplicationConfig()
+                .getServiceProvider().getApplicationRoleMappingConfig();
+        String fidpName = stepConfig.getAuthenticatedIdP();
+        boolean useAppRoleMapping = Arrays.stream(appRoleMappingConfigs)
+                .anyMatch(appRoleMappingConfig -> appRoleMappingConfig.getIdPName().equals(fidpName)
+                        && appRoleMappingConfig.isUseAppRoleMappings());
+        if (useAppRoleMapping) {
+            String appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
+            // Checking if the appRoles string is null but can be an empty string.
+            if (appRoles != null) {
+                remoteClaims.put(idpAppRoleClaimUri, appRoles);
             }
         }
     }
@@ -1196,21 +1194,23 @@ public class DefaultClaimHandler implements ClaimHandler {
         String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
                 .getApplicationResourceId();
         ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
-                .getApplicationRolesResolver();
-        if (appRolesResolver != null) {
-            String[] appRoles;
-            try {
-                appRoles = appRolesResolver.getRoles(authenticatedUser, applicationId);
-            } catch (ApplicationRolesException e) {
-                throw new FrameworkException("Error while retrieving application roles for user: " +
-                        authenticatedUser + " and application: " + applicationId, e);
-            }
-            if (appRoles != null) {
-                return String.join(FrameworkUtils.getMultiAttributeSeparator(), appRoles);
-            }
+                .getHighestPriorityApplicationRolesResolver();
+        if (appRolesResolver == null) {
+            log.debug("No application roles resolver found.");
+            // Return empty string if no application roles resolver is available.
+            return StringUtils.EMPTY;
         }
-        // Return empty string if no application roles resolver is available.
-        return StringUtils.EMPTY;
+        String[] appRoles;
+        try {
+            appRoles = appRolesResolver.getRoles(authenticatedUser, applicationId);
+        } catch (ApplicationRolesException e) {
+            throw new FrameworkException("Error while retrieving application roles for user: " +
+                    authenticatedUser + " and application: " + applicationId, e);
+        }
+        if (appRoles != null) {
+            return String.join(FrameworkUtils.getMultiAttributeSeparator(), appRoles);
+        }
+        return null;
     }
 
     private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {

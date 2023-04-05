@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework;
+package org.wso2.carbon.identity.application.authentication.framework.handler.approles;
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationRolesException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
@@ -27,12 +27,20 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 public interface ApplicationRolesResolver {
 
     /**
+     * Priority of the Application Roles Resolver. Application roles resolvers will be sorted based on their priority
+     * value and by default only the resolver with the highest priority will be executed.
+     *
+     * @return priority of the application roles resolver.
+     */
+    int getPriority();
+
+    /**
      * Get the application roles for the authenticated user.
      *
      * @param authenticatedUser Authenticated user to get the application roles for.
      * @param applicationId     Application ID of the application.
      * @return Array of application roles.
-     * @throws ApplicationRolesException ApplicationRolesException when an error occurs while getting the application roles.
+     * @throws ApplicationRolesException ApplicationRolesException when an error occurs while getting application roles.
      */
     String[] getRoles(AuthenticatedUser authenticatedUser, String applicationId) throws ApplicationRolesException;
 

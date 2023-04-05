@@ -35,7 +35,6 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
@@ -57,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
@@ -815,12 +815,12 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Application Roles Resolver is set in the Application Authentication Framework bundle.");
         }
-        FrameworkServiceDataHolder.getInstance().setApplicationRolesResolver(applicationRolesResolver);
+        FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(applicationRolesResolver);
     }
 
     protected void unsetAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
 
-        FrameworkServiceDataHolder.getInstance().setApplicationRolesResolver(null);
+        FrameworkServiceDataHolder.getInstance().removeApplicationRolesResolver(applicationRolesResolver);
     }
 
     @Reference(
