@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -32,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
@@ -73,7 +73,7 @@ public class FrameworkServiceDataHolder {
     private RealmService realmService = null;
     private RegistryService registryService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
-    private ApplicationRolesResolver applicationRolesResolver = null;
+    private List<ApplicationRolesResolver> applicationRolesResolvers = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
     private List<IdentityProcessor> identityProcessors = new ArrayList<>();
@@ -161,14 +161,56 @@ public class FrameworkServiceDataHolder {
         return authenticators;
     }
 
-    public void setApplicationRolesResolver(ApplicationRolesResolver applicationRolesResolver) {
+    /**
+     * Add an application role resolver to the list of application role resolvers.
+     *
+     * @param applicationRolesResolver Application roles resolver implementation.
+     */
+    public void addApplicationRolesResolver(ApplicationRolesResolver applicationRolesResolver) {
 
-        this.applicationRolesResolver = applicationRolesResolver;
+        applicationRolesResolvers.add(applicationRolesResolver);
+        applicationRolesResolvers.sort(getApplicationRolesResolverComparator());
     }
 
-    public ApplicationRolesResolver getApplicationRolesResolver() {
+    /**
+     * Remove an application role resolver from the list of application role resolvers.
+     *
+     * @param applicationRolesResolver Application roles resolver implementation.
+     */
+    public void removeApplicationRolesResolver(ApplicationRolesResolver applicationRolesResolver) {
 
-        return applicationRolesResolver;
+        applicationRolesResolvers.removeIf(applicationRolesResolver1 -> applicationRolesResolver1.getClass().getName()
+                .equals(applicationRolesResolver.getClass().getName()));
+    }
+
+    /**
+     * Get the list of application roles resolvers.
+     *
+     * @return List of application roles resolvers.
+     */
+    public List<ApplicationRolesResolver> getApplicationRolesResolvers() {
+
+        return applicationRolesResolvers;
+    }
+
+    /**
+     * Get the highest priority application roles resolver.
+     *
+     * @return the highest priority application roles resolver.
+     */
+    public ApplicationRolesResolver getHighestPriorityApplicationRolesResolver() {
+
+        if (applicationRolesResolvers.isEmpty()) {
+            log.info("No Registered Application roles resolvers available");
+            return null;
+        }
+        return applicationRolesResolvers.get(0);
+    }
+
+    private Comparator<ApplicationRolesResolver> getApplicationRolesResolverComparator() {
+
+        // Sort based on priority in descending order, ie. the highest priority comes to the first element of the list.
+        return Comparator.comparingInt(ApplicationRolesResolver::getPriority).reversed();
     }
 
     public long getNanoTimeReference() {
