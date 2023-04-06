@@ -185,9 +185,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     } else if (context.getProperty(nonceCookieName) == null) {
                         addOrUpdateNonceCookie = true;
                         // set restartLoginFlow to false once we added session nonce cookie in the new browser session
-                        if ((context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW) != null) &&
-                                (context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW).equals(true))) {
-                            context.setProperty(FrameworkConstants.RESTART_LOGIN_FLOW, false);
+                        if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
+                                request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
+                            request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "false");
                         }
                     }
                 }

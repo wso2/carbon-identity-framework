@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.I18nErrorCodeWrapper;
@@ -208,15 +209,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context = initializeFlow(request, responseWrapper);
                 context.initializeAnalyticsData();
             } else {
-                returning = true;
                 context = FrameworkUtils.getContextData(request);
-                associateTransientRequestData(request, responseWrapper, context);
-
-                if ((context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW) != null) &&
-                        (context.getProperty(FrameworkConstants.RESTART_LOGIN_FLOW).equals(true))) {
-                    returning = false;
+                if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
+                        request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
+                    context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
                     context.initializeAnalyticsData();
+                } else {
+                    returning = true;
                 }
+                associateTransientRequestData(request, responseWrapper, context);
             }
 
             if (context != null) {
@@ -369,10 +370,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     log.debug(e.getMessage(), e);
                 }
                 log.warn("Session nonce cookie validation has failed. Hence, restarting the login flow.");
-                context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
-                context.setProperty(FrameworkConstants.RESTART_LOGIN_FLOW, true);
-                FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
-                handle(request, response);
+                request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
+                throw new CookieValidationFailedException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
+                        "matching " +
+                        "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
             } else {
                 log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
@@ -380,7 +381,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
-            unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) == null ||
+                    request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("false")) {
+                unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            }
+
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
