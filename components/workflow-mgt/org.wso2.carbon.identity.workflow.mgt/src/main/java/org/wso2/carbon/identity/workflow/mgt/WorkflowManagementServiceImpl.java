@@ -384,6 +384,20 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
+    public String getWorkflowName(String requestId) throws WorkflowException {
+
+        return workflowRequestDAO.retrieveWorkflowName(requestId);
+    }
+
+    @Override
+    public String getTemplateId(String workflowId) throws WorkflowException {
+        return WorkflowRequestDAO.retrieveTemplateId(workflowId);
+    }
+    public String getExternalWorkflowId(String workflowId) throws WorkflowException{
+        return workflowRequestDAO.retrieveExternalWorkflowId(workflowId);
+    }
+
+    @Override
     public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
             WorkflowException {
 
