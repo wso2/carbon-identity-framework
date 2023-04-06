@@ -7,6 +7,6 @@ import java.io.IOException;
  */
 public class CookieValidationFailedException extends IOException {
     public CookieValidationFailedException(String errorCode, String message) {
-        super();
+        super(errorCode + " : " + message);
     }
 }
