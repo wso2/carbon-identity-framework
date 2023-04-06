@@ -503,7 +503,7 @@
                 {% if callback_handler.properties is defined %}
                   <Properties>
                     {% for key,value in callback_handler.properties.items() %}
-                      <Property> name="{{key}}">{{value}}</Property>
+                      <Property name="{{key}}">{{value}}</Property>
                     {% endfor %}
                   </Properties>
                  {% endif %}
