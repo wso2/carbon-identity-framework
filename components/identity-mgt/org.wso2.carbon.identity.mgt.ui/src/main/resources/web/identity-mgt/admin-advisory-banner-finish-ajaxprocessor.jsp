@@ -47,8 +47,8 @@
 	} else {
         adminAdvisoryBannerConfig.setEnableBanner(false);
     }
-	if (bannerContent != null && bannerContent.trim().length() > 0){
-		adminAdvisoryBannerConfig.setContent(bannerContent);
+	if (bannerContent != null && bannerContent.trim().length() > 0) {
+		adminAdvisoryBannerConfig.setBannerContent(bannerContent);
 	}
 	
     try {
