@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -227,6 +227,18 @@ public class IdentityMgtConstants {
         private Notification(){
         }
 
+    }
+
+    public static class AdminAdvisory {
+
+        public static final String ENABLE_BANNER = "enableBanner";
+        public static final String BANNER_CONTENT = "bannerContent";
+        public static final Boolean ENABLE_BANNER_BY_DEFAULT = false;
+        public static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
+                "prohibited. All activities performed using this tool are logged and monitored.";
+
+        private AdminAdvisory(){
+        }
     }
 
     public class ErrorHandling {

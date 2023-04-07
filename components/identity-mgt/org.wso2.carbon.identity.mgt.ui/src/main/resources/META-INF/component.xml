@@ -44,5 +44,17 @@
             <icon>../identity-mgt/images/keys.gif</icon>
             <require-permission>/permission/admin/manage/identity/identitymgt</require-permission>
         </menu>
+        <menu>
+            <id>identity_admin_advisory_banner_menu</id>
+            <i18n-key>admin.session.advisory.banner</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>configure_menu</parent-menu>
+            <link>../identity-mgt/admin-advisory-banner.jsp</link>
+            <region>region1</region>
+            <order>49</order>
+            <style-class>manage</style-class>
+            <icon>../identity-mgt/images/admin-adv.png</icon>
+            <require-permission>/permission/admin/manage/identity/identitymgt</require-permission>
+        </menu>
     </menus>
 </component>

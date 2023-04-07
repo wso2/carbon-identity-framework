@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2015, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
   ~
-  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  WSO2 LLC. licenses this file to you under the Apache License,
   ~  Version 2.0 (the "License"); you may not use this file except
   ~  in compliance with the License.
   ~  You may obtain a copy of the License at
@@ -66,6 +66,10 @@
                                 </java>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <arg line="-uri src/main/resources/AccountCredentialMgtConfigService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.mgt.stub -ns2p http://services.mgt.identity.carbon.wso2.org=org.wso2.carbon.identity.mgt.stub,http://dto.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.mgt.stub.dto,http://beans.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.mgt.stub.beans" />
+                                    <classpath refid="wsdl2java.classpath" />
+                                </java>
+                                <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
+                                    <arg line="-uri src/main/resources/AdminAdvisoryManagementService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.mgt.stub -ns2p http://services.mgt.identity.carbon.wso2.org=org.wso2.carbon.identity.mgt.stub,http://dto.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.mgt.stub.dto,http://beans.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.mgt.stub.beans" />
                                     <classpath refid="wsdl2java.classpath" />
                                 </java>
                             </tasks>

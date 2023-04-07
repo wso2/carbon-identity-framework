@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2010, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
   ~
-  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  WSO2 LLC. licenses this file to you under the Apache License,
   ~  Version 2.0 (the "License"); you may not use this file except
   ~  in compliance with the License.
   ~  You may obtain a copy of the License at
@@ -114,6 +114,24 @@
         <operation name="getAllPromotedUserChallenge">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
             </parameter>
+        </operation>
+        <parameter name="adminService" locked="true">true</parameter>
+    </service>
+
+    <service name="AdminAdvisoryManagementService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass" locked="false">
+            org.wso2.carbon.identity.mgt.services.AdminAdvisoryManagementService
+        </parameter>
+        <operation name="saveAdminAdvisoryConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
+        </operation>
+        <operation name="getAdminAdvisoryConfig">
+            <parameter name="DoAuthentication" locked="true">false</parameter>
+            <parameter name="DoAuthorization" locked="true">false</parameter>
         </operation>
         <parameter name="adminService" locked="true">true</parameter>
     </service>

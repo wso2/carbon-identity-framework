@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -34,6 +34,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
@@ -50,6 +51,7 @@ import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
 import org.wso2.carbon.identity.mgt.listener.TenantManagementListener;
 import org.wso2.carbon.identity.mgt.listener.UserOperationsNotificationListener;
 import org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener;
+import org.wso2.carbon.identity.mgt.services.AdminAdvisoryManagementService;
 import org.wso2.carbon.identity.mgt.store.RegistryCleanUpService;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.notification.mgt.NotificationSender;
@@ -84,6 +86,7 @@ public class IdentityMgtServiceComponent {
     private static NotificationSender notificationSender;
     private static AttributeSearchService attributeSearchService;
     private static UserSessionManagementService userSessionManagementService;
+    private static RegistryResourceMgtService registryResourceMgtService;
 
     public static RealmService getRealmService() {
         return realmService;
@@ -199,6 +202,8 @@ public class IdentityMgtServiceComponent {
                 , null);
         context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                 new UserSessionTerminationListener(), null);
+        context.getBundleContext().registerService(AdminAdvisoryManagementService.class.getName(),
+                new AdminAdvisoryManagementService(), null);
 
         if (userOperationNotificationSR != null) {
             if (log.isDebugEnabled()) {
@@ -377,5 +382,30 @@ public class IdentityMgtServiceComponent {
             IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().remove(
                     userOperationEventListenerService.getExecutionOrderId());
         }
+    }
+
+    @Reference(
+            name = "RegistryResourceMgtService",
+            service = org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryResourceMgtService")
+    protected void setRegistryResourceMgtService(RegistryResourceMgtService registryMgtService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Setting Registry Resource Mgt Service.");
+        }
+        registryResourceMgtService = registryMgtService;
+    }
+
+    protected void unsetRegistryResourceMgtService(RegistryResourceMgtService registryMgtService) {
+        if (log.isDebugEnabled()) {
+            log.debug("UnSetting Registry Resource Mgt Service.");
+        }
+        registryResourceMgtService = null;
+    }
+
+    public static RegistryResourceMgtService getRegistryResourceMgtService() {
+
+        return registryResourceMgtService;
     }
 }
