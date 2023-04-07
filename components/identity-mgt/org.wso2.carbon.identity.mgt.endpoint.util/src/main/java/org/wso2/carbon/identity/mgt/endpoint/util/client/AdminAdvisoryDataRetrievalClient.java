@@ -42,7 +42,7 @@ import java.nio.charset.Charset;
  */
 public class AdminAdvisoryDataRetrievalClient {
 
-    private static final String CLIENT = "Client";
+    private static final String CLIENT = "Client ";
     private static final Log LOG = LogFactory.getLog(AdminAdvisoryDataRetrievalClient.class);
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
 
