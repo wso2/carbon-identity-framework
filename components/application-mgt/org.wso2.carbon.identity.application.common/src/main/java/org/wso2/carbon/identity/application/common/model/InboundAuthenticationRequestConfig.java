@@ -59,9 +59,10 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     private String friendlyName;
 
     @JsonIgnore
+    @XmlElement(name = "inboundConfiguration", nillable = true)
     private String inboundConfiguration;
 
-    @XmlElement(name = "InboundConfigurationProtocol")
+    @XmlElement(name = "InboundConfigurationProtocol", nillable = true)
     private InboundConfigurationProtocol inboundConfigurationProtocol;
 
     @XmlElementWrapper(name = "Properties")
