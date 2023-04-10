@@ -54,11 +54,11 @@
         client = new AdminAdvisoryBannerClient(cookie, backendServerURL, configContext);
 		adminAdvisoryBannerConfig = client.loadBannerConfig();
 
-	} catch (Exception e) {
-		String message = resourceBundle.getString("error.while.loading.admin.advisory.banner.data");
-		CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-		forwardTo = "../admin/error.jsp";
-	}
+    } catch (Exception e) {
+        String message = resourceBundle.getString("error.while.loading.admin.advisory.banner.data");
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "../admin/error.jsp";
+    }
 %>
 
 <%
@@ -74,8 +74,8 @@
     forward();
 </script>
 <%
-    return;
-	}
+        return;
+    }
 %>
 
 <script type="text/javascript">
@@ -95,57 +95,56 @@
 		resourceBundle="org.wso2.carbon.identity.user.profile.ui.i18n.Resources"
 		topPage="true" request="<%=request%>" />
 
-	<div id="middle">
-		<h2>
-			<fmt:message key="admin.session.advisory.banner.heading" />
-		</h2>
-		<div id="workArea">
-			<form action="admin-advisory-banner-finish-ajaxprocessor.jsp" method="post">
-				<div class="sectionSeperator">
-					<fmt:message key="admin.session.advisory.banner.set" />
-					</div>
-				<div class=”sectionSub”>
-					<table class="carbonFormTable">
-						<%
-						enableBanner = adminAdvisoryBannerConfig.getEnableBanner();
-						bannerContent = adminAdvisoryBannerConfig.getBannerContent();%>
-						<tr>
-							<td style="width: 500px;">
-								<fmt:message key="admin.session.advisory.banner.enable.banner" />
-							</td>
-							<td>
-								<input class="sectionCheckbox" type="checkbox"
-									onclick="setBooleanValueToTextBox(this)"
-										<%if (enableBanner) {%> checked="checked" <%}%>
-										name="enableBanner"
-										value="true"
-										/>
+    <div id="middle">
+        <h2>
+            <fmt:message key="admin.session.advisory.banner.heading" />
+        </h2>
+        <div id="workArea">
+            <form action="admin-advisory-banner-finish-ajaxprocessor.jsp" method="post">
+                <div class="sectionSeperator">
+                    <fmt:message key="admin.session.advisory.banner.set" />
+                </div>
+                <div class=”sectionSub”>
+                    <table class="carbonFormTable">
+                        <%
+                        enableBanner = adminAdvisoryBannerConfig.getEnableBanner();
+                        bannerContent = adminAdvisoryBannerConfig.getBannerContent();%>
+                        <tr>
+                            <td style="width: 500px;">
+                                <fmt:message key="admin.session.advisory.banner.enable.banner" />
+                            </td>
+                            <td>
+                                <input class="sectionCheckbox" type="checkbox"
+                                    onclick="setBooleanValueToTextBox(this)"
+                                        <%if (enableBanner) {%> checked="checked" <%}%>
+                                        name="enableBanner"
+                                        value="true"
+                                        />
 							
-								<div class="sectionHelp">
-									<fmt:message key="admin.session.advisory.banner.enable.banner.hint" />
-								</div>
-							</td>
-						</tr>
+                                <div class="sectionHelp">
+                                    <fmt:message key="admin.session.advisory.banner.enable.banner.hint" />
+                                </div>
+                            </td>
+                        </tr>
 
-						<tr>
-						    <td style="width: 500px;">
-                        	        <fmt:message key="admin.session.advisory.banner.banner.content" />
-                        	</td>
-							<td colspan="2" rowspan="3"><input type="text" name="bannerContent" id="bannerContent" style="width:400px"
-									value="<%=Encode.forHtmlAttribute(bannerContent)%>"/>
-							
-								<div class="sectionHelp">
-									<fmt:message key="admin.session.advisory.banner.banner.content.hint" />
-								</div>
-							
-							</td>
-						</tr>
-					</table>
-				</div>
-				<div class="buttonRow">
-					<input type="submit" class="button" value="Update"/>
-				</div>
-			</form>
-		</div>
-	</div>
+                        <tr>
+                            <td style="width: 500px;">
+                                <fmt:message key="admin.session.advisory.banner.banner.content" />
+                            </td>
+                            <td colspan="2" rowspan="3"><input type="text" name="bannerContent" id="bannerContent"
+                                style="width:400px" value="<%=Encode.forHtmlAttribute(bannerContent)%>"/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key="admin.session.advisory.banner.banner.content.hint" />
+                                </div>
+                            </td>
+                        </tr>
+                        </table>
+                    </div>
+                    <div class="buttonRow">
+                        <input type="submit" class="button" value="Update"/>
+                    </div>
+            </form>
+        </div>
+    </div>
 </fmt:bundle>

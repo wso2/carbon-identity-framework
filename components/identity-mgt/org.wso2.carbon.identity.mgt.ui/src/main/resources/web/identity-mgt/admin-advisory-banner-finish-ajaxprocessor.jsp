@@ -39,14 +39,14 @@
     }
 
     String enableBanner = request.getParameter("enableBanner");
-	String bannerContent = request.getParameter("bannerContent");
+    String bannerContent = request.getParameter("bannerContent");
 
-	AdminAdvisoryBannerDTO adminAdvisoryBannerConfig = new AdminAdvisoryBannerDTO();
+    AdminAdvisoryBannerDTO adminAdvisoryBannerConfig = new AdminAdvisoryBannerDTO();
 
-	adminAdvisoryBannerConfig.setEnableBanner(Boolean.parseBoolean(enableBanner));
-	if (bannerContent != null && bannerContent.trim().length() > 0) {
-		adminAdvisoryBannerConfig.setBannerContent(bannerContent);
-	}
+    adminAdvisoryBannerConfig.setEnableBanner(Boolean.parseBoolean(enableBanner));
+    if (bannerContent != null && bannerContent.trim().length() > 0) {
+        adminAdvisoryBannerConfig.setBannerContent(bannerContent);
+    }
 	
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -56,7 +56,7 @@
                 .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         AdminAdvisoryBannerClient configClient =
                             new AdminAdvisoryBannerClient(cookie, backendServerURL, configContext);
-        
+
         // Save the new configuration.
         configClient.saveBannerConfig(adminAdvisoryBannerConfig);
 
@@ -66,13 +66,12 @@
     </script>
 <%
     } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR,
-                request);
+        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request);
 %>
     <script type="text/javascript">
         location.href = "admin-advisory-banner.jsp";
     </script>
 <%
-    return;
+        return;
     }
 %>

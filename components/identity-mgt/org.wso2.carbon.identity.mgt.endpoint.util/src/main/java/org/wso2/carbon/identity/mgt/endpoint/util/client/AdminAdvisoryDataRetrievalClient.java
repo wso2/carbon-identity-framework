@@ -47,24 +47,19 @@ public class AdminAdvisoryDataRetrievalClient {
      * @return A JSON Object containing admin advisory banner configs.
      * @throws PreferenceRetrievalClientException Error while retrieving the admin advisory banner configs.
      */
-    public JSONObject getAdminAdvisoryBannerData(String tenant)
-            throws PreferenceRetrievalClientException {
+    public JSONObject getAdminAdvisoryBannerData(String tenant) throws PreferenceRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
-
             HttpGet request = new HttpGet(uri);
-
             JSONObject jsonResponse = new JSONObject();
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
-
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    jsonResponse = new JSONObject(new JSONTokener(new InputStreamReader(response
+                            .getEntity().getContent())));
                 }
-
                 return jsonResponse;
             } finally {
                 request.releaseConnection();

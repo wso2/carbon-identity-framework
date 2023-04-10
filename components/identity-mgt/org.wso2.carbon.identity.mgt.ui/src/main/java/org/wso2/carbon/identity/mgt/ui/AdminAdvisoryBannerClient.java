@@ -108,12 +108,10 @@ public class AdminAdvisoryBannerClient {
     /**
      * Handle exception.
      *
-     * @return adminAdvisoryBannerDTO AdminAdvisoryBannerDTO.
-     * @throws AxisFault Error while loading the banner configuration.
+     * @throws AxisFault To handle the exception.
      */
-    private String[] handleException(String msg, Exception e) throws AxisFault {
+    private void handleException(String msg, Exception e) throws AxisFault {
 
-        LOG.error(msg, e);
         throw new AxisFault(msg, e);
     }
 }

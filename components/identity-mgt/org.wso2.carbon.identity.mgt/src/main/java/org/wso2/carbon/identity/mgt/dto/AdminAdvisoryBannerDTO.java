@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.mgt.dto;
 
 /**
- * AdminAdvisoryBanner DTO class.
+ * Encapsulates admin advisory banner configuration data
  */
 public class AdminAdvisoryBannerDTO {
 

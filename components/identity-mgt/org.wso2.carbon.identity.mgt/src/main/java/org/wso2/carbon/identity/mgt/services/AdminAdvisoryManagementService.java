@@ -34,7 +34,7 @@ import org.wso2.carbon.registry.core.ResourceImpl;
  */
 public class AdminAdvisoryManagementService {
 
-    private static final Log log = LogFactory.getLog(AdminAdvisoryManagementService.class);
+    protected static final Log LOG = LogFactory.getLog(AdminAdvisoryManagementService.class);
     private final RegistryResourceMgtService resourceMgtService = IdentityMgtServiceComponent
             .getRegistryResourceMgtService();
     private static final String ADMIN_ADVISORY_BANNER_PATH = "identity/config/adminAdvisoryBanner";
@@ -53,9 +53,12 @@ public class AdminAdvisoryManagementService {
 
         try {
             resourceMgtService.putIdentityResource(bannerResource, ADMIN_ADVISORY_BANNER_PATH, tenantDomain);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Admin advisory banner configuration saved successfully for tenant: " + tenantDomain);
+            }
         } catch (Exception e) {
-            log.error("Error occurred while saving admin advisory banner configuration", e);
-            throw new IdentityMgtServiceException("Error occurred while saving admin advisory banner configuration");
+            String msg = "Error occurred while saving admin advisory banner configuration";
+            throw new IdentityMgtServiceException(msg, e);
         }
     }
 
@@ -75,6 +78,9 @@ public class AdminAdvisoryManagementService {
                     .getIdentityResource(ADMIN_ADVISORY_BANNER_PATH, tenantDomain);
             if (registryResource != null) {
                 adminAdvisoryBanner = createAdminAdvisoryBannerDTO(registryResource);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Admin advisory banner configuration loaded successfully for tenant: " + tenantDomain);
+                }
             } else {
                 adminAdvisoryBanner = new AdminAdvisoryBannerDTO();
                 adminAdvisoryBanner.setEnableBanner(IdentityMgtConstants.AdminAdvisory.ENABLE_BANNER_BY_DEFAULT);
@@ -82,8 +88,8 @@ public class AdminAdvisoryManagementService {
             }
 
         }  catch (Exception e) {
-            log.error("Error occurred while loading admin advisory banner configuration", e);
-            throw new IdentityMgtServiceException("Error occurred while loading admin advisory banner configuration");
+            String msg = "Error occurred while loading admin advisory banner configuration";
+            throw new IdentityMgtServiceException(msg, e);
         }
 
         return adminAdvisoryBanner;
