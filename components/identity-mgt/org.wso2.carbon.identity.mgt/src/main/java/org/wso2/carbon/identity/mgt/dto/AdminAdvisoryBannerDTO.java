@@ -23,15 +23,15 @@ package org.wso2.carbon.identity.mgt.dto;
  */
 public class AdminAdvisoryBannerDTO {
 
-    private Boolean enableBanner;
+    private boolean enableBanner;
     private String bannerContent;
 
-    public Boolean getEnableBanner() {
+    public boolean getEnableBanner() {
 
         return enableBanner;
     }
 
-    public void setEnableBanner(Boolean enableBanner) {
+    public void setEnableBanner(boolean enableBanner) {
 
         this.enableBanner = enableBanner;
     }

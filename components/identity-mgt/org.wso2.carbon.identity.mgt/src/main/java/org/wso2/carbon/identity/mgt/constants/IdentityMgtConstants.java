@@ -237,7 +237,8 @@ public class IdentityMgtConstants {
         public static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
                 "prohibited. All activities performed using this tool are logged and monitored.";
 
-        private AdminAdvisory(){
+        private AdminAdvisory() {
+
         }
     }
 

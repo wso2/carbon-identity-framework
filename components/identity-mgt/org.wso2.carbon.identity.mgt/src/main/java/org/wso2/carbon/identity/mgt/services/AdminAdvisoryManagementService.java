@@ -42,8 +42,8 @@ public class AdminAdvisoryManagementService {
     /**
      * This method is used to save the Admin advisory banner configurations which is specific to tenant.
      *
-     * @param adminAdvisoryBanner - Admin advisory banner to be saved.
-     * @throws IdentityMgtServiceException - Error while saving the admin advisory banner configuration.
+     * @param adminAdvisoryBanner Admin advisory banner to be saved.
+     * @throws IdentityMgtServiceException Error while saving the admin advisory banner configuration.
      */
     public void saveAdminAdvisoryConfig(AdminAdvisoryBannerDTO adminAdvisoryBanner)
             throws IdentityMgtServiceException {
@@ -65,8 +65,8 @@ public class AdminAdvisoryManagementService {
     /**
      * This method is used to load the tenant specific Admin advisory banner configurations.
      *
-     * @return an AdminAdvisoryBannerDTO object.
-     * @throws IdentityMgtServiceException - Error while loading the admin advisory banner configuration.
+     * @return AdminAdvisoryBannerDTO object.
+     * @throws IdentityMgtServiceException Error while loading the admin advisory banner configuration.
      */
     public AdminAdvisoryBannerDTO getAdminAdvisoryConfig() throws IdentityMgtServiceException {
 
@@ -87,7 +87,7 @@ public class AdminAdvisoryManagementService {
                 adminAdvisoryBanner.setBannerContent(IdentityMgtConstants.AdminAdvisory.DEFAULT_BANNER_CONTENT);
             }
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             String msg = "Error occurred while loading admin advisory banner configuration";
             throw new IdentityMgtServiceException(msg, e);
         }
@@ -98,7 +98,7 @@ public class AdminAdvisoryManagementService {
     /**
      * This method is used to convert AdminAdvisoryBannerDTO to Resource object to be saved in registry.
      *
-     * @return a Resource object.
+     * @return Resource object.
      */
     private Resource createAdminBannerRegistryResource(AdminAdvisoryBannerDTO adminAdvisoryBannerDTO) {
 
@@ -115,7 +115,7 @@ public class AdminAdvisoryManagementService {
     /**
      * This method is used to convert Resource object to AdminAdvisoryBannerDTO to be saved in registry.
      *
-     * @return an AdminAdvisoryBannerDTO object.
+     * @return AdminAdvisoryBannerDTO object.
      */
     private AdminAdvisoryBannerDTO createAdminAdvisoryBannerDTO(Resource bannerResource) {
 

@@ -44,7 +44,7 @@ public class AdminAdvisoryDataRetrievalClient {
      * Check for admin advisory banner configs in the given tenant.
      *
      * @param tenant Tenant Domain.
-     * @return A JSON Object containing admin advisory banner configs.
+     * @return JSON Object containing admin advisory banner configs.
      * @throws PreferenceRetrievalClientException Error while retrieving the admin advisory banner configs.
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws PreferenceRetrievalClientException {
@@ -79,11 +79,10 @@ public class AdminAdvisoryDataRetrievalClient {
      * Get the tenant admin advisory banner config endpoint.
      *
      * @param tenantDomain Tenant Domain.
-     * @return A tenant qualified endpoint.
+     * @return Tenant qualified endpoint.
      * @throws PreferenceRetrievalClientException Error while getting the endpoint.
      */
-    private String getAdminAdvisoryBannerEndpoint(String tenantDomain)
-            throws PreferenceRetrievalClientException {
+    private String getAdminAdvisoryBannerEndpoint(String tenantDomain) throws PreferenceRetrievalClientException {
 
         return getEndpoint(tenantDomain);
     }
@@ -92,11 +91,10 @@ public class AdminAdvisoryDataRetrievalClient {
      * Resolve the tenant admin advisory banner config endpoint.
      *
      * @param tenantDomain Tenant Domain.
-     * @return A resolved endpoint.
+     * @return Resolved endpoint.
      * @throws PreferenceRetrievalClientException Error while getting the base path.
      */
-    private String getEndpoint(String tenantDomain)
-            throws PreferenceRetrievalClientException {
+    private String getEndpoint(String tenantDomain) throws PreferenceRetrievalClientException {
 
         try {
             return IdentityManagementEndpointUtil.getBasePath(tenantDomain, ADMIN_BANNER_API_RELATIVE_PATH);

@@ -391,6 +391,7 @@ public class IdentityMgtServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRegistryResourceMgtService")
     protected void setRegistryResourceMgtService(RegistryResourceMgtService registryMgtService) {
+
         if (log.isDebugEnabled()) {
             log.debug("Setting Registry Resource Mgt Service.");
         }
@@ -398,6 +399,7 @@ public class IdentityMgtServiceComponent {
     }
 
     protected void unsetRegistryResourceMgtService(RegistryResourceMgtService registryMgtService) {
+
         if (log.isDebugEnabled()) {
             log.debug("UnSetting Registry Resource Mgt Service.");
         }

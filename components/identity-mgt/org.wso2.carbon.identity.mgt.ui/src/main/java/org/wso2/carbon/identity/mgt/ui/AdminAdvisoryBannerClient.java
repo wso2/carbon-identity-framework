@@ -31,13 +31,15 @@ import org.wso2.carbon.identity.mgt.stub.dto.AdminAdvisoryBannerDTO;
  * This class is used to call the AdminAdvisoryManagementService.
  */
 public class AdminAdvisoryBannerClient {
+
     protected static final Log LOG = LogFactory.getLog(AdminAdvisoryBannerClient.class);
     protected AdminAdvisoryManagementServiceStub stub;
+    private static final String ADMIN_ADVISORY_MANAGEMENT_SERVICE = "AdminAdvisoryManagementService";
 
     /**
      * AdminAdvisoryBannerClient constructor.
      *
-     * @param url URL.
+     * @param url           URL.
      * @param configContext Configuration context.
      * @throws AxisFault Error while creating AdminAdvisoryManagementServiceStub instance.
      */
@@ -45,7 +47,7 @@ public class AdminAdvisoryBannerClient {
 
         try {
             stub = new AdminAdvisoryManagementServiceStub(configContext, url
-                    + "AdminAdvisoryManagementService");
+                    + ADMIN_ADVISORY_MANAGEMENT_SERVICE);
         } catch (AxisFault e) {
             handleException(e.getMessage(), e);
         }
@@ -54,8 +56,8 @@ public class AdminAdvisoryBannerClient {
     /**
      * AdminAdvisoryBannerClient constructor.
      *
-     * @param cookie Cookie.
-     * @param url URL.
+     * @param cookie        Cookie.
+     * @param url           URL.
      * @param configContext Configuration context.
      * @throws AxisFault Error while creating AdminAdvisoryManagementServiceStub instance.
      */
