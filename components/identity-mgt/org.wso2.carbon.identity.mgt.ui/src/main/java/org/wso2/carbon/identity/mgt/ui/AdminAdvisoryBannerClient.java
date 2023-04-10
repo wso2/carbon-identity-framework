@@ -28,12 +28,19 @@ import org.wso2.carbon.identity.mgt.stub.AdminAdvisoryManagementServiceStub;
 import org.wso2.carbon.identity.mgt.stub.dto.AdminAdvisoryBannerDTO;
 
 /**
- * AdminAdvisoryBannerClient class.
+ * This class is used to call the AdminAdvisoryManagementService.
  */
 public class AdminAdvisoryBannerClient {
     protected static final Log LOG = LogFactory.getLog(AdminAdvisoryBannerClient.class);
     protected AdminAdvisoryManagementServiceStub stub;
 
+    /**
+     * AdminAdvisoryBannerClient constructor.
+     *
+     * @param url URL.
+     * @param configContext Configuration context.
+     * @throws AxisFault Error while creating AdminAdvisoryManagementServiceStub instance.
+     */
     public AdminAdvisoryBannerClient(String url, ConfigurationContext configContext) throws AxisFault {
 
         try {
@@ -44,6 +51,14 @@ public class AdminAdvisoryBannerClient {
         }
     }
 
+    /**
+     * AdminAdvisoryBannerClient constructor.
+     *
+     * @param cookie Cookie.
+     * @param url URL.
+     * @param configContext Configuration context.
+     * @throws AxisFault Error while creating AdminAdvisoryManagementServiceStub instance.
+     */
     public AdminAdvisoryBannerClient(String cookie, String url, ConfigurationContext configContext) throws AxisFault {
 
         try {
@@ -58,12 +73,12 @@ public class AdminAdvisoryBannerClient {
         }
     }
 
-    private String[] handleException(String msg, Exception e) throws AxisFault {
-
-        LOG.error(msg, e);
-        throw new AxisFault(msg, e);
-    }
-
+    /**
+     * Saves the banner configuration.
+     *
+     * @param adminAdvisoryBannerDTO AdminAdvisoryBannerDTO.
+     * @throws AxisFault Error while saving the banner configuration.
+     */
     public void saveBannerConfig(AdminAdvisoryBannerDTO adminAdvisoryBannerDTO) throws AxisFault {
 
         try {
@@ -73,6 +88,12 @@ public class AdminAdvisoryBannerClient {
         }
     }
 
+    /**
+     * Loads the banner configuration.
+     *
+     * @return adminAdvisoryBannerDTO AdminAdvisoryBannerDTO.
+     * @throws AxisFault Error while loading the banner configuration.
+     */
     public AdminAdvisoryBannerDTO loadBannerConfig() throws AxisFault {
 
         AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = null;
@@ -82,5 +103,17 @@ public class AdminAdvisoryBannerClient {
             handleException(e.getMessage(), e);
         }
         return adminAdvisoryBannerDTO;
+    }
+
+    /**
+     * Handle exception.
+     *
+     * @return adminAdvisoryBannerDTO AdminAdvisoryBannerDTO.
+     * @throws AxisFault Error while loading the banner configuration.
+     */
+    private String[] handleException(String msg, Exception e) throws AxisFault {
+
+        LOG.error(msg, e);
+        throw new AxisFault(msg, e);
     }
 }

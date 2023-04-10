@@ -18,31 +18,25 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
-import org.apache.axis2.transport.http.HTTPConstants;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
-import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 
 /**
  * Client to interact with the Admin Advisory Management API.
  */
 public class AdminAdvisoryDataRetrievalClient {
 
-    private static final String CLIENT = "Client ";
     private static final Log LOG = LogFactory.getLog(AdminAdvisoryDataRetrievalClient.class);
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
 
@@ -61,7 +55,6 @@ public class AdminAdvisoryDataRetrievalClient {
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
 
             HttpGet request = new HttpGet(uri);
-            setAuthorizationHeader(request);
 
             JSONObject jsonResponse = new JSONObject();
 
@@ -97,38 +90,24 @@ public class AdminAdvisoryDataRetrievalClient {
     private String getAdminAdvisoryBannerEndpoint(String tenantDomain)
             throws PreferenceRetrievalClientException {
 
-        return getEndpoint(tenantDomain, ADMIN_BANNER_API_RELATIVE_PATH);
+        return getEndpoint(tenantDomain);
     }
 
     /**
      * Resolve the tenant admin advisory banner config endpoint.
      *
      * @param tenantDomain Tenant Domain.
-     * @param context API context Path.
      * @return A resolved endpoint.
      * @throws PreferenceRetrievalClientException Error while getting the base path.
      */
-    private String getEndpoint(String tenantDomain, String context)
+    private String getEndpoint(String tenantDomain)
             throws PreferenceRetrievalClientException {
 
         try {
-            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, ADMIN_BANNER_API_RELATIVE_PATH);
         } catch (ApiException e) {
-            throw new PreferenceRetrievalClientException("Error while building url for context: " + context);
+            throw new PreferenceRetrievalClientException("Error while building url for context: "
+                    + ADMIN_BANNER_API_RELATIVE_PATH);
         }
-    }
-
-    /**
-     * Set the Authorization header for a given HTTP request.
-     *
-     * @param httpMethod HTTP request method.
-     */
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
-
-        String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
-                + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
-        byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
-        String authHeader = new String(encoding, Charset.defaultCharset());
-        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
     }
 }
