@@ -146,6 +146,13 @@ public class RoleDAOImpl implements RoleDAO {
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
                                  List<String> permissions, String tenantDomain) throws IdentityRoleManagementException {
 
+        return addRole(roleName, userList, groupList, permissions, tenantDomain, null);
+    }
+
+    @Override
+    public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
+                                 List<String> permissions, String tenantDomain, String roleID)
+            throws IdentityRoleManagementException {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug("Creating the role: " + roleName + " in the tenantDomain: " + tenantDomain);
@@ -158,7 +165,6 @@ public class RoleDAOImpl implements RoleDAO {
 
         // Remove internal domain before persisting in order to maintain the backward compatibility.
         roleName = removeInternalDomain(roleName);
-        String roleID;
 
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
@@ -199,7 +205,7 @@ public class RoleDAOImpl implements RoleDAO {
                     }
 
                     // Add role ID.
-                    roleID = addRoleID(roleName, tenantDomain);
+                    roleID = addRoleID(roleName, tenantDomain, roleID);
                     // Add role permissions.
                     if (CollectionUtils.isNotEmpty(permissions)) {
                         setPermissions(roleID, permissions, tenantDomain, roleName);
@@ -227,8 +233,13 @@ public class RoleDAOImpl implements RoleDAO {
 
     protected String addRoleID(String roleName, String tenantDomain) throws IdentityRoleManagementException {
 
+        return addRoleID(roleName, tenantDomain, null);
+    }
+
+    protected String addRoleID(String roleName, String tenantDomain, String id) throws IdentityRoleManagementException {
+
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        String id = UUID.randomUUID().toString();
+        id = StringUtils.isNotBlank(id) ? id : UUID.randomUUID().toString();
         // Append internal domain in order to maintain the backward compatibility.
         roleName = appendInternalDomain(roleName);
         if (log.isDebugEnabled()) {

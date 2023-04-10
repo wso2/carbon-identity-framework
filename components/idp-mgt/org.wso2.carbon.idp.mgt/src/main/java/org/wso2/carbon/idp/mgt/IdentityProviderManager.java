@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt;
 
+import com.google.gson.Gson;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -29,6 +30,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -54,6 +56,10 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
+import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -62,6 +68,7 @@ import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.model.IdpXDSWrapper;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -899,6 +906,14 @@ public class IdentityProviderManager implements IdpManager {
 
         dao.addIdP(identityProvider, IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdentityProvider(identityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.ADD_RESIDENT_IDP);
+        }
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostAddResidentIdP(identityProvider, tenantDomain)) {
@@ -1010,6 +1025,14 @@ public class IdentityProviderManager implements IdpManager {
 
         dao.updateIdP(identityProvider, currentIdP, tenantId, tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdentityProvider(identityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.UPDATE_RESIDENT_IDP);
+        }
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostUpdateResidentIdP(identityProvider, tenantDomain)) {
@@ -2079,6 +2102,15 @@ public class IdentityProviderManager implements IdpManager {
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdentityProvider(identityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.ADD_IDP_WITH_RESOURCE_ID);
+        }
+
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostAddIdP(identityProvider, tenantDomain)) {
@@ -2120,6 +2152,14 @@ public class IdentityProviderManager implements IdpManager {
         }
         deleteIDP(identityProvider.getResourceId(), idPName, tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdentityProvider(identityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.DELETE_IDP);
+        }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteIdP(idPName, tenantDomain)) {
@@ -2153,7 +2193,13 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         dao.deleteIdPs(tenantId);
-
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.DELETE_IDPS);
+        }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteIdPs(tenantDomain)) {
@@ -2186,6 +2232,14 @@ public class IdentityProviderManager implements IdpManager {
         }
         deleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setResourceId(resourceId)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.DELETE_IDP_BY_RESOURCE_ID);
+        }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() &&
@@ -2257,6 +2311,14 @@ public class IdentityProviderManager implements IdpManager {
         }
         forceDeleteIDP(identityProvider.getResourceId(), idpName, tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdpName(idpName)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.FORCE_DELETE_IDP);
+        }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
@@ -2289,6 +2351,15 @@ public class IdentityProviderManager implements IdpManager {
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
         }
         forceDeleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
+
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setResourceId(resourceId)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.FORCE_DELETE_IDP_BY_RESOURCE_ID);
+        }
 
         // Invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2344,6 +2415,15 @@ public class IdentityProviderManager implements IdpManager {
         updateIDP(currentIdentityProvider, newIdentityProvider, IdentityTenantUtil.getTenantId(tenantDomain),
                 tenantDomain);
 
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setIdpName(oldIdPName)
+                    .setIdentityProvider(newIdentityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.UPDATE_IDP);
+        }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostUpdateIdP(oldIdPName, newIdentityProvider, tenantDomain)) {
@@ -2379,6 +2459,16 @@ public class IdentityProviderManager implements IdpManager {
                 .getIdPByResourceId(resourceId, tenantDomain, true);
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
+
+        if (isControlPlane()) {
+            IdpXDSWrapper idpXDSWrapper = new IdpXDSWrapper.IdpXDSWrapperBuilder()
+                    .setResourceId(resourceId)
+                    .setIdentityProvider(newIdentityProvider)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
+                    XDSConstants.IdpOperationType.UPDATE_IDP_BY_RESOURCE_ID);
+        }
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -3213,5 +3303,25 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
         return metaProvisioningConfigMap;
+    }
+
+    private String buildJson(IdpXDSWrapper applicationXDSWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(applicationXDSWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
+                             OperationType operationType) {
+
+        String json = buildJson((IdpXDSWrapper) xdsWrapper);
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
     }
 }

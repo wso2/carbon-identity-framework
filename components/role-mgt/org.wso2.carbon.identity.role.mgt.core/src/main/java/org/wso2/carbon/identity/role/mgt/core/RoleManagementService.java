@@ -43,6 +43,21 @@ public interface RoleManagementService {
             String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Add a new role.
+     *
+     * @param roleName     Role name.
+     * @param userList     List of users IDs.
+     * @param groupList    List of groups IDs.
+     * @param permissions  List of permissions.
+     * @param tenantDomain Tenant domain.
+     * @param roleID       Role ID.
+     * @return Basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList, List<String> permissions,
+                          String tenantDomain, String roleID) throws IdentityRoleManagementException;
+
+    /**
      * Retrieve available roles.
      *
      * @param limit        Limit value.

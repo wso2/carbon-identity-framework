@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagem
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -49,6 +50,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreAddClaimDialect(int tenantId, ClaimDialect claimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, claimDialect.getClaimDialectURI());
@@ -58,6 +62,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostAddClaimDialect(int tenantId, ClaimDialect claimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, claimDialect.getClaimDialectURI());
@@ -67,6 +74,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreUpdateClaimDialect(int tenantId, ClaimDialect oldClaimDialect, ClaimDialect newClaimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.OLD_CLAIM_DIALECT_URI, oldClaimDialect.getClaimDialectURI());
@@ -77,6 +87,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostUpdateClaimDialect(int tenantId, ClaimDialect oldClaimDialect,ClaimDialect newClaimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.OLD_CLAIM_DIALECT_URI, oldClaimDialect.getClaimDialectURI());
@@ -87,6 +100,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreDeleteClaimDialect(int tenantId, ClaimDialect claimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, claimDialect.getClaimDialectURI());
@@ -96,6 +112,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostDeleteClaimDialect(int tenantId, ClaimDialect claimDialect) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, claimDialect.getClaimDialectURI());
@@ -105,6 +124,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreAddLocalClaim(int tenantId, LocalClaim localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
@@ -117,6 +139,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostAddLocalClaim(int tenantId, LocalClaim localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
@@ -129,6 +154,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreUpdateLocalClaim(int tenantId, LocalClaim localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
@@ -140,6 +168,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostUpdateLocalClaim(int tenantId, LocalClaim localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim.getClaimURI());
@@ -152,6 +183,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreDeleteLocalClaim(int tenantId, String localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim);
@@ -161,6 +195,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostDeleteLocalClaim(int tenantId, String localClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.LOCAL_CLAIM_URI, localClaim);
@@ -170,6 +207,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreAddExternalClaim(int tenantId, ExternalClaim externalClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
@@ -183,6 +223,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostAddExternalClaim(int tenantId, ExternalClaim externalClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
@@ -196,7 +239,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreUpdateExternalClaim(int tenantId, ExternalClaim externalClaim) {
 
-
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
@@ -209,6 +254,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostUpdateExternalClaim(int tenantId, ExternalClaim externalClaim) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaim.getClaimDialectURI());
@@ -221,6 +269,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPreDeleteExternalClaim(int tenantId, String externalClaimDialectURI, String externalClaimURI) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaimDialectURI);
@@ -231,6 +282,9 @@ public class ClaimMetadataEventPublisherProxy {
 
     public void publishPostDeleteExternalClaim(int tenantId, String externalClaimDialectURI, String externalClaimURI) {
 
+        if (!dataPublishEnabled()){
+            return;
+        }
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID, tenantId);
         eventProperties.put(IdentityEventConstants.EventProperty.CLAIM_DIALECT_URI, externalClaimDialectURI);
@@ -258,5 +312,10 @@ public class ClaimMetadataEventPublisherProxy {
         } catch (IdentityEventException e) {
             log.error("Error while publishing the event: " + event.getEventName() + ".", e);
         }
+    }
+
+    private boolean dataPublishEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
     }
 }

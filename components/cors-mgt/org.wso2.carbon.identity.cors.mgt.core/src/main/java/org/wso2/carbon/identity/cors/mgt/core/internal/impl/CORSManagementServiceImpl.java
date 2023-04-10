@@ -18,13 +18,16 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.impl;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
@@ -36,7 +39,12 @@ import org.wso2.carbon.identity.cors.mgt.core.internal.util.CORSConfigurationUti
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
+import org.wso2.carbon.identity.cors.mgt.core.model.CORSXDSWrapper;
 import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
+import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
@@ -98,6 +106,15 @@ public class CORSManagementServiceImpl implements CORSManagementService {
 
         List<Origin> originList = CORSConfigurationUtils.createOriginList(origins);
 
+        if (isControlPlane()) {
+            CORSXDSWrapper corsXDSWrapper = new CORSXDSWrapper.CorsXDSWrapperBuilder()
+                    .setApplicationId(applicationId)
+                    .setOrigins(origins)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
+                    XDSConstants.CorsOperationType.SET_CORS_ORIGINS);
+        }
         // Set the CORS origins.
         getCORSOriginDAO().setCORSOrigins(applicationBasicInfo.getApplicationId(),
                 originList.stream().map(origin -> {
@@ -136,6 +153,16 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             }
         }
 
+        if (isControlPlane()) {
+            CORSXDSWrapper corsXDSWrapper = new CORSXDSWrapper.CorsXDSWrapperBuilder()
+                    .setApplicationId(applicationId)
+                    .setOrigins(origins)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
+                    XDSConstants.CorsOperationType.ADD_CORS_ORIGINS);
+        }
+
         // Add the CORS origins.
         getCORSOriginDAO().addCORSOrigins(applicationBasicInfo.getApplicationId(),
                 originList.stream().map(origin -> {
@@ -169,6 +196,16 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                 }
                 throw handleClientException(ERROR_CODE_ORIGIN_NOT_PRESENT, tenantDomain, originId);
             }
+        }
+
+        if (isControlPlane()) {
+            CORSXDSWrapper corsXDSWrapper = new CORSXDSWrapper.CorsXDSWrapperBuilder()
+                    .setApplicationId(applicationId)
+                    .setOrigins(originIds)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
+                    XDSConstants.CorsOperationType.DELETE_CORS_ORIGINS);
         }
 
         // Delete the CORS origin application associations.
@@ -206,6 +243,15 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             throws CORSManagementServiceException {
 
         validateTenantDomain(tenantDomain);
+
+        if (isControlPlane()) {
+            CORSXDSWrapper corsXDSWrapper = new CORSXDSWrapper.CorsXDSWrapperBuilder()
+                    .setCORSConfiguration(corsConfiguration)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
+                    XDSConstants.CorsOperationType.SET_CORS_ORIGINS);
+        }
 
         getCORSConfigurationDAO().setCORSConfigurationByTenantDomain(corsConfiguration, tenantDomain);
     }
@@ -291,5 +337,24 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             log.error(String.format(ERROR_CODE_VALIDATE_APP_ID.getDescription(), applicationId), e);
             throw handleClientException(ERROR_CODE_VALIDATE_APP_ID, applicationId);
         }
+    }
+
+    private String buildJson(CORSXDSWrapper corsxdsWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(corsxdsWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(String tenantDomain, XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
+                             OperationType operationType) {
+
+        String json = buildJson((CORSXDSWrapper) xdsWrapper);
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        XDSCUtils.publishData(tenantDomain, username,  json, eventType, operationType);
     }
 }

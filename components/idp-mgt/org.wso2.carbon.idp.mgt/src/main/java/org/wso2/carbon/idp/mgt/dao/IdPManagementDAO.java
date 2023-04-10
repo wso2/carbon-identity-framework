@@ -2651,8 +2651,12 @@ public class IdPManagementDAO {
             // SP_IDP_INBOUND_PROVISIONING_ENABLED,SP_IDP_INBOUND_PROVISIONING_USER_STORE_ID,
             // SP_IDP_USER_CLAIM_URI,SP_IDP_ROLE_CLAIM_URI,SP_IDP_DEFAULT_AUTHENTICATOR_NAME,
             // SP_IDP_DEFAULT_PRO_CONNECTOR_NAME
-            String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_SQL;
-
+            String sqlStmt;
+            if (StringUtils.isBlank(identityProvider.getId())) {
+                sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_SQL;
+            } else {
+                sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_WITH_ID_SQL;
+            }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, identityProvider.getIdentityProviderName());
@@ -2744,8 +2748,14 @@ public class IdPManagementDAO {
 
             prepStmt.setString(19, identityProvider.getImageUrl());
 
-            String resourceId = UUID.randomUUID().toString();
+            String resourceId = identityProvider.getResourceId() == null
+                    ? UUID.randomUUID().toString()
+                    : identityProvider.getResourceId();
             prepStmt.setString(20, resourceId);
+
+            if (StringUtils.isNotBlank(identityProvider.getId())) {
+                prepStmt.setString(21, identityProvider.getId());
+            }
             prepStmt.executeUpdate();
             prepStmt.clearParameters();
 

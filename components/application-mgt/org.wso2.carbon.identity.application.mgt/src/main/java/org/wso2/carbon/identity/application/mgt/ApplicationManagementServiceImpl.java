@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.google.gson.Gson;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -74,6 +75,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerS
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.model.ApplicationXDSWrapper;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -81,6 +83,10 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
+import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -111,6 +117,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -211,12 +218,26 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
+
+        if (StringUtils.isBlank(serviceProvider.getApplicationResourceId())) {
+            serviceProvider.setApplicationResourceId(generateApplicationResourceId());
+        }
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
                 new IdentityApplicationManagementException("Error resolving service provider owner.")));
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setServiceProvider(serviceProvider)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .setTemplateName(templateName)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.CREATE_APPLICATION_WITH_TEMPLATE);
+        }
         setDisplayNamesOfLocalAuthenticators(serviceProvider, tenantDomain);
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
@@ -638,7 +659,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildServerException("Pre Update application failed");
             }
         }
-
         String applicationName = serviceProvider.getApplicationName();
         try {
             // check whether user is authorized to update the application.
@@ -683,6 +703,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (listener.isEnable() && !listener.doPostUpdateApplication(serviceProvider, tenantDomain, username)) {
                 return;
             }
+        }
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setServiceProvider(serviceProvider)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.UPDATE_APPLICATION);
         }
         triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
@@ -761,6 +790,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setApplicationName(applicationName)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.DELETE_APPLICATION);
+        }
         try {
             startTenantFlow(tenantDomain, username);
             doPreDeleteChecks(applicationName, tenantDomain, username);
@@ -814,6 +852,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationBasicInfo[] applicationBasicInfos = getAllApplicationBasicInfo(
                 tenantDomain, CarbonContext.getThreadLocalCarbonContext().getUsername());
 
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setTenantId(tenantId)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.DELETE_APPLICATIONS);
+        }
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.deleteApplications(tenantId);
 
@@ -1600,6 +1645,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     listener.doPreCreateApplicationTemplate(serviceProvider, tenantDomain);
                 }
             }
+
+            if (isControlPlane()) {
+                ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                        .setSpTemplate(spTemplate)
+                        .setTenantDomain(tenantDomain)
+                        .build();
+                publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                        XDSConstants.ApplicationOperationType.CREATE_APPLICATION_TEMPLATE);
+            }
+
             doAddApplicationTemplate(spTemplate, tenantDomain);
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when creating the application template: " + spTemplate.getName() + " in:" +
@@ -1631,6 +1686,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     if (listener.isEnable()) {
                         listener.doPreCreateApplicationTemplate(serviceProvider, tenantDomain);
                     }
+                }
+
+                if (isControlPlane()) {
+                    ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper
+                            .ApplicationXDSWrapperBuilder()
+                            .setServiceProvider(serviceProvider)
+                            .setSpTemplate(spTemplate)
+                            .setTenantDomain(tenantDomain)
+                            .build();
+                    publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                            XDSConstants.ApplicationOperationType.CREATE_APPLICATION_TEMPLATE_FROM_SP);
                 }
 
                 String serviceProviderTemplateXml = marshalSPTemplate(updatedSP, tenantDomain);
@@ -1679,6 +1745,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void deleteApplicationTemplate(String templateName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setTemplateName(templateName)
+                    .setTenantDomain(tenantDomain)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.DELETE_APPLICATION_TEMPLATE);
+        }
         doDeleteApplicationTemplate(templateName, tenantDomain);
     }
 
@@ -1701,6 +1775,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 if (listener.isEnable()) {
                     listener.doPreUpdateApplicationTemplate(serviceProvider, tenantDomain);
                 }
+            }
+            if (isControlPlane()) {
+                ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                        .setOldTemplateName(oldTemplateName)
+                        .setSpTemplate(spTemplate)
+                        .setTenantDomain(tenantDomain)
+                        .build();
+                publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                        XDSConstants.ApplicationOperationType.UPDATE_APPLICATION_TEMPLATE);
             }
             doUpdateApplicationTemplate(oldTemplateName, spTemplate, tenantDomain);
         } catch (IdentityApplicationManagementValidationException e) {
@@ -2456,10 +2539,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " of tenantDomain: " + tenantDomain);
             }
         }
-
+        if (StringUtils.isBlank(application.getApplicationResourceId())) {
+            application.setApplicationResourceId(generateApplicationResourceId());
+        }
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
+
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setServiceProvider(application)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.CREATE_APPLICATION);
+        }
 
         for (ApplicationResourceManagementListener listener : listeners) {
             try {
@@ -2538,7 +2633,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
 
-        validateApplicationConfigurations(updatedApp, tenantDomain, username);
+        try {
+            startTenantFlow(tenantDomain);
+            validateApplicationConfigurations(updatedApp, tenantDomain, username);
+        } finally {
+            endTenantFlow();
+        }
+
 
         updatedApp.setApplicationResourceId(resourceId);
         setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
@@ -2553,6 +2654,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setResourceId(resourceId)
+                    .setServiceProvider(updatedApp)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.UPDATE_APPLICATION_BY_RESOURCE_ID);
+        }
         try {
             startTenantFlow(tenantDomain, username);
 
@@ -2780,6 +2891,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        if (isControlPlane()) {
+            ApplicationXDSWrapper applicationXDSWrapper = new ApplicationXDSWrapper.ApplicationXDSWrapperBuilder()
+                    .setResourceId(resourceId)
+                    .setTenantDomain(tenantDomain)
+                    .setUsername(username)
+                    .build();
+            publishData(applicationXDSWrapper, XDSConstants.EventType.APPLICATION,
+                    XDSConstants.ApplicationOperationType.DELETE_APPLICATION_BY_RESOURCE_ID);
+        }
+
         ServiceProvider application;
         try {
             startTenantFlow(tenantDomain);
@@ -2916,6 +3037,31 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             localClaimsArray.add(localClaim.getClaimURI());
         }
         return localClaimsArray;
+    }
+
+    private String buildJson(ApplicationXDSWrapper applicationXDSWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(applicationXDSWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
+                             OperationType operationType) {
+
+        String json = buildJson((ApplicationXDSWrapper) xdsWrapper);
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
+    }
+
+    private String generateApplicationResourceId() {
+
+        return UUID.randomUUID().toString();
     }
 }
 

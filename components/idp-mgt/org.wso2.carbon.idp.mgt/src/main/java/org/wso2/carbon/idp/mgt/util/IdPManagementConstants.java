@@ -290,6 +290,12 @@ public class IdPManagementConstants {
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
                 + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
+        public static final String ADD_IDP_WITH_ID_SQL = "INSERT INTO IDP (TENANT_ID, NAME, IS_PRIMARY, "
+                + "HOME_REALM_ID, CERTIFICATE, ALIAS, INBOUND_PROV_ENABLED, "
+                + "INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
+                "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
+                + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID, ID) " +
+                "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?, ?)";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
