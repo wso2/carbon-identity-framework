@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.SimpleTimeZone;
 
 public interface WorkflowManagementService {
 
@@ -95,7 +94,6 @@ public interface WorkflowManagementService {
      */
     void addWorkflow(Workflow workflowDTO,
                      List<Parameter> parameterList, int tenantId) throws WorkflowException;
-    String getWorkflowName(String requestId) throws WorkflowException;
 
     String getTemplateId(String workflowId) throws  WorkflowException;
 

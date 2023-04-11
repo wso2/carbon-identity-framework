@@ -125,31 +125,7 @@ public class WorkflowRequestDAO {
         }
         return null;
     }
-    public String retrieveWorkflowName(String subject) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-
-        String query = SQLConstants.GET_WORKFLOW_ID_QUERY;
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setString(1, subject);
-            log.info("request id:" +subject+"-------------");
-            rs = prepStmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString(SQLConstants.WORKFLOWID_COLUMN);
-            }
-        } catch (SQLException e) {
-
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
-        }
-        return null;
-
-    }
     public static String retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -184,7 +160,6 @@ public class WorkflowRequestDAO {
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowID);
-            log.info("request id:" +workflowID+"-------------");
             rs = prepStmt.executeQuery();
             if (rs.next()) {
                 return rs.getString(SQLConstants.TEMPLATEID_COLUMN);
