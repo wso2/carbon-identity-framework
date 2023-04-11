@@ -67,7 +67,7 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
         authenticatedIdPData.setIdpName(this.idpName);
         List<AuthenticatorConfig> authenticators = new ArrayList<>();
         for (OptimizedAuthenticatorConfig optimizedAuthenticatorConfig : this.optimizedAuthenticators) {
-            authenticators.add(optimizedAuthenticatorConfig.getAuthenticatorConfig(tenantDomain));
+            authenticators.add(optimizedAuthenticatorConfig.getAuthenticatorConfig());
         }
         authenticatedIdPData.setAuthenticators(authenticators);
         authenticatedIdPData.setUser(this.user);

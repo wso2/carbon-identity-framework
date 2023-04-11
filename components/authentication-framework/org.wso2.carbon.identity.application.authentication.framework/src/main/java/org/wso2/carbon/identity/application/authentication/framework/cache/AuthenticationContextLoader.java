@@ -145,6 +145,7 @@ public class AuthenticationContextLoader {
                         }
                     }
                     authenticatorConfig.setIdPResourceIds(idPResourceId);
+                    authenticatorConfig.setTenantDomain(context.getTenantDomain());
                     authenticatorConfig.setIdPs(null);
                     authenticatorConfig.setIdPNames(null);
                 }
