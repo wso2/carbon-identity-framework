@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
@@ -1515,7 +1516,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-        ServiceProvider serviceProviderCopy = deepCopyServiceProvider(serviceProvider);
+        ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
 
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
@@ -1526,28 +1527,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return serviceProvider;
-    }
-
-    private ServiceProvider deepCopyServiceProvider(ServiceProvider serviceProvider)
-            throws IdentityApplicationManagementException {
-
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream out = new ObjectOutputStream(bos);
-            out.writeObject(serviceProvider);
-            out.flush();
-            out.close();
-
-            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-            ObjectInputStream in = new ObjectInputStream(bis);
-            ServiceProvider serviceProviderCopy = (ServiceProvider) in.readObject();
-            in.close();
-            return serviceProviderCopy;
-        } catch (IOException | ClassNotFoundException e) {
-            String errorMsg = "Error in deep copying Service Provider " + serviceProvider.getApplicationName() + ".";
-            log.error(errorMsg, e);
-            throw new IdentityApplicationManagementException(errorMsg, e);
-        }
     }
 
     @Override
