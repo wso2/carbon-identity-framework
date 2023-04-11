@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.dao;
 
+import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,6 +63,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -4222,6 +4224,50 @@ public class IdPManagementDAO {
         return connectedAppsResult;
     }
 
+    /**
+     * Get configured applications for a local authenticator.
+     * @param authenticatorId   ID of local authenticator.
+     * @param tenantId          Tenant ID.
+     * @return  Connected applications.
+     * @throws IdentityProviderManagementException  If an error occurred when retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+            throws IdentityProviderManagementException {
+
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
+        List<String> connectedApps = new ArrayList<>();
+        String authenticatorName = new String(Base64.decode(authenticatorId), StandardCharsets.UTF_8);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = createConnectedAppsOfLocalAuthenticatorSqlStatement(connection,
+                    authenticatorName, tenantId, 10, 0)) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        connectedApps.add(resultSet.getString("UUID"));
+                    }
+                }
+            }
+            String sqlQuery = IdPManagementConstants.SQLQueries.LOCAL_AUTH_CONNECTED_APPS_TOTAL_COUNT_SQL;
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, authenticatorName);
+                prepStmt.setInt(2, tenantId);
+                prepStmt.setString(3, authenticatorName);
+                prepStmt.setInt(4, tenantId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of authenticator: " +
+                    authenticatorId, e);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, authenticatorId);
+        }
+        connectedAppsResult.setApps(connectedApps);
+        return connectedAppsResult;
+    }
+
     private PreparedStatement createConnectedAppsSqlStatement(Connection connection, String id, int limit, int offset)
             throws SQLException, IdentityProviderManagementServerException {
 
@@ -4276,6 +4322,77 @@ public class IdPManagementDAO {
             prepStmt.setInt(1, offset);
             prepStmt.setInt(2, limit);
             prepStmt.setString(3, id);
+        } else {
+            String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
+                    "could not be identified or not supported.";
+            log.error(message);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt;
+    }
+
+    private PreparedStatement createConnectedAppsOfLocalAuthenticatorSqlStatement(Connection connection, String name,
+                                                                                  int tenantId, int limit, int offset)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        PreparedStatement prepStmt;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_MYSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, name);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setString(4, name);
+            prepStmt.setInt(5, offset);
+            prepStmt.setInt(6, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_ORACLE;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, name);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setString(4, name);
+            prepStmt.setInt(5, offset + limit);
+            prepStmt.setInt(6, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_MSSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, name);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setString(4, name);
+            prepStmt.setInt(5, offset);
+            prepStmt.setInt(6, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_POSTGRESSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, name);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setString(4, name);
+            prepStmt.setInt(5, limit);
+            prepStmt.setInt(6, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_DB2SQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, name);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setString(4, name);
+            prepStmt.setInt(5, limit);
+            prepStmt.setInt(6, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_LOCAL_INFORMIX;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            prepStmt.setString(3, name);
+            prepStmt.setInt(4, tenantId);
         } else {
             String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
                     "could not be identified or not supported.";

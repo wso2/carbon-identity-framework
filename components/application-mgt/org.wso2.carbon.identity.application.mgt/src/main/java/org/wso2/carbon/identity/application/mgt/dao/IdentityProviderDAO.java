@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
 import java.util.List;
 
@@ -52,6 +53,17 @@ public interface IdentityProviderDAO {
      * @throws IdentityApplicationManagementException
      */
     List<LocalAuthenticatorConfig> getAllLocalAuthenticators() throws IdentityApplicationManagementException;
+
+    /**
+     * Get connected applications of a local authenticator.
+     *
+     * @param authenticatorId
+     * @param tenantId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+            throws IdentityApplicationManagementException;
 
     /**
      * Returns all the request path authenticators available in the system.

@@ -2592,6 +2592,14 @@ public class IdentityProviderManager implements IdpManager {
         return dao.getConnectedApplications(resourceId, limit, offset);
     }
 
+    @Override
+    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId)
+            throws IdentityProviderManagementException {
+
+
+        return dao.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId);
+    }
+
     private void validateResourceId(String resourceId, String tenantDomain) throws IdentityProviderManagementException {
 
         if (StringUtils.isEmpty(resourceId)) {

@@ -76,6 +76,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -84,6 +85,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -125,11 +127,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.*;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
@@ -875,6 +873,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } finally {
             endTenantFlow();
         }
+    }
+
+    @Override
+    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw new IdentityApplicationManagementClientException(INVALID_TENANT_DOMAIN.getCode(),
+                    String.format("Invalid tenant domain: ", tenantDomain));
+        }
+        IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
+        ConnectedAppsResult connectedAppsOfLocalAuthenticator = idpdao
+                .getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId);
+        return connectedAppsOfLocalAuthenticator;
     }
 
     @Override
