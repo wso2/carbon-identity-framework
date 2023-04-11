@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -58,7 +59,6 @@ public class OptimizedSessionContext implements Serializable {
     public OptimizedSessionContext(SessionContext sessionContext) throws SessionDataStorageOptimizationException {
 
         Object authUser = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        // TODO : Need to check whether this is the correct way to get the tenant domain.
         this.tenantDomain = authUser instanceof AuthenticatedUser ?
                 ((AuthenticatedUser) authUser).getTenantDomain() : null;
         this.optimizedAuthenticatedSequences = getOptimizedAuthenticatedSequences(
@@ -88,10 +88,13 @@ public class OptimizedSessionContext implements Serializable {
                     for (Map.Entry<String, IdentityProvider> idpEntry : authenticatorConfig.getIdps().entrySet()) {
                         IdentityProvider idp = idpEntry.getValue();
                         String idpName = idpEntry.getKey();
-                        if (idp.getResourceId() == null) {
+                        if (StringUtils.isEmpty(idp.getResourceId())) {
                             idPResourceId.add(getIdPByIdPName(idpName, this.tenantDomain).getResourceId());
                         } else {
                             idPResourceId.add(idp.getResourceId());
+                        }
+                        if (StringUtils.isEmpty(authenticatorConfig.getTenantDomain())) {
+                            authenticatorConfig.setTenantDomain(this.tenantDomain);
                         }
                     }
                     authenticatorConfig.setIdPResourceIds(idPResourceId);
@@ -138,7 +141,7 @@ public class OptimizedSessionContext implements Serializable {
         for (Map.Entry<String, OptimizedSequenceConfig> entry : this.optimizedAuthenticatedSequences.entrySet()) {
             String appName = entry.getKey();
             OptimizedSequenceConfig optimizedSequenceConfig = entry.getValue();
-            authenticatedSequences.put(appName, optimizedSequenceConfig.getSequenceConfig(this.tenantDomain));
+            authenticatedSequences.put(appName, optimizedSequenceConfig.getSequenceConfig());
         }
         sessionContext.setAuthenticatedSequences(authenticatedSequences);
         sessionContext.setAuthenticatedIdPs(getAuthenticatedIdPDataMap(this.optimizedAuthenticatedIdPs));

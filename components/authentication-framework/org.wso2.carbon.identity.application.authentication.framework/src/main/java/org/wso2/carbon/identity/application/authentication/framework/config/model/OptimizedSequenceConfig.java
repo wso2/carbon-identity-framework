@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
@@ -51,6 +52,7 @@ public class OptimizedSequenceConfig implements Serializable {
     private final String authenticatedIdPs;
     private final AuthenticatorConfig authenticatedReqPathAuthenticator;
     private final List<String> requestedAcr;
+    private final String tenantDomain;
 
     private static final Log log = LogFactory.getLog(OptimizedSequenceConfig.class);
 
@@ -73,6 +75,7 @@ public class OptimizedSequenceConfig implements Serializable {
         this.authenticatedIdPs = sequenceConfig.getAuthenticatedIdPs();
         this.authenticatedReqPathAuthenticator = sequenceConfig.getAuthenticatedReqPathAuthenticator();
         this.requestedAcr = sequenceConfig.getRequestedAcr();
+        this.tenantDomain = sequenceConfig.getApplicationConfig().getServiceProvider().getTenantDomain();
     }
 
     private Map<Integer, OptimizedStepConfig> getOptimizedStepMap(Map<Integer, StepConfig> stepMap) {
@@ -82,7 +85,7 @@ public class OptimizedSequenceConfig implements Serializable {
         return optimizedStepMap;
     }
 
-    public SequenceConfig getSequenceConfig(String tenantDomain) throws SessionDataStorageOptimizationException {
+    public SequenceConfig getSequenceConfig() throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the sequence config has started.");
@@ -96,13 +99,13 @@ public class OptimizedSequenceConfig implements Serializable {
         for (Map.Entry<Integer, OptimizedStepConfig> entry : optimizedStepMap.entrySet()) {
             Integer order = entry.getKey();
             OptimizedStepConfig optimizedStepConfig = entry.getValue();
-            StepConfig stepConfig = optimizedStepConfig.getStepConfig(tenantDomain);
+            StepConfig stepConfig = optimizedStepConfig.getStepConfig();
             stepMap.put(order, stepConfig);
         }
         sequenceConfig.setStepMap(stepMap);
         sequenceConfig.setAuthenticationGraph(this.authenticationGraph);
         sequenceConfig.setReqPathAuthenticators(this.reqPathAuthenticators);
-        sequenceConfig.setApplicationConfig(getApplicationConfig(this.applicationResourceId, tenantDomain));
+        sequenceConfig.setApplicationConfig(getApplicationConfig(this.applicationResourceId, this.tenantDomain));
         sequenceConfig.setCompleted(this.completed);
         sequenceConfig.setAuthenticatedUser(this.authenticatedUser);
         sequenceConfig.setAuthenticatedIdPs(this.authenticatedIdPs);
@@ -114,8 +117,10 @@ public class OptimizedSequenceConfig implements Serializable {
     private ApplicationConfig getApplicationConfig(String resourceId, String tenantDomain) throws
             SessionDataStorageOptimizationException {
 
-        if (resourceId == null) {
-            throw new SessionDataStorageOptimizationException("Error occurred while getting Service Provider");
+        if (StringUtils.isEmpty(resourceId) || StringUtils.isEmpty(tenantDomain)) {
+            throw new SessionDataStorageOptimizationException(
+                    String.format("Null parameters passed while getting Service Provider by the resource ID: %s " +
+                            "tenant domain: %s", resourceId, tenantDomain));
         }
         ServiceProvider serviceProvider;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)

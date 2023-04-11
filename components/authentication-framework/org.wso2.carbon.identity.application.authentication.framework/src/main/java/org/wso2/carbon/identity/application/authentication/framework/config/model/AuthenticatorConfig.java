@@ -43,6 +43,7 @@ public class AuthenticatorConfig implements Serializable {
     private Map<String, IdentityProvider> idps = new HashMap<>();
     private List<String> idpNames = new ArrayList<>();
     private List<String> idPResourceIds = new ArrayList<>();
+    private String tenantDomain;
 
     public AuthenticatorConfig() {
     }
@@ -142,5 +143,15 @@ public class AuthenticatorConfig implements Serializable {
     public List<String> getIdPResourceIds() {
 
         return this.idPResourceIds;
+    }
+
+    public String getTenantDomain() {
+
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+
+        this.tenantDomain = tenantDomain;
     }
 }

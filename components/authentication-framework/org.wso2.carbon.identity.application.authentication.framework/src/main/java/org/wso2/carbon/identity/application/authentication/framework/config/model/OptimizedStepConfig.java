@@ -67,7 +67,6 @@ public class OptimizedStepConfig implements Serializable {
         this.multiOption = stepConfig.isMultiOption();
         this.retrying = stepConfig.isRetrying();
         this.forced = stepConfig.isForced();
-
     }
 
     private List<OptimizedAuthenticatorConfig> getOptimizedAuthenticatorList(List<AuthenticatorConfig>
@@ -80,7 +79,7 @@ public class OptimizedStepConfig implements Serializable {
         return optimizedAuthenticatorList;
     }
 
-    public StepConfig getStepConfig(String tenantDomain) throws SessionDataStorageOptimizationException {
+    public StepConfig getStepConfig() throws SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the step config has started.");
@@ -94,7 +93,7 @@ public class OptimizedStepConfig implements Serializable {
         stepConfig.setAuthenticatedIdP(this.authenticatedIdP);
         List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
         for (OptimizedAuthenticatorConfig optimizedAuthenticatorConfig : this.optimizedAuthenticatorList) {
-            AuthenticatorConfig authConfig = optimizedAuthenticatorConfig.getAuthenticatorConfig(tenantDomain);
+            AuthenticatorConfig authConfig = optimizedAuthenticatorConfig.getAuthenticatorConfig();
             authenticatorList.add(authConfig);
             if (authConfig.getName().equals(this.authenticatedAuthenticatorName)) {
                 stepConfig.setAuthenticatedAutenticator(authConfig);

@@ -45,6 +45,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private final AuthenticatorStateInfo authenticatorStateInfo;
     private final Map<String, String> parameterMap;
     private final List<String> idPResourceIds;
+    private String tenantDomain;
 
     private static final Log log = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
 
@@ -58,17 +59,11 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         this.enabled = authenticatorConfig.isEnabled();
         this.authenticatorStateInfo = authenticatorConfig.getAuthenticatorStateInfo();
         this.parameterMap = authenticatorConfig.getParameterMap();
+        this.tenantDomain = authenticatorConfig.getTenantDomain();
         this.idPResourceIds = authenticatorConfig.getIdPResourceIds();
     }
 
-    private List<String> getIdPResourceIds(Map<String, IdentityProvider> idps) {
-
-        List<String> idpResourceIds = new ArrayList<>();
-        idps.forEach((idpName, idp) -> idpResourceIds.add(idp.getResourceId()));
-        return idpResourceIds;
-    }
-
-    public AuthenticatorConfig getAuthenticatorConfig(String tenantDomain) throws
+    public AuthenticatorConfig getAuthenticatorConfig() throws
             SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
@@ -83,22 +78,24 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         authenticatorConfig.setParameterMap(this.parameterMap);
         Map<String, IdentityProvider> idps = new HashMap<>();
         List<String> idpNames = new ArrayList<>();
-        // TODO need to revisit - exceptions thrown within this for loop.
         for (String resourceId : this.idPResourceIds) {
-            IdentityProvider idp = getIdPByResourceID(resourceId, tenantDomain);
+            IdentityProvider idp = getIdPByResourceID(resourceId, this.tenantDomain);
             idps.put(idp.getIdentityProviderName(), idp);
             idpNames.add(idp.getIdentityProviderName());
         }
         authenticatorConfig.setIdPs(idps);
         authenticatorConfig.setIdPNames(idpNames);
+        authenticatorConfig.setTenantDomain(this.tenantDomain);
         return authenticatorConfig;
     }
 
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain) throws
             SessionDataStorageOptimizationException {
 
-        if (StringUtils.isEmpty(resourceId)) {
-            throw new SessionDataStorageOptimizationException("Error occurred while getting IdPs");
+        if (StringUtils.isEmpty(resourceId) || StringUtils.isEmpty(tenantDomain)) {
+            throw new SessionDataStorageOptimizationException(
+                    String.format("Null parameters passed while getting IDPs by the resource ID: %s " +
+                    "tenant domain: %s", resourceId, tenantDomain));
         }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
