@@ -126,24 +126,24 @@
                                 </div>
                             </td>
                         </tr>
-
                         <tr>
                             <td style="width: 500px;">
                                 <fmt:message key="admin.session.advisory.banner.banner.content" />
                             </td>
-                            <td colspan="2" rowspan="3"><input type="text" name="bannerContent" id="bannerContent"
-                                style="width:400px" value="<%=Encode.forHtmlAttribute(bannerContent)%>"/>
-
+                            <td>
+                                <textarea name="bannerContent" id="bannerContent" class="text-box-big"
+                                    style="width: 500px; height: 60px;"><%=Encode.forHtmlContent(bannerContent)%>
+                                </textarea>
                                 <div class="sectionHelp">
                                     <fmt:message key="admin.session.advisory.banner.banner.content.hint" />
                                 </div>
                             </td>
                         </tr>
-                        </table>
-                    </div>
-                    <div class="buttonRow">
-                        <input type="submit" class="button" value="Update"/>
-                    </div>
+                    </table>
+                </div>
+                <div class="buttonRow">
+                    <input type="submit" class="button" value="Update"/>
+                </div>
             </form>
         </div>
     </div>
