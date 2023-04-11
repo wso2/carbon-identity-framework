@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +166,20 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
             throws IdentityApplicationManagementException {
 
         return ApplicationAuthenticatorService.getInstance().getLocalAuthenticators();
+    }
+
+    @Override
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
+        try {
+            ConnectedAppsResult app = idpManager.getConnectedAppsForLocalAuthenticator(authenticatorId, tenantId);
+            return app;
+        } catch (IdentityProviderManagementException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
