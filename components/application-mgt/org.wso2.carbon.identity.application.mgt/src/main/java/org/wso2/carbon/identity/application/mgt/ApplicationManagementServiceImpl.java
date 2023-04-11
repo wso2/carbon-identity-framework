@@ -92,7 +92,10 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
@@ -1512,16 +1515,39 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
+        ServiceProvider serviceProviderCopy = deepCopyServiceProvider(serviceProvider);
 
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.doExportServiceProvider(serviceProvider, exportSecrets);
+                listener.doExportServiceProvider(serviceProviderCopy, exportSecrets);
             }
         }
 
         return serviceProvider;
+    }
+
+    private ServiceProvider deepCopyServiceProvider(ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(serviceProvider);
+            out.flush();
+            out.close();
+
+            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            ObjectInputStream in = new ObjectInputStream(bis);
+            ServiceProvider serviceProviderCopy = (ServiceProvider) in.readObject();
+            in.close();
+            return serviceProviderCopy;
+        } catch (IOException | ClassNotFoundException e) {
+            String errorMsg = "Error in deep copying Service Provider " + serviceProvider.getApplicationName() + ".";
+            log.error(errorMsg, e);
+            throw new IdentityApplicationManagementException(errorMsg, e);
+        }
     }
 
     @Override
