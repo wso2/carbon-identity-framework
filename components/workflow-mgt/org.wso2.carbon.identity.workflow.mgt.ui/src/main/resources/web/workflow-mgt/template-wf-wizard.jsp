@@ -239,7 +239,14 @@
 
         var stepOrder = 0;
         function nextWizard(){
-            if(!validateInputs()){
+        <%
+        boolean intTemp = true;
+        if(template !=null && template.getName().equals("External Workflow Template")){
+            intTemp = false;
+        }
+        %>
+            var abc = "<%=intTemp%>";
+            if(abc != "false" && !validateInputs()){
                 alert("Required fields are missing");
                 return ;
             }
