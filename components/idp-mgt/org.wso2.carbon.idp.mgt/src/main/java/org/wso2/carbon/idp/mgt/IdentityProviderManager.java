@@ -2596,7 +2596,6 @@ public class IdentityProviderManager implements IdpManager {
     public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId)
             throws IdentityProviderManagementException {
 
-
         return dao.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId);
     }
 

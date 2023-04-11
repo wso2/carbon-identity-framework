@@ -186,6 +186,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public abstract ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId,
                                                                               String tenantDomain)
             throws IdentityApplicationManagementException;
+
     /**
      * Get All Request Path Authenticators
      *

@@ -179,7 +179,6 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         } catch (IdentityProviderManagementException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
