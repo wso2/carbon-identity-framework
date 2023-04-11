@@ -46,11 +46,14 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -137,7 +140,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             validateExternalizedConsentPageConfig(validationErrors,
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig().getExternalizedConsentPageConfig());
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig().getExternalizedConsentPageConfig(),
+                    tenantDomain);
         }
 
         return validationErrors;
@@ -287,7 +291,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      * @param externalizedConsentPageConfig     externalized consent page config
      */
     private void validateExternalizedConsentPageConfig(List<String> validationMsg, ExternalizedConsentPageConfig
-            externalizedConsentPageConfig) {
+            externalizedConsentPageConfig, String tenantDomain) throws IdentityApplicationManagementException {
 
         if (externalizedConsentPageConfig == null) {
             return;
@@ -296,7 +300,35 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 externalizedConsentPageConfig.getConsentPageUrl())) {
             validationMsg.add("No external consent page url is configured when externalized consent page is enabled.");
         }
+
+        validateExternalizedConsentPageUrl(externalizedConsentPageConfig, tenantDomain, validationMsg);
     }
+
+    private void validateExternalizedConsentPageUrl(ExternalizedConsentPageConfig externalizedConsentPageConfig,
+                                            String tenantDomain, List<String> validationMsg)
+            throws IdentityApplicationManagementException {
+
+        boolean isValidUrl = false;
+        Condition searchCondition = ApplicationMgtUtil.getExternalizedConsentPageUrlSearchCondition();
+        List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil.
+                getExternalizedConsentPageUrlResourceAttribute(tenantDomain, searchCondition);
+        List<String> preConfiguredExternalizedConsentUrls = externalizedConsentPageUrlResourceAttribute.stream()
+                .map(Attribute::getValue)
+                .collect(Collectors.toList());;
+        if (preConfiguredExternalizedConsentUrls != null && preConfiguredExternalizedConsentUrls.size() > 0) {
+            isValidUrl = preConfiguredExternalizedConsentUrls.stream()
+                    .filter(n -> n.equals(externalizedConsentPageConfig.getConsentPageUrl()))
+                    .findFirst()
+                    .isPresent();
+            }
+
+        if (!isValidUrl) {
+            validationMsg.add("The external consent page url is not pre configured in the tenant level.");
+        }
+
+    }
+
+
 
     /**
      * Validate request path authenticator related configurations and append to the validation msg list.

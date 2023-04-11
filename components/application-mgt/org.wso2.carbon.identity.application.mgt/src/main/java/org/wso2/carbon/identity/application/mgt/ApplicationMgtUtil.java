@@ -42,6 +42,15 @@ import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -66,6 +75,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType.PrimitiveOperator.EQUALS;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -951,6 +961,44 @@ public class ApplicationMgtUtil {
             log.error("Error while converting service provider object to json.");
         }
         return StringUtils.EMPTY;
+    }
+
+    public static List<Attribute> getExternalizedConsentPageUrlResourceAttribute(String tenantDomain,
+                                                                                 Condition condition)
+            throws IdentityApplicationManagementException {
+
+        try {
+            List<Attribute> externalizedConsentPageUrlResourceAttribute = new ArrayList<>();
+
+            Resources resources = ApplicationManagementServiceComponentHolder.getInstance()
+                    .getConfigurationManager().getTenantResources(tenantDomain, condition);
+
+            if (resources != null || resources.getResources() != null || resources.getResources().size() > 0) {
+                for (Resource resource : resources.getResources()) {
+                    externalizedConsentPageUrlResourceAttribute = resource.getAttributes();
+                }
+            }
+
+            return externalizedConsentPageUrlResourceAttribute;
+        } catch (ConfigurationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving external consent management " +
+                    "configuration.", e);
+        }
+    }
+
+    public static Condition getExternalizedConsentPageUrlSearchCondition() {
+
+        Condition resourceTypeCondition = new PrimitiveCondition(
+                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME, EQUALS,
+                "external_consent_management");
+        Condition resourceCondition = new PrimitiveCondition(
+                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME, EQUALS,
+                "external_Consent_url");
+        List<Condition> list = new ArrayList<>();
+        list.add(resourceTypeCondition);
+        list.add(resourceCondition);
+        Condition searchCondition = new ComplexCondition(ConditionType.ComplexOperator.AND, list);
+        return searchCondition;
     }
 
 }

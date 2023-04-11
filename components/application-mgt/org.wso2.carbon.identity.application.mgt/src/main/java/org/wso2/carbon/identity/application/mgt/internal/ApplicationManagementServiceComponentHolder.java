@@ -21,6 +21,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.api.RegistryService;
@@ -59,6 +60,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
 
     private boolean isOrganizationManagementEnable = false;
+
+    private ConfigurationManager configurationManager = null;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -194,6 +197,25 @@ public class ApplicationManagementServiceComponentHolder {
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
+    /**
+     * Get Configuration Manager.
+     *
+     * @return ConfigurationManager.
+     */
+    public ConfigurationManager getConfigurationManager() {
+
+        return configurationManager;
+    }
+
+    /**
+     * Set Configuration manager.
+     *
+     * @param configurationManager Configuration Manager.
+     */
+    public void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
+    }
     /**
      * Get organization user resident resolver service instance.
      *

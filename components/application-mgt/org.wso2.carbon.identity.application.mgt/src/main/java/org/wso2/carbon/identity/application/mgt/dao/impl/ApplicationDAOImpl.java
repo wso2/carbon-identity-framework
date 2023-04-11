@@ -75,6 +75,12 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
+import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterData;
@@ -138,15 +144,17 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getExternalizedConsentPageUrlSearchCondition;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL_ID;
+import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL_ID_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType.PrimitiveOperator.EQUALS;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
@@ -497,6 +505,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     serviceProvider.getPermissionAndRoleConfig().getPermissions());
         }
 
+        serviceProvider.setTenantDomain(tenantDomain);
         updateConfigurationsAsServiceProperties(serviceProvider);
         if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
             ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
@@ -2123,7 +2132,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 for (String requiredAttribute : requiredAttributesSet) {
                     if (ADVANCED_CONFIG.equals(requiredAttribute)) {
                         readAndSetConfigurationsFromProperties(propertyList,
-                                serviceProvider.getLocalAndOutBoundAuthenticationConfig());
+                                serviceProvider.getLocalAndOutBoundAuthenticationConfig(), serviceProvider
+                                        .getTenantDomain());
                         serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
                         serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
                     }
@@ -2700,6 +2710,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 authSteps.put(step, authStep);
             }
 
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             LocalAndOutboundAuthenticationConfig localAndOutboundConfiguration
                     = new LocalAndOutboundAuthenticationConfig();
 
@@ -2810,7 +2821,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
                             .getString(5));
 
-                    readAndSetConfigurationsFromProperties(propertyList, localAndOutboundConfiguration);
+                    readAndSetConfigurationsFromProperties(propertyList, localAndOutboundConfiguration, tenantDomain);
                 }
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(localAndOutboundConfigPrepStmt);
@@ -2825,7 +2836,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     private void readAndSetConfigurationsFromProperties(List<ServiceProviderProperty> propertyList,
-                                                        LocalAndOutboundAuthenticationConfig localAndOutboundConfig) {
+                                                        LocalAndOutboundAuthenticationConfig localAndOutboundConfig,
+                                                        String tenantDomain) throws
+            IdentityApplicationManagementException {
         // Override with changed values.
         if (CollectionUtils.isNotEmpty(propertyList)) {
             for (ServiceProviderProperty serviceProviderProperty : propertyList) {
@@ -2841,10 +2854,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
                 } else if (USE_EXTERNALIZED_CONSENT_PAGE.equals(name)) {
                     getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled(Boolean.parseBoolean(value));
-                } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
+                } else if (EXTERNAL_CONSENT_PAGE_URL_ID.equals(name)) {
+                    setExternalConsentPageUrl(localAndOutboundConfig, tenantDomain, value);
                 }
             }
+
+        }
+    }
+
+    private void setExternalConsentPageUrl(LocalAndOutboundAuthenticationConfig localAndOutboundConfig,
+                                           String tenantDomain, String value) throws
+            IdentityApplicationManagementException {
+
+        List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil
+                .getExternalizedConsentPageUrlResourceAttribute(tenantDomain,
+                        getExternalizedConsentPageUrlSearchCondition());
+        String consentPageUrl = externalizedConsentPageUrlResourceAttribute.stream()
+                .filter(attribute -> attribute.getAttributeId().equals(value))
+                .map(Attribute::getValue).findFirst().orElse(null);
+
+        if (consentPageUrl != null) {
+            getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(consentPageUrl);
         }
     }
 
@@ -4710,7 +4740,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return null;
     }
 
-    private void updateConfigurationsAsServiceProperties(ServiceProvider sp) {
+    private void updateConfigurationsAsServiceProperties(ServiceProvider sp) throws
+            IdentityApplicationManagementException {
 
         if (sp.getSpProperties() == null) {
             sp.setSpProperties(new ServiceProviderProperty[0]);
@@ -4827,22 +4858,51 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return useExternalizedConsentPageProperty;
     }
 
-    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) {
+    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) throws
+            IdentityApplicationManagementException {
 
         ServiceProviderProperty externalConsentPageURLProperty = new ServiceProviderProperty();
 
         ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
                 .getExternalizedConsentPageConfig();
 
-        if (consentConfig != null) {
-            externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
-            externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
+        String tenantDomain = sp.getTenantDomain();
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
 
-            externalConsentPageURLProperty.setValue(consentConfig.getConsentPageUrl());
+        Condition searchCondition = getSearchCondition();
+
+        List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil
+                .getExternalizedConsentPageUrlResourceAttribute(tenantDomain, searchCondition);
+
+        String externalConsentPageUrlId = externalizedConsentPageUrlResourceAttribute.stream()
+                .filter(attribute -> attribute.getValue().equals(consentConfig.getConsentPageUrl()))
+                .map(Attribute::getAttributeId).findFirst().orElse(null);
+
+        if (consentConfig != null) {
+            externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL_ID);
+            externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_ID_DISPLAY_NAME);
+
+            externalConsentPageURLProperty.setValue(externalConsentPageUrlId);
         }
         return externalConsentPageURLProperty;
     }
-    
+
+    private Condition getSearchCondition() {
+        Condition condition1 = new PrimitiveCondition(
+                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME, EQUALS,
+                "external_consent_management");
+        Condition condition2 = new PrimitiveCondition(
+                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME, EQUALS,
+                "external_Consent_url");
+        List<Condition> list = new ArrayList<>();
+        list.add(condition1);
+        list.add(condition2);
+        Condition condition = new ComplexCondition(ConditionType.ComplexOperator.AND, list);
+        return condition;
+    }
+
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
 
         ServiceProviderProperty property = new ServiceProviderProperty();
