@@ -2866,12 +2866,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                            String tenantDomain, String value) throws
             IdentityApplicationManagementException {
 
+        String consentPageUrl = null;
         List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil
-                .getExternalizedConsentPageUrlResourceAttribute(tenantDomain,
-                        getExternalizedConsentPageUrlSearchCondition());
-        String consentPageUrl = externalizedConsentPageUrlResourceAttribute.stream()
-                .filter(attribute -> attribute.getAttributeId().equals(value))
-                .map(Attribute::getValue).findFirst().orElse(null);
+                .getResourceAttributes(tenantDomain, getExternalizedConsentPageUrlSearchCondition());
+
+        if (externalizedConsentPageUrlResourceAttribute != null &&
+                externalizedConsentPageUrlResourceAttribute.size() > 0) {
+            consentPageUrl = externalizedConsentPageUrlResourceAttribute.stream()
+                    .filter(attribute -> attribute.getAttributeId().equals(value))
+                    .map(Attribute::getValue).findFirst().orElse(null);
+        }
 
         if (consentPageUrl != null) {
             getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(consentPageUrl);
@@ -4871,36 +4875,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        Condition searchCondition = getSearchCondition();
+        Condition searchCondition = getExternalizedConsentPageUrlSearchCondition();
 
+        String externalConsentPageUrlId = "";
         List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil
-                .getExternalizedConsentPageUrlResourceAttribute(tenantDomain, searchCondition);
+                .getResourceAttributes(tenantDomain, searchCondition);
 
-        String externalConsentPageUrlId = externalizedConsentPageUrlResourceAttribute.stream()
-                .filter(attribute -> attribute.getValue().equals(consentConfig.getConsentPageUrl()))
-                .map(Attribute::getAttributeId).findFirst().orElse(null);
+        if (externalizedConsentPageUrlResourceAttribute != null &&
+                externalizedConsentPageUrlResourceAttribute.size() > 0) {
+            externalConsentPageUrlId = externalizedConsentPageUrlResourceAttribute.stream()
+                    .filter(attribute -> attribute.getValue().equals(consentConfig.getConsentPageUrl()))
+                    .map(Attribute::getAttributeId).findFirst().orElse(null);
+        }
 
-        if (consentConfig != null) {
+        if (consentConfig != null && StringUtils.isNotBlank(externalConsentPageUrlId)) {
             externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL_ID);
             externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_ID_DISPLAY_NAME);
 
             externalConsentPageURLProperty.setValue(externalConsentPageUrlId);
         }
         return externalConsentPageURLProperty;
-    }
-
-    private Condition getSearchCondition() {
-        Condition condition1 = new PrimitiveCondition(
-                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME, EQUALS,
-                "external_consent_management");
-        Condition condition2 = new PrimitiveCondition(
-                ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME, EQUALS,
-                "external_Consent_url");
-        List<Condition> list = new ArrayList<>();
-        list.add(condition1);
-        list.add(condition2);
-        Condition condition = new ComplexCondition(ConditionType.ComplexOperator.AND, list);
-        return condition;
     }
 
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {

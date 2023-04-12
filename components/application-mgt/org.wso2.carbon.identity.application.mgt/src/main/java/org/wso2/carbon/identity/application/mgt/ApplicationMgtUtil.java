@@ -963,26 +963,24 @@ public class ApplicationMgtUtil {
         return StringUtils.EMPTY;
     }
 
-    public static List<Attribute> getExternalizedConsentPageUrlResourceAttribute(String tenantDomain,
-                                                                                 Condition condition)
+    public static List<Attribute> getResourceAttributes(String tenantDomain, Condition condition)
             throws IdentityApplicationManagementException {
 
         try {
-            List<Attribute> externalizedConsentPageUrlResourceAttribute = new ArrayList<>();
+            List<Attribute> resourceAttributes = new ArrayList<>();
 
             Resources resources = ApplicationManagementServiceComponentHolder.getInstance()
                     .getConfigurationManager().getTenantResources(tenantDomain, condition);
 
             if (resources != null || resources.getResources() != null || resources.getResources().size() > 0) {
                 for (Resource resource : resources.getResources()) {
-                    externalizedConsentPageUrlResourceAttribute = resource.getAttributes();
+                    resourceAttributes = resource.getAttributes();
                 }
             }
 
-            return externalizedConsentPageUrlResourceAttribute;
+            return resourceAttributes;
         } catch (ConfigurationManagementException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving external consent management " +
-                    "configuration.", e);
+            throw new IdentityApplicationManagementException("Error while retrieving resource configuration.", e);
         }
     }
 

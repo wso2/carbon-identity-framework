@@ -71,6 +71,8 @@ public class ConfigurationConstants {
     public static final String PATH_SEPARATOR = "/";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
+    public static final String EXTERNAL_CONSENT_PAGE_CONFIG = "external_consent_page_config";
+    public static final String EXTERNAL_CONSENT_PAGE_URL = "external_consent_pag_url";
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
