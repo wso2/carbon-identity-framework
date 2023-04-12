@@ -1526,7 +1526,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        return serviceProvider;
+        return serviceProviderCopy;
     }
 
     @Override
