@@ -75,12 +75,8 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
-import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
-import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
-import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterData;
@@ -154,7 +150,6 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSEN
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType.PrimitiveOperator.EQUALS;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
@@ -2839,6 +2834,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                         LocalAndOutboundAuthenticationConfig localAndOutboundConfig,
                                                         String tenantDomain) throws
             IdentityApplicationManagementException {
+
         // Override with changed values.
         if (CollectionUtils.isNotEmpty(propertyList)) {
             for (ServiceProviderProperty serviceProviderProperty : propertyList) {
@@ -2858,7 +2854,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     setExternalConsentPageUrl(localAndOutboundConfig, tenantDomain, value);
                 }
             }
-
         }
     }
 
@@ -2872,6 +2867,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (externalizedConsentPageUrlResourceAttribute != null &&
                 externalizedConsentPageUrlResourceAttribute.size() > 0) {
+            /* Get the externalized consent page url from the resource attribute because we store the consent
+            page url attribute id except the value. */
             consentPageUrl = externalizedConsentPageUrlResourceAttribute.stream()
                     .filter(attribute -> attribute.getAttributeId().equals(value))
                     .map(Attribute::getValue).findFirst().orElse(null);
@@ -4768,8 +4765,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty useExternalizedConsentPageProperty = buildUseExternalizedConsentPageProperty(sp);
             spPropertyMap.put(useExternalizedConsentPageProperty.getName(), useExternalizedConsentPageProperty);
 
-            ServiceProviderProperty externalConsentPageURLProperty = buildExternalConsentPageURLProperty(sp);
-            spPropertyMap.put(externalConsentPageURLProperty.getName(), externalConsentPageURLProperty);
+            ServiceProviderProperty externalConsentPageURLIdProperty = buildExternalConsentPageURLIdProperty(sp);
+            spPropertyMap.put(externalConsentPageURLIdProperty.getName(), externalConsentPageURLIdProperty);
         }
 
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
@@ -4862,10 +4859,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return useExternalizedConsentPageProperty;
     }
 
-    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) throws
+    private ServiceProviderProperty buildExternalConsentPageURLIdProperty(ServiceProvider sp) throws
             IdentityApplicationManagementException {
 
-        ServiceProviderProperty externalConsentPageURLProperty = new ServiceProviderProperty();
+        ServiceProviderProperty externalConsentPageURLIdProperty = new ServiceProviderProperty();
 
         ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
                 .getExternalizedConsentPageConfig();
@@ -4883,18 +4880,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (externalizedConsentPageUrlResourceAttribute != null &&
                 externalizedConsentPageUrlResourceAttribute.size() > 0) {
+            /* Get the attribute id of the external consent page url because we store the consent url id except
+            the value. */
             externalConsentPageUrlId = externalizedConsentPageUrlResourceAttribute.stream()
                     .filter(attribute -> attribute.getValue().equals(consentConfig.getConsentPageUrl()))
                     .map(Attribute::getAttributeId).findFirst().orElse(null);
         }
 
         if (consentConfig != null && StringUtils.isNotBlank(externalConsentPageUrlId)) {
-            externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL_ID);
-            externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_ID_DISPLAY_NAME);
+            externalConsentPageURLIdProperty.setName(EXTERNAL_CONSENT_PAGE_URL_ID);
+            externalConsentPageURLIdProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_ID_DISPLAY_NAME);
 
-            externalConsentPageURLProperty.setValue(externalConsentPageUrlId);
+            externalConsentPageURLIdProperty.setValue(externalConsentPageUrlId);
         }
-        return externalConsentPageURLProperty;
+        return externalConsentPageURLIdProperty;
     }
 
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {

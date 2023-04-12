@@ -102,6 +102,10 @@
             <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
+        </dependency>
 
         <!-- Adding dependency to identity.core temporary -->
         <!-- 
@@ -214,6 +218,8 @@
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.*;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.directory.server.manager; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",

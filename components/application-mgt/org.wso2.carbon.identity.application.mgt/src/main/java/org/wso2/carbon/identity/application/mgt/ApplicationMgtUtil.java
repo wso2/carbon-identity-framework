@@ -988,10 +988,10 @@ public class ApplicationMgtUtil {
 
         Condition resourceTypeCondition = new PrimitiveCondition(
                 ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_TYPE_NAME, EQUALS,
-                "external_consent_management");
+                ConfigurationConstants.EXTERNAL_CONSENT_PAGE_CONFIG);
         Condition resourceCondition = new PrimitiveCondition(
                 ConfigurationConstants.RESOURCE_SEARCH_BEAN_FIELD_RESOURCE_NAME, EQUALS,
-                "external_Consent_url");
+                ConfigurationConstants.EXTERNAL_CONSENT_PAGE_URL);
         List<Condition> list = new ArrayList<>();
         list.add(resourceTypeCondition);
         list.add(resourceCondition);

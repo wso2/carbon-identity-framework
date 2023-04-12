@@ -300,21 +300,29 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 externalizedConsentPageConfig.getConsentPageUrl())) {
             validationMsg.add("No external consent page url is configured when externalized consent page is enabled.");
         }
-
-        validateExternalizedConsentPageUrl(externalizedConsentPageConfig, tenantDomain, validationMsg);
+        // Validate that the externalized consent page url value is a pre-configured url.
+        validateExternalizedConsentPageUrl(validationMsg, externalizedConsentPageConfig, tenantDomain);
     }
 
-    private void validateExternalizedConsentPageUrl(ExternalizedConsentPageConfig externalizedConsentPageConfig,
-                                            String tenantDomain, List<String> validationMsg)
-            throws IdentityApplicationManagementException {
+    /**
+     * Validate the externalized consent page url value is a pre-configured value.
+     *
+     * @param validationMsg                   validation error messages
+     * @param externalizedConsentPageConfig   validation error messages.
+     * @param tenantDomain                    tenant domain.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
+     *                                                authenticator params
+     */
+    private void validateExternalizedConsentPageUrl(List<String> validationMsg, ExternalizedConsentPageConfig
+            externalizedConsentPageConfig, String tenantDomain) throws IdentityApplicationManagementException {
 
         boolean isValidUrl = false;
         Condition searchCondition = ApplicationMgtUtil.getExternalizedConsentPageUrlSearchCondition();
         List<Attribute> externalizedConsentPageUrlResourceAttribute = ApplicationMgtUtil.
-                getExternalizedConsentPageUrlResourceAttribute(tenantDomain, searchCondition);
+                getResourceAttributes(tenantDomain, searchCondition);
         List<String> preConfiguredExternalizedConsentUrls = externalizedConsentPageUrlResourceAttribute.stream()
-                .map(Attribute::getValue)
-                .collect(Collectors.toList());;
+                .map(Attribute::getValue).collect(Collectors.toList());
+
         if (preConfiguredExternalizedConsentUrls != null && preConfiguredExternalizedConsentUrls.size() > 0) {
             isValidUrl = preConfiguredExternalizedConsentUrls.stream()
                     .filter(n -> n.equals(externalizedConsentPageConfig.getConsentPageUrl()))
@@ -325,10 +333,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         if (!isValidUrl) {
             validationMsg.add("The external consent page url is not pre configured in the tenant level.");
         }
-
     }
-
-
 
     /**
      * Validate request path authenticator related configurations and append to the validation msg list.
