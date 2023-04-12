@@ -93,10 +93,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
