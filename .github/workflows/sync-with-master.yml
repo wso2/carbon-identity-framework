@@ -2,7 +2,9 @@
 name: Sync PR from master
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - master
 
