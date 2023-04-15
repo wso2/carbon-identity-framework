@@ -265,6 +265,8 @@ public class Constants {
                 "authentication.flow.timeout_authentication.flow.timeout.description";
         public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
                 "authentication.flow.timeout";
+        public static final String POST_LOGOUT_URI_NOT_MATCH = "access_denied_post.logout.uri.not.match";
+        public static final String POST_LOGOUT_URI_NOT_MATCH_I18N_KEY = "post.logout.uri.not.match";
 
         private ErrorToi18nMappingConstants() {
 
