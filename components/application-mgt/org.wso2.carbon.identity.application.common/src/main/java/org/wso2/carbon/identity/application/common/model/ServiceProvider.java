@@ -206,7 +206,7 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(LocalAndOutboundAuthenticationConfig
                                 .build(element));
-            }  else if (APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER.equals(elementName)) {
+            } else if (APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER.equals(elementName)) {
                 // Build application role mapping configurations.
                 Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
                 List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new ArrayList<>();
@@ -368,7 +368,7 @@ public class ServiceProvider implements Serializable {
     }
 
     /**
-     * Returns the application role mapping configuration which indicates whether an IdP should
+     * Return the application role mapping configuration which indicates whether an IdP should
      * use application role mapping for IdP roles for this application.
      *
      * @return Application role mapping configuration.
@@ -379,7 +379,7 @@ public class ServiceProvider implements Serializable {
     }
 
     /**
-     * Sets the application role mapping configuration which indicates whether an IdP should use
+     * Set the application role mapping configuration which indicates whether an IdP should use
      * application role mapping for IdP roles for this application.
      *
      * @param applicationRoleMappingConfig The application role mapping configuration.

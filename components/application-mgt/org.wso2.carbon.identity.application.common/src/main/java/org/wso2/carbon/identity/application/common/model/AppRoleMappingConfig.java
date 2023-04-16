@@ -49,8 +49,8 @@ public class AppRoleMappingConfig implements Serializable {
      * Build ApplicationRoleMappingConfig from OMElement which indicates whether the IdP will use mappings from
      * idp-roles to application roles for the application.
      *
-     * @param applicationRoleMappingConfigOM OMElement
-     * @return ApplicationRoleMappingConfig
+     * @param applicationRoleMappingConfigOM OMElement.
+     * @return the application role mapping config.
      */
     public static AppRoleMappingConfig build(OMElement applicationRoleMappingConfigOM) {
 
@@ -69,9 +69,9 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
-     * Returns the name of the federated IdP used for application role mapping.
+     * Return the name of the federated IdP used for application role mapping.
      *
-     * @return IdPName
+     * @return IdP Name.
      */
     public String getIdPName() {
 
@@ -79,9 +79,9 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
-     * Sets the name of the federated IdP used for application role mapping.
+     * Set the name of the federated IdP used for application role mapping.
      *
-     * @param idPName IdPName
+     * @param idPName IdP Name.
      */
     public void setIdPName(String idPName) {
 
@@ -89,9 +89,9 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
-     * Returns whether the IdP will use mappings from idp-roles to application roles for the application.
+     * Return whether the IdP will use mappings from idp-roles to application roles for the application.
      *
-     * @return useAppRoleMappings
+     * @return use app role mapping or not for idp.
      */
     public boolean isUseAppRoleMappings() {
 
@@ -99,9 +99,9 @@ public class AppRoleMappingConfig implements Serializable {
     }
 
     /**
-     * Returns whether the IdP will use mappings from idp-roles to application roles for the application.
+     * Return whether the IdP will use mappings from idp-roles to application roles for the application.
      *
-     * @param useAppRoleMappings useAppRoleMappings
+     * @param useAppRoleMappings use app role mapping or not for idp.
      */
     public void setUseAppRoleMappings(boolean useAppRoleMappings) {
 
