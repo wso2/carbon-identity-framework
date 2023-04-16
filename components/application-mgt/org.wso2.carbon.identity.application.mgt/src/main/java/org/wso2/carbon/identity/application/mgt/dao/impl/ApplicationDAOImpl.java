@@ -1478,17 +1478,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Updates the application role mapping configuration.
+     * Update the application role mapping configuration.
      *
-     * @param serviceProvider ServiceProvider to be updated.
+     * @param serviceProvider               ServiceProvider to be updated.
      * @param applicationRoleMappingConfigs Application role mapping configurations.
-     * @param connection Connection to the database.
+     * @param connection                    Connection to the database.
      * @throws SQLException SQLException when updating application role mapping configuration.
      */
     private void updateAppRoleMappingConfiguration(ServiceProvider serviceProvider,
                                                    AppRoleMappingConfig[] applicationRoleMappingConfigs,
-                                                   Connection connection)
-            throws SQLException {
+                                                   Connection connection) throws SQLException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         int applicationId = serviceProvider.getApplicationID();
@@ -1518,13 +1517,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Deletes the application role mapping configuration.
+     * Delete the application role mapping configuration.
      *
      * @param applicationId Application ID of the service provider.
-     * @param connection Connection to the database.
+     * @param connection    Connection to the database.
      * @throws SQLException SQLException when deleting application role mapping configuration.
      */
-    private void deleteAppRoleMappingConfiguration (int applicationId, Connection connection)
+    private void deleteAppRoleMappingConfiguration(int applicationId, Connection connection)
             throws SQLException {
 
         try (PreparedStatement deleteAppRoleMappingPrepStmt = connection
@@ -2869,10 +2868,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Reads and sets AppRoleMappingConfigurations from the database.
+     * Read and set AppRoleMappingConfigurations from the database.
      *
      * @param applicationId Application ID of the application.
-     * @param connection Database connection.
+     * @param connection    Database connection.
      * @return AppRoleMappingConfig[] Array of AppRoleMappingConfigurations.
      * @throws SQLException SQLException if an error occurs while reading from the database.
      */
@@ -4468,11 +4467,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Retrieves the IDP ID for the given IDP name.
+     * Retrieve the IDP ID for the given IDP name.
      *
-     * @param conn Database connection.
+     * @param conn     Database connection.
      * @param tenantId Tenant Id of the application.
-     * @param idpName Identity Provider Name.
+     * @param idpName  Identity Provider Name.
      * @return Identity Provider ID.
      * @throws SQLException SQL Exception if error occurred while retrieving IDP ID.
      */
@@ -4496,9 +4495,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Retrieves Identity Provider Name by IDP ID.
+     * Retrieve Identity Provider Name by IDP ID.
      *
-     * @param conn Database connection.
+     * @param conn  Database connection.
      * @param idpId Identity Provider ID of thr IDP.
      * @return Identity Provider Name.
      * @throws SQLException SQL Exception if any error occurs while retrieving the IDP Name.
@@ -4519,7 +4518,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Retrieves the list of federated IDPs in the attribute step of the service provider.
+     * Retrieve the list of federated IDPs in the attribute step of the service provider.
      *
      * @param localAndOutboundAuthenticationConfig Local and Outbound Authentication Configuration.
      * @return List of Federated IDPs in the attribute step.
@@ -4542,8 +4541,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             authStepFederatedIdentityProviders = attributeAuthStep.getFederatedIdentityProviders();
         }
         if (authStepFederatedIdentityProviders != null) {
-            return Arrays.stream(authStepFederatedIdentityProviders).
-                    map(IdentityProvider::getIdentityProviderName).collect(Collectors.toList());
+            return Arrays.stream(authStepFederatedIdentityProviders)
+                    .map(IdentityProvider::getIdentityProviderName).collect(Collectors.toList());
         }
         return new ArrayList<>();
     }

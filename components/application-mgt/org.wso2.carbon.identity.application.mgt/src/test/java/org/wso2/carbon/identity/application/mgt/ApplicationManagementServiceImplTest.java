@@ -83,7 +83,6 @@ import java.util.List;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
