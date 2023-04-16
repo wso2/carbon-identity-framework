@@ -1116,7 +1116,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param remoteClaims     Remote claims of the current step authenticated user.
      * @throws FrameworkException Exception on handling application roles for federated user.
      */
-    private void handleApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
+    protected void handleApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
                                                         ClaimMapping[] idPClaimMappings,
                                                         Map<String, String> remoteClaims)
             throws FrameworkException {
@@ -1161,7 +1161,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param allLocalClaims All local claims of the current authenticated user.
      * @throws FrameworkException Exception on handling application roles for local user.
      */
-    private void handleApplicationRolesForLocalUser(StepConfig stepConfig, AuthenticationContext context,
+    protected void handleApplicationRolesForLocalUser(StepConfig stepConfig, AuthenticationContext context,
                                                     Map<String, String> allLocalClaims)
             throws FrameworkException {
 
