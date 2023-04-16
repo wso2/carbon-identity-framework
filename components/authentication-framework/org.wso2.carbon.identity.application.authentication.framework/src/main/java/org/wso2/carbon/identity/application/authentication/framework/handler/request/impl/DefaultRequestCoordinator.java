@@ -207,6 +207,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
                 }
                 context = initializeFlow(request, responseWrapper);
+                context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
+
+                // we'll use the cloned context to re-initiate the login flow when session
+                // nonce cookie validation failed.
+                if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
+                    context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+                }
+
                 context.initializeAnalyticsData();
             } else {
                 context = FrameworkUtils.getContextData(request);
@@ -561,8 +569,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response)
             throws FrameworkException {
 
-        AuthenticationRequestCacheEntry authRequest;
-
         if (log.isDebugEnabled()) {
             log.debug("Initializing the flow");
         }
@@ -586,7 +592,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
         String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
-        authRequest = getAuthenticationRequest(request, callerSessionDataKey);
 
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
@@ -598,7 +603,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setUserTenantDomainHint(userDomain);
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
-        context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
@@ -676,11 +680,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         associateTransientRequestData(request, response, context);
         findPreviousAuthenticatedSession(request, context);
         buildOutboundQueryString(request, context);
-
-        // we'll use the cloned context to re-initiate the login flow when session nonce cookie validation failed.
-        if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
-            context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
-        }
 
         return context;
     }
