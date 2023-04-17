@@ -18,9 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
+import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
 
@@ -45,21 +44,16 @@ public class CommonAuthenticationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doPost(request, response);
+        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
+        commonAuthenticationHandler.doGet(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        try {
-            if (FrameworkUtils.getMaxInactiveInterval() == 0) {
-                FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
-            }
-            FrameworkUtils.getRequestCoordinator().handle(request, response);
-        } catch (CookieValidationFailedException e) {
-            doPost(request, response);
-        }
+        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
+        commonAuthenticationHandler.doGet(request, response);
     }
 
     @Override

@@ -207,7 +207,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
                 }
                 context = initializeFlow(request, responseWrapper);
-                context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
+
+                //set the authentication request before the context is cloned.
+                if (authRequest != null) {
+                    context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
+                }
 
                 // we'll use the cloned context to re-initiate the login flow when session
                 // nonce cookie validation failed.
@@ -216,6 +220,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
                 context.initializeAnalyticsData();
+
             } else {
                 context = FrameworkUtils.getContextData(request);
                 if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
@@ -377,7 +382,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                log.warn("Session nonce cookie validation has failed. Hence, restarting the login flow.");
                 request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
                 throw new CookieValidationFailedException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
                         "matching " +
