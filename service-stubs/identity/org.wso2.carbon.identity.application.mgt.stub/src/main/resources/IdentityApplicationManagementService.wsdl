@@ -419,8 +419,12 @@
                     <xs:element minOccurs="0" name="inboundAuthType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundConfigType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundConfiguration" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="inboundConfigurationProtocol" nillable="true" type="ax2169:InboundConfigurationProtocol"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2169:Property"/>
                 </xs:sequence>
+            </xs:complexType>
+            <xs:complexType abstract="true" name="InboundConfigurationProtocol">
+                <xs:sequence/>
             </xs:complexType>
             <xs:complexType name="Property">
                 <xs:sequence>
