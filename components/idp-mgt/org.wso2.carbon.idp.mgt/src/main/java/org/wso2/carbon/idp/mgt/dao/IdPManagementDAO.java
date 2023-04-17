@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.idp.mgt.dao;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,15 +68,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -4226,20 +4217,25 @@ public class IdPManagementDAO {
 
     /**
      * Get configured applications for a local authenticator.
-     * @param authenticatorId   ID of local authenticator.
-     * @param tenantId          Tenant ID.
-     * @return  Connected applications.
-     * @throws IdentityProviderManagementException  If an error occurred when retrieving connected applications.
+     *
+     * @param authenticatorId ID of local authenticator.
+     * @param tenantId        Tenant ID.
+     * @param limit
+     * @param offset
+     * @return Connected applications.
+     * @throws IdentityProviderManagementException If an error occurred when retrieving connected applications.
      */
-    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                    Integer limit, Integer offset)
             throws IdentityProviderManagementException {
 
         ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
         List<String> connectedApps = new ArrayList<>();
-        String authenticatorName = new String(Base64.decode(authenticatorId), StandardCharsets.UTF_8);
+        String authenticatorName = new String(Base64.getUrlDecoder().decode(authenticatorId), StandardCharsets.UTF_8);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = createConnectedAppsOfLocalAuthenticatorSqlStatement(connection,
-                    authenticatorName, tenantId, 10, 0)) {
+                    authenticatorName, tenantId, limit, offset)) {
+
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     while (resultSet.next()) {
                         connectedApps.add(resultSet.getString("UUID"));
@@ -4265,6 +4261,7 @@ public class IdPManagementDAO {
                     .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, authenticatorId);
         }
         connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
         return connectedAppsResult;
     }
 

@@ -59,10 +59,13 @@ public interface IdentityProviderDAO {
      *
      * @param authenticatorId
      * @param tenantId
+     * @param limit
+     * @param offset
      * @return
      * @throws IdentityApplicationManagementException
      */
-    ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+    ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId, Integer limit,
+                                                             Integer offset)
             throws IdentityApplicationManagementException;
 
     /**

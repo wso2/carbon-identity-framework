@@ -178,13 +178,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Get connected applications for a local authenticator.
      *
-     * @param authenticatorId   Authenticator ID.
-     * @param tenantDomain      Tenant domain.
+     * @param authenticatorId Authenticator ID.
+     * @param tenantDomain    Tenant domain.
+     * @param limit
+     * @param offset
      * @return Connected Apps.
      * @throws IdentityApplicationManagementException If an error occurred when retrieving connected applications.
      */
     public abstract ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId,
-                                                                              String tenantDomain)
+                                                                              String tenantDomain, Integer limit,
+                                                                              Integer offset)
             throws IdentityApplicationManagementException;
 
     /**

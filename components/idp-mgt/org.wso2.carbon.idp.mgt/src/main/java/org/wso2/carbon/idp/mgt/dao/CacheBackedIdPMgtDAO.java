@@ -891,10 +891,11 @@ public class CacheBackedIdPMgtDAO {
         return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
     }
 
-    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId)
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                    Integer limit, Integer offset)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId);
+        return idPMgtDAO.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
     }
 
     /**
