@@ -213,7 +213,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
-                // we'll use the cloned context to re-initiate the login flow when session
+                // We'll use the cloned context to re-initiate the login flow when the session
                 // nonce cookie validation failed.
                 if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
                     context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
