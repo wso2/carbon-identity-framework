@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -81,11 +83,20 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         if (isSessionDataStorageOptimizationEnabled) {
             try {
                 entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
-            } catch (SessionDataStorageOptimizationException e) {
+            } catch (SessionDataStorageOptimizationClientException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Error occurred while optimizing the Session context with " +
-                            "context id: %s", entry.getContext(), e));
+                    log.debug(String.format("Client error occurred while optimizing the Session " +
+                            "context with context id: %s", entry.getContext()), e);
                 }
+                return;
+            } catch (SessionDataStorageOptimizationServerException e) {
+                log.error("Server error occurred while optimizing the Session context with " +
+                        "context id: " + entry.getContext(), e);
+                return;
+            } catch (SessionDataStorageOptimizationException e) {
+                log.debug("Error occurred while optimizing the Session context with " +
+                        "context id: " + entry.getContext(), e);
+                return;
             }
         }
         if (authUser != null && authUser instanceof AuthenticatedUser) {
@@ -154,11 +165,19 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             if (cacheEntry.getOptimizedSessionContext() != null) {
                 try {
                     cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
-                } catch (SessionDataStorageOptimizationException e) {
+                } catch (SessionDataStorageOptimizationClientException e) {
                     if (log.isDebugEnabled()) {
-                        log.debug(String.format("Error occurred while loading the session context with " +
+                        log.debug(String.format("Client error occurred while loading the session context with " +
                                 "context id: %s", cacheEntry.getContextIdentifier()));
                     }
+                    return null;
+                } catch (SessionDataStorageOptimizationServerException e) {
+                    log.error("Server error occurred while loading the session context with context id: " +
+                            cacheEntry.getContextIdentifier(), e);
+                    return null;
+                } catch (SessionDataStorageOptimizationException e) {
+                    log.debug("Error occurred while loading the session context with context id: " +
+                            cacheEntry.getContextIdentifier(), e);
                     return null;
                 }
             }

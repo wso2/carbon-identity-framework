@@ -22,7 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -118,7 +120,7 @@ public class OptimizedSequenceConfig implements Serializable {
             SessionDataStorageOptimizationException {
 
         if (StringUtils.isEmpty(resourceId) || StringUtils.isEmpty(tenantDomain)) {
-            throw new SessionDataStorageOptimizationException(
+            throw new SessionDataStorageOptimizationClientException(
                     String.format("Null parameters passed while getting Service Provider by the resource ID: %s " +
                             "tenant domain: %s", resourceId, tenantDomain));
         }
@@ -129,12 +131,12 @@ public class OptimizedSequenceConfig implements Serializable {
             serviceProvider = applicationManager.getApplicationByResourceId(
                     this.applicationResourceId, tenantDomain);
             if (serviceProvider == null) {
-                throw new SessionDataStorageOptimizationException(
+                throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Service Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityApplicationManagementException e) {
-            throw new SessionDataStorageOptimizationException(
+            throw new SessionDataStorageOptimizationServerException(
                     String.format("Error occurred while retrieving the service provider by resource id: %s " +
                             "tenant domain: %s", this.applicationResourceId, tenantDomain), e);
         }

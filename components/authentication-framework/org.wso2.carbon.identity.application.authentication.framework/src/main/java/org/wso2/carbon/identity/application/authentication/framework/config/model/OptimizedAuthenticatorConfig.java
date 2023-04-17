@@ -22,7 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -45,7 +47,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private final AuthenticatorStateInfo authenticatorStateInfo;
     private final Map<String, String> parameterMap;
     private final List<String> idPResourceIds;
-    private String tenantDomain;
+    private final String tenantDomain;
 
     private static final Log log = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
 
@@ -93,7 +95,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
             SessionDataStorageOptimizationException {
 
         if (StringUtils.isEmpty(resourceId) || StringUtils.isEmpty(tenantDomain)) {
-            throw new SessionDataStorageOptimizationException(
+            throw new SessionDataStorageOptimizationClientException(
                     String.format("Null parameters passed while getting IDPs by the resource ID: %s " +
                     "tenant domain: %s", resourceId, tenantDomain));
         }
@@ -103,12 +105,12 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
             if (idp == null) {
-                throw new SessionDataStorageOptimizationException(
+                throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new SessionDataStorageOptimizationException(
+            throw new SessionDataStorageOptimizationServerException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);
         }

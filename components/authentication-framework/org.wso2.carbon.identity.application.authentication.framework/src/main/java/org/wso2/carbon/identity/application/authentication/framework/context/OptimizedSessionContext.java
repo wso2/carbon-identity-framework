@@ -25,7 +25,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedSequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -133,8 +135,9 @@ public class OptimizedSessionContext implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the session context has started.");
         }
-        if (this.tenantDomain == null) {
-            throw new SessionDataStorageOptimizationException("Error occurred while loading the session context");
+        if (StringUtils.isEmpty(this.tenantDomain)) {
+            throw new SessionDataStorageOptimizationClientException("Tenant domain is null. " +
+                    " Error occurred while loading the session context.");
         }
         SessionContext sessionContext = new SessionContext();
         Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
@@ -181,12 +184,13 @@ public class OptimizedSessionContext implements Serializable {
         try {
             idp = manager.getIdPByName(idPName, tenantDomain);
             if (idp == null) {
-                throw new SessionDataStorageOptimizationException(String.format(
+                throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
             }
         } catch (IdentityProviderManagementException e) {
-            throw new SessionDataStorageOptimizationException(String.format(
-                    "Failed to get the Identity Provider by name: %s tenant domain: %s", idPName, tenantDomain), e);
+            throw new SessionDataStorageOptimizationServerException(String.format(
+                    "IdentityProviderManagementException while retrieving the Identity Provider by name: %s " +
+                            "tenant domain: %s", idPName, tenantDomain), e);
         }
         return idp;
     }
