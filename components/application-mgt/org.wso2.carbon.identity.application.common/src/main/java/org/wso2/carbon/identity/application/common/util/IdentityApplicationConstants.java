@@ -605,7 +605,8 @@ public class IdentityApplicationConstants {
         APPLICATION_ALREADY_EXISTS("60007"),
         OPERATION_FORBIDDEN("60008"),
         INBOUND_KEY_ALREADY_EXISTS("60009"),
-        INVALID_TENANT_DOMAIN("60010");
+        INVALID_TENANT_DOMAIN("60010"),
+        AUTHENTICATOR_NOT_FOUND("60011");
 
         private final String code;
         private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP-";

@@ -2593,10 +2593,13 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
-    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId)
+    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                     Integer limit, Integer offset)
             throws IdentityProviderManagementException {
 
-        return dao.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        return dao.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
     }
 
     private void validateResourceId(String resourceId, String tenantDomain) throws IdentityProviderManagementException {

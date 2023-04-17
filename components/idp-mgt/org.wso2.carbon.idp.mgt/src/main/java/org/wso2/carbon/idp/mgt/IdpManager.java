@@ -507,7 +507,8 @@ public interface IdpManager {
         return null;
     }
 
-    default ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId)
+    default ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                      Integer limit, Integer offset)
             throws IdentityProviderManagementException {
 
         return null;
