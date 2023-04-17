@@ -208,7 +208,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
                 context = initializeFlow(request, responseWrapper);
 
-                //set the authentication request before the context is cloned.
+                // Set the authentication request before the context is cloned.
                 if (authRequest != null) {
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
