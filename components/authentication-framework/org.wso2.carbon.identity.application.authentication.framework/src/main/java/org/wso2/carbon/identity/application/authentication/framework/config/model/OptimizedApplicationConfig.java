@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -253,13 +255,13 @@ public class OptimizedApplicationConfig implements Serializable {
                 IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
                         false);
                 if (idp == null) {
-                    throw new SessionDataStorageOptimizationException(
+                    throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",
                                     federatedIdPResourceIds.get(i), tenantDomain));
                 }
                 idPs[i] = idp;
             } catch (IdentityProviderManagementException e) {
-                throw new SessionDataStorageOptimizationException(
+                throw new SessionDataStorageOptimizationServerException(
                         String.format("Failed to get the IdP by the name: %s Tenant Domain: %s",
                                 federatedIdPResourceIds.get(i), tenantDomain), e);
             }

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 
 import java.io.Serializable;
 import java.util.ArrayList;

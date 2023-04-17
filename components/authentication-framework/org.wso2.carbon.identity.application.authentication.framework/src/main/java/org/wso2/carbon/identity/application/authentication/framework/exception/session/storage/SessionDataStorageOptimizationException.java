@@ -16,7 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.exception;
+package org.wso2.carbon.identity.application.authentication.framework.exception.session.storage;
+
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 /**
  * This exception is used to handle the exceptions which occurred during optimization process of authentication context.

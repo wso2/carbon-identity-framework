@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.OptimizedSessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 
 /**
  * This class is used to optimize the Session Context before storing it and again loaded it with objects.
