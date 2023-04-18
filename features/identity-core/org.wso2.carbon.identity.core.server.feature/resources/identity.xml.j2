@@ -3285,4 +3285,11 @@
         {% endfor %}
     </OrganizationLevelEmailBrandingFallbacks>
 
+    <!-- Claim Management Configuration. -->
+    {% if claim_mgt.bind_to_primary_userstore is defined %}
+    <ClaimManagement>
+        <BindToPrimaryUserStore>{{claim_mgt.bind_to_primary_userstore}}</BindToPrimaryUserStore>
+    </ClaimManagement>
+    {% endif %}
+
 </Server>
