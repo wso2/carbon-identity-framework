@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.SubProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -3115,7 +3116,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Set the confidential status of federated authenticator properties using metadata.
+     * Set the confidential status of federated authenticator and provisioning connector properties using metadata.
      * @param identityProvider Identity Provider.
      */
     private void markConfidentialPropertiesUsingMetadata(IdentityProvider identityProvider)
@@ -3129,6 +3130,23 @@ public class IdentityProviderManager implements IdpManager {
                         prop.setConfidential(true);
                     }
                 });
+        });
+
+        Map<String, List<String>> metaProvisioningConfigMap = getProvisioningConfidentialPropsMap();
+        Arrays.asList(identityProvider.getProvisioningConnectorConfigs()).forEach(provisioningConfig -> {
+            List<String> secretProperties = metaProvisioningConfigMap.get(provisioningConfig.getName());
+            Arrays.asList(provisioningConfig.getProvisioningProperties()).forEach(prop -> {
+                if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                    prop.setConfidential(true);
+                }
+                if (prop.getSubProperties().length > 0) {
+                    Arrays.asList(prop.getSubProperties()).forEach(subProp -> {
+                        if (secretProperties != null && secretProperties.contains(subProp.getName())) {
+                            subProp.setConfidential(true);
+                        }
+                    });
+                }
+            });
         });
     }
 
@@ -3151,5 +3169,35 @@ public class IdentityProviderManager implements IdpManager {
             metaFedAuthConfigMap.put(metaFedAuthConfig.getName(), secretProperties);
         }
         return metaFedAuthConfigMap;
+    }
+
+    /**
+     * Create map of provisioning connector name to list of confidential properties.
+     *
+     * @return HashMap mapping provisioning connector name to a list of confidential property names.
+     */
+    private Map<String, List<String>> getProvisioningConfidentialPropsMap() throws IdentityProviderManagementException {
+
+        Map<String, List<String>> metaProvisioningConfigMap = new HashMap<>();
+        ProvisioningConnectorConfig[] metaProvisioningConfigs = getAllProvisioningConnectors();
+        if (metaProvisioningConfigs != null) {
+            for (ProvisioningConnectorConfig metaProvisioningConfig : metaProvisioningConfigs) {
+                List<String> secretProperties = new ArrayList<>();
+                for (Property property : metaProvisioningConfig.getProvisioningProperties()) {
+                    if (property.isConfidential()) {
+                        secretProperties.add(property.getName());
+                    }
+                    if (property.getSubProperties().length >0) {
+                        for (SubProperty subProperty : property.getSubProperties()) {
+                            if (subProperty.isConfidential()) {
+                                secretProperties.add(subProperty.getName());
+                            }
+                        }
+                    }
+                }
+                metaProvisioningConfigMap.put(metaProvisioningConfig.getName(), secretProperties);
+            }
+        }
+        return metaProvisioningConfigMap;
     }
 }
