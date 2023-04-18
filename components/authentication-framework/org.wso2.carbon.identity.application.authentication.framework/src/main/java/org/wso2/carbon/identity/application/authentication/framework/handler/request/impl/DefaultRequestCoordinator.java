@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -287,7 +288,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         context.setProperty(BACK_TO_FIRST_STEP, true);
                         Map<String, String> runtimeParams =
                                 context.getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
-                        if (!runtimeParams.isEmpty()) {
+                        if (MapUtils.isNotEmpty(runtimeParams)) {
                             runtimeParams.put(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME, null);
                         }
                         FrameworkUtils.resetAuthenticationContext(context);
