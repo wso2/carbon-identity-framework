@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~ Copyright (c) 2019, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -57,6 +57,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
             </TempDataCleanup>
+            <SessionAndTempDataSeparation>
+                <Enable>{{session_data.session_data_persist.session_and_temp_data_separation_enabled.enable}}</Enable>
+            </SessionAndTempDataSeparation>
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
@@ -459,6 +462,15 @@
         </SupportedGrantTypes>
 
         <!--
+            Defines the grant types which are supported for a client to be authorized as a public client.
+        -->
+        <PublicClientSupportedGrantTypes>
+        {% for grantTypeName in oauth.public_client_support.grant_type_names %}
+            <GrantTypeName>{{grantTypeName}}</GrantTypeName>
+        {% endfor %}
+        </PublicClientSupportedGrantTypes>
+
+        <!--
             Defines the grant types that will filter user claims based on user consent in their responses such as
             id_token or user info response.
 
@@ -611,6 +623,12 @@
             <IATValidityPeriod>{{jwt.iat.validity_period}}</IATValidityPeriod>
             {% else %}
             <IATValidityPeriod>{{oauth.grant_type.jwt.iat_validity_period}}</IATValidityPeriod>
+            {% endif %}
+            {% if jwt.enable_jwt_cache is defined %}
+            <!--This config will be DEPRECATED. Use `oauth.grant_type.jwt.enable_jwt_cache`-->
+            <EnableJWTCache>{{jwt.enable_jwt_cache}}</EnableJWTCache>
+            {% else %}
+            <EnableJWTCache>{{oauth.grant_type.jwt.enable_jwt_cache}}</EnableJWTCache>
             {% endif %}
         </JWTGrant>
 
@@ -898,7 +916,27 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <JWT>
+            <RenewTokenWithoutRevokingExisting>
+                <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
+                {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
+                <AllowedGrantTypes>
+                    {% for allowed_grant_type in oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types %}
+                    <AllowedGrantType>{{allowed_grant_type}}</AllowedGrantType>
+                    {% endfor %}
+                </AllowedGrantTypes>
+                {% endif %}
+            </RenewTokenWithoutRevokingExisting>
+        </JWT>
+        {% endif %}
     </OAuth>
+
+    <RestApiAuthentication>
+            <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+            <AddRealmUserToError>{{rest_api_authentication.add_realm_user_to_error}}</AddRealmUserToError>
+    </RestApiAuthentication>
+
     <!--
     Configuration to select JS engine for Adaptive authentication feature.
     Currently we are supporting OpenJDK Nashorn engine("openjdkNashorn") and JDK Nashorn Engine(Default).
@@ -994,6 +1032,7 @@
         <RetryURL>{{passive_sts.endpoints.retry}}</RetryURL>
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
+        <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
     </PassiveSTS>
 
     <EntitlementSettings>
@@ -1236,6 +1275,9 @@
         </Notification>
         <AskPassword>
             <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
+            {% if identity_mgt.user_onboarding.ask_password_account_activation is defined %}
+            <AccountActivation>{{identity_mgt.user_onboarding.ask_password_account_activation}}</AccountActivation>
+            {% endif %}
             <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
             <DisableRandomValueForCredentials>{{identity_mgt.user_onboarding.disable_random_value_for_credentials}}</DisableRandomValueForCredentials>
         </AskPassword>
@@ -1285,6 +1327,7 @@
             </SMSOTP>
         </VerificationCode>
         <CallbackRegex>{{identity_mgt.lite_user_registration.callback_url}}</CallbackRegex>
+        <ResendVerificationOnUserExistence>{{identity_mgt.lite_user_registration.resend_verification_on_user_existence}}</ResendVerificationOnUserExistence>
     </LiteRegistration>
 
     <LoginIdentifiers>
@@ -1402,6 +1445,20 @@
         </Audit>
     </Authentication>
 
+    <!--
+        Enabling this configuration will do the following modifications to the logs.
+            1. Initiator of the audit logs will be changed to userId if userId is resolvable.
+            2. Initiator of the audit logs will be a masked username in the scenarios where userId is not resolvable.
+            3. PII, user claims and other sensitive information will be masked from logs.
+     -->
+    <MaskingLogs>
+    	    {% if masking_logs.enabled is defined %}
+            <Enabled>{{masking_logs.enabled}}</Enabled>
+            {% else %}
+            <Enabled>true</Enabled>
+            {% endif %}
+    </MaskingLogs>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
@@ -1448,6 +1505,11 @@
 
 
     <EventListeners>
+        <EventListener id="input_validation"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
+                       orderId="{{event.default_listener.validation.priority}}"
+                       enable="{{event.default_listener.validation.enable}}"/>
         <EventListener id="workflow"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
@@ -1491,6 +1553,9 @@
                        orderId="{{event.default_listener.governance_identity_store.priority}}"
                        enable="{{event.default_listener.governance_identity_store.enable}}">
             <Property name="Data.Store">{{event.default_listener.governance_identity_store.data_store}}</Property>
+            <!-- By enabling this, it will use the userstore attribute values for identity claims if the identity data
+            store value is empty for corresponding claim. -->
+            <Property name="EnableHybridDataStore">{{event.default_listener.governance_identity_store.enable_hybrid_data_store}}</Property>
         </EventListener>
         <EventListener id="application_authentication"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
@@ -1552,6 +1617,11 @@
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
                        orderId="{{event.default_listener.subject_identifier_handler.priority}}"
                        enable="{{event.default_listener.subject_identifier_handler.enable}}"/>
+        <EventListener id="failed_lockout_count_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.handler.event.account.lock.handlers.PostAuthnFailedLockoutClaimHandler"
+                       orderId="{{event.default_listener.failed_lockout_count_handler.priority}}"
+                       enable="{{event.default_listener.failed_lockout_count_handler.enable}}"/>
 
         <!-- Special UserOperationEventListeners to preserve the backward compatibility with the new unique user ID
                 related APIs  -->
@@ -1839,6 +1909,9 @@
 
     <EnableSessionNonceCookie>{{session.nonce.cookie.enabled}}</EnableSessionNonceCookie>
 
+    <!-- Config to enable performing validations for expired authentication context cache entry. -->
+    <EnableAuthenticationContextExpiryValidation>{{session.authentication.context.expiry.validation}}</EnableAuthenticationContextExpiryValidation>
+
     {% if identity.cookies is defined %}
     <Cookies>
     {% for cookie in identity.cookies %}
@@ -2005,6 +2078,15 @@
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
             <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
@@ -2413,6 +2495,10 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="false" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>none</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -2657,6 +2743,7 @@
         </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
@@ -2767,6 +2854,9 @@
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
@@ -2776,12 +2866,42 @@
                     <Path>/api/server/v1/configs/authenticators</Path>
                     <Path>/api/server/v1/userstores</Path>
                     <Path>/api/server/v1/claim-dialects</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/server/v1/email/template-types</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/identity/auth/v1.1</Path>
+                    <Path>/api/server/v1/authenticators</Path>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/([^/]+)/sessions</Path>
+                    <Path>/api/server/v1/admin-advisory-management</Path>
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/console/</BasePath>
             </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/oidc/</BasePath>
+                <SubPaths>
+                    <Path>/oidc/logout</Path>
+                </SubPaths>
+            </Context>
         </WebApp>
+        <Servlet>
+        {% for servlet in organization_context.rewrite.servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+        {% for servlet in organization_context.rewrite.custom_servlets %}
+            <Context>{{servlet}}</Context>
+        {% endfor %}
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/longwaitstatus(.*)</Context>
+        </Servlet>
     </OrgContextsToRewrite>
 
     <OrgRoutingOnlySupportedAPIPaths>
@@ -2807,6 +2927,8 @@
                 <Username>{{http_proxy.username}}</Username>
                 <Password>{{http_proxy.password}}</Password>
             </HTTPProxy>
+            <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
+            <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -2832,6 +2954,15 @@
         <HTTPReadTimeout>{{authentication.adaptive.http_connections.read_timeout}}</HTTPReadTimeout>
         <HTTPConnectionRequestTimeout>{{authentication.adaptive.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
         <!--End of default configs for timeouts-->
+
+        <!--Timeouts for callChore token call and adaptive endpoint-->
+        <!--Default timeout in milliseconds-->
+        <CallChoreo>
+          <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
+          <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
+          <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+        </CallChoreo>
+        <!--End of default configs for callChore timeouts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->
@@ -2868,6 +2999,14 @@
             {% endfor %}
         </ChoreoDomains>
         {% endif %}
+
+        <!--Default configs for Choreo token endpoint-->
+        <ChoreoTokenEndpoint>{{authentication.adaptive.choreo_token_endpoint}}</ChoreoTokenEndpoint>
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>{{authentication.adaptive.authenticator_name_in_auth_config.enable}}</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -3152,5 +3291,18 @@
     {% if show_pending_user_information is defined %}
     <ShowPendingUserInformation>{{show_pending_user_information.enable}}</ShowPendingUserInformation>
     {% endif %}
+
+    {% if email_templates.branding.organization is defined %}
+    <!-- Configuration to enable the organization level branding of email templates. -->
+    <EnableOrganizationLevelEmailBranding>{{email_templates.branding.organization.enable}}</EnableOrganizationLevelEmailBranding>
+    {% endif %}
+
+    <!-- Configuration to set up fallback configs for organization level branding configs   -->
+    <!-- to be used in the case where branding configs are not defined by the tenant users. -->
+    <OrganizationLevelEmailBrandingFallbacks>
+        {% for key,value in email_templates.branding.fallbacks.items() %}
+            <OrganizationLevelEmailBrandingFallback key="{{key}}">{{value}}</OrganizationLevelEmailBrandingFallback>
+        {% endfor %}
+    </OrganizationLevelEmailBrandingFallbacks>
 
 </Server>
