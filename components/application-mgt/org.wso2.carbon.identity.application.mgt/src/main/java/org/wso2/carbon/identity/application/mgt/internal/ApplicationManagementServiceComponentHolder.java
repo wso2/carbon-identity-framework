@@ -61,7 +61,7 @@ public class ApplicationManagementServiceComponentHolder {
 
     private boolean isOrganizationManagementEnable = false;
 
-    private ConfigurationManager configurationManager = null;
+    private ConfigurationManager configurationManager;
 
     private ApplicationManagementServiceComponentHolder() {
 
