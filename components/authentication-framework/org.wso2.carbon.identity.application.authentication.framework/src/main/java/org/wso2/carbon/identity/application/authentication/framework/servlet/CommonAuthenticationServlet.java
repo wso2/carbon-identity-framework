@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CommonAuthenticationServlet extends HttpServlet {
 
+    private final CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
     private static final long serialVersionUID = -7182121722709941646L;
 
     @Override
@@ -44,7 +45,7 @@ public class CommonAuthenticationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
+
         commonAuthenticationHandler.doGet(request, response);
     }
 
@@ -52,7 +53,6 @@ public class CommonAuthenticationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
         commonAuthenticationHandler.doGet(request, response);
     }
 
