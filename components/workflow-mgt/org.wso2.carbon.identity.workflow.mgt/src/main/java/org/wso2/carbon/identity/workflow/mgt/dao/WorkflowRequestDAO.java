@@ -126,7 +126,14 @@ public class WorkflowRequestDAO {
         return null;
     }
 
-    public static String retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
+    /**
+     * Retrieve the External Workflow Identifier from Workflow ID.
+     *
+     * @param workflowId workflow ID retrieve from workflow request
+     * @return External Workflow Identifier
+     * @throws InternalWorkflowException
+     */
+    public String retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -138,10 +145,9 @@ public class WorkflowRequestDAO {
             prepStmt.setString(1, workflowId);
             rs = prepStmt.executeQuery();
             if (rs.next()) {
-                return rs.getString(SQLConstants.WORKFLOWID_COLUMN);
+                return rs.getString(SQLConstants.PARAM_VALUE_COLUMN);
             }
         } catch (SQLException e) {
-
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
 
         } finally {
@@ -150,7 +156,15 @@ public class WorkflowRequestDAO {
         return null;
 
     }
-    public static String retrieveTemplateId(String workflowID) throws InternalWorkflowException {
+
+    /**
+     * Retrieve the Template ID from Request ID.
+     *
+     * @param workflowID workflow ID retrieve from workflow request
+     * @return Return the Template id
+     * @throws InternalWorkflowException
+     */
+    public String retrieveTemplateId(String workflowID) throws InternalWorkflowException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
@@ -162,7 +176,7 @@ public class WorkflowRequestDAO {
             prepStmt.setString(1, workflowID);
             rs = prepStmt.executeQuery();
             if (rs.next()) {
-                return rs.getString(SQLConstants.TEMPLATEID_COLUMN);
+                return rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
             }
         } catch (SQLException e) {
 

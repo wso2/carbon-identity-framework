@@ -57,18 +57,14 @@ public class SQLConstants {
     public static final String REQUEST_ID_COLUMN = "REQUEST_ID";
     public static final String CREATED_BY_COLUMN = "CREATED_BY";
 
-    public static  final String WORKFLOWID_COLUMN = "PARAM_VALUE";
-    public static final String TEMPLATEID_COLUMN = "TEMPLATE_ID";
-
     public static final String ADD_WORKFLOW_REQUEST_QUERY = "INSERT INTO WF_REQUEST(UUID, CREATED_BY, OPERATION_TYPE," +
             " CREATED_AT, UPDATED_AT, REQUEST, STATUS, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     public static final String GET_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, CREATED_BY FROM WF_REQUEST" +
             " WHERE UUID = ?";
     public static final String GET_WORKFLOW_ID_QUERY = "SELECT PARAM_VALUE FROM WF_WORKFLOW_CONFIG_PARAM WHERE " +
-            "WORKFLOW_ID  = ?" +
-            " AND PARAM_NAME ='ExternalWorkflowIdentifier'";
-    public static final String GET_TEMPLATE_ID_QUERY="SELECT TEMPLATE_ID FROM WF_WORKFLOW WHERE ID=? ";
+            "WORKFLOW_ID  = ? AND PARAM_NAME = 'ExternalWorkflowIdentifier'";
+    public static final String GET_TEMPLATE_ID_QUERY = "SELECT TEMPLATE_ID FROM WF_WORKFLOW WHERE ID = ? ";
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
 

@@ -95,8 +95,20 @@ public interface WorkflowManagementService {
     void addWorkflow(Workflow workflowDTO,
                      List<Parameter> parameterList, int tenantId) throws WorkflowException;
 
+    /**
+     *Get Template ID from workflow Id
+     * @param workflowId workflow ID retrieve from workflow request
+     * @return Template ID
+     * @throws WorkflowException
+     */
     String getTemplateId(String workflowId) throws  WorkflowException;
 
+    /**
+     * Get external Workflow Identifier (Workflow Deploy ID)
+     * @param workflowId workflow ID retrieve from workflow request
+     * @return External Workflow Identifier
+     * @throws WorkflowException
+     */
     String getExternalWorkflowId(String workflowId) throws  WorkflowException;
 
     /**
