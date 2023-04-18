@@ -898,6 +898,20 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <JWT>
+            <RenewTokenWithoutRevokingExisting>
+                <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
+                {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
+                <AllowedGrantTypes>
+                    {% for allowed_grant_type in oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types %}
+                    <AllowedGrantType>{{allowed_grant_type}}</AllowedGrantType>
+                    {% endfor %}
+                </AllowedGrantTypes>
+                {% endif %}
+            </RenewTokenWithoutRevokingExisting>
+        </JWT>
+        {% endif %}
     </OAuth>
     <!--
     Configuration to select JS engine for Adaptive authentication feature.
