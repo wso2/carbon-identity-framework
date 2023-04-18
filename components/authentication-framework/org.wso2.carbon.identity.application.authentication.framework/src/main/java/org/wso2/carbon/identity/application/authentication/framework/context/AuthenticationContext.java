@@ -560,7 +560,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
                 return authenticatorParams;
             }
         }
-        return new HashMap<>();
+        return Collections.emptyMap();
     }
 
     /**
