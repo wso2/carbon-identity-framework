@@ -1,0 +1,10 @@
+{
+    "id": "github-idp",
+    "name": "GitHub",
+    "description": "Enable login for users with existing GitHub accounts.",
+    "image": "github",
+    "category": "DEFAULT",
+    "displayOrder": 3,
+    "tags": [ "Social-Login" ],
+    "type": "identity-provider"
+}

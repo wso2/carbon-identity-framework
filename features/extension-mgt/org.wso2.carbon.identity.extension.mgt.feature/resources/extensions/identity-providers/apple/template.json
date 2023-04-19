@@ -1,0 +1,212 @@
+{
+    "id": "apple-idp",
+    "name": "Apple",
+    "description": "Enable login for users with Apple IDs.",
+    "image": "apple",
+    "category": "DEFAULT",
+    "displayOrder": 4,
+    "services": [],
+    "tags": [ "Social-Login" ],
+    "idp": {
+        "name": "Apple",
+        "description": "",
+        "image": "",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "",
+        "certificate": {
+            "certificates": []
+        },
+        "alias": "https://localhost:9444/oauth2/token",
+        "claims": {
+            "userIdClaim": {
+                "uri": "email"
+            },
+            "roleClaim": {
+                "uri": "http://wso2.org/claims/role"
+            },
+            "mappings": [
+                {
+                    "idpClaim": "email",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9lbWFpbGFkZHJlc3M",
+                        "uri": "http://wso2.org/claims/emailaddress",
+                        "displayName": "Email"
+                    }
+                },
+                {
+                    "idpClaim": "firstName",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9naXZlbm5hbWU",
+                        "uri": "http://wso2.org/claims/givenname",
+                        "displayName": "First Name"
+                    }
+                },
+                {
+                    "idpClaim": "lastName",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9sYXN0bmFtZQ",
+                        "uri": "http://wso2.org/claims/lastname",
+                        "displayName": "Last Name"
+                    }
+                }
+            ],
+            "provisioningClaims": []
+        },
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        },
+        "provisioning": {
+            "jit": {
+                "isEnabled": true,
+                "scheme": "PROVISION_SILENTLY",
+                "userstore": "PRIMARY",
+                "attributeSyncMethod": "NONE"
+            }
+        },
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "QXBwbGVPSURDQXV0aGVudGljYXRvcg",
+            "authenticators": [
+                {
+                    "authenticatorId": "QXBwbGVPSURDQXV0aGVudGljYXRvcg",
+                    "isEnabled": true,
+                    "properties": [
+                        {
+                            "key": "ClientId",
+                            "displayName": "Services ID (Client ID)",
+                            "description": "Enter Apple IDP services ID value",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "TeamId",
+                            "displayName": "Team ID",
+                            "description": "Enter Apple developer team ID value",
+                            "type": "STRING",
+                            "displayOrder": 2,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "KeyId",
+                            "displayName": "Key ID",
+                            "description": "Enter key ID value of the private key",
+                            "type": "STRING",
+                            "displayOrder": 3,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "PrivateKey",
+                            "displayName": "Private Key",
+                            "description": "Enter Apple private key generated for the app",
+                            "type": "STRING",
+                            "displayOrder": 4,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": true,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "SecretValidityPeriod",
+                            "displayName": "Client Secret Validity Period",
+                            "description": "Enter the validity period of the generated client secret in seconds.",
+                            "type": "STRING",
+                            "displayOrder": 5,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "15777000",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "callbackUrl",
+                            "displayName": "Callback URL",
+                            "description": "Enter the callback URL used to obtain Apple credentials.",
+                            "type": "STRING",
+                            "displayOrder": 6,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "Scopes",
+                            "displayName": "Scopes",
+                            "description": "Enter a space separated list of scopes to request from the user.",
+                            "type": "STRING",
+                            "displayOrder": 7,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "AdditionalQueryParameters",
+                            "displayName": "Additional Query Parameters",
+                            "description": "Additional query parameters to be sent to Apple.",
+                            "type": "STRING",
+                            "displayOrder": 8,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "ClientSecret",
+                            "displayName": "Client Secret",
+                            "description": "Apple client secret generated for the app",
+                            "type": "STRING",
+                            "displayOrder": 9,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": true,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "RegenerateClientSecret",
+                            "displayName": "Regenerate Client Secret",
+                            "description": "Specifies if the client secret should be re-generated.",
+                            "type": "BOOLEAN",
+                            "displayOrder": 10,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "type": "SOCIAL",
+    "templateId": "apple-idp"
+}

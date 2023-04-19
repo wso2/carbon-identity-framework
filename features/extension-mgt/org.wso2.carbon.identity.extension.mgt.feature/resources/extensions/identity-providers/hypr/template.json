@@ -1,0 +1,87 @@
+{
+    "id": "hypr-idp",
+    "name": "HYPR",
+    "description": "Enable login for users with existing HYPR accounts.",
+    "image": "hypr",
+    "category": "DEFAULT",
+    "displayOrder": 4,
+    "services": [],
+    "tags": [ "Social-Login" ],
+    "idp": {
+        "name": "HYPR",
+        "description": "",
+        "image": "",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "",
+        "certificate": {
+            "certificates": []
+        },
+        "alias": "https://localhost:9444/oauth2/token",
+        "claims": {
+            "userIdClaim": {
+                "uri": "http://wso2.org/claims/username"
+            },
+            "roleClaim": {
+                "uri": "http://wso2.org/claims/role"
+            },
+            "provisioningClaims": []
+        },
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        },
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "SFlQUkF1dGhlbnRpY2F0b3I",
+            "authenticators": [
+                {
+                    "authenticatorId": "SFlQUkF1dGhlbnRpY2F0b3I",
+                    "isEnabled": true,
+                    "properties": [
+                        {
+                            "key": "appId",
+                            "displayName": "Relying Party App ID",
+                            "description": "Enter application ID of the application registered in HYPR",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "apiToken",
+                            "displayName": "API Token",
+                            "description": "Enter API token from HYPR",
+                            "type": "STRING",
+                            "displayOrder": 3,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": true,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "baseUrl",
+                            "displayName": "Base URL",
+                            "description": "Enter base URL",
+                            "type": "STRING",
+                            "displayOrder": 2,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "type": "SOCIAL",
+    "templateId": "hypr-idp"
+}

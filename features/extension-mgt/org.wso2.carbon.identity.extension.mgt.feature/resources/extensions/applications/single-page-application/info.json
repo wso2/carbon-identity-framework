@@ -1,0 +1,10 @@
+{
+    "id": "single-page-application",
+    "name": "Single-Page Application",
+    "description": "Web applications that perform user interface logic in a web browser.",
+    "image": "spa",
+    "displayOrder": 0,
+    "category": "DEFAULT",
+    "tags": [ "react", "angular", "javascript", "oidc" ],
+    "type": "applications"
+}

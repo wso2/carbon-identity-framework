@@ -1,0 +1,10 @@
+{
+    "id": "mobile-application",
+    "name": "Mobile Application",
+    "description": "Applications developed to target mobile devices.",
+    "image": "oidcMobile",
+    "displayOrder": 4,
+    "category": "DEFAULT",
+    "tags": [ "android", "ios", "oidc" ],
+    "type": "applications"
+    }

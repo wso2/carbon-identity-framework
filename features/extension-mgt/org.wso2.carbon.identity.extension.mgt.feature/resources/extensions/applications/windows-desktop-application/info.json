@@ -1,0 +1,10 @@
+{
+    "id": "windows-desktop-application",
+    "name": "Windows",
+    "description": "Applications developed to target windows desktops.",
+    "image": "windows",
+    "displayOrder": 5,
+    "category": "DEFAULT",
+    "tags": [ "dotNet", "oidc" ],
+    "type": "applications"
+}

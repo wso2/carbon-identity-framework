@@ -1,0 +1,10 @@
+{
+    "id": "google-idp",
+    "name": "Google",
+    "description": "Enable login for users with existing Google accounts.",
+    "image": "google",
+    "category": "DEFAULT",
+    "displayOrder": 1,
+    "tags": [ "Social-Login" ],
+    "type": "identity-provider"
+}

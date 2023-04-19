@@ -1,0 +1,10 @@
+{
+    "id": "custom-application",
+    "name": "Standard-Based Application",
+    "description": "Applications built using standard protocols.",
+    "image": "customApp",
+    "displayOrder": 4,
+    "category": "DEFAULT",
+    "tags": [ "oidc", "saml" ],
+    "type": "applications"
+}

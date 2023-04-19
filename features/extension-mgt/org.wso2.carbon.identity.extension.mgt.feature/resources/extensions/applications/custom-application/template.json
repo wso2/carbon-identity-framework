@@ -1,0 +1,19 @@
+{
+    "id": "custom-application",
+    "templateId": "custom-application",
+    "name": "Standard-Based Application",
+    "description": "Applications built using standard protocols.",
+    "image": "customApp",
+    "authenticationProtocol": "",
+    "category": "DEFAULT",
+    "displayOrder": -1,
+    "self": "",
+    "subTemplates": [],
+    "subTemplatesSectionTitle": "Protocol",
+    "templateGroup": "",
+    "types": [
+        "oidc",
+        "saml"
+    ],
+    "application": null
+}

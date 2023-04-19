@@ -1,0 +1,10 @@
+{
+    "id": "microsoft-idp",
+    "name": "Microsoft",
+    "description": "Enable login for users with existing Microsoft accounts.",
+    "image": "microsoft",
+    "category": "DEFAULT",
+    "displayOrder": 1,
+    "tags": [ "Social-Login" ],
+    "type": "identity-provider"
+}

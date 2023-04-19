@@ -1,0 +1,99 @@
+{
+    "category": "DEFAULT",
+    "description": "Configure a new enterprise identity provider with OpenID Connect",
+    "templateGroup": "enterprise-protocols",
+    "displayOrder": 5,
+    "id": "enterprise-oidc-idp",
+    "tags": [ "OIDC" ],
+    "idp": {
+        "certificate": {},
+        "claims": {
+            "provisioningClaims": [],
+            "roleClaim": {
+                "uri": ""
+            },
+            "userIdClaim": {
+                "uri": ""
+            }
+        },
+        "description": "",
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "T3BlbklEQ29ubmVjdEF1dGhlbnRpY2F0b3I",
+            "authenticators": [
+                {
+                    "authenticatorId": "T3BlbklEQ29ubmVjdEF1dGhlbnRpY2F0b3I",
+                    "isEnabled": true,
+                    "properties": [
+                        {
+                            "key": "ClientId",
+                            "displayName": "Client ID",
+                            "description": "Enter client identifier value",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "ClientSecret",
+                            "displayName": "Client Secret",
+                            "description": "Enter client secret value",
+                            "type": "STRING",
+                            "displayOrder": 2,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": true,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "AuthenticationEndpointUrl",
+                            "displayName": "Authorization Endpoint URL",
+                            "description": "Authorization Endpoint URL value",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "TokenEndpointUrl",
+                            "displayName": "Token Endpoint URL",
+                            "description": "Token Endpoint URL value",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        }
+                    ]
+                }
+            ]
+        },
+        "homeRealmIdentifier": "",
+        "image": "",
+        "isFederationHub": false,
+        "isPrimary": false,
+        "name": "OIDC Authentication Provider",
+        "provisioning": {},
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        }
+    },
+    "image": "enterprise",
+    "name": "OpenID Connect",
+    "services": [],
+    "disabled": false,
+    "templateId": "enterprise-oidc-idp"
+}

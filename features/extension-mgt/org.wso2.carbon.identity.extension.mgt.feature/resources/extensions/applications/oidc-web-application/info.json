@@ -1,0 +1,10 @@
+{
+    "id": "oidc-web-application",
+    "name": "OpenID Connect",
+    "description": "Regular web application that uses redirection within the browser.",
+    "image": "oidc",
+    "displayOrder": 1,
+    "category": "DEFAULT",
+    "tags": [ "oidc", "java", "dotNet" ],
+    "type": "web-application"
+}
