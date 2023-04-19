@@ -737,6 +737,7 @@ public class IdentityProvider implements Serializable {
      * @return
      */
     public PermissionsAndRoleConfig getPermissionAndRoleConfig() {
+
         return permissionAndRoleConfig;
     }
 
@@ -744,13 +745,14 @@ public class IdentityProvider implements Serializable {
      * @param permissionAndRoleConfig
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
+
         this.permissionAndRoleConfig = permissionAndRoleConfig;
     }
 
     /**
      * Get the IdP Groups of the identity provider.
      *
-     * @return the IdP Group Configuration
+     * @return the IdP Group Configuration.
      */
     public IdPGroup[] getIdPGroupConfig() {
 
@@ -760,7 +762,7 @@ public class IdentityProvider implements Serializable {
     /**
      * Set the IdP Groups of the identity provider.
      *
-     * @param idPGroupConfig the IdP Group Configuration
+     * @param idPGroupConfig the IdP Group Configuration.
      */
     public void setIdPGroupConfig(IdPGroup[] idPGroupConfig) {
 
@@ -771,6 +773,7 @@ public class IdentityProvider implements Serializable {
      * @return
      */
     public String getHomeRealmId() {
+
         return homeRealmId;
     }
 

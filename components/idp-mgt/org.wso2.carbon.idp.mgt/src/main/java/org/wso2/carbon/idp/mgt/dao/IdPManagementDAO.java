@@ -3498,10 +3498,10 @@ public class IdPManagementDAO {
     /**
      * Delete all the idp groups associated with the identity provider.
      *
-     * @param dbConnection Connection to the database
-     * @param idpId        ID of the identity provider
-     * @throws IdentityProviderManagementException Error when deleting the identity provider
-     * @throws SQLException                        SQL Error when deleting the identity provider
+     * @param dbConnection Connection to the database.
+     * @param idpId        ID of the identity provider.
+     * @throws IdentityProviderManagementException Error when deleting the identity provider.
+     * @throws SQLException                        SQL Error when deleting the identity provider.
      */
     private void deleteAllIdPGroups(Connection dbConnection, int idpId)
             throws IdentityProviderManagementException, SQLException {
@@ -4030,12 +4030,12 @@ public class IdPManagementDAO {
     /**
      * Update the idp group configuration.
      *
-     * @param conn Database connection.
-     * @param idPId IdP id of the Identity Provider.
-     * @param tenantId Tenant id of the Identity Provider.
+     * @param conn              Database connection.
+     * @param idPId             IdP id of the Identity Provider.
+     * @param tenantId          Tenant id of the Identity Provider.
      * @param newIdPGroupConfig New idp group configuration.
-     * @throws SQLException Exception when updating the idp groups in the database.
-     * @throws IdentityProviderManagementException Exception when updating the idp groups
+     * @throws SQLException                        Exception when updating the idp groups in the database.
+     * @throws IdentityProviderManagementException Exception when updating the idp groups.
      */
     private void updateIdPGroupConfiguration(Connection conn, int idPId, int tenantId, IdPGroup[] newIdPGroupConfig)
             throws SQLException, IdentityProviderManagementException {
@@ -4049,8 +4049,10 @@ public class IdPManagementDAO {
     }
 
     /**
-     * @param conn Database connection.
-     * @param idPId IdP id of the Identity Provider.
+     * Check whether the idp groups to be updated have valid UUIDs.
+     *
+     * @param conn              Database connection.
+     * @param idPId             IdP id of the Identity Provider.
      * @param IdPGroupsToUpdate New idp group configuration.
      * @throws SQLException Exception when retrieving the old idp groups in the database.
      */

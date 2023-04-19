@@ -65,7 +65,7 @@ public class IdPGroup implements Serializable {
     /**
      * Get idp group name.
      *
-     * @return idpGroupName
+     * @return idp Group Name.
      */
     public String getIdpGroupName() {
 
@@ -85,7 +85,7 @@ public class IdPGroup implements Serializable {
     /**
      * Get idp group id.
      *
-     * @return idpGroupId
+     * @return idp Group Id.
      */
     public String getIdpGroupId() {
 
