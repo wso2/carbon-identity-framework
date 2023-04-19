@@ -412,6 +412,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
         authenticationConfig.setSkipLogoutConsent(false);
         authenticationConfig.getExternalizedConsentPageConfig().setEnabled(false);
         authenticationConfig.getExternalizedConsentPageConfig().setConsentPageUrl(null);
+        authenticationConfig.setUseExternalConsentPage(false);
     }
 
     private void validateLocalAuthenticatorConfig(List<String> validationMsg,
