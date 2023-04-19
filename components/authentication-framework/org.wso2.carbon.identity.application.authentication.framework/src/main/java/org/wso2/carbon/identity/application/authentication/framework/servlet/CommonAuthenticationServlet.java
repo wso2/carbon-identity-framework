@@ -56,4 +56,10 @@ public class CommonAuthenticationServlet extends HttpServlet {
         }
         FrameworkUtils.getRequestCoordinator().handle(request, response);
     }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setHeader("Allow", "GET, POST, HEAD, OPTIONS");
+    }
 }
