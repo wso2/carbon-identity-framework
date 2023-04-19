@@ -2230,7 +2230,10 @@ public class IdPManagementDAO {
     private void addTemplateIdProperty(List<IdentityProviderProperty> identityProviderProperties,
                                                            IdentityProvider identityProvider) {
 
-        if (StringUtils.isNotBlank(identityProvider.getTemplateId())) {
+        boolean containsTemplateIdProperty = identityProviderProperties.stream().anyMatch(identityProviderProperty ->
+                TEMPLATE_ID_IDP_PROPERTY_NAME.equals(identityProviderProperty.getName()));
+
+        if (StringUtils.isNotBlank(identityProvider.getTemplateId()) && !containsTemplateIdProperty) {
             IdentityProviderProperty templateIdProperty = new IdentityProviderProperty();
             templateIdProperty.setName(TEMPLATE_ID_IDP_PROPERTY_NAME);
             templateIdProperty.setDisplayName(TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME);

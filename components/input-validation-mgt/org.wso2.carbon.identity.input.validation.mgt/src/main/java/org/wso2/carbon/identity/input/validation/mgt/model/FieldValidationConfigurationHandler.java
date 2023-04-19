@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.input.validation.mgt.model;
 
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
 
 import java.util.List;
 
@@ -50,4 +51,14 @@ public interface FieldValidationConfigurationHandler {
      */
     boolean validateValidationConfiguration(List<RulesConfiguration> configurationList)
             throws InputValidationMgtClientException;
+
+    /**
+     * Perform post actions after validation configuration are updated.
+     *
+     * @param tenantDomain      Tenant Domain.
+     * @param configuration     Updated validation configuration.
+     */
+    default void handlePostValidationConfigurationUpdate(String tenantDomain, ValidationConfiguration configuration)
+            throws InputValidationMgtServerException {
+    }
 }

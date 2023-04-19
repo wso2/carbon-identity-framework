@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
@@ -40,6 +41,8 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -649,6 +652,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             boolean isManagementApp = appDAO.getApplication(serviceProvider.getApplicationID())
                     .isManagementApp();
             serviceProvider.setManagementApp(isManagementApp);
+
+            // Updating the isB2BSelfService flag of application is blocked, thus set it to stored value
+            serviceProvider.setB2BSelfServiceApp(appDAO.getApplication(serviceProvider.getApplicationID())
+                    .isB2BSelfServiceApp());
 
             doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
             appDAO.updateApplication(serviceProvider, tenantDomain);
@@ -1285,6 +1292,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    /**
+     * Import Service Provider application from file.
+     *
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1303,6 +1320,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Import Service Provider application from object.
+     *
+     * @param serviceProvider Service Provider object.
+     * @param tenantDomain    Tenant Domain name.
+     * @param username        User performing the operation.
+     * @param isUpdate        Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException
+     */
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1409,36 +1436,94 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     @Override
     public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider = exportSPFromAppID(applicationId, exportSecrets, tenantDomain);
+        return marshalSP(serviceProvider, tenantDomain);
+    }
+
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    @Override
+    public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
         ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+
         if (application == null) {
             throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
                     "for the provided resourceId: " + applicationId);
         }
+
         String appName = application.getApplicationName();
+
         try {
             startTenantFlow(tenantDomain);
-            return exportSPApplication(appName, exportSecrets, tenantDomain);
+            return exportSP(appName, exportSecrets, tenantDomain);
         } finally {
             endTenantFlow();
         }
+
     }
 
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider = exportSP(applicationName, exportSecrets, tenantDomain);
+        return marshalSP(serviceProvider, tenantDomain);
+    }
+
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-        // invoking the listeners
+        ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
+
+        // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.doExportServiceProvider(serviceProvider, exportSecrets);
+                listener.doExportServiceProvider(serviceProviderCopy, exportSecrets);
             }
         }
-        return marshalSP(serviceProvider, tenantDomain);
+
+        return serviceProviderCopy;
     }
 
     @Override
@@ -2169,6 +2254,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.setListener(new Marshaller.Listener() {
+                @Override
+                public void beforeMarshal(Object source) {
+                    if (source instanceof InboundAuthenticationConfig) {
+                        InboundAuthenticationConfig config = (InboundAuthenticationConfig) source;
+                        for (InboundAuthenticationRequestConfig requestConfig
+                                : config.getInboundAuthenticationRequestConfigs()) {
+                            requestConfig.setInboundConfigurationProtocol(null);
+                        }
+                    }
+                }
+            });
             DocumentBuilderFactory docBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(serviceProvider, document);

@@ -152,6 +152,10 @@ public class IdentityConstants {
     public static final String SKIP_CONSENT="skipConsent";
     public static final String SKIP_LOGOUT_CONSENT_DISPLAY_NAME = "Skip Logout Consent";
     public static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
+    public static final String USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME = "Use Externalized Consent Page";
+    public static final String USE_EXTERNALIZED_CONSENT_PAGE = "useExternalizedConsentPage";
+    public static final String EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME= "External Consent Page URL";
+    public static final String EXTERNAL_CONSENT_PAGE_URL = "externalConsentPageUrl";
 
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
@@ -393,6 +397,8 @@ public class IdentityConstants {
         public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
         public static final String PASSIVE_STS_SLO_HOST_NAME_VERIFICATION_ENABLED =
                 "PassiveSTS.SLOHostNameVerificationEnabled";
+        public static final String PASSIVE_STS_DISABLE_APPLIES_TO_IN_RESPONSE =
+                "PassiveSTS.DisableAppliesToInPassiveSTSResponse";
     }
 
     /**

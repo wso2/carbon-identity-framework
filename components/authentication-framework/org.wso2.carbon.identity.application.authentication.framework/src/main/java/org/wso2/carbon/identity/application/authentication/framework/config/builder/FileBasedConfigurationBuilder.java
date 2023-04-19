@@ -71,6 +71,7 @@ public class FileBasedConfigurationBuilder {
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
+    private String authenticationEndpointErrorURL;
     private String authenticationEndpointWaitURL;
     private String identifierFirstConfirmationURL;
     private String authenticationEndpointPromptURL;
@@ -176,6 +177,7 @@ public class FileBasedConfigurationBuilder {
             //########### Read Authentication Endpoint URL ###########
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
+            readAuthenticationEndpointErrorURL(rootElement);
             readAuthenticationEndpointWaitURL(rootElement);
             readIdentifierFirstConfirmationURL(rootElement);
             readAuthenticationEndpointPromptURL(rootElement);
@@ -593,6 +595,15 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    private void readAuthenticationEndpointErrorURL(OMElement documentElement) {
+        OMElement authEndpointErrorURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_ERROR_URL));
+
+        if (authEndpointErrorURLElem != null) {
+            authenticationEndpointErrorURL = IdentityUtil.fillURLPlaceholders(authEndpointErrorURLElem.getText());
+        }
+    }
+
     private void readAuthenticationEndpointWaitURL(OMElement documentElement) {
         OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL));
@@ -981,6 +992,14 @@ public class FileBasedConfigurationBuilder {
 
     public void setAuthenticationEndpointRetryURL(String authenticationEndpointRetryURL) {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
+    }
+
+    public String getAuthenticationEndpointErrorURL() {
+        return authenticationEndpointErrorURL;
+    }
+
+    public void setAuthenticationEndpointErrorURL(String authenticationEndpointErrorURL) {
+        this.authenticationEndpointErrorURL = authenticationEndpointErrorURL;
     }
 
     public String getAuthenticationEndpointWaitURL() {
