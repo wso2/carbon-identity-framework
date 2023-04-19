@@ -100,6 +100,7 @@ public class ExtensionManagerComponent {
             unbind = "unsetConfigurationContextService"
     )
     protected void setConfigurationContextService(ConfigurationContextService configCtxtService) {
+
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService set in EntitlementServiceComponent bundle.");
         }
@@ -111,6 +112,7 @@ public class ExtensionManagerComponent {
      * @param configCtxtService ConfigurationContextService.
      */
     protected void unsetConfigurationContextService(ConfigurationContextService configCtxtService) {
+
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService unset in EntitlementServiceComponent bundle.");
         }
@@ -118,10 +120,8 @@ public class ExtensionManagerComponent {
 
     /**
      * Load extension resources from the file system.
-     *
-     * @throws ExtensionManagementException ExtensionManagementException.
      */
-    private void loadExtensionResources() throws ExtensionManagementException {
+    private void loadExtensionResources() {
 
         for (String extensionType : ExtensionMgtUtils.getExtensionTypes()) {
             Path path = ExtensionMgtUtils.getExtensionPath(extensionType);
@@ -144,24 +144,30 @@ public class ExtensionManagerComponent {
                         // Load extension info.
                         ExtensionInfo extensionInfo = loadExtensionInfo(extensionDirectory);
                         if (extensionInfo == null) {
-                            log.error("Error while loading default templates from: " + extensionDirectory);
-                            return;
+                            throw new ExtensionManagementException("Error while loading extension info from: "
+                                    + extensionDirectory);
                         }
                         extensionInfo.setType(extensionType);
                         ExtensionManagerDataHolder.getInstance().getExtensionStore().addExtension(extensionType,
                                 extensionInfo.getId(), extensionInfo);
                         // Load templates.
-                        ExtensionManagerDataHolder.getInstance().getExtensionStore().addTemplate(extensionType,
-                                extensionInfo.getId(), loadTemplate(extensionDirectory));
+                        JSONObject template = loadTemplate(extensionDirectory);
+                        if (template != null) {
+                            ExtensionManagerDataHolder.getInstance().getExtensionStore().addTemplate(extensionType,
+                                    extensionInfo.getId(), template);
+                        }
                         // Load metadata.
-                        ExtensionManagerDataHolder.getInstance().getExtensionStore().addMetadata(extensionType,
-                                extensionInfo.getId(), loadMetadata(extensionDirectory));
+                        JSONObject metadata = loadMetadata(extensionDirectory);
+                        if (metadata != null) {
+                            ExtensionManagerDataHolder.getInstance().getExtensionStore().addMetadata(extensionType,
+                                    extensionInfo.getId(), metadata);
+                        }
                     } catch (ExtensionManagementException e) {
-                        log.error("Error while loading default templates from: " + extensionDirectory, e);
+                        log.error("Error while loading resource files in: " + extensionDirectory, e);
                     }
                 });
             } catch (IOException e) {
-                log.error("Error while loading default templates from: " + path, e);
+                log.error("Error while loading resource files in: " + path, e);
             }
         }
     }
@@ -206,9 +212,8 @@ public class ExtensionManagerComponent {
         Path templatePath = extensionResourcePath.resolve(TEMPLATE_FILE_NAME);
         if (Files.exists(templatePath) && Files.isRegularFile(templatePath)) {
             return readJSONFile(templatePath);
-        } else {
-            throw new ExtensionManagementException("Template file not found in: " + extensionResourcePath);
         }
+        return null;
     }
 
     /**
@@ -223,9 +228,8 @@ public class ExtensionManagerComponent {
         Path metadataPath = extensionResourcePath.resolve(METADATA_FILE_NAME);
         if (Files.exists(metadataPath) && Files.isRegularFile(metadataPath)) {
             return readJSONFile(metadataPath);
-        } else {
-            throw new ExtensionManagementException("Metadata file not found in: " + extensionResourcePath);
         }
+        return null;
     }
 
     /**
