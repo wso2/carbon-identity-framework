@@ -890,7 +890,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
             throw new IdentityApplicationManagementClientException(INVALID_TENANT_DOMAIN.getCode(),
-                    String.format("Invalid tenant domain: ", tenantDomain));
+                   "Invalid tenant domain: " + tenantDomain);
         }
         validateResourceId(authenticatorId, tenantDomain);
         IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
@@ -1370,8 +1370,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isEmpty(resourceId)) {
-            String data = "Invalid argument: Authenticator resource ID value is empty";
-            throw new IdentityApplicationManagementClientException(data);
+            String message = "Invalid argument: Authenticator resource ID value is empty";
+            throw new IdentityApplicationManagementClientException(message);
         }
         String authenticatorName = new String(Base64.getUrlDecoder().decode(resourceId), StandardCharsets.UTF_8);
         int filteredCount = 0;
