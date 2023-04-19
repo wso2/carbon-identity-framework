@@ -3132,21 +3132,25 @@ public class IdentityProviderManager implements IdpManager {
                 });
         });
 
-        Map<String, List<String>> metaProvisioningConfigMap = getProvisioningConfidentialPropsMap();
+        Map<String, List<String>> metaProvisioningConfigMap = createProvisioningConfidentialPropsMap();
         Arrays.asList(identityProvider.getProvisioningConnectorConfigs()).forEach(provisioningConfig -> {
             List<String> secretProperties = metaProvisioningConfigMap.get(provisioningConfig.getName());
-            Arrays.asList(provisioningConfig.getProvisioningProperties()).forEach(prop -> {
-                if (secretProperties != null && secretProperties.contains(prop.getName())) {
-                    prop.setConfidential(true);
-                }
-                if (prop.getSubProperties().length > 0) {
-                    Arrays.asList(prop.getSubProperties()).forEach(subProp -> {
-                        if (secretProperties != null && secretProperties.contains(subProp.getName())) {
-                            subProp.setConfidential(true);
+            if (provisioningConfig.getProvisioningProperties() != null) {
+                Arrays.asList(provisioningConfig.getProvisioningProperties()).forEach(prop -> {
+                    if (prop != null) {
+                        if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                            prop.setConfidential(true);
                         }
-                    });
-                }
-            });
+                        if (prop.getSubProperties().length > 0) {
+                            Arrays.asList(prop.getSubProperties()).forEach(subProp -> {
+                                if (secretProperties != null && secretProperties.contains(subProp.getName())) {
+                                    subProp.setConfidential(true);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
         });
     }
 
@@ -3176,7 +3180,7 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @return HashMap mapping provisioning connector name to a list of confidential property names.
      */
-    private Map<String, List<String>> getProvisioningConfidentialPropsMap() throws IdentityProviderManagementException {
+    private Map<String, List<String>> createProvisioningConfidentialPropsMap() throws IdentityProviderManagementException {
 
         Map<String, List<String>> metaProvisioningConfigMap = new HashMap<>();
         ProvisioningConnectorConfig[] metaProvisioningConfigs = getAllProvisioningConnectors();
