@@ -113,6 +113,7 @@
                     <xs:element minOccurs="0" name="skipConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="skipLogoutConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="useExternalConsentPage" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useTenantDomainInLocalSubjectIdentifier" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useUserstoreDomainInLocalSubjectIdentifier" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useUserstoreDomainInRoles" type="xs:boolean"/>
