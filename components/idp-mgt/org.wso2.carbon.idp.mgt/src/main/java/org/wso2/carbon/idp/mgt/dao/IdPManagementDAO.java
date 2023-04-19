@@ -68,7 +68,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -4218,10 +4227,10 @@ public class IdPManagementDAO {
     /**
      * Get configured applications for a local authenticator.
      *
-     * @param authenticatorId ID of local authenticator.
-     * @param tenantId        Tenant ID.
-     * @param limit
-     * @param offset
+     * @param authenticatorId   ID of local authenticator.
+     * @param tenantId          Tenant ID.
+     * @param limit             Limit per page.
+     * @param offset            Offset value.
      * @return Connected applications.
      * @throws IdentityProviderManagementException If an error occurred when retrieving connected applications.
      */
