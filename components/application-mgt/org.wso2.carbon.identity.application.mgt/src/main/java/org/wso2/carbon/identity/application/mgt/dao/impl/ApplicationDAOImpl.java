@@ -4824,7 +4824,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         useExternalConsentPageProperty.setDisplayName(USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME);
 
         useExternalConsentPageProperty.setValue(
-                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipLogoutConsent()));
+                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseExternalConsentPage()));
         return useExternalConsentPageProperty;
     }
 
