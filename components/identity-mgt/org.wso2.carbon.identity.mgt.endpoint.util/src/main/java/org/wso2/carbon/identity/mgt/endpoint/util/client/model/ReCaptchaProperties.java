@@ -31,6 +31,7 @@ public class ReCaptchaProperties {
     private Boolean reCaptchaEnabled = null;
     private String reCaptchaKey = null;
     private String reCaptchaAPI = null;
+    private Boolean reCaptchaEnterpriseEnabled = null;
 
     /**
      * Return object of this class after set the reCaptchaEnabled.
@@ -53,6 +54,24 @@ public class ReCaptchaProperties {
     public void setReCaptchaEnabled(boolean reCaptchaEnabled) {
 
         this.reCaptchaEnabled = reCaptchaEnabled;
+    }
+
+    /**
+     * Return object of this class after set the reCaptchaEnterpriseEnabled.
+     *
+     * @param reCaptchaEnterpriseEnabled Is captcha enabled.
+     * @return ReCaptchaProperties.
+     */
+    public ReCaptchaProperties reCaptchaEnterpriseEnabled(boolean reCaptchaEnterpriseEnabled) {
+
+        this.reCaptchaEnterpriseEnabled = reCaptchaEnterpriseEnabled;
+        return this;
+    }
+
+    @JsonProperty("reCaptchaEnterpriseEnabled")
+    public boolean getReCaptchaEnterpriseEnabled() {
+
+        return reCaptchaEnterpriseEnabled;
     }
 
     /**
@@ -113,13 +132,14 @@ public class ReCaptchaProperties {
         ReCaptchaProperties reCaptchaProperties = (ReCaptchaProperties) o;
         return Objects.equals(this.reCaptchaEnabled, reCaptchaProperties.reCaptchaEnabled) &&
                 Objects.equals(this.reCaptchaKey, reCaptchaProperties.reCaptchaKey) &&
-                Objects.equals(this.reCaptchaAPI, reCaptchaProperties.reCaptchaAPI);
+                Objects.equals(this.reCaptchaAPI, reCaptchaProperties.reCaptchaAPI) &&
+                Objects.equals(this.reCaptchaEnterpriseEnabled, reCaptchaProperties.reCaptchaEnterpriseEnabled);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(reCaptchaEnabled, reCaptchaKey, reCaptchaKey);
+        return Objects.hash(reCaptchaEnabled, reCaptchaKey, reCaptchaKey, reCaptchaEnterpriseEnabled);
     }
 
     @Override
@@ -130,6 +150,7 @@ public class ReCaptchaProperties {
         sb.append("    reCaptchaEnabled: ").append(toIndentedString(reCaptchaEnabled)).append("\n");
         sb.append("    reCaptchaKey: ").append(toIndentedString(reCaptchaKey)).append("\n");
         sb.append("    reCaptchaAPI: ").append(toIndentedString(reCaptchaKey)).append("\n");
+        sb.append("    reCaptchaEnterpriseEnabled: ").append(toIndentedString(reCaptchaEnterpriseEnabled)).append("\n");
         sb.append("}");
         return sb.toString();
     }
