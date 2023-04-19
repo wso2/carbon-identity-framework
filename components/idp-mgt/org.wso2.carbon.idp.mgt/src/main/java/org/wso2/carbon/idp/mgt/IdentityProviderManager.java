@@ -3191,7 +3191,7 @@ public class IdentityProviderManager implements IdpManager {
                     if (property.isConfidential()) {
                         secretProperties.add(property.getName());
                     }
-                    if (property.getSubProperties().length >0) {
+                    if (property.getSubProperties().length > 0) {
                         for (SubProperty subProperty : property.getSubProperties()) {
                             if (subProperty.isConfidential()) {
                                 secretProperties.add(subProperty.getName());
