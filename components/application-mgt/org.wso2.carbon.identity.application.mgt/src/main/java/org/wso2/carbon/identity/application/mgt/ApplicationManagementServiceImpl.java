@@ -98,7 +98,16 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -1361,7 +1370,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isEmpty(resourceId)) {
-            String data = "Invalid argument: Identity Provider resource ID value is empty";
+            String data = "Invalid argument: Authenticator resource ID value is empty";
             throw new IdentityApplicationManagementClientException(data);
         }
         String authenticatorName = new String(Base64.getUrlDecoder().decode(resourceId), StandardCharsets.UTF_8);
