@@ -4347,6 +4347,8 @@ public class IdPManagementDAO {
         String sqlQuery;
         PreparedStatement prepStmt;
         String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        // We are passing the authenticator name for the queries for IDP_NAME since the details are stored in
+        // IDP related tables.
         if (databaseProductName.contains("MySQL")
                 || databaseProductName.contains("MariaDB")
                 || databaseProductName.contains("H2")) {
