@@ -312,7 +312,7 @@ public class PreferenceRetrievalClient {
                         if (StringUtils.equalsIgnoreCase(
                                 jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
                             governanceId = config.getString(PROPERTY_ID);
-                            // shall we break - sadil
+                            break;
                         }
                     }
                 }
