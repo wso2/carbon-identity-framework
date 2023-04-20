@@ -66,9 +66,7 @@ public class AdminAdvisoryDataRetrievalClient {
             }
         } catch (IOException e) {
             String msg = "Error while getting admin advisory banner preference for tenant : " + tenant;
-
             LOG.debug(msg, e);
-
             throw new AdminAdvisoryDataRetrievalClientException(msg, e);
         }
     }
