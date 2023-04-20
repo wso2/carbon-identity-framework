@@ -147,6 +147,8 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSEN
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
@@ -2843,6 +2845,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled(Boolean.parseBoolean(value));
                 } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
                     getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
+                } else if (USE_EXTERNAL_CONSENT_PAGE.equals(name)) {
+                    localAndOutboundConfig.setUseExternalConsentPage(Boolean.parseBoolean(value));
                 }
             }
         }
@@ -4735,6 +4739,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProviderProperty externalConsentPageURLProperty = buildExternalConsentPageURLProperty(sp);
             spPropertyMap.put(externalConsentPageURLProperty.getName(), externalConsentPageURLProperty);
+
+            ServiceProviderProperty useExternalConsentPageProperty = buildUseExternalConsentPageProperty(sp);
+            spPropertyMap.put(useExternalConsentPageProperty.getName(), useExternalConsentPageProperty);
         }
 
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
@@ -4808,6 +4815,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         skipLogoutConsentProperty.setValue(
                 String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipLogoutConsent()));
         return skipLogoutConsentProperty;
+    }
+
+    private ServiceProviderProperty buildUseExternalConsentPageProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty useExternalConsentPageProperty = new ServiceProviderProperty();
+        useExternalConsentPageProperty.setName(USE_EXTERNAL_CONSENT_PAGE);
+        useExternalConsentPageProperty.setDisplayName(USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME);
+
+        useExternalConsentPageProperty.setValue(
+                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseExternalConsentPage()));
+        return useExternalConsentPageProperty;
     }
 
     private ServiceProviderProperty buildUseExternalizedConsentPageProperty(ServiceProvider sp) {
