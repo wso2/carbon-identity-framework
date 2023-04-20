@@ -222,66 +222,48 @@ public class PreferenceRetrievalClient {
     }
 
     /**
-     * Check whether the provided callbackURL is valid or not.
+     * Check whether the provided callbackURL of the account recovery is valid or not.
      *
      * @param tenant      Tenant domain name.
-     * @param callbackURL Callback URL of the application.
+     * @param callbackURL Callback URL of the account recovery.
      * @return returns true if the URL is valid.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
     public boolean checkIfRecoveryCallbackURLValid(String tenant, String callbackURL)
             throws PreferenceRetrievalClientException {
 
-        String callbackRegex;
-        if (getPropertyValue(tenant,
-                ACCOUNT_MGT_GOVERNANCE,RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_PROP).isPresent()) {
-            callbackRegex = getPropertyValue(tenant,ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR,
-                    RECOVERY_CALLBACK_REGEX_PROP).get();
-            return callbackURL.matches(callbackRegex);
-        }
-        return false;
+        return getPropertyValue(tenant, ACCOUNT_MGT_GOVERNANCE, RECOVERY_CONNECTOR, RECOVERY_CALLBACK_REGEX_PROP)
+                .filter(callbackURL::matches).isPresent();
     }
 
     /**
-     * Check whether the provided callbackURL is valid or not.
+     * Check whether the provided callbackURL of the self registration is valid or not.
      *
      * @param tenant      Tenant domain name.
-     * @param callbackURL Callback URL of the application.
+     * @param callbackURL Callback URL of the self registration.
      * @return returns true if the URL is valid.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
     public boolean checkIfSelfRegCallbackURLValid(String tenant, String callbackURL)
             throws PreferenceRetrievalClientException {
 
-        String callbackRegex;
-        if (getPropertyValue(tenant,
-                USER_ONBOARDING_GOVERNANCE, SELF_SIGN_UP_CONNECTOR, SELF_REG_CALLBACK_REGEX_PROP).isPresent()) {
-            callbackRegex = getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, SELF_SIGN_UP_CONNECTOR,
-                    SELF_REG_CALLBACK_REGEX_PROP).get();
-            return callbackURL.matches(callbackRegex);
-        }
-        return false;
+        return getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, SELF_SIGN_UP_CONNECTOR,
+                SELF_REG_CALLBACK_REGEX_PROP).filter(callbackURL::matches).isPresent();
     }
 
     /**
-     * Check whether the provided callbackURL is valid or not.
+     * Check whether the provided callbackURL of the lite registration is valid or not.
      *
      * @param tenant      Tenant domain name.
-     * @param callbackURL Callback URL of the application.
+     * @param callbackURL Callback URL of the lite registration.
      * @return returns true if the URL is valid.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
     public boolean checkIfLiteRegCallbackURLValid(String tenant, String callbackURL)
             throws PreferenceRetrievalClientException {
 
-        String callbackRegex;
-        if (getPropertyValue(tenant,
-                USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR, LITE_REG_CALLBACK_REGEX_PROP).isPresent()) {
-            callbackRegex = getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR,
-                    LITE_REG_CALLBACK_REGEX_PROP).get();
-            return callbackURL.matches(callbackRegex);
-        }
-        return false;
+        return getPropertyValue(tenant, USER_ONBOARDING_GOVERNANCE, LITE_USER_CONNECTOR, LITE_REG_CALLBACK_REGEX_PROP)
+                .filter(callbackURL::matches).isPresent();
     }
 
     /**
@@ -299,14 +281,13 @@ public class PreferenceRetrievalClient {
         return checkPreference(tenant, connectorName, propertyName, true);
     }
 
-
     /**
      * Check for preference in the given tenant.
      *
-     * @param tenant            Tenant domain name.
-     * @param governanceDomain  The governance domain.
-     * @param connectorName     Name of the connector.
-     * @param propertyName      Property name to check.
+     * @param tenant           Tenant domain name.
+     * @param governanceDomain The governance domain.
+     * @param connectorName    Name of the connector.
+     * @param propertyName     Property name to check.
      * @return returns value of the property.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
@@ -315,7 +296,7 @@ public class PreferenceRetrievalClient {
             throws PreferenceRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            String endpoint =  getUserGovernanceEndpoint(tenant);
+            String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
@@ -331,6 +312,7 @@ public class PreferenceRetrievalClient {
                         if (StringUtils.equalsIgnoreCase(
                                 jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
                             governanceId = config.getString(PROPERTY_ID);
+                            // shall we break - sadil
                         }
                     }
                 }
@@ -338,7 +320,7 @@ public class PreferenceRetrievalClient {
                 get.releaseConnection();
             }
 
-            endpoint =  endpoint + "/" + governanceId;
+            endpoint = endpoint + "/" + governanceId;
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
@@ -371,9 +353,7 @@ public class PreferenceRetrievalClient {
             // Logging and throwing since this is a client.
             String msg = "Error while obtaining config values for connector : " + connectorName + " in tenant : "
                     + tenant;
-            if (log.isDebugEnabled()) {
-                log.debug(msg, e);
-            }
+            log.debug(msg, e);
             throw new PreferenceRetrievalClientException(msg, e);
         }
         return Optional.empty();
