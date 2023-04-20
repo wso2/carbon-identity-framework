@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
@@ -95,5 +96,44 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
         AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
 
         assertEquals(context.getTenantDomain(), expected);
+    }
+
+    @DataProvider(name = "contextDataProvider")
+    public Object[][] contextData() {
+
+        return new Object[][]{
+                {"dummy_key", null, "xyz.com", SUPER_TENANT_DOMAIN_NAME},
+                {"dummy_key", "samlsso", null, SUPER_TENANT_DOMAIN_NAME},
+                {null, "oAuth", "xyz.com", "foo.com"},
+                {"dummy_key", "openid", "xyz.com", null},
+        };
+    }
+
+    @Test(dataProvider = "contextDataProvider")
+    public void testClonedContext(String sessionDataKey,
+                                  String type,
+                                  String relyingParty,
+                                  String tenantDomain) throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setCallerSessionKey(sessionDataKey);
+        context.setRequestType(type);
+        context.setRelyingParty(relyingParty);
+        context.setTenantDomain(tenantDomain);
+        int initialStep = context.getCurrentStep();
+        String initialAuthenticator = context.getCurrentAuthenticator();
+        context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+        AuthenticationContext clonedContext = (AuthenticationContext)
+                context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
+        assertEquals(clonedContext.getCallerSessionKey(), sessionDataKey);
+        assertEquals(clonedContext.getRequestType(), type);
+        assertEquals(clonedContext.getRelyingParty(), relyingParty);
+        assertEquals(clonedContext.getTenantDomain(), tenantDomain);
+
+        //Check the cloned context after updating
+        context.setCurrentStep(initialStep + 1);
+        context.setCurrentAuthenticator("dummyAuthenticator");
+        assertEquals(clonedContext.getCurrentStep(), initialStep);
+        assertEquals(clonedContext.getCurrentAuthenticator(), initialAuthenticator);
     }
 }
