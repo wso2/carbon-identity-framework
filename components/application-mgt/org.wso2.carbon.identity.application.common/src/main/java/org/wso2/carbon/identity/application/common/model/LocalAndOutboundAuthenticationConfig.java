@@ -55,7 +55,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
     private static final String EXTERNALIZED_CONSENT_PAGE_CONFIG = "ExternalizedConsentPageConfig";
-    private static final String USE_EXTERNAL_CONSENT_PAGE = "UseExternalizedConsentPage";
+    private static final String USE_EXTERNAL_CONSENT_PAGE = "UseExternalConsentPage";
 
     @XmlElementWrapper(name = "AuthenticationSteps")
     @XmlElement(name = "AuthenticationStep")
