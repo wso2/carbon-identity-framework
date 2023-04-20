@@ -4382,7 +4382,7 @@ public class IdPManagementDAO {
     private PreparedStatement createSqlStatement(Connection connection, String sqlQuery, Object... params)
             throws SQLException, IdentityProviderManagementServerException {
 
-        PreparedStatement prepStmt = connection.prepareStatement(sqlQuery));
+        PreparedStatement prepStmt = connection.prepareStatement(sqlQuery);
         if (params != null && params.length > 0) {
             for (int i = 0; i < params.length; i++) {
                 Object param = params[i];
