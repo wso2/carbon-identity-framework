@@ -175,9 +175,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
 
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
-            ConnectedAppsResult connectedAppsResult = idpManager.getConnectedAppsForLocalAuthenticator(authenticatorId, tenantId,
-                    limit, offset);
-            return connectedAppsResult;
+            return idpManager.getConnectedAppsForLocalAuthenticator(authenticatorId, tenantId, limit, offset);
         } catch (IdentityProviderManagementException e) {
             throw new IdentityApplicationManagementException("Error while retrieving connected applications " +
                     "for authenticator Id: " + authenticatorId, e);
