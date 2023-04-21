@@ -507,6 +507,12 @@ public interface IdpManager {
         return null;
     }
 
+    default ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                      Integer limit, Integer offset)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
     /**
      * Retrieves the first matching IDP for the given metadata property.
      * Intended to ony be used to retrieve IDP based on a unique metadata property.

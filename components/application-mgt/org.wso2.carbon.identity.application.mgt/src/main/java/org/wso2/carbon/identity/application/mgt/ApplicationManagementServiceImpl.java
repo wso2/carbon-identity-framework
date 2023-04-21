@@ -79,6 +79,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -87,6 +89,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -100,6 +103,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -131,6 +135,7 @@ import javax.xml.transform.stream.StreamResult;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
@@ -881,6 +886,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
+    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, String tenantDomain,
+                                                                     Integer limit, Integer offset)
+            throws IdentityApplicationManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw new IdentityApplicationManagementClientException(INVALID_TENANT_DOMAIN.getCode(),
+                   "Invalid tenant domain: " + tenantDomain);
+        }
+        validateResourceId(authenticatorId, tenantDomain);
+        IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
+        ConnectedAppsResult connectedAppsOfLocalAuthenticator = idpdao
+                .getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
+        return connectedAppsOfLocalAuthenticator;
+    }
+
+    @Override
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -1345,6 +1367,40 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return importResponse;
+    }
+
+    private void validateResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(resourceId)) {
+            String message = "Invalid argument: Authenticator resource ID value is empty";
+            throw new IdentityApplicationManagementClientException(message);
+        }
+        String authenticatorName = new String(Base64.getUrlDecoder().decode(resourceId), StandardCharsets.UTF_8);
+        int filteredCount = 0;
+        try {
+            startTenantFlow(tenantDomain);
+            IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
+            List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
+            if (localAuthenticators != null) {
+                filteredCount = (int) localAuthenticators.stream()
+                        .filter(authenticatorConfig ->
+                                authenticatorConfig.getName()
+                                        .equals(authenticatorName)).count();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException(
+                    String.format(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID.getMessage(), resourceId));
+        } finally {
+            endTenantFlow();
+        }
+
+        if (filteredCount == 0) {
+            throw new IdentityApplicationManagementClientException(Error.AUTHENTICATOR_NOT_FOUND.getCode(),
+                    String.format(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_IDP_DOES_NOT_EXIST.getMessage(), resourceId));
+        }
     }
 
     private ImportResponse importApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
