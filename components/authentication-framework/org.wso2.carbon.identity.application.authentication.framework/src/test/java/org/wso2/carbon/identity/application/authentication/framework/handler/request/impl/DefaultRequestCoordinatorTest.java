@@ -23,11 +23,17 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+
+import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,13 +45,15 @@ import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
  * Unit tests for {@link DefaultRequestCoordinator}.
  */
 @WithCarbonHome
-@PrepareForTest(IdentityTenantUtil.class)
+@PrepareForTest({IdentityTenantUtil.class, FrameworkUtils.class,
+                SessionNonceCookieUtil.class})
 public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
@@ -135,5 +143,29 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
         context.setCurrentAuthenticator("dummyAuthenticator");
         assertEquals(clonedContext.getCurrentStep(), initialStep);
         assertEquals(clonedContext.getCurrentAuthenticator(), initialAuthenticator);
+    }
+
+    @Test
+    public void testCookieValidationFailedException() {
+        mockStatic(FrameworkUtils.class);
+        mockStatic(SessionNonceCookieUtil.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+        DefaultAuthenticationRequestHandler authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
+        AuthenticationContext context = mock(AuthenticationContext.class);
+        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+        when(sequenceConfig.getReqPathAuthenticators()).thenReturn(new ArrayList<>());
+        when(SessionNonceCookieUtil.isNonceCookieEnabled()).thenReturn(true);
+        when(SessionNonceCookieUtil.getNonceCookieName(context)).thenReturn("nonce");
+        when(context.isReturning()).thenReturn(true);
+        when(SessionNonceCookieUtil.validateNonceCookie(request, context)).thenReturn(false);
+        when(FrameworkUtils.getContextData(request)).thenReturn(context);
+        when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
+        try {
+            authenticationRequestHandler.handle(request, response, context);
+        } catch (FrameworkException e) {
+            assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
+        }
     }
 }
