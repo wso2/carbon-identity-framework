@@ -14,10 +14,10 @@ public class ApplicationXDSWrapper implements XDSWrapper {
     private String username;
     private String templateName;
     private String applicationName;
-    private int tenantId;
     private SpTemplate spTemplate;
     private String oldTemplateName;
     private String resourceId;
+    private String timestamp;
 
     public ApplicationXDSWrapper(ApplicationXDSWrapperBuilder builder) {
 
@@ -26,10 +26,10 @@ public class ApplicationXDSWrapper implements XDSWrapper {
         this.username = builder.username;
         this.templateName = builder.templateName;
         this.applicationName = builder.applicationName;
-        this.tenantId = builder.tenantId;
         this.spTemplate = builder.spTemplate;
         this.oldTemplateName = builder.oldTemplateName;
         this.resourceId = builder.resourceId;
+        this.timestamp = builder.timestamp;
     }
     public ServiceProvider getServiceProvider() {
         return serviceProvider;
@@ -49,10 +49,6 @@ public class ApplicationXDSWrapper implements XDSWrapper {
 
     public String getApplicationName() {
         return applicationName;
-    }
-
-    public int getTenantId() {
-        return tenantId;
     }
 
     public SpTemplate getSpTemplate() {
@@ -77,10 +73,10 @@ public class ApplicationXDSWrapper implements XDSWrapper {
         private String username;
         private String templateName;
         private String applicationName;
-        private int tenantId;
         private SpTemplate spTemplate;
         private String oldTemplateName;
         private String resourceId;
+        private String timestamp;
 
         public ApplicationXDSWrapperBuilder setServiceProvider(ServiceProvider serviceProvider) {
             this.serviceProvider = serviceProvider;
@@ -107,11 +103,6 @@ public class ApplicationXDSWrapper implements XDSWrapper {
             return this;
         }
 
-        public ApplicationXDSWrapperBuilder setTenantId(int tenantId) {
-            this.tenantId = tenantId;
-            return this;
-        }
-
         public ApplicationXDSWrapperBuilder setSpTemplate(SpTemplate spTemplate) {
             this.spTemplate = spTemplate;
             return this;
@@ -128,6 +119,7 @@ public class ApplicationXDSWrapper implements XDSWrapper {
         }
 
         public ApplicationXDSWrapper build() {
+            this.timestamp = String.valueOf(System.currentTimeMillis());
             return new ApplicationXDSWrapper(this);
         }
 

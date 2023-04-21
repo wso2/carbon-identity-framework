@@ -20,7 +20,7 @@ public class ClaimXDSWrapper implements XDSWrapper {
     private String externalClaimDialectURI;
     private String externalClaimURI;
     private String tenantDomain;
-    private int tenantId;
+    private String timestamp;
 
     public ClaimXDSWrapper(GRPCUpdateClaimBuilder builder) {
 
@@ -35,7 +35,7 @@ public class ClaimXDSWrapper implements XDSWrapper {
             this.externalClaimDialectURI = builder.externalClaimDialectURI;
             this.externalClaimURI = builder.externalClaimURI;
             this.tenantDomain = builder.tenantDomain;
-            this.tenantId = builder.tenantId;
+            this.timestamp = builder.timestamp;
     }
     public ClaimDialect getClaimDialect() {
         return claimDialect;
@@ -81,10 +81,6 @@ public class ClaimXDSWrapper implements XDSWrapper {
         return tenantDomain;
     }
 
-    public int getTenantId() {
-        return tenantId;
-    }
-
     public static class GRPCUpdateClaimBuilder {
 
         private ClaimDialect claimDialect;
@@ -98,7 +94,7 @@ public class ClaimXDSWrapper implements XDSWrapper {
         private String externalClaimDialectURI;
         private String externalClaimURI;
         private String tenantDomain;
-        private int tenantId;
+        private String timestamp;
 
         public GRPCUpdateClaimBuilder setClaimDialect(ClaimDialect claimDialect) {
             this.claimDialect = claimDialect;
@@ -155,12 +151,9 @@ public class ClaimXDSWrapper implements XDSWrapper {
             return this;
         }
 
-        public GRPCUpdateClaimBuilder setTenantId(int tenantId) {
-            this.tenantId = tenantId;
-            return this;
-        }
-
         public ClaimXDSWrapper build() {
+
+            this.timestamp = String.valueOf(System.currentTimeMillis());
             return new ClaimXDSWrapper(this);
         }
     }

@@ -43,8 +43,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -138,7 +138,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.ADD_CLAIM_DIALECT);
+                    ClaimXDSOperationType.ADD_CLAIM_DIALECT);
         }
 
         this.claimDialectDAO.addClaimDialect(claimDialect, tenantId);
@@ -167,7 +167,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder()
                     .setOldClaimDialect(oldClaimDialect).setNewClaimDialect(newClaimDialect).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.RENAME_CLAIM_DIALECT);
+                    ClaimXDSOperationType.RENAME_CLAIM_DIALECT);
         }
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
@@ -197,7 +197,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setClaimDialect(claimDialect)
                     .setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.REMOVE_CLAIM_DIALECT);
+                    ClaimXDSOperationType.REMOVE_CLAIM_DIALECT);
         }
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
@@ -250,7 +250,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setLocalClaim(localClaim)
                     .setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.ADD_LOCAL_CLAIM);
+                    ClaimXDSOperationType.ADD_LOCAL_CLAIM);
         }
 
         this.localClaimDAO.addLocalClaim(localClaim, tenantId);
@@ -281,7 +281,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setLocalClaim(localClaim)
                     .setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.UPDATE_LOCAL_CLAIM);
+                    ClaimXDSOperationType.UPDATE_LOCAL_CLAIM);
         }
 
         this.localClaimDAO.updateLocalClaim(localClaim, tenantId);
@@ -304,7 +304,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setLocalClaimList(
                     localClaimList).setTenantDomain(tenantDomain).setUserStoreDomainName(userStoreDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.UPDATE_LOCAL_CLAIM_MAPPINGS);
+                    ClaimXDSOperationType.UPDATE_LOCAL_CLAIM_MAPPINGS);
         }
 
         this.localClaimDAO.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
@@ -346,7 +346,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setLocalClaimURI(
                     localClaimURI).setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.REMOVE_LOCAL_CLAIM);
+                    ClaimXDSOperationType.REMOVE_LOCAL_CLAIM);
         }
 
         this.localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
@@ -436,7 +436,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setExternalClaim(
                     externalClaim).setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.ADD_EXTERNAL_CLAIM);
+                    ClaimXDSOperationType.ADD_EXTERNAL_CLAIM);
         }
 
         this.externalClaimDAO.addExternalClaim(externalClaim, tenantId);
@@ -475,7 +475,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setExternalClaim(
                     externalClaim).setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.UPDATE_EXTERNAL_CLAIM);
+                    ClaimXDSOperationType.UPDATE_EXTERNAL_CLAIM);
         }
 
         this.externalClaimDAO.updateExternalClaim(externalClaim, tenantId);
@@ -513,7 +513,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     .setExternalClaimDialectURI(externalClaimDialectURI).setExternalClaimURI(externalClaimURI)
                     .setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.REMOVE_EXTERNAL_CLAIM);
+                    ClaimXDSOperationType.REMOVE_EXTERNAL_CLAIM);
         }
 
         this.externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
@@ -532,10 +532,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         try {
             if (isControlPlane()) {
                 String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setTenantId(tenantId)
+                ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder()
                         .setUserStoreDomainName(userstoreDomain).setTenantDomain(tenantDomain).build();
                 publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                        XDSConstants.ClaimOperationType.REMOVE_CLAIM_MAPPING_ATTRIBUTES);
+                        ClaimXDSOperationType.REMOVE_CLAIM_MAPPING_ATTRIBUTES);
             }
 
             this.localClaimDAO.removeClaimMappingAttributes(tenantId, userstoreDomain);
@@ -560,10 +560,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         if (isControlPlane()) {
-            ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder().setTenantId(tenantId)
+            ClaimXDSWrapper claimXDSWrapper = new ClaimXDSWrapper.GRPCUpdateClaimBuilder()
                     .setTenantDomain(tenantDomain).build();
             publishData(claimXDSWrapper, XDSConstants.EventType.CLAIM,
-                    XDSConstants.ClaimOperationType.REMOVE_ALL_CLAIMS);
+                    ClaimXDSOperationType.REMOVE_ALL_CLAIMS);
         }
 
         // The relevant external claim deletions are handled by the DB through ON DELETE CASCADE.
@@ -664,11 +664,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     private void publishData(ClaimXDSWrapper claimXDSWrapper, XDSConstants.EventType eventType,
-                             OperationType operationType) {
+                             XDSOperationType XDSOperationType) {
 
         String json = buildJson(claimXDSWrapper);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
+        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

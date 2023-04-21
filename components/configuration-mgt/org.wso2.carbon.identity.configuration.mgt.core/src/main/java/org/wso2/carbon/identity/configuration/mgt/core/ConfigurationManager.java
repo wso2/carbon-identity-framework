@@ -68,6 +68,18 @@ public interface ConfigurationManager {
     ResourceType addResourceType(ResourceTypeAdd resourceTypeAdd) throws ConfigurationManagementException;
 
     /**
+     * This API is used to store a new {@link ResourceType}.
+     *
+     * @param resourceTypeAdd {@link ResourceType} create request.
+     * @return 201 created. Returns created {@link ResourceType}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default ResourceType addResourceType(ResourceTypeAdd resourceTypeAdd, String resourceTypeId) throws ConfigurationManagementException {
+
+            throw new NotImplementedException("This method is not implemented.");
+    };
+
+    /**
      * This API is used to replace an existing {@link ResourceType} with the given one or create if not.
      *
      * @param resourceTypeAdd Request to create the {@link ResourceType}.
@@ -119,6 +131,20 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     Resource addResource(String resourceTypeName, ResourceAdd resourceAdd) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to create the given resource including a file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceAdd      The {@link ResourceAdd}.
+     * @param resourceId       The resource id.
+     * @return 201 created. Returns {@link Resource} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    default Resource addResource(String resourceTypeName, ResourceAdd resourceAdd, String resourceId) throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to create the given resource including a file.
@@ -247,6 +273,22 @@ public interface ConfigurationManager {
      */
     ResourceFile addFile(String resourceTypeName, String resourceName, String name, InputStream fileStream)
             throws ConfigurationManagementException;
+
+    /**
+     * This API is used to add the given file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceName     Name of the {@link Resource}.
+     * @param name             Name of the {@link ResourceFile}
+     * @param fileStream       {@link InputStream} representing the file.
+     * @return 200 ok. Returns {@link ResourceFile} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    default ResourceFile addFile(String resourceTypeName, String resourceName, String name, InputStream fileStream, String fileId)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to get all files for the given {@link Resource}

@@ -13,7 +13,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 
 
@@ -52,8 +52,8 @@ public class GRPCConnection {
     private void initChannels() {
 
         eventServiceChannel = ManagedChannelBuilder.forAddress(
-                XDSCUtils.getConfig(XDSConstants.PROP_GRPC_EVENT_SERVICE_CONNECTION_URL),
-                        Integer.parseInt(XDSCUtils.getConfig(XDSConstants.PROP_GRPC_EVENT_SERVICE_CONNECTION_PORT)))
+                XDSUtils.getConfig(XDSConstants.PROP_GRPC_EVENT_SERVICE_CONNECTION_URL),
+                        Integer.parseInt(XDSUtils.getConfig(XDSConstants.PROP_GRPC_EVENT_SERVICE_CONNECTION_PORT)))
                 .usePlaintext()
                 .build();
     }

@@ -9,12 +9,14 @@ public class IdpXDSWrapper implements XDSWrapper {
     private String tenantDomain;
     private String idpName;
     private String resourceId;
+    private String timestamp;
 
     public IdpXDSWrapper(IdpXDSWrapperBuilder builder) {
         this.identityProvider = builder.identityProvider;
         this.tenantDomain = builder.tenantDomain;
         this.idpName = builder.idpName;
         this.resourceId = builder.resourceId;
+        this.timestamp = builder.timestamp;
     }
 
     public IdentityProvider getIdentityProvider() {
@@ -39,6 +41,7 @@ public class IdpXDSWrapper implements XDSWrapper {
 
         private String idpName;
         private String resourceId;
+        private String timestamp;
 
         public IdpXDSWrapperBuilder setIdentityProvider(IdentityProvider identityProvider) {
             this.identityProvider = identityProvider;
@@ -51,6 +54,8 @@ public class IdpXDSWrapper implements XDSWrapper {
         }
 
         public IdpXDSWrapper build() {
+
+            this.timestamp = String.valueOf(System.currentTimeMillis());
             return new IdpXDSWrapper(this);
         }
 

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
+import org.wso2.carbon.identity.cors.mgt.core.CorsXDSOperationType;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
@@ -41,9 +42,9 @@ import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSXDSWrapper;
 import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -113,7 +114,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
-                    XDSConstants.CorsOperationType.SET_CORS_ORIGINS);
+                    CorsXDSOperationType.SET_CORS_ORIGINS);
         }
         // Set the CORS origins.
         getCORSOriginDAO().setCORSOrigins(applicationBasicInfo.getApplicationId(),
@@ -160,7 +161,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
-                    XDSConstants.CorsOperationType.ADD_CORS_ORIGINS);
+                    CorsXDSOperationType.ADD_CORS_ORIGINS);
         }
 
         // Add the CORS origins.
@@ -205,7 +206,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
-                    XDSConstants.CorsOperationType.DELETE_CORS_ORIGINS);
+                    CorsXDSOperationType.DELETE_CORS_ORIGINS);
         }
 
         // Delete the CORS origin application associations.
@@ -250,7 +251,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(tenantDomain, corsXDSWrapper, XDSConstants.EventType.CORS,
-                    XDSConstants.CorsOperationType.SET_CORS_ORIGINS);
+                    CorsXDSOperationType.SET_CORS_ORIGINS);
         }
 
         getCORSConfigurationDAO().setCORSConfigurationByTenantDomain(corsConfiguration, tenantDomain);
@@ -351,10 +352,10 @@ public class CORSManagementServiceImpl implements CORSManagementService {
     }
 
     private void publishData(String tenantDomain, XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
-                             OperationType operationType) {
+                             XDSOperationType xdsOperationType) {
 
         String json = buildJson((CORSXDSWrapper) xdsWrapper);
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSCUtils.publishData(tenantDomain, username,  json, eventType, operationType);
+        XDSUtils.publishData(tenantDomain, username,  json, eventType, xdsOperationType);
     }
 }

@@ -56,8 +56,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -912,7 +912,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.ADD_RESIDENT_IDP);
+                    IdpXDSOperationType.ADD_RESIDENT_IDP);
         }
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1031,7 +1031,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.UPDATE_RESIDENT_IDP);
+                    IdpXDSOperationType.UPDATE_RESIDENT_IDP);
         }
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2108,7 +2108,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.ADD_IDP_WITH_RESOURCE_ID);
+                    IdpXDSOperationType.ADD_IDP_WITH_RESOURCE_ID);
         }
 
         // invoking the post listeners
@@ -2158,7 +2158,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.DELETE_IDP);
+                    IdpXDSOperationType.DELETE_IDP);
         }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2198,7 +2198,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.DELETE_IDPS);
+                    IdpXDSOperationType.DELETE_IDPS);
         }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2238,7 +2238,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.DELETE_IDP_BY_RESOURCE_ID);
+                    IdpXDSOperationType.DELETE_IDP_BY_RESOURCE_ID);
         }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2317,7 +2317,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.FORCE_DELETE_IDP);
+                    IdpXDSOperationType.FORCE_DELETE_IDP);
         }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2358,7 +2358,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.FORCE_DELETE_IDP_BY_RESOURCE_ID);
+                    IdpXDSOperationType.FORCE_DELETE_IDP_BY_RESOURCE_ID);
         }
 
         // Invoking the post listeners
@@ -2422,7 +2422,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.UPDATE_IDP);
+                    IdpXDSOperationType.UPDATE_IDP);
         }
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2467,7 +2467,7 @@ public class IdentityProviderManager implements IdpManager {
                     .setTenantDomain(tenantDomain)
                     .build();
             publishData(idpXDSWrapper, XDSConstants.EventType.IDP,
-                    XDSConstants.IdpOperationType.UPDATE_IDP_BY_RESOURCE_ID);
+                    IdpXDSOperationType.UPDATE_IDP_BY_RESOURCE_ID);
         }
 
         // Invoking the post listeners.
@@ -3317,11 +3317,11 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     private void publishData(XDSWrapper xdsWrapper, XDSConstants.EventType eventType,
-                             OperationType operationType) {
+                             XDSOperationType XDSOperationType) {
 
         String json = buildJson((IdpXDSWrapper) xdsWrapper);
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSCUtils.publishData(tenantDomain, username, json, eventType, operationType);
+        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

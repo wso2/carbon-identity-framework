@@ -13,6 +13,7 @@ public class CORSXDSWrapper implements XDSWrapper {
     private List<String> origins;
     private String tenantDomain;
     private CORSConfiguration corsConfiguration;
+    private String timestamp;
 
 
     public CORSXDSWrapper(CorsXDSWrapperBuilder builder) {
@@ -20,6 +21,7 @@ public class CORSXDSWrapper implements XDSWrapper {
         this.origins = builder.origins;
         this.tenantDomain = builder.tenantDomain;
         this.corsConfiguration = builder.corsConfiguration;
+        this.timestamp = builder.timestamp;
     }
 
     public String getApplicationId() {
@@ -46,6 +48,7 @@ public class CORSXDSWrapper implements XDSWrapper {
         List<String> origins;
         String tenantDomain;
         CORSConfiguration corsConfiguration;
+        String timestamp;
 
         public CorsXDSWrapperBuilder setApplicationId(String applicationId) {
             this.applicationId = applicationId;
@@ -68,6 +71,8 @@ public class CORSXDSWrapper implements XDSWrapper {
         }
 
         public CORSXDSWrapper build() {
+
+            this.timestamp = String.valueOf(System.currentTimeMillis());
             return new CORSXDSWrapper(this);
         }
     }

@@ -18,15 +18,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.xds.client.mgt.datasource.GRPCConnection;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 
 /**
  * Util class for throttler listener.
  */
-public class XDSCUtils {
+public class XDSUtils {
 
-    private static final Log LOG = LogFactory.getLog(XDSCUtils.class);
+    private static final Log LOG = LogFactory.getLog(XDSUtils.class);
 
     /**
      * Publish data to gRPC server.
@@ -38,7 +38,7 @@ public class XDSCUtils {
      * @return True if data is published successfully.
      */
     public static boolean publishData(String tenantDomain, String username, String data,
-                                      XDSConstants.EventType eventType, OperationType operation) {
+                                      XDSConstants.EventType eventType, XDSOperationType operation) {
 
         try {
             ManagedChannel channel = GRPCConnection.getInstance().getEventServiceChannel();

@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.security.keystore;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -24,12 +25,18 @@ import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.security.KeyStoreXDSOperationType;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.CertDataDetail;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
+import org.wso2.carbon.security.model.KeyStoreXDSWrapper;
 
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -174,6 +181,15 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         }
         try {
             keyStoreAdmin.importCertToStore(alias, certificate, keyStoreName);
+            if (isControlPlane()) {
+                KeyStoreXDSWrapper configurationXDSWrapper = new KeyStoreXDSWrapper.KeyStoreXDSWrapperBuilder()
+                        .setAlias(alias)
+                        .setCertificate(certificate)
+                        .setTenantDomain(tenantDomain)
+                        .build();
+                publishData(configurationXDSWrapper, XDSConstants.EventType.KEYSTORE,
+                        KeyStoreXDSOperationType.ADD_CERTIFICATE);
+            }
         } catch (SecurityConfigException e) {
             throw handleServerException(ERROR_CODE_ADD_CERTIFICATE, alias, e);
         }
@@ -188,6 +204,14 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
                 throw handleClientException(ERROR_CODE_CANNOT_DELETE_TENANT_CERT, alias);
             }
             getKeyStoreAdmin(tenantDomain).removeCertFromStore(alias, getKeyStoreName(tenantDomain));
+            if (isControlPlane()) {
+                KeyStoreXDSWrapper configurationXDSWrapper = new KeyStoreXDSWrapper.KeyStoreXDSWrapperBuilder()
+                        .setAlias(alias)
+                        .setTenantDomain(tenantDomain)
+                        .build();
+                publishData(configurationXDSWrapper, XDSConstants.EventType.KEYSTORE,
+                        KeyStoreXDSOperationType.DELETE_CERTIFICATE);
+            }
         } catch (SecurityConfigException e) {
             throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
         }
@@ -337,5 +361,25 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
             message = error.getMessage();
         }
         return message;
+    }
+
+    private String buildJson(KeyStoreXDSWrapper keyStoreXDSWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(keyStoreXDSWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(KeyStoreXDSWrapper keyStoreXDSWrapper, XDSConstants.EventType eventType,
+                             XDSOperationType XDSOperationType) {
+
+        String json = buildJson(keyStoreXDSWrapper);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }
