@@ -4382,26 +4382,24 @@ public class IdPManagementDAO {
     private PreparedStatement createSqlStatement(Connection connection, String sqlQuery, Object... params)
             throws SQLException, IdentityProviderManagementServerException {
 
-        try (PreparedStatement prepStmt =
-                     connection.prepareStatement(sqlQuery)) {
-            if (params != null && params.length > 0) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param == null) {
-                        throw new IdentityProviderManagementServerException("Invalid data provided.");
-                    } else if (param instanceof String) {
-                        prepStmt.setString(i + 1, (String) param);
-                    } else if (param instanceof Integer) {
-                        prepStmt.setInt(i + 1, (Integer) param);
-                    } else if (param instanceof Date) {
-                        prepStmt.setTimestamp(i + 1, new Timestamp(System.currentTimeMillis()));
-                    } else if (param instanceof Boolean) {
-                        prepStmt.setBoolean(i + 1, (Boolean) param);
-                    }
+        PreparedStatement prepStmt = connection.prepareStatement(sqlQuery);
+        if (params != null && params.length > 0) {
+            for (int i = 0; i < params.length; i++) {
+                Object param = params[i];
+                if (param == null) {
+                    throw new IdentityProviderManagementServerException("Invalid data provided.");
+                } else if (param instanceof String) {
+                    prepStmt.setString(i + 1, (String) param);
+                } else if (param instanceof Integer) {
+                    prepStmt.setInt(i + 1, (Integer) param);
+                } else if (param instanceof Date) {
+                    prepStmt.setTimestamp(i + 1, new Timestamp(System.currentTimeMillis()));
+                } else if (param instanceof Boolean) {
+                    prepStmt.setBoolean(i + 1, (Boolean) param);
                 }
             }
-            return prepStmt;
         }
+        return prepStmt;
     }
 
     private int getAuthenticatorIdentifier(Connection dbConnection, int idPId, String authnType)
