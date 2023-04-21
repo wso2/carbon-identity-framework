@@ -30,9 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -50,7 +48,6 @@ public class OptimizedSessionContext implements Serializable {
 
     private final Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
     private final Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;
-    private final String tenantDomain;
     private final boolean isRememberMe;
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
@@ -60,9 +57,6 @@ public class OptimizedSessionContext implements Serializable {
 
     public OptimizedSessionContext(SessionContext sessionContext) throws SessionDataStorageOptimizationException {
 
-        Object authUser = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        this.tenantDomain = authUser instanceof AuthenticatedUser ?
-                ((AuthenticatedUser) authUser).getTenantDomain() : null;
         this.optimizedAuthenticatedSequences = getOptimizedAuthenticatedSequences(
                 sessionContext.getAuthenticatedSequences());
         this.optimizedAuthenticatedIdPs = getOptimizedAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
@@ -82,6 +76,7 @@ public class OptimizedSessionContext implements Serializable {
         Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences = new HashMap<>();
         for (Map.Entry<String, SequenceConfig> entry : authenticatedSequences.entrySet()) {
             SequenceConfig sequenceConfig = entry.getValue();
+            String tenantDomain = sequenceConfig.getApplicationConfig().getServiceProvider().getTenantDomain();
             for (Map.Entry<Integer, StepConfig> mapEntry : sequenceConfig.getStepMap().entrySet()) {
                 StepConfig stepConfig = mapEntry.getValue();
                 List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
@@ -91,12 +86,12 @@ public class OptimizedSessionContext implements Serializable {
                         IdentityProvider idp = idpEntry.getValue();
                         String idpName = idpEntry.getKey();
                         if (StringUtils.isEmpty(idp.getResourceId())) {
-                            idPResourceId.add(getIdPByIdPName(idpName, this.tenantDomain).getResourceId());
+                            idPResourceId.add(getIdPByIdPName(idpName, tenantDomain).getResourceId());
                         } else {
                             idPResourceId.add(idp.getResourceId());
                         }
                         if (StringUtils.isEmpty(authenticatorConfig.getTenantDomain())) {
-                            authenticatorConfig.setTenantDomain(this.tenantDomain);
+                            authenticatorConfig.setTenantDomain(tenantDomain);
                         }
                     }
                     authenticatorConfig.setIdPResourceIds(idPResourceId);
@@ -135,10 +130,6 @@ public class OptimizedSessionContext implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug("Loading process for the session context has started.");
         }
-        if (StringUtils.isEmpty(this.tenantDomain)) {
-            throw new SessionDataStorageOptimizationClientException("Tenant domain is null. " +
-                    " Error occurred while loading the session context.");
-        }
         SessionContext sessionContext = new SessionContext();
         Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
         for (Map.Entry<String, OptimizedSequenceConfig> entry : this.optimizedAuthenticatedSequences.entrySet()) {
@@ -170,7 +161,7 @@ public class OptimizedSessionContext implements Serializable {
         for (Map.Entry<String, OptimizedAuthenticatedIdPData> entry : optimizedMap.entrySet()) {
             String idpName = entry.getKey();
             OptimizedAuthenticatedIdPData optimizedAuthenticatedIdPData = entry.getValue();
-            authenticatedIdPs.put(idpName, optimizedAuthenticatedIdPData.getAuthenticatedIdPData(tenantDomain));
+            authenticatedIdPs.put(idpName, optimizedAuthenticatedIdPData.getAuthenticatedIdPData());
         }
         return authenticatedIdPs;
     }
@@ -178,6 +169,10 @@ public class OptimizedSessionContext implements Serializable {
     private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
+        if (StringUtils.isEmpty(tenantDomain)) {
+            throw new SessionDataStorageOptimizationClientException("Tenant domain is null. " +
+                    " Error occurred while getting idp by name: " + idPName);
+        }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;

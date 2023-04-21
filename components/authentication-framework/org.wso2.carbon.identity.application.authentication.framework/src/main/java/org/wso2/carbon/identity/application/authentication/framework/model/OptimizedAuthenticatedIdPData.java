@@ -57,7 +57,7 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
         return optimizedAuthenticators;
     }
 
-    public AuthenticatedIdPData getAuthenticatedIdPData(String tenantDomain) throws
+    public AuthenticatedIdPData getAuthenticatedIdPData() throws
             SessionDataStorageOptimizationException {
 
         if (log.isDebugEnabled()) {
