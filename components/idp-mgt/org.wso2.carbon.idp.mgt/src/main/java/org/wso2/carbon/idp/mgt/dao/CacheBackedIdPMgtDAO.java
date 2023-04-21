@@ -891,6 +891,13 @@ public class CacheBackedIdPMgtDAO {
         return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
     }
 
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                    Integer limit, Integer offset)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
+    }
+
     /**
      * Retrieves the first matching IDP for the given metadata property.
      * Intended to ony be used to retrieve IDP name based on a unique metadata property.
