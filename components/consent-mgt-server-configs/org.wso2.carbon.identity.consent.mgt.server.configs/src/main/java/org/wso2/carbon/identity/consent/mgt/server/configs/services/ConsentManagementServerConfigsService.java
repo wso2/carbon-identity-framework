@@ -28,7 +28,7 @@ public interface ConsentManagementServerConfigsService {
    /**
     * Method to get external consent page url.
     *
-    * @param tenantDomain                 Tenant domain.
+    * @param tenantDomain  Tenant domain.
     * @return External consent page url.
     * @throws ConsentMgtServerConfigsException If an error occurred in getting the consent url.
     */
