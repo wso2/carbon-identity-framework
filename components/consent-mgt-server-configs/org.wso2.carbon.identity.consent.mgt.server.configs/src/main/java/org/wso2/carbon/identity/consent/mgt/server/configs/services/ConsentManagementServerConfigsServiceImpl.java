@@ -34,8 +34,6 @@ import org.wso2.carbon.identity.consent.mgt.server.configs.exceptions.ConsentMgt
 import org.wso2.carbon.identity.consent.mgt.server.configs.exceptions.ConsentMgtServerConfigsServerException;
 import org.wso2.carbon.identity.consent.mgt.server.configs.internal.ConsentManagementServerConfigsDataHolder;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 

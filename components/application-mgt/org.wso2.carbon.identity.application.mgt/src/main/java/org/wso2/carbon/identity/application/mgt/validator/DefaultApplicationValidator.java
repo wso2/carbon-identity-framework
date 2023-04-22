@@ -295,7 +295,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             return;
         }
         try {
-            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(serviceProvider);
+            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(
+                    serviceProvider.getTenantDomain());
         } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format(EXTERNAL_CONSENT_PAGE_URL_NOT_AVAILABLE);
             log.error(errorMsg, e);
