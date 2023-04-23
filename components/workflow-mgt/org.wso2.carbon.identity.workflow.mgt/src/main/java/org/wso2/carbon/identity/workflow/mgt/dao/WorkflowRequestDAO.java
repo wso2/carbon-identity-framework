@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
+import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 
 import java.io.ByteArrayInputStream;
@@ -38,6 +39,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+
+import static org.wso2.carbon.identity.workflow.mgt.util.SQLConstants.EXTERNAL_WORKFLOW_IDENTIFIER;
 
 public class WorkflowRequestDAO {
 
@@ -130,7 +133,7 @@ public class WorkflowRequestDAO {
      * Retrieve the External Workflow Identifier from Workflow ID.
      *
      * @param workflowId workflow ID retrieve from workflow request
-     * @return External Workflow Identifier
+     * @return External Workflow Identifier that is generated when a workflow is deployed externally
      * @throws InternalWorkflowException
      */
     public String retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
@@ -143,12 +146,13 @@ public class WorkflowRequestDAO {
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowId);
+            prepStmt.setString(2,EXTERNAL_WORKFLOW_IDENTIFIER);
             rs = prepStmt.executeQuery();
             if (rs.next()) {
                 return rs.getString(SQLConstants.PARAM_VALUE_COLUMN);
             }
         } catch (SQLException e) {
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
+             throw new InternalWorkflowException(WFConstant.Exceptions.SQL_ERROR_GETTING_EXTERNAL_WORKFLOW_IDENTIFIER, e);
 
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -157,37 +161,6 @@ public class WorkflowRequestDAO {
 
     }
 
-    /**
-     * Retrieve the Template ID from Request ID.
-     *
-     * @param workflowID workflow ID retrieve from workflow request
-     * @return Return the Template id
-     * @throws InternalWorkflowException
-     */
-    public String retrieveTemplateId(String workflowID) throws InternalWorkflowException {
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-
-        String query = SQLConstants.GET_TEMPLATE_ID_QUERY;
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setString(1, workflowID);
-            rs = prepStmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString(SQLConstants.TEMPLATE_ID_COLUMN);
-            }
-        } catch (SQLException e) {
-
-            throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
-
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
-        }
-        return null;
-
-    }
     /**
      * Get status of a request.
      *

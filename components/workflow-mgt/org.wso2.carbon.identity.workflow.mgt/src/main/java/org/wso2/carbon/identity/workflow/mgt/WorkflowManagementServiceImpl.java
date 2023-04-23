@@ -73,7 +73,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     WorkflowDAO workflowDAO = new WorkflowDAO();
     AssociationDAO associationDAO = new AssociationDAO();
     private RequestEntityRelationshipDAO requestEntityRelationshipDAO = new RequestEntityRelationshipDAO();
-    WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
+    private WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
     private WorkflowRequestAssociationDAO workflowRequestAssociationDAO = new WorkflowRequestAssociationDAO();
 
 
@@ -384,13 +384,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
-    public String getTemplateId(String workflowId) throws WorkflowException {
-
-        return workflowRequestDAO.retrieveTemplateId(workflowId);
-    }
-
-    @Override
-    public String getExternalWorkflowId(String workflowId) throws WorkflowException{
+    public String getExternalWorkflowId(String workflowId) throws WorkflowException {
 
         return workflowRequestDAO.retrieveExternalWorkflowId(workflowId);
     }

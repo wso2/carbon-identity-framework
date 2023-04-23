@@ -96,20 +96,13 @@ public interface WorkflowManagementService {
                      List<Parameter> parameterList, int tenantId) throws WorkflowException;
 
     /**
-     *Get Template ID from workflow Id
+     * Get External workflow Identifier from workflow ID.
+     *
      * @param workflowId workflow ID retrieve from workflow request
      * @return Template ID
      * @throws WorkflowException
      */
-    String getTemplateId(String workflowId) throws  WorkflowException;
-
-    /**
-     * Get external Workflow Identifier (Workflow Deploy ID)
-     * @param workflowId workflow ID retrieve from workflow request
-     * @return External Workflow Identifier
-     * @throws WorkflowException
-     */
-    String getExternalWorkflowId(String workflowId) throws  WorkflowException;
+    String getExternalWorkflowId(String workflowId) throws WorkflowException;
 
     /**
      * Retrieve workflow from workflow ID
@@ -163,6 +156,7 @@ public interface WorkflowManagementService {
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
+     * @deprecated Use {@link #listPaginatedWorkflows(int, int, int, String)} instead.
      */
     @Deprecated
     List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
@@ -237,6 +231,7 @@ public interface WorkflowManagementService {
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
+     * @deprecated Use {@link #listPaginatedAssociations(int, int, int, String)} instead.
      */
     @Deprecated
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
