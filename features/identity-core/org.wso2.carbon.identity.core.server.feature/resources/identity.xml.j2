@@ -1934,6 +1934,7 @@
         <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/workflow/(.*)" secured="false" http-method="PATCH"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
