@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 public class SessionContextLoader {
 
     private static final SessionContextLoader instance = new SessionContextLoader();
-    private static final Log log = LogFactory.getLog(SessionContextLoader.class);
+    private static final Log LOG = LogFactory.getLog(SessionContextLoader.class);
 
     private SessionContextLoader() { }
 
@@ -45,13 +45,12 @@ public class SessionContextLoader {
         return instance;
     }
 
-
     public SessionContextCacheEntry optimizeSessionContextCacheEntry(SessionContextCacheEntry entry)
             throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Optimization process for the session context with context id: %s has started.",
-                    entry.getContextIdentifier()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process has started for the session context with context id: " +
+                    entry.getContextIdentifier());
         }
         OptimizedSessionContext optContext = new OptimizedSessionContext(entry.getContext());
         return new SessionContextCacheEntry(entry, optContext);
@@ -60,9 +59,9 @@ public class SessionContextLoader {
     public SessionContextCacheEntry loadSessionContextCacheEntry(SessionContextCacheEntry entry)
             throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Loading process for the session context with context id: %s has started.",
-                    entry.getContextIdentifier()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process has started for the session context with context id: " +
+                    entry.getContextIdentifier());
         }
         SessionContext context = entry.getOptimizedSessionContext().getSessionContext();
         entry.setContext(context);

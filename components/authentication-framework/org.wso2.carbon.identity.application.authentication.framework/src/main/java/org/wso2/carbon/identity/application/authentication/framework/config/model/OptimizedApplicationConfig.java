@@ -51,7 +51,7 @@ public class OptimizedApplicationConfig implements Serializable {
     private Map<String, String> requestedClaims;
     private Map<String, String> mandatoryClaims;
 
-    private static final Log log = LogFactory.getLog(OptimizedApplicationConfig.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedApplicationConfig.class);
 
     private class OptimizedAuthStep implements Serializable {
 
@@ -172,8 +172,8 @@ public class OptimizedApplicationConfig implements Serializable {
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
             SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the application config has started with service provider resource id: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process for the application config has started with service provider resource id: "
                     + applicationConfig.getServiceProvider().getApplicationResourceId() + " and tenant domain: "
                     + tenantDomain + ".");
         }
@@ -227,8 +227,8 @@ public class OptimizedApplicationConfig implements Serializable {
             authenticationStep.setAttributeStep(authStep.isAttributeStep());
             authenticationSteps[i] = authenticationStep;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Loading the optimized authentication steps is completed successfully");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading the optimized authentication steps is completed successfully");
         }
         return authenticationSteps;
     }

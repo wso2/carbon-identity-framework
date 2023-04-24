@@ -53,7 +53,7 @@ public class OptimizedSessionContext implements Serializable {
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
 
-    private static final Log log = LogFactory.getLog(OptimizedSessionContext.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedSessionContext.class);
 
     public OptimizedSessionContext(SessionContext sessionContext) throws SessionDataStorageOptimizationException {
 
@@ -65,8 +65,8 @@ public class OptimizedSessionContext implements Serializable {
         this.sessionAuthHistory = sessionContext.getSessionAuthHistory();
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
-        if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the session context is completed.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process for the session context is completed.");
         }
     }
 
@@ -127,8 +127,8 @@ public class OptimizedSessionContext implements Serializable {
 
     public SessionContext getSessionContext() throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading process for the session context has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process for the session context has started.");
         }
         SessionContext sessionContext = new SessionContext();
         Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();

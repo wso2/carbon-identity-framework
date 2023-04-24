@@ -49,13 +49,13 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private final List<String> idPResourceIds;
     private final String tenantDomain;
 
-    private static final Log log = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
 
     public OptimizedAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Optimization process for the authenticator config with the name: %s " +
-                    "has started.", authenticatorConfig.getName()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process has started for the authenticator config with the name: "
+                    + authenticatorConfig.getName());
         }
         this.name = authenticatorConfig.getName();
         this.enabled = authenticatorConfig.isEnabled();
@@ -68,9 +68,9 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     public AuthenticatorConfig getAuthenticatorConfig() throws
             SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Loading process for the authenticator config with name: %s has started.",
-                    this.name));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process has started for the authenticator config with name: " +
+                    this.name);
         }
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
         authenticatorConfig.setName(this.name);

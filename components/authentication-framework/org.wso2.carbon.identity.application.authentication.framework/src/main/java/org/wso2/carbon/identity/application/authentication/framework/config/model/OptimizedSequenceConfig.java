@@ -56,12 +56,12 @@ public class OptimizedSequenceConfig implements Serializable {
     private final List<String> requestedAcr;
     private final String tenantDomain;
 
-    private static final Log log = LogFactory.getLog(OptimizedSequenceConfig.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedSequenceConfig.class);
 
     public OptimizedSequenceConfig(SequenceConfig sequenceConfig) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the sequence config has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process for the sequence config has started.");
         }
         this.name = sequenceConfig.getName();
         this.isForceAuthn = sequenceConfig.isForceAuthn();
@@ -89,8 +89,8 @@ public class OptimizedSequenceConfig implements Serializable {
 
     public SequenceConfig getSequenceConfig() throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading process for the sequence config has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process for the sequence config has started.");
         }
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setName(this.name);

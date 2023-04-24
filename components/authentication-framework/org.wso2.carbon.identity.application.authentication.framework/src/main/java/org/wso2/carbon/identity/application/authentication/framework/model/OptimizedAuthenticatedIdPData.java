@@ -37,12 +37,12 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
     private final List<OptimizedAuthenticatorConfig> optimizedAuthenticators;
     private final AuthenticatedUser user;
 
-    private static final Log log = LogFactory.getLog(OptimizedAuthenticatedIdPData.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedAuthenticatedIdPData.class);
 
     public OptimizedAuthenticatedIdPData(AuthenticatedIdPData authenticatedIdPData) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the authenticated IdP data has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process for the authenticated IdP data has started.");
         }
         this.idpName = authenticatedIdPData.getIdpName();
         this.optimizedAuthenticators = getOptimizedAuthenticators(authenticatedIdPData.getAuthenticators());
@@ -60,8 +60,8 @@ public class OptimizedAuthenticatedIdPData implements Serializable {
     public AuthenticatedIdPData getAuthenticatedIdPData() throws
             SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading process for the authenticated IdP has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process for the authenticated IdP has started.");
         }
         AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
         authenticatedIdPData.setIdpName(this.idpName);

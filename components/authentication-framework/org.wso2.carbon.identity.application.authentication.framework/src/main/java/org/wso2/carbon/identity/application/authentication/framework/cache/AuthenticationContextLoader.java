@@ -53,7 +53,7 @@ import java.util.Map;
 public class AuthenticationContextLoader {
 
     private static final AuthenticationContextLoader instance = new AuthenticationContextLoader();
-    private static final Log log = LogFactory.getLog(AuthenticationContextLoader.class);
+    private static final Log LOG = LogFactory.getLog(AuthenticationContextLoader.class);
 
     private AuthenticationContextLoader() { }
 
@@ -76,9 +76,9 @@ public class AuthenticationContextLoader {
     public void optimizeAuthenticationContext(AuthenticationContext context)
             throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Optimization process for the authentication context with context id : %s " +
-                    "has started.", context.getContextIdentifier()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process has started for the authentication context with context id: " +
+                    context.getContextIdentifier());
         }
         optimizeExternalIdP(context);
         optimizeAuthenticatorConfig(context);
@@ -95,9 +95,9 @@ public class AuthenticationContextLoader {
     public void loadAuthenticationContext(AuthenticationContext context) throws
             SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Loading process for the authentication context with context id : %s " +
-                    "has started.", context.getContextIdentifier()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process has started for the authentication context with context id: " +
+                    context.getContextIdentifier());
         }
         loadExternalIdP(context);
         loadAuthenticatorConfig(context);
