@@ -58,6 +58,8 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
@@ -589,38 +591,29 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // Check whether the authentication flow includes a SAML federated IdP and
             // store the saml index with the session context key for the single logout.
             if (context.getAuthenticationStepHistory() != null) {
-                UserSessionStore userSessionStore = UserSessionStore.getInstance();
                 for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
                     if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
-                                int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
-                                if (!userSessionStore.isExistingFederatedAuthSessionAvailable(
-                                        authHistory.getIdpSessionIndex(), tenantId)) {
-                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory,
-                                            tenantId);
+                            if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
+                                int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
+                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain()).getId());
+                                if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
+                                    storeFedAuthSessionWithTenantIdAndIdpId(context.getTenantDomain(),
+                                            sessionContextKey, authHistory, idpId);
                                 } else {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(String.format("Federated auth session with the id: %s already " +
-                                                "exists.", authHistory.getIdpSessionIndex()));
-                                    }
-                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
-                                            tenantId);
+                                    storeFedAuthSessionWithIdpId(context.getTenantDomain(), sessionContextKey,
+                                            authHistory);
                                 }
                             } else {
-                                if (!userSessionStore.hasExistingFederatedAuthSession(
-                                        authHistory.getIdpSessionIndex())) {
-                                    userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
+                                    storeFedAuthSessionWithTenantId(context.getTenantDomain(), sessionContextKey,
+                                            authHistory);
                                 } else {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(String.format("Federated auth session with the id: %s already " +
-                                                "exists.", authHistory.getIdpSessionIndex()));
-                                    }
-                                    userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                                    storeFedAuthSessionMapping(sessionContextKey, authHistory);
                                 }
                             }
-                        } catch (UserSessionException e) {
+                        } catch (UserSessionException | IdentityProviderManagementException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
                                     + "of the authenticated user to the database", e);
                         }
@@ -654,6 +647,73 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    private void storeFedAuthSessionMapping(String sessionContextKey, AuthHistory authHistory)
+            throws UserSessionException {
+
+        UserSessionStore userSessionStore = UserSessionStore.getInstance();
+        if (!userSessionStore.hasExistingFederatedAuthSession(
+                authHistory.getIdpSessionIndex())) {
+            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Federated auth session with the id: %s already " +
+                        "exists.", authHistory.getIdpSessionIndex()));
+            }
+            userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
+        }
+    }
+
+    private void storeFedAuthSessionWithTenantId(String tenantDomain, String sessionContextKey,
+             AuthHistory authHistory) throws UserSessionException {
+
+        UserSessionStore userSessionStore = UserSessionStore.getInstance();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex(), tenantId)) {
+            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Federated auth session with the id: %s already " +
+                        "exists.", authHistory.getIdpSessionIndex()));
+            }
+            userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                    tenantId);
+        }
+    }
+
+    private void storeFedAuthSessionWithIdpId(String tenantDomain, String sessionContextKey,
+            AuthHistory authHistory) throws UserSessionException, IdentityProviderManagementException {
+
+        UserSessionStore userSessionStore = UserSessionStore.getInstance();
+        int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
+                .getIdPByName(authHistory.getIdpName(), tenantDomain).getId());
+        if (!userSessionStore.hasExistingFederatedAuthSessionWithIdpId(authHistory.getIdpSessionIndex(), idpId)) {
+            userSessionStore.storeFederatedAuthSessionInfoWithIdpId(sessionContextKey, authHistory, idpId);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Federated auth session with the session id: %s and idp id: %s already exists.",
+                        authHistory.getIdpSessionIndex(), idpId));
+            }
+            userSessionStore.updateFederatedAuthSessionInfoWithIdpId(sessionContextKey, authHistory, idpId);
+        }
+    }
+
+    private void storeFedAuthSessionWithTenantIdAndIdpId(String tenantDomain, String sessionContextKey,
+             AuthHistory authHistory, int idpId) throws UserSessionException {
+
+        UserSessionStore userSessionStore = UserSessionStore.getInstance();
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex(), tenantId, idpId)) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Federated auth session with the id: %s already exists for IDP Id: %s",
+                        authHistory.getIdpSessionIndex(), idpId));
+            }
+            userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId, idpId);
+        } else {
+            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory,
+                    tenantId, idpId);
+        }
     }
 
     private void handleSessionContextUpdate(String requestType, String sessionContextKey, SessionContext sessionContext,
