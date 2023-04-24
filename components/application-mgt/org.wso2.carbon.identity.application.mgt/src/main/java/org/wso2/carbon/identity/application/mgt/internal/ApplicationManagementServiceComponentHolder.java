@@ -21,7 +21,6 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.consent.mgt.server.configs.services.ConsentManagementServerConfigsService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.api.RegistryService;
@@ -60,8 +59,6 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
 
     private boolean isOrganizationManagementEnable = false;
-
-    private static ConsentManagementServerConfigsService consentManagementServerConfigsService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -251,27 +248,5 @@ public class ApplicationManagementServiceComponentHolder {
     public ApplicationPermissionProvider getApplicationPermissionProvider() {
 
         return applicationPermissionProvider;
-    }
-
-    /**
-     * Get Consent Management Server Configs Service.
-     *
-     * @return Consent Management Server Configs Service.
-     */
-    public static ConsentManagementServerConfigsService getConsentManagementServerConfigsService() {
-
-        return ApplicationManagementServiceComponentHolder.consentManagementServerConfigsService;
-    }
-
-    /**
-     * Set Consent Management Server Configs Service.
-     *
-     * @param consentManagementServerConfigsService Consent Management Server Configs Service.
-     */
-    public static void setConsentManagementServerConfigsService(ConsentManagementServerConfigsService
-                                                                        consentManagementServerConfigsService) {
-
-        ApplicationManagementServiceComponentHolder.consentManagementServerConfigsService =
-                consentManagementServerConfigsService;
     }
 }

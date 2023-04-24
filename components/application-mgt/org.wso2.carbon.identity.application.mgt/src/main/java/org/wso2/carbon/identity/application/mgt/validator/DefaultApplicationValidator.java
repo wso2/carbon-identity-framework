@@ -26,21 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -138,7 +124,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
         }
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            validateUseExternalConsentPage(validationErrors, serviceProvider);
+            validateExternalizedConsentPageConfig(validationErrors,
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig().getExternalizedConsentPageConfig());
         }
 
         return validationErrors;
@@ -282,25 +269,20 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
     }
 
-    /** Validate external consent page related configurations and append to the validation msg list.
+    /** Validate externalized consent page related configurations and append to the validation msg list.
      *
-     * @param validationMsg       Validation error messages
-     * @param serviceProvider     Service Provider
+     * @param validationMsg                     validation error messages
+     * @param externalizedConsentPageConfig     externalized consent page config
      */
-    private void validateUseExternalConsentPage(List<String> validationMsg, ServiceProvider serviceProvider) {
+    private void validateExternalizedConsentPageConfig(List<String> validationMsg, ExternalizedConsentPageConfig
+            externalizedConsentPageConfig) {
 
-        boolean isUseExternalConsentPage = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                .isUseExternalConsentPage();
-        if (!isUseExternalConsentPage) {
+        if (externalizedConsentPageConfig == null) {
             return;
         }
-        try {
-            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(
-                    serviceProvider.getTenantDomain());
-        } catch (IdentityApplicationManagementException e) {
-            String errorMsg = String.format(EXTERNAL_CONSENT_PAGE_URL_NOT_AVAILABLE);
-            log.error(errorMsg, e);
-            validationMsg.add(errorMsg);
+        if (externalizedConsentPageConfig.isEnabled() && StringUtils.isBlank(
+                externalizedConsentPageConfig.getConsentPageUrl())) {
+            validationMsg.add("No external consent page url is configured when externalized consent page is enabled.");
         }
     }
 
