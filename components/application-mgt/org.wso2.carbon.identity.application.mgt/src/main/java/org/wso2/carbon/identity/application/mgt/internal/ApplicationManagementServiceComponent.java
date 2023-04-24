@@ -58,7 +58,6 @@ import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
-import org.wso2.carbon.identity.consent.mgt.server.configs.services.ConsentManagementServerConfigsService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -456,38 +455,4 @@ public class ApplicationManagementServiceComponent {
             log.debug("Removed application permission provider.");
         }
     }
-
-    @Reference(
-            name = "resource.consent.mgt.server.configs.service",
-            service = ConsentManagementServerConfigsService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetConsentManagementServerConfigsService"
-    )
-
-    /**
-     * This method is used to set the Consent Management Server Configs Service.
-     *
-     * @param consentManagementServerConfigsService The Consent Management Server Configs Service which needs to be set.
-     */
-    protected void setConsentManagementServerConfigsService(ConsentManagementServerConfigsService
-                                                                    consentManagementServerConfigsService) {
-
-        ApplicationManagementServiceComponentHolder.setConsentManagementServerConfigsService(
-                consentManagementServerConfigsService);
-        log.debug("Setting the Consent Management Server Configs.");
-    }
-
-    /**
-     * This method is used to unset the Consent Management Server Configs Service.
-     *
-     * @param consentManagementServerConfigsService The Consent Management Server Configs Service which needs to unset.
-     */
-    protected void unsetConsentManagementServerConfigsService(ConsentManagementServerConfigsService
-                                                                      consentManagementServerConfigsService) {
-
-        ApplicationManagementServiceComponentHolder.setConsentManagementServerConfigsService(null);
-        log.debug("Unsetting the Consent Management Server Configs.");
-    }
-
 }
