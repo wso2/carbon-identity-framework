@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -131,16 +132,57 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (sessionContext != null && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
                 sessionContext.getSessionAuthHistory() != null &&
                         sessionContext.getSessionAuthHistory().getHistory() != null) {
-            for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
-                if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
-                    try {
-                        UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier());
-                        break;
-                    } catch (UserSessionException e) {
-                        throw new FrameworkException("Error while deleting federated authentication session details for"
-                                + " the session context key :" + context.getSessionIdentifier(), e);
+            if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
+                String fedIdpName = StringUtils.EMPTY;
+                if (context.getSubject() != null) {
+                    fedIdpName = context.getSubject().getFederatedIdPName();
+                }
+                if (StringUtils.isNotBlank(fedIdpName)) {
+                    for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                        if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) && fedIdpName.equals(authHistory
+                                .getIdpName())) {
+                            try {
+                                int fedIdpId = Integer.parseInt(IdentityProviderManager.getInstance()
+                                        .getIdPByName(fedIdpName, context.getTenantDomain()).getId());
+                                UserSessionStore.getInstance().removeFederatedAuthSessionInfo(
+                                        context.getSessionIdentifier(), fedIdpId);
+                                break;
+                            } catch (UserSessionException | IdentityProviderManagementException
+                                     | NumberFormatException e) {
+                                throw new FrameworkException("Error while deleting federated authentication session " +
+                                        "details for the session context key : " + context.getSessionIdentifier(), e);
+                            }
+                        }
                     }
                 }
+            } else {
+                for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
+                        try {
+                            UserSessionStore.getInstance()
+                                    .removeFederatedAuthSessionInfo(context.getSessionIdentifier());
+                            break;
+                        } catch (UserSessionException e) {
+                            throw new FrameworkException("Error while deleting federated authentication session" +
+                                    " details for the session context key : " + context.getSessionIdentifier(), e);
+                        }
+                    }
+                }
+            }
+        } else if (context.getProperty(FrameworkConstants.FED_IDP_ID) != null) {
+
+            /*
+             * There exists a fed idp id which is set by outbound auth saml logout processor.
+             * Not explicitly checking for existence of IDP_ID column in FED_AUTH_SESSION_MAPPING table here because
+             * FED_IDP_ID will only be set if IDP_ID column exists.
+             */
+
+            try {
+                UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier(),
+                        Integer.parseInt(context.getProperty(FrameworkConstants.FED_IDP_ID).toString()));
+            } catch (UserSessionException | NumberFormatException e) {
+                throw new FrameworkException("Error while deleting federated authentication session" +
+                        " details for the session context key : " + context.getSessionIdentifier(), e);
             }
         }
 
