@@ -952,5 +952,5 @@ public class ApplicationMgtUtil {
         }
         return StringUtils.EMPTY;
     }
-    
+
 }
