@@ -329,7 +329,7 @@ public abstract class FrameworkConstants {
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
 
         /**
-         * Configuration used session data storage optimization.
+         * Configuration used for session data storage optimization.
          */
         public static final String SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable";

@@ -46,12 +46,12 @@ public class OptimizedStepConfig implements Serializable {
     private final boolean retrying;
     private final boolean forced;
 
-    private static final Log log = LogFactory.getLog(OptimizedStepConfig.class);
+    private static final Log LOG = LogFactory.getLog(OptimizedStepConfig.class);
 
     public OptimizedStepConfig(StepConfig stepConfig) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Optimization process for the step config has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Optimization process for the step config has started.");
         }
         this.order = stepConfig.getOrder();
         this.loginPage = stepConfig.getLoginPage();
@@ -81,8 +81,8 @@ public class OptimizedStepConfig implements Serializable {
 
     public StepConfig getStepConfig() throws SessionDataStorageOptimizationException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading process for the step config has started.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading process for the step config has started.");
         }
         StepConfig stepConfig = new StepConfig();
         stepConfig.setOrder(this.order);

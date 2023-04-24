@@ -32,6 +32,8 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
+
 /**
  * This class is used to cache the data about the
  * authentication request sent from a servlet.
@@ -56,10 +58,9 @@ public class AuthenticationContextCache extends
         } else {
             isTemporarySessionDataPersistEnabled = false;
         }
-        if (IdentityUtil.getProperty(
-                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable") != null) {
+        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
             isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
-                    "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable"));
+                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
         } else {
             isSessionDataStorageOptimizationEnabled = true;
         }
@@ -116,8 +117,8 @@ public class AuthenticationContextCache extends
                         AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
                     } catch (SessionDataStorageOptimizationClientException e) {
                         if (log.isDebugEnabled()) {
-                            log.debug(String.format("Client error occurred while optimizing the Authentication " +
-                                    "context with context id: %s", entry.getContext().getContextIdentifier()), e);
+                            log.debug("Client error occurred while optimizing the Authentication context with " +
+                                    "context id: " + entry.getContext().getContextIdentifier(), e);
                         }
                         return;
                     } catch (SessionDataStorageOptimizationServerException e) {
@@ -125,8 +126,10 @@ public class AuthenticationContextCache extends
                                 "context id: " + entry.getContext().getContextIdentifier(), e);
                         return;
                     } catch (SessionDataStorageOptimizationException e) {
-                        log.debug("Error occurred while optimizing the Authentication context with " +
-                                "context id: " + entry.getContext().getContextIdentifier(), e);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Error occurred while optimizing the Authentication context with " +
+                                    "context id: " + entry.getContext().getContextIdentifier(), e);
+                        }
                         return;
                     }
                 }
@@ -136,15 +139,17 @@ public class AuthenticationContextCache extends
                     AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
                 } catch (SessionDataStorageOptimizationClientException e) {
                     if (log.isDebugEnabled()) {
-                        log.debug(String.format("Client error occurred while loading optimized authentication context"
-                                + " with context id: %s", entry.getContext().getContextIdentifier()), e);
+                        log.debug("Client error occurred while loading optimized authentication context"
+                                + " with context id: " + entry.getContext().getContextIdentifier(), e);
                     }
                 } catch (SessionDataStorageOptimizationServerException e) {
                     log.error("Server error occurred while loading optimized authentication " +
                             "context with context id: " + entry.getContext().getContextIdentifier(), e);
                 } catch (SessionDataStorageOptimizationException e) {
-                    log.debug("Error occurred while loading optimized authentication " +
-                            "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error occurred while loading optimized authentication " +
+                                "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                    }
                 }
             }
         }
@@ -178,17 +183,19 @@ public class AuthenticationContextCache extends
                 AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
             } catch (SessionDataStorageOptimizationClientException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Client error occurred while loading optimized authentication context"
-                            + " with context id: %s", entry.getContext().getContextIdentifier()), e);
+                    log.debug("Client error occurred while loading optimized authentication context " +
+                            "with context id: " + entry.getContext().getContextIdentifier(), e);
                 }
                 entry = null;
             } catch (SessionDataStorageOptimizationServerException e) {
-                log.error("Server error occurred while loading optimized authentication " +
-                        "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                log.error("Server error occurred while loading optimized authentication context " +
+                        "with context id: " + entry.getContext().getContextIdentifier(), e);
                 entry = null;
             } catch (SessionDataStorageOptimizationException e) {
-                log.debug("Error occurred while loading optimized authentication " +
-                        "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while loading optimized authentication context " +
+                            "with context id: " + entry.getContext().getContextIdentifier(), e);
+                }
                 entry = null;
             }
         }
