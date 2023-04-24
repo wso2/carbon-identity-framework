@@ -34,11 +34,12 @@ public class Constants {
      */
     public enum ErrorMessages {
 
-        ERROR_NO_EXTERNAL_CONSENT_PAGE_CONFIGURATIONS_FOUND("70001",
+        //Client error codes.
+        ERROR_NO_EXTERNAL_CONSENT_PAGE_CONFIGURATIONS_FOUND("60001",
                 "External consent page configurations are not found.",
                 "External consent page configurations are not configured for the tenant: %s"),
 
-        ERROR_NO_EXTERNAL_CONSENT_PAGE_URL_FOUND("70001",
+        ERROR_NO_EXTERNAL_CONSENT_PAGE_URL_FOUND("60002",
                 "External consent page url is not found.",
                 "External consent page url is not configured for the tenant: %s"),
 
@@ -46,8 +47,6 @@ public class Constants {
         ERROR_GETTING_EXISTING_CONFIGURATIONS("65001",
                 "Unable to get external consent page configurations.",
                 "Error occurred while getting the external consent page configurations for the tenant: %s");
-
-
 
         private final String code;
         private final String message;
