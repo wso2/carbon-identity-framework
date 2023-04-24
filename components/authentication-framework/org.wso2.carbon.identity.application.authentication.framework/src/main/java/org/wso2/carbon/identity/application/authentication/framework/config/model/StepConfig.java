@@ -240,7 +240,8 @@ public class StepConfig implements Serializable {
 
     /**
      * This method is used to set the name of the authenticated authenticator config.
-     * @param name name of the authenticated authenticator config
+     *
+     * @param name Name of the authenticated authenticator config.
      */
     public void setAuthenticatedAuthenticatorName(String name) {
 
@@ -249,7 +250,8 @@ public class StepConfig implements Serializable {
 
     /**
      * This method is used to get the name of the authenticated authenticator config.
-     * @return name of the authenticated authenticator config
+     *
+     * @return Name of the authenticated authenticator config.
      */
     public String getAuthenticatedAuthenticatorName() {
 

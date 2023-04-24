@@ -38,7 +38,7 @@ public class SessionContextLoader {
     /**
      * Singleton method of the Session Context Loader class.
      *
-     * @return Session Context Loader object
+     * @return Session Context Loader object.
      */
     public static SessionContextLoader getInstance() {
 

@@ -114,7 +114,7 @@ public class OptimizedApplicationConfig implements Serializable {
         /**
          * This method is used to get the step order of the authentication step.
          *
-         * @return step order
+         * @return Step order.
          */
         public int getStepOrder() {
 
@@ -124,7 +124,7 @@ public class OptimizedApplicationConfig implements Serializable {
         /**
          * This method is used to get the local authenticator config names of authentication step.
          *
-         * @return list of authenticator config names
+         * @return List of authenticator config names.
          */
         public List<String> getLocalAuthenticatorConfigNames() {
 
@@ -134,7 +134,7 @@ public class OptimizedApplicationConfig implements Serializable {
         /**
          * This method is used to get the resource ids of the federated IdPs of authentication step.
          *
-         * @return list of resource ids
+         * @return List of resource ids.
          */
         public List<String> getFederatedIdPResourceIds() {
 
@@ -144,7 +144,7 @@ public class OptimizedApplicationConfig implements Serializable {
         /**
          * This method is used to get the subject step of the authentication step.
          *
-         * @return subject step
+         * @return Subject step.
          */
         public boolean isSubjectStep() {
 
@@ -154,7 +154,7 @@ public class OptimizedApplicationConfig implements Serializable {
         /**
          * This method is used to get the attribute step of the authentication step.
          *
-         * @return attribute step
+         * @return Attribute step.
          */
         public boolean isAttributeStep() {
 
@@ -165,9 +165,9 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * Initialize optimized application config.
      *
-     * @param applicationConfig application config
-     * @param tenantDomain tenant domain of the application
-     * @throws SessionDataStorageOptimizationException Error when optimizing authentication step
+     * @param applicationConfig Application config.
+     * @param tenantDomain Tenant domain of the application.
+     * @throws SessionDataStorageOptimizationException Error when optimizing authentication step.
      */
     public OptimizedApplicationConfig(ApplicationConfig applicationConfig, String tenantDomain) throws
             SessionDataStorageOptimizationException {
@@ -198,7 +198,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get the service provider's resource id.
      *
-     * @return resource id of the service provider
+     * @return Resource id of the service provider.
      */
     public String getServiceProviderResourceId() {
 
@@ -208,9 +208,9 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get the array of authentication steps using optimized authentication steps.
      *
-     * @param tenantDomain tenant domain of the application
-     * @return array of authentication step
-     * @throws FrameworkException Error when getting federated identity providers
+     * @param tenantDomain Tenant domain of the application.
+     * @return Array of authentication step.
+     * @throws FrameworkException Error when getting federated identity providers.
      */
     public AuthenticationStep[] getAuthenticationSteps(String tenantDomain) throws FrameworkException {
 
@@ -272,7 +272,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get is the mapped subject id selected.
      *
-     * @return mapped subject id selected
+     * @return Mapped subject id selected.
      */
     public boolean isMappedSubjectIDSelected() {
 
@@ -282,7 +282,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get the claim mappings.
      *
-     * @return claim mappings
+     * @return Claim mappings.
      */
     public Map<String, String> getClaimMappings() {
 
@@ -292,7 +292,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get the role mappings.
      *
-     * @return role mappings
+     * @return Role mappings.
      */
     public Map<String, String> getRoleMappings() {
 
@@ -302,7 +302,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to the requested claims.
      *
-     * @return requested claims
+     * @return Requested claims.
      */
     public Map<String, String> getRequestedClaims() {
 
@@ -312,7 +312,7 @@ public class OptimizedApplicationConfig implements Serializable {
     /**
      * This method is used to get the mandatory claims.
      *
-     * @return mandatory claims.
+     * @return Mandatory claims.
      */
     public Map<String, String> getMandatoryClaims() {
 

@@ -59,7 +59,7 @@ public class AuthenticationContextLoader {
 
     /**
      * Singleton method.
-     * @return Authentication Context Loader
+     * @return Authentication Context Loader.
      */
     public static AuthenticationContextLoader getInstance() {
 
@@ -71,7 +71,7 @@ public class AuthenticationContextLoader {
      *
      * @param context Authentication context
      * @throws SessionDataStorageOptimizationException Error when optimizing the authenticator configs and
-     * application config
+     * application config.
      */
     public void optimizeAuthenticationContext(AuthenticationContext context)
             throws SessionDataStorageOptimizationException {
@@ -90,7 +90,7 @@ public class AuthenticationContextLoader {
      *
      * @param context Authentication context
      * @throws SessionDataStorageOptimizationException Error when loading the external idp, authenticator configs,
-     * and application config
+     * and application config.
      */
     public void loadAuthenticationContext(AuthenticationContext context) throws
             SessionDataStorageOptimizationException {
